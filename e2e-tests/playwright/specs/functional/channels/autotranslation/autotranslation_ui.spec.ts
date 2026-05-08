@@ -380,8 +380,7 @@ test(
     },
 );
 
-// FIXME: Fails with PW_WORKERS=2 — async-wait-until timeout due to concurrent worker interference.
-test.fixme(
+test(
     'autotranslation badge is only visible on translated channels',
     {
         tag: ['@autotranslation'],

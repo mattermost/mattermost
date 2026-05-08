@@ -358,8 +358,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await userDetail.waitForSaveComplete();
     });
 
-    // FIXME: Consistently fails with "Failed to update user" — server rejects CPA save due to cross-shard field race.
-    test.fixme('Should display custom multiselect attribute and save form', async () => {
+    test('Should display custom multiselect attribute and save form', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 

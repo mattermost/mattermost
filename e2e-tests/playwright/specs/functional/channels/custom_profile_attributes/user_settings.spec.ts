@@ -138,8 +138,7 @@ test.afterAll(async () => {
  * 4. Two user accounts (test user and other user) exist
  * 5. Both users are members of the same channel
  */
-// FIXME: Consistently failing in CI — CPA field-theft race between concurrent shards.
-test.fixme('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
+test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
     // 1. Login as the test user
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto();
