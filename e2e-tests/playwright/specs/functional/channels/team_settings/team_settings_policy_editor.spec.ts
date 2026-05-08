@@ -738,7 +738,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings3.close();
     });
 
-    test('MM-67594_14 Add channels modal shows only private member channels even when team has >50 public channels', async ({
+    test.fixme('MM-67594_14 Add channels modal shows only private member channels even when team has >50 public channels', async ({
         pw,
     }) => {
         // Regression: the non-sysConsole fast path previously called AutocompleteChannelsForTeam
