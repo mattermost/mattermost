@@ -7,7 +7,7 @@ import styled from 'styled-components';
 
 import type {SharedChannelInvitation} from '@mattermost/types/shared_channels';
 
-import {LinkButton} from '../controls';
+import {LinkButton} from 'components/admin_console/secure_connections/controls';
 
 const BusyInline = styled.span`
     display: inline-flex;

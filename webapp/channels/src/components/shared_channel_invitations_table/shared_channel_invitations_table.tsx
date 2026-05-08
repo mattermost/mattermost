@@ -6,18 +6,17 @@ import React, {useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 import type {SharedChannelInvitation} from '@mattermost/types/shared_channels';
 
-import WithTooltip from 'components/with_tooltip';
+import {AdminConsoleListTable} from 'components/admin_console/list_table';
 
 import {DirectionLabel} from './direction_label';
 import {InvitationChannelCell} from './invitation_channel_cell';
 import {InvitationRecordedAt} from './invitation_recorded_at';
 import {InvitationStatusLabel} from './invitation_status_label';
 import {RemoveInvitationCell} from './remove_invitation_cell';
-
-import {AdminConsoleListTable} from '../../list_table';
 
 const invitationColumnHelper = createColumnHelper<SharedChannelInvitation>();
 

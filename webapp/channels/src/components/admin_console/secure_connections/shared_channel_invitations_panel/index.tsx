@@ -14,11 +14,10 @@ import {Client4} from 'mattermost-redux/client';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 
 import LoadingScreen from 'components/loading_screen';
+import SharedChannelInvitationsTable from 'components/shared_channel_invitations_table';
 import Tag from 'components/widgets/tag/tag';
 
 import type {GlobalState} from 'types/store';
-
-import {SharedChannelInvitationsTable} from './shared_channel_invitations_table';
 
 import {
     SectionContent,

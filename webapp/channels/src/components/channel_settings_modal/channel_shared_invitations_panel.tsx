@@ -13,8 +13,8 @@ import {getChannel as fetchChannelAction} from 'mattermost-redux/actions/channel
 import {Client4} from 'mattermost-redux/client';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 
-import {SharedChannelInvitationsTable} from 'components/admin_console/secure_connections/shared_channel_invitations_panel/shared_channel_invitations_table';
 import LoadingScreen from 'components/loading_screen';
+import SharedChannelInvitationsTable from 'components/shared_channel_invitations_table';
 import Tag from 'components/widgets/tag/tag';
 
 import type {GlobalState} from 'types/store';
