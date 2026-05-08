@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 
 import {ArrowLeftIcon, ArrowRightIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 
 import PreviewModalContent from './preview_modal_content';
 import {modalContent} from './preview_modal_content_data';
@@ -68,20 +69,20 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
 
             <div className='preview-modal-controller__navigation-buttons'>
                 {isFirstSlide && (
-                    <button
-                        className='btn btn-quaternary'
+                    <Button
+                        emphasis='quaternary'
                         onClick={handleSkip}
                     >
                         {intl.formatMessage({
                             id: 'cloud_preview_modal.skip',
                             defaultMessage: 'Skip for now',
                         })}
-                    </button>
+                    </Button>
                 )}
 
                 {!isFirstSlide && (
-                    <button
-                        className='btn btn-tertiary'
+                    <Button
+                        emphasis='tertiary'
                         onClick={handlePrevious}
                     >
                         <ArrowLeftIcon size={18}/>
@@ -89,11 +90,11 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                             id: 'cloud_preview_modal.previous',
                             defaultMessage: 'Previous',
                         })}
-                    </button>
+                    </Button>
                 )}
 
-                <button
-                    className='btn btn-primary'
+                <Button
+                    emphasis='primary'
                     onClick={isLastSlide ? onClose : handleNext}
                 >
                     {isLastSlide ? (
@@ -110,7 +111,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                             <ArrowRightIcon size={18}/>
                         </>
                     )}
-                </button>
+                </Button>
             </div>
         </div>
     );

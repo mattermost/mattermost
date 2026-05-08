@@ -1,0 +1,400 @@
+---
+name: E2E Tests - Cypress Template (v2 - test system io dispatch)
+
+# Delegates Cypress spec dispatch + reporting to test system io.
+# Authenticates via GitHub Actions OIDC; calling job MUST grant
+# `id-token: write`.
+
+on:
+  workflow_call:
+    inputs:
+      test_type:
+        description: "Type of test run (smoke or full)"
+        type: string
+        required: true
+      workers:
+        description: "Number of parallel test system io dispatch workers"
+        type: number
+        required: false
+        default: 40
+      enabled_docker_services:
+        description: "Space-separated list of docker services to enable"
+        type: string
+        required: false
+        default: "postgres inbucket minio openldap elasticsearch keycloak"
+
+      commit_sha:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: true
+      build_id:
+        type: string
+        required: true
+      server_image_tag:
+        description: "Server image tag (e.g., master or short SHA)"
+        type: string
+        required: true
+      server:
+        type: string
+        required: false
+        default: onprem
+      server_edition:
+        description: "Server edition: enterprise (default), fips, or team"
+        type: string
+        required: false
+        default: enterprise
+      server_image_repo:
+        description: "Docker registry: mattermostdevelopment (default) or mattermost"
+        type: string
+        required: false
+        default: mattermostdevelopment
+      server_image_aliases:
+        description: "Comma-separated alias tags for description"
+        type: string
+        required: false
+
+      enable_reporting:
+        type: boolean
+        required: false
+        default: false
+      report_type:
+        type: string
+        required: false
+      ref_branch:
+        type: string
+        required: false
+      pr_number:
+        type: string
+        required: false
+      context_name:
+        description: "GitHub commit status context name"
+        type: string
+        required: true
+
+      cypress_stage:
+        description: "Comma-separated `// Stage:` tags; spec must share at least one. Empty disables filter."
+        type: string
+        required: false
+        default: "@prod"
+      cypress_include_group:
+        description: "Comma-separated `// Group:` tags; spec must share at least one. Empty disables filter."
+        type: string
+        required: false
+        default: ""
+      cypress_exclude_group:
+        description: "Comma-separated `// Group:` tags; spec dropped if it shares any."
+        type: string
+        required: false
+        default: "@te_only,@cloud_only,@high_availability"
+      cypress_skip_on:
+        description: "Comma-separated active-env tag(s); spec dropped if its `// Skip:` line shares any."
+        type: string
+        required: false
+        default: "@headless"
+      cypress_sort_first:
+        description: "Comma-separated `// Group:` tags; matching specs dispatch first."
+        type: string
+        required: false
+        default: "@compliance_export,@elasticsearch,@ldap_group,@ldap"
+      cypress_sort_last:
+        description: "Comma-separated `// Group:` tags; matching specs dispatch last."
+        type: string
+        required: false
+        default: "@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
+      retest_on_fail:
+        description: "Re-dispatch failed dispatch units once (whole-spec retry, on top of cypress.config retries)"
+        type: boolean
+        required: false
+        default: true
+
+    secrets:
+      MM_LICENSE:
+        required: false
+      AUTOMATION_DASHBOARD_URL:
+        required: false
+      AUTOMATION_DASHBOARD_TOKEN:
+        required: false
+      PUSH_NOTIFICATION_SERVER:
+        required: false
+      REPORT_WEBHOOK_URL:
+        required: false
+      CWS_URL:
+        required: false
+      CWS_EXTRA_HTTP_HEADERS:
+        required: false
+
+# Callers must grant: contents: read, statuses: write, id-token: write
+permissions:
+  contents: read
+  statuses: write
+  id-token: write
+  pull-requests: write
+
+env:
+  SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
+
+jobs:
+  update-initial-status:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      statuses: write
+    steps:
+      - name: ci/set-initial-status
+        uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.context_name }}
+          description: "tests running, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
+          status: pending
+
+  dispatch-begin:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    outputs:
+      composite-identity-json: ${{ steps.composite-identity.outputs.composite-identity-json }}
+      workers-matrix: ${{ steps.matrix.outputs.workers }}
+      start_time: ${{ steps.matrix.outputs.start_time }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 1
+      - name: ci/composite-identity
+        id: composite-identity
+        env:
+          CONTEXT_NAME: ${{ inputs.context_name }}
+          MM_SHA: ${{ inputs.commit_sha }}
+          MM_BRANCH: ${{ inputs.branch }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          # Derive the test-system-io run name from the GitHub commit-status
+          # context: drop the `e2e-test/` prefix (the framework name already
+          # implies E2E in the dashboard) and swap remaining `/` for `-` so
+          # the dashboard URL is path-safe. The commit-status context itself
+          # stays unchanged elsewhere — branch protection rules depend on it.
+          NAME="${CONTEXT_NAME#e2e-test/}"
+          NAME="${NAME//\//-}"
+          # gh_pr_number is optional; include it only when present.
+          if [ -n "$PR_NUMBER" ]; then
+            COMPOSITE_IDENTITY=$(jq -nc \
+              --arg repo "${{ github.repository }}" \
+              --arg sha "${MM_SHA}" \
+              --arg run_id "${GITHUB_RUN_ID}" \
+              --arg name "${NAME}" \
+              --arg attempt "${GITHUB_RUN_ATTEMPT}" \
+              --arg branch "${MM_BRANCH}" \
+              --arg pr "${PR_NUMBER}" \
+              '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch, gh_pr_number:$pr}')
+          else
+            COMPOSITE_IDENTITY=$(jq -nc \
+              --arg repo "${{ github.repository }}" \
+              --arg sha "${MM_SHA}" \
+              --arg run_id "${GITHUB_RUN_ID}" \
+              --arg name "${NAME}" \
+              --arg attempt "${GITHUB_RUN_ATTEMPT}" \
+              --arg branch "${MM_BRANCH}" \
+              '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch}')
+          fi
+          echo "composite-identity-json=${COMPOSITE_IDENTITY}" >> $GITHUB_OUTPUT
+      - name: ci/matrix
+        id: matrix
+        run: |
+          echo "workers=$(jq -nc --argjson n ${{ inputs.workers }} '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
+          echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+      - name: ci/dispatch-begin
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@main
+        with:
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          framework: cypress
+          repo-dir: ${{ github.workspace }}
+          composite-identity: ${{ steps.composite-identity.outputs.composite-identity-json }}
+          total-reports-expected: ${{ inputs.workers }}
+          retest-on-fail: ${{ inputs.retest_on_fail }}
+          cypress-stage: ${{ inputs.cypress_stage }}
+          cypress-include-group: ${{ inputs.cypress_include_group }}
+          cypress-exclude-group: ${{ inputs.cypress_exclude_group }}
+          cypress-skip-on: ${{ inputs.cypress_skip_on }}
+          cypress-sort-first: ${{ inputs.cypress_sort_first }}
+          cypress-sort-last: ${{ inputs.cypress_sort_last }}
+          post-pr-comment: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          test-type: ${{ inputs.test_type }}
+          server-edition: ${{ inputs.server_edition }}
+
+  workers:
+    name: dispatch-run-${{ matrix.worker_index }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs: dispatch-begin
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        worker_index: ${{ fromJSON(needs.dispatch-begin.outputs.workers-matrix) }}
+    env:
+      COMPOSITE_IDENTITY: ${{ needs.dispatch-begin.outputs.composite-identity-json }}
+      SERVER: "${{ inputs.server }}"
+      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
+      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
+      TEST: cypress
+      # The dispatch adapter invokes `npx cypress run` directly (no
+      # cross-env), so pin TZ here — several specs assume UTC.
+      TZ: Etc/UTC
+      BRANCH: "${{ inputs.branch }}"
+      BUILD_ID: "${{ inputs.build_id }}"
+      CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
+      CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
+      CWS_URL: "${{ secrets.CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/cloud-init
+        working-directory: e2e-tests
+        run: make cloud-init
+      - name: ci/start-server
+        working-directory: e2e-tests
+        run: make start-server
+      # `npm ci` in the host context replaces the container-built native
+      # binaries with host-built ones, since the dispatch adapter spawns
+      # `npx cypress run` on the host.
+      - name: ci/prepare-cypress
+        working-directory: e2e-tests/cypress
+        run: npm ci
+      - name: ci/dispatch-run
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@main
+        with:
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          framework: cypress
+          composite-identity: ${{ needs.dispatch-begin.outputs.composite-identity-json }}
+          repo-dir: ${{ github.workspace }}
+          artifacts-root: ${{ github.workspace }}/worker-artifacts
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          gh-job-name: dispatch-run-${{ matrix.worker_index }}
+      - name: ci/cloud-teardown
+        if: always()
+        working-directory: e2e-tests
+        run: make cloud-teardown
+      - name: ci/upload-debug-artifacts
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-debug-${{ matrix.worker_index }}
+          path: |
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
+            e2e-tests/cypress/tests/screenshots/
+            worker-artifacts/
+          retention-days: 5
+          if-no-files-found: ignore
+
+  report:
+    runs-on: ubuntu-24.04
+    needs: [dispatch-begin, workers]
+    if: always()
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    outputs:
+      commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
+      webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: ci/run-summary
+        id: summary
+        continue-on-error: true
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@main
+        with:
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          composite-identity: ${{ needs.dispatch-begin.outputs.composite-identity-json }}
+          framework: cypress
+          test-type: ${{ inputs.test_type }}
+          report-type: ${{ inputs.report_type }}
+          image-tag: ${{ inputs.server_image_tag }}
+          image-aliases: ${{ inputs.server_image_aliases }}
+          server-image: ${{ env.SERVER_IMAGE }}
+          pr-number: ${{ inputs.pr_number }}
+          ref-branch: ${{ inputs.ref_branch }}
+          server-edition: ${{ inputs.server_edition }}
+          post-pr-comment: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: ci/publish-webhook
+        if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
+        env:
+          REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+          PAYLOAD: ${{ steps.summary.outputs.webhook_payload }}
+        run: |
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
+      - name: ci/assert-results
+        env:
+          SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
+        run: |
+          [ "$SUMMARY_OUTCOME" = "success" ]
+
+  update-success-status:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      statuses: write
+    if: always() && needs.report.result == 'success'
+    needs:
+      - dispatch-begin
+      - report
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.context_name }}
+          description: ${{ needs.report.outputs.commit_status_description }}
+          status: success
+          target_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  update-failure-status:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      statuses: write
+    if: always() && needs.report.result != 'success'
+    needs:
+      - dispatch-begin
+      - report
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.commit_sha }}
+          context: ${{ inputs.context_name }}
+          description: ${{ needs.report.outputs.commit_status_description }}
+          status: failure
+          target_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

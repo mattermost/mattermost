@@ -24,6 +24,7 @@ function ChannelBookmarks({channelId}: Props) {
     const canUploadFiles = useCanUploadFiles();
     const hasBookmarks = Boolean(order?.length);
     const limitReached = order.length >= MAX_BOOKMARKS_PER_CHANNEL;
+    const canDrag = canReorder && order.length > 1;
 
     // --- Overflow detection ---
     const {
@@ -54,7 +55,7 @@ function ChannelBookmarks({channelId}: Props) {
         onReorder: reorder,
         getName: useCallback((id: string) => bookmarks[id]?.display_name ?? '', [bookmarks]),
         onOverflowOpenChange: setForceOverflowOpen,
-        canReorder,
+        canReorder: canDrag,
     });
 
     // Pause overflow recalculation while dragging or keyboard reordering.
@@ -89,9 +90,9 @@ function ChannelBookmarks({channelId}: Props) {
                             key={id}
                             id={id}
                             bookmark={bookmark}
-                            disabled={!canReorder}
+                            disabled={!canDrag}
                             isDraggingGlobal={isDragging}
-                            keyboardReorderProps={!isHidden && canReorder ? getItemProps(id) : undefined}
+                            keyboardReorderProps={!isHidden && canDrag ? getItemProps(id) : undefined}
                             isKeyboardReordering={!isHidden && reorderState.isReordering && reorderState.itemId === id}
                             hidden={isHidden}
                             onMount={registerItemRef}
@@ -106,13 +107,13 @@ function ChannelBookmarks({channelId}: Props) {
                     hasBookmarks={hasBookmarks}
                     limitReached={limitReached}
                     canUploadFiles={canUploadFiles}
-                    canReorder={canReorder}
+                    canReorder={canDrag}
                     isDragging={isDragging}
                     canAdd={canAdd}
                     forceOpen={forceOverflowOpen}
                     onOpenChange={setForceOverflowOpen}
                     reorderState={reorderState}
-                    getItemProps={canReorder ? getItemProps : undefined}
+                    getItemProps={canDrag ? getItemProps : undefined}
                 />
             </BookmarksBarContent>
         </Container>

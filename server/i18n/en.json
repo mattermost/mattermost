@@ -2637,10 +2637,6 @@
     "translation": "api endpoint requires a license"
   },
   {
-    "id": "api.managed_category.feature_not_available.app_error",
-    "translation": "Managed channel categories are not available."
-  },
-  {
     "id": "api.marshal_error",
     "translation": "Failed to marshal."
   },
@@ -8343,6 +8339,10 @@
   {
     "id": "app.recap.mark_read.app_error",
     "translation": "Failed to mark recap as read."
+  },
+  {
+    "id": "app.recap.mark_viewed.app_error",
+    "translation": "Failed to mark recaps as viewed."
   },
   {
     "id": "app.recap.permission_denied",

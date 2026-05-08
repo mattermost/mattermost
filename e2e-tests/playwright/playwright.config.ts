@@ -9,7 +9,7 @@ export default defineConfig({
     globalSetup: './global_setup.ts',
     forbidOnly: testConfig.isCI,
     outputDir: './results/output',
-    retries: testConfig.isCI ? 2 : 0,
+    retries: testConfig.isCI ? 1 : 0,
     testDir: 'specs',
     timeout: duration.one_min,
     workers: testConfig.workers,
