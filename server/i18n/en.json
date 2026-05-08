@@ -2102,6 +2102,14 @@
     "translation": "The user is not a content reviewer."
   },
   {
+    "id": "api.data_spillage.report.open.app_error",
+    "translation": "Failed to open the generated flagged post report file."
+  },
+  {
+    "id": "api.data_spillage.report.stat.app_error",
+    "translation": "Failed to read the flagged post report file information."
+  },
+  {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
     "translation": "Can not save draft to deleted channel"
   },
@@ -2627,10 +2635,6 @@
   {
     "id": "api.license_error",
     "translation": "api endpoint requires a license"
-  },
-  {
-    "id": "api.managed_category.feature_not_available.app_error",
-    "translation": "Managed channel categories are not available."
   },
   {
     "id": "api.marshal_error",
@@ -5479,10 +5483,6 @@
     "translation": "Unable to get the channels for the provided scheme."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Unable to get the channel counts."
-  },
-  {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
@@ -6063,6 +6063,10 @@
     "translation": "Cleared"
   },
   {
+    "id": "app.data_spillage.report.close.app_error",
+    "translation": "Failed to close the flagged post report file."
+  },
+  {
     "id": "app.data_spillage.report.column.detail",
     "translation": "Detail"
   },
@@ -6131,6 +6135,10 @@
   {
     "id": "app.data_spillage.report.incomplete_warning",
     "translation": "Post deletion incomplete. Review the Error Log and escalate to a System Administrator for manual remediation."
+  },
+  {
+    "id": "app.data_spillage.report.marshal_comment.app_error",
+    "translation": "An error occurred while marshaling the comment for the flagged post report."
   },
   {
     "id": "app.data_spillage.report.post_id",
@@ -6205,12 +6213,48 @@
     "translation": "Summary"
   },
   {
+    "id": "app.data_spillage.report.sync.app_error",
+    "translation": "Failed to sync the flagged post report file to disk."
+  },
+  {
+    "id": "app.data_spillage.report.tempfile.app_error",
+    "translation": "Failed to create a temporary file for the flagged post report."
+  },
+  {
     "id": "app.data_spillage.report.title",
     "translation": "Post Deletion Report"
   },
   {
     "id": "app.data_spillage.report.total_steps",
     "translation": "Total Steps:"
+  },
+  {
+    "id": "app.data_spillage.report.write_edit_yaml.app_error",
+    "translation": "Failed to write edit history entry to the flagged post report."
+  },
+  {
+    "id": "app.data_spillage.report.write_metadata_yaml.app_error",
+    "translation": "Failed to write metadata to the flagged post report."
+  },
+  {
+    "id": "app.data_spillage.report.write_post_yaml.app_error",
+    "translation": "Failed to write post details to the flagged post report."
+  },
+  {
+    "id": "app.data_spillage.report.write_review_yaml.app_error",
+    "translation": "Failed to write content review details to the flagged post report."
+  },
+  {
+    "id": "app.data_spillage.report.zip_close.app_error",
+    "translation": "Failed to close the flagged post report archive."
+  },
+  {
+    "id": "app.data_spillage.report.zip_copy.app_error",
+    "translation": "Failed to copy attachment contents into the flagged post report archive."
+  },
+  {
+    "id": "app.data_spillage.report.zip_create.app_error",
+    "translation": "Failed to create an entry in the flagged post report archive."
   },
   {
     "id": "app.data_spillage.save_reviewer_settings.app_error",
@@ -8295,6 +8339,10 @@
   {
     "id": "app.recap.mark_read.app_error",
     "translation": "Failed to mark recap as read."
+  },
+  {
+    "id": "app.recap.mark_viewed.app_error",
+    "translation": "Failed to mark recaps as viewed."
   },
   {
     "id": "app.recap.permission_denied",
@@ -12701,6 +12749,18 @@
   {
     "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
     "translation": "Missing plugin reattach config"
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared",
+    "translation": "This channel is no longer shared with {{.WorkspaceName}}."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "This channel is no longer shared with another workspace."
+  },
+  {
+    "id": "shared_channel.system_message.now_shared",
+    "translation": "This channel is now shared with {{.WorkspaceName}}."
   },
   {
     "id": "sharedchannel.cannot_deliver_post",

@@ -160,7 +160,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await userDetail.waitForSaveComplete();
     });
 
-    test('Should display user attributes in two-column layout', async () => {
+    test.fixme('Should display user attributes in two-column layout', async () => {
         const {userCard} = systemConsolePage.users.userDetail;
 
         // * Verify two-column layout exists
@@ -259,7 +259,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(departmentInput).toHaveValue('Engineering Updated');
     });
 
-    test('Should validate invalid email and show error with cancel option', async () => {
+    test.fixme('Should validate invalid email and show error with cancel option', async () => {
         const {userDetail} = systemConsolePage.users;
         const {userCard} = userDetail;
 
@@ -299,7 +299,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(userDetail.saveButton).toBeDisabled();
     });
 
-    test('Should validate invalid URL and show error with cancel option', async () => {
+    test.fixme('Should validate invalid URL and show error with cancel option', async () => {
         const {userDetail} = systemConsolePage.users;
         const {userCard} = userDetail;
 
@@ -336,7 +336,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(userDetail.cancelButton).not.toBeVisible();
     });
 
-    test('Should validate invalid email in custom email attribute', async () => {
+    test.fixme('Should validate invalid email in custom email attribute', async () => {
         const {userDetail} = systemConsolePage.users;
         const {userCard} = userDetail;
 

@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 
 import './team_policy_confirmation_modal.scss';
 
@@ -77,21 +78,21 @@ export default function TeamPolicyConfirmationModal({channelsAffected, publicCha
             }
             footerContent={
                 <div className='TeamPolicyConfirmationModal__footer'>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={onExited}
                     >
                         {formatMessage({id: 'team_settings.policy_editor.confirmation.cancel', defaultMessage: 'Cancel'})}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-danger'
+                        variant='destructive'
                         onClick={onConfirm}
                         disabled={saving}
                     >
                         {formatMessage({id: 'team_settings.policy_editor.confirmation.apply', defaultMessage: 'Apply policy'})}
-                    </button>
+                    </Button>
                 </div>
             }
         >

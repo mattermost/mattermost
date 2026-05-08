@@ -313,7 +313,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		assert.Contains(t, attachedFiles, info1.Id)
 		assert.Contains(t, attachedFiles, info2.Id)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
@@ -344,7 +344,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		assert.Len(t, attachedFiles, 1)
 		assert.Contains(t, attachedFiles, info2.Id)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)

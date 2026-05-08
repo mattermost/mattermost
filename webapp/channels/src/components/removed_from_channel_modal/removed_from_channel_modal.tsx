@@ -5,6 +5,8 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 type Props = {
     currentUserId: string;
     onExited: () => void;
@@ -91,9 +93,9 @@ export default class RemovedFromChannelModal extends React.PureComponent<Props, 
                     </p>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         onClick={this.onHide}
                         id='removedChannelBtn'
                     >
@@ -101,7 +103,7 @@ export default class RemovedFromChannelModal extends React.PureComponent<Props, 
                             id='removed_channel.okay'
                             defaultMessage='Okay'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

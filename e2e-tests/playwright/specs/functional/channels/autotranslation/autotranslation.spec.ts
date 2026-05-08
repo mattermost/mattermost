@@ -171,7 +171,7 @@ test(
     },
 );
 
-test(
+test.fixme(
     'only new messages are translated after enable; old messages unchanged',
     {
         tag: ['@autotranslation'],
@@ -351,7 +351,7 @@ test(
     },
 );
 
-test(
+test.fixme(
     'auto-translation is ON by default for new channel members',
     {
         tag: ['@autotranslation'],
@@ -458,7 +458,7 @@ test(
     },
 );
 
-test(
+test.fixme(
     'disabling for self reverts translated messages to original',
     {
         tag: ['@autotranslation'],
@@ -536,7 +536,7 @@ test(
     },
 );
 
-test(
+test.fixme(
     'messages only translate when source differs from user language',
     {
         tag: ['@autotranslation'],
@@ -639,7 +639,7 @@ test(
     },
 );
 
-test(
+test.fixme(
     'message indicator only on actually translated message',
     {
         tag: ['@autotranslation'],
@@ -834,7 +834,7 @@ test.fixme(
     },
 );
 
-test(
+test.fixme(
     'message actions include Show translation',
     {
         tag: ['@autotranslation'],

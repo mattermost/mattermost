@@ -5,6 +5,8 @@ import React, {useState, memo, useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 type Props = {
     onExited: () => void;
 }
@@ -46,9 +48,9 @@ const PostDeletedModal = ({
                 </p>
             </Modal.Body>
             <Modal.Footer>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     autoFocus={true}
                     onClick={handleHide}
                     data-testid='postDeletedModalOkButton'
@@ -57,7 +59,7 @@ const PostDeletedModal = ({
                         id='post_delete.okay'
                         defaultMessage='Okay'
                     />
-                </button>
+                </Button>
             </Modal.Footer>
         </Modal>
     );
