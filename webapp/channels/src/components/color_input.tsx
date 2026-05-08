@@ -150,11 +150,10 @@ export default class ColorInput extends React.PureComponent<Props, State> {
                     data-testid='color-inputColorValue'
 
                 />
-                {!this.props.isDisabled &&
                     <span
                         id={`${id}-squareColorIcon`}
-                        className='input-group-addon color-pad'
-                        onClick={this.togglePicker}
+                        className={`input-group-addon color-pad${this.props.isDisabled ? ' color-pad--disabled' : ''}`}
+                        onClick={!this.props.isDisabled ? this.togglePicker : undefined}
                     >
                         <i
                             id={`${id}-squareColorIconValue`}
@@ -164,7 +163,6 @@ export default class ColorInput extends React.PureComponent<Props, State> {
                             }}
                         />
                     </span>
-                }
                 {isOpened && (
                     <div
                         ref={this.colorPicker}

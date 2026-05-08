@@ -99,7 +99,7 @@
             flex-shrink: 0;
             width: 140px;
             margin: 0;
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: var(--center-channel-color);
             font-size: 14px;
             font-weight: 600;
             line-height: 20px;
@@ -108,26 +108,15 @@
         &__field-input {
             flex: 1;
             min-width: 0;
+
+            .AdvancedTextbox #PreviewInputTextButton {
+                position: absolute;
+                right: 7px;
+                top: 7px;
+                z-index: 10;
+            }
         }
 
-        &__banner-text {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            border-radius: 4px;
-            font-size: 14px;
-            line-height: 20px;
-        }
-
-        &__banner-color {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
     }
 
     .new-channel-modal-purpose-container {

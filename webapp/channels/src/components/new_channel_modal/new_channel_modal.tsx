@@ -28,13 +28,19 @@ import {
     CHANNEL_LINKED_OBJECT_TYPE,
     GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
+import {
+    CHANNEL_BANNER_MAX_CHARACTER_LIMIT,
+    CHANNEL_BANNER_MIN_CHARACTER_LIMIT,
+} from 'components/channel_settings_modal/channel_settings_configuration_tab';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import ManagedCategorySelector from 'components/channel_settings_modal/managed_category_selector';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
+import type {TextboxElement} from 'components/textbox';
 import Toggle from 'components/toggle';
+import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 import WithTooltip from 'components/with_tooltip';
@@ -92,6 +98,8 @@ const NewChannelModal = () => {
     const classification = useClassificationMarkings();
     const [classificationEnabled, setClassificationEnabled] = useState(false);
     const [selectedClassificationId, setSelectedClassificationId] = useState('');
+    const [bannerText, setBannerText] = useState('');
+    const [bannerTextPreview, setBannerTextPreview] = useState(false);
 
     const classificationOptions = useMemo((): ValueType[] => {
         return classification.levels.map((level) => ({
@@ -151,14 +159,14 @@ const NewChannelModal = () => {
                 return;
             }
 
-            // Save channel classification if selected
-            if (classificationEnabled && selectedClassificationId && classification.channelField) {
+            // Save channel classification property value (includes both the level ID and banner text)
+            if (classificationEnabled && selectedClassificationId && classification.channelField && bannerText) {
                 try {
                     await Client4.patchPropertyValues(
                         GROUP_NAME,
                         CHANNEL_LINKED_OBJECT_TYPE,
                         newChannel!.id,
-                        [{field_id: classification.channelField.id, value: selectedClassificationId}],
+                        [{field_id: classification.channelField.id, value: {classification_id: selectedClassificationId, banner_text: bannerText}}],
                     );
                 } catch {
                     // Classification save failure should not block channel creation
@@ -266,7 +274,7 @@ const NewChannelModal = () => {
         e.stopPropagation();
     };
 
-    const classificationValid = !classificationEnabled || Boolean(selectedClassificationId);
+    const classificationValid = !classificationEnabled || (Boolean(selectedClassificationId) && bannerText.trim().length > 0);
     const canCreate = displayName && !urlError && type && !purposeError && !serverError && canCreateFromPluggable && !channelInputError && classificationValid;
 
     const newBoardInfoIcon = (
@@ -419,7 +427,13 @@ const NewChannelModal = () => {
                                             testId='channelClassificationLevel'
                                             options={classificationOptions}
                                             value={selectedClassificationOption}
-                                            onChange={(selected: ValueType) => setSelectedClassificationId(selected.value)}
+                                            onChange={(selected: ValueType) => {
+                                                setSelectedClassificationId(selected.value);
+                                                const level = classification.levels.find((l) => l.id === selected.value);
+                                                if (level) {
+                                                    setBannerText(`**${level.name}**`);
+                                                }
+                                            }}
                                             isClearable={false}
                                             required={true}
                                             styles={classificationPresetDropdownStyles}
@@ -435,13 +449,19 @@ const NewChannelModal = () => {
                                             />
                                         </label>
                                         <div className='new-channel-modal-classification__field-input'>
-                                            <div className='new-channel-modal-classification__banner-text'>
-                                                <span
-                                                    className='new-channel-modal-classification__banner-color'
-                                                    style={{backgroundColor: selectedClassificationLevel.color}}
-                                                />
-                                                <span>{`**${selectedClassificationLevel.name}**`}</span>
-                                            </div>
+                                            <AdvancedTextbox
+                                                id='channel_classification_banner_text'
+                                                value={bannerText}
+                                                channelId=''
+                                                onKeyPress={() => {}}
+                                                useChannelMentions={false}
+                                                onChange={(e: React.ChangeEvent<TextboxElement>) => setBannerText(e.target.value)}
+                                                preview={bannerTextPreview}
+                                                togglePreview={() => setBannerTextPreview(!bannerTextPreview)}
+                                                createMessage={formatMessage({id: 'channel_modal.classification.banner_placeholder', defaultMessage: 'Banner text'})}
+                                                maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
+                                                minLength={CHANNEL_BANNER_MIN_CHARACTER_LIMIT}
+                                            />
                                         </div>
                                     </div>
                                 )}
