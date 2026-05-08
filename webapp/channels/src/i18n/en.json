@@ -5359,7 +5359,6 @@
   "manage_team_groups_modal.search_placeholder": "Search groups",
   "managed_category.label": "Managed category (optional)",
   "managed_category.placeholder": "Choose a managed category (optional)",
-  "managed_category.placeholder_focused": "Select category or type a new one",
   "mark_all_as_read_modal.cancel": "Cancel",
   "mark_all_as_read_modal.checkbox": "Don't ask me again",
   "mark_all_as_read_modal.confirm": "Mark all read",

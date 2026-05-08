@@ -7,10 +7,9 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {PlaylistCheckIcon, CloseIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {isAnyModalOpen} from 'selectors/views/modals';
-
-import WithTooltip from 'components/with_tooltip';
 
 import {RootHtmlPortalId} from 'utils/constants';
 
