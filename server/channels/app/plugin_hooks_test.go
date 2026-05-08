@@ -4782,283 +4782,6 @@ func TestChannelGuardBlocksRestoreWhenPluginInactive(t *testing.T) {
 	})
 }
 
-// Guard blocks ProcessRecapChannel with an error when the guard plugin is
-// inactive — infrastructure failure must not be silently skipped.
-func TestChannelGuardBlocksRecapWhenPluginInactive(t *testing.T) {
-	mainHelper.Parallel(t)
-	bridge := &testAgentsBridge{
-		completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-			return `{"highlights":["x"],"action_items":["y"]}`, nil
-		},
-	}
-	th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
-
-	// Compile and activate a plugin that implements RecapWillBeProcessed (allow all).
-	tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{
-		`
-		package main
-
-		import (
-			"github.com/mattermost/mattermost/server/public/plugin"
-			"github.com/mattermost/mattermost/server/public/model"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) RecapWillBeProcessed(c *plugin.Context, channel *model.Channel) string {
-			return ""
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-		`,
-	}, th.App, th.NewPluginAPI)
-	defer tearDown()
-
-	require.Len(t, errs, 1)
-	require.NoError(t, errs[0])
-	require.Len(t, pluginIDs, 1)
-	pluginID := pluginIDs[0]
-	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
-
-	channel := th.CreateChannel(t, th.BasicTeam)
-	th.CreatePost(t, channel)
-
-	// Register a channel guard for this channel.
-	appErr := th.App.RegisterChannelGuard(th.Context, channel.Id, pluginID)
-	require.Nil(t, appErr, "RegisterChannelGuard must succeed")
-
-	// Deactivate the plugin so the guard is now inactive.
-	require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
-	require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
-
-	ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-	recapID := model.NewId()
-	agentID := "test-agent"
-	_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
-		Id:       recapID,
-		UserId:   th.BasicUser.Id,
-		Title:    "Recap",
-		CreateAt: model.GetMillis(),
-		UpdateAt: model.GetMillis(),
-		Status:   model.RecapStatusProcessing,
-		BotID:    agentID,
-	})
-	require.NoError(t, storeErr)
-
-	_, appErr2 := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
-	require.NotNil(t, appErr2, "expected error when guard plugin is inactive")
-	assert.Equal(t, "app.plugin.inactive_guard.app_error", appErr2.Id)
-	assert.Equal(t, 503, appErr2.StatusCode)
-
-	// Verify no RecapChannels row was written.
-	recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
-	require.NoError(t, storeErr)
-	assert.Empty(t, recapChannels, "no recap row must be written when guard plugin is inactive")
-
-	// Verify agents bridge was not called.
-	assert.Empty(t, bridge.completeCalls, "agents bridge must not be called when guard plugin is inactive")
-}
-
-// A plugin's policy rejection of RecapWillBeProcessed is still a silent skip
-// (result.Success=true, no error) — infrastructure failures are separate from policy decisions.
-func TestChannelGuardRecapPluginPolicyRejectionStillSilentSkip(t *testing.T) {
-	mainHelper.Parallel(t)
-	bridge := &testAgentsBridge{
-		completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-			return `{"highlights":["x"],"action_items":["y"]}`, nil
-		},
-	}
-	th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
-
-	// Compile and activate a plugin that rejects all recap processing.
-	tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{
-		`
-		package main
-
-		import (
-			"github.com/mattermost/mattermost/server/public/plugin"
-			"github.com/mattermost/mattermost/server/public/model"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) RecapWillBeProcessed(c *plugin.Context, channel *model.Channel) string {
-			return "recap not permitted for this channel"
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-		`,
-	}, th.App, th.NewPluginAPI)
-	defer tearDown()
-
-	require.Len(t, errs, 1)
-	require.NoError(t, errs[0])
-	require.Len(t, pluginIDs, 1)
-	pluginID := pluginIDs[0]
-	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
-
-	channel := th.CreateChannel(t, th.BasicTeam)
-	th.CreatePost(t, channel)
-
-	// Register a channel guard so this goes through the guarded path.
-	appErr := th.App.RegisterChannelGuard(th.Context, channel.Id, pluginID)
-	require.Nil(t, appErr, "RegisterChannelGuard must succeed")
-
-	ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-	recapID := model.NewId()
-	agentID := "test-agent"
-	_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
-		Id:       recapID,
-		UserId:   th.BasicUser.Id,
-		Title:    "Recap",
-		CreateAt: model.GetMillis(),
-		UpdateAt: model.GetMillis(),
-		Status:   model.RecapStatusProcessing,
-		BotID:    agentID,
-	})
-	require.NoError(t, storeErr)
-
-	// Plugin returns a rejection reason (policy decision) → silent skip, no error.
-	result, appErr2 := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
-	require.Nil(t, appErr2, "policy rejection must not return an error")
-	require.NotNil(t, result)
-	assert.True(t, result.Success, "silent skip must set Success=true")
-	assert.Equal(t, 0, result.MessageCount, "silent skip must have zero MessageCount")
-
-	// Verify no RecapChannels row was written.
-	recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
-	require.NoError(t, storeErr)
-	assert.Empty(t, recapChannels, "no recap row must be written on policy rejection")
-
-	// Verify agents bridge was not called.
-	assert.Empty(t, bridge.completeCalls, "agents bridge must not be called on policy rejection")
-}
-
-// Guard blocks RewriteMessage with 503 when the guard plugin is inactive.
-func TestChannelGuardBlocksAIRewriteWhenPluginInactive(t *testing.T) {
-	mainHelper.Parallel(t)
-	bridge := &testAgentsBridge{
-		completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-			return `{"rewritten_text":"should not happen"}`, nil
-		},
-	}
-	th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
-
-	// Compile and activate a plugin that implements MessageWillBeRewrittenByAI (allow all).
-	tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{
-		`
-		package main
-
-		import (
-			"github.com/mattermost/mattermost/server/public/plugin"
-			"github.com/mattermost/mattermost/server/public/model"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
-			return ""
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-		`,
-	}, th.App, th.NewPluginAPI)
-	defer tearDown()
-
-	require.Len(t, errs, 1)
-	require.NoError(t, errs[0])
-	require.Len(t, pluginIDs, 1)
-	pluginID := pluginIDs[0]
-	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
-
-	// Register a channel guard for BasicChannel under this plugin's ID.
-	appErr := th.App.RegisterChannelGuard(th.Context, th.BasicChannel.Id, pluginID)
-	require.Nil(t, appErr, "RegisterChannelGuard must succeed")
-
-	// Deactivate the plugin so the guard is now inactive.
-	require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
-	require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
-
-	ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-	_, appErr2 := th.App.RewriteMessage(ctx, model.NewId(), "hello world", model.RewriteActionShorten, "", "", th.BasicChannel.Id)
-	require.NotNil(t, appErr2, "expected error when guard plugin is inactive")
-	assert.Equal(t, "app.plugin.inactive_guard.app_error", appErr2.Id)
-	assert.Equal(t, 503, appErr2.StatusCode)
-
-	// Verify the agents bridge was not called.
-	assert.Empty(t, bridge.completeCalls, "agents bridge must not be called when guard plugin is inactive")
-}
-
-// When channelID is empty the guard pre-check is skipped entirely and the
-// rewrite proceeds via the existing fail-open RunMultiHook path.
-func TestChannelGuardAIRewriteEmptyChannelIDFallsThrough(t *testing.T) {
-	mainHelper.Parallel(t)
-	bridge := &testAgentsBridge{
-		completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-			return `{"rewritten_text":"shorter"}`, nil
-		},
-	}
-	th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
-
-	// Compile and activate a plugin that allows everything (empty reason).
-	tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{
-		`
-		package main
-
-		import (
-			"github.com/mattermost/mattermost/server/public/plugin"
-			"github.com/mattermost/mattermost/server/public/model"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
-			return ""
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-		`,
-	}, th.App, th.NewPluginAPI)
-	defer tearDown()
-
-	require.Len(t, errs, 1)
-	require.NoError(t, errs[0])
-	require.Len(t, pluginIDs, 1)
-	pluginID := pluginIDs[0]
-	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
-
-	// Register a guard on a DIFFERENT channel (not the one being used in the request).
-	// This guard must not fire when channelID="" is passed.
-	otherChannel := th.CreateChannel(t, th.BasicTeam)
-	appErr := th.App.RegisterChannelGuard(th.Context, otherChannel.Id, pluginID)
-	require.Nil(t, appErr, "RegisterChannelGuard must succeed")
-
-	ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-	// Send with channelID="" — should bypass guard pre-check and succeed normally.
-	resp, appErr2 := th.App.RewriteMessage(ctx, model.NewId(), "hello world", model.RewriteActionShorten, "", "", "")
-	require.Nil(t, appErr2, "empty channelID must fall through without guard pre-check")
-	require.NotNil(t, resp)
-	assert.Equal(t, "shorter", resp.RewrittenText)
-}
-
 // ---------------------------------------------------------------------------
 // Cross-cutting e2e tests for channel-guard dispatch
 // ---------------------------------------------------------------------------
@@ -5068,14 +4791,14 @@ func TestChannelGuardAIRewriteEmptyChannelIDFallsThrough(t *testing.T) {
 // client.Call), the guarded site returns 503 app.plugin.guard_hook_failed.app_error.
 //
 // The first sub-test is a panic-discovery smoke test that proves the mechanism works before
-// relying on it for all seven sites. The remaining sub-tests cover each guarded site.
+// relying on it for all five sites. The remaining sub-tests cover each guarded site.
 //
 // Each sub-test also verifies that an unguarded channel with the same panicking plugin still
 // succeeds (existing fail-open RunMultiHook swallows RPC errors per long-standing contract).
 func TestChannelGuardWrapperRejectsOnHookRPCError(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	// panicAllPlugin is a single compiled plugin that panics in all seven guarded hooks.
+	// panicAllPlugin is a single compiled plugin that panics in all five guarded hooks.
 	// One plugin, one compile — reused across every sub-test.
 	const panicAllPlugin = `
 package main
@@ -5106,14 +4829,6 @@ func (p *PanicPlugin) ChannelWillBeUpdated(c *plugin.Context, newChannel *model.
 }
 
 func (p *PanicPlugin) ChannelWillBeRestored(c *plugin.Context, channel *model.Channel) string {
-	panic("forced RPC error")
-}
-
-func (p *PanicPlugin) RecapWillBeProcessed(c *plugin.Context, channel *model.Channel) string {
-	panic("forced RPC error")
-}
-
-func (p *PanicPlugin) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
 	panic("forced RPC error")
 }
 
@@ -5301,111 +5016,14 @@ func main() {
 		_, appErr2 := th.App.RestoreChannel(th.Context, archived2, th.BasicUser.Id)
 		require.Nil(t, appErr2)
 	})
-
-	t.Run("RecapWillBeProcessed", func(t *testing.T) {
-		bridge := &testAgentsBridge{
-			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-				return `{"highlights":["x"],"action_items":["y"]}`, nil
-			},
-		}
-		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
-
-		tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{panicAllPlugin}, th.App, th.NewPluginAPI)
-		defer tearDown()
-
-		require.Len(t, errs, 1)
-		require.NoError(t, errs[0])
-		pluginID := pluginIDs[0]
-
-		guardedCh := th.CreateChannel(t, th.BasicTeam)
-		th.CreatePost(t, guardedCh)
-		appErr := th.App.RegisterChannelGuard(th.Context, guardedCh.Id, pluginID)
-		require.Nil(t, appErr)
-
-		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-		recapID := model.NewId()
-		agentID := "test-agent"
-		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
-			Id:       recapID,
-			UserId:   th.BasicUser.Id,
-			Title:    "Recap",
-			CreateAt: model.GetMillis(),
-			UpdateAt: model.GetMillis(),
-			Status:   model.RecapStatusProcessing,
-			BotID:    agentID,
-		})
-		require.NoError(t, storeErr)
-
-		_, appErr = th.App.ProcessRecapChannel(ctx, recapID, guardedCh.Id, th.BasicUser.Id, agentID)
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.plugin.guard_hook_failed.app_error", appErr.Id)
-		assert.Equal(t, 503, appErr.StatusCode)
-
-		// Unguarded: fail-open (no guard registered → plugin panics, error swallowed).
-		unguardedCh := th.CreateChannel(t, th.BasicTeam)
-		th.CreatePost(t, unguardedCh)
-		recapID2 := model.NewId()
-		_, storeErr2 := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
-			Id:       recapID2,
-			UserId:   th.BasicUser.Id,
-			Title:    "Recap2",
-			CreateAt: model.GetMillis(),
-			UpdateAt: model.GetMillis(),
-			Status:   model.RecapStatusProcessing,
-			BotID:    agentID,
-		})
-		require.NoError(t, storeErr2)
-		_, appErr2 := th.App.ProcessRecapChannel(ctx, recapID2, unguardedCh.Id, th.BasicUser.Id, agentID)
-		require.Nil(t, appErr2)
-	})
-
-	t.Run("MessageWillBeRewrittenByAI", func(t *testing.T) {
-		bridge := &testAgentsBridge{
-			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-				return `{"rewritten_text":"shorter"}`, nil
-			},
-		}
-		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
-
-		tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{panicAllPlugin}, th.App, th.NewPluginAPI)
-		defer tearDown()
-
-		require.Len(t, errs, 1)
-		require.NoError(t, errs[0])
-		pluginID := pluginIDs[0]
-
-		guardedCh := th.CreateChannel(t, th.BasicTeam)
-		appErr := th.App.RegisterChannelGuard(th.Context, guardedCh.Id, pluginID)
-		require.Nil(t, appErr)
-
-		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-		_, appErr = th.App.RewriteMessage(ctx, model.NewId(), "hello", model.RewriteActionShorten, "", "", guardedCh.Id)
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.plugin.guard_hook_failed.app_error", appErr.Id)
-		assert.Equal(t, 503, appErr.StatusCode)
-
-		// Unguarded: fail-open.
-		unguardedCh := th.CreateChannel(t, th.BasicTeam)
-		_, appErr2 := th.App.RewriteMessage(ctx, model.NewId(), "hello", model.RewriteActionShorten, "", "", unguardedCh.Id)
-		require.Nil(t, appErr2)
-	})
 }
 
 // TestChannelGuardAllowsAllOpsWhenPluginActiveNoRejection registers a guard whose plugin
-// allows every hook and exercises all seven guarded sites to confirm no regression.
+// allows every hook and exercises all five guarded sites to confirm no regression.
 func TestChannelGuardAllowsAllOpsWhenPluginActiveNoRejection(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	// completeFn must handle both recap (highlights/action_items) and rewrite (rewritten_text)
-	// calls — the bridge uses AgentCompletion for both in the test setup.
-	bridge := &testAgentsBridge{
-		completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-			return `{"highlights":["h"],"action_items":["a"],"rewritten_text":"shorter"}`, nil
-		},
-	}
-	th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
+	th := Setup(t).InitBasic(t)
 
 	const allowAllPlugin = `
 package main
@@ -5439,14 +5057,6 @@ func (p *AllowPlugin) ChannelWillBeRestored(c *plugin.Context, channel *model.Ch
 	return ""
 }
 
-func (p *AllowPlugin) RecapWillBeProcessed(c *plugin.Context, channel *model.Channel) string {
-	return ""
-}
-
-func (p *AllowPlugin) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
-	return ""
-}
-
 func main() {
 	plugin.ClientMain(&AllowPlugin{})
 }
@@ -5460,7 +5070,7 @@ func main() {
 	pluginID := pluginIDs[0]
 	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
-	// All seven sites share the same channel so one guard covers all.
+	// All five sites share the same channel so one guard covers all.
 	ch := th.BasicChannel
 	require.Nil(t, th.App.RegisterChannelGuard(th.Context, ch.Id, pluginID))
 
@@ -5524,43 +5134,9 @@ func main() {
 		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
 		require.Nil(t, appErr)
 	})
-
-	// Site 6: RecapWillBeProcessed.
-	t.Run("RecapWillBeProcessed", func(t *testing.T) {
-		recapCh := th.CreateChannel(t, th.BasicTeam)
-		th.CreatePost(t, recapCh)
-		require.Nil(t, th.App.RegisterChannelGuard(th.Context, recapCh.Id, pluginID))
-
-		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-		recapID := model.NewId()
-		agentID := "test-agent"
-		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
-			Id:       recapID,
-			UserId:   th.BasicUser.Id,
-			Title:    "AllowAll",
-			CreateAt: model.GetMillis(),
-			UpdateAt: model.GetMillis(),
-			Status:   model.RecapStatusProcessing,
-			BotID:    agentID,
-		})
-		require.NoError(t, storeErr)
-		result, appErr := th.App.ProcessRecapChannel(ctx, recapID, recapCh.Id, th.BasicUser.Id, agentID)
-		require.Nil(t, appErr)
-		require.NotNil(t, result)
-	})
-
-	// Site 7: MessageWillBeRewrittenByAI.
-	t.Run("MessageWillBeRewrittenByAI", func(t *testing.T) {
-		rewriteCh := th.CreateChannel(t, th.BasicTeam)
-		require.Nil(t, th.App.RegisterChannelGuard(th.Context, rewriteCh.Id, pluginID))
-		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-		resp, appErr := th.App.RewriteMessage(ctx, model.NewId(), "hello world", model.RewriteActionShorten, "", "", rewriteCh.Id)
-		require.Nil(t, appErr)
-		require.NotNil(t, resp)
-	})
 }
 
-// TestChannelGuardFiresHookWhenPluginActive confirms that for each of the seven guarded sites,
+// TestChannelGuardFiresHookWhenPluginActive confirms that for each of the five guarded sites,
 // when a guard plugin's hook returns a rejection, the rejection comes from the hook (not from
 // the guard inactive pre-check). The error reason matches the plugin-returned string.
 func TestChannelGuardFiresHookWhenPluginActive(t *testing.T) {
@@ -5596,14 +5172,6 @@ func (p *RejectPlugin) ChannelWillBeUpdated(c *plugin.Context, newChannel *model
 
 func (p *RejectPlugin) ChannelWillBeRestored(c *plugin.Context, channel *model.Channel) string {
 	return "guard-rejected-restore"
-}
-
-func (p *RejectPlugin) RecapWillBeProcessed(c *plugin.Context, channel *model.Channel) string {
-	return "guard-rejected-recap"
-}
-
-func (p *RejectPlugin) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
-	return "guard-rejected-rewrite"
 }
 
 func main() {
@@ -5725,75 +5293,6 @@ func main() {
 		require.NotNil(t, appErr)
 		assert.NotEqual(t, "app.plugin.inactive_guard.app_error", appErr.Id)
 		assert.Equal(t, "app.channel.restore_channel.rejected_by_plugin", appErr.Id)
-	})
-
-	t.Run("RecapWillBeProcessed", func(t *testing.T) {
-		bridge := &testAgentsBridge{
-			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-				return `{"highlights":["x"],"action_items":["y"]}`, nil
-			},
-		}
-		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
-
-		ch := th.CreateChannel(t, th.BasicTeam)
-		// Create the post BEFORE activating the reject plugin (which also rejects MessageWillBePosted).
-		th.CreatePost(t, ch)
-
-		tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{rejectPlugin}, th.App, th.NewPluginAPI)
-		defer tearDown()
-		require.Len(t, errs, 1)
-		require.NoError(t, errs[0])
-		pluginID := pluginIDs[0]
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
-
-		require.Nil(t, th.App.RegisterChannelGuard(th.Context, ch.Id, pluginID))
-
-		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-		recapID := model.NewId()
-		agentID := "test-agent"
-		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
-			Id:       recapID,
-			UserId:   th.BasicUser.Id,
-			Title:    "Recap",
-			CreateAt: model.GetMillis(),
-			UpdateAt: model.GetMillis(),
-			Status:   model.RecapStatusProcessing,
-			BotID:    agentID,
-		})
-		require.NoError(t, storeErr)
-
-		// RecapWillBeProcessed rejection is a silent skip (no error, Success=true).
-		result, appErr := th.App.ProcessRecapChannel(ctx, recapID, ch.Id, th.BasicUser.Id, agentID)
-		require.Nil(t, appErr, "guard plugin policy rejection of recap must be a silent skip")
-		require.NotNil(t, result)
-		assert.True(t, result.Success)
-		assert.Equal(t, 0, result.MessageCount)
-	})
-
-	t.Run("MessageWillBeRewrittenByAI", func(t *testing.T) {
-		bridge := &testAgentsBridge{
-			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-				return `{"rewritten_text":"shorter"}`, nil
-			},
-		}
-		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
-
-		tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{rejectPlugin}, th.App, th.NewPluginAPI)
-		defer tearDown()
-		require.Len(t, errs, 1)
-		require.NoError(t, errs[0])
-		pluginID := pluginIDs[0]
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
-
-		ch := th.CreateChannel(t, th.BasicTeam)
-		require.Nil(t, th.App.RegisterChannelGuard(th.Context, ch.Id, pluginID))
-
-		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-		_, appErr := th.App.RewriteMessage(ctx, model.NewId(), "hello", model.RewriteActionShorten, "", "", ch.Id)
-		require.NotNil(t, appErr)
-		assert.NotEqual(t, "app.plugin.inactive_guard.app_error", appErr.Id)
-		assert.Equal(t, "app.post.rewrite.rejected_by_plugin", appErr.Id)
 	})
 }
 
@@ -6615,64 +6114,6 @@ func main() {
 		require.Nil(t, err)
 		_, appErr := th2.App.RestoreChannel(th2.Context, archived, th2.BasicUser.Id)
 		require.Nil(t, appErr, "RestoreChannel must succeed when guard plugin doesn't implement ChannelWillBeRestored")
-	})
-
-	// ProcessRecapChannel: plugin does not implement RecapWillBeProcessed → allow-by-default.
-	t.Run("ProcessRecapChannel", func(t *testing.T) {
-		bridge := &testAgentsBridge{
-			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-				return `{"highlights":["h"],"action_items":["a"]}`, nil
-			},
-		}
-		th3 := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
-		th3.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
-		tearDown3, pluginIDs3, errs3 := SetAppEnvironmentWithPlugins(t, []string{partialPlugin}, th3.App, th3.NewPluginAPI)
-		defer tearDown3()
-		require.Len(t, errs3, 1)
-		require.NoError(t, errs3[0])
-		pluginID3 := pluginIDs3[0]
-
-		recapCh := th3.CreateChannel(t, th3.BasicTeam)
-		th3.CreatePost(t, recapCh)
-		require.Nil(t, th3.App.RegisterChannelGuard(th3.Context, recapCh.Id, pluginID3))
-
-		ctx := th3.Context.WithSession(&model.Session{UserId: th3.BasicUser.Id})
-		recapID := model.NewId()
-		agentID := "test-agent"
-		_, storeErr := th3.App.Srv().Store().Recap().SaveRecap(&model.Recap{
-			Id:       recapID,
-			UserId:   th3.BasicUser.Id,
-			Title:    "AllowByDefault",
-			CreateAt: model.GetMillis(),
-			UpdateAt: model.GetMillis(),
-			Status:   model.RecapStatusProcessing,
-			BotID:    agentID,
-		})
-		require.NoError(t, storeErr)
-
-		_, appErr := th3.App.ProcessRecapChannel(ctx, recapID, recapCh.Id, th3.BasicUser.Id, agentID)
-		require.Nil(t, appErr, "ProcessRecapChannel must succeed when guard plugin doesn't implement RecapWillBeProcessed")
-	})
-
-	// RewriteMessage: plugin does not implement MessageWillBeRewrittenByAI → allow-by-default.
-	t.Run("RewriteMessage", func(t *testing.T) {
-		bridge := &testAgentsBridge{
-			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
-				return `{"rewritten_text":"shorter"}`, nil
-			},
-		}
-		th4 := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
-		tearDown4, pluginIDs4, errs4 := SetAppEnvironmentWithPlugins(t, []string{partialPlugin}, th4.App, th4.NewPluginAPI)
-		defer tearDown4()
-		require.Len(t, errs4, 1)
-		require.NoError(t, errs4[0])
-		pluginID4 := pluginIDs4[0]
-
-		require.Nil(t, th4.App.RegisterChannelGuard(th4.Context, th4.BasicChannel.Id, pluginID4))
-
-		ctx := th4.Context.WithSession(&model.Session{UserId: th4.BasicUser.Id})
-		_, appErr := th4.App.RewriteMessage(ctx, model.NewId(), "hello world", model.RewriteActionShorten, "", "", th4.BasicChannel.Id)
-		require.Nil(t, appErr, "RewriteMessage must succeed when guard plugin doesn't implement MessageWillBeRewrittenByAI")
 	})
 }
 
