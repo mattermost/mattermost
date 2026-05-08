@@ -127,7 +127,8 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
  * 3. Flag the message
  * 4. Verify the message is not hidden
  */
-test('Verify Post is not hidden after flagging if HideFlaggedContent is false', async ({pw}) => {
+// FIXME: Fails with PW_WORKERS=2 — concurrent worker deletes the message mid-test.
+test.fixme('Verify Post is not hidden after flagging if HideFlaggedContent is false', async ({pw}) => {
     const {user, adminClient} = await pw.initSetup();
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
