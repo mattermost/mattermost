@@ -6,7 +6,6 @@ import type {AllHTMLAttributes} from 'react';
 import React from 'react';
 
 import AtMention from 'components/at_mention';
-import AtPlanMention from 'components/at_plan_mention';
 import CodeBlock from 'components/code_block/code_block';
 import InlineEntityLink from 'components/inline_entity_link';
 import LatexBlock from 'components/latex_block';
@@ -31,7 +30,6 @@ export type Options = Partial<{
     imagesMetadata: any;
     emoji: boolean;
     images: boolean;
-    atPlanMentions: boolean;
     channelId: string;
     channelIsShared: boolean;
 
@@ -167,22 +165,6 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                     </AtMention>
                 );
                 return callAtMention;
-            },
-        });
-    }
-
-    if (options.atPlanMentions) {
-        const mentionAttrib = 'data-plan-mention';
-        processingInstructions.push({
-            replaceChildren: true,
-            shouldProcessNode: (node: any) => node.attribs && node.attribs[mentionAttrib],
-            processNode: (node: any) => {
-                const mentionName = node.attribs[mentionAttrib];
-                const sumOfMembersMention = (
-                    <AtPlanMention
-                        plan={mentionName}
-                    />);
-                return sumOfMembersMention;
             },
         });
     }

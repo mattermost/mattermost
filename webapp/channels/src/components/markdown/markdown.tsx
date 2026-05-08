@@ -136,7 +136,6 @@ function Markdown({
         mentionHighlight: options?.mentionHighlight,
         disableGroupHighlight: options?.disableGroupHighlight,
         editedAt,
-        atPlanMentions: options?.atPlanMentions,
     });
 }
 
