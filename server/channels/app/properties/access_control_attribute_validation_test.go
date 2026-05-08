@@ -14,13 +14,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAttributeValidationHook(t *testing.T) {
+func TestAccessControlAttributeValidationHook(t *testing.T) {
 	th := Setup(t)
 
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_validation", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAttributeValidationHook(th.service, nil, group.ID)
+	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
 	th.service.AddHook(hook)
 
 	t.Run("allows valid visibility on create", func(t *testing.T) {
@@ -582,7 +582,7 @@ func TestAttributeValidationHook(t *testing.T) {
 	// (see the Setup block at the top of this test function). In that
 	// configuration, managed="admin" is default-denied since there is no
 	// way to verify the caller's admin status. The "allowed" side of the
-	// authorization matrix is covered in TestAttributeValidationHookManagedAuthorization.
+	// authorization matrix is covered in TestAccessControlAttributeValidationHookManagedAuthorization.
 
 	t.Run("create field with managed=admin is rejected when no permission checker is configured", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -937,7 +937,7 @@ func TestAttributeValidationHook(t *testing.T) {
 	})
 }
 
-func TestAttributeValidationHookManagedAuthorization(t *testing.T) {
+func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) {
 	th := Setup(t)
 
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_managed_auth", Version: model.PropertyGroupVersionV2})
@@ -950,7 +950,7 @@ func TestAttributeValidationHookManagedAuthorization(t *testing.T) {
 		return userID == adminUserID && perm.Id == model.PermissionManageSystem.Id
 	}
 
-	hook := NewAttributeValidationHook(th.service, permChecker, group.ID)
+	hook := NewAccessControlAttributeValidationHook(th.service, permChecker, group.ID)
 	th.service.AddHook(hook)
 
 	t.Run("admin can create field with managed=admin", func(t *testing.T) {

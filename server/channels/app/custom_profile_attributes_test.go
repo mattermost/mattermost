@@ -232,7 +232,7 @@ func TestCPAValueSyncLock(t *testing.T) {
 			Attrs: attrs,
 		}
 		// Sanitization/validation runs inside CreatePropertyField via the
-		// AttributeValidationHook.
+		// AccessControlAttributeValidationHook.
 		created, appErr := th.App.CreatePropertyField(adminRctx, cpa.ToPropertyField(), false, "")
 		require.Nil(t, appErr)
 		return created

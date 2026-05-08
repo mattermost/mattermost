@@ -334,7 +334,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 		return app.HasPermissionTo(userID, perm)
 	}
-	attrValidationHook := properties.NewAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
+	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
 
 	// Field limit hook — enforces per-object-type and global field limits.

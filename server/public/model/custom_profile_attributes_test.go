@@ -80,7 +80,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 		{
 			// Conversion is a pure data operation: empty PropertyField.Attrs
 			// produces empty CPAAttrs. The visibility default is applied at
-			// write time by AttributeValidationHook, not at read time.
+			// write time by AccessControlAttributeValidationHook, not at read time.
 			name: "property field with empty attributes returns empty CPAAttrs",
 			propertyField: &PropertyField{
 				ID:       NewId(),
@@ -387,8 +387,8 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 	}
 }
 
-// TestCPAField_SanitizeAndValidate removed: behavior moved into AttributeValidationHook;
-// see TestAttributeValidationHook in server/channels/app/properties/attribute_validation_test.go.
+// TestCPAField_SanitizeAndValidate removed: behavior moved into AccessControlAttributeValidationHook;
+// see TestAccessControlAttributeValidationHook in server/channels/app/properties/access_control_attribute_validation_test.go.
 
 func TestValidateCPAFieldName(t *testing.T) {
 	tests := []struct {
@@ -551,8 +551,8 @@ func TestCPAField_IsAdminManaged(t *testing.T) {
 	}
 }
 
-// TestCPAField_SetDefaults removed: visibility default is now applied by AttributeValidationHook
-// (see attribute_validation.go), exercised in TestAttributeValidationHook.
+// TestCPAField_SetDefaults removed: visibility default is now applied by AccessControlAttributeValidationHook
+// (see access_control_attribute_validation.go), exercised in TestAccessControlAttributeValidationHook.
 
 func TestCPAField_Patch(t *testing.T) {
 	testCases := []struct {
@@ -690,7 +690,7 @@ func TestCPAField_Patch(t *testing.T) {
 		{
 			// Patch with non-nil Attrs replaces the whole Attrs map; visibility
 			// drops to "" because the patch doesn't include it. The visibility
-			// default is reapplied at write time by AttributeValidationHook,
+			// default is reapplied at write time by AccessControlAttributeValidationHook,
 			// not by Patch itself.
 			name: "patch sort order",
 			field: &CPAField{
@@ -1034,7 +1034,7 @@ func TestCPAFieldsFromPropertyFields(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	t.Run("preserves empty visibility from PropertyField (defaults are applied at write time by AttributeValidationHook, not at read time)", func(t *testing.T) {
+	t.Run("preserves empty visibility from PropertyField (defaults are applied at write time by AccessControlAttributeValidationHook, not at read time)", func(t *testing.T) {
 		input := []*PropertyField{{
 			ID:      NewId(),
 			GroupID: AccessControlPropertyGroupName,

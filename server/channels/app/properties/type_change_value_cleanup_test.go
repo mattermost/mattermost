@@ -60,7 +60,7 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, preValues, 1)
 
-		// Patch to type=text. AttributeValidationHook strips the now-invalid
+		// Patch to type=text. AccessControlAttributeValidationHook strips the now-invalid
 		// options attr; TypeChangeValueCleanupHook deletes the dependent value.
 		created.Type = model.PropertyFieldTypeText
 		_, clearedIDs, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)

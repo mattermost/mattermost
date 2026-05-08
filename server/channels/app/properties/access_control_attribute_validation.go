@@ -24,7 +24,7 @@ var (
 // This avoids a circular dependency between the properties and app packages.
 type PermissionChecker func(userID string, permission *model.Permission) bool
 
-// AttributeValidationHook validates and sanitizes property field attributes
+// AccessControlAttributeValidationHook validates and sanitizes property field attributes
 // and values for managed property groups. It owns the full attr pipeline
 // for these groups:
 //
@@ -45,30 +45,30 @@ type PermissionChecker func(userID string, permission *model.Permission) bool
 //     managed attribute
 //
 // The hook only applies to groups whose IDs are in managedGroupIDs.
-type AttributeValidationHook struct {
+type AccessControlAttributeValidationHook struct {
 	BasePropertyHook
 	propertyService   *PropertyService
 	managedGroupIDs   map[string]struct{}
 	permissionChecker PermissionChecker
 }
 
-var _ PropertyHook = (*AttributeValidationHook)(nil)
+var _ PropertyHook = (*AccessControlAttributeValidationHook)(nil)
 
-// NewAttributeValidationHook creates a hook that validates field attributes and
+// NewAccessControlAttributeValidationHook creates a hook that validates field attributes and
 // values for the given property groups.
-func NewAttributeValidationHook(ps *PropertyService, permChecker PermissionChecker, managedGroupIDs ...string) *AttributeValidationHook {
+func NewAccessControlAttributeValidationHook(ps *PropertyService, permChecker PermissionChecker, managedGroupIDs ...string) *AccessControlAttributeValidationHook {
 	ids := make(map[string]struct{}, len(managedGroupIDs))
 	for _, id := range managedGroupIDs {
 		ids[id] = struct{}{}
 	}
-	return &AttributeValidationHook{
+	return &AccessControlAttributeValidationHook{
 		propertyService:   ps,
 		managedGroupIDs:   ids,
 		permissionChecker: permChecker,
 	}
 }
 
-func (h *AttributeValidationHook) isGroupManaged(groupID string) bool {
+func (h *AccessControlAttributeValidationHook) isGroupManaged(groupID string) bool {
 	_, ok := h.managedGroupIDs[groupID]
 	return ok
 }
@@ -77,7 +77,7 @@ func (h *AttributeValidationHook) isGroupManaged(groupID string) bool {
 // default, clears attrs that don't apply to the field type, validates each
 // attr, and auto-IDs+validates options for select-shaped fields. Mutates
 // field.Attrs in place.
-func (h *AttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField) error {
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField) error {
 	if field.Attrs == nil {
 		field.Attrs = model.StringInterface{}
 	}
@@ -149,7 +149,7 @@ var trimmedFieldAttrKeys = []string{
 // resulting shape. The JSON round-trip handles both the typed-slice form
 // (when the request decoded into a wrapper struct) and the []map[string]any
 // form (after a generic JSON decode or DB read).
-func (h *AttributeValidationHook) sanitizeAndValidateOptions(field *model.PropertyField) error {
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field *model.PropertyField) error {
 	rawOptions, ok := field.Attrs[model.PropertyFieldAttributeOptions]
 	if !ok || rawOptions == nil {
 		return nil
@@ -188,7 +188,7 @@ func (h *AttributeValidationHook) sanitizeAndValidateOptions(field *model.Proper
 //   - Otherwise, PermissionValues is left as-is when set, and default-filled
 //     by ObjectType when nil (member for user fields, sysadmin for system
 //     and template). Caller pins are never downgraded.
-func (h *AttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	sysadmin := model.PermissionLevelSysadmin
 
 	if managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string); managed == "admin" {
@@ -228,7 +228,7 @@ func defaultPermissionValuesForObjectType(objectType string) model.PermissionLev
 	}
 }
 
-func (h *AttributeValidationHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	if !h.isGroupManaged(field.GroupID) {
 		return field, nil
 	}
@@ -249,7 +249,7 @@ func (h *AttributeValidationHook) PreCreatePropertyField(rctx request.CTX, field
 	return h.enforceGroupPermissions(rctx, field)
 }
 
-func (h *AttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
 	if !h.isGroupManaged(groupID) {
 		return field, nil
 	}
@@ -274,7 +274,7 @@ func (h *AttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, group
 	return h.enforceGroupPermissions(rctx, field)
 }
 
-func (h *AttributeValidationHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
 	if len(fields) == 0 || !h.isGroupManaged(groupID) {
 		return fields, nil
 	}
@@ -356,7 +356,7 @@ func extractOptionIDs(field *model.PropertyField) (map[string]struct{}, error) {
 //   - multiselect: all option IDs must exist
 //   - user: value must be a valid Mattermost ID
 //   - multiuser: all values must be valid Mattermost IDs
-func (h *AttributeValidationHook) validateValueAgainstField(field *model.PropertyField, value *model.PropertyValue) error {
+func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *model.PropertyField, value *model.PropertyValue) error {
 	switch field.Type {
 	case model.PropertyFieldTypeText:
 		var str string
@@ -428,7 +428,7 @@ func (h *AttributeValidationHook) validateValueAgainstField(field *model.Propert
 	return nil
 }
 
-func (h *AttributeValidationHook) validateValues(values []*model.PropertyValue) error {
+func (h *AccessControlAttributeValidationHook) validateValues(values []*model.PropertyValue) error {
 	if len(values) == 0 {
 		return nil
 	}
@@ -471,42 +471,42 @@ func (h *AttributeValidationHook) validateValues(values []*model.PropertyValue) 
 	return nil
 }
 
-func (h *AttributeValidationHook) PreUpsertPropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *AttributeValidationHook) PreUpsertPropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if err := h.validateValues(values); err != nil {
 		return nil, err
 	}
 	return values, nil
 }
 
-func (h *AttributeValidationHook) PreCreatePropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+func (h *AccessControlAttributeValidationHook) PreCreatePropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *AttributeValidationHook) PreCreatePropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (h *AccessControlAttributeValidationHook) PreCreatePropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if err := h.validateValues(values); err != nil {
 		return nil, err
 	}
 	return values, nil
 }
 
-func (h *AttributeValidationHook) PreUpdatePropertyValue(_ request.CTX, _ string, value *model.PropertyValue) (*model.PropertyValue, error) {
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValue(_ request.CTX, _ string, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *AttributeValidationHook) PreUpdatePropertyValues(_ request.CTX, _ string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(_ request.CTX, _ string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if err := h.validateValues(values); err != nil {
 		return nil, err
 	}

@@ -17,7 +17,7 @@ import (
 )
 
 // celSafeName returns a CPA field name guaranteed to satisfy the CEL identifier
-// rule the AttributeValidationHook enforces. model.NewId() uses a base32
+// rule the AccessControlAttributeValidationHook enforces. model.NewId() uses a base32
 // alphabet that includes digits, so a raw NewId can start with a digit and trip
 // the ^[A-Za-z_]… pattern; the leading "f_" sidesteps that.
 func celSafeName() string {
