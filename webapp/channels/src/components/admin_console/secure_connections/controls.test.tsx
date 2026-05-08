@@ -27,7 +27,7 @@ describe('ConnectionStatusLabel', () => {
     });
 
     it('renders "Connected" when confirmed and last_ping_at is recent', () => {
-        const rc = {...baseRC, last_ping_at: Date.now() - (60 * 1000)} as RemoteCluster;
+        const rc = {...baseRC, last_ping_at: Date.now() - 5_000} as RemoteCluster;
 
         renderWithContext(<ConnectionStatusLabel rc={rc}/>);
 
@@ -74,6 +74,8 @@ describe('FormField', () => {
         );
 
         expect(screen.getByTestId('child-input')).toBeInTheDocument();
+        expect(screen.queryByText('My label')).not.toBeInTheDocument();
+        expect(screen.queryByText('Some help text')).not.toBeInTheDocument();
     });
 });
 
@@ -97,5 +99,6 @@ describe('ModalFieldset', () => {
         );
 
         expect(screen.getByTestId('child')).toBeInTheDocument();
+        expect(screen.queryByText('Section title')).not.toBeInTheDocument();
     });
 });

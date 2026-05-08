@@ -44,7 +44,7 @@ const remoteCluster: RemoteCluster = {
     display_name: 'Acme',
     name: 'acme',
     site_url: 'https://acme.example.com',
-    last_ping_at: Date.now() - (60 * 1000),
+    last_ping_at: Date.now() - 5_000,
     default_team_id: 'team-1',
 } as RemoteCluster;
 

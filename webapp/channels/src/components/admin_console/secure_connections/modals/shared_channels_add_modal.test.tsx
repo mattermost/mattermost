@@ -137,12 +137,9 @@ describe('SharedChannelsAddModal', () => {
             expect(screen.getByText(/could not be added to this connection/)).toBeInTheDocument();
         });
 
-        // Two "Close" buttons exist after the error: the modal's header X and
-        // the footer confirm. The footer one is the one we care about flipping;
-        // pick it via dialog-scoped role query.
         const dialog = screen.getByRole('dialog');
-        const closeButtons = within(dialog).getAllByRole('button', {name: 'Close'});
-        expect(closeButtons.length).toBeGreaterThanOrEqual(1);
+        expect(within(dialog).queryByRole('button', {name: 'Share'})).not.toBeInTheDocument();
+        expect(within(dialog).getByRole('button', {name: 'Close'})).toBeInTheDocument();
     });
 
     it('drops errors for channels removed from the selection', async () => {
