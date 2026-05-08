@@ -2188,113 +2188,6 @@ func (s *hooksRPCServer) DraftWillBeUpserted(args *Z_DraftWillBeUpsertedArgs, re
 	return nil
 }
 
-func init() {
-	hookNameToId["RecapWillBeProcessed"] = RecapWillBeProcessedID
-}
-
-type Z_RecapWillBeProcessedArgs struct {
-	A *Context
-	B *model.Channel
-}
-
-type Z_RecapWillBeProcessedReturns struct {
-	A string
-}
-
-func (g *hooksRPCClient) RecapWillBeProcessed(c *Context, channel *model.Channel) string {
-	_args := &Z_RecapWillBeProcessedArgs{c, channel}
-	_returns := &Z_RecapWillBeProcessedReturns{}
-	if g.implemented[RecapWillBeProcessedID] {
-		if err := g.client.Call("Plugin.RecapWillBeProcessed", _args, _returns); err != nil {
-			g.log.Error("RPC call RecapWillBeProcessed to plugin failed.", mlog.Err(err))
-		}
-	}
-	return _returns.A
-}
-
-// RecapWillBeProcessedWithRPCErr returns the same values as RecapWillBeProcessed, with an additional trailing error
-// for the RPC transport — always the LAST return slot.
-func (g *hooksRPCClient) RecapWillBeProcessedWithRPCErr(c *Context, channel *model.Channel) (string, error) {
-	_args := &Z_RecapWillBeProcessedArgs{c, channel}
-	_returns := &Z_RecapWillBeProcessedReturns{}
-	var _err error
-	if g.implemented[RecapWillBeProcessedID] {
-		_err = g.client.Call("Plugin.RecapWillBeProcessed", _args, _returns)
-		if _err != nil {
-			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
-			_returns = &Z_RecapWillBeProcessedReturns{}
-			g.log.Debug("RPC call RecapWillBeProcessed to plugin failed.", mlog.Err(_err))
-		}
-	}
-	return _returns.A, _err
-}
-
-func (s *hooksRPCServer) RecapWillBeProcessed(args *Z_RecapWillBeProcessedArgs, returns *Z_RecapWillBeProcessedReturns) error {
-	if hook, ok := s.impl.(interface {
-		RecapWillBeProcessed(c *Context, channel *model.Channel) string
-	}); ok {
-		returns.A = hook.RecapWillBeProcessed(args.A, args.B)
-	} else {
-		return encodableError(fmt.Errorf("Hook RecapWillBeProcessed called but not implemented."))
-	}
-	return nil
-}
-
-func init() {
-	hookNameToId["MessageWillBeRewrittenByAI"] = MessageWillBeRewrittenByAIID
-}
-
-type Z_MessageWillBeRewrittenByAIArgs struct {
-	A *Context
-	B *model.Post
-	C string
-}
-
-type Z_MessageWillBeRewrittenByAIReturns struct {
-	A string
-}
-
-func (g *hooksRPCClient) MessageWillBeRewrittenByAI(c *Context, post *model.Post, action string) string {
-	_args := &Z_MessageWillBeRewrittenByAIArgs{c, post, action}
-	_returns := &Z_MessageWillBeRewrittenByAIReturns{}
-	if g.implemented[MessageWillBeRewrittenByAIID] {
-		if err := g.client.Call("Plugin.MessageWillBeRewrittenByAI", _args, _returns); err != nil {
-			g.log.Error("RPC call MessageWillBeRewrittenByAI to plugin failed.", mlog.Err(err))
-		}
-	}
-	return _returns.A
-}
-
-// MessageWillBeRewrittenByAIWithRPCErr returns the same values as MessageWillBeRewrittenByAI, with an additional trailing error
-// for the RPC transport — always the LAST return slot.
-func (g *hooksRPCClient) MessageWillBeRewrittenByAIWithRPCErr(c *Context, post *model.Post, action string) (string, error) {
-	_args := &Z_MessageWillBeRewrittenByAIArgs{c, post, action}
-	_returns := &Z_MessageWillBeRewrittenByAIReturns{}
-	var _err error
-	if g.implemented[MessageWillBeRewrittenByAIID] {
-		_err = g.client.Call("Plugin.MessageWillBeRewrittenByAI", _args, _returns)
-		if _err != nil {
-			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
-			_returns = &Z_MessageWillBeRewrittenByAIReturns{}
-			g.log.Debug("RPC call MessageWillBeRewrittenByAI to plugin failed.", mlog.Err(_err))
-		}
-	}
-	return _returns.A, _err
-}
-
-func (s *hooksRPCServer) MessageWillBeRewrittenByAI(args *Z_MessageWillBeRewrittenByAIArgs, returns *Z_MessageWillBeRewrittenByAIReturns) error {
-	if hook, ok := s.impl.(interface {
-		MessageWillBeRewrittenByAI(c *Context, post *model.Post, action string) string
-	}); ok {
-		returns.A = hook.MessageWillBeRewrittenByAI(args.A, args.B, args.C)
-	} else {
-		return encodableError(fmt.Errorf("Hook MessageWillBeRewrittenByAI called but not implemented."))
-	}
-	return nil
-}
-
 // HooksWithRPCErr provides a WithRPCErr variant for every generated hook. The last error return
 // is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
 // hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
@@ -2387,10 +2280,6 @@ type HooksWithRPCErr interface {
 	ScheduledPostWillBeCreatedWithRPCErr(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string, error)
 
 	DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error)
-
-	RecapWillBeProcessedWithRPCErr(c *Context, channel *model.Channel) (string, error)
-
-	MessageWillBeRewrittenByAIWithRPCErr(c *Context, post *model.Post, action string) (string, error)
 }
 
 type Z_RegisterCommandArgs struct {

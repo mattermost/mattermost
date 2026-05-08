@@ -364,20 +364,6 @@ func (hooks *hooksTimerLayer) DraftWillBeUpserted(c *Context, draft *model.Draft
 	return _returnsA, _returnsB
 }
 
-func (hooks *hooksTimerLayer) RecapWillBeProcessed(c *Context, channel *model.Channel) string {
-	startTime := timePkg.Now()
-	_returnsA := hooks.hooksImpl.RecapWillBeProcessed(c, channel)
-	hooks.recordTime(startTime, "RecapWillBeProcessed", true)
-	return _returnsA
-}
-
-func (hooks *hooksTimerLayer) MessageWillBeRewrittenByAI(c *Context, post *model.Post, action string) string {
-	startTime := timePkg.Now()
-	_returnsA := hooks.hooksImpl.MessageWillBeRewrittenByAI(c, post, action)
-	hooks.recordTime(startTime, "MessageWillBeRewrittenByAI", true)
-	return _returnsA
-}
-
 func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnDeactivateWithRPCErr()
@@ -663,18 +649,4 @@ func (hooks *hooksTimerLayer) DraftWillBeUpsertedWithRPCErr(c *Context, draft *m
 	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.DraftWillBeUpsertedWithRPCErr(c, draft)
 	hooks.recordTime(startTime, "DraftWillBeUpsertedWithRPCErr", _returnsRPCErr == nil)
 	return _returnsA, _returnsB, _returnsRPCErr
-}
-
-func (hooks *hooksTimerLayer) RecapWillBeProcessedWithRPCErr(c *Context, channel *model.Channel) (string, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.RecapWillBeProcessedWithRPCErr(c, channel)
-	hooks.recordTime(startTime, "RecapWillBeProcessedWithRPCErr", _returnsRPCErr == nil)
-	return _returnsA, _returnsRPCErr
-}
-
-func (hooks *hooksTimerLayer) MessageWillBeRewrittenByAIWithRPCErr(c *Context, post *model.Post, action string) (string, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.MessageWillBeRewrittenByAIWithRPCErr(c, post, action)
-	hooks.recordTime(startTime, "MessageWillBeRewrittenByAIWithRPCErr", _returnsRPCErr == nil)
-	return _returnsA, _returnsRPCErr
 }

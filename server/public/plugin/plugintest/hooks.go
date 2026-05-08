@@ -398,24 +398,6 @@ func (_m *Hooks) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mode
 	return r0, r1
 }
 
-// MessageWillBeRewrittenByAI provides a mock function with given fields: c, post, action
-func (_m *Hooks) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
-	ret := _m.Called(c, post, action)
-
-	if len(ret) == 0 {
-		panic("no return value specified for MessageWillBeRewrittenByAI")
-	}
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Post, string) string); ok {
-		r0 = rf(c, post, action)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}
-
 // MessageWillBeUpdated provides a mock function with given fields: c, newPost, oldPost
 func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, oldPost *model.Post) (*model.Post, string) {
 	ret := _m.Called(c, newPost, oldPost)
@@ -706,24 +688,6 @@ func (_m *Hooks) ReactionHasBeenAdded(c *plugin.Context, reaction *model.Reactio
 // ReactionHasBeenRemoved provides a mock function with given fields: c, reaction
 func (_m *Hooks) ReactionHasBeenRemoved(c *plugin.Context, reaction *model.Reaction) {
 	_m.Called(c, reaction)
-}
-
-// RecapWillBeProcessed provides a mock function with given fields: c, channel
-func (_m *Hooks) RecapWillBeProcessed(c *plugin.Context, channel *model.Channel) string {
-	ret := _m.Called(c, channel)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RecapWillBeProcessed")
-	}
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Channel) string); ok {
-		r0 = rf(c, channel)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
 }
 
 // RunDataRetention provides a mock function with given fields: nowTime, batchSize

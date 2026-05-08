@@ -72,8 +72,6 @@ const (
 	ChannelWillBeRestoredID                   = 53
 	ScheduledPostWillBeCreatedID              = 54
 	DraftWillBeUpsertedID                     = 55
-	RecapWillBeProcessedID                    = 56
-	MessageWillBeRewrittenByAIID              = 57
 	TotalHooksID                              = iota
 )
 
@@ -509,26 +507,4 @@ type Hooks interface {
 	//
 	// Minimum server version: 11.8
 	DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string)
-
-	// RecapWillBeProcessed is invoked before a recap / AI summarization job fetches posts from a
-	// channel and ships them to an LLM provider.
-	//
-	// Fires from app.ProcessRecapChannel. Generic seam for any future AI/external-processing
-	// feature to consult per-channel policy.
-	//
-	// To reject (skip recap for this channel), return a non-empty string. Empty string allows recap
-	// to proceed.
-	//
-	// Minimum server version: 11.8
-	RecapWillBeProcessed(c *Context, channel *model.Channel) string
-
-	// MessageWillBeRewrittenByAI is invoked before a per-post AI rewrite job fetches the post (and
-	// surrounding thread context) and ships it to an LLM provider. Fires from app.RewriteMessage
-	// before buildThreadContextForRewrite.
-	//
-	// To reject the rewrite for this post, return a non-empty string. Empty string allows the
-	// rewrite to proceed.
-	//
-	// Minimum server version: 11.8
-	MessageWillBeRewrittenByAI(c *Context, post *model.Post, action string) string
 }
