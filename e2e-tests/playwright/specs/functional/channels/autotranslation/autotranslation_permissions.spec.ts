@@ -206,8 +206,7 @@ test.describe('autotranslation configuration tests', () => {
             await channelsPage.page.getByRole('button', {name: 'Save'}).click();
             await channelSettingsModal.close();
 
-            const updatedChannel = await adminClient.getChannel(dmChannel.id);
-            expect(updatedChannel.header).toBe(newHeader);
+            await expect.poll(async () => (await adminClient.getChannel(dmChannel.id)).header).toBe(newHeader);
         },
     );
 
