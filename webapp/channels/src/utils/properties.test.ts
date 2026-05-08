@@ -178,20 +178,46 @@ describe('validateCPAFieldName', () => {
 });
 
 describe('slugifyForCEL', () => {
-    it('already valid identifier passes through unchanged', () => {
+    it('already snake_case identifier passes through unchanged', () => {
         expect(slugifyForCEL('dept_head')).toBe('dept_head');
     });
 
-    it('spaces are replaced with underscores', () => {
-        expect(slugifyForCEL('My Field')).toBe('My_Field');
+    it('spaces are replaced with underscores and lowercased', () => {
+        expect(slugifyForCEL('My Field')).toBe('my_field');
     });
 
-    it('hyphens are replaced with underscores', () => {
-        expect(slugifyForCEL('foo-bar')).toBe('foo_bar');
+    it('hyphens are replaced with underscores and lowercased', () => {
+        expect(slugifyForCEL('foo-Bar')).toBe('foo_bar');
+    });
+
+    it('camelCase is converted to snake_case', () => {
+        expect(slugifyForCEL('myFieldName')).toBe('my_field_name');
+    });
+
+    it('PascalCase is converted to snake_case', () => {
+        expect(slugifyForCEL('MyField')).toBe('my_field');
+    });
+
+    it('consecutive uppercase acronyms split before final word', () => {
+        expect(slugifyForCEL('XMLParser')).toBe('xml_parser');
+        expect(slugifyForCEL('HTTPServerError')).toBe('http_server_error');
+    });
+
+    it('all-uppercase token is lowercased without inserting separators', () => {
+        expect(slugifyForCEL('DEPT')).toBe('dept');
+    });
+
+    it('digit-letter boundaries do not insert separators', () => {
+        expect(slugifyForCEL('field2name')).toBe('field2name');
+        expect(slugifyForCEL('Field2Name')).toBe('field2_name');
     });
 
     it('leading digit gets underscore prefix', () => {
         expect(slugifyForCEL('7department')).toBe('_7department');
+    });
+
+    it('leading underscore is preserved', () => {
+        expect(slugifyForCEL('_Private')).toBe('_private');
     });
 
     it('empty string returns _copy', () => {
@@ -202,8 +228,25 @@ describe('slugifyForCEL', () => {
         expect(slugifyForCEL('---')).toBe('_copy');
     });
 
+    it('non-ASCII letters are replaced with underscores', () => {
+        expect(slugifyForCEL('Préférences')).toBe('pr_f_rences');
+    });
+
     it('result always matches CPA_FIELD_NAME_PATTERN', () => {
-        const inputs = ['My Field', 'foo-bar', '7dept', '', '---', 'valid_name', 'DEPT'];
+        const inputs = [
+            'My Field',
+            'foo-bar',
+            '7dept',
+            '',
+            '---',
+            'valid_name',
+            'DEPT',
+            'MyField',
+            'XMLParser',
+            'myFieldName',
+            '_Private',
+            'Préférences',
+        ];
 
         for (const input of inputs) {
             const result = slugifyForCEL(input);

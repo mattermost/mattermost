@@ -104,14 +104,23 @@ export function validateCPAFieldName(name: string): CPAFieldNameValidationError 
 }
 
 /**
- * Converts an arbitrary string into a CEL-safe identifier for use as
- * a duplicate-field base name. Non-identifier characters are replaced
- * with underscores. A leading digit is prefixed with underscore.
- * Result is guaranteed to match CPA_FIELD_NAME_PATTERN if the input
- * is non-empty; returns '_copy' if the entire input normalizes to empty.
+ * Converts an arbitrary string into a snake_case CEL-safe identifier for
+ * use as a duplicate-field base name. Camel/PascalCase boundaries are
+ * converted to underscore separators (e.g. 'MyField' -> 'my_field',
+ * 'XMLParser' -> 'xml_parser'), the result is lowercased, and any
+ * remaining non-identifier characters are replaced with underscores.
+ * A leading digit is prefixed with underscore. Consecutive underscores
+ * collapse to one and trailing underscores are trimmed (a leading
+ * underscore is preserved). Result is guaranteed to match
+ * CPA_FIELD_NAME_PATTERN if the input is non-empty; returns '_copy' if
+ * the entire input normalizes to empty.
  */
 export function slugifyForCEL(name: string): string {
-    let slug = name.replace(/[^A-Za-z0-9_]/g, '_');
+    let slug = name.
+        replace(/([a-z0-9])([A-Z])/g, '$1_$2').
+        replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2').
+        toLowerCase().
+        replace(/[^a-z0-9_]/g, '_');
     if ((/^[0-9]/).test(slug)) {
         slug = '_' + slug;
     }
