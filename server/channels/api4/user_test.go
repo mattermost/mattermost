@@ -2982,6 +2982,84 @@ func TestUpdateUserActive(t *testing.T) {
 			CheckForbiddenStatus(t, resp)
 		})
 	})
+
+	t.Run("user manager without bot permissions cannot deactivate bot accounts", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		bot, botResp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "Test Bot",
+			Description: "bot for permission test",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, botResp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			assert.Nil(t, appErr)
+		}()
+
+		// Give BasicUser the User Manager permission to edit users, but no bot permissions.
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		th.LoginBasic(t)
+
+		// A User Manager without bot permissions must be blocked.
+		// Because the caller has neither PermissionReadOthersBots nor
+		// PermissionManageOthersBots, SessionHasPermissionToManageBot always
+		// returns 404 to avoid leaking the bot's existence.
+		resp, err := th.Client.UpdateUserActive(context.Background(), bot.UserId, false)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+
+		// Confirm the bot is still active.
+		botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
+		require.NoError(t, err)
+		require.Zero(t, botUser.DeleteAt, "bot should still be active")
+	})
+
+	t.Run("user with bot management permissions can deactivate bot accounts via user active endpoint", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		bot, botResp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "Test Bot",
+			Description: "bot for permission test",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, botResp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			assert.Nil(t, appErr)
+		}()
+
+		// Assign both user-management and bot-management permissions to BasicUser.
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+
+		th.LoginBasic(t)
+
+		// A user with ManageOthersBots should be allowed.
+		_, err = th.Client.UpdateUserActive(context.Background(), bot.UserId, false)
+		require.NoError(t, err)
+
+		// Confirm the bot is now inactive.
+		botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
+		require.NoError(t, err)
+		require.True(t, botUser.DeleteAt > 0, "bot should be inactive after deactivation")
+	})
 }
 
 func TestGetUsers(t *testing.T) {
