@@ -1233,6 +1233,20 @@ func (a *App) getAddChannelAccessRulesPermissionMigration() (permissionsMap, err
 	}, nil
 }
 
+func (a *App) getAddTeamAccessRulesPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.TeamAdminRoleId),
+				isRole(model.SystemAdminRoleId),
+			),
+			Add: []string{
+				model.PermissionManageTeamAccessRules.Id,
+			},
+		},
+	}, nil
+}
+
 func (a *App) getAddChannelAutoTranslationPermissionMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
@@ -1302,6 +1316,15 @@ func (a *App) getAddManageAgentPermissionsMigration() (permissionsMap, error) {
 	}, nil
 }
 
+func (a *App) getAddEditFileAttachmentPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  permissionExists(model.PermissionEditPost.Id),
+			Add: []string{model.PermissionEditFileAttachment.Id},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1358,10 +1381,12 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationAddSysconsoleMobileSecurityPermission, Migration: a.addSysConsoleMobileSecurityPermission},
 		{Key: model.MigrationKeyAddChannelBannerPermissions, Migration: a.getAddChannelBannerPermissionMigration},
 		{Key: model.MigrationKeyAddChannelAccessRulesPermission, Migration: a.getAddChannelAccessRulesPermissionMigration},
+		{Key: model.MigrationKeyAddTeamAccessRulesPermission, Migration: a.getAddTeamAccessRulesPermissionMigration},
 		{Key: model.MigrationKeyAddChannelAutoTranslationPermissions, Migration: a.getAddChannelAutoTranslationPermissionMigration},
 		{Key: model.MigrationKeyAddSharedChannelManagerPermissions, Migration: a.getAddSharedChannelManagerPermissionsMigration},
 		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
+		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

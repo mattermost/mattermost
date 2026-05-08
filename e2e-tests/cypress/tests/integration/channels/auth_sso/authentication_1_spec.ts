@@ -10,14 +10,14 @@
 // Stage: @prod
 // Group: @channels @system_console @authentication
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId, newTestPassword} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId, newTestPassword} from '@/utils';
 
 describe('Authentication', () => {
     const restrictCreationToDomains = 'mattermost.com, test.com';
-    let testUser;
-    let testUserAlreadyInTeam;
-    let testTeam;
+    let testUser: Cypress.UserProfile;
+    let testUserAlreadyInTeam: Cypress.UserProfile;
+    let testTeam: Cypress.Team;
 
     before(() => {
         // # Do email test if setup properly

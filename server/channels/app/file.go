@@ -28,6 +28,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
@@ -1498,7 +1499,7 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 
 func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.FileInfoList, userID string) (bool, *model.AppError) {
 	if fileList == nil || fileList.FileInfos == nil || len(fileList.FileInfos) == 0 {
-		return true, nil // On an empty file list, we consider all files as having membership
+		return true, nil
 	}
 
 	channels := make(map[string]*model.Channel)
@@ -1519,7 +1520,9 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 		}
 	}
 
-	channelReadPermission := make(map[string]bool)
+	abacSubject := a.buildFileDownloadSubject(rctx, userID)
+
+	channelPermission := make(map[string]bool)
 	filteredFiles := make(map[string]*model.FileInfo)
 	filteredOrder := []string{}
 	allFilesHaveMembership := true
@@ -1530,20 +1533,21 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 			continue
 		}
 
-		if _, ok := channelReadPermission[fileInfo.ChannelId]; !ok {
+		if _, ok := channelPermission[fileInfo.ChannelId]; !ok {
 			channel := channels[fileInfo.ChannelId]
 			allowed := false
 			isMember := true
 			if channel != nil {
 				allowed, isMember = a.HasPermissionToReadChannel(rctx, userID, channel)
 			}
-			channelReadPermission[fileInfo.ChannelId] = allowed
 			if allowed {
 				allFilesHaveMembership = allFilesHaveMembership && isMember
+				allowed = a.hasFileDownloadPermission(rctx, userID, fileInfo.ChannelId, abacSubject)
 			}
+			channelPermission[fileInfo.ChannelId] = allowed
 		}
 
-		if channelReadPermission[fileInfo.ChannelId] {
+		if channelPermission[fileInfo.ChannelId] {
 			filteredFiles[fileID] = fileInfo
 			filteredOrder = append(filteredOrder, fileID)
 		}
@@ -1553,6 +1557,69 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 	fileList.Order = filteredOrder
 
 	return allFilesHaveMembership, nil
+}
+
+// buildFileDownloadSubject returns a fully populated ABAC Subject for the user
+// when ABAC is active, or nil when ABAC is not configured / not enabled.
+func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.Subject {
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return nil
+	}
+	if !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return nil
+	}
+	if !a.Config().FeatureFlags.PermissionPolicies {
+		return nil
+	}
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get user for file download permission filtering",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+		return nil
+	}
+
+	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles)
+	if appErr != nil {
+		rctx.Logger().Warn("Failed to build ABAC subject for file search filtering",
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
+		return nil
+	}
+	return subject
+}
+
+// hasFileDownloadPermission evaluates the ABAC download_file_attachment policy
+// for a channel. Returns true (allowed) when ABAC is not active (subject == nil)
+// or when the PDP grants access. Returns false on deny or evaluation error (fail-secure).
+func (a *App) hasFileDownloadPermission(rctx request.CTX, userID string, channelID string, subject *model.Subject) bool {
+	if subject == nil {
+		return true
+	}
+
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return true
+	}
+
+	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+		Subject:  *subject,
+		Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},
+		Action:   model.AccessControlPolicyActionDownloadFileAttachment,
+	})
+	if evalErr != nil {
+		rctx.Logger().Warn("ABAC file download evaluation failed during search, denying",
+			mlog.String("user_id", userID),
+			mlog.String("channel_id", channelID),
+			mlog.Err(evalErr),
+		)
+		return false
+	}
+	return decision.Decision
 }
 
 func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error {
@@ -1695,21 +1762,58 @@ func getFileExtFromMimeType(mimeType string) string {
 	return "jpg"
 }
 
-func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model.AppError {
+func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report *model.PostDeletionReport) *model.AppError {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, true)
 	if err != nil {
+		if report != nil {
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepFailed, "", []string{err.Error()})
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepFailed, "", []string{err.Error()})
+		}
+
 		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(fileInfos) == 0 {
 		rctx.Logger().Debug("No files found for post", mlog.String("post_id", postID))
+
+		if report != nil {
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_files"), nil)
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_rows_to_delete"), nil)
+		}
+
 		return nil
 	}
 
-	a.RemoveFilesFromFileStore(rctx, fileInfos)
+	fileInfoIDs := make([]string, 0, len(fileInfos))
+	for _, fileInfo := range fileInfos {
+		fileInfoIDs = append(fileInfoIDs, fmt.Sprintf("`%s`", fileInfo.Id))
+	}
+
+	errs := a.RemoveFilesFromFileStore(rctx, fileInfos)
+	if len(errs) > 0 {
+		if report != nil {
+			errMessages := make([]string, 0, len(errs))
+			for _, err := range errs {
+				errMessages = append(errMessages, err.Error())
+			}
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepFailed, "", errMessages)
+		}
+	} else {
+		if report != nil {
+			report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_names"), map[string]any{"Count": len(fileInfos)}, nil)
+		}
+	}
 
 	err = a.Srv().Store().FileInfo().PermanentDeleteForPost(rctx, postID)
 	if err != nil {
-		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.permanent_delete_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if report != nil {
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepFailed, "", []string{err.Error()})
+		}
+
+		return model.NewAppError("PermanentDeleteFilesByPost", i18n.TranslationId("app.file_info.permanent_delete_for_post.app_error"), nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if report != nil {
+		report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_attachments_info_ids"), map[string]any{"FileInfoIDs": strings.Join(fileInfoIDs, ", ")}, nil)
 	}
 
 	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
@@ -1718,19 +1822,28 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model
 	return nil
 }
 
-func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo) {
+func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo) []*model.AppError {
+	errs := []*model.AppError{}
+
 	for _, info := range fileInfos {
-		a.RemoveFileFromFileStore(rctx, info.Path)
+		appErr := a.RemoveFileFromFileStore(rctx, info.Path)
+		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+			newAppErr := model.NewAppError("RemoveFilesFromFileStore", "app.file_info.remove_file.app_error", map[string]any{"FileInfoID": info.Id}, "", http.StatusInternalServerError)
+			errs = append(errs, newAppErr)
+		}
+
 		if info.PreviewPath != "" {
-			a.RemoveFileFromFileStore(rctx, info.PreviewPath)
+			_ = a.RemoveFileFromFileStore(rctx, info.PreviewPath)
 		}
 		if info.ThumbnailPath != "" {
-			a.RemoveFileFromFileStore(rctx, info.ThumbnailPath)
+			_ = a.RemoveFileFromFileStore(rctx, info.ThumbnailPath)
 		}
 	}
+
+	return errs
 }
 
-func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
+func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) *model.AppError {
 	res, appErr := a.FileExists(path)
 	if appErr != nil {
 		rctx.Logger().Warn(
@@ -1738,12 +1851,12 @@ func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
 			mlog.String("path", path),
 			mlog.Err(appErr),
 		)
-		return
+		return appErr
 	}
 
 	if !res {
 		rctx.Logger().Warn("File not found", mlog.String("path", path))
-		return
+		return model.NewAppError("RemoveFileFromFile", "app.file_info.not_found", nil, "", http.StatusNotFound)
 	}
 
 	appErr = a.RemoveFile(path)
@@ -1753,8 +1866,10 @@ func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
 			mlog.String("path", path),
 			mlog.Err(appErr),
 		)
-		return
+		return appErr
 	}
+
+	return nil
 }
 
 // sendFileDownloadRejectedEvent sends a websocket event to notify the user that their file download was rejected.

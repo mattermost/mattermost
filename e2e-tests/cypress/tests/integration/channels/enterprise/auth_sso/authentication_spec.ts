@@ -12,8 +12,8 @@
 
 import {Team} from '@mattermost/types/teams';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getRandomId, newTestPassword} from '../../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId, newTestPassword} from '@/utils';
 
 describe('Authentication', () => {
     const restrictCreationToDomains = 'mattermost.com, test.com';

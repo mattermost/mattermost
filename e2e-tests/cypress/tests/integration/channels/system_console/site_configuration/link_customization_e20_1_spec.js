@@ -10,10 +10,11 @@
 // Stage: @prod
 // Group: @channels @system_console @enterprise @e20_only @not_cloud
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {TERMS_OF_SERVICE_LINK} from '../../../../utils/constants';
-
 import {backToTeam, saveSetting} from './helper';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {TERMS_OF_SERVICE_LINK} from '@/utils/constants';
+
 
 describe('SupportSettings', () => {
     const tosLink = 'https://github.com/mattermost/platform/blob/master/README.md';

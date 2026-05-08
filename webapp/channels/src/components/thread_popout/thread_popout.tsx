@@ -6,6 +6,7 @@ import {defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation, useParams} from 'react-router-dom';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 
 import {fetchChannelsAndMembers, selectChannel} from 'mattermost-redux/actions/channels';
@@ -35,7 +36,6 @@ import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
 import usePopoutFocus from 'utils/popouts/use_popout_focus';
 import usePopoutTitle from 'utils/popouts/use_popout_title';
-import {isDesktopApp} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 

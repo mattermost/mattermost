@@ -10,13 +10,15 @@
 // Stage: @prod
 // Group: @channels @enterprise @elasticsearch @incoming_webhook @not_cloud
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {enableElasticSearch} from '../elasticsearch_autocomplete/helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
+
 describe('Incoming webhook', () => {
-    let testTeam;
-    let testChannel;
-    let incomingWebhook;
+    let testTeam: Cypress.Team;
+    let testChannel: Cypress.Channel;
+    let incomingWebhook: {data: unknown; url: string}; // apiCreateWebhook returns untyped body
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();

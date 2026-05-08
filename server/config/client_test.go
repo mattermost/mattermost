@@ -460,6 +460,23 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 		},
 		{
+			"mobile watermark uses experimental settings",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableWatermark: model.NewPointer(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"ExperimentalEnableWatermark": "true",
+			},
+			nil,
+		},
+		{
 			"Intune MAM enabled with Enterprise Advanced license and Office365 AuthService",
 			&model.Config{
 				IntuneSettings: model.IntuneSettings{
@@ -804,6 +821,22 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"FeatureFlagTestFeature": "myvalue",
+			},
+		},
+		{
+			"limited config mobile watermark uses experimental settings",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableWatermark: model.NewPointer(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"ExperimentalEnableWatermark": "true",
 			},
 		},
 	}

@@ -12,6 +12,13 @@ const (
 	AuditEventUnassignAccessPolicy      = "unassignAccessPolicy"      // remove access control policy from channels
 	AuditEventUpdateActiveStatus        = "updateActiveStatus"        // update active/inactive status of access control policy
 	AuditEventSetActiveStatus           = "setActiveStatus"           // set active/inactive status of multiple access control policies
+
+	AuditEventCreateTeamAccessPolicy   = "createTeamAccessPolicy"   // create team-scoped access control policy
+	AuditEventUpdateTeamAccessPolicy   = "updateTeamAccessPolicy"   // update team-scoped access control policy
+	AuditEventDeleteTeamAccessPolicy   = "deleteTeamAccessPolicy"   // delete team-scoped access control policy
+	AuditEventAssignTeamAccessPolicy   = "assignTeamAccessPolicy"   // assign channels to team-scoped access control policy
+	AuditEventUnassignTeamAccessPolicy = "unassignTeamAccessPolicy" // remove channels from team-scoped access control policy
+	AuditEventTriggerTeamPolicySync    = "triggerTeamPolicySync"    // trigger sync for team-scoped access control policies
 )
 
 // Audit & Certificates
@@ -304,12 +311,13 @@ const (
 
 // Recaps
 const (
-	AuditEventCreateRecap     = "createRecap"     // create recap summarizing channel content
-	AuditEventGetRecap        = "getRecap"        // view a single recap
-	AuditEventGetRecaps       = "getRecaps"       // list user's recaps
-	AuditEventMarkRecapAsRead = "markRecapAsRead" // mark recap as read
-	AuditEventRegenerateRecap = "regenerateRecap" // regenerate recap with updated channel content
-	AuditEventDeleteRecap     = "deleteRecap"     // delete recap
+	AuditEventCreateRecap        = "createRecap"        // create recap summarizing channel content
+	AuditEventGetRecap           = "getRecap"           // view a single recap
+	AuditEventGetRecaps          = "getRecaps"          // list user's recaps
+	AuditEventMarkRecapAsRead    = "markRecapAsRead"    // mark recap as read
+	AuditEventMarkRecapsAsViewed = "markRecapsAsViewed" // bulk mark user's finished recaps as viewed
+	AuditEventRegenerateRecap    = "regenerateRecap"    // regenerate recap with updated channel content
+	AuditEventDeleteRecap        = "deleteRecap"        // delete recap
 )
 
 // Preferences

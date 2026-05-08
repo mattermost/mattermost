@@ -10,15 +10,16 @@
 // Stage: @prod
 // Group: @channels @emoji @timeout_error
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import * as MESSAGES from '../../../fixtures/messages';
-
 import {getCustomEmoji} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
+
 
 describe('Recent Emoji', () => {
     const largeEmojiFile = 'gif-image-file.gif';
 
-    let townsquareLink;
+    let townsquareLink: string;
 
     before(() => {
         cy.apiUpdateConfig({

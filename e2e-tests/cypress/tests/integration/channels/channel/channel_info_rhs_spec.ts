@@ -14,7 +14,7 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import {stubClipboard} from '../../../utils';
+import {stubClipboard} from '@/utils';
 
 describe('Channel Info RHS', () => {
     let testTeam: Team;
@@ -533,7 +533,7 @@ describe('Channel Info RHS', () => {
     });
 });
 
-function ensureRHSIsOpenOnChannelInfo(testChannel) {
+function ensureRHSIsOpenOnChannelInfo(testChannel: Cypress.Channel) {
     cy.get('#rhsContainer').then((rhsContainer) => {
         cy.wrap(rhsContainer).findByText('Info').should('be.visible');
         cy.wrap(rhsContainer).find('.sidebar--right__title__subtitle').should('contain', testChannel.display_name);

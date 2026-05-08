@@ -45,6 +45,7 @@ const (
 	STATUS                          = "status"
 	StatusOk                        = "OK"
 	StatusFail                      = "FAIL"
+	StatusDisabled                  = "disabled"
 	StatusUnhealthy                 = "UNHEALTHY"
 	StatusRemove                    = "REMOVE"
 	ConnectionId                    = "Connection-Id"
@@ -683,6 +684,10 @@ func (c *Client4) propertyFieldRoute(groupName, objectType, fieldID string) clie
 
 func (c *Client4) propertyValuesRoute(groupName, objectType, targetID string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, objectType, "values", targetID)
+}
+
+func (c *Client4) propertySystemValuesRoute(groupName string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, PropertyFieldObjectTypeSystem, "values")
 }
 
 func (c *Client4) accessControlPoliciesRoute() clientRoute {
@@ -3007,6 +3012,20 @@ func (c *Client4) SearchChannels(ctx context.Context, teamId string, search *Cha
 // SearchAllChannels search in all the channels. Must be a system administrator.
 func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.channelsRoute().Join("search"), search)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[ChannelListWithTeamData](r)
+}
+
+// SearchAllChannelsForUserWithOpts searches channels for a regular user with additional filter options.
+// Sends system_console=false so the server applies user-visibility scoping (membership-gated for private channels).
+func (c *Client4) SearchAllChannelsForUserWithOpts(ctx context.Context, search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
+	values := url.Values{}
+	values.Set("system_console", "false")
+
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.channelsRoute().Join("search"), values, search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6203,9 +6222,16 @@ func (c *Client4) GetJobs(ctx context.Context, jobType string, status string, pa
 
 // GetJobsByType gets all jobs of a given type, sorted with the job that was created most recently first.
 func (c *Client4) GetJobsByType(ctx context.Context, jobType string, page int, perPage int) ([]*Job, *Response, error) {
+	return c.GetJobsByTypeForTeam(ctx, jobType, page, perPage, "")
+}
+
+func (c *Client4) GetJobsByTypeForTeam(ctx context.Context, jobType string, page int, perPage int, teamID string) ([]*Job, *Response, error) {
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
+	if teamID != "" {
+		values.Set("team_id", teamID)
+	}
 	r, err := c.doAPIGetWithQuery(ctx, c.jobsRoute().Join("type", jobType), values, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -8076,6 +8102,38 @@ func (c *Client4) PatchPropertyValues(ctx context.Context, groupName, objectType
 	return DecodeJSONFromResponse[[]*PropertyValue](r)
 }
 
+// GetSystemPropertyValues returns the property values attached to the Mattermost
+// system itself in the given group.
+func (c *Client4) GetSystemPropertyValues(ctx context.Context, groupName string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
+	values := url.Values{}
+	if search.PerPage > 0 {
+		values.Set("per_page", strconv.Itoa(search.PerPage))
+	}
+	if search.CursorID != "" && search.CursorCreateAt > 0 {
+		values.Set("cursor_id", search.CursorID)
+		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
+		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertySystemValuesRoute(groupName), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
+// PatchSystemPropertyValues upserts property values attached to the Mattermost
+// system itself in the given group.
+func (c *Client4) PatchSystemPropertyValues(ctx context.Context, groupName string, items []PropertyValuePatchItem) ([]*PropertyValue, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertySystemValuesRoute(groupName), items)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
 func (c *Client4) GetPostPropertyValues(ctx context.Context, postId string) ([]PropertyValue, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.contentFlaggingRoute().Join("post", postId, "field_values"), "")
 	if err != nil {
@@ -8195,7 +8253,15 @@ func (c *Client4) GetChannelsForAccessControlPolicy(ctx context.Context, policyI
 }
 
 func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, policyID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.accessControlPolicyRoute(policyID).Join("resources", "channels", "search"), options)
+	return c.SearchChannelsForAccessControlPolicyForTeam(ctx, policyID, "", options)
+}
+
+func (c *Client4) SearchChannelsForAccessControlPolicyForTeam(ctx context.Context, policyID, teamID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
+	var query url.Values
+	if teamID != "" {
+		query = url.Values{"team_id": []string{teamID}}
+	}
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.accessControlPolicyRoute(policyID).Join("resources", "channels", "search"), query, options)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

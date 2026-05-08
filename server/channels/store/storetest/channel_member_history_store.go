@@ -19,6 +19,7 @@ import (
 func TestChannelMemberHistoryStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("TestLogJoinEvent", func(t *testing.T) { testLogJoinEvent(t, rctx, ss) })
 	t.Run("TestLogLeaveEvent", func(t *testing.T) { testLogLeaveEvent(t, rctx, ss) })
+	t.Run("TestGetEverMembersInChannel", func(t *testing.T) { testGetEverMembersInChannel(t, rctx, ss) })
 	t.Run("TestGetUsersInChannelAtChannelMemberHistory", func(t *testing.T) { testGetUsersInChannelAtChannelMemberHistory(t, rctx, ss) })
 	t.Run("TestGetUsersInChannelAtChannelMembers", func(t *testing.T) { testGetUsersInChannelAtChannelMembers(t, rctx, ss) })
 	t.Run("TestGetChannelsWithActivityDuring", func(t *testing.T) { testGetChannelsWithActivityDuring(t, rctx, ss) })
@@ -27,6 +28,69 @@ func TestChannelMemberHistoryStore(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("TestGetChannelsLeftSince", func(t *testing.T) { testGetChannelsLeftSince(t, rctx, ss) })
 	t.Run("TestDeleteOrphanedRows", func(t *testing.T) { testDeleteOrphanedRows(t, rctx, ss) })
 	t.Run("TestGetMembershipChanges", func(t *testing.T) { testGetMembershipChanges(t, rctx, ss) })
+}
+
+func testGetEverMembersInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+	channel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Display " + model.NewId(),
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, err := ss.Channel().Save(rctx, channel, -1)
+	require.NoError(t, err)
+
+	otherChannel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Display " + model.NewId(),
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpen,
+	}
+	otherChannel, err = ss.Channel().Save(rctx, otherChannel, -1)
+	require.NoError(t, err)
+
+	newUser := func() string {
+		user := &model.User{
+			Email:    MakeEmail(),
+			Nickname: model.NewId(),
+			Username: model.NewUsername(),
+		}
+		created, saveErr := ss.User().Save(rctx, user)
+		require.NoError(t, saveErr)
+		return created.Id
+	}
+
+	user1 := newUser()
+	user2 := newUser()
+	user3 := newUser()
+	user4 := newUser()
+	nonMember := newUser()
+	wrongChannelOnly := newUser()
+
+	// Keep this deterministic and above the legacy 1000ms timestamps used
+	// in fallback-path tests so it does not affect hasDataAtOrBefore logic.
+	const baseTime int64 = 1700000000000
+	// user1 has historical rows (joined, left, and rejoined) and should be returned once.
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, baseTime))
+	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(user1, channel.Id, baseTime+100))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, baseTime+200))
+	// other users are simple joins.
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user2, channel.Id, baseTime))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user3, channel.Id, baseTime))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user4, channel.Id, baseTime))
+	// user on a different channel only should not be returned.
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(wrongChannelOnly, otherChannel.Id, baseTime))
+
+	// Empty candidates should return no rows.
+	results, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, nil)
+	require.NoError(t, err)
+	require.Empty(t, results)
+
+	// Filter to known candidates in this channel and ensure each user appears once.
+	candidates := []string{user1, user2, user3, user4, nonMember, wrongChannelOnly}
+	allResults, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidates)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{user1, user2, user3, user4}, allResults)
 }
 
 func testLogJoinEvent(t *testing.T, rctx request.CTX, ss store.Store) {

@@ -1187,7 +1187,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         // Get expressions from parent policies
         const parentExpressions = this.state.accessControlPolicies.
             map((policy) => getMembershipRule(policy.rules)?.expression).
-            filter((expr) => expr && expr.trim());
+            filter((expr): expr is string => Boolean(expr && expr.trim()));
 
         // Combine channel expression with parent expressions
         const allExpressions = [];

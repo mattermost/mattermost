@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @modals
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Quick switcher', () => {
     const userPrefix = 'az';

@@ -9,9 +9,10 @@
 
 // Group: @channels @enterprise @not_cloud @system_console @license_removal
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../../../support/env';
 import {promoteToChannelOrTeamAdmin} from '../channel_moderation/helpers.ts';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
 
 describe('System console', () => {
     const sysadmin = getAdminAccount();

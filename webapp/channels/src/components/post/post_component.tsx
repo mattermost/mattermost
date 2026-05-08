@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
@@ -36,10 +37,10 @@ import PostMessageContainer from 'components/post_view/post_message_view';
 import PostPreHeader from 'components/post_view/post_pre_header';
 import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
+import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {getHistory} from 'utils/browser_history';
@@ -136,6 +137,7 @@ export type Props = {
     burnOnReadDurationMinutes: number;
     burnOnReadSkipConfirmation?: boolean;
     preventClickInteraction?: boolean;
+    permissionPoliciesEnabled: boolean;
 };
 
 const preventInteractionStyle: React.CSSProperties = {pointerEvents: 'none'};
@@ -722,6 +724,7 @@ function PostComponent(props: Props) {
 
     // Don't show file attachments for concealed burn-on-read posts (attachments only fetched after reveal)
     const showFileAttachments = post.file_ids && post.file_ids.length > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder;
+    const redactedFileCount = post.metadata?.redacted_file_count ?? 0;
 
     return (
         <>
@@ -886,6 +889,12 @@ function PostComponent(props: Props) {
                                     handleFileDropdownOpened={handleFileDropdownOpened}
                                 />
                             }
+                            {props.permissionPoliciesEnabled && redactedFileCount > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder && post.state !== Posts.POST_DELETED && (
+                                <RedactedFilesPlaceholder
+                                    count={redactedFileCount}
+                                    compactDisplay={props.compactDisplay}
+                                />
+                            )}
                             <div className='post__body-reactions-acks'>
                                 {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
                                     <PostAcknowledgements

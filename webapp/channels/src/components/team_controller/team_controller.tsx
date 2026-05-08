@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import iNoBounce from 'inobounce';
 import React, {lazy, memo, useEffect, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {Route, Switch, useHistory, useParams} from 'react-router-dom';
@@ -27,7 +26,6 @@ import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
-import {isIosSafari} from 'utils/user_agent';
 
 import type {OwnProps, PropsFromRedux} from './index';
 
@@ -148,12 +146,6 @@ function TeamController(props: Props) {
 
     // Effect runs on mount, adds active state to window
     useEffect(() => {
-        const browserIsIosSafari = isIosSafari();
-        if (browserIsIosSafari) {
-            // Use iNoBounce to prevent scrolling past the boundaries of the page
-            iNoBounce.enable();
-        }
-
         // Set up tracking for whether the window is active
         window.isActive = true;
 
@@ -161,10 +153,6 @@ function TeamController(props: Props) {
 
         return () => {
             window.isActive = false;
-
-            if (browserIsIosSafari) {
-                iNoBounce.disable();
-            }
         };
     }, []);
 

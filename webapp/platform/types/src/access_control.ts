@@ -11,9 +11,12 @@ export type AccessControlPolicy = {
     created_at?: number;
     version?: string;
     active?: boolean;
+    roles?: string[];
     imports?: string[];
     props?: Record<string, unknown[]>;
     rules: AccessControlPolicyRule[];
+    scope?: string;
+    scope_id?: string;
 }
 
 export type AccessControlPolicyCursor = {

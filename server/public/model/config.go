@@ -1217,7 +1217,7 @@ type ExperimentalSettings struct {
 	DisableWakeUpReconnectHandler                         *bool  `access:"experimental_features"`
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64 `access:"experimental_features"`
 	YoutubeReferrerPolicy                                 *bool  `access:"experimental_features"`
-	ExperimentalChannelCategorySorting                    *bool  `access:"experimental_features"`
+	EnableWatermark                                       *bool  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1265,8 +1265,8 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.YoutubeReferrerPolicy = NewPointer(false)
 	}
 
-	if s.ExperimentalChannelCategorySorting == nil {
-		s.ExperimentalChannelCategorySorting = NewPointer(false)
+	if s.EnableWatermark == nil {
+		s.EnableWatermark = NewPointer(false)
 	}
 }
 
@@ -2419,7 +2419,7 @@ type TeamSettings struct {
 	// In seconds.
 	UserStatusAwayTimeout               *int64  `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64  `access:"site_users_and_teams"`
-	EnableManagedChannelCategories      *bool   `access:"site_users_and_teams"`
+	EnableChannelCategorySorting        *bool   `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64  `access:"environment_push_notification_server"`
 	EnableConfirmNotificationsToChannel *bool   `access:"site_notifications"`
 	TeammateNameDisplay                 *string `access:"site_users_and_teams"`
@@ -2492,8 +2492,8 @@ func (s *TeamSettings) SetDefaults() {
 		s.MaxChannelsPerTeam = NewPointer(int64(2000))
 	}
 
-	if s.EnableManagedChannelCategories == nil {
-		s.EnableManagedChannelCategories = NewPointer(false)
+	if s.EnableChannelCategorySorting == nil {
+		s.EnableChannelCategorySorting = NewPointer(true)
 	}
 
 	if s.MaxNotificationsPerChannel == nil {
@@ -3268,7 +3268,7 @@ func (s *ElasticsearchSettings) SetDefaults() {
 	}
 
 	if s.EnableSearchPublicChannelsWithoutMembership == nil {
-		s.EnableSearchPublicChannelsWithoutMembership = NewPointer(false)
+		s.EnableSearchPublicChannelsWithoutMembership = NewPointer(true)
 	}
 }
 

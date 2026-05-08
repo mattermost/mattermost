@@ -57,51 +57,71 @@ export async function createUserWithAttributes(
 }
 
 /**
- * Enable ABAC in System Console
+ * Enable ABAC in System Console.
+ * Always navigates to the Attribute-Based Access settings page (where the toggle lives)
+ * before interacting, then navigates to Membership Policies afterward so callers land
+ * on the correct page for policy management.
  */
 export async function enableABAC(page: Page): Promise<void> {
-    const enableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControltrue');
-    await enableRadio.click();
+    await page.goto('/admin_console/system_attributes/attribute_based_access_control');
+    await page.waitForLoadState('networkidle');
 
-    // Wait for Save button to become enabled (indicates change detected)
+    const enableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControltrue');
     const saveButton = page.getByRole('button', {name: 'Save'});
+
+    await enableRadio.click();
     await saveButton.waitFor({state: 'visible', timeout: 5000});
 
-    // Check if already enabled (button stays disabled if no change needed)
-    const isDisabled = await saveButton.isDisabled();
-    if (isDisabled) {
-        return;
+    if (!(await saveButton.isDisabled())) {
+        await saveButton.click();
+        await page.waitForLoadState('networkidle');
     }
 
-    await saveButton.click();
+    // Always land on Membership Policies so callers can immediately create/manage policies
+    await page.goto('/admin_console/system_attributes/membership_policies');
     await page.waitForLoadState('networkidle');
 }
 
 /**
- * Disable ABAC in System Console
+ * Disable ABAC in System Console.
+ * Always navigates to the Attribute-Based Access settings page first.
  */
 export async function disableABAC(page: Page): Promise<void> {
-    const disableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControlfalse');
-    await disableRadio.click();
+    await page.goto('/admin_console/system_attributes/attribute_based_access_control');
+    await page.waitForLoadState('networkidle');
 
-    // Wait for Save button to become enabled (indicates change detected)
+    const disableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControlfalse');
     const saveButton = page.getByRole('button', {name: 'Save'});
+
+    await disableRadio.click();
     await saveButton.waitFor({state: 'visible', timeout: 5000});
 
-    // Check if already disabled (button stays disabled if no change needed)
-    const isDisabled = await saveButton.isDisabled();
-    if (isDisabled) {
-        return;
+    if (!(await saveButton.isDisabled())) {
+        await saveButton.click();
+        await page.waitForLoadState('networkidle');
     }
+}
 
-    await saveButton.click();
+/**
+ * Navigate to Membership Policies page in System Console
+ */
+export async function navigateToABACPage(page: Page): Promise<void> {
+    await page.goto('/admin_console/system_attributes/membership_policies');
     await page.waitForLoadState('networkidle');
 }
 
 /**
- * Navigate to ABAC page in System Console
+ * Navigate to Permission Policies page in System Console
  */
-export async function navigateToABACPage(page: Page): Promise<void> {
+export async function navigateToPermissionPoliciesPage(page: Page): Promise<void> {
+    await page.goto('/admin_console/system_attributes/permission_policies');
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Navigate to the ABAC enable/disable settings page
+ */
+export async function navigateToAttributeBasedAccessPage(page: Page): Promise<void> {
     await page.goto('/admin_console/system_attributes/attribute_based_access_control');
     await page.waitForLoadState('networkidle');
 }

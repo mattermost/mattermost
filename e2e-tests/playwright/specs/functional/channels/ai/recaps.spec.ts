@@ -229,14 +229,14 @@ test('moves a recap from unread to read when marked read', {tag: '@ai_recaps'}, 
     await unreadRecap.toBeVisible();
     await unreadRecap.clickMarkRead();
 
-    // * Verify the recap disappears from the Unread tab and appears in the Read tab with unread-only actions removed.
+    // * Verify the recap disappears from the Unread tab and appears in the Read tab with the inline Mark read button removed.
     await recapsPage.expectRecapNotVisible(recapTitle);
     await recapsPage.switchToRead();
 
     const readRecap = recapsPage.getRecap(recapTitle);
     await readRecap.toBeVisible();
     await expect(readRecap.markReadButton).not.toBeVisible();
-    await expect(readRecap.menuButton).not.toBeVisible();
+    await expect(readRecap.menuButton).toBeVisible();
 });
 
 /**

@@ -42,6 +42,7 @@ var PermissionAssignSystemAdminRole *Permission
 var PermissionManageRoles *Permission
 var PermissionManageTeamRoles *Permission
 var PermissionManageChannelRoles *Permission
+var PermissionManageTeamAccessRules *Permission
 var PermissionCreateDirectChannel *Permission
 var PermissionCreateGroupChannel *Permission
 var PermissionManagePublicChannelProperties *Permission
@@ -177,6 +178,7 @@ var PermissionManageLicenseInformation *Permission
 var PermissionManagePublicChannelBanner *Permission
 var PermissionManagePrivateChannelBanner *Permission
 var PermissionManageChannelAccessRules *Permission
+var PermissionEditFileAttachment *Permission
 
 var PermissionSysconsoleReadAbout *Permission
 var PermissionSysconsoleWriteAbout *Permission
@@ -510,6 +512,12 @@ func initializePermissions() {
 		"manage_team_roles",
 		"authentication.permissions.manage_team_roles.name",
 		"authentication.permissions.manage_team_roles.description",
+		PermissionScopeTeam,
+	}
+	PermissionManageTeamAccessRules = &Permission{
+		"manage_team_access_rules",
+		"",
+		"",
 		PermissionScopeTeam,
 	}
 	PermissionManageChannelRoles = &Permission{
@@ -1353,6 +1361,13 @@ func initializePermissions() {
 
 	PermissionManageChannelAccessRules = &Permission{
 		"manage_channel_access_rules",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
+	PermissionEditFileAttachment = &Permission{
+		"edit_file_attachment",
 		"",
 		"",
 		PermissionScopeChannel,
@@ -2551,6 +2566,7 @@ func initializePermissions() {
 		PermissionCreatePublicChannel,
 		PermissionCreatePrivateChannel,
 		PermissionManageTeamRoles,
+		PermissionManageTeamAccessRules,
 		PermissionListTeamChannels,
 		PermissionJoinPublicChannels,
 		PermissionReadPublicChannel,
@@ -2614,6 +2630,7 @@ func initializePermissions() {
 		PermissionManagePublicChannelBanner,
 		PermissionManagePrivateChannelBanner,
 		PermissionManageChannelAccessRules,
+		PermissionEditFileAttachment,
 	}
 
 	GroupScopedPermissions := []*Permission{
