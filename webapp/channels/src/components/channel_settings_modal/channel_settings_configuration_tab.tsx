@@ -19,6 +19,7 @@ import {
     CHANNEL_LINKED_OBJECT_TYPE,
     GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
+import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import ColorInput from 'components/color_input';
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
@@ -117,16 +118,25 @@ function ChannelSettingsConfigurationTab({
         setClassificationBannerText(classificationBanner.bannerText || '');
     }, [classificationBanner.hasClassification, classificationBanner.classificationId, classificationBanner.bannerText]);
 
-    const classificationOptions = useMemo((): ValueType[] => {
-        return classification.levels.map((level) => ({
-            value: level.id,
-            label: level.name,
-        }));
+    const classificationOptions = useMemo(() => {
+        return classification.levels.
+            filter((l) => l.name.trim() !== '').
+            map((l) => ({value: l.id, label: l.name.trim(), color: l.color}));
     }, [classification.levels]);
 
-    const selectedClassificationOption = useMemo((): ValueType | undefined => {
+    const selectedClassificationOption = useMemo(() => {
         return classificationOptions.find((o) => o.value === selectedClassificationId);
     }, [classificationOptions, selectedClassificationId]);
+
+    const formatClassificationOptionLabel = useCallback((option: ValueType) => {
+        const levelOption = option as ValueType & {color: string};
+        return (
+            <LevelOptionLabel>
+                <ColorSwatch style={{backgroundColor: levelOption.color}}/>
+                <span>{levelOption.label}</span>
+            </LevelOptionLabel>
+        );
+    }, []);
 
     const selectedClassificationColor = useMemo((): string => {
         const level = classification.levels.find((l) => l.id === selectedClassificationId);
@@ -541,8 +551,10 @@ function ChannelSettingsConfigurationTab({
         setRequireConfirm(false);
     }, []);
 
+    const classificationFormInvalid = classificationEnabled && !selectedClassificationId;
     const hasErrors = Boolean(formError) ||
         characterLimitExceeded ||
+        classificationFormInvalid ||
         showTabSwitchError;
 
     return (
@@ -645,7 +657,9 @@ function ChannelSettingsConfigurationTab({
                                         value={selectedClassificationOption}
                                         onChange={handleClassificationLevelChange}
                                         isClearable={false}
+                                        required={true}
                                         styles={classificationPresetDropdownStyles}
+                                        formatOptionLabel={formatClassificationOptionLabel}
                                     />
                                 </div>
                             </div>
