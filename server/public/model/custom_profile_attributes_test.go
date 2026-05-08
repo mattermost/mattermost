@@ -885,6 +885,180 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("display_name sanitization", func(t *testing.T) {
+		displayNameTests := []struct {
+			name          string
+			displayName   string
+			expectError   bool
+			errorId       string
+			expectedValue string
+		}{
+			{
+				name:          "empty display_name is allowed",
+				displayName:   "",
+				expectError:   false,
+				expectedValue: "",
+			},
+			{
+				name:          "display_name with surrounding whitespace is trimmed",
+				displayName:   "  Department Head  ",
+				expectError:   false,
+				expectedValue: "Department Head",
+			},
+			{
+				name:          "all-whitespace display_name is trimmed to empty and allowed",
+				displayName:   "   ",
+				expectError:   false,
+				expectedValue: "",
+			},
+			{
+				name:          "display_name at exactly 255 runes is accepted",
+				displayName:   strings.Repeat("a", PropertyFieldNameMaxRunes),
+				expectError:   false,
+				expectedValue: strings.Repeat("a", PropertyFieldNameMaxRunes),
+			},
+			{
+				name:        "display_name at 256 runes is rejected",
+				displayName: strings.Repeat("a", PropertyFieldNameMaxRunes+1),
+				expectError: true,
+				errorId:     "app.custom_profile_attributes.sanitize_and_validate.display_name_too_long.app_error",
+			},
+		}
+
+		for _, tt := range displayNameTests {
+			t.Run(tt.name, func(t *testing.T) {
+				field := &CPAField{
+					PropertyField: PropertyField{
+						Type: PropertyFieldTypeText,
+					},
+					Attrs: CPAAttrs{
+						DisplayName: tt.displayName,
+					},
+				}
+				appErr := field.SanitizeAndValidate()
+				if tt.expectError {
+					require.NotNil(t, appErr)
+					require.Equal(t, tt.errorId, appErr.Id)
+				} else {
+					require.Nil(t, appErr)
+					assert.Equal(t, tt.expectedValue, field.Attrs.DisplayName,
+						"DisplayName must be trimmed after SanitizeAndValidate")
+				}
+			})
+		}
+	})
+}
+
+func TestValidateCPAFieldName(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		wantErrID string // empty means expect nil (valid)
+	}{
+		// Accept
+		{name: "simple lowercase", input: "department", wantErrID: ""},
+		{name: "leading underscore", input: "_private", wantErrID: ""},
+		{name: "uppercase start", input: "Department", wantErrID: ""},
+		{name: "single uppercase", input: "A1", wantErrID: ""},
+		{name: "underscore separator", input: "a_b_c", wantErrID: ""},
+		{name: "all uppercase", input: "DEPT", wantErrID: ""},
+		// Case sensitivity of reserved-word lookup
+		{name: "case-sensitive: IN is not reserved", input: "IN", wantErrID: ""},
+		{name: "case-sensitive: In is not reserved", input: "In", wantErrID: ""},
+		// Single-character valid names
+		{name: "single lowercase letter", input: "a", wantErrID: ""},
+		{name: "single underscore", input: "_", wantErrID: ""},
+		{name: "single uppercase letter", input: "A", wantErrID: ""},
+
+		// Reject — charset
+		{name: "space in name", input: "My Field", wantErrID: "model.cpa_field.name.invalid_charset.app_error"},
+		{name: "leading digit", input: "7department", wantErrID: "model.cpa_field.name.invalid_charset.app_error"},
+		{name: "hyphen", input: "foo-bar", wantErrID: "model.cpa_field.name.invalid_charset.app_error"},
+		{name: "emoji", input: "🎯", wantErrID: "model.cpa_field.name.invalid_charset.app_error"},
+		{name: "empty string", input: "", wantErrID: "model.cpa_field.name.invalid_charset.app_error"},
+		{name: "trailing space", input: "name ", wantErrID: "model.cpa_field.name.invalid_charset.app_error"},
+		{name: "non-ASCII letter", input: "départment", wantErrID: "model.cpa_field.name.invalid_charset.app_error"},
+
+		// Reject — reserved words
+		{name: "reserved: in", input: "in", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+		{name: "reserved: as", input: "as", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+		{name: "reserved: true", input: "true", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+		{name: "reserved: false", input: "false", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+		{name: "reserved: null", input: "null", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+		{name: "reserved: function", input: "function", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+		{name: "reserved: var", input: "var", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+		{name: "reserved: return", input: "return", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+		{name: "reserved: if", input: "if", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+		{name: "reserved: for", input: "for", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+		{name: "reserved: import", input: "import", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+
+		// Boundary — reserved-word prefix/suffix not reserved (e.g. "trueish")
+		{name: "reserved word as prefix", input: "trueish", wantErrID: ""},
+		{name: "reserved word as suffix", input: "my_null", wantErrID: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			appErr := ValidateCPAFieldName(tt.input)
+			if tt.wantErrID == "" {
+				require.Nil(t, appErr, "expected nil for input %q, got %v", tt.input, appErr)
+			} else {
+				require.NotNil(t, appErr, "expected error for input %q", tt.input)
+				require.Equal(t, tt.wantErrID, appErr.Id)
+			}
+		})
+	}
+}
+
+func TestCPAField_ToPropertyField_DisplayName(t *testing.T) {
+	t.Run("DisplayName round-trips through ToPropertyField and NewCPAFieldFromPropertyField", func(t *testing.T) {
+		original := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: CustomProfileAttributesPropertyGroupName,
+				Name:    "department",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{
+				Visibility:  CustomProfileAttributesVisibilityAlways,
+				SortOrder:   3.0,
+				DisplayName: "Department",
+			},
+		}
+
+		pf := original.ToPropertyField()
+		require.NotNil(t, pf)
+
+		require.Equal(t, "Department", pf.Attrs[CustomProfileAttributesPropertyAttrsDisplayName],
+			"DisplayName must be written into attrs StringInterface by ToPropertyField")
+
+		roundTripped, err := NewCPAFieldFromPropertyField(pf)
+		require.NoError(t, err)
+		require.Equal(t, "Department", roundTripped.Attrs.DisplayName,
+			"DisplayName must survive the ToPropertyField → NewCPAFieldFromPropertyField round-trip")
+	})
+
+	t.Run("empty DisplayName round-trips as empty string", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: CustomProfileAttributesPropertyGroupName,
+				Name:    "department",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityWhenSet,
+			},
+		}
+
+		pf := field.ToPropertyField()
+		// With omitempty, an empty DisplayName should still be written (as empty string) to
+		// the StringInterface; NewCPAFieldFromPropertyField should unmarshal it as "".
+		roundTripped, err := NewCPAFieldFromPropertyField(pf)
+		require.NoError(t, err)
+		require.Equal(t, "", roundTripped.Attrs.DisplayName)
+	})
 }
 
 func TestSanitizeAndValidatePropertyValue(t *testing.T) {
