@@ -340,13 +340,18 @@ test(
         await channelsPage.toBeVisible();
 
         // Defeat concurrent initSetup() config resets: re-apply on every poll iteration until badge appears.
-        await expect.poll(
-            async () => {
-                await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
-                return channelsPage.centerView.autotranslationBadge.isVisible();
-            },
-            {timeout: 45000, intervals: [2000]},
-        ).toBeTruthy();
+        await expect
+            .poll(
+                async () => {
+                    await enableAutotranslationConfig(adminClient, {
+                        mockBaseUrl: translationUrl,
+                        targetLanguages: ['en', 'es'],
+                    });
+                    return channelsPage.centerView.autotranslationBadge.isVisible();
+                },
+                {timeout: 45000, intervals: [2000]},
+            )
+            .toBeTruthy();
 
         await channelsPage.centerView.header.openChannelMenu();
         await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();
@@ -360,13 +365,18 @@ test(
         await page.getByRole('menuitem', {name: 'Enable autotranslation'}).click();
 
         // Poll with config re-apply until badge reappears.
-        await expect.poll(
-            async () => {
-                await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
-                return channelsPage.centerView.autotranslationBadge.isVisible();
-            },
-            {timeout: 45000, intervals: [2000]},
-        ).toBeTruthy();
+        await expect
+            .poll(
+                async () => {
+                    await enableAutotranslationConfig(adminClient, {
+                        mockBaseUrl: translationUrl,
+                        targetLanguages: ['en', 'es'],
+                    });
+                    return channelsPage.centerView.autotranslationBadge.isVisible();
+                },
+                {timeout: 45000, intervals: [2000]},
+            )
+            .toBeTruthy();
     },
 );
 
