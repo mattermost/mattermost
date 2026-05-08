@@ -139,7 +139,12 @@ describe('SharedChannelsAddModal', () => {
 
         const dialog = screen.getByRole('dialog');
         expect(within(dialog).queryByRole('button', {name: 'Share'})).not.toBeInTheDocument();
-        expect(within(dialog).getByRole('button', {name: 'Close'})).toBeInTheDocument();
+
+        // The dialog has both a header dismiss button (aria-label="Close") and the
+        // footer confirm button (text "Close" after the flip), so role+name alone
+        // matches two elements. Scope the confirm-label assertion to the footer.
+        const footer = dialog.querySelector('.modal-footer') as HTMLElement;
+        expect(within(footer).getByRole('button', {name: 'Close'})).toBeInTheDocument();
     });
 
     it('drops errors for channels removed from the selection', async () => {

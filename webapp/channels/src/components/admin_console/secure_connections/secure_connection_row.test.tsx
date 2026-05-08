@@ -134,10 +134,13 @@ describe('SecureConnectionRow', () => {
         });
     });
 
-    it('does NOT call onDeleteSuccess when promptDelete rejects (cancelled)', async () => {
+    it('does NOT call onDeleteSuccess when the user cancels the delete prompt', async () => {
         const user = userEvent.setup();
         const onDeleteSuccess = jest.fn();
-        promptDelete.mockRejectedValueOnce(new Error('cancelled'));
+
+        // Cancellation in the real prompt leaves the promise pending forever
+        // (the modal closes without resolving or rejecting).
+        promptDelete.mockReturnValueOnce(new Promise(() => {}));
 
         renderWithContext(
             <SecureConnectionRow

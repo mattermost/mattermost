@@ -72,10 +72,13 @@ describe('SecureConnectionDetail', () => {
     });
 
     it('renders the page title and back link', async () => {
-        renderAtPath('/admin_console/site_config/secure_connections/rc-1');
+        const {container} = renderAtPath('/admin_console/site_config/secure_connections/rc-1');
 
         expect(screen.getByText('Connection Configuration')).toBeInTheDocument();
         expect(screen.getByText('Connection Details')).toBeInTheDocument();
+
+        const backLink = container.querySelector('a[href="/admin_console/site_config/secure_connections"].back');
+        expect(backLink).toBeInTheDocument();
     });
 
     it('shows a loading state while the cluster is being fetched', () => {
