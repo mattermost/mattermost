@@ -205,6 +205,7 @@ jobs:
       contents: read
       statuses: write
       id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright-template-v2.yml
     with:
       workers: 8
