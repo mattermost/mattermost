@@ -210,6 +210,7 @@ jobs:
     permissions:
       statuses: write
       id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -236,6 +237,7 @@ jobs:
     permissions:
       statuses: write
       id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -260,6 +262,7 @@ jobs:
     permissions:
       statuses: write
       id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -286,6 +289,7 @@ jobs:
     permissions:
       statuses: write
       id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
