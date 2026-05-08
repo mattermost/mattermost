@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 
 import './mark_all_as_read_modal.scss';
-import {ShortcutKeys} from 'components/shortcut_key';
+import {ShortcutKeys} from '@mattermost/shared/components/shortcut_key';
 
 import {ShortcutSequence, ShortcutKeyVariant} from './shortcut_sequence';
 

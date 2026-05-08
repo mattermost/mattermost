@@ -4,6 +4,7 @@
 import React, {useState, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -322,8 +323,8 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
                         />
                     </p>
                 </div>
-                <button
-                    className='btn btn-primary'
+                <Button
+                    emphasis='primary'
                     onClick={() => {
                         history.push('/admin_console/system_attributes/permission_policies/edit_policy');
                     }}
@@ -335,7 +336,7 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
                             defaultMessage='Add policy'
                         />
                     </span>
-                </button>
+                </Button>
             </div>
             <DataGrid
                 columns={columns}

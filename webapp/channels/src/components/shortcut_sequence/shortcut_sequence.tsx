@@ -5,7 +5,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
+import {ShortcutKey, ShortcutKeyVariant} from '@mattermost/shared/components/shortcut_key';
 
 import {isMessageDescriptor} from 'utils/i18n';
 

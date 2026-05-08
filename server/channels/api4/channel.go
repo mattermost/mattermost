@@ -33,12 +33,15 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("", api.APISessionRequired(getPublicChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.APISessionRequired(getDeletedChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/private", api.APISessionRequired(getPrivateChannelsForTeam)).Methods(http.MethodGet)
+	api.BaseRoutes.ChannelsForTeam.Handle("/recommended", api.APISessionRequired(getRecommendedChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/ids", api.APISessionRequired(getPublicChannelsByIdsForTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchChannelsForTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.APISessionRequired(autocompleteChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.APISessionRequired(autocompleteChannelsForTeamForSearch)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/read", api.APISessionRequired(readAllInTeam)).Methods(http.MethodPut)
-	api.BaseRoutes.ChannelsForTeam.Handle("/managed_categories", api.APISessionRequired(getManagedCategories)).Methods(http.MethodGet)
+	if api.srv.Config().FeatureFlags.ManagedChannelCategories {
+		api.BaseRoutes.ChannelsForTeam.Handle("/managed_categories", api.APISessionRequired(getManagedCategories)).Methods(http.MethodGet)
+	}
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(getChannelsForTeamForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/channels", api.APISessionRequired(getChannelsForUser)).Methods(http.MethodGet)
 
@@ -353,7 +356,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", patch)
 	auditRec.AddEventPriorState(oldChannel)
 
-	updatingProperties := patch.DisplayName != nil || patch.Name != nil || patch.Header != nil || patch.Purpose != nil || patch.GroupConstrained != nil
+	updatingProperties := patch.DisplayName != nil || patch.Name != nil || patch.Header != nil || patch.Purpose != nil || patch.GroupConstrained != nil || patch.DefaultCategoryName != nil
 	updatingAutoTranslation := patch.AutoTranslation != nil
 	updatingManagedCategory := patch.ManagedCategoryName != nil
 
@@ -402,7 +405,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
-		if (patch.Name != nil && *patch.Name != oldChannel.Name) || (patch.DisplayName != nil && *patch.DisplayName != oldChannel.DisplayName) || (patch.Purpose != nil && *patch.Purpose != oldChannel.Purpose) {
+		if (patch.Name != nil && *patch.Name != oldChannel.Name) || (patch.DisplayName != nil && *patch.DisplayName != oldChannel.DisplayName) || (patch.Purpose != nil && *patch.Purpose != oldChannel.Purpose) || patch.DefaultCategoryName != nil {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -432,7 +435,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if updatingManagedCategory {
-		if model.MinimumEnterpriseLicense(c.App.Channels().License()) && *c.App.Config().TeamSettings.EnableManagedChannelCategories {
+		if model.MinimumEnterpriseLicense(c.App.Channels().License()) && c.App.Config().FeatureFlags.ManagedChannelCategories {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !ok {
 				c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.cannot_update_managed_category.app_error", nil, "", http.StatusForbidden)
 				return
@@ -456,7 +459,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if updatingManagedCategory {
-		if !model.MinimumEnterpriseLicense(c.App.Channels().License()) || !*c.App.Config().TeamSettings.EnableManagedChannelCategories {
+		if !model.MinimumEnterpriseLicense(c.App.Channels().License()) || !c.App.Config().FeatureFlags.ManagedChannelCategories {
 			c.Logger.Info("Managed category update ignored: feature not available")
 		} else {
 			name := *patch.ManagedCategoryName
@@ -1056,6 +1059,31 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	err = c.App.FillInChannelsProps(c.AppContext, channels)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(channels); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// getRecommendedChannelsForTeam returns public channels in the team with an
+// active ABAC policy that the requesting user's attributes satisfy. The list
+// is consumed by the "Recommended channels" feature in the browse UI.
+func getRecommendedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
+		c.SetPermissionError(model.PermissionListTeamChannels)
+		return
+	}
+
+	channels, err := c.App.GetRecommendedPublicChannelsForUser(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId)
 	if err != nil {
 		c.Err = err
 		return
@@ -3018,11 +3046,6 @@ func getManagedCategories(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.getManagedCategories", "api.license_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !*c.App.Config().TeamSettings.EnableManagedChannelCategories {
-		c.Err = model.NewAppError("Api4.getManagedCategories", "api.managed_category.feature_not_available.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 

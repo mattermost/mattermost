@@ -28,7 +28,7 @@ const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => impor
 const MobileSidebarRight = makeAsyncComponent('MobileSidebarRight', lazy(() => import('components/mobile_sidebar_right')));
 const MarkAllAsReadToast = makeAsyncComponent('MarkAllAsReadToast', lazy(() => import('components/feature_toast/features/mark_all_as_read_toast')));
 
-const BODY_CLASS_FOR_CHANNEL = ['app__body', 'channel-view'];
+const BODY_CLASS_FOR_CHANNEL = ['channel-view'];
 
 type Props = {
     shouldRenderCenterChannel: boolean;

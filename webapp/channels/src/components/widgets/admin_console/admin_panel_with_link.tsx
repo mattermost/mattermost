@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
+
+import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import AdminPanel from './admin_panel';
 
@@ -35,7 +36,7 @@ const AdminPanelWithLink = ({
     const button = (
         <Link
             data-testid={`${id}-link`}
-            className={classNames(['btn', 'btn-primary', {disabled}])}
+            className={buttonClassNames({emphasis: 'primary'}, {disabled})}
             to={url}
             onClick={disabled ? (e) => e.preventDefault() : () => null}
         >

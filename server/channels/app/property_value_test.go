@@ -45,6 +45,13 @@ func TestResolveValueBroadcastParams(t *testing.T) {
 		assert.Empty(t, channelID)
 	})
 
+	t.Run("system object type returns empty strings for system-wide broadcast", func(t *testing.T) {
+		teamID, channelID, err := th.App.resolveValueBroadcastParams(th.Context, model.PropertyFieldObjectTypeSystem, model.PropertyValueSystemTargetID)
+		require.Nil(t, err)
+		assert.Empty(t, teamID)
+		assert.Empty(t, channelID)
+	})
+
 	t.Run("unknown object type returns an error", func(t *testing.T) {
 		_, _, err := th.App.resolveValueBroadcastParams(th.Context, "unknown_type", "target123")
 		require.NotNil(t, err)

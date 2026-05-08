@@ -86,6 +86,7 @@ type Hub struct {
 	stop            chan struct{}
 	didStop         chan struct{}
 	invalidateUser  chan string
+	invalidateAll   chan struct{}
 	activity        chan *webConnActivityMessage
 	directMsg       chan *webConnDirectMessage
 	explicitStop    bool
@@ -108,6 +109,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		stop:            make(chan struct{}),
 		didStop:         make(chan struct{}),
 		invalidateUser:  make(chan string),
+		invalidateAll:   make(chan struct{}),
 		activity:        make(chan *webConnActivityMessage),
 		directMsg:       make(chan *webConnDirectMessage),
 		checkRegistered: make(chan *webConnSessionMessage),
@@ -463,6 +465,15 @@ func (h *Hub) InvalidateUser(userID string) {
 	}
 }
 
+// InvalidateAll invalidates the cached session state of every WebConn
+// registered with this hub. Global counterpart of InvalidateUser.
+func (h *Hub) InvalidateAll() {
+	select {
+	case h.invalidateAll <- struct{}{}:
+	case <-h.stop:
+	}
+}
+
 // UpdateActivity sets the LastUserActivityAt field for the connection
 // of the user.
 func (h *Hub) UpdateActivity(userID, sessionToken string, activityAt int64) {
@@ -663,6 +674,18 @@ func (h *Hub) Start() {
 					for webConn := range connIndex.ForUser(userID) {
 						closeAndRemoveConn(connIndex, webConn)
 					}
+				}
+			case <-h.invalidateAll:
+				// Mirrors the invalidateUser arm across every conn,
+				// also clearing the session token so the next
+				// IsBasicAuthenticated check short-circuits instead
+				// of re-fetching from the cache.
+				for webConn := range connIndex.All() {
+					webConn.InvalidateCache()
+					webConn.SetSessionToken("")
+				}
+				if *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+					connIndex.clearChannels()
 				}
 			case activity := <-h.activity:
 				for webConn := range connIndex.ForUser(activity.userID) {
@@ -955,6 +978,16 @@ func (i *hubConnectionIndex) ForUser(id string) iter.Seq[*WebConn] {
 // ForChannel returns all connections for a channelID.
 func (i *hubConnectionIndex) ForChannel(channelID string) iter.Seq[*WebConn] {
 	return maps.Keys(i.byChannelID[channelID])
+}
+
+// clearChannels empties the channel-routing index in one shot. Intended
+// for paths that have already invalidated every conn registered with
+// the hub: any broadcast addressed to a channel will be filtered out
+// upstream by ShouldSendEvent, so the routing entries are dead weight
+// until conns either re-handshake or fully reconnect (both of which
+// repopulate the index via Add).
+func (i *hubConnectionIndex) clearChannels() {
+	clear(i.byChannelID)
 }
 
 // ForUserActiveCount returns the number of active connections for a userID

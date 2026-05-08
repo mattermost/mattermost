@@ -46,6 +46,13 @@
               properties:
                 name:
                   type: string
+                  description: >
+                    The internal identifier for this attribute. Must match
+                    `^[A-Za-z_][A-Za-z0-9_]*$` and must not be a CEL reserved
+                    word (true, false, null, in, as, break, const, continue, else,
+                    for, function, if, import, let, loop, package, namespace,
+                    return, var, void, while). This name is used in ABAC policy
+                    expressions as `user.attributes.<name>`.
                 type:
                   type: string
                 attrs:
@@ -90,6 +97,11 @@
                       description: "Access mode of the field"
                       enum: ["", "source_only", "shared_only"]
                       default: ""
+                    display_name:
+                      type: string
+                      description: >
+                        Human-readable label shown in the UI. Defaults to the field
+                        `name` when omitted or empty. Maximum 255 characters.
       responses:
         "201":
           description: Custom Profile Attribute field creation successful
@@ -103,6 +115,15 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "422":
+          description: >
+            Validation error. Returned when `name` does not match the
+            required identifier pattern, is a CEL reserved word, or when
+            `attrs.display_name` exceeds 255 characters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
 
   "/api/v4/custom_profile_attributes/fields/{field_id}":
     patch:
@@ -140,6 +161,12 @@
               properties:
                 name:
                   type: string
+                  description: >
+                    New name for the attribute. When changed, must match
+                    `^[A-Za-z_][A-Za-z0-9_]*$` and must not be a CEL reserved
+                    word. Pre-existing fields with non-conforming names remain
+                    patchable on all other attributes; the validation only fires
+                    when `name` actually changes.
                 type:
                   type: string
                 attrs:
@@ -186,6 +213,10 @@
                       description: "Access mode of the field"
                       enum: ["", "source_only", "shared_only"]
                       default: ""
+                    display_name:
+                      type: string
+                      description: >
+                        Human-readable label shown in the UI. Maximum 255 characters.
       responses:
         "200":
           description: Custom Profile Attribute field patch successful
@@ -199,6 +230,15 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "422":
+          description: >
+            Validation error. Returned when a `name` change does not match
+            the required identifier pattern, is a CEL reserved word, or
+            when `attrs.display_name` exceeds 255 characters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
 
     delete:
       tags:

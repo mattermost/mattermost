@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/tools/mattermost-govet
 
-go 1.25.8
+go 1.25.9
 
 require (
 	github.com/getkin/kin-openapi v0.133.0
