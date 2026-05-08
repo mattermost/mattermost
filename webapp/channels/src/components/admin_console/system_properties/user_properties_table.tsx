@@ -239,7 +239,7 @@ export function UserPropertiesTable({
                                 <WithTooltip
                                     title={formatMessage({
                                         id: 'admin.system_properties.user_properties.table.identifier.tooltip',
-                                        defaultMessage: 'CEL identifier used in policies. Only letters, digits, and underscores allowed. Must start with a letter or underscore.',
+                                        defaultMessage: 'CEL identifier used in policies. Only letters, digits, and underscores allowed. Must start with a letter or underscore. Reserved CEL words are not allowed.',
                                     })}
                                 >
                                     <InfoIconWrapper>

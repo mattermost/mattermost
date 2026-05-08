@@ -263,7 +263,7 @@ test.describe('System Console - User Attributes display names', () => {
 
             await sp.goto();
 
-            const legacyNameInput = sp.nameInput(0);
+            const legacyNameInput = sp.nameInputByValue(originalIdentifier);
             await expect(legacyNameInput).toHaveValue(originalIdentifier);
 
             // # Edit non-name attributes on the legacy field and save the changes
