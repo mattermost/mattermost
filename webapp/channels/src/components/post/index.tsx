@@ -202,7 +202,6 @@ function makeMapStateToProps() {
             canReply,
             pluginPostTypes: state.plugins.postTypes,
             channelIsArchived: isArchivedChannel(channel),
-            channelIsShared: channel?.shared,
             isConsecutivePost: isConsecutivePost(state, ownProps, locale),
             previousPostIsComment,
             isFlagged: isPostFlagged(state, post.id),

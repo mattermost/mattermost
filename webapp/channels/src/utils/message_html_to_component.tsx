@@ -31,7 +31,6 @@ export type Options = Partial<{
     emoji: boolean;
     images: boolean;
     channelId: string;
-    channelIsShared: boolean;
 
     /**
      * Whether or not the AtMention component should attempt to fetch at-mentioned users if none can be found for
