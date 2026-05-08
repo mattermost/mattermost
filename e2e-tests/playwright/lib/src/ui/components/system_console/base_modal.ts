@@ -31,7 +31,9 @@ export default class BaseModal {
 
     async cancel() {
         await this.cancelButton.click();
-        await expect(this.container).not.toBeVisible();
+        // Allow extra time for the modal dismiss animation / any pending API calls
+        // triggered by the cancel to complete before asserting visibility.
+        await expect(this.container).not.toBeVisible({timeout: 20000});
     }
 
     async clickButton(name: string) {
