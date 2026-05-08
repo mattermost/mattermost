@@ -287,7 +287,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await userDetail.waitForSaveComplete();
     });
 
-    test.fixme('Should display user attributes in two-column layout', async () => {
+    test('Should display user attributes in two-column layout', async () => {
         const {userCard} = systemConsolePage!.users.userDetail;
 
         // * Verify two-column layout exists
@@ -388,7 +388,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(departmentInput).toHaveValue('Engineering Updated');
     });
 
-    test.fixme('Should validate invalid email and show error with cancel option', async () => {
+    test('Should validate invalid email and show error with cancel option', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
@@ -447,7 +447,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         }
     });
 
-    test.fixme('Should validate invalid URL and show error with cancel option', async () => {
+    test('Should validate invalid URL and show error with cancel option', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
@@ -497,7 +497,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         }
     });
 
-    test.fixme('Should validate invalid email in custom email attribute', async () => {
+    test('Should validate invalid email in custom email attribute', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
