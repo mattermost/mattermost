@@ -74,16 +74,6 @@ export type OwnProps = {
      */
     postType?: PostType;
     emojiMap?: EmojiMap;
-
-    /**
-     * Some components processed by messageHtmlToComponent e.g. AtSumOfMembersMention require to have a list of userIds
-     */
-    userIds?: string[];
-
-    /**
-     * Some additional data to pass down to rendered component to aid in rendering decisions
-     */
-    messageMetadata?: Record<string, string>;
 }
 
 function Markdown({
@@ -101,8 +91,6 @@ function Markdown({
     hasPluginTooltips,
     postType,
     emojiMap,
-    userIds,
-    messageMetadata,
     enableFormatting,
     siteURL,
     hasImageProxy,
@@ -143,14 +131,11 @@ function Markdown({
         imagesMetadata,
         hasPluginTooltips,
         postId,
-        userIds,
-        messageMetadata,
         channelId,
         postType,
         mentionHighlight: options?.mentionHighlight,
         disableGroupHighlight: options?.disableGroupHighlight,
         editedAt,
-        atSumOfMembersMentions: options?.atSumOfMembersMentions,
         atPlanMentions: options?.atPlanMentions,
     });
 }

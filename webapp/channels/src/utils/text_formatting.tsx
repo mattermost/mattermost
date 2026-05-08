@@ -203,13 +203,6 @@ export interface TextFormattingOptionsBase {
     postId: string;
 
     /**
-     * Whether or not to render sum of members mentions e.g. "5 members..." into spans with a data-sum-of-members-mention attribute.
-     *
-     * Defaults to `false`.
-     */
-    atSumOfMembersMentions: boolean;
-
-    /**
      * Whether or not to render plan mentions e.g. "Professional plan, Enterprise plan, Starter plan" into spans with a data-plan-mention attribute.
      *
      * Defaults to `false`.
@@ -248,7 +241,6 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
     emoticons: true,
     markdown: true,
     atMentions: false,
-    atSumOfMembersMentions: false,
     atPlanMentions: false,
     minimumHashtagLength: 3,
     proxyImages: false,
@@ -378,10 +370,6 @@ export function doFormatText(text: string, options: TextFormattingOptions, emoji
             output = autolinkAtMentions(output, tokens);
         }
 
-        if (options.atSumOfMembersMentions) {
-            output = autoLinkSumOfMembersMentions(output, tokens);
-        }
-
         if (options.atPlanMentions) {
             output = autoPlanMentions(output, tokens);
         }
@@ -468,28 +456,6 @@ function autolinkEmails(text: string, tokens: Tokens) {
     }
 
     return text.replace(emailRegex, replaceEmailWithToken);
-}
-
-export function autoLinkSumOfMembersMentions(text: string, tokens: Tokens): string {
-    function replaceSumOfMembersMentionWithToken(fullMatch: string) {
-        const index = tokens.size;
-        const alias = `$MM_SUMOFMEMBERSMENTION${index}$`;
-
-        tokens.set(alias, {
-            value: `<span data-sum-of-members-mention="${fullMatch}">${fullMatch}</span>`,
-            originalText: fullMatch,
-        });
-
-        return alias;
-    }
-
-    let output = text;
-    output = output.replace(
-        Constants.SUM_OF_MEMBERS_MENTION_REGEX,
-        replaceSumOfMembersMentionWithToken,
-    );
-
-    return output;
 }
 
 export function autoPlanMentions(text: string, tokens: Tokens): string {

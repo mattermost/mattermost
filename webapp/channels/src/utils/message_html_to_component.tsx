@@ -7,7 +7,6 @@ import React from 'react';
 
 import AtMention from 'components/at_mention';
 import AtPlanMention from 'components/at_plan_mention';
-import AtSumOfMembersMention from 'components/at_sum_members_mention';
 import CodeBlock from 'components/code_block/code_block';
 import InlineEntityLink from 'components/inline_entity_link';
 import LatexBlock from 'components/latex_block';
@@ -29,11 +28,8 @@ export type Options = Partial<{
     inlinelatex: boolean;
     postType: string;
     imageProps: {[key: string]: any};
-    atSumOfMembersMentions: boolean;
-    userIds: string[];
     imagesMetadata: any;
     emoji: boolean;
-    messageMetadata: any;
     images: boolean;
     atPlanMentions: boolean;
     channelId: string;
@@ -171,25 +167,6 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                     </AtMention>
                 );
                 return callAtMention;
-            },
-        });
-    }
-
-    if (options.atSumOfMembersMentions) {
-        const mentionAttrib = 'data-sum-of-members-mention';
-        processingInstructions.push({
-            replaceChildren: true,
-            shouldProcessNode: (node: any) => node.attribs && node.attribs[mentionAttrib],
-            processNode: (node: any) => {
-                const mentionName = node.attribs[mentionAttrib];
-                const sumOfMembersMention = (
-                    <AtSumOfMembersMention
-                        postId={options.postId || ''}
-                        userIds={options.userIds || []}
-                        messageMetadata={options.messageMetadata}
-                        text={mentionName}
-                    />);
-                return sumOfMembersMention;
             },
         });
     }
