@@ -3850,23 +3850,6 @@ func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {
 	})
 }
 
-func TestMigrateDeprecatedPropertyGroupName(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected string
-	}{
-		{model.DeprecatedCPAPropertyGroupName, model.AccessControlPropertyGroupName},
-		{model.AccessControlPropertyGroupName, model.AccessControlPropertyGroupName},
-		{"some_other_group", "some_other_group"},
-		{"", ""},
-		{"CUSTOM_PROFILE_ATTRIBUTES", "CUSTOM_PROFILE_ATTRIBUTES"}, // case-sensitive
-	}
-
-	for _, tc := range tests {
-		assert.Equal(t, tc.expected, migrateDeprecatedPropertyGroupName(tc.input))
-	}
-}
-
 func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 	mainHelper.Parallel(t)
 

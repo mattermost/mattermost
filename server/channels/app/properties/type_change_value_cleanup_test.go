@@ -76,6 +76,59 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 		assert.Empty(t, postValues, "expected dependent values to be cleared")
 	})
 
+	t.Run("multiselect type change deletes values and reports cleared field id", func(t *testing.T) {
+		// Same shape as the select case above, but for multiselect.
+		optionAID := model.NewId()
+		optionBID := model.NewId()
+		field := &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "multiselect-field-" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": optionAID, "name": "Option A"},
+					{"id": optionBID, "name": "Option B"},
+				},
+			},
+		}
+		created, err := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, err)
+
+		// Multiselect value is a JSON array of option IDs.
+		userID := model.NewId()
+		raw, err := json.Marshal([]string{optionAID, optionBID})
+		require.NoError(t, err)
+		_, err = th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    created.ID,
+			TargetID:   userID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			Value:      raw,
+		})
+		require.NoError(t, err)
+
+		preValues, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
+			FieldID: created.ID,
+			PerPage: 10,
+		})
+		require.NoError(t, err)
+		require.Len(t, preValues, 1)
+
+		created.Type = model.PropertyFieldTypeText
+		_, valuesCleared, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
+		require.NoError(t, err)
+		assert.True(t, valuesCleared, "expected post-hook to flag cleared values")
+
+		postValues, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
+			FieldID: created.ID,
+			PerPage: 10,
+		})
+		require.NoError(t, err)
+		assert.Empty(t, postValues, "expected dependent values to be cleared")
+	})
+
 	t.Run("same-type patch is a no-op for cleanup", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    th.CPAGroupID,

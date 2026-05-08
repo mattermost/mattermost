@@ -24,9 +24,7 @@ func TestLicenseCheckHook(t *testing.T) {
 	}, group.ID)
 	th.service.AddHook(hook)
 
-	enterpriseLicense := &model.License{
-		SkuShortName: model.LicenseShortSkuEnterprise,
-	}
+	enterpriseLicense := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
 
 	makeField := func() *model.PropertyField {
 		return &model.PropertyField{
@@ -45,17 +43,11 @@ func TestLicenseCheckHook(t *testing.T) {
 		assert.Contains(t, createErr.Error(), "license_error")
 	})
 
-	t.Run("allows field create with enterprise license", func(t *testing.T) {
+	t.Run("allows field create with license, blocks read after license loss", func(t *testing.T) {
 		currentLicense = enterpriseLicense
 		created, createErr := th.service.CreatePropertyField(th.Context, makeField())
 		require.NoError(t, createErr)
 		assert.NotEmpty(t, created.ID)
-	})
-
-	t.Run("blocks field read without license", func(t *testing.T) {
-		currentLicense = enterpriseLicense
-		created, createErr := th.service.CreatePropertyField(th.Context, makeField())
-		require.NoError(t, createErr)
 
 		currentLicense = nil
 		_, getErr := th.service.GetPropertyField(th.Context, group.ID, created.ID)
