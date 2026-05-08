@@ -214,6 +214,7 @@ jobs:
       contents: read
       statuses: write
       id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress-template-v2.yml
     with:
       test_type: full
