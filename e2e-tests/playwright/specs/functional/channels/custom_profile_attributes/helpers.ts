@@ -165,11 +165,12 @@ export async function editTextAttribute(
         await page.locator(`#customAttribute_${fieldId}`).fill(newValue);
     }
     await page.locator('button:has-text("Save")').click();
-    // Wait for the section to close before proceeding — the input is only rendered while
-    // the section is active (edit mode). Detachment confirms the API round-trip completed
-    // and the section returned to display mode. Without this wait, the next Edit click can
-    // fire updateSection() which aborts the in-flight save request.
-    await page.locator(`#customAttribute_${fieldId}`).waitFor({state: 'hidden'});
+    // Wait for the Edit button to reappear — it is only visible when the section is in
+    // display mode (not editing). It returns to display mode only after the save API call
+    // resolves and the component calls updateSection(''). Without this wait, the next
+    // Edit click fires updateSection() while the save is still in-flight, which closes
+    // the active section and disrupts subsequent saves.
+    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
 }
 
 /**
@@ -203,8 +204,8 @@ export async function editSelectAttribute(
     await option.click();
 
     await page.locator('button:has-text("Save")').click();
-    // Wait for the section to close — same reasoning as editTextAttribute.
-    await page.locator(`#customProfileAttribute_${fieldId}`).waitFor({state: 'hidden'});
+    // Wait for the Edit button to reappear — same reasoning as editTextAttribute.
+    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
 }
 
 /**
@@ -242,8 +243,8 @@ export async function editMultiselectAttribute(
     }
 
     await page.locator('button:has-text("Save")').click();
-    // Wait for the section to close — same reasoning as editTextAttribute.
-    await page.locator(`#customProfileAttribute_${fieldId}`).waitFor({state: 'hidden'});
+    // Wait for the Edit button to reappear — same reasoning as editTextAttribute.
+    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
 }
 
 /**
