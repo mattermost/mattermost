@@ -1782,11 +1782,6 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.ChannelID != "" && !model.IsValidId(req.ChannelID) {
-		c.SetInvalidParam("channel_id")
-		return
-	}
-
 	// Validate root_id if provided
 	if req.RootID != "" && !model.IsValidId(req.RootID) {
 		c.SetInvalidParam("root_id")
@@ -1801,7 +1796,6 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		req.Action,
 		req.CustomPrompt,
 		req.RootID,
-		req.ChannelID,
 	)
 	if appErr != nil {
 		c.Err = appErr

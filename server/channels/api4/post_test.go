@@ -7248,11 +7248,10 @@ func TestRewritePostRequiresReadAccessToRootThread(t *testing.T) {
 	require.NoError(t, err)
 
 	req := model.RewriteRequest{
-		AgentID:   model.NewId(),
-		Message:   "text to shorten",
-		ChannelID: model.NewId(),
-		Action:    model.RewriteActionShorten,
-		RootID:    root.Id,
+		AgentID: model.NewId(),
+		Message: "text to shorten",
+		Action:  model.RewriteActionShorten,
+		RootID:  root.Id,
 	}
 	reqBody, err := json.Marshal(req)
 	require.NoError(t, err)
@@ -7272,50 +7271,4 @@ func TestRewritePostRequiresReadAccessToRootThread(t *testing.T) {
 	require.Equalf(t, http.StatusForbidden, resp.StatusCode,
 		"rewrite with root_id in an unreadable channel must return forbidden before using thread content; status=%d body=%s", resp.StatusCode, string(bodyBytes))
 	assert.NotContains(t, string(bodyBytes), secretToken, "response must not leak private thread content")
-}
-
-func TestRewriteMessageValidatesChannelID(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	t.Run("missing channel_id is accepted", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
-
-		// channel_id omitted — older mobile clients send the request this way.
-		// The handler must NOT reject with 400; later layers may fail for other
-		// reasons (no real agent configured), but channel_id validation should pass.
-		rewriteReq := &model.RewriteRequest{
-			AgentID: model.NewId(),
-			Message: "the status update",
-			Action:  model.RewriteActionFixSpelling,
-		}
-
-		httpResp, err := th.Client.DoAPIPostJSON(context.Background(), "/posts/rewrite", rewriteReq)
-		require.NotNil(t, httpResp)
-		defer httpResp.Body.Close()
-
-		// We don't care whether the call succeeds (no agent configured); only that
-		// channel_id validation didn't short-circuit with 400.
-		_ = err
-		assert.NotEqual(t, http.StatusBadRequest, httpResp.StatusCode, "missing channel_id must not produce 400")
-	})
-
-	t.Run("malformed channel_id returns 400", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
-
-		rewriteReq := &model.RewriteRequest{
-			AgentID:   model.NewId(),
-			Message:   "the status update",
-			ChannelID: "not-a-valid-id",
-			Action:    model.RewriteActionFixSpelling,
-		}
-
-		httpResp, err := th.Client.DoAPIPostJSON(context.Background(), "/posts/rewrite", rewriteReq)
-		require.Error(t, err)
-		require.NotNil(t, httpResp)
-		defer httpResp.Body.Close()
-
-		assert.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
-	})
 }

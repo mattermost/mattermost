@@ -4576,11 +4576,10 @@ export default class Client4 {
         );
     };
 
-    getAIRewrittenMessage = (agentId: string, message: string, channelId: string, action?: string, customPrompt?: string, rootId?: string) => {
-        const body: {agent_id: string; message: string; channel_id: string; action?: string; custom_prompt?: string; root_id?: string} = {
+    getAIRewrittenMessage = (agentId: string, message: string, action?: string, customPrompt?: string, rootId?: string) => {
+        const body: {agent_id: string; message: string; action?: string; custom_prompt?: string; root_id?: string} = {
             agent_id: agentId,
             message,
-            channel_id: channelId,
         };
         if (action) {
             body.action = action;

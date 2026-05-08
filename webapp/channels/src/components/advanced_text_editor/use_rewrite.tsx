@@ -55,7 +55,7 @@ const useRewrite = (
             setLastAction(action);
         }
 
-        const promise = Client4.getAIRewrittenMessage(selectedAgentId, draft.message, draft.channelId, action, prompt, draft.rootId);
+        const promise = Client4.getAIRewrittenMessage(selectedAgentId, draft.message, action, prompt, draft.rootId);
         currentPromiseRef.current = promise;
 
         try {

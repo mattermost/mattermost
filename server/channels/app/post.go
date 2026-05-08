@@ -3273,7 +3273,6 @@ func (a *App) RewriteMessage(
 	action model.RewriteAction,
 	customPrompt string,
 	rootID string,
-	channelID string,
 ) (*model.RewriteResponse, *model.AppError) {
 	// Build thread context if rootID is provided
 	var threadContext string

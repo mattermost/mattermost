@@ -141,7 +141,6 @@ describe('useRewrite', () => {
                 expect(Client4.getAIRewrittenMessage).toHaveBeenCalledWith(
                     'agent1',
                     'Test message',
-                    'channel_id',
                     RewriteAction.SHORTEN,
                     undefined,
                     '',
@@ -183,7 +182,6 @@ describe('useRewrite', () => {
                 expect(rewritePromise).toHaveBeenCalledWith(
                     'agent1',
                     'Test message',
-                    'channel_id',
                     RewriteAction.CUSTOM,
                     'Custom prompt',
                     '',
@@ -329,7 +327,6 @@ describe('useRewrite', () => {
                 expect(Client4.getAIRewrittenMessage).toHaveBeenCalledWith(
                     'agent1',
                     'Test message',
-                    'channel_id',
                     RewriteAction.SHORTEN,
                     undefined,
                     '',
@@ -366,7 +363,6 @@ describe('useRewrite', () => {
                 expect(Client4.getAIRewrittenMessage).toHaveBeenCalledWith(
                     'agent1',
                     'Test message',
-                    'channel_id',
                     RewriteAction.CUSTOM,
                     'Custom prompt',
                     '',
@@ -446,7 +442,6 @@ describe('useRewrite', () => {
                 expect(Client4.getAIRewrittenMessage).toHaveBeenCalledWith(
                     'agent1',
                     'Test message',
-                    'channel_id',
                     RewriteAction.CUSTOM,
                     'Custom prompt',
                     '',
@@ -485,7 +480,6 @@ describe('useRewrite', () => {
                 expect(Client4.getAIRewrittenMessage).toHaveBeenCalledWith(
                     'agent1',
                     'Test message',
-                    'channel_id',
                     RewriteAction.IMPROVE_WRITING,
                     undefined,
                     '',
