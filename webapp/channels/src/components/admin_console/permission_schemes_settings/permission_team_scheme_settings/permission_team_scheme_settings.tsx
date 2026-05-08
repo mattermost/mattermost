@@ -6,6 +6,7 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 import type {Scheme, SchemePatch} from '@mattermost/types/schemes';
@@ -815,7 +816,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                         }
                     />
                     <BlockableLink
-                        className='btn btn-tertiary'
+                        className={buttonClassNames({emphasis: 'tertiary'})}
                         to='/admin_console/user_management/permissions'
                         data-testid='permission-scheme-cancel-button'
                     >

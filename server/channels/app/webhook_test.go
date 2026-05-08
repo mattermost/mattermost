@@ -22,6 +22,82 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
+func TestHandleIncomingWebhookRootId(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, appErr)
+	defer func() {
+		require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id))
+	}()
+
+	root := th.CreatePost(t, th.BasicChannel)
+	reply := th.CreatePostReply(t, root)
+	otherChannel := th.CreateChannel(t, th.BasicTeam)
+	otherPost := th.CreatePost(t, otherChannel)
+
+	t.Run("creates reply in thread when root_id is the thread root", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "webhook thread reply",
+			RootId: root.Id,
+		})
+		require.Nil(t, err)
+		list, err2 := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 5)
+		require.Nil(t, err2)
+		var found *model.Post
+		for _, p := range list.Posts {
+			if p.Message == "webhook thread reply" {
+				found = p
+				break
+			}
+		}
+		require.NotNil(t, found)
+		assert.Equal(t, root.Id, found.RootId)
+	})
+
+	t.Run("rejects root_id pointing at a reply post", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "webhook via reply id",
+			RootId: reply.Id,
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, "api.post.create_post.root_id.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("rejects non-existent root_id", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "missing root",
+			RootId: model.NewId(),
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, "api.post.create_post.root_id.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("rejects root_id in a different channel", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "wrong channel",
+			RootId: otherPost.Id,
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, "api.post.create_post.channel_root_id.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("rejects invalid root_id", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "bad id",
+			RootId: "not-a-valid-id",
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, "api.context.invalid_param.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+}
+
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
