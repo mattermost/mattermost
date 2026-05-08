@@ -339,24 +339,14 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // Re-apply config + reload to counter concurrent initSetup() resets.
-        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return (cfg as any).AutoTranslationSettings?.Enable === true;
-        });
-        await channelsPage.page.reload();
-        // Post-reload re-apply BEFORE toBeVisible: firing the WebSocket CONFIG_CHANGED event
-        // during page load (not after) prevents it from interfering with subsequent menu
-        // interactions that open/click immediately after the page settles.
-        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return (cfg as any).AutoTranslationSettings?.Enable === true;
-        });
-        await channelsPage.toBeVisible();
-
-        await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
+        // Defeat concurrent initSetup() config resets: re-apply on every poll iteration until badge appears.
+        await expect.poll(
+            async () => {
+                await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+                return channelsPage.centerView.autotranslationBadge.isVisible();
+            },
+            {timeout: 45000, intervals: [2000]},
+        ).toBeTruthy();
 
         await channelsPage.centerView.header.openChannelMenu();
         await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();
@@ -364,18 +354,19 @@ test(
 
         await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible();
 
-        // Re-apply config guard: a concurrent initSetup() may have reset AutoTranslationSettings.Enable
-        // between the disable action above and now, causing 'Enable autotranslation' not to appear.
+        // Re-apply config before opening menu to ensure "Enable autotranslation" option is present.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return (cfg as any).AutoTranslationSettings?.Enable === true;
-        });
-
         await channelsPage.centerView.header.openChannelMenu();
         await page.getByRole('menuitem', {name: 'Enable autotranslation'}).click();
 
-        await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
+        // Poll with config re-apply until badge reappears.
+        await expect.poll(
+            async () => {
+                await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+                return channelsPage.centerView.autotranslationBadge.isVisible();
+            },
+            {timeout: 45000, intervals: [2000]},
+        ).toBeTruthy();
     },
 );
 
