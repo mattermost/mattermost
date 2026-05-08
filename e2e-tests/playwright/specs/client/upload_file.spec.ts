@@ -26,7 +26,7 @@ test.beforeEach(async ({pw}) => {
 });
 
 test('should succeed with File', async ({pw}) => {
-    // # Prepare data with File
+    // # Prepare data with File [test change only]
     const clientId = pw.random.id();
     const formData = new FormData();
     formData.set('channel_id', townSquareChannel.id);
