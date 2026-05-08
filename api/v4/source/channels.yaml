@@ -112,8 +112,12 @@
                 managed_category_name:
                   type: string
                   description: The name of the managed category to assign this channel to.
-                    Requires an Enterprise license and the `EnableManagedChannelCategories`
-                    config setting to be enabled.
+                    Requires an Enterprise license and the `ManagedChannelCategories` feature flag
+                    to be enabled.
+                default_category_name:
+                  type: string
+                  description: Default sidebar category name for members when joining this channel.
+                    Requires `EnableChannelCategorySorting` to be enabled on the server.
         description: Channel object to be created
         required: true
       responses:
@@ -683,7 +687,12 @@
                   type: string
                   description: The name of the managed category to assign this channel to.
                     Set to an empty string to clear. Requires an Enterprise license and
-                    the `EnableManagedChannelCategories` config setting to be enabled.
+                    the `ManagedChannelCategories` feature flag to be enabled.
+                default_category_name:
+                  type: string
+                  description: Default sidebar category name for members when joining this channel.
+                    Set to an empty string to clear. Requires `EnableChannelCategorySorting`
+                    to be enabled on the server.
         description: Channel patch object; include only the fields to update. At least
           one field must be provided.
         required: true
@@ -1195,8 +1204,8 @@
         managed category assigned.
 
 
-        Requires an Enterprise license and the `EnableManagedChannelCategories`
-        config setting to be enabled.
+        Requires an Enterprise license and the `ManagedChannelCategories` feature flag
+        to be enabled.
 
 
         ##### Permissions
@@ -1222,8 +1231,10 @@
                 description: A map of channel ID to managed category name
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Returned when the `ManagedChannelCategories` feature flag is disabled.
+        "501":
+          description: Returned when the server does not have an Enterprise license.
   "/api/v4/teams/{team_id}/channels/search":
     post:
       tags:

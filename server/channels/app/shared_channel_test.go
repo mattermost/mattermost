@@ -1360,7 +1360,11 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsg(t *testing.T) {
 		remoteUser, appErr := th.App.CreateUser(th.Context, remoteUser)
 		require.Nil(t, appErr)
 
+		// The sender-side file ID must be preserved on the receiving server so the
+		// post's FileIds (which reference the sender ID) resolve to the saved file.
+		senderFileID := model.NewId()
 		fi := &model.FileInfo{
+			Id:        senderFileID,
 			CreatorId: remoteUser.Id,
 			Name:      "hello.txt",
 			Size:      13,
@@ -1369,12 +1373,13 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsg(t *testing.T) {
 		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("hello, world!")))
 		require.NoError(t, err)
 		require.NotNil(t, saved)
-		assert.NotEmpty(t, saved.Id)
+		assert.Equal(t, senderFileID, saved.Id, "saved FileInfo must keep the sender's file ID")
 		assert.Equal(t, rc.RemoteId, *saved.RemoteId)
 
 		// Verify the FileInfo was persisted with a server-constructed path
 		storedFI, appErr := th.App.GetFileInfo(th.Context, saved.Id)
 		require.Nil(t, appErr)
+		assert.Equal(t, senderFileID, storedFI.Id)
 		assert.Equal(t, "hello.txt", storedFI.Name)
 		assert.NotEmpty(t, storedFI.Path)
 		assert.Contains(t, storedFI.Path, "hello.txt")

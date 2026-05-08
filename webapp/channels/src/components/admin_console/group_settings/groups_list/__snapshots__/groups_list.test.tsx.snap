@@ -152,11 +152,11 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             Is Not Configured
           </span>
         </div>
-        <a
+        <button
           class="btn btn-primary search-groups-btn"
         >
           Search
-        </a>
+        </button>
       </div>
       <div
         class="group-list-link-unlink"
@@ -471,7 +471,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >
@@ -481,7 +481,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >
@@ -724,7 +724,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >
@@ -734,7 +734,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >
@@ -977,7 +977,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >
@@ -987,7 +987,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >
@@ -1220,7 +1220,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 3 of 3
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >
@@ -1230,7 +1230,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >
@@ -1736,7 +1736,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 200 of 401
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >
@@ -1746,7 +1746,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary next "
+        class="btn btn-tertiary"
         type="button"
       >
         <i
@@ -2251,7 +2251,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         201 - 400 of 401
       </div>
       <button
-        class="btn btn-tertiary prev "
+        class="btn btn-tertiary"
         type="button"
       >
         <i
@@ -2260,7 +2260,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary next "
+        class="btn btn-tertiary"
         type="button"
       >
         <i
@@ -2492,7 +2492,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         201 - 400 of 401
       </div>
       <button
-        class="btn btn-tertiary prev "
+        class="btn btn-tertiary"
         type="button"
       >
         <i
@@ -2501,7 +2501,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary next "
+        class="btn btn-tertiary"
         type="button"
       >
         <i
@@ -2754,7 +2754,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >
@@ -2764,7 +2764,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >

@@ -435,7 +435,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                 title={formatMessage({id: 'admin.classification_markings.preset_switch.title', defaultMessage: 'Change classification preset?'})}
                 message={formatMessage({id: 'admin.classification_markings.preset_switch.message', defaultMessage: 'Changing the classification preset will affect all existing classifications across the system. Any channels, files, or other resources marked with the current classification levels may lose their markings.'})}
                 confirmButtonText={formatMessage({id: 'admin.classification_markings.preset_switch.confirm', defaultMessage: 'Change preset'})}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 onConfirm={handleConfirmPresetSwitch}
                 onCancel={handleCancelPresetSwitch}
                 onExited={handleCancelPresetSwitch}

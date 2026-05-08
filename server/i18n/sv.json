@@ -10660,10 +10660,6 @@
     "translation": "Kanalen är grupp-begränsad och kan inte omfattas av policy för åtkomstkontroll."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Policyer för åtkomstkontroll kan endast tillämpas på privata kanaler."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "Delade kanaler kan inte omfattas av en policy för åtkomstkontroll."
   },

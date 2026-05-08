@@ -10744,10 +10744,6 @@
     "translation": "Channel is group constrained and cannot have access control policies applied."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Access control policies can only be applied to private channels."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "Shared channels cannot have access control policy applied."
   },

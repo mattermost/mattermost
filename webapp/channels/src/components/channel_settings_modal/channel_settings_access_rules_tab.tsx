@@ -873,7 +873,6 @@ function ChannelSettingsAccessRulesTab({
                 onConfirm={() => setShowSelfExclusionModal(false)}
                 onCancel={() => setShowSelfExclusionModal(false)}
                 hideCancel={true}
-                confirmButtonClass='btn btn-primary'
                 isStacked={true}
             />
 
