@@ -64,6 +64,8 @@ func makeTokens(n int, base int64) []*model.UserAccessToken {
 	return out
 }
 
+func nopClearSession(_ string) {}
+
 func TestCleanupExpired(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 
@@ -71,7 +73,7 @@ func TestCleanupExpired(t *testing.T) {
 		tokens := makeTokens(3, 1000)
 		store := &fakeStore{batches: [][]*model.UserAccessToken{tokens}}
 
-		err := cleanupExpired(logger, store, 9999, 1000, 10)
+		err := cleanupExpired(logger, store, nopClearSession, 9999, 1000, 10)
 		require.NoError(t, err)
 
 		// Exactly one DeleteByIds call with the three token ids. A partial first
@@ -85,7 +87,7 @@ func TestCleanupExpired(t *testing.T) {
 	t.Run("empty result is no-op", func(t *testing.T) {
 		store := &fakeStore{} // no batches, no errors
 
-		err := cleanupExpired(logger, store, 9999, 1000, 10)
+		err := cleanupExpired(logger, store, nopClearSession, 9999, 1000, 10)
 		require.NoError(t, err)
 
 		require.Equal(t, 1, store.getCalls)
@@ -98,7 +100,7 @@ func TestCleanupExpired(t *testing.T) {
 		second := makeTokens(2, 2000)    // partial batch -> loop stops
 		store := &fakeStore{batches: [][]*model.UserAccessToken{first, second}}
 
-		err := cleanupExpired(logger, store, 9999, limit, 10)
+		err := cleanupExpired(logger, store, nopClearSession, 9999, limit, 10)
 		require.NoError(t, err)
 
 		require.Equal(t, 2, store.getCalls)
@@ -116,7 +118,7 @@ func TestCleanupExpired(t *testing.T) {
 			makeTokens(limit, 3000), // never reached
 		}}
 
-		err := cleanupExpired(logger, store, 9999, limit, maxIter)
+		err := cleanupExpired(logger, store, nopClearSession, 9999, limit, maxIter)
 		require.NoError(t, err)
 
 		require.Equal(t, maxIter, store.getCalls, "loop must cap at maxIter")
@@ -131,7 +133,7 @@ func TestCleanupExpired(t *testing.T) {
 			getErr:   wantErr,
 		}
 
-		err := cleanupExpired(logger, store, 9999, 1000, 10)
+		err := cleanupExpired(logger, store, nopClearSession, 9999, 1000, 10)
 		require.ErrorIs(t, err, wantErr)
 		require.Empty(t, store.deletedIDs, "delete must not run when get fails")
 	})
@@ -143,8 +145,25 @@ func TestCleanupExpired(t *testing.T) {
 			deleteErr: wantErr,
 		}
 
-		err := cleanupExpired(logger, store, 9999, 1000, 10)
+		err := cleanupExpired(logger, store, nopClearSession, 9999, 1000, 10)
 		require.ErrorIs(t, err, wantErr)
 		require.Len(t, store.deletedIDs, 1, "DeleteByIds was called once before failing")
+	})
+
+	t.Run("session cache cleared for each unique user after delete", func(t *testing.T) {
+		sharedUserID := model.NewId()
+		tokens := []*model.UserAccessToken{
+			{Id: model.NewId(), UserId: sharedUserID, ExpiresAt: 1000, IsActive: true},
+			{Id: model.NewId(), UserId: sharedUserID, ExpiresAt: 1001, IsActive: true},
+			{Id: model.NewId(), UserId: model.NewId(), ExpiresAt: 1002, IsActive: true},
+		}
+		store := &fakeStore{batches: [][]*model.UserAccessToken{tokens}}
+
+		cleared := map[string]int{}
+		err := cleanupExpired(logger, store, func(userID string) { cleared[userID]++ }, 9999, 1000, 10)
+		require.NoError(t, err)
+
+		require.Len(t, cleared, 2, "cache must be cleared for each unique user")
+		require.Equal(t, 1, cleared[sharedUserID], "each user cleared exactly once per batch")
 	})
 }

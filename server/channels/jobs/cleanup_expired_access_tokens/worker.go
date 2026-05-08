@@ -32,7 +32,10 @@ type expiredTokenStore interface {
 // MakeWorker creates a worker that periodically deletes personal access tokens
 // whose ExpiresAt has passed, along with any sessions created from them.
 // The work is done in batches to keep the transaction footprint bounded.
-func MakeWorker(jobServer *jobs.JobServer) *jobs.SimpleWorker {
+//
+// clearSessionCache is called for each affected user after their tokens are
+// deleted so that in-memory session caches don't serve stale sessions.
+func MakeWorker(jobServer *jobs.JobServer, clearSessionCache func(userID string)) *jobs.SimpleWorker {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ServiceSettings.EnableUserAccessTokens
 	}
@@ -42,6 +45,7 @@ func MakeWorker(jobServer *jobs.JobServer) *jobs.SimpleWorker {
 		return cleanupExpired(
 			logger,
 			jobServer.Store.UserAccessToken(),
+			clearSessionCache,
 			model.GetMillis(),
 			batchLimit,
 			maxBatches,
@@ -54,9 +58,13 @@ func MakeWorker(jobServer *jobs.JobServer) *jobs.SimpleWorker {
 // cleanupExpired drains expired personal access tokens in batches up to
 // maxBatches iterations. It is extracted from MakeWorker so that the batching
 // and error-propagation logic can be exercised by unit tests with a fake store.
+//
+// clearSessionCache is called for each unique user whose tokens were deleted so
+// that in-memory session caches don't continue serving the removed sessions.
 func cleanupExpired(
 	logger mlog.LoggerIFace,
 	store expiredTokenStore,
+	clearSessionCache func(userID string),
 	cutoff int64,
 	limit int,
 	maxIter int,
@@ -73,8 +81,10 @@ func cleanupExpired(
 		}
 
 		ids := make([]string, len(expired))
+		userIDs := make(map[string]struct{}, len(expired))
 		for i, token := range expired {
 			ids[i] = token.Id
+			userIDs[token.UserId] = struct{}{}
 		}
 
 		deleted, err := store.DeleteByIds(ids)
@@ -82,6 +92,10 @@ func cleanupExpired(
 			return err
 		}
 		totalDeleted += deleted
+
+		for userID := range userIDs {
+			clearSessionCache(userID)
+		}
 
 		if len(expired) < limit {
 			break
