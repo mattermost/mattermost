@@ -119,13 +119,15 @@ test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@mess
     }
 
     // * Verify that the first post message is visible after scrolling through the thread
-    await expect.poll(
-        async () => {
-            const el = rhsContainer.getByText('First message', {exact: true});
-            if ((await el.count()) > 0 && (await el.first().isVisible())) return true;
-            await page.mouse.wheel(0, -400);
-            return false;
-        },
-        {timeout: 20000, intervals: [300]},
-    ).toBeTruthy();
+    await expect
+        .poll(
+            async () => {
+                const el = rhsContainer.getByText('First message', {exact: true});
+                if ((await el.count()) > 0 && (await el.first().isVisible())) return true;
+                await page.mouse.wheel(0, -400);
+                return false;
+            },
+            {timeout: 20000, intervals: [300]},
+        )
+        .toBeTruthy();
 });
