@@ -11,11 +11,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  * @precondition
  * Test requires creating a thread with 100+ replies and 40+ unrelated channel messages
  */
-// FIXME: Pre-existing virtualized-RHS scroll flakiness — the virtual list does not reliably
-// render reply 100 when scrollIntoViewIfNeeded is called immediately after opening the thread.
-// Multiple prior stabilisation attempts exist in git history; needs a proper condition-based
-// wait on the virtual-scroll container before asserting each reply is visible.
-test.fixme('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@messaging']}, async ({pw}) => {
+test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@messaging']}, async ({pw}) => {
     test.setTimeout(120000);
     const NUMBER_OF_REPLIES = 100;
     const NUMBER_OF_MAIN_THREAD_MESSAGES = 40;
@@ -80,35 +76,56 @@ test.fixme('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: [
     });
 
     // # Load the channel as main user
-    const {channelsPage} = await pw.testBrowser.login(mainUser);
+    const {page, channelsPage} = await pw.testBrowser.login(mainUser);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Open thread from root post (last reply may not be in the virtualized center view)
-    const rootPost = await channelsPage.centerView.getPostById(firstPost.id);
-    await rootPost.reply();
+    // # Open thread via "Last Reply" — the root post (First message) is buried 140+ posts
+    // above the viewport and never rendered by the virtual list, so getPostById would time out.
+    // "Last Reply" is always the last visible post; clicking reply on it opens the same thread.
+    const lastPost = await channelsPage.centerView.getLastPost();
+    await lastPost.reply();
 
     // * Verify that the RHS is visible
     await channelsPage.sidebarRight.toBeVisible();
 
     // * Verify that the last reply appears in the RHS
-    await expect(channelsPage.sidebarRight.container.getByText(lastReplyMessage)).toBeVisible();
+    const rhsContainer = channelsPage.sidebarRight.container;
+    await expect(rhsContainer.getByText(lastReplyMessage)).toBeVisible();
 
-    // # Iterate through messages from the end, scrolling up to load previous messages.
+    // # Hover over the RHS so mouse-wheel events scroll it, then iterate through messages
+    // from the end, scrolling up to load previous messages.
     // We only assert on a sparse sample (every 10th reply) to keep the test fast while still
     // proving the virtualized thread list is scrollable end-to-end.
-    const rhsContainer = channelsPage.sidebarRight.container;
+    // scrollIntoViewIfNeeded cannot be used here because older replies are not in the DOM
+    // until the virtual list renders them after an upward scroll.
+    await rhsContainer.hover();
     for (let i = replies.length - 1; i >= 0; i -= 10) {
         const replyText = replies[i];
-        const replyElement = rhsContainer.getByText(replyText, {exact: true});
-
-        // # Scroll the reply into view
-        await replyElement.scrollIntoViewIfNeeded();
-
-        // * Verify the reply is visible (virtualized RHS may need extra time under load)
-        await expect(replyElement).toBeVisible({timeout: 30000});
+        await expect
+            .poll(
+                async () => {
+                    const el = rhsContainer.getByText(replyText, {exact: true});
+                    if ((await el.count()) > 0 && (await el.first().isVisible())) {
+                        return true;
+                    }
+                    // Element not yet in the DOM — scroll up to trigger virtual rendering.
+                    await page.mouse.wheel(0, -400);
+                    return false;
+                },
+                {timeout: 20000, intervals: [300]},
+            )
+            .toBeTruthy();
     }
 
     // * Verify that the first post message is visible after scrolling through the thread
-    await expect(rhsContainer.getByText('First message')).toBeVisible({timeout: 30000});
+    await expect.poll(
+        async () => {
+            const el = rhsContainer.getByText('First message', {exact: true});
+            if ((await el.count()) > 0 && (await el.first().isVisible())) return true;
+            await page.mouse.wheel(0, -400);
+            return false;
+        },
+        {timeout: 20000, intervals: [300]},
+    ).toBeTruthy();
 });
