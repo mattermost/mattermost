@@ -4,13 +4,13 @@
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {ShortcutKeys} from '@mattermost/shared/components/shortcut_key';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 
 import {Preferences} from 'mattermost-redux/constants';
 
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import usePreference from 'components/common/hooks/usePreference';
-import {ShortcutKeys} from '@mattermost/shared/components/shortcut_key';
 import {ShortcutSequence, ShortcutKeyVariant} from 'components/shortcut_sequence';
 
 import FeatureToast from '../feature_toast';

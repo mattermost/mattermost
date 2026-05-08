@@ -5,11 +5,11 @@ import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-
-import './mark_all_as_read_modal.scss';
 import {ShortcutKeys} from '@mattermost/shared/components/shortcut_key';
 
 import {ShortcutSequence, ShortcutKeyVariant} from './shortcut_sequence';
+
+import './mark_all_as_read_modal.scss';
 
 export type Props = {
     onConfirm: (dontAskAgain: boolean) => void;
