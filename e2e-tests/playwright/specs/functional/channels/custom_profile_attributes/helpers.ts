@@ -378,13 +378,40 @@ export async function setupCustomProfileAttributeFields(
         console.log('Error getting existing custom profile fields, will create new ones', error);
     }
 
-    // Create fields sequentially, reusing any that already exist by name
+    // Create fields sequentially, reusing any that already exist by name AND type.
+    // If a same-name field exists with a different type, delete it first then recreate.
     for (const field of attributeFields) {
-        if (field.name && existingByName[field.name]) {
-            // Reuse existing field — not owned by this call, so skip ownedIds.
-            const existing = existingByName[field.name];
+        const existing = field.name ? existingByName[field.name] : undefined;
+
+        if (existing && existing.type === field.type) {
+            // Name and type both match — safe to reuse without touching ownedIds.
             fieldsMap[existing.id] = existing;
+        } else if (existing && existing.type !== field.type) {
+            // Same name but wrong type (e.g. a previous spec created 'Location' as 'text'
+            // while this spec needs it as 'select'). Delete the stale field and recreate.
+            try {
+                await adminClient.deleteCustomProfileAttributeField(existing.id);
+            } catch {
+                // Ignore delete errors — the field may already be gone.
+            }
+            try {
+                const createdField = await adminClient.createCustomProfileAttributeField(field);
+                fieldsMap[createdField.id] = createdField;
+                ownedIds.add(createdField.id);
+            } catch {
+                // Race: another worker recreated it first — borrow it (not owned).
+                try {
+                    const currentFields = await adminClient.getCustomProfileAttributeFields();
+                    const raceCreated = currentFields.find((f) => f.name === field.name);
+                    if (raceCreated) {
+                        fieldsMap[raceCreated.id] = raceCreated;
+                    }
+                } catch {
+                    // ignore — missing field surfaces via getFieldIdByName()
+                }
+            }
         } else {
+            // Field does not exist at all — create it.
             try {
                 const createdField = await adminClient.createCustomProfileAttributeField(field);
                 fieldsMap[createdField.id] = createdField;
