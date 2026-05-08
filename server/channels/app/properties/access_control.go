@@ -282,8 +282,8 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 
 // PostUpdatePropertyFields is a no-op for access control; cleanup of dependent
 // values is handled by TypeChangeValueCleanupHook.
-func (h *AccessControlHook) PostUpdatePropertyFields(_ request.CTX, _ string, _, _ []*model.PropertyField) ([]string, error) {
-	return nil, nil
+func (h *AccessControlHook) PostUpdatePropertyFields(_ request.CTX, _ string, _, requested, propagated []*model.PropertyField) ([]*model.PropertyField, []*model.PropertyField, []string, error) {
+	return requested, propagated, nil, nil
 }
 
 // Field Post-Hooks

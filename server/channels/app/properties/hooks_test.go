@@ -19,16 +19,17 @@ import (
 // methods where a test-specific function is set.
 type testHook struct {
 	BasePropertyHook
-	preCreateFieldFn  func(*model.PropertyField) (*model.PropertyField, error)
-	preUpdateFieldFn  func(string, *model.PropertyField) (*model.PropertyField, error)
-	preUpdateFieldsFn func(string, []*model.PropertyField) ([]*model.PropertyField, error)
-	preDeleteFieldFn  func(string, string) error
-	postGetFieldFn    func(*model.PropertyField) (*model.PropertyField, error)
-	postGetFieldsFn   func([]*model.PropertyField) ([]*model.PropertyField, error)
-	preUpsertValueFn  func(*model.PropertyValue) (*model.PropertyValue, error)
-	preUpsertValuesFn func([]*model.PropertyValue) ([]*model.PropertyValue, error)
-	postGetValueFn    func(*model.PropertyValue) (*model.PropertyValue, error)
-	postGetValuesFn   func([]*model.PropertyValue) ([]*model.PropertyValue, error)
+	preCreateFieldFn   func(*model.PropertyField) (*model.PropertyField, error)
+	preUpdateFieldFn   func(string, *model.PropertyField) (*model.PropertyField, error)
+	preUpdateFieldsFn  func(string, []*model.PropertyField) ([]*model.PropertyField, error)
+	preDeleteFieldFn   func(string, string) error
+	postUpdateFieldsFn func(string, []*model.PropertyField, []*model.PropertyField, []*model.PropertyField) ([]*model.PropertyField, []*model.PropertyField, []string, error)
+	postGetFieldFn     func(*model.PropertyField) (*model.PropertyField, error)
+	postGetFieldsFn    func([]*model.PropertyField) ([]*model.PropertyField, error)
+	preUpsertValueFn   func(*model.PropertyValue) (*model.PropertyValue, error)
+	preUpsertValuesFn  func([]*model.PropertyValue) ([]*model.PropertyValue, error)
+	postGetValueFn     func(*model.PropertyValue) (*model.PropertyValue, error)
+	postGetValuesFn    func([]*model.PropertyValue) ([]*model.PropertyValue, error)
 }
 
 func (h *testHook) PreCreatePropertyField(_ request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
@@ -57,6 +58,13 @@ func (h *testHook) PreDeletePropertyField(_ request.CTX, groupID string, id stri
 		return h.preDeleteFieldFn(groupID, id)
 	}
 	return nil
+}
+
+func (h *testHook) PostUpdatePropertyFields(_ request.CTX, groupID string, prev, requested, propagated []*model.PropertyField) ([]*model.PropertyField, []*model.PropertyField, []string, error) {
+	if h.postUpdateFieldsFn != nil {
+		return h.postUpdateFieldsFn(groupID, prev, requested, propagated)
+	}
+	return requested, propagated, nil, nil
 }
 
 func (h *testHook) PostGetPropertyField(_ request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
@@ -562,5 +570,68 @@ func TestPreUpdatePropertyFieldsHook(t *testing.T) {
 		require.Len(t, results, 2)
 		assert.Equal(t, "modified-a", results[0].Name)
 		assert.Equal(t, "modified-b", results[1].Name)
+	})
+}
+
+func TestPostUpdatePropertyFieldsHook(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
+	groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
+
+	t.Run("post-hook transforms requested attrs and surfaces cleared IDs", func(t *testing.T) {
+		hook := &testHook{
+			postUpdateFieldsFn: func(_ string, _, requested, propagated []*model.PropertyField) ([]*model.PropertyField, []*model.PropertyField, []string, error) {
+				for _, f := range requested {
+					if f.Attrs == nil {
+						f.Attrs = model.StringInterface{}
+					}
+					f.Attrs["redacted"] = true
+				}
+				ids := make([]string, 0, len(requested))
+				for _, f := range requested {
+					ids = append(ids, f.ID)
+				}
+				return requested, propagated, ids, nil
+			},
+		}
+		th.service.AddHook(hook)
+		defer func() { th.service.hooks = th.service.hooks[:len(th.service.hooks)-1] }()
+
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "post-transform-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		})
+		field.Name = "post-transform-renamed-" + model.NewId()
+
+		results, _, cleared, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field})
+		require.NoError(t, err)
+		require.Len(t, results, 1)
+		assert.Equal(t, true, results[0].Attrs["redacted"], "post-hook attr transform must reach caller")
+		assert.Equal(t, []string{field.ID}, cleared, "cleared IDs from post-hook must be surfaced")
+	})
+
+	t.Run("post-hook returning wrong-length requested slice is skipped", func(t *testing.T) {
+		hook := &testHook{
+			postUpdateFieldsFn: func(_ string, _, requested, propagated []*model.PropertyField) ([]*model.PropertyField, []*model.PropertyField, []string, error) {
+				// Drop a field — cardinality guard must reject this transform.
+				return requested[:0], propagated, nil, nil
+			},
+		}
+		th.service.AddHook(hook)
+		defer func() { th.service.hooks = th.service.hooks[:len(th.service.hooks)-1] }()
+
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "post-cardinality-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		})
+		field.Name = "post-cardinality-renamed-" + model.NewId()
+
+		results, _, _, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field})
+		require.NoError(t, err)
+		assert.Len(t, results, 1, "wrong-length transform must be discarded; original requested must survive")
 	})
 }

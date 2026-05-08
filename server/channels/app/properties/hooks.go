@@ -40,13 +40,17 @@ type PropertyHook interface {
 	PreDeletePropertyField(rctx request.CTX, groupID string, id string) error
 
 	// PostUpdatePropertyFields runs after a successful field update (including
-	// the linked-field propagation pass). It receives parallel slices of the
-	// pre-update and post-update field state so hooks can detect what changed.
-	// Returns the IDs of fields whose dependent property values were cleared
-	// as a side effect (e.g. type-change cleanup); the caller publishes the
-	// corresponding WS events. Errors are best-effort: the dispatcher logs
-	// and continues, the update is not rolled back.
-	PostUpdatePropertyFields(rctx request.CTX, groupID string, prev, updated []*model.PropertyField) (clearedFieldIDs []string, err error)
+	// the linked-field propagation pass). It receives the pre-update state of
+	// the requested fields (parallel to requested), the post-update requested
+	// fields, and the post-update propagated fields. Hooks may transform attrs
+	// on either bucket (e.g. redact information for the caller); the
+	// dispatcher enforces cardinality preservation on both buckets so a buggy
+	// hook that drops fields surfaces an error rather than silently truncating
+	// the broadcast. Returns the IDs of fields whose dependent property values
+	// were cleared as a side effect (e.g. type-change cleanup); the caller
+	// publishes the corresponding WS events. Errors are best-effort: the
+	// dispatcher logs and continues, the update is not rolled back.
+	PostUpdatePropertyFields(rctx request.CTX, groupID string, prev, requested, propagated []*model.PropertyField) (newRequested, newPropagated []*model.PropertyField, clearedFieldIDs []string, err error)
 
 	// Field pre-hook for count operations. Count operations return only a
 	// scalar so there is no post-hook — access control applied to per-row
@@ -105,8 +109,8 @@ func (BasePropertyHook) PreUpdatePropertyFields(_ request.CTX, _ string, fields 
 func (BasePropertyHook) PreDeletePropertyField(_ request.CTX, _ string, _ string) error {
 	return nil
 }
-func (BasePropertyHook) PostUpdatePropertyFields(_ request.CTX, _ string, _, _ []*model.PropertyField) ([]string, error) {
-	return nil, nil
+func (BasePropertyHook) PostUpdatePropertyFields(_ request.CTX, _ string, _, requested, propagated []*model.PropertyField) ([]*model.PropertyField, []*model.PropertyField, []string, error) {
+	return requested, propagated, nil, nil
 }
 func (BasePropertyHook) PreCountPropertyFields(_ request.CTX, _ string) error {
 	return nil
@@ -203,14 +207,20 @@ func (ps *PropertyService) runPreUpdatePropertyFields(rctx request.CTX, groupID 
 }
 
 // runPostUpdatePropertyFields runs all registered post-hooks for
-// UpdatePropertyFields. It aggregates the cleared field IDs returned by each
-// hook (deduped) and is best-effort: hook errors are logged and skipped, the
-// update itself is not rolled back.
-func (ps *PropertyService) runPostUpdatePropertyFields(rctx request.CTX, groupID string, prev, updated []*model.PropertyField) []string {
+// UpdatePropertyFields. Each hook may transform the requested and propagated
+// buckets in place (e.g. redaction); the dispatcher chains the transformed
+// slices through subsequent hooks and enforces cardinality preservation on
+// both buckets so a buggy hook that drops fields surfaces an error rather
+// than silently truncating the broadcast. The cleared field IDs returned by
+// each hook are deduped into a single slice. Best-effort: hook errors and
+// cardinality violations are logged and skipped (the offending hook's
+// transform is dropped for the chain, but the update itself is not rolled
+// back).
+func (ps *PropertyService) runPostUpdatePropertyFields(rctx request.CTX, groupID string, prev, requested, propagated []*model.PropertyField) ([]*model.PropertyField, []*model.PropertyField, []string) {
 	seen := map[string]struct{}{}
 	var cleared []string
 	for _, hook := range ps.hooks {
-		ids, err := hook.PostUpdatePropertyFields(rctx, groupID, prev, updated)
+		newRequested, newPropagated, ids, err := hook.PostUpdatePropertyFields(rctx, groupID, prev, requested, propagated)
 		if err != nil {
 			rctx.Logger().Error("PostUpdatePropertyFields hook failed",
 				mlog.String("group_id", groupID),
@@ -218,6 +228,15 @@ func (ps *PropertyService) runPostUpdatePropertyFields(rctx request.CTX, groupID
 			)
 			continue
 		}
+		if len(newRequested) != len(requested) || len(newPropagated) != len(propagated) {
+			rctx.Logger().Error("PostUpdatePropertyFields hook returned wrong-length slice",
+				mlog.String("group_id", groupID),
+				mlog.Err(errFieldCardinalityBroken),
+			)
+			continue
+		}
+		requested = newRequested
+		propagated = newPropagated
 		for _, id := range ids {
 			if _, ok := seen[id]; ok {
 				continue
@@ -226,7 +245,7 @@ func (ps *PropertyService) runPostUpdatePropertyFields(rctx request.CTX, groupID
 			cleared = append(cleared, id)
 		}
 	}
-	return cleared
+	return requested, propagated, cleared
 }
 
 // runPreDeletePropertyField runs all registered pre-hooks for DeletePropertyField.

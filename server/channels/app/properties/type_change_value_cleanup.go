@@ -38,10 +38,12 @@ func NewTypeChangeValueCleanupHook(ps *PropertyService) *TypeChangeValueCleanupH
 }
 
 // PostUpdatePropertyFields returns the IDs of fields whose dependent values
-// were cleared. The caller publishes the corresponding WS events.
-func (h *TypeChangeValueCleanupHook) PostUpdatePropertyFields(rctx request.CTX, groupID string, prev, updated []*model.PropertyField) ([]string, error) {
+// were cleared. The caller publishes the corresponding WS events. Linked-
+// property propagation cannot trigger a type change (blocked upstream), so
+// the propagated bucket is passed through unchanged.
+func (h *TypeChangeValueCleanupHook) PostUpdatePropertyFields(rctx request.CTX, groupID string, prev, requested, propagated []*model.PropertyField) ([]*model.PropertyField, []*model.PropertyField, []string, error) {
 	var cleared []string
-	for i, u := range updated {
+	for i, u := range requested {
 		if i >= len(prev) || prev[i] == nil || u == nil {
 			continue
 		}
@@ -60,5 +62,5 @@ func (h *TypeChangeValueCleanupHook) PostUpdatePropertyFields(rctx request.CTX, 
 		}
 		cleared = append(cleared, u.ID)
 	}
-	return cleared, nil
+	return requested, propagated, cleared, nil
 }

@@ -414,14 +414,16 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		}
 	}
 
-	// Run post-hooks against parallel prev/updated slices for the requested
-	// fields. Linked-property propagation can't trigger a type change (blocked
-	// upstream), so propagated fields don't participate in post-hook decisions.
+	// Run post-hooks. prev is parallel to requested. Hooks may transform
+	// either the requested or propagated bucket (e.g. attr redaction); the
+	// dispatcher enforces cardinality preservation on both buckets so a buggy
+	// hook that drops fields surfaces an error rather than silently truncating
+	// the broadcast. cleared IDs are unioned across hooks.
 	prev := make([]*model.PropertyField, 0, len(requested))
 	for _, r := range requested {
 		prev = append(prev, existingByID[r.ID])
 	}
-	clearedFieldIDs = ps.runPostUpdatePropertyFields(rctx, groupID, prev, requested)
+	requested, propagated, clearedFieldIDs = ps.runPostUpdatePropertyFields(rctx, groupID, prev, requested, propagated)
 
 	return requested, propagated, clearedFieldIDs, nil
 }
