@@ -414,7 +414,9 @@ func TestInvalidateCaches(t *testing.T) {
 }
 
 func TestGetLogs(t *testing.T) {
-	mainHelper.Parallel(t)
+	// Do not run this test in parallel: GetLogs returns the tail of the global log file.
+	// Concurrent tests append lines after our Flush(), so pagination assertions on the
+	// most recent lines become flaky under parallel execution (see api4 logs tests).
 	th := Setup(t)
 
 	for i := range 20 {
