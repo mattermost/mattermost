@@ -28,6 +28,7 @@ import {
     CHANNEL_LINKED_OBJECT_TYPE,
     GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
+import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import {
     CHANNEL_BANNER_MAX_CHARACTER_LIMIT,
     CHANNEL_BANNER_MIN_CHARACTER_LIMIT,
@@ -101,11 +102,10 @@ const NewChannelModal = () => {
     const [bannerText, setBannerText] = useState('');
     const [bannerTextPreview, setBannerTextPreview] = useState(false);
 
-    const classificationOptions = useMemo((): ValueType[] => {
-        return classification.levels.map((level) => ({
-            value: level.id,
-            label: level.name,
-        }));
+    const classificationOptions = useMemo(() => {
+        return classification.levels.
+            filter((l) => l.name.trim() !== '').
+            map((l) => ({value: l.id, label: l.name.trim(), color: l.color}));
     }, [classification.levels]);
 
     const selectedClassificationOption = useMemo((): ValueType | undefined => {
@@ -437,6 +437,16 @@ const NewChannelModal = () => {
                                             isClearable={false}
                                             required={true}
                                             styles={classificationPresetDropdownStyles}
+                                            formatOptionLabel={(option: ValueType) => {
+                                                const levelOption = option as ValueType & {color: string};
+                                                return (
+                                                    <LevelOptionLabel>
+                                                        <ColorSwatch style={{backgroundColor: levelOption.color}}/>
+                                                        <span>{levelOption.label}</span>
+                                                    </LevelOptionLabel>
+                                                );
+                                            }}
+                                            menuPortalTarget={document.body}
                                         />
                                     </div>
                                 </div>

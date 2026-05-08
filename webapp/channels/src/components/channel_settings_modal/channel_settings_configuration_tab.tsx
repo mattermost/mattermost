@@ -660,6 +660,7 @@ function ChannelSettingsConfigurationTab({
                                         required={true}
                                         styles={classificationPresetDropdownStyles}
                                         formatOptionLabel={formatClassificationOptionLabel}
+                                        menuPortalTarget={document.body}
                                     />
                                 </div>
                             </div>
