@@ -712,6 +712,143 @@ describe('SimulateAccessModal — picker UX', () => {
         expect(userAttrs).toHaveTextContent(/sales/);
     });
 
+    // sibling_saved scenario: the editing rule alone would have
+    // denied (e.g. an AND that fails) but a sibling rule on the same
+    // role + action OR-merged at compile time and allowed, so the
+    // overall verdict is allow. The trace used to show only the
+    // editing rule's failing tree without ever telling the author
+    // which sibling actually saved the verdict — extending
+    // merged_rules to sibling_saved blame fixes that by rendering
+    // per-rule sections, where the sibling that allowed shows a
+    // green-leaf tree alongside the editing rule's red-leaf one.
+    it('sibling_saved blame renders per-rule sections so the saving sibling rule is visible', async () => {
+        const user = TestHelper.getUserMock({id: 'usaved', username: 'saved', roles: 'system_user'});
+        mockSearchProfiles.mockResolvedValue({data: [user]});
+
+        const savedDraft: AccessControlPolicy = {
+            id: 'p1',
+            name: 'p1',
+            type: 'channel',
+            rules: [
+                {
+                    name: 'Strict',
+                    role: 'channel_user',
+                    actions: ['upload_file_attachment'],
+                    expression: '"Orion" in user.attributes.Program && "Artemis" in user.attributes.Program',
+                },
+                {
+                    name: 'Members',
+                    role: 'channel_user',
+                    actions: ['upload_file_attachment'],
+                    expression: '"Helios" in user.attributes.Program',
+                },
+            ],
+        };
+
+        mockSimulatePolicyForUsers.mockResolvedValue({
+            data: {
+                results: [{
+                    user,
+                    decisions: {
+                        upload_file_attachment: {
+
+                            // Overall decision is ALLOW: a sibling
+                            // rule allowed even though the editing
+                            // rule alone denied.
+                            decision: true,
+                            blame: [{
+                                source: POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED,
+                                rule_name: 'Strict',
+                                role: 'channel_user',
+                                expression: '"Orion" in user.attributes.Program && "Artemis" in user.attributes.Program',
+                                merged_rules: [
+                                    {
+                                        name: 'Strict',
+                                        expression: '"Orion" in user.attributes.Program && "Artemis" in user.attributes.Program',
+                                        evaluation_tree: {
+                                            kind: 'and',
+                                            expression: '"Orion" in user.attributes.Program && "Artemis" in user.attributes.Program',
+                                            outcome: 'false',
+                                            children: [
+                                                {
+                                                    kind: 'compare',
+                                                    operator: 'in',
+                                                    expression: '"Orion" in user.attributes.Program',
+                                                    outcome: 'false',
+                                                    attribute: 'user.attributes.Program',
+                                                    actual_value: '["Helios"]',
+                                                    expected_value: 'Orion',
+                                                },
+                                                {
+                                                    kind: 'compare',
+                                                    operator: 'in',
+                                                    expression: '"Artemis" in user.attributes.Program',
+                                                    outcome: 'false',
+                                                    attribute: 'user.attributes.Program',
+                                                    actual_value: '["Helios"]',
+                                                    expected_value: 'Artemis',
+                                                },
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        name: 'Members',
+                                        expression: '"Helios" in user.attributes.Program',
+                                        evaluation_tree: {
+                                            kind: 'compare',
+                                            operator: 'in',
+                                            expression: '"Helios" in user.attributes.Program',
+                                            outcome: 'true',
+                                            attribute: 'user.attributes.Program',
+                                            actual_value: '["Helios"]',
+                                            expected_value: 'Helios',
+                                        },
+                                    },
+                                ],
+                            }],
+                        },
+                    },
+                }],
+                total: 1,
+            },
+        });
+
+        renderWithContext(
+            <SimulateAccessModal
+                onExited={jest.fn()}
+                policy={savedDraft}
+                actions={['upload_file_attachment']}
+                ruleName='Strict'
+                targetRole=''
+                targetScope='system'
+            />,
+        );
+
+        await pickUser(user);
+
+        // The row chip uses the SIBLING_SAVED source so the wording
+        // surfaces the "another rule" save — that's how the user
+        // knows the editing rule didn't carry the verdict on its own.
+        const allowChip = await screen.findByTestId('simulate-access-row-chip-allow-saved');
+        expect(allowChip).toHaveTextContent(/another rule/i);
+
+        const chipButton = screen.getByTestId('simulate-access-row-chip-button');
+        await userEvent.click(chipButton);
+        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+
+        // Per-rule sections render: the editing rule's failing tree
+        // sits alongside the sibling that actually allowed — without
+        // this fix the author saw only the editing rule's failing
+        // tree and couldn't tell which sibling carried the verdict.
+        const ruleOne = await screen.findByTestId('simulate-access-details-merged-rule-upload_file_attachment-1');
+        expect(ruleOne).toHaveTextContent(/Rule: Strict/);
+        expect(ruleOne).toHaveTextContent(/Actual: \["Helios"\]/);
+
+        const ruleTwo = screen.getByTestId('simulate-access-details-merged-rule-upload_file_attachment-2');
+        expect(ruleTwo).toHaveTextContent(/Rule: Members/);
+        expect(ruleTwo).toHaveTextContent('"Helios" in user.attributes.Program');
+    });
+
     it('peer_policy blame surfaces the peer policy name on the chip and inside the details modal', async () => {
         const user = TestHelper.getUserMock({id: 'upeer', username: 'peer', roles: 'system_user'});
         mockSearchProfiles.mockResolvedValue({data: [user]});
@@ -766,6 +903,193 @@ describe('SimulateAccessModal — picker UX', () => {
         expect(detailsRow).toHaveTextContent(/IL5 Block/);
         expect(detailsRow).toHaveTextContent(/r2/);
         expect(detailsRow).toHaveTextContent('user.attributes.clearance == "il5"');
+    });
+
+    // System-console scenario: the simulator emits an informational
+    // allow blame for the editing draft when a peer policy is the
+    // actual denier. The picker renders both as numbered sections so
+    // authors can see "my policy allowed; the peer policy denied" at
+    // a glance — this fixes the prior UX gap where the editing draft
+    // disappeared entirely from the trace whenever it allowed.
+    it('renders an informational "your policy allowed" section alongside the peer denier', async () => {
+        const user = TestHelper.getUserMock({id: 'umixed', username: 'mix', roles: 'system_user'});
+        mockSearchProfiles.mockResolvedValue({data: [user]});
+        mockSimulatePolicyForUsers.mockResolvedValue({
+            data: {
+                results: [{
+                    user,
+                    decisions: {
+                        upload_file_attachment: {
+                            decision: false,
+
+                            // Mixed-outcome blame array: a peer policy
+                            // denied, AND the editing draft itself
+                            // allowed — the simulator emits the latter
+                            // as an Outcome=allow informational entry
+                            // so the picker can show "your policy
+                            // allowed" alongside the peer denier.
+                            blame: [
+                                {
+                                    source: POLICY_SIMULATION_BLAME_SOURCES.PEER_POLICY,
+                                    outcome: 'deny',
+                                    policy_id: 'p9',
+                                    policy_name: 'Members back up',
+                                    rule_name: 'r9',
+                                    role: 'system_user',
+                                    expression: '"Helios" in user.attributes.Program && "Artemis" in user.attributes.Program',
+                                },
+                                {
+                                    source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE,
+                                    outcome: 'allow',
+                                    policy_id: 'p1',
+                                    rule_name: 'rule1',
+                                    role: 'system_user',
+                                    expression: '"Helios" in user.attributes.Program || "Orion" in user.attributes.Program',
+                                },
+                            ],
+                        },
+                    },
+                }],
+                total: 1,
+            },
+        });
+
+        renderWithContext(
+            <SimulateAccessModal
+                onExited={jest.fn()}
+                policy={draftPolicy}
+                actions={['upload_file_attachment']}
+                ruleName='rule1'
+                targetRole='system_user'
+                targetScope='system'
+            />,
+        );
+
+        await pickUser(user);
+
+        // Row-level chip names the actual denier. Informational allow
+        // entries must not influence the chip's primary-deny pick or
+        // the row would confusingly say "your policy" for a
+        // peer-policy deny.
+        const rowChip = await screen.findByTestId('simulate-access-row-chip-deny');
+        expect(rowChip).toHaveTextContent(/Members back up/);
+        expect(rowChip).not.toHaveTextContent(/your policy/i);
+
+        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        await userEvent.click(chipButton);
+        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+
+        // Mixed explainer text spells out the deny-wins semantics so
+        // authors don't read "1 policy denied, 1 allowed → why is it
+        // an overall deny?" as a bug.
+        const policiesContainer = await screen.findByTestId('simulate-access-details-policies-upload_file_attachment');
+        expect(policiesContainer).toHaveTextContent(/1 policy denied/i);
+        expect(policiesContainer).toHaveTextContent(/1 policy allowed/i);
+        expect(policiesContainer).toHaveTextContent(/deny-wins/i);
+
+        // Two numbered sections: editing draft first (allow outcome,
+        // higher priority in SAME_SCOPE_SOURCE_PRIORITY) and peer
+        // denier second (deny outcome). The editing draft's chip uses
+        // the "Your policy" wording so the author can tell their own
+        // contribution apart from peer policies.
+        const policyOne = within(policiesContainer).getByTestId('simulate-access-details-policy-upload_file_attachment-1');
+        expect(policyOne).toHaveTextContent(/Your policy: Allowed/i);
+
+        const policyTwo = within(policiesContainer).getByTestId('simulate-access-details-policy-upload_file_attachment-2');
+        expect(policyTwo).toHaveTextContent(/Members back up/);
+        expect(policyTwo).toHaveTextContent(/Denied/);
+    });
+
+    // System-console scenario: a deny can pin on the editing draft AND
+    // one or more peer (or same-scope system) policies at once. The
+    // modal renders one numbered policy section per contributor, in
+    // priority order (this_rule first, peer_policy after), so the
+    // author can see exactly which policies caused the deny — the
+    // single-trace view used to drop everything but the highest-
+    // priority blame. Upper-scoped blame entries are filtered upstream
+    // by the public-server's privacy classification, so they never
+    // make it into this list.
+    it('renders one numbered policy section per same-scope contributor when multiple policies deny', async () => {
+        const user = TestHelper.getUserMock({id: 'umulti', username: 'multi', roles: 'system_user'});
+        mockSearchProfiles.mockResolvedValue({data: [user]});
+        mockSimulatePolicyForUsers.mockResolvedValue({
+            data: {
+                results: [{
+                    user,
+                    decisions: {
+                        upload_file_attachment: {
+                            decision: false,
+
+                            // Two same-scope blames: the editing draft
+                            // (this_rule) and a peer system policy. Both
+                            // ship merged_rules with per-rule eval trees
+                            // so the renderer should expand each policy
+                            // into a numbered section with its own tree.
+                            blame: [
+                                {
+                                    source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE,
+                                    policy_id: 'p1',
+                                    rule_name: 'rule1',
+                                    role: 'system_user',
+                                    expression: 'user.attributes.region == "us"',
+                                },
+                                {
+                                    source: POLICY_SIMULATION_BLAME_SOURCES.PEER_POLICY,
+                                    policy_id: 'p9',
+                                    policy_name: 'IL5 Block',
+                                    rule_name: 'r9a',
+                                    role: 'system_user',
+                                    expression: 'user.attributes.clearance == "il5"',
+                                },
+                            ],
+                        },
+                    },
+                }],
+                total: 1,
+            },
+        });
+
+        renderWithContext(
+            <SimulateAccessModal
+                onExited={jest.fn()}
+                policy={draftPolicy}
+                actions={['upload_file_attachment']}
+                ruleName='rule1'
+                targetRole='system_user'
+                targetScope='system'
+            />,
+        );
+
+        await pickUser(user);
+
+        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        await userEvent.click(chipButton);
+        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+
+        // Numbered policy sections render in priority order: the
+        // editing draft (this_rule) takes slot 1, the peer policy
+        // takes slot 2.
+        const policiesContainer = await screen.findByTestId('simulate-access-details-policies-upload_file_attachment');
+        expect(policiesContainer).toBeInTheDocument();
+
+        const policyOne = within(policiesContainer).getByTestId('simulate-access-details-policy-upload_file_attachment-1');
+        const policyTwo = within(policiesContainer).getByTestId('simulate-access-details-policy-upload_file_attachment-2');
+
+        // The editing draft renders without a Policy: line (the user
+        // IS the policy) but still carries its own rule name.
+        expect(policyOne).toHaveTextContent(/Rule: rule1/);
+        expect(policyOne).not.toHaveTextContent(/Policy: IL5 Block/);
+
+        // The peer policy section names the contributing policy.
+        expect(policyTwo).toHaveTextContent(/Policy: IL5 Block/);
+        expect(policyTwo).toHaveTextContent(/r9a/);
+
+        // The single-trace tree element is NOT rendered when
+        // multi-policy mode kicks in: each policy section nests its
+        // own tree element instead.
+        expect(
+            screen.queryByTestId('simulate-access-details-tree-upload_file_attachment'),
+        ).not.toBeInTheDocument();
     });
 
     it('renders the evaluation tree with outcome chips when blame.evaluation_tree is present', async () => {
@@ -864,6 +1188,212 @@ describe('SimulateAccessModal — picker UX', () => {
         // Passing leaf stays quiet — the green tick + the expression
         // already convey "matched"; we don't repeat the value.
         expect(within(tree).queryByText(/Actual: us\b/i)).not.toBeInTheDocument();
+    });
+
+    // The simulator OR-folds every draft rule sharing the same
+    // (role, action) into a single program (engine.JoinExpressions) and
+    // attaches a single evaluation_tree on the merged expression. The
+    // trace header used to read "Rule: <X>" — which was misleading
+    // because the tree below is the merged combination of every rule
+    // for that role + action, not just <X>. The header now switches to
+    // a "Combined evaluation for role <role>" affordance whenever the
+    // draft policy has more than one rule contributing.
+    it('renders a combined-evaluation header listing every contributing draft rule when multiple rules share the same role + action', async () => {
+        const user = TestHelper.getUserMock({id: 'umerge', username: 'merge', roles: 'system_user'});
+        mockSearchProfiles.mockResolvedValue({data: [user]});
+
+        // Draft policy with two rules sharing role=channel_user + the
+        // same action: that's the merge case the new header is designed
+        // to surface honestly.
+        const mergedDraft: AccessControlPolicy = {
+            id: 'pmerge',
+            name: 'pmerge',
+            type: 'channel',
+            rules: [
+                {
+                    name: 'Security officer',
+                    role: 'channel_user',
+                    actions: ['upload_file_attachment'],
+                    expression: 'user.attributes.Department == "Information Governance"',
+                },
+                {
+                    name: 'Engineers',
+                    role: 'channel_user',
+                    actions: ['upload_file_attachment'],
+                    expression: '"Orion" in user.attributes.Program',
+                },
+            ],
+        };
+
+        mockSimulatePolicyForUsers.mockResolvedValue({
+            data: {
+                results: [{
+                    user,
+                    decisions: {
+                        upload_file_attachment: {
+                            decision: false,
+                            blame: [{
+                                source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE,
+                                rule_name: 'Security officer',
+                                role: 'channel_user',
+                                expression: '(user.attributes.Department == "Information Governance") || ("Orion" in user.attributes.Program)',
+
+                                // Server-provided per-rule breakdown:
+                                // each entry maps 1:1 to a contributing
+                                // draft rule (in JoinExpressions order)
+                                // and carries that rule's standalone
+                                // evaluation tree.
+                                merged_rules: [
+                                    {
+                                        name: 'Security officer',
+                                        expression: 'user.attributes.Department == "Information Governance"',
+                                        evaluation_tree: {
+                                            kind: 'compare',
+                                            operator: '==',
+                                            expression: 'user.attributes.Department == "Information Governance"',
+                                            outcome: 'false',
+                                            attribute: 'user.attributes.Department',
+                                            actual_value: 'Engineering',
+                                            expected_value: 'Information Governance',
+                                        },
+                                    },
+                                    {
+                                        name: 'Engineers',
+                                        expression: '"Orion" in user.attributes.Program',
+                                        evaluation_tree: {
+                                            kind: 'compare',
+                                            operator: 'in',
+                                            expression: '"Orion" in user.attributes.Program',
+                                            outcome: 'false',
+                                            attribute: 'user.attributes.Program',
+                                            actual_value: '["Helios"]',
+                                            expected_value: 'Orion',
+                                        },
+                                    },
+                                ],
+                            }],
+                        },
+                    },
+                }],
+                total: 1,
+            },
+        });
+
+        renderWithContext(
+            <SimulateAccessModal
+                onExited={jest.fn()}
+                policy={mergedDraft}
+                actions={['upload_file_attachment']}
+                ruleName='Security officer'
+
+                // Empty targetRole bypasses the picker's role-applicability
+                // filter; the role on the BLAME entry (channel_user) is
+                // what drives the merged-rule lookup we're asserting on.
+                targetRole=''
+                targetScope='system'
+            />,
+        );
+
+        await pickUser(user);
+
+        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        await userEvent.click(chipButton);
+
+        // Expand the disclosure so the header + trace mount.
+        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+
+        // Combined-evaluation header replaces the misleading "Rule: X"
+        // line because the draft policy has more than one rule for
+        // (channel_user, upload_file_attachment).
+        const header = await screen.findByTestId('simulate-access-details-origin-upload_file_attachment');
+        expect(header).toHaveTextContent(/Combined evaluation for role channel_user/i);
+
+        // The single editing-rule label MUST NOT render in this case
+        // — that wording is what the user flagged as misleading.
+        expect(header).not.toHaveTextContent(/^Rule: Security officer/);
+
+        // The help-icon button is wired up so authors can see which
+        // rules merged into the trace below.
+        expect(
+            screen.getByTestId('simulate-access-details-origin-help-upload_file_attachment'),
+        ).toBeInTheDocument();
+
+        // Numbered per-rule sections replace the single merged tree
+        // when the server attached per-rule evaluation trees: each
+        // section is keyed by index (1, 2, ...) so the badge in the
+        // UI maps to the same position in the help-icon tooltip's
+        // ordered list above.
+        const mergedContainer = await screen.findByTestId('simulate-access-details-merged-upload_file_attachment');
+        expect(mergedContainer).toBeInTheDocument();
+
+        const ruleOne = within(mergedContainer).getByTestId('simulate-access-details-merged-rule-upload_file_attachment-1');
+        const ruleTwo = within(mergedContainer).getByTestId('simulate-access-details-merged-rule-upload_file_attachment-2');
+        expect(ruleOne).toHaveTextContent(/Rule: Security officer/);
+        expect(ruleTwo).toHaveTextContent(/Rule: Engineers/);
+
+        // The single merged tree is intentionally NOT rendered in
+        // this branch — per-rule sections supersede it.
+        expect(
+            screen.queryByTestId('simulate-access-details-tree-upload_file_attachment'),
+        ).not.toBeInTheDocument();
+    });
+
+    // Single-rule policies (the common case) keep the original
+    // "Rule: <name>" wording — there is no merging happening so the
+    // simpler label is accurate and less verbose than the combined
+    // header.
+    it('keeps the simple "Rule: <name>" header when only one draft rule contributes', async () => {
+        const user = TestHelper.getUserMock({id: 'usingle', username: 'single', roles: 'system_user'});
+        mockSearchProfiles.mockResolvedValue({data: [user]});
+        mockSimulatePolicyForUsers.mockResolvedValue({
+            data: {
+                results: [{
+                    user,
+                    decisions: {
+                        upload_file_attachment: {
+                            decision: false,
+                            blame: [{
+                                source: POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE,
+                                rule_name: 'rule1',
+                                role: 'channel_user',
+                                expression: 'user.attributes.region == "us"',
+                            }],
+                        },
+                    },
+                }],
+                total: 1,
+            },
+        });
+
+        renderWithContext(
+            <SimulateAccessModal
+                onExited={jest.fn()}
+                policy={draftPolicy}
+                actions={['upload_file_attachment']}
+                ruleName='rule1'
+                targetRole=''
+                targetScope='system'
+            />,
+        );
+
+        await pickUser(user);
+
+        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        await userEvent.click(chipButton);
+        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+
+        const ruleBlock = await screen.findByTestId('simulate-access-details-rule-upload_file_attachment');
+        expect(ruleBlock).toHaveTextContent(/Rule: rule1/);
+
+        // Combined-evaluation affordance is NOT shown when no merging
+        // is happening: a single rule only would make the help icon
+        // redundant and visually noisy.
+        expect(
+            screen.queryByTestId('simulate-access-details-origin-upload_file_attachment'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTestId('simulate-access-details-origin-help-upload_file_attachment'),
+        ).not.toBeInTheDocument();
     });
 
     it('falls back to a flat expression block when blame.evaluation_tree is absent', async () => {

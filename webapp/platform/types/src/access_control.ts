@@ -241,8 +241,32 @@ export const POLICY_SIMULATION_BLAME_SOURCES = {
 export type PolicySimulationBlameSource =
     typeof POLICY_SIMULATION_BLAME_SOURCES[keyof typeof POLICY_SIMULATION_BLAME_SOURCES];
 
+/**
+ * Per-blame verdict. Most entries carry the deny that produced the
+ * overall decision; the simulator additionally emits informational
+ * entries with `outcome: 'allow'` so the picker can show
+ * "your draft policy allowed this user" alongside any peer policies'
+ * deny attribution. Empty / undefined is treated as deny for
+ * backward compatibility with simulator builds that pre-date the field.
+ */
+export const POLICY_SIMULATION_BLAME_OUTCOMES = {
+    DENY: 'deny',
+    ALLOW: 'allow',
+} as const;
+
+export type PolicySimulationBlameOutcome =
+    typeof POLICY_SIMULATION_BLAME_OUTCOMES[keyof typeof POLICY_SIMULATION_BLAME_OUTCOMES];
+
 export type PolicySimulationBlame = {
     source: PolicySimulationBlameSource;
+
+    /** Per-blame verdict. Defaults to `deny` when omitted (backward
+     *  compatibility with older simulators that only emitted denying
+     *  attribution). Allow entries are informational — they let the
+     *  picker render "your draft policy allows this user" sections
+     *  alongside any peer-policy denies in multi-policy contexts. */
+    outcome?: PolicySimulationBlameOutcome;
+
     policy_id?: string;
     policy_name?: string;
     rule_name?: string;
@@ -262,6 +286,47 @@ export type PolicySimulationBlame = {
      *  AND/OR/NOT tree showing exactly which sub-expression(s)
      *  produced the deny — when absent the modal falls back to the
      *  flat expression text. */
+    evaluation_tree?: PolicySimulationEvaluationNode;
+
+    /** When the contribution is the OR-fold of multiple authored
+     *  rules sharing the same `(role, action)` pair (the engine's
+     *  JoinExpressions merge), this lists every contributing rule —
+     *  in policy order, matching JoinExpressions' input order — so
+     *  the picker can render numbered per-rule sections that line up
+     *  1:1 with the merged expression's branches. The merged AST
+     *  shape `or(or(a,b), c)` is ambiguous between
+     *  "two rules, where rule1 is `a||b`" and "three single-clause
+     *  rules" so we can't recover the mapping client-side; the
+     *  simulator computes it server-side and surfaces it here.
+     *
+     *  Only populated for same-scope blame (this_rule / sibling_rule
+     *  / sibling_saved / peer_policy). Truly upper-scoped sources
+     *  intentionally omit this so the picker can't enumerate the
+     *  rules of an out-of-scope policy. Single-rule contributions
+     *  also omit it — the simpler "Rule: <name>" header is enough
+     *  when no merging is happening. */
+    merged_rules?: PolicySimulationMergedRule[];
+};
+
+/**
+ * One contributing rule's metadata + standalone evaluation tree
+ * inside a `PolicySimulationBlame.merged_rules` list. The tree mirrors
+ * just this rule's expression (not the merged whole) so the picker
+ * can render per-rule outcome chips and per-rule trace breakdowns
+ * alongside the merged tree. Same scope-privacy rule as
+ * `PolicySimulationBlame.expression`.
+ */
+export type PolicySimulationMergedRule = {
+    /** Author-supplied rule name (matches AccessControlPolicy.Rules[i].name). */
+    name: string;
+
+    /** CEL text of just this rule, before JoinExpressions wraps it. */
+    expression?: string;
+
+    /** Standalone per-node evaluation breakdown of `expression`
+     *  evaluated against the same activation as the merged tree, so
+     *  the per-rule and merged views never disagree on actual
+     *  attribute values. */
     evaluation_tree?: PolicySimulationEvaluationNode;
 };
 

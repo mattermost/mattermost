@@ -257,11 +257,36 @@ const (
 	PolicySimulationBlameSourceSiblingSaved = "sibling_saved"
 )
 
+// PolicySimulationBlameOutcome enumerates the per-blame verdict the
+// simulator records for a contributing policy. Most blame entries
+// carry the deny that produced the overall decision (PolicySimulationBlameOutcomeDeny);
+// the simulator additionally emits informational entries with PolicySimulationBlameOutcomeAllow
+// so the picker can show "your draft policy allowed this user" in
+// multi-policy contexts where a peer policy is the denier.
+const (
+	PolicySimulationBlameOutcomeDeny  = "deny"
+	PolicySimulationBlameOutcomeAllow = "allow"
+)
+
 // PolicySimulationBlame attributes a deny decision back to the rule or policy
-// that caused it.
+// that caused it. Some entries are informational (Outcome="allow") rather
+// than deniers — those exist so the picker can surface the editing draft's
+// evaluation alongside any peer policies' deny attribution; consumers that
+// only care about deny attribution should filter to Outcome=="" or
+// Outcome==PolicySimulationBlameOutcomeDeny (empty Outcome is treated as
+// deny for backward compatibility with simulator builds that pre-date the
+// field).
 type PolicySimulationBlame struct {
 	// Source is one of the PolicySimulationBlameSource* constants.
 	Source string `json:"source"`
+	// Outcome is one of the PolicySimulationBlameOutcome* constants.
+	// Defaults to "deny" semantically when empty (backward compat with
+	// older simulators) — every blame entry shipped before this field
+	// existed was a denier. The picker uses Outcome to differentiate
+	// the editing draft's "I allowed" informational entry from the
+	// peer policies that actually caused the deny so each can render
+	// with the right indicator.
+	Outcome string `json:"outcome,omitempty"`
 	// PolicyID is the ID of the contributing policy (for system permission
 	// or channel policy sources). Empty when the deny originated from the
 	// draft itself (no persisted ID exists yet).
@@ -288,6 +313,45 @@ type PolicySimulationBlame struct {
 	// sources omit it. The simulate UI renders it as a structured
 	// AND/OR/NOT tree showing exactly which sub-expression(s) produced
 	// the deny.
+	EvaluationTree *PolicySimulationEvaluationNode `json:"evaluation_tree,omitempty"`
+	// MergedRules lists every authored rule that was OR-folded into
+	// `Expression` for this contribution (see engine.JoinExpressions).
+	// Populated only when the contributing scope has more than one
+	// rule sharing the same (role, action) — single-rule
+	// contributions leave this empty so the simulate UI can keep the
+	// simpler "Rule: <name>" header. Order mirrors the policy's rule
+	// order, which is also the order JoinExpressions used when
+	// constructing the merged expression — so a UI can number rules
+	// consistently with the merged tree's branches.
+	//
+	// Same scope-privacy rule as Expression: populated only for
+	// same-scope blame (this_rule / sibling_rule / sibling_saved /
+	// peer_policy). Truly upper-scoped sources never carry this so
+	// the picker can't enumerate the rules of an out-of-scope policy.
+	MergedRules []PolicySimulationMergedRule `json:"merged_rules,omitempty"`
+}
+
+// PolicySimulationMergedRule is one entry in a blame's MergedRules:
+// the name + expression + standalone evaluation tree of a single rule
+// that was OR-folded into the blame's merged expression. A standalone
+// tree (computed against the same activation as the merged tree) lets
+// the UI render a per-rule breakdown numbered 1..N alongside the
+// merged tree, so authors can map specific branches back to the rule
+// they came from. The standalone tree carries the same scope-privacy
+// rule as the surrounding blame's Expression; truly upper-scoped
+// blame never carries MergedRules at all.
+type PolicySimulationMergedRule struct {
+	// Name of the contributing rule (matches AccessControlPolicy.Rules[i].Name).
+	Name string `json:"name"`
+	// Expression is the rule's CEL text, before JoinExpressions wraps
+	// it in parens for the OR-fold. Useful when the UI wants to show
+	// the contributing rule on its own without reparsing.
+	Expression string `json:"expression,omitempty"`
+	// EvaluationTree is the standalone per-node evaluation breakdown
+	// of just this rule's expression (not the merged whole). The
+	// outcome on the root reflects whether THIS rule alone matched
+	// for the subject, which is what the picker needs to render
+	// "rule 1: TRUE / rule 2: FALSE" per-rule chips above each tree.
 	EvaluationTree *PolicySimulationEvaluationNode `json:"evaluation_tree,omitempty"`
 }
 

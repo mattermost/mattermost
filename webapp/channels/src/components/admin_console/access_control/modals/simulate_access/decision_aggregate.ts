@@ -68,7 +68,7 @@ export function aggregateDecisions(
             denies++;
             continue;
         }
-        if (dec.blame?.some((b) => b.source === POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY)) {
+        if (dec.blame?.some((b) => b.source === POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY && b.outcome !== 'allow')) {
             inapplicable++;
             continue;
         }

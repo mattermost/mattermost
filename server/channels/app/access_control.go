@@ -388,9 +388,18 @@ func enrichBlameEntry(rctx request.CTX, acs einterfaces.AccessControlServiceInte
 // of an out-of-scope policy if the simulator attached them. Called
 // whenever a blame entry's final source is determined to live above
 // the editing scope.
+//
+// MergedRules is stripped alongside Expression / EvaluationTree:
+// the per-rule list lets the picker number sub-rules of the
+// contributing policy, which would amount to enumerating that
+// policy's authored rules — exactly what the privacy boundary is
+// supposed to hide. The simulator may have attached MergedRules
+// unconditionally for ergonomics; we drop it here once the source is
+// known to live above the editing scope.
 func stripUpperScopedFields(blame *model.PolicySimulationBlame) {
 	blame.Expression = ""
 	blame.EvaluationTree = nil
+	blame.MergedRules = nil
 }
 
 // buildRulesIndex maps rule_name -> CEL expression for a policy. Rules

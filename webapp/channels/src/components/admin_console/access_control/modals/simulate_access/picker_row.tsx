@@ -317,5 +317,10 @@ function shouldShowDecisionDetails(decision: PolicySimulationActionDecision | un
     if (!decision.blame) {
         return false;
     }
-    return decision.blame.some((b) => b.source === POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED);
+
+    // Skip informational allow entries — only deny-side SIBLING_SAVED
+    // blame should make the row eligible for the details drill-down.
+    return decision.blame.some(
+        (b) => b.source === POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED && b.outcome !== 'allow',
+    );
 }

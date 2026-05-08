@@ -192,6 +192,16 @@ function ChannelSettingsPermissionsPolicyTab({
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const [formError, setFormError] = useState<string>('');
 
+    // Load-error state: distinct from `formError` (which surfaces save
+    // failures). Set when the initial getChannelPolicy fetch fails for
+    // a reason other than 404 (e.g., network blip, 5xx, transient
+    // permission flicker). Prevents the editor from rendering at all
+    // so a user can't unintentionally save an empty `rules` state on
+    // top of an existing policy that just couldn't be loaded —
+    // wiping it. 404 explicitly seeds empty defaults instead, since
+    // that's the legitimate "first-time create" path.
+    const [loadError, setLoadError] = useState<string>('');
+
     // List view UX state.
     const [searchTerm, setSearchTerm] = useState('');
     const [page, setPage] = useState(0);
@@ -213,15 +223,23 @@ function ChannelSettingsPermissionsPolicyTab({
                     setUserAttributes(result.data);
                 }
                 setAttributesLoaded(true);
-            } catch (error) {
+            } catch {
                 if (cancelled) {
                     return;
                 }
                 setUserAttributes([]);
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
-                    setAttributesLoaded(true);
-                }
+
+                // Always flip `attributesLoaded` on the error path
+                // regardless of error type. This effect drives the
+                // editor's "loading attributes…" gate; previously we
+                // only flipped on 403 / Forbidden, which left the
+                // editor stuck on every other failure mode (network
+                // errors, 5xx, license-related 5xx wrappers, etc.).
+                // Falling through to an empty-attribute editor is
+                // strictly better than wedging it: TableEditor still
+                // renders, just without the optional attribute
+                // metadata that adds nice-to-have suggestions.
+                setAttributesLoaded(true);
             }
         })();
         return () => {
@@ -230,14 +248,30 @@ function ChannelSettingsPermissionsPolicyTab({
     }, [actions]);
 
     // Load existing channel policy and seed permission rules state.
+    //
+    // bindClientFunc never throws; failures arrive on `result.error`
+    // with a `status_code`. We split three cases:
+    //
+    //   1. Success (`result.data`) — seed every original/* state from
+    //      the loaded policy.
+    //   2. 404 — there is no persisted policy yet, which is the
+    //      legitimate first-time-create path. Seed the same empty
+    //      defaults the component already starts with so the save
+    //      flow can POST a new policy.
+    //   3. Anything else — set `loadError` so the render path can
+    //      replace the editor with a banner. We deliberately do NOT
+    //      reset originals/rules/originalRulesJSON in this case: a
+    //      transient error must not leave the editor in a state
+    //      where a save would wipe an existing policy that simply
+    //      couldn't be fetched.
     useEffect(() => {
         let cancelled = false;
         (async () => {
-            try {
-                const result = await actions.getChannelPolicy(channel.id);
-                if (cancelled || !result.data) {
-                    return;
-                }
+            const result = await actions.getChannelPolicy(channel.id);
+            if (cancelled) {
+                return;
+            }
+            if (result.data) {
                 const allRules = result.data.rules || [];
                 const permissionRules = getPermissionRules(allRules);
                 const editable = permissionRules.map(toEditable);
@@ -247,21 +281,31 @@ function ChannelSettingsPermissionsPolicyTab({
                 setOriginalActive(Boolean(result.data.active));
                 setRules(editable);
                 setOriginalRulesJSON(JSON.stringify(editable.map(fromEditable)));
-            } catch {
-                if (!cancelled) {
-                    setOriginalAllRules([]);
-                    setOriginalMembershipExpression('');
-                    setOriginalImports([]);
-                    setOriginalActive(false);
-                    setRules([]);
-                    setOriginalRulesJSON('[]');
-                }
+                setLoadError('');
+                return;
             }
+            const err = result.error as {status_code?: number; message?: string} | undefined;
+            if (err?.status_code === 404) {
+                // First-time create: no policy yet. Seed empty
+                // defaults so save POSTs a fresh policy.
+                setOriginalAllRules([]);
+                setOriginalMembershipExpression('');
+                setOriginalImports([]);
+                setOriginalActive(false);
+                setRules([]);
+                setOriginalRulesJSON('[]');
+                setLoadError('');
+                return;
+            }
+            setLoadError(err?.message || formatMessage({
+                id: 'channel_settings.permissions_policy.load_error',
+                defaultMessage: 'Failed to load this channel\'s permission policy. Try closing and reopening the channel settings.',
+            }));
         })();
         return () => {
             cancelled = true;
         };
-    }, [channel.id, actions]);
+    }, [channel.id, actions, formatMessage]);
 
     // Notify parent of unsaved-state changes so the modal can guard tab switches.
     useEffect(() => {
@@ -508,6 +552,27 @@ function ChannelSettingsPermissionsPolicyTab({
     const hasErrors = Boolean(formError) || Boolean(showTabSwitchError);
     const shouldShowPanel = (hasUnsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED) && editingKey === null;
 
+    // ── Render: load error (defensive — replaces both list and editor) ───
+    // Block all editing affordances when the initial policy load failed
+    // for a reason other than 404. Falling through to the regular
+    // editor would let an author save an empty `rules` state on top of
+    // an existing policy that simply couldn't be fetched.
+    if (loadError) {
+        return (
+            <div
+                className='ChannelSettingsModal__permissionsPolicyTab'
+                data-testid='permissions-policy-load-error'
+            >
+                <div
+                    className='ChannelSettingsModal__permissionsPolicyError'
+                    role='alert'
+                >
+                    {loadError}
+                </div>
+            </div>
+        );
+    }
+
     // ── Render: editor view ───────────────────────────────────────────────
     if (editingKey !== null) {
         const isNew = editingKey === '__new__';
@@ -598,6 +663,14 @@ function ChannelSettingsPermissionsPolicyTab({
                     placeholder={formatMessage({
                         id: 'channel_settings.permissions_policy.search_placeholder',
                         defaultMessage: 'Search by name or permission',
+                    })}
+
+                    // The placeholder disappears on focus, so back the input
+                    // with an accessible name that screen readers announce
+                    // independently of the visible placeholder text.
+                    aria-label={formatMessage({
+                        id: 'channel_settings.permissions_policy.search_aria',
+                        defaultMessage: 'Search permission rules by name or permission',
                     })}
                     data-testid='permissions-policy-search'
                 />
@@ -1118,9 +1191,8 @@ function PermissionRuleEditor({
             )}
 
             <div className='ChannelSettingsModal__permissionsPolicyEditorActions'>
-                <button
-                    type='button'
-                    className='btn btn-tertiary'
+                <Button
+                    emphasis='tertiary'
                     onClick={onCancel}
                     data-testid='permissions-policy-editor-cancel'
                 >
@@ -1128,10 +1200,8 @@ function PermissionRuleEditor({
                         id='channel_settings.permissions_policy.editor.cancel'
                         defaultMessage='Cancel'
                     />
-                </button>
-                <button
-                    type='button'
-                    className='btn btn-primary'
+                </Button>
+                <Button
                     onClick={() => onCommit(draft, isNew)}
                     data-testid='permissions-policy-editor-save'
                 >
@@ -1146,7 +1216,7 @@ function PermissionRuleEditor({
                             defaultMessage='Save rule'
                         />
                     )}
-                </button>
+                </Button>
             </div>
 
             {showTest && (

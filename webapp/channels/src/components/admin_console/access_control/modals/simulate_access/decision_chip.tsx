@@ -224,16 +224,31 @@ function hasBlame(blame: PolicySimulationBlame[] | undefined, source: string): b
     if (!blame || blame.length === 0) {
         return false;
     }
-    return blame.some((b) => b.source === source);
+
+    // Match deny-style entries only — informational allow entries
+    // don't contribute to "is this NO_APPLICABLE_POLICY / SIBLING_SAVED"
+    // reasoning the chip layer uses. (Same backward-compat handling
+    // for empty `outcome` as pickPrimaryDenyBlame.)
+    return blame.some((b) => b.source === source && b.outcome !== 'allow');
 }
 
 function pickPrimaryDenyBlame(blame: PolicySimulationBlame[] | undefined): PolicySimulationBlame | undefined {
     if (!blame || blame.length === 0) {
         return undefined;
     }
+
+    // Skip informational allow entries the simulator emits to surface
+    // the editing draft's evaluation when a peer policy is the actual
+    // denier — the chip is supposed to name the denier, not the
+    // "I allowed" companion entry. Empty `outcome` defaults to deny
+    // for backward compat with older simulators.
+    const denyOnly = blame.filter((b) => b.outcome !== 'allow');
+    if (denyOnly.length === 0) {
+        return undefined;
+    }
     let best: PolicySimulationBlame | undefined;
     let bestRank = DENY_BLAME_PRIORITY.length;
-    for (const b of blame) {
+    for (const b of denyOnly) {
         const rank = DENY_BLAME_PRIORITY.indexOf(b.source);
         if (rank === -1 || rank >= bestRank) {
             continue;
@@ -241,7 +256,7 @@ function pickPrimaryDenyBlame(blame: PolicySimulationBlame[] | undefined): Polic
         best = b;
         bestRank = rank;
     }
-    return best ?? blame[0];
+    return best ?? denyOnly[0];
 }
 
 function blameSourceLabel(
