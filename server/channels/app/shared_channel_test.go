@@ -5,7 +5,9 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -14,6 +16,7 @@ import (
 	"sync"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1623,10 +1626,30 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance(t *testing
 
 		var wg sync.WaitGroup
 		start := make(chan struct{})
+		errs := make(chan error, fanOut+1)
 
 		wg.Go(func() {
 			<-start
-			syncPostWithFileIds(t, postID, user.Id, fileIDs)
+			msg := model.NewSyncMsg(channel.Id)
+			msg.Posts = []*model.Post{
+				{
+					Id:        postID,
+					ChannelId: channel.Id,
+					UserId:    user.Id,
+					Message:   "post with attachments",
+					FileIds:   fileIDs,
+					CreateAt:  model.GetMillis(),
+					RemoteId:  model.NewPointer(rc.RemoteId),
+				},
+			}
+			resp, syncErr := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+			if syncErr != nil {
+				errs <- syncErr
+				return
+			}
+			if len(resp.PostErrors) > 0 {
+				errs <- fmt.Errorf("post sync returned errors: %v", resp.PostErrors)
+			}
 		})
 
 		for _, fid := range fileIDs {
@@ -1639,13 +1662,18 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance(t *testing
 					Name:      "concurrent.txt",
 					Size:      4,
 				}
-				_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
-				require.NoError(t, err)
+				if _, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data"))); err != nil {
+					errs <- err
+				}
 			})
 		}
 
 		close(start)
 		wg.Wait()
+		close(errs)
+		for err := range errs {
+			require.NoError(t, err)
+		}
 
 		post, appErr := th.App.GetSinglePost(th.Context, postID, false)
 		require.Nil(t, appErr)
@@ -1655,6 +1683,85 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance(t *testing
 			require.Nil(t, appErr)
 			assert.Equal(t, postID, fi.PostId, "FileInfo.PostId must reference the post")
 			assert.Equal(t, channel.Id, fi.ChannelId, "FileInfo.ChannelId must reference the channel")
+		}
+	})
+
+	t.Run("post-then-file ordering publishes post_edited so clients refresh", func(t *testing.T) {
+		// In post-then-file ordering, the initial posted event carries an
+		// empty metadata.files (the FileInfo did not exist yet). The
+		// file-receive path's lazy-bind must publish a post_edited event
+		// after the bind so connected clients re-render with the new
+		// attachment without a channel reload.
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "",
+			[]model.WebsocketEventType{model.WebsocketEventPostEdited})
+		defer closeWS()
+
+		user := createRemoteUser(t)
+		postID := model.NewId()
+		fileID := model.NewId()
+
+		syncPostWithFileIds(t, postID, user.Id, []string{fileID})
+
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			PostId:    postID,
+			Name:      "ws.txt",
+			Size:      4,
+		}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+
+		select {
+		case ev := <-messages:
+			require.Equal(t, model.WebsocketEventPostEdited, ev.EventType())
+			postJSON, ok := ev.GetData()["post"].(string)
+			require.True(t, ok, "post_edited payload must include serialised post")
+			var broadcastPost model.Post
+			require.NoError(t, json.Unmarshal([]byte(postJSON), &broadcastPost))
+			assert.Equal(t, postID, broadcastPost.Id)
+			require.NotNil(t, broadcastPost.Metadata, "broadcast post must include metadata")
+			fileIDsInBroadcast := make([]string, 0, len(broadcastPost.Metadata.Files))
+			for _, f := range broadcastPost.Metadata.Files {
+				fileIDsInBroadcast = append(fileIDsInBroadcast, f.Id)
+			}
+			assert.Contains(t, fileIDsInBroadcast, fileID,
+				"post_edited broadcast must surface the now-resolvable attachment to clients")
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "did not receive post_edited event within 5s after attachment lazy-bind")
+		}
+	})
+
+	t.Run("file-then-post ordering does not publish post_edited from lazy-bind", func(t *testing.T) {
+		// When the file arrives first, the post does not exist when the
+		// lazy-bind runs, so there is no post to broadcast. The eventual
+		// post arrival publishes a posted event with correct metadata; the
+		// lazy-bind must stay quiet to avoid a spurious post_edited for a
+		// post that has never been seen by any client.
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "",
+			[]model.WebsocketEventType{model.WebsocketEventPostEdited})
+		defer closeWS()
+
+		user := createRemoteUser(t)
+		postID := model.NewId()
+		fileID := model.NewId()
+
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			PostId:    postID,
+			Name:      "ws.txt",
+			Size:      4,
+		}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+
+		select {
+		case ev := <-messages:
+			require.FailNowf(t, "unexpected event",
+				"did not expect a post_edited event from lazy-bind when post is absent, got: %v", ev.EventType())
+		case <-time.After(500 * time.Millisecond):
+			// Expected: no event.
 		}
 	})
 }
