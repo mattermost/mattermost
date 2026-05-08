@@ -3260,3 +3260,277 @@ func TestLinkedProperties(t *testing.T) {
 		}
 	})
 }
+
+func TestSystemObjectType(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_system_object_type", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, err)
+
+	t.Run("non-admin cannot create a system field", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		_, resp, createErr := th.Client.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, field)
+		require.Error(t, createErr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("sysadmin creates a system field with canonical target and sysadmin-default permissions", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			// Intentionally submit mismatched target fields to confirm the server canonicalizes them.
+			TargetType: string(model.PropertyFieldTargetLevelTeam),
+			TargetID:   model.NewId(),
+		}
+		created, resp, createErr := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, field)
+		require.NoError(t, createErr)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, model.PropertyFieldObjectTypeSystem, created.ObjectType)
+		require.Equal(t, string(model.PropertyFieldTargetLevelSystem), created.TargetType)
+		require.Empty(t, created.TargetID)
+		require.NotNil(t, created.PermissionField)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+		require.NotNil(t, created.PermissionValues)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+	})
+
+	t.Run("any authenticated user can list system fields", func(t *testing.T) {
+		// No target_type query required when object_type=system.
+		fields, resp, getErr := th.Client.GetPropertyFields(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, model.PropertyFieldSearch{})
+		require.NoError(t, getErr)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, fields)
+	})
+
+	t.Run("legacy values GET route rejects system object type", func(t *testing.T) {
+		// Force a URL that matches {object_type}/values/{target_id}. "system" is a valid
+		// character set for {target_id}, so the route is reachable even though the handler
+		// must reject it.
+		_, resp, getErr := th.Client.GetPropertyValues(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, model.PropertyValueSystemTargetID, model.PropertyValueSearch{})
+		require.Error(t, getErr)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("legacy values PATCH route rejects system object type", func(t *testing.T) {
+		// Mirrors the GET rejection: the legacy URL pattern matches system/system, so the
+		// route is reachable and the handler must reject it pointing callers to the
+		// dedicated system route.
+		items := []model.PropertyValuePatchItem{
+			{FieldID: model.NewId(), Value: json.RawMessage(`"ignored"`)},
+		}
+		_, resp, patchErr := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, model.PropertyValueSystemTargetID, items)
+		require.Error(t, patchErr)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("system PATCH rejects template field IDs", func(t *testing.T) {
+		// Create the template field directly via the app layer so the test stays
+		// focused on the value-patch handler. Template fields are definition-only
+		// and must never accept values, regardless of entry point.
+		templateField := &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, templateField, false, "")
+		require.Nil(t, appErr)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: created.ID, Value: json.RawMessage(`"ignored"`)},
+		}
+		_, resp, patchErr := th.SystemAdminClient.PatchSystemPropertyValues(context.Background(), group.Name, items)
+		require.Error(t, patchErr)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("system field round-trips a value via the dedicated route", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, createErr := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, field)
+		require.NoError(t, createErr)
+		CheckCreatedStatus(t, resp)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: created.ID, Value: json.RawMessage(`"hello-system"`)},
+		}
+
+		// Non-admin cannot write a system value.
+		_, resp, patchErr := th.Client.PatchSystemPropertyValues(context.Background(), group.Name, items)
+		require.Error(t, patchErr)
+		CheckForbiddenStatus(t, resp)
+
+		// Sysadmin writes succeed and store the sentinel TargetID.
+		upserted, resp, patchErr := th.SystemAdminClient.PatchSystemPropertyValues(context.Background(), group.Name, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+		require.Len(t, upserted, 1)
+		require.Equal(t, model.PropertyValueSystemTargetID, upserted[0].TargetID)
+		require.Equal(t, model.PropertyValueTargetTypeSystem, upserted[0].TargetType)
+
+		// Any authed user can read.
+		values, resp, getErr := th.Client.GetSystemPropertyValues(context.Background(), group.Name, model.PropertyValueSearch{})
+		require.NoError(t, getErr)
+		CheckOKStatus(t, resp)
+		found := false
+		for _, v := range values {
+			if v.FieldID == created.ID {
+				require.Equal(t, model.PropertyValueSystemTargetID, v.TargetID)
+				require.Equal(t, json.RawMessage(`"hello-system"`), v.Value)
+				found = true
+			}
+		}
+		require.True(t, found, "expected to find the system value we just wrote")
+	})
+
+	t.Run("system value patch broadcasts system-wide", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              field.Name,
+			Type:              field.Type,
+			ObjectType:        model.PropertyFieldObjectTypeSystem,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: created.ID, Value: json.RawMessage(`"broadcast-me"`)},
+		}
+		_, resp, patchErr := th.SystemAdminClient.PatchSystemPropertyValues(context.Background(), group.Name, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyValuesUpdated &&
+					event.GetData()["object_type"] == model.PropertyFieldObjectTypeSystem {
+					require.Equal(t, model.PropertyValueSystemTargetID, event.GetData()["target_id"])
+					// System target: broadcast should be system-wide (empty team/channel)
+					require.Empty(t, event.GetBroadcast().TeamId)
+					require.Empty(t, event.GetBroadcast().ChannelId)
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+	})
+
+	t.Run("system field permissions are canonicalized to sysadmin even when admin requests member", func(t *testing.T) {
+		// Without canonicalization, an admin could POST member-level
+		// permissions on a system field; the per-field permission check
+		// would then resolve "member" against TargetType=system, which
+		// hasPropertyFieldScopeAccess treats as "any authenticated user",
+		// effectively making the field publicly mutable.
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			PermissionField:   model.NewPointer(model.PermissionLevelMember),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelMember),
+		}
+		created, resp, createErr := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, field)
+		require.NoError(t, createErr)
+		CheckCreatedStatus(t, resp)
+
+		require.NotNil(t, created.PermissionField)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+		require.NotNil(t, created.PermissionValues)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+		require.NotNil(t, created.PermissionOptions)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
+
+		// With permissions canonicalized to sysadmin, the existing
+		// per-field permission check rejects non-admin patch/delete
+		// without any additional handler-level floor.
+		newName := model.NewId()
+		patch := &model.PropertyFieldPatch{Name: &newName}
+		_, resp, patchErr := th.Client.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, created.ID, patch)
+		require.Error(t, patchErr)
+		CheckForbiddenStatus(t, resp)
+
+		resp, deleteErr := th.Client.DeletePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, created.ID)
+		require.Error(t, deleteErr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("legacy values PATCH route rejects body referencing a system field ID", func(t *testing.T) {
+		// Cross-route reference: a non-system route receives a body whose
+		// field IDs belong to a system-typed field. Without the ObjectType
+		// match check this would either bypass the system-write sysadmin
+		// gate or persist a value whose TargetType disagrees with
+		// field.ObjectType.
+		systemField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeSystem,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}, false, "")
+		require.Nil(t, appErr)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: systemField.ID, Value: json.RawMessage(`"smuggled"`)},
+		}
+		// Even sysadmin should be rejected — this is a structural check on
+		// the route, not a permission check.
+		_, resp, patchErr := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, th.SystemAdminUser.Id, items)
+		require.Error(t, patchErr)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("system values PATCH route rejects body referencing a non-system field ID", func(t *testing.T) {
+		// Inverse of the previous case: the dedicated system route is
+		// reachable only by sysadmin, but it must still reject body field
+		// IDs whose ObjectType isn't system, otherwise rows get persisted
+		// with TargetType=system pointing at fields that attach to other
+		// entity types.
+		postField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypePost,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}, false, "")
+		require.Nil(t, appErr)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: postField.ID, Value: json.RawMessage(`"misrouted"`)},
+		}
+		_, resp, patchErr := th.SystemAdminClient.PatchSystemPropertyValues(context.Background(), group.Name, items)
+		require.Error(t, patchErr)
+		CheckBadRequestStatus(t, resp)
+	})
+}

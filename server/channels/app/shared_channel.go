@@ -402,6 +402,7 @@ func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID, 
 		Filename:  fi.Name,
 		FileSize:  fi.Size,
 		RemoteId:  rc.RemoteId,
+		ReqFileId: fi.Id,
 	}
 
 	us, appErr := a.CreateUploadSession(rctx, us)

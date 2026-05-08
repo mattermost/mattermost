@@ -89,8 +89,8 @@ export default class ChannelsSidebarRight {
         await expect(this.container).not.toBeVisible();
     }
 
-    async toContainText(text: string) {
-        await expect(this.container).toContainText(text);
+    async toContainText(text: string, timeout?: number) {
+        await expect(this.container).toContainText(text, {timeout});
     }
 
     async verifyCurrentVersionPostMessage(postID: string | null, postMessageContent: string) {

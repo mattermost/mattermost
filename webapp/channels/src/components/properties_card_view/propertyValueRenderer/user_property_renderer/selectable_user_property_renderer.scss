@@ -8,7 +8,9 @@
             min-height: unset;
             align-items: baseline;
             border: none !important;
+            background: transparent;
             box-shadow: none !important;
+            color: var(--center-channel-color);
 
             .UserMultiSelector__indicators {
                 height: 32px;
@@ -21,6 +23,7 @@
                 .SelectableUserPropertyRenderer_placeholder {
                     display: flex;
                     align-items: center;
+                    color: var(--center-channel-color);
                     gap: 8px;
 
                     i.icon.icon-account-outline {
@@ -35,6 +38,12 @@
                     }
                 }
             }
+
+            .UserMultiSelector__single-value,
+            .UserMultiSelector__input-container,
+            .UserMultiSelector__input {
+                color: var(--center-channel-color);
+            }
         }
     }
 }
@@ -46,6 +55,8 @@
         min-width: 200px;
         max-width: 400px;
         margin-top: 0 !important;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
 
         .UserMultiSelector__control {
             min-height: unset;

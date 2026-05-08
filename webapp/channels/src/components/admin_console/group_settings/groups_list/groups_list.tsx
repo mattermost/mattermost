@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -157,9 +159,9 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         switch (this.selectionActionButtonType()) {
         case 'link':
             return (
-                <button
+                <Button
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     onClick={() => this.linkSelectedGroups()}
                     disabled={this.props.readOnly}
                 >
@@ -168,13 +170,13 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'
                     />
-                </button>
+                </Button>
             );
         case 'unlink':
             return (
-                <button
+                <Button
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     onClick={() => this.unlinkSelectedGroups()}
                     disabled={this.props.readOnly}
                 >
@@ -183,13 +185,13 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                         id='admin.group_settings.groups_list.unlink_selected'
                         defaultMessage='Unlink Selected Groups'
                     />
-                </button>
+                </Button>
             );
         default:
             return (
-                <button
+                <Button
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     disabled={this.props.readOnly}
                 >
                     <i className='icon icon-link-variant'/>
@@ -197,7 +199,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'
                     />
-                </button>
+                </Button>
             );
         }
     }
@@ -416,18 +418,19 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                         />
                     </span>
                 </div>
-                <a
+                <Button
                     onClick={() => {
                         this.setState({page: 0});
                         this.searchGroups(0);
                     }}
-                    className='btn btn-primary search-groups-btn'
+                    emphasis='primary'
+                    className='search-groups-btn'
                 >
                     <FormattedMessage
                         id='search_bar.search'
                         defaultMessage='Search'
                     />
-                </a>
+                </Button>
             </div>
         );
     }
@@ -517,22 +520,24 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <button
+                        <Button
                             type='button'
-                            className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
+                            emphasis='tertiary'
+                            className={classNames({disabled: firstPage})}
                             onClick={(e: any) => this.previousPage(e)}
                             disabled={firstPage}
                         >
                             <PreviousIcon/>
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type='button'
-                            className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
+                            emphasis='tertiary'
+                            className={classNames({disabled: lastPage})}
                             onClick={(e: any) => this.nextPage(e)}
                             disabled={lastPage}
                         >
                             <NextIcon/>
-                        </button>
+                        </Button>
                     </div>
                 }
             </div>

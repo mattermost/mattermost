@@ -4,13 +4,14 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import './renew_link.scss';
 
 export interface RenewalLinkProps {
     isDisabled?: boolean;
-    className?: string;
 }
 
 const RenewalLink = (props: RenewalLinkProps) => {
@@ -28,20 +29,17 @@ const RenewalLink = (props: RenewalLinkProps) => {
         />
     );
 
-    // Default classes for general context
-    const defaultClassName = 'btn btn-primary';
-
-    // Use provided className or default
-    const buttonClassName = props.className || defaultClassName;
-
     return (
-        <button
-            className={buttonClassName}
+        <Button
+            emphasis='tertiary'
+            size='xs'
+            variant='inverted'
+            className='annnouncementBar__renewLicense'
             disabled={props.isDisabled}
             onClick={(e) => handleLinkClick(e)}
         >
             {btnText}
-        </button>
+        </Button>
     );
 };
 

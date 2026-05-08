@@ -10660,10 +10660,6 @@
     "translation": "Der Kanal ist gruppenbeschränkt und kann keine Richtlinien zur Zugriffskontrolle anwenden."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Richtlinien zur Zugangskontrolle können nur auf private Kanäle angewendet werden."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "Auf gemeinsam genutzte Kanäle kann keine Richtlinie zur Zugriffskontrolle angewendet werden."
   },

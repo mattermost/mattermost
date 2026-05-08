@@ -4,6 +4,7 @@
 import React, {useState, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -353,18 +354,18 @@ export default function PolicyList(props: Props): JSX.Element {
                         <h1>
                             <FormattedMessage
                                 id='admin.access_control.policies.title'
-                                defaultMessage='Access Control Policies'
+                                defaultMessage='Membership Policies'
                             />
                         </h1>
                         <p>
                             <FormattedMessage
                                 id='admin.access_control.policies.description'
-                                defaultMessage='Create policies containing attribute based access rules and the resources they apply to.'
+                                defaultMessage='Create policies containing attribute-based membership rules and the channels they apply to.'
                             />
                         </p>
                     </div>
-                    <button
-                        className='btn btn-primary'
+                    <Button
+                        emphasis='primary'
                         onClick={() => {
                             history.push('/admin_console/system_attributes/membership_policies/edit_policy');
                         }}
@@ -376,7 +377,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                 defaultMessage='Add policy'
                             />
                         </span>
-                    </button>
+                    </Button>
                 </div>
             )}
             <DataGrid
