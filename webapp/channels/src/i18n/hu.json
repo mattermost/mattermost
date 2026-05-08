@@ -223,6 +223,7 @@
   "admin.access_control.cel_help_modal.important_notes_title": "Fontos jegyzetek",
   "admin.access_control.delete": "Törlés",
   "admin.access_control.edit": "Szerkesztés",
+  "admin.access_control.edit_policy.apply_policy": "Szabály mentése",
   "admin.access_control.edit_policy.cancel": "Mégse",
   "admin.access_control.edit_policy.save": "Mentés",
   "admin.access_control.policies.name": "Név",
