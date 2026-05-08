@@ -319,6 +319,14 @@ func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Sessi
 		return false
 	}
 
+	// TODO: remove this guard once GetSessionLengthInMillis understands PAT
+	// sessions and can return a length that honors token.ExpiresAt. Until then,
+	// extending a PAT session would silently override the expiry clamp applied
+	// in createSessionForUserAccessToken, defeating PAT expiry enforcement.
+	if session.Props[model.SessionPropType] == model.SessionTypeUserAccessToken {
+		return false
+	}
+
 	sessionLength := a.GetSessionLengthInMillis(session)
 
 	// Only extend the expiry if the lessor of 1% or 1 day has elapsed within the
