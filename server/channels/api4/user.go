@@ -1705,8 +1705,8 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user.IsBot {
-		if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId); err != nil {
-			c.Err = err
+		if permErr := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId); permErr != nil {
+			c.Err = permErr
 			return
 		}
 	}
