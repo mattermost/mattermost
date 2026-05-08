@@ -1393,6 +1393,227 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsg(t *testing.T) {
 	})
 }
 
+// TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance covers MM-68705:
+// the file-receive API must produce the same end state regardless of whether the
+// post or the file arrives first, and must be idempotent against re-delivery.
+func TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.attachment-order-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	// createRemoteUser builds a user owned by rc and inserts it directly so the
+	// test does not depend on a prior user-sync call ordering.
+	createRemoteUser := func(t *testing.T) *model.User {
+		t.Helper()
+		u := &model.User{
+			Email:    model.NewId() + "@remote.test",
+			Username: "remote-order-" + model.NewId()[:8],
+			Password: model.NewTestPassword(),
+			RemoteId: model.NewPointer(rc.RemoteId),
+		}
+		u, appErr := th.App.CreateUser(th.Context, u)
+		require.Nil(t, appErr)
+		return u
+	}
+
+	// syncPostWithFileIds sends a post via ReceiveSharedChannelSyncMsg with the
+	// given fileIDs preset on Post.FileIds. CreatePost on the receiving side
+	// will strip any fileID whose FileInfo does not yet exist.
+	syncPostWithFileIds := func(t *testing.T, postID, userID string, fileIDs []string) {
+		t.Helper()
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Posts = []*model.Post{
+			{
+				Id:        postID,
+				ChannelId: channel.Id,
+				UserId:    userID,
+				Message:   "post with attachments",
+				FileIds:   fileIDs,
+				CreateAt:  model.GetMillis(),
+				RemoteId:  model.NewPointer(rc.RemoteId),
+			},
+		}
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+		assert.Empty(t, resp.PostErrors)
+	}
+
+	t.Run("post-then-file ordering binds correctly", func(t *testing.T) {
+		user := createRemoteUser(t)
+		postID := model.NewId()
+		fileID := model.NewId()
+
+		// Post arrives first carrying FileIds=[fileID]; FileInfo does not
+		// exist yet, so CreatePost strips fileID from Post.FileIds.
+		syncPostWithFileIds(t, postID, user.Id, []string{fileID})
+
+		// Confirm the strip happened (sanity check on the pre-condition
+		// that motivates the lazy-bind).
+		stripped, appErr := th.App.GetSinglePost(th.Context, postID, false)
+		require.Nil(t, appErr)
+		assert.NotContains(t, stripped.FileIds, fileID, "CreatePost should strip unmatched file id")
+
+		// File arrives second; lazy-bind should restore the binding.
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			PostId:    postID,
+			Name:      "attach.txt",
+			Size:      4,
+		}
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+
+		// End state: Post.FileIds contains fileID, FileInfo.PostId references the post.
+		post, appErr := th.App.GetSinglePost(th.Context, postID, false)
+		require.Nil(t, appErr)
+		assert.Contains(t, post.FileIds, fileID, "lazy-bind should restore stripped file id")
+
+		storedFI, appErr := th.App.GetFileInfo(th.Context, fileID)
+		require.Nil(t, appErr)
+		assert.Equal(t, postID, storedFI.PostId)
+		assert.Equal(t, channel.Id, storedFI.ChannelId)
+	})
+
+	t.Run("file-then-post ordering binds correctly", func(t *testing.T) {
+		user := createRemoteUser(t)
+		postID := model.NewId()
+		fileID := model.NewId()
+
+		// File arrives first; the post does not exist yet, so the lazy-bind
+		// is a no-op and the FileInfo's PostId stays empty (so the eventual
+		// post arrival can bind it).
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			PostId:    postID,
+			Name:      "attach.txt",
+			Size:      4,
+		}
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+
+		preBindFI, appErr := th.App.GetFileInfo(th.Context, fileID)
+		require.Nil(t, appErr)
+		assert.Empty(t, preBindFI.PostId, "FileInfo must not be bound when post does not exist yet")
+
+		// Post arrives second; CreatePost -> attachFilesToPost binds the file.
+		syncPostWithFileIds(t, postID, user.Id, []string{fileID})
+
+		// End state: Post.FileIds contains fileID, FileInfo.PostId references the post.
+		post, appErr := th.App.GetSinglePost(th.Context, postID, false)
+		require.Nil(t, appErr)
+		assert.Contains(t, post.FileIds, fileID, "post-receive path should bind the already-uploaded file")
+
+		storedFI, appErr := th.App.GetFileInfo(th.Context, fileID)
+		require.Nil(t, appErr)
+		assert.Equal(t, postID, storedFI.PostId)
+		assert.Equal(t, channel.Id, storedFI.ChannelId)
+	})
+
+	t.Run("repeated receive returns existing FileInfo without duplicate", func(t *testing.T) {
+		user := createRemoteUser(t)
+		fileID := model.NewId()
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			Name:      "retry.txt",
+			Size:      4,
+		}
+
+		first, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, first)
+
+		// Re-deliver with the same id, channel, and creator: must not error
+		// and must return the same FileInfo (no duplicate row, no new
+		// upload session).
+		second, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, second)
+		assert.Equal(t, first.Id, second.Id)
+		assert.Equal(t, first.Path, second.Path, "re-delivery must not produce a new server-side path")
+	})
+
+	t.Run("repeated receive with mismatched channel rejects", func(t *testing.T) {
+		user := createRemoteUser(t)
+		fileID := model.NewId()
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			Name:      "mismatch.txt",
+			Size:      4,
+		}
+
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+
+		// Share a second channel with the same remote and replay the same
+		// file id under the new channel; idempotency check must reject it.
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherSC := &model.SharedChannel{
+			ChannelId:        otherChannel.Id,
+			TeamId:           otherChannel.TeamId,
+			Home:             true,
+			ShareName:        otherChannel.Name,
+			ShareDisplayName: otherChannel.DisplayName,
+			CreatorId:        th.BasicUser.Id,
+		}
+		_, shareErr := th.App.ShareChannel(th.Context, otherSC)
+		require.NoError(t, shareErr)
+		require.NoError(t, th.App.InviteRemoteToChannel(otherChannel.Id, rc.RemoteId, th.BasicUser.Id, false))
+
+		_, err = api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, otherChannel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "different channel/creator")
+	})
+
+	t.Run("repeated receive with mismatched creator rejects", func(t *testing.T) {
+		userA := createRemoteUser(t)
+		userB := createRemoteUser(t)
+		fileID := model.NewId()
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: userA.Id,
+			Name:      "mismatch.txt",
+			Size:      4,
+		}
+
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+
+		fi.CreatorId = userB.Id
+		_, err = api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "different channel/creator")
+	})
+
+	t.Run("empty PostId is a lazy-bind no-op", func(t *testing.T) {
+		user := createRemoteUser(t)
+		fileID := model.NewId()
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			Name:      "free.txt",
+			Size:      4,
+		}
+
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+
+		storedFI, appErr := th.App.GetFileInfo(th.Context, fileID)
+		require.Nil(t, appErr)
+		assert.Empty(t, storedFI.PostId, "FileInfo must not be bound to any post when fi.PostId is empty")
+	})
+}
+
 func TestPluginAPIReceiveSharedChannelProfileImageSyncMsg(t *testing.T) {
 	th := setupSharedChannels(t).InitBasic(t)
 

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -330,6 +331,23 @@ func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID, 
 			map[string]any{"channelId": channelID}, "", http.StatusRequestEntityTooLarge)
 	}
 
+	// Idempotency: if a FileInfo with the sender's id already exists for
+	// this channel and creator, this is a retry of a previously successful
+	// receive (e.g. caller re-delivered the same payload after a transient
+	// ack failure). Return the existing record rather than insert a
+	// duplicate (which would violate the FileInfo PK and force the caller
+	// to retry indefinitely).
+	if fi.Id != "" {
+		if existing, getErr := a.Srv().Store().FileInfo().Get(fi.Id); getErr == nil {
+			if existing.ChannelId == channelID && existing.CreatorId == fi.CreatorId {
+				return existing, nil
+			}
+			return nil, fmt.Errorf("file %s already exists under different channel/creator", fi.Id)
+		} else if !isNotFoundError(getErr) {
+			return nil, fmt.Errorf("error checking for existing file %s: %w", fi.Id, getErr)
+		}
+	}
+
 	// Create an upload session — this constructs the file path server-side
 	us := &model.UploadSession{
 		Id:        model.NewId(),
@@ -351,6 +369,41 @@ func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID, 
 	saved, appErr := a.UploadData(rctx, us, data)
 	if appErr != nil {
 		return nil, fmt.Errorf("error uploading attachment data: %w", appErr)
+	}
+
+	// Lazy-bind the file to its post. The plugin API does not require
+	// post-then-file or file-then-post ordering between
+	// ReceiveSharedChannelSyncMsg and ReceiveSharedChannelAttachmentSyncMsg.
+	// Heal the post-then-file ordering case here: CreatePost will have
+	// stripped the unmatched file id from Post.FileIds when it ran ahead
+	// of the file's arrival, so re-bind the file and restore the id.
+	// In the file-then-post ordering case (post not yet present), leave
+	// the FileInfo unbound so the eventual post arrival's CreatePost ->
+	// attachFilesToPost can bind it. AttachToPost is a blind UPDATE that
+	// does not validate post existence, so it must only run after the
+	// post has been confirmed to exist; otherwise the FileInfo would be
+	// pointed at a non-existent post and the later attachFilesToPost
+	// call would skip it.
+	if fi.PostId != "" {
+		post, perr := a.Srv().Store().Post().GetSingle(rctx, fi.PostId, false)
+		if perr == nil {
+			if attachErr := a.Srv().Store().FileInfo().AttachToPost(rctx, saved.Id, fi.PostId, channelID, saved.CreatorId); attachErr == nil {
+				if !slices.Contains(post.FileIds, saved.Id) {
+					post.FileIds = append(post.FileIds, saved.Id)
+					if _, oerr := a.Srv().Store().Post().Overwrite(rctx, post); oerr != nil {
+						rctx.Logger().Warn("ReceiveSharedChannelAttachmentSyncMsg: failed to overwrite post with attached file id",
+							mlog.String("post_id", fi.PostId),
+							mlog.String("file_id", saved.Id),
+							mlog.Err(oerr))
+					}
+				}
+			} else {
+				rctx.Logger().Warn("ReceiveSharedChannelAttachmentSyncMsg: failed to attach file to post",
+					mlog.String("post_id", fi.PostId),
+					mlog.String("file_id", saved.Id),
+					mlog.Err(attachErr))
+			}
+		}
 	}
 
 	// Save a SharedChannelAttachment record for cursor tracking
