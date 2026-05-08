@@ -153,7 +153,6 @@ describe('SecureConnectionRow', () => {
         await waitFor(() => {
             expect(promptDelete).toHaveBeenCalledTimes(1);
         });
-        // Allow microtasks to flush so any erroneous .then(onDeleteSuccess) would run.
         await Promise.resolve();
         await Promise.resolve();
         expect(onDeleteSuccess).not.toHaveBeenCalled();
