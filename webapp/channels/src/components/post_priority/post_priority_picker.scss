@@ -45,6 +45,29 @@
         }
     }
 
+    &__deleteLabelButton {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+
+        &:hover,
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgb(var(--semantic-color-danger));
+        }
+
+        &:disabled {
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+    }
+
     &__createLabelInput {
         width: 100%;
         min-width: 220px;
@@ -60,6 +83,14 @@
         color: rgb(var(--semantic-color-danger));
         font-size: 12px;
         line-height: 16px;
+    }
+
+    &__labelActionError {
+        padding: 6px 16px;
+        color: rgb(var(--semantic-color-danger));
+        font-size: 12px;
+        line-height: 16px;
+        list-style: none;
     }
 
     &__createLabelActions {

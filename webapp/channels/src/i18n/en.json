@@ -5746,6 +5746,7 @@
   "post_priority.picker.create_label.empty_error": "Enter a label name",
   "post_priority.picker.create_label.placeholder": "Label name",
   "post_priority.picker.create_label.save": "Create",
+  "post_priority.picker.delete_label": "Delete label",
   "post_priority.picker.header": "Message priority",
   "post_priority.priority.important": "Important",
   "post_priority.priority.standard": "Standard",

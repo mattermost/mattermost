@@ -42,18 +42,16 @@ export default function PriorityLabel({
         return null;
     }
 
-    const label = postPriorityLabels.find((item) => item.id === priority) || {
-        id: priority,
-        name: priority,
-        variant: 'default' as const,
-        icon: 'alert-circle-outline',
-    };
+    const label = postPriorityLabels.find((item) => item.id === priority);
+    if (!label) {
+        return null;
+    }
 
     return (
         <Tag
             {...rest}
             variant={label.variant}
-            icon={label.icon as never}
+            icon={(label.icon || 'alert-circle-outline') as never}
             text={getPriorityLabelText(label, formatMessage)}
             uppercase={true}
             data-testid='post-priority-label'

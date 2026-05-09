@@ -6,7 +6,7 @@ import React, {useCallback, useState, memo, useMemo, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import glyphMap, {AlertCircleOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import glyphMap, {AlertCircleOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PostPriorityLabel, PostPriorityMetadata, PostPriorityValue} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
@@ -84,6 +84,10 @@ function PriorityMenuIcon({label}: {label: PostPriorityLabel}) {
     return <AlertCircleOutlineIcon size={18}/>;
 }
 
+function isSystemPriorityLabel(label: PostPriorityLabel) {
+    return label.id === PostPriority.IMPORTANT || label.id === PostPriority.URGENT || Boolean(label.system_name);
+}
+
 function PostPriorityPicker({
     onApply,
     onClose,
@@ -101,6 +105,8 @@ function PostPriorityPicker({
     const [newLabelName, setNewLabelName] = useState('');
     const [newLabelError, setNewLabelError] = useState('');
     const [isSavingLabel, setIsSavingLabel] = useState(false);
+    const [deletingLabelId, setDeletingLabelId] = useState('');
+    const [labelActionError, setLabelActionError] = useState('');
 
     const theme = useSelector(getTheme);
     const postAcknowledgementsEnabled = useSelector(isPostAcknowledgementsEnabled);
@@ -160,6 +166,7 @@ function PostPriorityPicker({
 
         setIsSavingLabel(true);
         setNewLabelError('');
+        setLabelActionError('');
 
         const updatedLabels = [
             ...existingLabels,
@@ -200,6 +207,47 @@ function PostPriorityPicker({
         }
     }, [configuredPostPriorityLabels, dispatch, formatMessage, handleClose, newLabelName, onApply, postAcknowledgementsEnabled, postPriorityLabels]);
 
+    const handleDeleteLabel = useCallback(async (label: PostPriorityLabel) => {
+        if (isSystemPriorityLabel(label)) {
+            return;
+        }
+
+        setDeletingLabelId(label.id);
+        setLabelActionError('');
+
+        const existingLabels = parsePostPriorityLabels(configuredPostPriorityLabels, postPriorityLabels);
+        const updatedLabels = existingLabels.filter((item) => item.id !== label.id);
+
+        const {error} = await dispatch(patchConfig({
+            ServiceSettings: {
+                PostPriorityLabels: JSON.stringify(updatedLabels),
+            },
+        }));
+
+        if (error) {
+            setLabelActionError(error.message);
+            setDeletingLabelId('');
+            return;
+        }
+
+        await dispatch(getClientConfig());
+
+        if (priority === label.id) {
+            setPriority('');
+            setPersistentNotifications(false);
+
+            if (!postAcknowledgementsEnabled) {
+                onApply({
+                    priority: '',
+                    requested_ack: false,
+                    persistent_notifications: false,
+                });
+            }
+        }
+
+        setDeletingLabelId('');
+    }, [configuredPostPriorityLabels, dispatch, onApply, postAcknowledgementsEnabled, postPriorityLabels, priority]);
+
     const handleApply = useCallback(() => {
         onApply({
             priority,
@@ -239,12 +287,30 @@ function PostPriorityPicker({
                 role='menuitemradio'
                 aria-checked={priority === label.id}
                 onClick={makeOnSelectPriority(label.id)}
-                trailingElements={priority === label.id && <StyledCheckIcon size={18}/>}
+                trailingElements={<>
+                    {priority === label.id && <StyledCheckIcon size={18}/>}
+                    {canCreatePriorityLabels && !isSystemPriorityLabel(label) && (
+                        <button
+                            type='button'
+                            className='PostPriorityPicker__deleteLabelButton'
+                            disabled={deletingLabelId === label.id}
+                            aria-label={formatMessage({id: 'post_priority.picker.delete_label', defaultMessage: 'Delete label'})}
+                            title={formatMessage({id: 'post_priority.picker.delete_label', defaultMessage: 'Delete label'})}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteLabel(label);
+                            }}
+                            onKeyDown={(e) => e.stopPropagation()}
+                        >
+                            <TrashCanOutlineIcon size={14}/>
+                        </button>
+                    )}
+                </>}
                 leadingElement={<PriorityMenuIcon label={label}/>}
                 labels={<span>{getPriorityLabelText(label, formatMessage)}</span>}
             />
         )),
-    ], [formatMessage, makeOnSelectPriority, postPriorityLabels, priority]);
+    ], [canCreatePriorityLabels, deletingLabelId, formatMessage, handleDeleteLabel, makeOnSelectPriority, postPriorityLabels, priority]);
 
     const menuCheckboxItems = useMemo(() => (postAcknowledgementsEnabled || persistentNotificationsEnabled ? [
         <Menu.Separator
@@ -334,6 +400,7 @@ function PostPriorityPicker({
             setIsCreatingLabel(false);
             setNewLabelName('');
             setNewLabelError('');
+            setLabelActionError('');
         }
     }, [pickerOpen, settings]);
 
@@ -371,6 +438,14 @@ function PostPriorityPicker({
                         </span>
                     </button>
                 </li>,
+                labelActionError && (
+                    <li
+                        key='menu-item-label-action-error'
+                        className='PostPriorityPicker__labelActionError'
+                    >
+                        {labelActionError}
+                    </li>
+                ),
             ];
         }
 

@@ -617,24 +617,27 @@ const defaultPostPriorityLabels: PostPriorityLabel[] = [
     {id: PostPriority.URGENT, name: 'Urgent', variant: 'danger', icon: 'alert-outline', system_name: PostPriority.URGENT},
 ];
 
-export function getPostPriorityLabels(state: GlobalState): PostPriorityLabel[] {
-    const configuredLabels = getConfig(state).PostPriorityLabels;
-    if (!configuredLabels) {
-        return defaultPostPriorityLabels;
-    }
-
-    try {
-        const labels = JSON.parse(configuredLabels) as PostPriorityLabel[];
-        if (!Array.isArray(labels)) {
+export const getPostPriorityLabels: (state: GlobalState) => PostPriorityLabel[] = createSelector(
+    'getPostPriorityLabels',
+    (state: GlobalState) => getConfig(state).PostPriorityLabels,
+    (configuredLabels) => {
+        if (!configuredLabels) {
             return defaultPostPriorityLabels;
         }
 
-        const validLabels = labels.filter((label) => Boolean(label?.id && label?.name && !label.archived));
-        return validLabels.length ? validLabels : defaultPostPriorityLabels;
-    } catch {
-        return defaultPostPriorityLabels;
-    }
-}
+        try {
+            const labels = JSON.parse(configuredLabels) as PostPriorityLabel[];
+            if (!Array.isArray(labels)) {
+                return defaultPostPriorityLabels;
+            }
+
+            const validLabels = labels.filter((label) => Boolean(label?.id && label?.name && !label.archived));
+            return validLabels.length ? validLabels : defaultPostPriorityLabels;
+        } catch {
+            return defaultPostPriorityLabels;
+        }
+    },
+);
 
 export function isPostAcknowledgementsEnabled(state: GlobalState) {
     return (
