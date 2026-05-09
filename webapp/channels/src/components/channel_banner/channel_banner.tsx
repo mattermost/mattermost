@@ -5,6 +5,7 @@ import React, {useEffect, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelBanner} from '@mattermost/types/channels';
 
 import {selectShowChannelBanner} from 'mattermost-redux/selectors/entities/channel_banner';
@@ -14,7 +15,6 @@ import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
 import Markdown from 'components/markdown';
-import WithTooltip from 'components/with_tooltip';
 
 import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';

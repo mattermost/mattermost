@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Board} from '@mattermost/types/boards';
 import type {ChannelType, Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
@@ -16,7 +17,7 @@ import {createChannel} from 'mattermost-redux/actions/channels';
 import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
-import {areManagedCategoriesEnabled} from 'mattermost-redux/selectors/entities/channel_categories';
+import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -30,12 +31,12 @@ import {
     GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
+import CategorySelector from 'components/category_selector/category_selector';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import {
     CHANNEL_BANNER_MAX_CHARACTER_LIMIT,
     CHANNEL_BANNER_MIN_CHARACTER_LIMIT,
 } from 'components/channel_settings_modal/channel_settings_configuration_tab';
-import ManagedCategorySelector from 'components/channel_settings_modal/managed_category_selector';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
@@ -44,7 +45,6 @@ import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
-import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {ModalIdentifiers} from 'utils/constants';
@@ -78,11 +78,14 @@ const NewChannelModal = () => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
+    const getSidebarCategoryNamesForTeam = useRef(makeGetSidebarCategoryNamesForTeam());
+
     const currentTeamId = useSelector(getCurrentTeam)?.id;
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL) : false));
     const canCreatePrivateChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PRIVATE_CHANNEL) : false));
-    const enableManagedCategories = useSelector(areManagedCategoriesEnabled);
+    const showDefaultCategorySelector = useSelector(isChannelCategorySortingEnabled);
+    const showManagedCategorySelector = useSelector(areManagedCategoriesEnabled);
     const dispatch = useDispatch();
 
     const [type, setType] = useState(getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel));
@@ -93,6 +96,7 @@ const NewChannelModal = () => {
     const [purposeError, setPurposeError] = useState('');
     const [serverError, setServerError] = useState('');
     const [channelInputError, setChannelInputError] = useState(false);
+    const [defaultCategoryName, setDefaultCategoryName] = useState<string | undefined>(undefined);
     const [managedCategoryName, setManagedCategoryName] = useState<string | undefined>(undefined);
 
     const classification = useClassificationMarkings();
@@ -166,6 +170,7 @@ const NewChannelModal = () => {
             last_root_post_at: 0,
             scheme_id: '',
             update_at: 0,
+            default_category_name: defaultCategoryName,
             managed_category_name: managedCategoryName,
         };
 
@@ -357,11 +362,25 @@ const NewChannelModal = () => {
                     }}
                     onChange={handleOnTypeChange}
                 />
-                {enableManagedCategories && (
+                {showDefaultCategorySelector && (
                     <div className='new-channel-modal-managed-category'>
-                        <ManagedCategorySelector
+                        <CategorySelector
+                            value={defaultCategoryName}
+                            onChange={setDefaultCategoryName}
+                            getOptions={getSidebarCategoryNamesForTeam.current}
+                            menuPortalTargetId='new-channel-modal'
+                            helpText={formatMessage({id: 'default_category.help_text', defaultMessage: 'Sets the default sidebar category for users when they join the channel.'})}
+                        />
+                    </div>
+                )}
+                {showManagedCategorySelector && (
+                    <div className='new-channel-modal-managed-category'>
+                        <CategorySelector
                             value={managedCategoryName}
                             onChange={setManagedCategoryName}
+                            getOptions={getSidebarCategoryNamesForTeam.current}
+                            label={formatMessage({id: 'managed_category.label', defaultMessage: 'Managed category (optional)'})}
+                            placeholder={formatMessage({id: 'managed_category.placeholder', defaultMessage: 'Choose a managed category (optional)'})}
                             menuPortalTargetId='new-channel-modal'
                         />
                     </div>

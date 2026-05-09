@@ -5,12 +5,12 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl, defineMessages} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {LdapDiagnosticResult} from '@mattermost/types/admin';
 import type {AdminConfig} from '@mattermost/types/config';
 
 import TextSetting from 'components/admin_console/text_setting';
 import FormError, {TYPE_BACKSTAGE} from 'components/form_error';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 

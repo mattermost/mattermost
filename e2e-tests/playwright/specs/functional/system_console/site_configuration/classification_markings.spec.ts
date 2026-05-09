@@ -28,6 +28,17 @@ async function selectClassificationPreset(page: Page, optionLabel: string) {
 }
 
 test.describe('System Console - Classification markings', () => {
+    test.beforeAll(async () => {
+        const {adminClient} = await getAdminClient({skipLog: true});
+        await setClassificationMarkingsFeatureFlag(adminClient, true);
+        const config = await adminClient.getConfig();
+        test.skip(
+            config.FeatureFlags?.ClassificationMarkings !== true &&
+                config.FeatureFlags?.ClassificationMarkings !== 'true',
+            'ClassificationMarkings feature flag is off (probably overridden by env); skipping.',
+        );
+    });
+
     test.describe.configure({mode: 'serial'});
 
     test.beforeEach(async ({pw}) => {
@@ -38,6 +49,18 @@ test.describe('System Console - Classification markings', () => {
             licenseTier(license.SkuShortName) < 20,
             'Classification markings requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). Professional/trial Professional is not sufficient—the admin route is hidden and redirects to /admin_console/about/license.',
         );
+
+        // Skip if the custom_profile_attributes property group is absent on this server.
+        // The group must exist (seeded by the server) before classification markings can be saved;
+        // the API returns "The specified property group was not found." otherwise.
+        try {
+            await adminClient.getPropertyFields('custom_profile_attributes', 'template', 'system');
+        } catch {
+            test.skip(
+                true,
+                'custom_profile_attributes property group not found on this server; skipping classification markings save tests.',
+            );
+        }
     });
 
     /**
@@ -47,7 +70,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6201 classification markings: feature flag off redirects away from admin URL',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Turn off ClassificationMarkings in server config
             await setClassificationMarkingsFeatureFlag(adminClient, false);
@@ -61,7 +88,6 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.goto();
             await systemConsolePage.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await systemConsolePage.page.waitForLoadState('networkidle');
 
             // * User is redirected away from the hidden route (no Route registered)
             await expect(systemConsolePage.page).not.toHaveURL(/classification_markings/);
@@ -77,7 +103,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6202 classification markings: feature flag on loads configuration page',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Enable flag and clear any existing classification field
             await setClassificationMarkingsFeatureFlag(adminClient, true);
@@ -86,7 +116,6 @@ test.describe('System Console - Classification markings', () => {
             // # Log in and open the classification markings URL
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await systemConsolePage.page.waitForLoadState('networkidle');
 
             // * URL stays on the classification markings section
             await expect(systemConsolePage.page).toHaveURL(/classification_markings/);
@@ -102,7 +131,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6203 classification markings: save fails when enabled with zero levels',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Enable feature flag and ensure no classification field exists
             await setClassificationMarkingsFeatureFlag(adminClient, true);
@@ -110,7 +143,6 @@ test.describe('System Console - Classification markings', () => {
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await systemConsolePage.page.waitForLoadState('networkidle');
 
             // # Enable classification markings without choosing a preset or adding levels
             await systemConsolePage.page.locator('input[name="classificationEnabled"][value="true"]').click();
@@ -135,7 +167,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6204 classification markings: select NATO preset and save',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Enable flag and start from no classification field
             await setClassificationMarkingsFeatureFlag(adminClient, true);
@@ -144,7 +180,6 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
 
             // # Enable markings and choose NATO preset
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
@@ -152,11 +187,11 @@ test.describe('System Console - Classification markings', () => {
 
             const firstLevelNameInput = page.getByLabel('Classification level name').first();
             // * Preset levels appear in the table
+            await expect(firstLevelNameInput).toBeVisible();
             await expect(firstLevelNameInput).toHaveValue('NATO UNCLASSIFIED');
 
             // # Save
             await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
 
             // * No server error and first level name is unchanged after save
             await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
@@ -172,7 +207,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6205 classification markings: preset change shows confirm modal then applies',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Enable flag and clear field, then prepare saved UK levels
             await setClassificationMarkingsFeatureFlag(adminClient, true);
@@ -181,12 +220,10 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
 
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
             await selectClassificationPreset(page, 'UK (GSCP)');
             await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
 
             // * UK preset first level is present
             await expect(page.getByLabel('Classification level name').first()).toHaveValue('OFFICIAL');
@@ -217,7 +254,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6206 classification markings: delete level switches to custom and saves',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Enable flag and save Canada preset as baseline
             await setClassificationMarkingsFeatureFlag(adminClient, true);
@@ -226,12 +267,10 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
 
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
             await selectClassificationPreset(page, 'Canada');
             await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
 
             await expect(page.getByLabel('Classification level name').first()).toHaveValue('PROTECTED A');
 
@@ -244,7 +283,6 @@ test.describe('System Console - Classification markings', () => {
 
             // # Save custom levels
             await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
 
             // * No error and preset remains custom
             await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();

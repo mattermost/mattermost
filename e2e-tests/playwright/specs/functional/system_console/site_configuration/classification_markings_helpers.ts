@@ -23,14 +23,11 @@ export const CLASSIFICATION_MARKINGS_ADMIN_PATH = '/admin_console/site_config/cl
  * (e.g. MM_FEATUREFLAGS_CLASSIFICATIONMARKINGS). E2E docker sets that env in server.generate.sh.
  */
 export async function setClassificationMarkingsFeatureFlag(adminClient: Client4, enabled: boolean) {
-    const config = await adminClient.getConfig();
-    await adminClient.updateConfig({
-        ...config,
+    await adminClient.patchConfig({
         FeatureFlags: {
-            ...config.FeatureFlags,
             ClassificationMarkings: enabled,
         },
-    } as Awaited<ReturnType<Client4['getConfig']>>);
+    } as any);
 }
 
 /**
