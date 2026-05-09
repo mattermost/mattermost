@@ -212,6 +212,7 @@ export type ClientConfig = {
     DisableAppBar: string;
     EnableComplianceExport: string;
     PostPriority: string;
+    PostPriorityLabels: string;
     PostAcknowledgements: string;
     AllowPersistentNotifications: string;
     PersistentNotificationMaxRecipients: string;
@@ -414,6 +415,7 @@ export type ServiceSettings = {
     CollapsedThreads: CollapsedThreads;
     ThreadAutoFollow: boolean;
     PostPriority: boolean;
+    PostPriorityLabels: string;
     EnableAPIChannelDeletion: boolean;
     EnableAWSMetering: boolean;
     AWSMeteringTimeoutSeconds: number;

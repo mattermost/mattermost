@@ -3,16 +3,32 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
+import type {PostPriorityLabel, PostPriorityValue} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
+
+import {getPostPriorityLabels} from 'mattermost-redux/selectors/entities/posts';
 
 import Tag from 'components/widgets/tag/tag';
 import type {TagSize} from 'components/widgets/tag/tag';
 
 type Props = {
-    priority?: PostPriority|'';
+    priority?: PostPriorityValue|'';
     size?: TagSize;
     uppercase?: boolean;
+}
+
+function getPriorityLabelText(label: PostPriorityLabel, formatMessage: ReturnType<typeof useIntl>['formatMessage']) {
+    if (label.id === PostPriority.URGENT) {
+        return formatMessage({id: 'post_priority.priority.urgent', defaultMessage: label.name || 'Urgent'});
+    }
+
+    if (label.id === PostPriority.IMPORTANT) {
+        return formatMessage({id: 'post_priority.priority.important', defaultMessage: label.name || 'Important'});
+    }
+
+    return label.name;
 }
 
 export default function PriorityLabel({
@@ -20,32 +36,27 @@ export default function PriorityLabel({
     ...rest
 }: Props) {
     const {formatMessage} = useIntl();
+    const postPriorityLabels = useSelector(getPostPriorityLabels);
 
-    if (priority === PostPriority.URGENT) {
-        return (
-            <Tag
-                {...rest}
-                variant='danger'
-                icon={'alert-outline'}
-                text={formatMessage({id: 'post_priority.priority.urgent', defaultMessage: 'Urgent'})}
-                uppercase={true}
-                data-testid='post-priority-label'
-            />
-        );
+    if (!priority) {
+        return null;
     }
 
-    if (priority === PostPriority.IMPORTANT) {
-        return (
-            <Tag
-                {...rest}
-                variant='info'
-                icon={'alert-circle-outline'}
-                text={formatMessage({id: 'post_priority.priority.important', defaultMessage: 'Important'})}
-                uppercase={true}
-                data-testid='post-priority-label'
-            />
-        );
-    }
+    const label = postPriorityLabels.find((item) => item.id === priority) || {
+        id: priority,
+        name: priority,
+        variant: 'default' as const,
+        icon: 'alert-circle-outline',
+    };
 
-    return null;
+    return (
+        <Tag
+            {...rest}
+            variant={label.variant}
+            icon={label.icon as never}
+            text={getPriorityLabelText(label, formatMessage)}
+            uppercase={true}
+            data-testid='post-priority-label'
+        />
+    );
 }

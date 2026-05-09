@@ -12,4 +12,59 @@
         @include mixins.button-small;
         @include mixins.tertiary-button;
     }
+
+    &__createLabel {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px 16px;
+    }
+
+    &__createLabelButton {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: 36px;
+        padding: 6px 20px;
+        border: 0;
+        background: transparent;
+        color: var(--center-channel-color);
+        font-family: 'Open Sans', sans-serif;
+        gap: 10px;
+        text-align: left;
+
+        &:hover,
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        svg {
+            width: 18px;
+            height: 18px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+    }
+
+    &__createLabelInput {
+        width: 100%;
+        min-width: 220px;
+        height: 32px;
+        padding: 0 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+    }
+
+    &__createLabelError {
+        color: rgb(var(--semantic-color-danger));
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__createLabelActions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
 }

@@ -514,6 +514,28 @@ func TestCreatePostForPriority(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 	})
 
+	t.Run("should create configured custom priority post", func(t *testing.T) {
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority: model.NewPointer("question"),
+			},
+		}}
+		_, resp, err := client.CreatePost(context.Background(), p1)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("should return badRequest when priority is not configured", func(t *testing.T) {
+		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority: model.NewPointer("not-configured"),
+			},
+		}}
+		_, resp, err := client.CreatePost(context.Background(), p1)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("should create acknowledge post", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{

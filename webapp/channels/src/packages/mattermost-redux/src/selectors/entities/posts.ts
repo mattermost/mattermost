@@ -7,8 +7,10 @@ import type {
     OpenGraphMetadata,
     Post,
     PostAcknowledgement,
+    PostPriorityLabel,
     PostOrderBlock,
 } from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {GlobalState} from '@mattermost/types/store';
 import type {Team} from '@mattermost/types/teams';
@@ -608,6 +610,30 @@ export function getLimitedViews(state: GlobalState): GlobalState['entities']['po
 
 export function isPostPriorityEnabled(state: GlobalState) {
     return getConfig(state).PostPriority === 'true';
+}
+
+const defaultPostPriorityLabels: PostPriorityLabel[] = [
+    {id: PostPriority.IMPORTANT, name: 'Important', variant: 'info', icon: 'alert-circle-outline'},
+    {id: PostPriority.URGENT, name: 'Urgent', variant: 'danger', icon: 'alert-outline', system_name: PostPriority.URGENT},
+];
+
+export function getPostPriorityLabels(state: GlobalState): PostPriorityLabel[] {
+    const configuredLabels = getConfig(state).PostPriorityLabels;
+    if (!configuredLabels) {
+        return defaultPostPriorityLabels;
+    }
+
+    try {
+        const labels = JSON.parse(configuredLabels) as PostPriorityLabel[];
+        if (!Array.isArray(labels)) {
+            return defaultPostPriorityLabels;
+        }
+
+        const validLabels = labels.filter((label) => Boolean(label?.id && label?.name && !label.archived));
+        return validLabels.length ? validLabels : defaultPostPriorityLabels;
+    } catch {
+        return defaultPostPriorityLabels;
+    }
 }
 
 export function isPostAcknowledgementsEnabled(state: GlobalState) {

@@ -59,7 +59,7 @@ export type PostAcknowledgement = {
 }
 
 export type PostPriorityMetadata = {
-    priority: PostPriority|'';
+    priority: PostPriorityValue|'';
     requested_ack?: boolean;
     persistent_notifications?: boolean;
 }
@@ -123,6 +123,20 @@ export enum PostPriority {
     URGENT = 'urgent',
     IMPORTANT = 'important',
 }
+
+export type PostPriorityValue = PostPriority | string;
+
+export type PostPriorityLabelVariant = 'info' | 'success' | 'warning' | 'danger' | 'dangerDim' | 'default';
+
+export type PostPriorityLabel = {
+    id: PostPriorityValue;
+    name: string;
+    variant?: PostPriorityLabelVariant;
+    icon?: string;
+    sort_order?: number;
+    archived?: boolean;
+    system_name?: 'urgent' | 'important' | string;
+};
 
 export type PostList = {
     order: Array<Post['id']>;
@@ -216,7 +230,7 @@ export type PostAnalytics = {
     post_id: string;
     user_actual_id: string;
     root_id: string;
-    priority?: PostPriority|'';
+    priority?: PostPriorityValue|'';
     requested_ack?: boolean;
     persistent_notifications?: boolean;
 }

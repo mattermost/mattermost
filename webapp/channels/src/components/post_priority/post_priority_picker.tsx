@@ -4,14 +4,19 @@
 import classNames from 'classnames';
 import React, {useCallback, useState, memo, useMemo, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import type {PostPriorityMetadata} from '@mattermost/types/posts';
+import glyphMap, {AlertCircleOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import type {PostPriorityLabel, PostPriorityMetadata, PostPriorityValue} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
-import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
+import {patchConfig} from 'mattermost-redux/actions/admin';
+import {getClientConfig} from 'mattermost-redux/actions/general';
+import {Permissions} from 'mattermost-redux/constants';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getPersistentNotificationIntervalMinutes, getPostPriorityLabels, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import CompassDesignProvider from 'components/compass_design_provider';
@@ -19,6 +24,8 @@ import * as Menu from 'components/menu';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+
+import type {GlobalState} from 'types/store';
 
 import {Header, MenuItem, StyledCheckIcon, ToggleItem, StandardIcon, ImportantIcon, UrgentIcon, AcknowledgementIcon, PersistentNotificationsIcon, Footer} from './post_priority_picker_item';
 
@@ -31,6 +38,52 @@ type Props = {
     disabled: boolean;
 }
 
+function parsePostPriorityLabels(configuredLabels: string | undefined, fallbackLabels: PostPriorityLabel[]) {
+    if (!configuredLabels) {
+        return fallbackLabels;
+    }
+
+    try {
+        const labels = JSON.parse(configuredLabels) as PostPriorityLabel[];
+        return Array.isArray(labels) ? labels : fallbackLabels;
+    } catch {
+        return fallbackLabels;
+    }
+}
+
+function buildPriorityLabelId(name: string) {
+    return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function getPriorityLabelText(label: PostPriorityLabel, formatMessage: ReturnType<typeof useIntl>['formatMessage']) {
+    if (label.id === PostPriority.IMPORTANT) {
+        return formatMessage({id: 'post_priority.priority.important', defaultMessage: label.name || 'Important'});
+    }
+
+    if (label.id === PostPriority.URGENT) {
+        return formatMessage({id: 'post_priority.priority.urgent', defaultMessage: label.name || 'Urgent'});
+    }
+
+    return label.name;
+}
+
+function PriorityMenuIcon({label}: {label: PostPriorityLabel}) {
+    if (label.id === PostPriority.IMPORTANT) {
+        return <ImportantIcon size={18}/>;
+    }
+
+    if (label.id === PostPriority.URGENT) {
+        return <UrgentIcon size={18}/>;
+    }
+
+    const Icon = label.icon ? glyphMap[label.icon as keyof typeof glyphMap] : undefined;
+    if (Icon) {
+        return <Icon size={18}/>;
+    }
+
+    return <AlertCircleOutlineIcon size={18}/>;
+}
+
 function PostPriorityPicker({
     onApply,
     onClose,
@@ -38,16 +91,24 @@ function PostPriorityPicker({
     disabled,
 }: Props) {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
 
     const [pickerOpen, setPickerOpen] = useState(false);
-    const [priority, setPriority] = useState<PostPriority | ''>(settings?.priority || '');
+    const [priority, setPriority] = useState<PostPriorityValue | ''>(settings?.priority || '');
     const [requestedAck, setRequestedAck] = useState<boolean>(settings?.requested_ack || false);
     const [persistentNotifications, setPersistentNotifications] = useState<boolean>(settings?.persistent_notifications || false);
+    const [isCreatingLabel, setIsCreatingLabel] = useState(false);
+    const [newLabelName, setNewLabelName] = useState('');
+    const [newLabelError, setNewLabelError] = useState('');
+    const [isSavingLabel, setIsSavingLabel] = useState(false);
 
     const theme = useSelector(getTheme);
     const postAcknowledgementsEnabled = useSelector(isPostAcknowledgementsEnabled);
     const persistentNotificationsEnabled = useSelector(isPersistentNotificationsEnabled) && postAcknowledgementsEnabled;
     const interval = useSelector(getPersistentNotificationIntervalMinutes);
+    const postPriorityLabels = useSelector(getPostPriorityLabels);
+    const configuredPostPriorityLabels = useSelector((state: GlobalState) => getConfig(state).PostPriorityLabels);
+    const canCreatePriorityLabels = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM}));
 
     const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
 
@@ -56,7 +117,7 @@ function PostPriorityPicker({
         onClose();
     }, [onClose]);
 
-    const makeOnSelectPriority = useCallback((type?: PostPriority) => (e: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
+    const makeOnSelectPriority = useCallback((type?: PostPriorityValue) => (e: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
         e.stopPropagation();
         e.preventDefault();
 
@@ -81,6 +142,63 @@ function PostPriorityPicker({
     const handlePersistentNotifications = useCallback(() => {
         setPersistentNotifications(!persistentNotifications);
     }, [persistentNotifications]);
+
+    const handleCreateLabel = useCallback(async () => {
+        const name = newLabelName.trim();
+        const id = buildPriorityLabelId(name);
+
+        if (!name || !id) {
+            setNewLabelError(formatMessage({id: 'post_priority.picker.create_label.empty_error', defaultMessage: 'Enter a label name'}));
+            return;
+        }
+
+        const existingLabels = parsePostPriorityLabels(configuredPostPriorityLabels, postPriorityLabels);
+        if (existingLabels.some((label) => label.id.toLowerCase() === id.toLowerCase())) {
+            setNewLabelError(formatMessage({id: 'post_priority.picker.create_label.duplicate_error', defaultMessage: 'A label with this name already exists'}));
+            return;
+        }
+
+        setIsSavingLabel(true);
+        setNewLabelError('');
+
+        const updatedLabels = [
+            ...existingLabels,
+            {
+                id,
+                name,
+                variant: 'default',
+                sort_order: existingLabels.length,
+            },
+        ];
+
+        const {error} = await dispatch(patchConfig({
+            ServiceSettings: {
+                PostPriorityLabels: JSON.stringify(updatedLabels),
+            },
+        }));
+
+        if (error) {
+            setNewLabelError(error.message);
+            setIsSavingLabel(false);
+            return;
+        }
+
+        await dispatch(getClientConfig());
+        setPriority(id);
+        setPersistentNotifications(false);
+        setNewLabelName('');
+        setIsCreatingLabel(false);
+        setIsSavingLabel(false);
+
+        if (!postAcknowledgementsEnabled) {
+            onApply({
+                priority: id,
+                requested_ack: false,
+                persistent_notifications: false,
+            });
+            handleClose();
+        }
+    }, [configuredPostPriorityLabels, dispatch, formatMessage, handleClose, newLabelName, onApply, postAcknowledgementsEnabled, postPriorityLabels]);
 
     const handleApply = useCallback(() => {
         onApply({
@@ -114,37 +232,19 @@ function PostPriorityPicker({
                 />
             }
         />,
-        <MenuItem
-            key='menu-item-priority-important'
-            id='menu-item-priority-important'
-            role='menuitemradio'
-            aria-checked={priority === PostPriority.IMPORTANT}
-            onClick={makeOnSelectPriority(PostPriority.IMPORTANT)}
-            trailingElements={priority === PostPriority.IMPORTANT && <StyledCheckIcon size={18}/>}
-            leadingElement={<ImportantIcon size={18}/>}
-            labels={
-                <FormattedMessage
-                    id='post_priority.priority.important'
-                    defaultMessage='Important'
-                />
-            }
-        />,
-        <MenuItem
-            key='menu-item-priority-urgent'
-            id='menu-item-priority-urgent'
-            role='menuitemradio'
-            aria-checked={priority === PostPriority.URGENT}
-            onClick={makeOnSelectPriority(PostPriority.URGENT)}
-            trailingElements={priority === PostPriority.URGENT && <StyledCheckIcon size={18}/>}
-            leadingElement={<UrgentIcon size={18}/>}
-            labels={
-                <FormattedMessage
-                    id='post_priority.priority.urgent'
-                    defaultMessage='Urgent'
-                />
-            }
-        />,
-    ], [makeOnSelectPriority, priority]);
+        ...postPriorityLabels.map((label) => (
+            <MenuItem
+                key={`menu-item-priority-${label.id}`}
+                id={`menu-item-priority-${label.id}`}
+                role='menuitemradio'
+                aria-checked={priority === label.id}
+                onClick={makeOnSelectPriority(label.id)}
+                trailingElements={priority === label.id && <StyledCheckIcon size={18}/>}
+                leadingElement={<PriorityMenuIcon label={label}/>}
+                labels={<span>{getPriorityLabelText(label, formatMessage)}</span>}
+            />
+        )),
+    ], [formatMessage, makeOnSelectPriority, postPriorityLabels, priority]);
 
     const menuCheckboxItems = useMemo(() => (postAcknowledgementsEnabled || persistentNotificationsEnabled ? [
         <Menu.Separator
@@ -231,8 +331,114 @@ function PostPriorityPicker({
             setPriority(settings?.priority || '');
             setPersistentNotifications(settings?.persistent_notifications || false);
             setRequestedAck(settings?.requested_ack || false);
+            setIsCreatingLabel(false);
+            setNewLabelName('');
+            setNewLabelError('');
         }
     }, [pickerOpen, settings]);
+
+    const createLabelItem = useMemo(() => {
+        if (!canCreatePriorityLabels) {
+            return null;
+        }
+
+        if (!isCreatingLabel) {
+            return [
+                <Menu.Separator
+                    key='menu-item-create-label-separator'
+                    component='li'
+                />,
+                <li
+                    key='menu-item-create-label'
+                    id='menu-item-create-label'
+                    role='none'
+                >
+                    <button
+                        type='button'
+                        className='PostPriorityPicker__createLabelButton'
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsCreatingLabel(true);
+                        }}
+                        onKeyDown={(e) => e.stopPropagation()}
+                    >
+                        <PlusIcon size={18}/>
+                        <span>
+                            <FormattedMessage
+                                id='post_priority.picker.create_label'
+                                defaultMessage='Create label'
+                            />
+                        </span>
+                    </button>
+                </li>,
+            ];
+        }
+
+        return [
+            <Menu.Separator
+                key='menu-item-create-label-separator'
+                component='li'
+            />,
+            <li
+                key='menu-item-create-label-form'
+                className='PostPriorityPicker__createLabel'
+                onClick={(e) => e.stopPropagation()}
+            >
+                <input
+                    className='PostPriorityPicker__createLabelInput'
+                    type='text'
+                    value={newLabelName}
+                    autoFocus={true}
+                    disabled={isSavingLabel}
+                    placeholder={formatMessage({id: 'post_priority.picker.create_label.placeholder', defaultMessage: 'Label name'})}
+                    onChange={(e) => {
+                        setNewLabelName(e.target.value);
+                        setNewLabelError('');
+                    }}
+                    onKeyDown={(e) => {
+                        e.stopPropagation();
+                        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+                            e.preventDefault();
+                            handleCreateLabel();
+                        }
+                    }}
+                />
+                {newLabelError && (
+                    <div className='PostPriorityPicker__createLabelError'>
+                        {newLabelError}
+                    </div>
+                )}
+                <div className='PostPriorityPicker__createLabelActions'>
+                    <button
+                        type='button'
+                        className='PostPriorityPicker__cancel'
+                        disabled={isSavingLabel}
+                        onClick={() => {
+                            setIsCreatingLabel(false);
+                            setNewLabelName('');
+                            setNewLabelError('');
+                        }}
+                    >
+                        <FormattedMessage
+                            id='post_priority.picker.cancel'
+                            defaultMessage='Cancel'
+                        />
+                    </button>
+                    <button
+                        type='button'
+                        className='PostPriorityPicker__apply'
+                        disabled={isSavingLabel}
+                        onClick={handleCreateLabel}
+                    >
+                        <FormattedMessage
+                            id='post_priority.picker.create_label.save'
+                            defaultMessage='Create'
+                        />
+                    </button>
+                </div>
+            </li>,
+        ];
+    }, [canCreatePriorityLabels, formatMessage, handleCreateLabel, isCreatingLabel, isSavingLabel, newLabelError, newLabelName]);
 
     return (<CompassDesignProvider theme={theme}>
         <Menu.Container
@@ -286,7 +492,7 @@ function PostPriorityPicker({
             closeMenuOnTab={false}
         >
             {
-                [...menuItems, ...menuCheckboxItems]
+                [...menuItems, ...menuCheckboxItems, ...(createLabelItem || [])]
             }
         </Menu.Container>
     </CompassDesignProvider>);
