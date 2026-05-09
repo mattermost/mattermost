@@ -10,11 +10,7 @@
 
 import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
 
-import {
-    TEST_LEVELS,
-    setClassificationMarkingsFeatureFlag,
-    setupClassificationWithChannelField,
-} from './helpers';
+import {TEST_LEVELS, setClassificationMarkingsFeatureFlag, setupClassificationWithChannelField} from './helpers';
 import type {ClassificationLevel} from './helpers';
 
 let classificationLevels: ClassificationLevel[] = [];
@@ -36,13 +32,14 @@ test.beforeAll(async () => {
 test.beforeEach(async () => {
     const {adminClient} = await getAdminClient();
     const license = await adminClient.getClientLicenseOld();
-    test.skip(licenseTier(license.SkuShortName) < 20,
-        'Channel classification requires Enterprise-tier license');
+    test.skip(licenseTier(license.SkuShortName) < 20, 'Channel classification requires Enterprise-tier license');
     test.skip(!setupComplete, 'Classification levels were not set up');
 
     const config = await adminClient.getConfig();
-    test.skip(config.FeatureFlags.ClassificationMarkings !== true,
-        'ClassificationMarkings feature flag could not be enabled');
+    test.skip(
+        config.FeatureFlags.ClassificationMarkings !== true,
+        'ClassificationMarkings feature flag could not be enabled',
+    );
 });
 
 test.describe('Channel Classification - New channel creation', () => {

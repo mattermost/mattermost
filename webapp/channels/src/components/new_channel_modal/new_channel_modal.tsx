@@ -449,12 +449,12 @@ const NewChannelModal = () => {
                         {classificationEnabled && (
                             <div className='new-channel-modal-classification__fields'>
                                 <div className='new-channel-modal-classification__field-row'>
-                                    <label className='new-channel-modal-classification__field-label'>
+                                    <span className='new-channel-modal-classification__field-label'>
                                         <FormattedMessage
                                             id='channel_modal.classification.level_label'
                                             defaultMessage='Classification level'
                                         />
-                                    </label>
+                                    </span>
                                     <div className='new-channel-modal-classification__field-input'>
                                         <DropdownInput
                                             className='new-channel-modal-classification__level-dropdown'
@@ -473,12 +473,12 @@ const NewChannelModal = () => {
                                 </div>
                                 {selectedClassificationLevel && (
                                     <div className='new-channel-modal-classification__field-row'>
-                                        <label className='new-channel-modal-classification__field-label'>
+                                        <span className='new-channel-modal-classification__field-label'>
                                             <FormattedMessage
                                                 id='channel_modal.classification.banner_label'
                                                 defaultMessage='Banner text'
                                             />
-                                        </label>
+                                        </span>
                                         <div className='new-channel-modal-classification__field-input'>
                                             <AdvancedTextbox
                                                 id='channel_classification_banner_text'

@@ -125,7 +125,7 @@ const ColorInput = ({
             <span
                 id={`${id}-squareColorIcon`}
                 className={`input-group-addon color-pad${isDisabled ? ' color-pad--disabled' : ''}`}
-                onClick={!isDisabled ? togglePicker : undefined}
+                onClick={isDisabled ? undefined : togglePicker}
                 data-testid='color-togglerButton'
             >
                 <i

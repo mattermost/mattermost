@@ -375,11 +375,11 @@ export default function ClassificationMarkings({disabled}: Props) {
 
             // Ensure the channel_classification linked field exists as part of the set.
             const existingChannelField = await fetchChannelClassificationField();
-            if (!existingChannelField) {
+            if (existingChannelField) {
+                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked]}});
+            } else {
                 const savedChannelField = await saveCreateChannelLinkedField(savedTemplate.id);
                 dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked, savedChannelField]}});
-            } else {
-                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked]}});
             }
 
             setExistingField(savedTemplate);
