@@ -102,14 +102,12 @@ function ChannelSettingsConfigurationTab({
 
     const classificationBanner = useChannelClassificationBanner(channel.id);
 
-    // Classification section state
     const classification = useClassificationMarkings();
     const [classificationEnabled, setClassificationEnabled] = useState(classificationBanner.hasClassification);
     const [selectedClassificationId, setSelectedClassificationId] = useState(classificationBanner.classificationId || '');
     const [classificationBannerText, setClassificationBannerText] = useState(classificationBanner.bannerText || '');
     const [classificationBannerTextPreview, setClassificationBannerTextPreview] = useState(false);
 
-    // Locks the banner section when classification is active (enabled with a level selected)
     const bannerLockedByClassification = classificationEnabled && Boolean(selectedClassificationId);
 
     useEffect(() => {

@@ -1302,9 +1302,6 @@ function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdate
             values,
         };
 
-        // Populate the Redux property values store so any component that reads
-        // from entities.properties.values (e.g. GlobalClassificationBanner) gets
-        // real-time updates without an extra network round-trip.
         doDispatch({
             type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
             data: {values},

@@ -8,31 +8,49 @@
  * Prerequisites: Enterprise-tier license + ClassificationMarkings feature flag enabled.
  */
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
 
-import {TEST_LEVELS, setClassificationMarkingsFeatureFlag, setupClassificationWithChannelField} from './helpers';
+import {
+    TEST_LEVELS,
+    setClassificationMarkingsFeatureFlag,
+    setupClassificationWithChannelField,
+} from './helpers';
+import type {ClassificationLevel} from './helpers';
+
+let classificationLevels: ClassificationLevel[] = [];
+let setupComplete = false;
+
+test.beforeAll(async () => {
+    const {adminClient} = await getAdminClient();
+    const license = await adminClient.getClientLicenseOld();
+    if (licenseTier(license.SkuShortName) < 20) {
+        return;
+    }
+
+    await setClassificationMarkingsFeatureFlag(adminClient, true);
+    const setup = await setupClassificationWithChannelField(adminClient);
+    classificationLevels = setup.levels;
+    setupComplete = true;
+});
+
+test.beforeEach(async () => {
+    const {adminClient} = await getAdminClient();
+    const license = await adminClient.getClientLicenseOld();
+    test.skip(licenseTier(license.SkuShortName) < 20,
+        'Channel classification requires Enterprise-tier license');
+    test.skip(!setupComplete, 'Classification levels were not set up');
+
+    const config = await adminClient.getConfig();
+    test.skip(config.FeatureFlags.ClassificationMarkings !== true,
+        'ClassificationMarkings feature flag could not be enabled');
+});
 
 test.describe('Channel Classification - New channel creation', () => {
     test('Enabling classification toggle without selecting values prevents channel creation', async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            license.SkuShortName !== 'enterprise' && license.SkuShortName !== 'advanced',
-            'Channel classification requires Enterprise-tier license',
-        );
-
-        await setClassificationMarkingsFeatureFlag(adminClient, true);
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.ClassificationMarkings !== true,
-            'ClassificationMarkings feature flag could not be enabled',
-        );
-
-        await setupClassificationWithChannelField(adminClient);
-
+        const {adminUser, team} = await pw.initSetup();
         const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await channelsPage.goto(team.name);
+        await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
 
         const newChannelModal = await channelsPage.openNewChannelModal();
         await newChannelModal.fillDisplayName(`test-${pw.random.id()}`);
@@ -47,25 +65,10 @@ test.describe('Channel Classification - New channel creation', () => {
     });
 
     test('Classification dropdown displays the correct levels from the template', async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            license.SkuShortName !== 'enterprise' && license.SkuShortName !== 'advanced',
-            'Channel classification requires Enterprise-tier license',
-        );
-
-        await setClassificationMarkingsFeatureFlag(adminClient, true);
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.ClassificationMarkings !== true,
-            'ClassificationMarkings feature flag could not be enabled',
-        );
-
-        await setupClassificationWithChannelField(adminClient);
-
+        const {adminUser, team} = await pw.initSetup();
         const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await channelsPage.goto(team.name);
+        await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
 
         const newChannelModal = await channelsPage.openNewChannelModal();
         await newChannelModal.fillDisplayName(`test-${pw.random.id()}`);
@@ -87,25 +90,12 @@ test.describe('Channel Classification - New channel creation', () => {
     });
 
     test('User can append text to the Banner Text field after selecting a classification', async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            license.SkuShortName !== 'enterprise' && license.SkuShortName !== 'advanced',
-            'Channel classification requires Enterprise-tier license',
-        );
-
-        await setClassificationMarkingsFeatureFlag(adminClient, true);
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.ClassificationMarkings !== true,
-            'ClassificationMarkings feature flag could not be enabled',
-        );
-
-        const setup = await setupClassificationWithChannelField(adminClient);
-
+        const {adminUser, team} = await pw.initSetup();
         const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await channelsPage.goto(team.name);
+        await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
+
+        const selectedLevel = classificationLevels[2]; // SECRET
 
         const newChannelModal = await channelsPage.openNewChannelModal();
         await newChannelModal.fillDisplayName(`test-${pw.random.id()}`);
@@ -114,17 +104,17 @@ test.describe('Channel Classification - New channel creation', () => {
         const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
         await classificationToggle.click();
 
-        // Select a classification level (SECRET)
+        // Select a classification level
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
         await dropdownContainer.click();
         const menu = channelsPage.page.locator('.DropDown__menu');
-        await menu.getByText(setup.levels[2].name, {exact: true}).click();
+        await menu.getByText(selectedLevel.name, {exact: true}).click();
 
         // Banner text should be auto-populated with the bold level name
-        const bannerTextbox = channelsPage.page.locator('#channel_classification_banner_text_textbox');
+        const bannerTextbox = channelsPage.page.locator('#channel_classification_banner_text');
         await expect(bannerTextbox).toBeVisible();
         const currentValue = await bannerTextbox.inputValue();
-        expect(currentValue).toContain(setup.levels[2].name);
+        expect(currentValue).toContain(selectedLevel.name);
 
         // Append custom text to the banner
         await bannerTextbox.click();
@@ -136,26 +126,12 @@ test.describe('Channel Classification - New channel creation', () => {
     });
 
     test('Creating channel with classification shows banner with correct color', async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            license.SkuShortName !== 'enterprise' && license.SkuShortName !== 'advanced',
-            'Channel classification requires Enterprise-tier license',
-        );
-
-        await setClassificationMarkingsFeatureFlag(adminClient, true);
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.ClassificationMarkings !== true,
-            'ClassificationMarkings feature flag could not be enabled',
-        );
-
-        const setup = await setupClassificationWithChannelField(adminClient);
-        const selectedLevel = setup.levels[2]; // SECRET
-
+        const {adminUser, team} = await pw.initSetup();
         const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await channelsPage.goto(team.name);
+        await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
+
+        const selectedLevel = classificationLevels[2]; // SECRET
 
         const newChannelModal = await channelsPage.openNewChannelModal();
         await newChannelModal.fillDisplayName(`classified-${pw.random.id()}`);
@@ -172,45 +148,44 @@ test.describe('Channel Classification - New channel creation', () => {
         await menu.getByText(selectedLevel.name, {exact: true}).click();
 
         // Wait for banner text to auto-populate, then create the channel
-        const bannerTextbox = channelsPage.page.locator('#channel_classification_banner_text_textbox');
+        const bannerTextbox = channelsPage.page.locator('#channel_classification_banner_text');
         await expect(bannerTextbox).toBeVisible();
         await expect(bannerTextbox).not.toHaveValue('');
 
         await newChannelModal.create();
 
-        // Should be redirected to the new channel
-        await expect(channelsPage.page).toHaveURL(/\/channels\//);
-        await channelsPage.centerView.toBeVisible();
+        // Should be redirected to the new channel and center view loads
+        await expect(channelsPage.page).toHaveURL(/\/channels\//, {timeout: 30000});
+        await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 30000});
 
-        // Channel banner should be visible with the classification color
-        // The banner text is markdown bold: **SECRET** renders as just "SECRET"
-        await channelsPage.centerView.assertChannelBanner(selectedLevel.name, selectedLevel.color);
+        // Channel banner should be visible (allow extra time for property value fetch)
+        const banner = channelsPage.page.getByTestId('channel_banner_container');
+        await expect(banner).toBeVisible({timeout: 30000});
+
+        // Verify the banner has the correct background color
+        const actualBackgroundColor = await banner.evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue('background-color');
+        });
+        const expectedRgb = hexToRgb(selectedLevel.color);
+        expect(actualBackgroundColor).toBe(expectedRgb);
+
+        // Verify the banner contains the classification level name (rendered from **SECRET** markdown)
+        await expect(banner).toContainText(selectedLevel.name);
     });
 });
 
 test.describe('Channel Classification - Existing channel settings', () => {
     test('Classification toggle can be enabled from channel settings', async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            license.SkuShortName !== 'enterprise' && license.SkuShortName !== 'advanced',
-            'Channel classification requires Enterprise-tier license',
-        );
+        const {adminUser, team, adminClient} = await pw.initSetup();
 
-        await setClassificationMarkingsFeatureFlag(adminClient, true);
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.ClassificationMarkings !== true,
-            'ClassificationMarkings feature flag could not be enabled',
+        const channel = await adminClient.createChannel(
+            pw.random.channel({teamId: team.id, name: `cls-${pw.random.id()}`, displayName: `Cls ${pw.random.id()}`}),
         );
-
-        await setupClassificationWithChannelField(adminClient);
+        await adminClient.addToChannel(adminUser.id, channel.id);
 
         const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
-
-        await channelsPage.newChannel(pw.random.id(), 'O');
+        await channelsPage.goto(team.name, channel.name);
+        await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
 
         const channelSettingsModal = await channelsPage.openChannelSettings();
         await channelSettingsModal.openConfigurationTab();
@@ -230,27 +205,16 @@ test.describe('Channel Classification - Existing channel settings', () => {
     });
 
     test('Classification level can be set once toggle is enabled', async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            license.SkuShortName !== 'enterprise' && license.SkuShortName !== 'advanced',
-            'Channel classification requires Enterprise-tier license',
-        );
+        const {adminUser, team, adminClient} = await pw.initSetup();
 
-        await setClassificationMarkingsFeatureFlag(adminClient, true);
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.ClassificationMarkings !== true,
-            'ClassificationMarkings feature flag could not be enabled',
+        const channel = await adminClient.createChannel(
+            pw.random.channel({teamId: team.id, name: `cls-${pw.random.id()}`, displayName: `Cls ${pw.random.id()}`}),
         );
-
-        const setup = await setupClassificationWithChannelField(adminClient);
+        await adminClient.addToChannel(adminUser.id, channel.id);
 
         const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
-
-        await channelsPage.newChannel(pw.random.id(), 'O');
+        await channelsPage.goto(team.name, channel.name);
+        await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
 
         const channelSettingsModal = await channelsPage.openChannelSettings();
         await channelSettingsModal.openConfigurationTab();
@@ -268,36 +232,24 @@ test.describe('Channel Classification - Existing channel settings', () => {
         const menu = channelsPage.page.locator('.DropDown__menu');
         await expect(menu).toBeVisible();
 
-        const selectedLevel = setup.levels[1]; // CONFIDENTIAL
+        const selectedLevel = classificationLevels[1]; // CONFIDENTIAL
         await menu.getByText(selectedLevel.name, {exact: true}).click();
 
         // The dropdown should now show the selected value
-        await expect(dropdownContainer.getByText(selectedLevel.name)).toBeVisible();
+        await expect(dropdownContainer.getByText(selectedLevel.name, {exact: true})).toBeVisible();
     });
 
     test('Selecting classification locks banner toggle active and disabled, with matching color', async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            license.SkuShortName !== 'enterprise' && license.SkuShortName !== 'advanced',
-            'Channel classification requires Enterprise-tier license',
-        );
+        const {adminUser, team, adminClient} = await pw.initSetup();
 
-        await setClassificationMarkingsFeatureFlag(adminClient, true);
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.ClassificationMarkings !== true,
-            'ClassificationMarkings feature flag could not be enabled',
+        const channel = await adminClient.createChannel(
+            pw.random.channel({teamId: team.id, name: `cls-${pw.random.id()}`, displayName: `Cls ${pw.random.id()}`}),
         );
-
-        const setup = await setupClassificationWithChannelField(adminClient);
-        const selectedLevel = setup.levels[2]; // SECRET
+        await adminClient.addToChannel(adminUser.id, channel.id);
 
         const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
-
-        await channelsPage.newChannel(pw.random.id(), 'O');
+        await channelsPage.goto(team.name, channel.name);
+        await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
 
         const channelSettingsModal = await channelsPage.openChannelSettings();
         await channelSettingsModal.openConfigurationTab();
@@ -308,6 +260,8 @@ test.describe('Channel Classification - Existing channel settings', () => {
 
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
         await dropdownContainer.click();
+
+        const selectedLevel = classificationLevels[2]; // SECRET
         const menu = channelsPage.page.locator('.DropDown__menu');
         await menu.getByText(selectedLevel.name, {exact: true}).click();
 
@@ -325,28 +279,16 @@ test.describe('Channel Classification - Existing channel settings', () => {
     });
 
     test('Editing banner text and saving updates the banner in real time', async ({pw}) => {
-        const {adminUser, adminClient} = await pw.initSetup();
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            license.SkuShortName !== 'enterprise' && license.SkuShortName !== 'advanced',
-            'Channel classification requires Enterprise-tier license',
-        );
+        const {adminUser, team, adminClient} = await pw.initSetup();
 
-        await setClassificationMarkingsFeatureFlag(adminClient, true);
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.ClassificationMarkings !== true,
-            'ClassificationMarkings feature flag could not be enabled',
+        const channel = await adminClient.createChannel(
+            pw.random.channel({teamId: team.id, name: `cls-${pw.random.id()}`, displayName: `Cls ${pw.random.id()}`}),
         );
-
-        const setup = await setupClassificationWithChannelField(adminClient);
-        const selectedLevel = setup.levels[3]; // TOP SECRET
+        await adminClient.addToChannel(adminUser.id, channel.id);
 
         const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
-
-        await channelsPage.newChannel(pw.random.id(), 'O');
+        await channelsPage.goto(team.name, channel.name);
+        await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
 
         const channelSettingsModal = await channelsPage.openChannelSettings();
         const configurationTab = await channelSettingsModal.openConfigurationTab();
@@ -357,6 +299,8 @@ test.describe('Channel Classification - Existing channel settings', () => {
 
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
         await dropdownContainer.click();
+
+        const selectedLevel = classificationLevels[3]; // TOP SECRET
         const menu = channelsPage.page.locator('.DropDown__menu');
         await menu.getByText(selectedLevel.name, {exact: true}).click();
 
@@ -371,6 +315,21 @@ test.describe('Channel Classification - Existing channel settings', () => {
         await channelSettingsModal.close();
 
         // The channel banner should now show the custom text with the classification color
-        await channelsPage.centerView.assertChannelBanner(customBannerText, selectedLevel.color);
+        const banner = channelsPage.page.getByTestId('channel_banner_container');
+        await expect(banner).toBeVisible({timeout: 30000});
+        await expect(banner).toContainText(customBannerText);
+
+        const actualBackgroundColor = await banner.evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue('background-color');
+        });
+        expect(actualBackgroundColor).toBe(hexToRgb(selectedLevel.color));
     });
 });
+
+function hexToRgb(hex: string): string {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) {
+        return hex;
+    }
+    return `rgb(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)})`;
+}

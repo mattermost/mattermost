@@ -24,7 +24,7 @@ import type {ClassificationLevel} from 'components/admin_console/classification_
 
 import {isEnterpriseLicense} from 'utils/license_utils';
 
-function selectClassificationTemplateField(state: GlobalState): PropertyField | undefined {
+export function selectClassificationTemplateField(state: GlobalState): PropertyField | undefined {
     const byId = state.entities.properties?.fields?.byId;
     if (!byId) {
         return undefined;

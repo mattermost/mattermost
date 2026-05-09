@@ -869,7 +869,8 @@ describe('GlobalClassificationIndicators section', () => {
 
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]);
+            mockResolvedValueOnce([linked]).
+            mockResolvedValueOnce([]);
 
         const deleteOrder: string[] = [];
         const deleteFieldSpy = jest.spyOn(Client4, 'deletePropertyField');

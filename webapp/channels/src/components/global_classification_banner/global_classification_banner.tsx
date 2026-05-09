@@ -15,7 +15,6 @@ import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 import {
     DISPLAY_BANNER_BOTTOM,
     DISPLAY_BANNER_TOP,
-    FIELD_NAME,
     GROUP_NAME,
     LINKED_FIELD_NAME,
     LINKED_OBJECT_TYPE,
@@ -26,6 +25,7 @@ import {
     TARGET_TYPE,
     findOptionById,
 } from 'components/admin_console/classification_markings/utils';
+import {selectClassificationTemplateField} from 'components/common/hooks/useClassificationMarkings';
 
 import './global_classification_banner.scss';
 
@@ -35,23 +35,11 @@ type Props = {
     position: 'top' | 'bottom';
 };
 
-function selectClassificationTemplateField(state: GlobalState): PropertyField | undefined {
-    const byId = state.entities.properties?.fields?.byId;
-    if (!byId) {
-        return undefined;
-    }
-    return Object.values(byId).find(
-        (f) => f.object_type === OBJECT_TYPE && f.name === FIELD_NAME && f.delete_at === 0,
-    );
-}
-
 function selectLinkedSystemField(state: GlobalState): PropertyField | undefined {
     const byId = state.entities.properties?.fields?.byId;
     if (!byId) {
         return undefined;
     }
-
-    // The linked system field has object_type 'system' and a linked_field_id set.
     return Object.values(byId).find(
         (f) => f.object_type === LINKED_OBJECT_TYPE && f.name === LINKED_FIELD_NAME && f.linked_field_id && f.delete_at === 0,
     );
@@ -90,7 +78,6 @@ export default function GlobalClassificationBanner({position}: Props) {
         }
     }, [featureEnabled, templateField, linkedField, systemValue, dispatch]);
 
-    // Display conditions are encoded in the linked field's attrs.actions.
     const actions = (linkedField?.attrs?.actions as string[] | undefined) ?? [];
     const shouldRenderTop = actions.includes(DISPLAY_BANNER_TOP);
     const shouldRenderBottom = actions.includes(DISPLAY_BANNER_BOTTOM);

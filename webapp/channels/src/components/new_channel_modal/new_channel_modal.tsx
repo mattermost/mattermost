@@ -95,7 +95,6 @@ const NewChannelModal = () => {
     const [channelInputError, setChannelInputError] = useState(false);
     const [managedCategoryName, setManagedCategoryName] = useState<string | undefined>(undefined);
 
-    // Classification markings
     const classification = useClassificationMarkings();
     const [classificationEnabled, setClassificationEnabled] = useState(false);
     const [selectedClassificationId, setSelectedClassificationId] = useState('');
@@ -115,6 +114,24 @@ const NewChannelModal = () => {
     const selectedClassificationLevel = useMemo(() => {
         return classification.levels.find((l) => l.id === selectedClassificationId);
     }, [classification.levels, selectedClassificationId]);
+
+    const handleClassificationLevelChange = useCallback((selected: ValueType) => {
+        setSelectedClassificationId(selected.value);
+        const level = classification.levels.find((l) => l.id === selected.value);
+        if (level) {
+            setBannerText(`**${level.name}**`);
+        }
+    }, [classification.levels]);
+
+    const formatClassificationOptionLabel = useCallback((option: ValueType) => {
+        const levelOption = option as ValueType & {color: string};
+        return (
+            <LevelOptionLabel>
+                <ColorSwatch style={{backgroundColor: levelOption.color}}/>
+                <span>{levelOption.label}</span>
+            </LevelOptionLabel>
+        );
+    }, []);
 
     // create a board along with the channel
     const createBoardFromChannelPlugin = useSelector((state: GlobalState) => state.plugins.components.CreateBoardFromTemplate);
@@ -159,7 +176,6 @@ const NewChannelModal = () => {
                 return;
             }
 
-            // Save channel classification property value (includes both the level ID and banner text)
             if (classificationEnabled && selectedClassificationId && classification.channelField && bannerText) {
                 try {
                     await Client4.patchPropertyValues(
@@ -427,25 +443,11 @@ const NewChannelModal = () => {
                                             testId='channelClassificationLevel'
                                             options={classificationOptions}
                                             value={selectedClassificationOption}
-                                            onChange={(selected: ValueType) => {
-                                                setSelectedClassificationId(selected.value);
-                                                const level = classification.levels.find((l) => l.id === selected.value);
-                                                if (level) {
-                                                    setBannerText(`**${level.name}**`);
-                                                }
-                                            }}
+                                            onChange={handleClassificationLevelChange}
                                             isClearable={false}
                                             required={true}
                                             styles={classificationPresetDropdownStyles}
-                                            formatOptionLabel={(option: ValueType) => {
-                                                const levelOption = option as ValueType & {color: string};
-                                                return (
-                                                    <LevelOptionLabel>
-                                                        <ColorSwatch style={{backgroundColor: levelOption.color}}/>
-                                                        <span>{levelOption.label}</span>
-                                                    </LevelOptionLabel>
-                                                );
-                                            }}
+                                            formatOptionLabel={formatClassificationOptionLabel}
                                             menuPortalTarget={document.body}
                                         />
                                     </div>
