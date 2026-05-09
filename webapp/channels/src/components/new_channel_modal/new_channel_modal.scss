@@ -1,16 +1,16 @@
 .new-channel-modal {
     .modal-content {
         display: flex;
-        flex-direction: column;
         overflow: hidden;
+        flex-direction: column;
     }
 
     .GenericModal__wrapper {
         display: flex;
-        flex-direction: column;
         overflow: hidden;
-        flex: 1 1 auto;
         min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
     }
 
     .modal-header {
@@ -18,9 +18,9 @@
     }
 
     .modal-body {
-        overflow-y: auto;
-        flex: 1 1 auto;
         min-height: 0;
+        flex: 1 1 auto;
+        overflow-y: auto;
     }
 
     .modal-footer {
@@ -57,9 +57,9 @@
     }
 
     .new-channel-modal-classification {
-        margin-top: 24px;
         padding-top: 16px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 24px;
 
         &__header {
             display: flex;
@@ -96,8 +96,8 @@
         }
 
         &__field-label {
-            flex-shrink: 0;
             width: 140px;
+            flex-shrink: 0;
             margin: 0;
             color: var(--center-channel-color);
             font-size: 14px;
@@ -106,14 +106,14 @@
         }
 
         &__field-input {
-            flex: 1;
             min-width: 0;
+            flex: 1;
 
             .AdvancedTextbox #PreviewInputTextButton {
                 position: absolute;
-                right: 7px;
-                top: 7px;
                 z-index: 10;
+                top: 7px;
+                right: 7px;
             }
         }
 

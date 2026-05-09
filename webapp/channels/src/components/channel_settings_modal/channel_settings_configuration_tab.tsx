@@ -548,7 +548,7 @@ function ChannelSettingsConfigurationTab({
         setRequireConfirm(false);
     }, []);
 
-    const classificationFormInvalid = classificationEnabled && !selectedClassificationId;
+    const classificationFormInvalid = classificationEnabled && (!selectedClassificationId || !classificationBannerText.trim());
     const hasErrors = Boolean(formError) ||
         characterLimitExceeded ||
         classificationFormInvalid ||
