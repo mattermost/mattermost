@@ -35,6 +35,16 @@ export async function setClassificationMarkingsFeatureFlag(adminClient: Client4,
  * (clean slate for E2E). Linked field is deleted first to avoid deletion-protection errors.
  */
 export async function deleteClassificationMarkingsFieldIfExists(adminClient: Client4) {
+    // Delete channel linked fields first (created by channel classification tests).
+    try {
+        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', TARGET_TYPE, '');
+        for (const f of channelFields.filter((f) => f.name === 'channel_classification' && f.delete_at === 0)) {
+            await adminClient.deletePropertyField(PROPERTY_GROUP, 'channel', f.id);
+        }
+    } catch {
+        // May not exist; ignore.
+    }
+
     // Clean up both the current 'system' object type and the legacy 'user' object type
     // to handle stale data from earlier versions of the feature.
     for (const objectType of [LINKED_OBJECT_TYPE, 'user'] as const) {

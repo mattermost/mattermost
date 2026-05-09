@@ -10,7 +10,12 @@
 
 import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
 
-import {TEST_LEVELS, setClassificationMarkingsFeatureFlag, setupClassificationWithChannelField} from './helpers';
+import {
+    TEST_LEVELS,
+    setClassificationMarkingsFeatureFlag,
+    setupClassificationWithChannelField,
+    deleteClassificationFieldsIfExist,
+} from './helpers';
 import type {ClassificationLevel} from './helpers';
 
 let classificationLevels: ClassificationLevel[] = [];
@@ -27,6 +32,15 @@ test.beforeAll(async () => {
     const setup = await setupClassificationWithChannelField(adminClient);
     classificationLevels = setup.levels;
     setupComplete = true;
+});
+
+test.afterAll(async () => {
+    const {adminClient} = await getAdminClient();
+    try {
+        await deleteClassificationFieldsIfExist(adminClient);
+    } catch {
+        // Best-effort cleanup
+    }
 });
 
 test.beforeEach(async () => {
