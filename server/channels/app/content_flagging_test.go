@@ -2530,7 +2530,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
 
 		// Verify file infos were also deleted
-		files, err := th.App.Srv().Store().FileInfo().GetByIds([]string{fileInfo1.Id, fileInfo2.Id}, true, false)
+		files, err := th.App.Srv().Store().FileInfo().GetByIds([]string{fileInfo1.Id, fileInfo2.Id}, true, false, false)
 		require.NoError(t, err)
 		require.Empty(t, files)
 	})
@@ -3094,7 +3094,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
 
 		// Verify file infos are still present (not deleted)
-		files, err := th.App.Srv().Store().FileInfo().GetByIds([]string{fileInfo1.Id, fileInfo2.Id}, false, false)
+		files, err := th.App.Srv().Store().FileInfo().GetByIds([]string{fileInfo1.Id, fileInfo2.Id}, false, false, false)
 		require.NoError(t, err)
 		require.Len(t, files, 2, "File attachments should be preserved when keeping flagged post")
 	})
