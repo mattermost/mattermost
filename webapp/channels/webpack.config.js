@@ -440,6 +440,7 @@ if (DEV) {
             new ImageMinimizerPlugin({
                 minimizer: {
                     implementation: ImageMinimizerPlugin.svgoMinify,
+                    filter: (source, sourcePath) => sourcePath.endsWith('.svg'),
                     options: {
                         encodeOptions: {
                             multipass: true,
