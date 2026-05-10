@@ -3,8 +3,6 @@
 
 import type {Client4} from '@mattermost/client';
 
-import {mergeWithOnPremServerConfig} from './server/default_config';
-
 export type EnableAutotranslationOptions = {
     mockBaseUrl: string;
     targetLanguages?: string[];
@@ -18,7 +16,7 @@ export async function enableAutotranslationConfig(
     adminClient: Client4,
     options: EnableAutotranslationOptions,
 ): Promise<void> {
-    const config = mergeWithOnPremServerConfig({
+    await adminClient.patchConfig({
         FeatureFlags: {
             AutoTranslation: true,
         },
@@ -34,15 +32,15 @@ export async function enableAutotranslationConfig(
             Workers: 4,
             TimeoutMs: 5000,
         },
-    });
-    await adminClient.updateConfig(config as any);
+    } as any);
 }
 
 /**
  * Disable autotranslation in server config.
+ * Uses patchConfig for the same reasons as enableAutotranslationConfig.
  */
 export async function disableAutotranslationConfig(adminClient: Client4): Promise<void> {
-    const config = mergeWithOnPremServerConfig({
+    await adminClient.patchConfig({
         FeatureFlags: {
             AutoTranslation: false,
         },
@@ -58,8 +56,7 @@ export async function disableAutotranslationConfig(adminClient: Client4): Promis
             TimeoutMs: 0,
             RestrictDMAndGM: false,
         },
-    });
-    await adminClient.updateConfig(config as any);
+    } as any);
 }
 
 /**
@@ -76,13 +73,6 @@ export async function disableChannelAutotranslation(adminClient: Client4, channe
     await adminClient.patchChannel(channelId, {autotranslation: false} as any);
 }
 
-/**
- * Set the LibreTranslate mock's detected language for /translate. When source=auto, all /translate
- * responses use this language as detectedLanguage until changed; default is 'es'.
- *
- * Note: This is only supported on the mock server (http://localhost:3010).
- * When using real LibreTranslate, language detection is automatic and this call is silently ignored.
- */
 export async function setMockSourceLanguage(mockBaseUrl: string, language: string): Promise<void> {
     try {
         const controller = new AbortController();
@@ -126,4 +116,29 @@ export async function setUserChannelAutotranslation(
     enabled: boolean,
 ): Promise<void> {
     await client.setMyChannelAutotranslation(channelId, enabled);
+}
+
+const AUTO_TRANSLATION_PERMISSIONS = [
+    'manage_public_channel_auto_translation',
+    'manage_private_channel_auto_translation',
+];
+
+/**
+ * Call this after enableAutotranslationConfig and before any UI test that relies on
+ * the autotranslation toggle appearing in Channel Settings.
+ */
+export async function ensureAutotranslationPermissions(adminClient: Client4): Promise<void> {
+    const roleNames = ['channel_admin', 'team_admin', 'system_admin'];
+
+    await Promise.all(
+        roleNames.map(async (roleName) => {
+            const role = await adminClient.getRoleByName(roleName);
+            const missing = AUTO_TRANSLATION_PERMISSIONS.filter((p) => !role.permissions.includes(p));
+            if (missing.length > 0) {
+                await adminClient.patchRole(role.id, {
+                    permissions: [...role.permissions, ...missing],
+                });
+            }
+        }),
+    );
 }

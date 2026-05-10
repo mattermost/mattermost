@@ -73,7 +73,7 @@ export class TextInputSetting {
     constructor(container: Locator, labelText: string) {
         this.container = container;
         this.label = container.getByText(labelText);
-        this.input = container.getByRole('textbox');
+        this.input = container.locator('input.form-control').first();
         this.helpText = container.locator('.help-text');
     }
 
@@ -106,7 +106,8 @@ export class DropdownSetting {
     constructor(container: Locator, labelText: string) {
         this.container = container;
         this.label = container.getByText(labelText);
-        this.dropdown = container.getByRole('combobox');
+        // Scope combobox to this form-group (unscoped matches e.g. sidebar search).
+        this.dropdown = container.getByRole('combobox').first();
         this.helpText = container.locator('.help-text');
     }
 

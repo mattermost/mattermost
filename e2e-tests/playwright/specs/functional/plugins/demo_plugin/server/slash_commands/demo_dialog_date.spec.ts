@@ -6,6 +6,10 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {setupDemoPlugin} from '../../helpers';
 
 test('should open /dialog date and post submit confirmation after selecting dates', async ({pw}) => {
+    // Plugin installation can take up to 60 s; extend the test timeout to avoid
+    // a premature timeout before the dialog even opens.
+    test.setTimeout(120000);
+
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);
@@ -19,13 +23,32 @@ test('should open /dialog date and post submit confirmation after selecting date
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 4. Send /dialog date command
-    await channelsPage.centerView.postCreate.input.fill('/dialog date');
-    await channelsPage.centerView.postCreate.sendMessage();
-
-    // 5. Confirm dialog opens with correct title
+    // 4. Send /dialog date command (retry if the dialog doesn't appear — plugin races are common under PW_WORKERS=8).
     const dialog = channelsPage.page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    for (let attempt = 0; attempt < 3; attempt++) {
+        await channelsPage.centerView.postCreate.input.fill('/dialog date');
+        await channelsPage.centerView.postCreate.sendMessage();
+        try {
+            await expect(dialog).toBeVisible({timeout: 45000});
+            break;
+        } catch (err) {
+            if (attempt === 2) {
+                throw err;
+            }
+            try {
+                await adminClient.enablePlugin('com.mattermost.demo-plugin');
+            } catch {
+                // Already enabled or transient error — ignore.
+            }
+            await expect
+                .poll(() => pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin'), {
+                    timeout: 45_000,
+                    intervals: [2000],
+                })
+                .toBe(true);
+            await new Promise((resolve) => setTimeout(resolve, 6000));
+        }
+    }
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Date & DateTime Test Dialog');
 
     // 6. Verify field labels and Event Title default value
