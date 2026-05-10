@@ -417,10 +417,30 @@ if (DEV) {
     config.mode = 'production';
     config.devtool = 'source-map';
 
+    // Optimize SVGs from src/ at module-build time so vendor SVG fonts (e.g. font-awesome)
+    // are never passed to svgo. Vendor SVGs get content-hashed names at emit time, making
+    // them indistinguishable from src/ assets in the optimization.minimizer phase.
+    config.module.rules.push({
+        test: /\.svg$/i,
+        include: [path.resolve(__dirname, 'src')],
+        enforce: 'pre',
+        loader: ImageMinimizerPlugin.loader,
+        options: {
+            minimizer: {
+                implementation: ImageMinimizerPlugin.svgoMinify,
+                options: {
+                    encodeOptions: {
+                        multipass: true,
+                        plugins: ['preset-default'],
+                    },
+                },
+            },
+        },
+    });
+
     // Optimize images in production builds.
     // GIFs are excluded from sharp: animated GIFs (e.g. Customize-Your-Experience.gif)
     // lose frames or grow in size when re-encoded by sharp.
-    // SVGs are handled by a separate svgoMinify pass (sharp cannot optimize SVGs).
     config.optimization = {
         ...config.optimization,
         minimizer: [
@@ -433,18 +453,6 @@ if (DEV) {
                         encodeOptions: {
                             jpeg: {mozjpeg: true},
                             png: {},
-                        },
-                    },
-                },
-            }),
-            new ImageMinimizerPlugin({
-                minimizer: {
-                    implementation: ImageMinimizerPlugin.svgoMinify,
-                    filter: (source, sourcePath) => sourcePath.endsWith('.svg'),
-                    options: {
-                        encodeOptions: {
-                            multipass: true,
-                            plugins: ['preset-default'],
                         },
                     },
                 },
