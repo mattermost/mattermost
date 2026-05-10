@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+commit_msg_file=$1
+coauthor_username=${CURSOR_COMMIT_COAUTHOR_GH_USERNAME:-}
+coauthor_email=${CURSOR_COMMIT_COAUTHOR_GH_EMAIL:-}
+
+if [[ -z "$coauthor_username" || -z "$coauthor_email" ]]; then
+    exit 0
+fi
+
+coauthor_trailer="Co-authored-by: ${coauthor_username} <${coauthor_email}>"
+
+if grep -Fqx "$coauthor_trailer" "$commit_msg_file"; then
+    exit 0
+fi
+
+{
+    printf '\n\n'
+    printf '%s\n' "$coauthor_trailer"
+} >> "$commit_msg_file"
