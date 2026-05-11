@@ -93,14 +93,19 @@ jobs:
           fi
           echo "server_image_tag=${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
 
-          # Generate branch name
+          # Generate branch name. For master/release runs we pass the real
+          # ref_branch through verbatim (`master`, `release-11.7`) so the
+          # dashboard's /reports/{repo}/{branch} grouping aggregates every
+          # build on that branch instead of treating each image tag as its
+          # own "branch". PR and commit-only fallback paths keep their
+          # synthetic prefix because there's no real branch to use.
           REF_BRANCH="${{ inputs.ref_branch }}"
           if [ -n "$PR_NUMBER" ]; then
-            echo "branch=server-pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
+            echo "branch=pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
           elif [ -n "$REF_BRANCH" ]; then
-            echo "branch=server-${REF_BRANCH}-${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+            echo "branch=${REF_BRANCH}" >> $GITHUB_OUTPUT
           else
-            echo "branch=server-commit-${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+            echo "branch=commit-${COMMIT_SHA::7}" >> $GITHUB_OUTPUT
           fi
 
           # Determine server image name
