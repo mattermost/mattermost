@@ -106,7 +106,8 @@ test.describe('Channel Classification - New channel creation', () => {
         await channelsPage.goto(team.name);
         await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
 
-        const selectedLevel = classificationLevels[2]; // SECRET
+        const selectedLevel = classificationLevels.find((l) => l.name === 'SECRET');
+        expect(selectedLevel).toBeDefined();
 
         const newChannelModal = await channelsPage.openNewChannelModal();
         await newChannelModal.fillDisplayName(`test-${pw.random.id()}`);
@@ -119,13 +120,13 @@ test.describe('Channel Classification - New channel creation', () => {
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
         await dropdownContainer.click();
         const menu = channelsPage.page.locator('.DropDown__menu');
-        await menu.getByText(selectedLevel.name, {exact: true}).click();
+        await menu.getByText(selectedLevel!.name, {exact: true}).click();
 
         // Banner text should be auto-populated with the bold level name
         const bannerTextbox = channelsPage.page.locator('#channel_classification_banner_text');
         await expect(bannerTextbox).toBeVisible();
         const currentValue = await bannerTextbox.inputValue();
-        expect(currentValue).toContain(selectedLevel.name);
+        expect(currentValue).toContain(selectedLevel!.name);
 
         // Append custom text to the banner
         await bannerTextbox.click();
@@ -142,7 +143,8 @@ test.describe('Channel Classification - New channel creation', () => {
         await channelsPage.goto(team.name);
         await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
 
-        const selectedLevel = classificationLevels[2]; // SECRET
+        const selectedLevel = classificationLevels.find((l) => l.name === 'SECRET');
+        expect(selectedLevel).toBeDefined();
 
         const newChannelModal = await channelsPage.openNewChannelModal();
         await newChannelModal.fillDisplayName(`classified-${pw.random.id()}`);
@@ -156,7 +158,7 @@ test.describe('Channel Classification - New channel creation', () => {
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
         await dropdownContainer.click();
         const menu = channelsPage.page.locator('.DropDown__menu');
-        await menu.getByText(selectedLevel.name, {exact: true}).click();
+        await menu.getByText(selectedLevel!.name, {exact: true}).click();
 
         // Wait for banner text to auto-populate, then create the channel
         const bannerTextbox = channelsPage.page.locator('#channel_classification_banner_text');
@@ -177,11 +179,11 @@ test.describe('Channel Classification - New channel creation', () => {
         const actualBackgroundColor = await banner.evaluate((el) => {
             return window.getComputedStyle(el).getPropertyValue('background-color');
         });
-        const expectedRgb = hexToRgb(selectedLevel.color);
+        const expectedRgb = hexToRgb(selectedLevel!.color);
         expect(actualBackgroundColor).toBe(expectedRgb);
 
         // Verify the banner contains the classification level name (rendered from **SECRET** markdown)
-        await expect(banner).toContainText(selectedLevel.name);
+        await expect(banner).toContainText(selectedLevel!.name);
     });
 });
 
@@ -243,11 +245,12 @@ test.describe('Channel Classification - Existing channel settings', () => {
         const menu = channelsPage.page.locator('.DropDown__menu');
         await expect(menu).toBeVisible();
 
-        const selectedLevel = classificationLevels[1]; // CONFIDENTIAL
-        await menu.getByText(selectedLevel.name, {exact: true}).click();
+        const selectedLevel = classificationLevels.find((l) => l.name === 'CONFIDENTIAL');
+        expect(selectedLevel).toBeDefined();
+        await menu.getByText(selectedLevel!.name, {exact: true}).click();
 
         // The dropdown should now show the selected value
-        await expect(dropdownContainer.getByText(selectedLevel.name, {exact: true})).toBeVisible();
+        await expect(dropdownContainer.getByText(selectedLevel!.name, {exact: true})).toBeVisible();
     });
 
     test('Selecting classification locks banner toggle active and disabled, with matching color', async ({pw}) => {
@@ -272,9 +275,10 @@ test.describe('Channel Classification - Existing channel settings', () => {
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
         await dropdownContainer.click();
 
-        const selectedLevel = classificationLevels[2]; // SECRET
+        const selectedLevel = classificationLevels.find((l) => l.name === 'SECRET');
+        expect(selectedLevel).toBeDefined();
         const menu = channelsPage.page.locator('.DropDown__menu');
-        await menu.getByText(selectedLevel.name, {exact: true}).click();
+        await menu.getByText(selectedLevel!.name, {exact: true}).click();
 
         // The channel banner toggle should now be forced active and disabled
         const bannerToggle = channelsPage.page.getByTestId('channelBannerToggle-button');
@@ -286,7 +290,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
         const colorInput = channelsPage.page.locator('#channel_banner_banner_background_color_picker-inputColorValue');
         await expect(colorInput).toBeVisible();
         const colorValue = await colorInput.inputValue();
-        expect(colorValue.toLowerCase().replace('#', '')).toBe(selectedLevel.color.toLowerCase().replace('#', ''));
+        expect(colorValue.toLowerCase().replace('#', '')).toBe(selectedLevel!.color.toLowerCase().replace('#', ''));
     });
 
     test('Editing banner text and saving updates the banner in real time', async ({pw}) => {
@@ -311,9 +315,10 @@ test.describe('Channel Classification - Existing channel settings', () => {
         const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
         await dropdownContainer.click();
 
-        const selectedLevel = classificationLevels[3]; // TOP SECRET
+        const selectedLevel = classificationLevels.find((l) => l.name === 'TOP SECRET');
+        expect(selectedLevel).toBeDefined();
         const menu = channelsPage.page.locator('.DropDown__menu');
-        await menu.getByText(selectedLevel.name, {exact: true}).click();
+        await menu.getByText(selectedLevel!.name, {exact: true}).click();
 
         // Edit the banner text to a custom value
         const customBannerText = 'TOP SECRET - Handle via COMINT channels only';
@@ -333,7 +338,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
         const actualBackgroundColor = await banner.evaluate((el) => {
             return window.getComputedStyle(el).getPropertyValue('background-color');
         });
-        expect(actualBackgroundColor).toBe(hexToRgb(selectedLevel.color));
+        expect(actualBackgroundColor).toBe(hexToRgb(selectedLevel!.color));
     });
 });
 
