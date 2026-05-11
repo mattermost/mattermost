@@ -874,7 +874,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             });
 
             await waitFor(() => {
-                const actions = (store as MockStoreEnhanced).getActions();
+                const actions = (store as unknown as MockStoreEnhanced).getActions();
                 expect(actions.some((a) => a.type === PropertyTypes.RECEIVED_PROPERTY_VALUES)).toBe(true);
             });
         });
@@ -910,7 +910,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             });
 
             await waitFor(() => {
-                const actions = (store as MockStoreEnhanced).getActions();
+                const actions = (store as unknown as MockStoreEnhanced).getActions();
                 expect(actions.some((a) => a.type === PropertyTypes.PROPERTY_VALUE_DELETED)).toBe(true);
             });
         });
