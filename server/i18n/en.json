@@ -10575,6 +10575,10 @@
     "translation": "Scope ID cannot be set without a scope."
   },
   {
+    "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
+    "translation": "Membership rules cannot reference session attributes (user.session). Use a permission policy instead."
+  },
+  {
     "id": "model.access_policy.is_valid.type.app_error",
     "translation": "Invalid policy type."
   },

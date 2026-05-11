@@ -494,6 +494,91 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, "model.access_policy.is_valid.rules_imports.app_error", err.Id)
 	})
+
+	t.Run("membership rule rejects session attribute reference", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "user.session.ip_address == \"10.0.0.1\"",
+			}},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.session_attribute_on_membership.app_error", err.Id)
+	})
+
+	t.Run("permission rule allows session attribute reference", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{"system_user"},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionUploadFileAttachment},
+				Expression: "user.session.ip_address == \"10.0.0.1\"",
+			}},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_3())
+	})
+
+	t.Run("mixed-action rule rejects session attribute reference", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions: []string{
+					AccessControlPolicyActionMembership,
+					AccessControlPolicyActionUploadFileAttachment,
+				},
+				Expression: "user.session.ip_address == \"10.0.0.1\"",
+			}},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.session_attribute_on_membership.app_error", err.Id)
+	})
+
+	t.Run("membership rule without session reference is accepted", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "user.attributes.team == \"eng\"",
+			}},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_3())
+	})
+
+	t.Run("membership rule rejects user.session inside string literal (lexical check)", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "user.attributes.note == \"see user.session for context\"",
+			}},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.session_attribute_on_membership.app_error", err.Id)
+	})
 }
 
 func TestInheritV0_3(t *testing.T) {

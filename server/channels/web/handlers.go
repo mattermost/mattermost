@@ -352,6 +352,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil {
+		c.App.RefreshRequestProvidedSessionAttributesIfNeeded(c.AppContext, r)
+	}
+
+	if c.Err == nil {
 		h.HandleFunc(c, w, r)
 	}
 

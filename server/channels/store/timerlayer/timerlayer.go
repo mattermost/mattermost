@@ -62,6 +62,7 @@ type TimerLayer struct {
 	ScheduledPostStore              store.ScheduledPostStore
 	SchemeStore                     store.SchemeStore
 	SessionStore                    store.SessionStore
+	SessionAttributeStore           store.SessionAttributeStore
 	SharedChannelStore              store.SharedChannelStore
 	StatusStore                     store.StatusStore
 	SystemStore                     store.SystemStore
@@ -248,6 +249,10 @@ func (s *TimerLayer) Scheme() store.SchemeStore {
 
 func (s *TimerLayer) Session() store.SessionStore {
 	return s.SessionStore
+}
+
+func (s *TimerLayer) SessionAttribute() store.SessionAttributeStore {
+	return s.SessionAttributeStore
 }
 
 func (s *TimerLayer) SharedChannel() store.SharedChannelStore {
@@ -518,6 +523,11 @@ type TimerLayerSchemeStore struct {
 
 type TimerLayerSessionStore struct {
 	store.SessionStore
+	Root *TimerLayer
+}
+
+type TimerLayerSessionAttributeStore struct {
+	store.SessionAttributeStore
 	Root *TimerLayer
 }
 
@@ -10043,6 +10053,38 @@ func (s *TimerLayerSessionStore) UpdateRoles(userID string, roles string) (strin
 	return result, err
 }
 
+func (s *TimerLayerSessionAttributeStore) Get(sessionID string) (map[string]any, error) {
+	start := time.Now()
+
+	result, err := s.SessionAttributeStore.Get(sessionID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionAttributeStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSessionAttributeStore) Refresh(sessionID string, attrs map[string]any) error {
+	start := time.Now()
+
+	err := s.SessionAttributeStore.Refresh(sessionID, attrs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionAttributeStore.Refresh", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerSharedChannelStore) Delete(channelID string) (bool, error) {
 	start := time.Now()
 
@@ -14562,6 +14604,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.ScheduledPostStore = &TimerLayerScheduledPostStore{ScheduledPostStore: childStore.ScheduledPost(), Root: &newStore}
 	newStore.SchemeStore = &TimerLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &TimerLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
+	newStore.SessionAttributeStore = &TimerLayerSessionAttributeStore{SessionAttributeStore: childStore.SessionAttribute(), Root: &newStore}
 	newStore.SharedChannelStore = &TimerLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}
 	newStore.StatusStore = &TimerLayerStatusStore{StatusStore: childStore.Status(), Root: &newStore}
 	newStore.SystemStore = &TimerLayerSystemStore{SystemStore: childStore.System(), Root: &newStore}

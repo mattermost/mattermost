@@ -18,6 +18,9 @@ type Subject struct {
 	// An attribute may be single-valued or multi-valued and can be a primitive type
 	// (string, boolean, number) or a complex type like a JSON object or array.
 	Attributes map[string]any `json:"attributes"`
+	// Session holds per-request session attribute values (e.g. IP, user agent).
+	// Evaluated in CEL as user.session.<name> alongside user.attributes from Attributes.
+	Session map[string]any `json:"session,omitempty"`
 }
 
 type SubjectSearchOptions struct {

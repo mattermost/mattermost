@@ -643,7 +643,13 @@ func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles s
 		return true
 	}
 
-	subject, appErr := a.BuildAccessControlSubject(rctx, userID, roles)
+	var subject *model.Subject
+	var appErr *model.AppError
+	if rctx.Session().UserId == userID {
+		subject, appErr = a.BuildAccessControlSubjectForSession(rctx)
+	} else {
+		subject, appErr = a.BuildAccessControlSubject(rctx, userID, roles)
+	}
 	if appErr != nil {
 		rctx.Logger().Info("Failed to build ABAC subject for file action evaluation",
 			mlog.String("user_id", userID),

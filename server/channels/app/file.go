@@ -1573,16 +1573,21 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.S
 		return nil
 	}
 
-	user, err := a.GetUser(userID)
-	if err != nil {
-		rctx.Logger().Warn("Failed to get user for file download permission filtering",
-			mlog.String("user_id", userID),
-			mlog.Err(err),
-		)
-		return nil
+	var subject *model.Subject
+	var appErr *model.AppError
+	if rctx.Session().UserId == userID {
+		subject, appErr = a.BuildAccessControlSubjectForSession(rctx)
+	} else {
+		user, err := a.GetUser(userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to get user for file download permission filtering",
+				mlog.String("user_id", userID),
+				mlog.Err(err),
+			)
+			return nil
+		}
+		subject, appErr = a.BuildAccessControlSubject(rctx, userID, user.Roles)
 	}
-
-	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to build ABAC subject for file search filtering",
 			mlog.String("user_id", userID),

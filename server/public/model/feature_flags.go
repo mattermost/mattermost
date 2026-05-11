@@ -117,6 +117,9 @@ type FeatureFlags struct {
 
 	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
 	ManagedChannelCategories bool
+
+	// Enable collection of request-provided session attributes (user agent, IP address, etc.).
+	SessionAttributes bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -172,6 +175,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AggregatePluginMetrics = false
 
 	f.ManagedChannelCategories = false
+
+	f.SessionAttributes = false
 }
 
 // ToMap returns the feature flags as a map[string]string

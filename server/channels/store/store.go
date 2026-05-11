@@ -96,6 +96,7 @@ type Store interface {
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
+	SessionAttribute() SessionAttributeStore
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
@@ -1181,6 +1182,11 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+}
+
+type SessionAttributeStore interface {
+	Refresh(sessionID string, attrs map[string]any) error
+	Get(sessionID string) (map[string]any, error)
 }
 
 type AutoTranslationStore interface {

@@ -327,6 +327,9 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, fmt.Sprintf("unrecognized action: %s", action), 400)
 			}
 		}
+		if slices.Contains(rule.Actions, AccessControlPolicyActionMembership) && strings.Contains(rule.Expression, "user.session") {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.session_attribute_on_membership.app_error", nil, "", 400)
+		}
 	}
 
 	return nil

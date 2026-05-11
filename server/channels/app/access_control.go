@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 const attributeViewRefreshInterval = 30 * time.Second
@@ -695,23 +696,41 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(storeErr, &nfErr) {
-			return &model.Subject{
+			subject = &model.Subject{
 				ID:         userID,
 				Type:       "user",
 				Role:       roles,
 				Attributes: map[string]any{},
-			}, nil
+				Session:    map[string]any{},
+			}
+		} else {
+			rctx.Logger().Warn("Failed to get subject for access control subject",
+				mlog.String("user_id", userID),
+				mlog.String("roles", roles),
+				mlog.Err(storeErr),
+			)
+			return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.get_subject.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
-
-		rctx.Logger().Warn("Failed to get subject for access control subject",
-			mlog.String("user_id", userID),
-			mlog.String("roles", roles),
-			mlog.Err(storeErr),
-		)
-		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.get_subject.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
 	subject.Role = roles
+	return subject, nil
+}
+
+func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX) (*model.Subject, *model.AppError) {
+	subject, appErr := a.BuildAccessControlSubject(rctx, rctx.Session().UserId, rctx.Session().Roles)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	attrs, err := a.Srv().Store().SessionAttribute().Get(rctx.Session().Id)
+	if err != nil {
+		if errors.Is(err, cache.ErrKeyNotFound) {
+			return subject, nil
+		}
+		return nil, model.NewAppError("BuildAccessControlSubjectForSession", "app.access_control.build_subject_for_session.get_session_attributes.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	subject.Session = attrs
 	return subject, nil
 }
 
