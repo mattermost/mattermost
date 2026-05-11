@@ -3,6 +3,21 @@
 
 import {decomposeKorean, expect, koreanTestPhrase, test, typeHangulCharacterWithIme} from '@mattermost/playwright-lib';
 
+async function openInvitePeopleModal(pw: any, adminUser: any, team: any) {
+    const {channelsPage} = await pw.testBrowser.login(adminUser);
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+
+    await channelsPage.sidebarLeft.teamMenuButton.click();
+    await channelsPage.teamMenu.toBeVisible();
+    await channelsPage.teamMenu.clickInvitePeople();
+
+    const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
+    await inviteModal.toBeVisible();
+
+    return inviteModal;
+}
+
 test('MM-66937 Invite modal results match the current input state', async ({pw}) => {
     const {adminUser, adminClient, team} = await pw.initSetup();
 
@@ -55,6 +70,80 @@ test('MM-66937 Invite modal results match the current input state', async ({pw})
     await expect(listbox.getByRole('option')).toHaveCount(1);
     await expect(listbox.getByRole('option', {name: `@${user1.username}`})).not.toBeAttached();
     await expect(listbox.getByRole('option', {name: `@${user2.username}`})).toBeVisible();
+});
+
+test('Invite modal autocomplete is not clipped vertically', async ({pw}) => {
+    const {adminUser, adminClient, team} = await pw.initSetup();
+
+    const randomPrefix = pw.random.id(8);
+    const users = await Promise.all([
+        adminClient.createUser(await pw.random.user(randomPrefix + 'a'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'b'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'c'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'd'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'e'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'f'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'g'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'h'), '', ''),
+    ]);
+
+    const inviteModal = await openInvitePeopleModal(pw, adminUser, team);
+
+    await inviteModal.inviteInput.pressSequentially(randomPrefix);
+
+    const modalContent = inviteModal.container.locator('.modal-content');
+    const listbox = inviteModal.container.getByRole('listbox');
+    const options = listbox.getByRole('option');
+    await expect(options).toHaveCount(users.length);
+
+    const lastOption = options.last();
+    await expect(lastOption).toBeVisible();
+
+    const geometry = await Promise.all([modalContent.boundingBox(), lastOption.boundingBox()]);
+    const [modalContentBox, lastOptionBox] = geometry;
+    expect(modalContentBox).not.toBeNull();
+    expect(lastOptionBox).not.toBeNull();
+    expect(lastOptionBox!.y + lastOptionBox!.height).toBeGreaterThan(modalContentBox!.y + modalContentBox!.height);
+
+    const modalContentOverflow = await modalContent.evaluate((element: HTMLElement) => {
+        const style = window.getComputedStyle(element);
+
+        return {
+            overflowX: style.overflowX,
+            overflowY: style.overflowY,
+        };
+    });
+
+    expect(modalContentOverflow.overflowX).toBe('visible');
+    expect(modalContentOverflow.overflowY).toBe('visible');
+});
+
+test('Invite modal remains width-constrained with long unbroken input', async ({pw}) => {
+    const {adminUser, team} = await pw.initSetup();
+    const inviteModal = await openInvitePeopleModal(pw, adminUser, team);
+
+    const modalContent = inviteModal.container.locator('.modal-content');
+    const initialModalContentBox = await modalContent.boundingBox();
+    expect(initialModalContentBox).not.toBeNull();
+
+    await inviteModal.inviteInput.pressSequentially(
+        'averyveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongunbrokeninviteinput@example.com',
+    );
+
+    const modalContentMetrics = await modalContent.evaluate((element: HTMLElement) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+
+        return {
+            width: Math.round(rect.width),
+            overflowX: style.overflowX,
+            overflowY: style.overflowY,
+        };
+    });
+
+    expect(modalContentMetrics.width).toBeLessThanOrEqual(Math.ceil(initialModalContentBox!.width));
+    expect(modalContentMetrics.overflowX).toBe('visible');
+    expect(modalContentMetrics.overflowY).toBe('visible');
 });
 
 test('MM-66937 Invite modal results match the current input state when typing in Korean', async ({browserName, pw}) => {
