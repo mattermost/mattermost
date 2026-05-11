@@ -118,6 +118,47 @@ test('Invite modal autocomplete is not clipped vertically', async ({pw}) => {
     expect(modalContentOverflow.overflowY).toBe('visible');
 });
 
+test('Invite modal results are visible outside the modal', async ({pw}) => {
+    const {adminUser, adminClient, team} = await pw.initSetup();
+
+    // # Create enough users that the results will extend outside the modal until past when the result list is capped
+    const randomPrefix = pw.random.id(8);
+    const users = await Promise.all([
+        adminClient.createUser(await pw.random.user(randomPrefix + 'a'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'b'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'c'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'd'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'e'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'f'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'g'), '', ''),
+        adminClient.createUser(await pw.random.user(randomPrefix + 'h'), '', ''),
+    ]);
+
+    // # Open the Invite People modal
+    const inviteModal = await openInvitePeopleModal(pw, adminUser, team);
+
+    // # Type the prefix to filter out other users
+    await inviteModal.inviteInput.type(randomPrefix);
+
+    // At time of writing, 4 results are fully visible, the next is partly visible, and the rest are clipped
+    const visibleCount = 5;
+
+    for (let i = 0; i < users.length; i++) {
+        const user = users[i];
+
+        const option = await inviteModal.container.getByRole('option', {name: user.username, exact: false});
+        if (i < visibleCount) {
+            // * Verify that this user is in the list and on the screen
+            await expect(option).toBeVisible();
+            await expect(option).toBeInViewport();
+        } else {
+            // * Verify that this user is in the list but off the screen
+            await expect(option).toBeVisible();
+            await expect(option).not.toBeInViewport();
+        }
+    }
+});
+
 test('Invite modal remains width-constrained with long unbroken input', async ({pw}) => {
     const {adminUser, team} = await pw.initSetup();
     const inviteModal = await openInvitePeopleModal(pw, adminUser, team);
