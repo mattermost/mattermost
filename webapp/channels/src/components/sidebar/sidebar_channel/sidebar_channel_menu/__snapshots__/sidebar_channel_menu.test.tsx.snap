@@ -32,55 +32,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r3:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r4:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
     role="presentation"
@@ -348,55 +300,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r1n:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r1o:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -689,55 +593,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r1i:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r1j:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -1030,55 +886,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r11:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r12:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -1303,55 +1111,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r16:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r17:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -1612,55 +1372,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":ri:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":rj:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -1950,55 +1662,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":rn:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":ro:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -2291,55 +1955,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":rs:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":rt:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -2632,55 +2248,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":rd:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":re:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -2973,55 +2541,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r8:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r9:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >

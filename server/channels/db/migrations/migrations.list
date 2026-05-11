@@ -339,3 +339,7 @@ channels/db/migrations/postgres/000170_add_property_groups_version.down.sql
 channels/db/migrations/postgres/000170_add_property_groups_version.up.sql
 channels/db/migrations/postgres/000171_drop_property_fields_protected_index.down.sql
 channels/db/migrations/postgres/000171_drop_property_fields_protected_index.up.sql
+channels/db/migrations/postgres/000172_add_recaps_viewed_at.down.sql
+channels/db/migrations/postgres/000172_add_recaps_viewed_at.up.sql
+channels/db/migrations/postgres/000173_create_recaps_user_id_viewed_at_index.down.sql
+channels/db/migrations/postgres/000173_create_recaps_user_id_viewed_at_index.up.sql

@@ -43,7 +43,7 @@ export default function DeleteCategoryModal(props: Props) {
                     defaultMessage='Delete'
                 />
             )}
-            confirmButtonClassName={'delete'}
+            confirmButtonVariant='destructive'
         >
             <span className='delete-category__helpText'>
                 <FormattedMessage

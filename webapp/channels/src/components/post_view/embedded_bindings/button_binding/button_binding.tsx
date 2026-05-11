@@ -5,6 +5,7 @@ import React from 'react';
 import {injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -116,8 +117,9 @@ class ButtonBinding extends React.PureComponent<Props, State> {
         }
 
         return (
-            <button
-                className='btn btn-sm'
+            <Button
+                emphasis='tertiary'
+                size='sm'
                 onClick={this.handleClick}
             >
                 <LoadingWrapper
@@ -131,7 +133,7 @@ class ButtonBinding extends React.PureComponent<Props, State> {
                         }}
                     />
                 </LoadingWrapper>
-            </button>
+            </Button>
         );
     }
 }
