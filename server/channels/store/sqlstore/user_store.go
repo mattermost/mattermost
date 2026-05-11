@@ -449,6 +449,22 @@ func (us SqlUserStore) TryIncrementFailedPasswordAttempts(userId string, maxAtte
 	return rows == 1, nil
 }
 
+// DecrementFailedPasswordAttempts atomically decrements FailedAttempts by one
+// for the given user, only if FailedAttempts is strictly greater than zero. It
+// is used to refund a slot previously claimed by TryIncrementFailedPasswordAttempts
+// when the in-flight authentication turns out not to be a credential-failure
+// event (e.g. a backend error or an MFA pre-flight probe).
+func (us SqlUserStore) DecrementFailedPasswordAttempts(userId string) error {
+	_, err := us.GetMaster().Exec(
+		"UPDATE Users SET FailedAttempts = FailedAttempts - 1 WHERE Id = ? AND FailedAttempts > 0",
+		userId,
+	)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
+	}
+	return nil
+}
+
 func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, error) {
 	updateAt := model.GetMillis()
 

@@ -57,6 +57,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, rctx, ss) })
 	t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, rctx, ss) })
 	t.Run("TryIncrementFailedPasswordAttempts", func(t *testing.T) { testUserStoreTryIncrementFailedPasswordAttempts(t, rctx, ss) })
+	t.Run("DecrementFailedPasswordAttempts", func(t *testing.T) { testUserStoreDecrementFailedPasswordAttempts(t, rctx, ss) })
 	t.Run("Get", func(t *testing.T) { testUserStoreGet(t, rctx, ss) })
 	t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, rctx, ss) })
 	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, rctx, ss) })
@@ -429,6 +430,70 @@ func testUserStoreTryIncrementFailedPasswordAttempts(t *testing.T, rctx request.
 		user, err := ss.User().Get(context.Background(), u1.Id)
 		require.NoError(t, err)
 		require.Equal(t, maxAttempts, user.FailedAttempts)
+	})
+}
+
+func testUserStoreDecrementFailedPasswordAttempts(t *testing.T, rctx request.CTX, ss store.Store) {
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	_, err := ss.User().Save(rctx, u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	require.NoError(t, nErr)
+
+	t.Run("decrements when above zero", func(t *testing.T) {
+		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, 3))
+
+		require.NoError(t, ss.User().DecrementFailedPasswordAttempts(u1.Id))
+
+		user, err := ss.User().Get(context.Background(), u1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 2, user.FailedAttempts)
+	})
+
+	t.Run("does not go below zero", func(t *testing.T) {
+		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, 0))
+
+		require.NoError(t, ss.User().DecrementFailedPasswordAttempts(u1.Id))
+
+		user, err := ss.User().Get(context.Background(), u1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, user.FailedAttempts)
+	})
+
+	t.Run("no-op for unknown user", func(t *testing.T) {
+		require.NoError(t, ss.User().DecrementFailedPasswordAttempts(model.NewId()))
+	})
+
+	t.Run("concurrent decrements never go below zero", func(t *testing.T) {
+		const initial = 10
+		const goroutines = 50
+		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, initial))
+
+		var wg sync.WaitGroup
+		start := make(chan struct{})
+		errCh := make(chan error, goroutines)
+		wg.Add(goroutines)
+		for range goroutines {
+			go func() {
+				defer wg.Done()
+				<-start
+				if err := ss.User().DecrementFailedPasswordAttempts(u1.Id); err != nil {
+					errCh <- err
+				}
+			}()
+		}
+		close(start)
+		wg.Wait()
+		close(errCh)
+		for err := range errCh {
+			require.NoError(t, err)
+		}
+
+		user, err := ss.User().Get(context.Background(), u1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, user.FailedAttempts, "decrement must clamp at zero under contention")
 	})
 }
 

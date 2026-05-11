@@ -2154,6 +2154,24 @@ func (_m *UserStore) TryIncrementFailedPasswordAttempts(userID string, maxAttemp
 	return r0, r1
 }
 
+// DecrementFailedPasswordAttempts provides a mock function with given fields: userID
+func (_m *UserStore) DecrementFailedPasswordAttempts(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DecrementFailedPasswordAttempts")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateLastLogin provides a mock function with given fields: userID, lastLogin
 func (_m *UserStore) UpdateLastLogin(userID string, lastLogin int64) error {
 	ret := _m.Called(userID, lastLogin)
