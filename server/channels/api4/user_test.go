@@ -4373,10 +4373,14 @@ func TestRevokeSessionBotPermissions(t *testing.T) {
 		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
 		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
 
+		// Seed a real session so the test confirms the permission gate blocks
+		// access even when the target session genuinely exists.
+		botSession, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: bot.UserId})
+		require.Nil(t, appErr)
+
 		th.LoginBasic(t)
 
-		// Permission check fires before session lookup, so passing any session ID is sufficient.
-		resp, err := th.Client.RevokeSession(context.Background(), bot.UserId, model.NewId())
+		resp, err := th.Client.RevokeSession(context.Background(), bot.UserId, botSession.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
