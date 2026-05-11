@@ -69,6 +69,10 @@ type FeatureFlags struct {
 
 	AttributeBasedAccessControl bool
 
+	// Mask non-held attribute values in the policy editor for delegated admins.
+	// Requires AttributeBasedAccessControl.
+	AttributeValueMasking bool
+
 	// Enable permission policies (file upload/download ABAC policies).
 	// Requires AttributeBasedAccessControl to also be enabled.
 	PermissionPolicies bool
@@ -111,6 +115,9 @@ type FeatureFlags struct {
 	// Collect plugin metrics and serve them on the /metrics endpoint
 	AggregatePluginMetrics bool
 
+	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
+	ManagedChannelCategories bool
+
 	// Enable the new mm_blocks Interactive Messages framework
 	MmBlocksEnabled bool
 }
@@ -141,6 +148,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
+	f.AttributeValueMasking = false
 	f.PermissionPolicies = false
 	f.ContentFlagging = true
 	f.InteractiveDialogAppsForm = true
@@ -165,6 +173,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CJKSearch = false
 
 	f.AggregatePluginMetrics = false
+
+	f.ManagedChannelCategories = false
 
 	f.MmBlocksEnabled = false
 }

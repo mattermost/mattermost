@@ -58,6 +58,14 @@ func TestFeatureFlagsMmBlocksEnabledDefault(t *testing.T) {
 	require.Equal(t, "false", f.ToMap()["MmBlocksEnabled"])
 }
 
+func TestFeatureFlagsSetDefaults_AttributeValueMasking(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.False(t, flags.AttributeValueMasking, "AttributeValueMasking should default to false")
+	require.Equal(t, "false", flags.ToMap()["AttributeValueMasking"])
+}
+
 func TestFeatureFlagsToMapBool(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Flags            FeatureFlags

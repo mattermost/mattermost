@@ -6,6 +6,7 @@
 .clWrapper {
     width: auto;
     padding: 25px;
+    margin-bottom: 20px;
 }
 
 .clCenterBackground {
@@ -52,4 +53,27 @@
     background: rgba(var(--center-channel-color-rgb), 0.08);
     color: rgba(var(--center-channel-color-rgb), 0.72);
     font-size: 13px;
+}
+
+.clTable {
+    width: 100%;
+    max-width: 970px;
+    background-color: var(--center-channel-bg);
+
+    th {
+        text-transform: capitalize;
+    }
+
+    tr {
+        background-color: var(--center-channel-bg);
+    }
+
+    th, td {
+        padding: 12px 10px;
+        text-align: center;
+
+        &.inverted {
+            background-color: var(--sidebar-bg);
+        }
+    }
 }

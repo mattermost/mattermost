@@ -106,7 +106,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	// Check for environment variable override for console log level (useful for debugging tests)
 	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
 	if consoleLevel == "" {
-		consoleLevel = mlog.LvlStdLog.Name
+		consoleLevel = mlog.LvlDebug.Name
 	}
 	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
 	// Use a subdirectory within the logging root (from MM_LOG_PATH or default)

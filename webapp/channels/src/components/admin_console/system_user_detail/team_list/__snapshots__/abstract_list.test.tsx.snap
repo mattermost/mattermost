@@ -132,7 +132,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         11 - 20 of 30
       </div>
       <button
-        class="btn btn-tertiary prev "
+        class="btn btn-tertiary prev"
         type="button"
       >
         <i
@@ -141,7 +141,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         />
       </button>
       <button
-        class="btn btn-tertiary next "
+        class="btn btn-tertiary next"
         type="button"
       >
         <i
@@ -258,7 +258,7 @@ exports[`admin_console/system_user_detail/team_list/AbstractList should match sn
         />
       </button>
       <button
-        class="btn btn-tertiary next "
+        class="btn btn-tertiary next"
         type="button"
       >
         <i

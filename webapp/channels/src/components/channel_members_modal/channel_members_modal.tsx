@@ -5,6 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
@@ -90,17 +91,17 @@ export default class ChannelMembersModal extends React.PureComponent<Props, Stat
                             />
                         </Modal.Title>
                         {this.props.canManageChannelMembers && !channelIsArchived &&
-                            <a
+                            <Button
                                 id='showInviteModal'
-                                className='btn btn-md btn-primary'
-                                href='#'
+                                emphasis='primary'
+                                size='md'
                                 onClick={this.onAddNewMembersButton}
                             >
                                 <FormattedMessage
                                     id='channel_members_modal.addNew'
                                     defaultMessage=' Add Members'
                                 />
-                            </a>
+                            </Button>
                         }
                     </Modal.Header>
                     <Modal.Body>

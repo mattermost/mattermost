@@ -783,6 +783,11 @@ func TestDetectSAMLProviderType(t *testing.T) {
 			expectedProvider: "ADFS",
 		},
 		{
+			name:             "ADFS provider with bare /adfs path (no trailing slash)",
+			idpDescriptorURL: "https://adfs.company.com/adfs",
+			expectedProvider: "ADFS",
+		},
+		{
 			name:             "Azure AD provider with login.microsoftonline.com",
 			idpDescriptorURL: "https://login.microsoftonline.com/12345/saml2",
 			expectedProvider: "Azure AD",

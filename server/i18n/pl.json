@@ -10664,10 +10664,6 @@
     "translation": "Kanały są ograniczone do grup i nie mogą mieć zastosowanych polityk kontroli dostępu."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Polityki kontroli dostępu mogą być stosowane tylko do kanałów prywatnych."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "Kanały udostępnione nie mogą mieć zastosowanej polityki kontroli dostępu."
   },
@@ -12666,5 +12662,129 @@
   {
     "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
     "translation": "Identyfikator zakresu nie może być ustawiony bez zakresu."
+  },
+  {
+    "id": "api.property.v2_group_not_found.app_error",
+    "translation": "Określona grupa właściwości nie została znaleziona."
+  },
+  {
+    "id": "api.property_field.patch.cannot_link_existing.app_error",
+    "translation": "Nie można ustawić linked_field_id na istniejącym polu. Można go ustawić tylko w czasie tworzenia."
+  },
+  {
+    "id": "api.property_field.patch.linked_field_change.app_error",
+    "translation": "Nie można zmienić celu linku. Najpierw usuń link, a następnie utwórz nowe połączone pole."
+  },
+  {
+    "id": "api.property_field.patch.linked_options_change.app_error",
+    "translation": "Nie można modyfikować opcji pola Link. Opcje są dziedziczone ze źródła."
+  },
+  {
+    "id": "api.property_field.patch.linked_type_change.app_error",
+    "translation": "Nie można zmodyfikować typu pola Link. Typ jest dziedziczony ze źródła."
+  },
+  {
+    "id": "api.property_value.template_no_values.app_error",
+    "translation": "Pola szablonu nie mogą mieć wartości."
+  },
+  {
+    "id": "app.bot.update.internal_error",
+    "translation": "Nie można zaktualizować bota."
+  },
+  {
+    "id": "app.import.import_bot.lookup_error",
+    "translation": "Nie udało się wyszukać istniejącego bota"
+  },
+  {
+    "id": "app.import.import_bot.user_not_found.error",
+    "translation": "Nie znaleziono użytkownika dla bota"
+  },
+  {
+    "id": "app.property_field.create.linked_source_cross_group.app_error",
+    "translation": "Nie można utworzyć linku do pola w innej grupie."
+  },
+  {
+    "id": "app.property_field.create.linked_source_deleted.app_error",
+    "translation": "Pole Link Source zostało usunięte."
+  },
+  {
+    "id": "app.property_field.create.linked_source_is_linked.app_error",
+    "translation": "Nie możesz linkować do pola, które samo jest linkowane. Łańcuchy nie są dozwolone."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_found.app_error",
+    "translation": "Pole Link Source nie zostało znalezione."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_template.app_error",
+    "translation": "Możesz linkować tylko do pól szablonu."
+  },
+  {
+    "id": "app.property_field.create.linked_source_protected.app_error",
+    "translation": "Tylko Wtyczka źródłowa może tworzyć pola Link z chronionego szablonu."
+  },
+  {
+    "id": "app.property_field.create.linked_target_type_mismatch.app_error",
+    "translation": "Typ docelowy pola Link musi być zgodny z typem docelowym szablonu źródłowego."
+  },
+  {
+    "id": "app.property_field.create.template_cannot_be_linked.app_error",
+    "translation": "Pola szablonu nie mogą mieć pola z linkiem."
+  },
+  {
+    "id": "app.property_field.delete.has_linked_dependents.app_error",
+    "translation": "Nie możesz usunąć pola z aktywnymi linkami zależnymi. Najpierw rozłącz lub usuń pola zależne."
+  },
+  {
+    "id": "app.property_field.update.cannot_change_link_target.app_error",
+    "translation": "Nie można zmienić celu linku. Najpierw usuń link, a następnie utwórz nowe połączone pole."
+  },
+  {
+    "id": "app.property_field.update.cannot_link_existing.app_error",
+    "translation": "Nie można ustawić linked_field_id na istniejącym polu. Można go ustawić tylko w czasie tworzenia."
+  },
+  {
+    "id": "app.property_field.update.conflict.app_error",
+    "translation": "Nie można zaktualizować pola właściwości z powodu konfliktu. Spróbuj ponownie."
+  },
+  {
+    "id": "app.property_field.update.linked_options_change.app_error",
+    "translation": "Nie można modyfikować opcji pola Link. Opcje są dziedziczone ze źródła."
+  },
+  {
+    "id": "app.property_field.update.linked_type_change.app_error",
+    "translation": "Nie można zmodyfikować typu pola Link. Typ jest dziedziczony ze źródła."
+  },
+  {
+    "id": "app.property_field.update.type_change_with_dependents.app_error",
+    "translation": "Nie można zmienić typu pola z aktywnymi linkami zależności."
+  },
+  {
+    "id": "app.property_field.version_mismatch.app_error",
+    "translation": "Wersje pola właściwości i grupy są niekompatybilne."
+  },
+  {
+    "id": "app.property_value.template_no_values.app_error",
+    "translation": "Pola szablonu nie mogą mieć wartości."
+  },
+  {
+    "id": "app.upload.gen_file_info.invalid_filename.app_error",
+    "translation": "Nieprawidłowa nazwa pliku."
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.bulk_failures.error",
+    "translation": "Zadanie indeksowania zostało zakończone, ale dokumenty {{.NumFailed}} zostały odrzucone przez zaplecze wyszukiwania i nie zostały zindeksowane"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.create_bulk_processor.error",
+    "translation": "Worker indeksujący nie mógł zainicjować procesora zbiorczego"
+  },
+  {
+    "id": "model.file_info.is_valid.name.app_error",
+    "translation": "Nieprawidłowa wartość dla nazwy."
+  },
+  {
+    "id": "model.property_group.is_valid.app_error",
+    "translation": "Nieprawidłowa grupa właściwości: {{.FieldName}} ({{.Reason}})."
   }
 ]
