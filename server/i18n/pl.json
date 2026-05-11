@@ -12782,5 +12782,9 @@
   {
     "id": "model.property_group.is_valid.app_error",
     "translation": "Nieprawidłowa grupa właściwości: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "Kanał ten nie jest już udostępniany innej przestrzeni roboczej."
   }
 ]
