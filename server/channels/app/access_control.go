@@ -112,6 +112,42 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 	}
 
+	// Masking is attribute-based, not role-based. Callers may save changes to a
+	// policy even when masked values are present, provided they do not remove any
+	// condition row that contains values they cannot see. Merge-on-save re-injects
+	// hidden values into submitted conditions; a missing masked condition is blocked.
+	if a.Config().FeatureFlags.AttributeBasedAccessControl && a.Config().FeatureFlags.AttributeValueMasking {
+		session := rctx.Session()
+		if session == nil {
+			return nil, model.NewAppError("CreateOrUpdateAccessControlPolicy", "api.context.session_expired.app_error", nil, "session required for masking validation", http.StatusUnauthorized)
+		}
+		callerID := session.UserId
+
+		// Validate submitted values BEFORE merge: only the values the caller
+		// actually submitted should be checked against their holdings. Running
+		// validation after merge would reject the re-injected hidden values
+		// (e.g. Bravo, Charlie) that the caller legitimately cannot see.
+		if appErr := a.validatePolicyExpressionValues(rctx, policy, callerID); appErr != nil {
+			return nil, appErr
+		}
+
+		// Merge hidden values back in and block deletion of masked conditions.
+		if appErr := a.mergeStoredPolicyExpressions(rctx, policy, callerID); appErr != nil {
+			return nil, appErr
+		}
+
+		// Self-inclusion check applies only to non-admins. System admins may
+		// legitimately set conditions for attributes they do not personally hold
+		// (e.g., creating a "Clearance == Top Secret" rule without holding that
+		// clearance themselves). Masking and write-path value validation still
+		// apply to system admins above.
+		if !a.HasPermissionTo(callerID, model.PermissionManageSystem) {
+			if appErr := a.checkSelfInclusion(rctx, policy, callerID); appErr != nil {
+				return nil, appErr
+			}
+		}
+	}
+
 	var appErr *model.AppError
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
@@ -128,6 +164,187 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	return policy, nil
 }
 
+// policyHasMaskedValuesForCaller returns true if the stored policy (identified by id)
+// contains any attribute values that are not visible to callerID under the current masking rules.
+// Returns false for new policies (not found) — new policies have no hidden values yet.
+func (a *App) policyHasMaskedValuesForCaller(rctx request.CTX, id, callerID string) (bool, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return false, nil
+	}
+
+	existingPolicy, appErr := acs.GetPolicy(rctx, id)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return false, nil
+		}
+		return false, appErr
+	}
+
+	for _, rule := range existingPolicy.Rules {
+		if rule.Expression == "" || rule.Expression == "true" {
+			continue
+		}
+		maskedAST, appErr := a.GetMaskedVisualAST(rctx, rule.Expression, callerID)
+		if appErr != nil {
+			return false, appErr
+		}
+		for _, cond := range maskedAST.Conditions {
+			if cond.HasMaskedValues {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
+// mergeStoredPolicyExpressions re-injects hidden values from the stored policy into the
+// submitted one, and blocks the save if the caller removed a condition that contained
+// values they cannot see (which would silently widen access beyond what they could audit).
+// No-op for new policies (not found in store).
+func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) *model.AppError {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil
+	}
+
+	existingPolicy, appErr := acs.GetPolicy(rctx, policy.ID)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return nil
+		}
+		return appErr
+	}
+
+	for i, rule := range policy.Rules {
+		if i >= len(existingPolicy.Rules) {
+			continue
+		}
+		storedExpr := existingPolicy.Rules[i].Expression
+		if storedExpr == "" || storedExpr == "true" {
+			continue
+		}
+		mergedExpr, appErr := a.mergeExpressionWithMaskedValues(rctx, rule.Expression, storedExpr, callerID)
+		if appErr != nil {
+			return appErr
+		}
+		policy.Rules[i].Expression = mergedExpr
+	}
+
+	return nil
+}
+
+// mergeExpressionWithMaskedValues re-injects hidden values from storedExpr into submittedExpr.
+// Returns HTTP 403 if the caller removed a condition that contained values they cannot see.
+func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, submittedExpr, storedExpr, callerID string) (string, *model.AppError) {
+	submittedAST, appErr := a.ExpressionToVisualAST(rctx, submittedExpr)
+	if appErr != nil {
+		return "", appErr
+	}
+
+	storedAST, appErr := a.ExpressionToVisualAST(rctx, storedExpr)
+	if appErr != nil {
+		return "", appErr
+	}
+
+	cpaGroupID, appErr := a.CpaGroupID()
+	if appErr != nil {
+		return "", model.NewAppError("mergeExpressionWithMaskedValues", "app.pap.merge_expression.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
+
+	// Pre-fetch fields once for all stored conditions.
+	fieldsByName := a.fetchConditionFields(rctxWithCaller, storedAST.Conditions, cpaGroupID)
+
+	// Build a lookup of submitted conditions by attribute for O(1) membership checks.
+	submittedAttrs := make(map[string]struct{}, len(submittedAST.Conditions))
+	for _, cond := range submittedAST.Conditions {
+		submittedAttrs[cond.Attribute] = struct{}{}
+	}
+
+	// Block deletion of any stored condition that has hidden values for this caller.
+	for i := range storedAST.Conditions {
+		hidden := a.getHiddenValues(rctxWithCaller, callerID, &storedAST.Conditions[i], cpaGroupID, fieldsByName)
+		if len(hidden) == 0 {
+			continue
+		}
+		if _, present := submittedAttrs[storedAST.Conditions[i].Attribute]; !present {
+			return "", model.NewAppError("mergeExpressionWithMaskedValues", "app.pap.save_policy.masked_condition_deleted", nil,
+				"cannot remove a rule condition that contains attribute values you do not hold", http.StatusForbidden)
+		}
+	}
+
+	// Match submitted conditions to stored ones by attribute (in order), merge hidden values.
+	storedByAttr := make(map[string][]model.Condition)
+	for _, cond := range storedAST.Conditions {
+		storedByAttr[cond.Attribute] = append(storedByAttr[cond.Attribute], cond)
+	}
+
+	matchCount := make(map[string]int)
+	var mergedConditions []model.Condition
+
+	for _, submitted := range submittedAST.Conditions {
+		storedList, found := storedByAttr[submitted.Attribute]
+		if !found {
+			mergedConditions = append(mergedConditions, submitted)
+			continue
+		}
+
+		matchIdx := matchCount[submitted.Attribute]
+		matchCount[submitted.Attribute]++
+
+		if matchIdx >= len(storedList) {
+			mergedConditions = append(mergedConditions, submitted)
+			continue
+		}
+
+		stored := storedList[matchIdx]
+		hiddenValues := a.getHiddenValues(rctxWithCaller, callerID, &stored, cpaGroupID, fieldsByName)
+		merged := mergeConditionValues(submitted, hiddenValues)
+		merged.Operator = stored.Operator
+		merged.AttributeType = stored.AttributeType
+		// Frontend emits "attr in []" as the placeholder for any fully-masked row
+		// regardless of the stored operator. After we restore the original operator,
+		// the value shape may not match (e.g., "==" with a []any value). Normalize
+		// scalar operators to a single string from the array.
+		if isScalarOperator(merged.Operator) {
+			if arr, ok := merged.Value.([]any); ok {
+				if len(arr) == 0 {
+					merged.Value = nil
+				} else if s, ok := arr[0].(string); ok {
+					merged.Value = s
+				}
+			}
+		}
+		mergedConditions = append(mergedConditions, merged)
+	}
+
+	return buildCELFromConditions(mergedConditions), nil
+}
+
+// checkSelfInclusion verifies the caller satisfies all policy rules after their edit.
+func (a *App) checkSelfInclusion(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) *model.AppError {
+	for _, rule := range policy.Rules {
+		if rule.Expression == "" || rule.Expression == "true" {
+			continue
+		}
+
+		matches, appErr := a.ValidateExpressionAgainstRequester(rctx, rule.Expression, callerID)
+		if appErr != nil {
+			return appErr
+		}
+		if !matches {
+			return model.NewAppError("CreateOrUpdateAccessControlPolicy",
+				"app.pap.save_policy.self_exclusion", nil,
+				"You do not satisfy one or more conditions in this policy.", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
 func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppError {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
@@ -140,6 +357,19 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 	policy, appErr := acs.GetPolicy(rctx, id)
 	if appErr != nil {
 		return appErr
+	}
+
+	if a.Config().FeatureFlags.AttributeBasedAccessControl && a.Config().FeatureFlags.AttributeValueMasking {
+		session := rctx.Session()
+		if session != nil {
+			callerID := session.UserId
+			if hasMasked, appErr := a.policyHasMaskedValuesForCaller(rctx, id, callerID); appErr != nil {
+				return appErr
+			} else if hasMasked {
+				return model.NewAppError("DeleteAccessControlPolicy", "app.pap.delete_policy.masked_values", nil,
+					"policy contains attribute values you do not hold; you cannot delete this policy", http.StatusForbidden)
+			}
+		}
 	}
 
 	var affectedChannelIDs []string
@@ -238,7 +468,6 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 		if appErr != nil {
 			return nil, appErr
 		}
-		a.publishChannelPolicyEnforcedUpdate(rctx, child.ID)
 		policies = append(policies, child)
 	}
 
@@ -284,15 +513,14 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
 				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
-			// invalidate the channel cache and broadcast the policy change
-			a.publishChannelPolicyEnforcedUpdate(rctx, channelID)
+			// invalidate the channel cache
+			a.Srv().Store().Channel().InvalidateChannel(channelID)
 			continue
 		}
 		_, appErr = acs.SavePolicy(rctx, child)
 		if appErr != nil {
 			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
-		a.publishChannelPolicyEnforcedUpdate(rctx, channelID)
 	}
 
 	return nil
@@ -371,14 +599,6 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 	if err != nil {
 		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
-	for _, policy := range policies {
-		// only channel policies use the active state
-		if policy.Type == model.AccessControlPolicyTypeChannel {
-			a.publishChannelPolicyEnforcedUpdate(rctx, policy.ID)
-		}
-	}
-
 	return policies, nil
 }
 
@@ -395,6 +615,7 @@ func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model
 
 	return visualAST, nil
 }
+
 
 // publishChannelPolicyEnforcedForChannelPoliciesWithImport broadcasts
 // channel_access_control_updated for every channel-type policy that lists

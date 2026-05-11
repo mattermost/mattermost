@@ -159,6 +159,19 @@ func TestBuildCELFromConditions(t *testing.T) {
 		result := buildCELFromConditions(conditions)
 		assert.Equal(t, "true", result)
 	})
+
+	t.Run("masked token in values produces valid CEL", func(t *testing.T) {
+		conds := []model.Condition{{
+			Attribute:     "user.attributes.Program",
+			Operator:      "in",
+			Value:         []any{"Alpha", maskedTokenValue},
+			ValueType:     model.LiteralValue,
+			AttributeType: "select",
+		}}
+		result := buildCELFromConditions(conds)
+		assert.Contains(t, result, "Alpha")
+		assert.Contains(t, result, maskedTokenValue)
+	})
 }
 
 func TestExtractStringValues(t *testing.T) {
@@ -322,4 +335,3 @@ func TestGetHiddenValues(t *testing.T) {
 		assert.Nil(t, result)
 	})
 }
-
