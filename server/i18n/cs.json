@@ -10532,10 +10532,6 @@
     "translation": "Kanál je omezen skupinou a nelze na něj použít pravidla řízení přístupu."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Pravidla řízení přístupu lze použít pouze na soukromé kanály."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "Na sdílené kanály nelze použít pravidla řízení přístupu."
   },

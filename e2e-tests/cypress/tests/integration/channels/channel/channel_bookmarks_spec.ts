@@ -340,6 +340,33 @@ describe('Channel Bookmarks', () => {
                 cy.visit(`/${testTeam.name}/channels/${publicChannel.name}`);
             });
         });
+
+        it('reorder is disabled when only one bookmark exists', () => {
+            // # Use a fresh channel with exactly one bookmark
+            cy.apiCreateChannel(testTeam.id, `single-${getRandomId(4)}`, 'single bookmark', 'O').then((result) => {
+                cy.visit(`/${testTeam.name}/channels/${result.channel.name}`);
+
+                const {displayName} = createLinkBookmark({displayName: 'Solo Bookmark', fromChannelMenu: true});
+
+                // # Press Space on the only bookmark
+                cy.findByTestId('channel-bookmarks-container').findByRole('link', {name: displayName}).focus().
+                    trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+
+                cy.wait(TIMEOUTS.HALF_SEC);
+
+                // * Reorder visual state did not engage (no 3px reorder outline)
+                cy.findByTestId('channel-bookmarks-container').
+                    find('[data-bookmark-id] > div').first().
+                    should('not.have.css', 'outline-width', '3px');
+
+                // * Bookmark count and identity unchanged
+                cy.findByTestId('channel-bookmarks-container').findAllByRole('link').
+                    should('have.length', 1).first().should('contain', displayName);
+
+                // # Return to original channel for subsequent tests
+                cy.visit(`/${testTeam.name}/channels/${publicChannel.name}`);
+            });
+        });
     });
 
     describe('manage bookmarks - permissions enforcement', () => {

@@ -74,6 +74,24 @@ func (_m *PropertyGroupStore) GetByID(id string) (*model.PropertyGroup, error) {
 	return r0, r1
 }
 
+// IncrementVersion provides a mock function with given fields: name
+func (_m *PropertyGroupStore) IncrementVersion(name string) error {
+	ret := _m.Called(name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IncrementVersion")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(name)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Register provides a mock function with given fields: group
 func (_m *PropertyGroupStore) Register(group *model.PropertyGroup) (*model.PropertyGroup, error) {
 	ret := _m.Called(group)

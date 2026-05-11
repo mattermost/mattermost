@@ -4138,12 +4138,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       >
         Cancel
       </a>
-      <a
+      <button
         class="btn btn-quaternary"
         data-testid="resetPermissionsToDefault"
       >
         Reset to Defaults
-      </a>
+      </button>
       <div
         class="error-message"
       />
@@ -8122,12 +8122,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       >
         Cancel
       </a>
-      <a
+      <button
         class="btn btn-quaternary"
         data-testid="resetPermissionsToDefault"
       >
         Reset to Defaults
-      </a>
+      </button>
       <div
         class="error-message"
       />
@@ -12107,12 +12107,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       >
         Cancel
       </a>
-      <a
+      <button
         class="btn btn-quaternary"
         data-testid="resetPermissionsToDefault"
       >
         Reset to Defaults
-      </a>
+      </button>
       <div
         class="error-message"
       />
@@ -16091,12 +16091,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       >
         Cancel
       </a>
-      <a
+      <button
         class="btn btn-quaternary"
         data-testid="resetPermissionsToDefault"
       >
         Reset to Defaults
-      </a>
+      </button>
       <div
         class="error-message"
       />
