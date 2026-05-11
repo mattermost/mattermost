@@ -53,7 +53,7 @@ func (a *App) RefreshRequestProvidedSessionAttributesIfNeeded(rctx request.CTX, 
 	}
 
 	if err := a.Srv().Store().SessionAttribute().Refresh(session.Id, attrs); err != nil {
-		rctx.Logger().Warn("Failed to refresh session attributes", mlog.String("session_id", session.Id), mlog.Err(err))
+		rctx.Logger().Warn("Failed to refresh session attributes", mlog.Err(err))
 	}
 }
 
