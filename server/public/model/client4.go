@@ -658,6 +658,14 @@ func (c *Client4) channelWikisRoute(channelId string) clientRoute {
 	return c.channelRoute(channelId).Join("wikis")
 }
 
+func (c *Client4) channelWikiLinksRoute(channelId string) clientRoute {
+	return c.channelRoute(channelId).Join("wikilinks")
+}
+
+func (c *Client4) teamWikisRoute(teamId string) clientRoute {
+	return c.teamRoute(teamId).Join("wikis")
+}
+
 func (c *Client4) wikiDraftsRoute(wikiId string) clientRoute {
 	return c.wikiRoute(wikiId).Join("drafts")
 }
@@ -8059,14 +8067,61 @@ func (c *Client4) DeleteWiki(ctx context.Context, wikiId string) (*Response, err
 	return BuildResponse(r), nil
 }
 
-// MoveWikiToChannel moves a wiki and all its pages to another channel.
-func (c *Client4) MoveWikiToChannel(ctx context.Context, wikiId string, request map[string]string) (*Wiki, *Response, error) {
-	r, err := c.doAPIPatchJSON(ctx, c.wikiRoute(wikiId).Join("move"), request)
+// LinkWikiToChannel links a wiki to a channel.
+func (c *Client4) LinkWikiToChannel(ctx context.Context, channelId, wikiId string) (*WikiLink, *Response, error) {
+	payload := map[string]string{"wiki_id": wikiId}
+	r, err := c.doAPIPostJSON(ctx, c.channelWikiLinksRoute(channelId), payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*Wiki](r)
+	return DecodeJSONFromResponse[*WikiLink](r)
+}
+
+// GetWikiLinksForChannel gets all wiki links for a channel.
+func (c *Client4) GetWikiLinksForChannel(ctx context.Context, channelId string) ([]*WikiLink, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.channelWikiLinksRoute(channelId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*WikiLink](r)
+}
+
+// GetWikiLinks gets all wiki links pointing to a wiki's backing channel.
+// Used to populate client-side linksByChannel for any source channel that links
+// to this wiki, so permission checks and sidebar resolution work without
+// depending on a ?from= URL parameter.
+func (c *Client4) GetWikiLinks(ctx context.Context, wikiId string) ([]*WikiLink, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.wikiRoute(wikiId).Join("links"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*WikiLink](r)
+}
+
+// UnlinkWikiFromChannel removes a wiki link from a channel.
+func (c *Client4) UnlinkWikiFromChannel(ctx context.Context, channelId, wikiId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.channelWikiLinksRoute(channelId).Join(wikiId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// GetTeamWikis gets all wikis accessible to the current user in a team.
+func (c *Client4) GetTeamWikis(ctx context.Context, teamId string, page, perPage int) ([]*Wiki, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.teamWikisRoute(teamId), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*Wiki](r)
 }
 
 // GetPages gets all pages for a wiki with pagination.

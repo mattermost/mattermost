@@ -157,7 +157,7 @@ import type {
     UserCustomStatus,
 } from '@mattermost/types/users';
 import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
-import type {Wiki, WikiCreate, BreadcrumbPath} from '@mattermost/types/wikis';
+import type {Wiki, WikiCreate, BreadcrumbPath, WikiLink} from '@mattermost/types/wikis';
 
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
@@ -2127,7 +2127,7 @@ export default class Client4 {
     updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch, connectionId: string) => {
         return this.doFetch<UpdateChannelBookmarkResponse>(
             `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
-            {method: 'patch', body: JSON.stringify(patch), headers: {'Connection-Id': connectionId}},
+            {method: 'PATCH', body: JSON.stringify(patch), headers: {'Connection-Id': connectionId}},
         );
     };
 
@@ -2159,14 +2159,14 @@ export default class Client4 {
     createWiki = (wiki: WikiCreate) => {
         return this.doFetch<Wiki>(
             `${this.getWikisRoute()}`,
-            {method: 'post', body: JSON.stringify(wiki)},
+            {method: 'POST', body: JSON.stringify(wiki)},
         );
     };
 
     getWiki = (wikiId: string) => {
         return this.doFetch<Wiki>(
             `${this.getWikiRoute(wikiId)}`,
-            {method: 'get'},
+            {method: 'GET'},
         );
     };
 
@@ -2180,21 +2180,56 @@ export default class Client4 {
     deleteWiki = (wikiId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getWikiRoute(wikiId)}`,
-            {method: 'delete'},
+            {method: 'DELETE'},
         );
     };
 
-    getChannelWikis = (channelId: string, includeDeleted = false) => {
+    getChannelWikis = (channelId: string) => {
         return this.doFetch<Wiki[]>(
-            `${this.getChannelWikisRoute(channelId)}${buildQueryString({include_deleted: includeDeleted})}`,
-            {method: 'get'},
+            this.getChannelWikisRoute(channelId),
+            {method: 'GET'},
+        );
+    };
+
+    getTeamWikis = (teamId: string, page = 0, perPage = 60) => {
+        return this.doFetch<Wiki[]>(
+            `${this.getTeamRoute(teamId)}/wikis${buildQueryString({page, per_page: perPage})}`,
+            {method: 'GET'},
+        );
+    };
+
+    linkWikiToChannel = (channelId: string, wikiId: string) => {
+        return this.doFetch<WikiLink>(
+            `${this.getChannelRoute(channelId)}/wikilinks`,
+            {method: 'POST', body: JSON.stringify({wiki_id: wikiId})},
+        );
+    };
+
+    unlinkWikiFromChannel = (channelId: string, wikiId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getChannelRoute(channelId)}/wikilinks/${wikiId}`,
+            {method: 'DELETE'},
+        );
+    };
+
+    getWikiLinksForChannel = (channelId: string) => {
+        return this.doFetch<WikiLink[]>(
+            `${this.getChannelRoute(channelId)}/wikilinks`,
+            {method: 'GET'},
+        );
+    };
+
+    getWikiLinks = (wikiId: string) => {
+        return this.doFetch<WikiLink[]>(
+            `${this.getWikiRoute(wikiId)}/links`,
+            {method: 'GET'},
         );
     };
 
     getPages = (wikiId: string, page = 0, perPage = 60) => {
         return this.doFetch<Post[]>(
             `${this.getWikiPagesRoute(wikiId)}${buildQueryString({page, per_page: perPage})}`,
-            {method: 'get'},
+            {method: 'GET'},
         );
     };
 
@@ -2208,47 +2243,47 @@ export default class Client4 {
         }
         return this.doFetch<Post>(
             `${this.getWikiPagesRoute(wikiId)}`,
-            {method: 'post', body: JSON.stringify(body)},
+            {method: 'POST', body: JSON.stringify(body)},
         );
     };
 
     getPage = (wikiId: string, pageId: string) => {
         return this.doFetch<Post>(
             `${this.getWikiPageRoute(wikiId, pageId)}`,
-            {method: 'get'},
+            {method: 'GET'},
         );
     };
 
     getPageBreadcrumb = (wikiId: string, pageId: string) => {
         return this.doFetch<BreadcrumbPath>(
             `${this.getWikiPageRoute(wikiId, pageId)}/breadcrumb`,
-            {method: 'get'},
+            {method: 'GET'},
         );
     };
 
     getPageComments = (wikiId: string, pageId: string) => {
         return this.doFetch<Post[]>(
             `${this.getWikiPageRoute(wikiId, pageId)}/comments`,
-            {method: 'get'},
+            {method: 'GET'},
         );
     };
 
     getPageActiveEditors = (wikiId: string, pageId: string) => {
         return this.doFetch<{user_ids: string[]; last_activities: Record<string, number>}>(
             `${this.getWikiPageRoute(wikiId, pageId)}/active_editors`,
-            {method: 'get'},
+            {method: 'GET'},
         );
     };
 
     getPageVersionHistory = (wikiId: string, pageId: string) => {
         return this.doFetch<Post[]>(
             `${this.getWikiPageRoute(wikiId, pageId)}/version_history`,
-            {method: 'get'},
+            {method: 'GET'},
         );
     };
 
     getChannelDefaultWikiPage = async (channelId: string) => {
-        const wikis = await this.getChannelWikis(channelId, false);
+        const wikis = await this.getChannelWikis(channelId);
         if (wikis.length === 0) {
             throw new Error('No wiki found for channel');
         }
@@ -2264,14 +2299,14 @@ export default class Client4 {
     getChannelPages = (channelId: string) => {
         return this.doFetch<PostList>(
             `${this.getChannelRoute(channelId)}/pages`,
-            {method: 'get'},
+            {method: 'GET'},
         );
     };
 
     deletePage = (wikiId: string, pageId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getWikiPageRoute(wikiId, pageId)}`,
-            {method: 'delete'},
+            {method: 'DELETE'},
         );
     };
 
@@ -2282,8 +2317,8 @@ export default class Client4 {
         );
     };
 
-    updatePage = (wikiId: string, pageId: string, title?: string, content?: string, searchText?: string) => {
-        const body: {title?: string; content?: string; search_text?: string} = {};
+    updatePage = (wikiId: string, pageId: string, title?: string, content?: string, searchText?: string, fileIds?: string[], baseEditAt?: number, force?: boolean) => {
+        const body: {title?: string; content?: string; search_text?: string; file_ids?: string[]; base_edit_at?: number; force?: boolean} = {};
         if (title !== undefined) {
             body.title = title;
         }
@@ -2293,9 +2328,18 @@ export default class Client4 {
         if (searchText !== undefined) {
             body.search_text = searchText;
         }
+        if (fileIds !== undefined) {
+            body.file_ids = fileIds;
+        }
+        if (baseEditAt !== undefined) {
+            body.base_edit_at = baseEditAt;
+        }
+        if (force !== undefined) {
+            body.force = force;
+        }
         return this.doFetch<Post>(
             `${this.getWikiPageRoute(wikiId, pageId)}`,
-            {method: 'put', body: JSON.stringify(body)},
+            {method: 'PUT', body: JSON.stringify(body)},
         );
     };
 
@@ -2328,16 +2372,6 @@ export default class Client4 {
         );
     };
 
-    moveWikiToChannel = (wikiId: string, targetChannelId: string) => {
-        return this.doFetch<Wiki>(
-            `${this.getWikiRoute(wikiId)}/move`,
-            {
-                method: 'PATCH',
-                body: JSON.stringify({target_channel_id: targetChannelId}),
-            },
-        );
-    };
-
     duplicatePage = (sourceWikiId: string, pageId: string, targetWikiId: string, customTitle?: string) => {
         const body: {target_wiki_id: string; title?: string} = {target_wiki_id: targetWikiId};
         if (customTitle) {
@@ -2345,7 +2379,7 @@ export default class Client4 {
         }
         return this.doFetch<Post>(
             `${this.getWikiPageRoute(sourceWikiId, pageId)}/duplicate`,
-            {method: 'post', body: JSON.stringify(body)},
+            {method: 'POST', body: JSON.stringify(body)},
         );
     };
 
@@ -2353,7 +2387,7 @@ export default class Client4 {
         const requestBody = {page_parent_id: pageParentId, title, search_text: searchText, content, page_status: pageStatus, force, base_edit_at: baseEditAt};
         return this.doFetch<Post>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}/publish`,
-            {method: 'post', body: JSON.stringify(requestBody)},
+            {method: 'POST', body: JSON.stringify(requestBody)},
         );
     };
 
@@ -2364,28 +2398,35 @@ export default class Client4 {
         }
         return this.doFetch<Post>(
             `${this.getWikiPageRoute(wikiId, pageId)}/comments`,
-            {method: 'post', body: JSON.stringify(body)},
+            {method: 'POST', body: JSON.stringify(body)},
         );
     };
 
     createPageCommentReply = (wikiId: string, pageId: string, parentCommentId: string, message: string) => {
         return this.doFetch<Post>(
             `${this.getWikiPageRoute(wikiId, pageId)}/comments/${parentCommentId}/replies`,
-            {method: 'post', body: JSON.stringify({message})},
+            {method: 'POST', body: JSON.stringify({message})},
         );
     };
 
     resolvePageComment = (wikiId: string, pageId: string, commentId: string) => {
         return this.doFetch<Post>(
             `${this.getWikiPageRoute(wikiId, pageId)}/comments/${commentId}/resolve`,
-            {method: 'post'},
+            {method: 'POST'},
         );
     };
 
     unresolvePageComment = (wikiId: string, pageId: string, commentId: string) => {
         return this.doFetch<Post>(
             `${this.getWikiPageRoute(wikiId, pageId)}/comments/${commentId}/unresolve`,
-            {method: 'post'},
+            {method: 'POST'},
+        );
+    };
+
+    deletePageComment = (wikiId: string, pageId: string, commentId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getWikiPageRoute(wikiId, pageId)}/comments/${commentId}`,
+            {method: 'DELETE'},
         );
     };
 
@@ -3011,22 +3052,22 @@ export default class Client4 {
 
     getPageStatusField = async () => {
         return this.doFetch<SelectPropertyField>(
-            `${this.getPostsRoute()}/status/field`,
+            `${this.getWikisRoute()}/page-status-field`,
             {method: 'get'},
         );
     };
 
-    getPageStatus = async (postId: string) => {
+    getPageStatus = async (wikiId: string, pageId: string) => {
         return this.doFetch<{status: string}>(
-            `${this.getPostRoute(postId)}/status`,
+            `${this.getWikiPageRoute(wikiId, pageId)}/status`,
             {method: 'get'},
         );
     };
 
-    updatePageStatus = async (postId: string, status: string) => {
+    updatePageStatus = async (wikiId: string, pageId: string, status: string) => {
         return this.doFetch(
-            `${this.getPostRoute(postId)}/status`,
-            {method: 'put', body: JSON.stringify({status})},
+            `${this.getWikiRoute(wikiId)}/pages/${pageId}/status`,
+            {method: 'PATCH', body: JSON.stringify({status})},
         );
     };
 

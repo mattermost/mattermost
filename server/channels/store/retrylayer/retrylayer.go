@@ -79,6 +79,7 @@ type RetryLayer struct {
 	ViewStore                       store.ViewStore
 	WebhookStore                    store.WebhookStore
 	WikiStore                       store.WikiStore
+	WikiLinkStore                   store.WikiLinkStore
 }
 
 func (s *RetryLayer) AccessControlPolicy() store.AccessControlPolicyStore {
@@ -315,6 +316,10 @@ func (s *RetryLayer) Webhook() store.WebhookStore {
 
 func (s *RetryLayer) Wiki() store.WikiStore {
 	return s.WikiStore
+}
+
+func (s *RetryLayer) WikiLink() store.WikiLinkStore {
+	return s.WikiLinkStore
 }
 
 type RetryLayerAccessControlPolicyStore struct {
@@ -609,6 +614,11 @@ type RetryLayerWebhookStore struct {
 
 type RetryLayerWikiStore struct {
 	store.WikiStore
+	Root *RetryLayer
+}
+
+type RetryLayerWikiLinkStore struct {
+	store.WikiLinkStore
 	Root *RetryLayer
 }
 
@@ -2318,6 +2328,27 @@ func (s *RetryLayerChannelStore) GetMany(ids []string, allowFromCache bool) (mod
 
 }
 
+func (s *RetryLayerChannelStore) GetManyIncludingWiki(ids []string, allowFromCache bool) (model.ChannelList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetManyIncludingWiki(ids, allowFromCache)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetMember(rctx request.CTX, channelID string, userID string) (*model.ChannelMember, error) {
 
 	tries := 0
@@ -2849,6 +2880,27 @@ func (s *RetryLayerChannelStore) GetTeamMembersForChannel(rctx request.CTX, chan
 
 }
 
+func (s *RetryLayerChannelStore) GetWikiBackingChannel(id string) (*model.Channel, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetWikiBackingChannel(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 
 	tries := 0
@@ -3164,6 +3216,48 @@ func (s *RetryLayerChannelStore) RemoveMembers(rctx request.CTX, channelID strin
 
 }
 
+func (s *RetryLayerChannelStore) RemoveSyntheticMemberForUser(rctx request.CTX, userId string, sourceChannelId string, destinationChannelId string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.RemoveSyntheticMemberForUser(rctx, userId, sourceChannelId, destinationChannelId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) RemoveSyntheticMembersForSource(rctx request.CTX, sourceChannelId string, destinationChannelId string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelStore.RemoveSyntheticMembersForSource(rctx, sourceChannelId, destinationChannelId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) ResetAllChannelSchemes() error {
 
 	tries := 0
@@ -3269,6 +3363,27 @@ func (s *RetryLayerChannelStore) SaveMember(rctx request.CTX, member *model.Chan
 
 }
 
+func (s *RetryLayerChannelStore) SaveMemberAndPropagateLinked(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, []string, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.ChannelStore.SaveMemberAndPropagateLinked(rctx, member)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
 
 	tries := 0
@@ -3284,6 +3399,27 @@ func (s *RetryLayerChannelStore) SaveMultipleMembers(members []*model.ChannelMem
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) SaveSyntheticMembers(rctx request.CTX, sourceChannelId string, destinationChannelId string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelStore.SaveSyntheticMembers(rctx, sourceChannelId, destinationChannelId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -8333,11 +8469,11 @@ func (s *RetryLayerPageStore) MovePage(pageID string, channelID string, newParen
 
 }
 
-func (s *RetryLayerPageStore) ReparentChildren(pageID string, newParentID string) error {
+func (s *RetryLayerPageStore) PermanentDeletePage(pageID string) error {
 
 	tries := 0
 	for {
-		err := s.PageStore.ReparentChildren(pageID, newParentID)
+		err := s.PageStore.PermanentDeletePage(pageID)
 		if err == nil {
 			return nil
 		}
@@ -8375,53 +8511,53 @@ func (s *RetryLayerPageStore) RestorePage(pageID string) error {
 
 }
 
-func (s *RetryLayerPageStore) SoftDeletePageComments(pageID string, deleteByID string) error {
-
-	tries := 0
-	for {
-		err := s.PageStore.SoftDeletePageComments(pageID, deleteByID)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPageStore) SoftDeletePagePost(pageID string, deleteByID string) error {
-
-	tries := 0
-	for {
-		err := s.PageStore.SoftDeletePagePost(pageID, deleteByID)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerPageStore) Update(rctx request.CTX, page *model.Post) (*model.Post, error) {
 
 	tries := 0
 	for {
 		result, err := s.PageStore.Update(rctx, page)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageStore) UpdateCommentProps(commentID string, props model.StringInterface) (*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageStore.UpdateCommentProps(commentID, props)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageStore) UpdatePageFileIds(pageID string, fileIds model.StringArray) (*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageStore.UpdatePageFileIds(pageID, fileIds)
 		if err == nil {
 			return result, nil
 		}
@@ -19031,11 +19167,11 @@ func (s *RetryLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*m
 
 }
 
-func (s *RetryLayerWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string) (*model.Wiki, error) {
+func (s *RetryLayerWikiStore) Create(rctx request.CTX, wiki *model.Wiki, backingChannel *model.Channel, creatorMember *model.ChannelMember, defaultDraft *model.Draft) (*model.Wiki, error) {
 
 	tries := 0
 	for {
-		result, err := s.WikiStore.CreateWikiWithDefaultPage(wiki, userId)
+		result, err := s.WikiStore.Create(rctx, wiki, backingChannel, creatorMember, defaultDraft)
 		if err == nil {
 			return result, nil
 		}
@@ -19136,11 +19272,116 @@ func (s *RetryLayerWikiStore) GetAbandonedPages(cutoffTime int64) ([]*model.Post
 
 }
 
+func (s *RetryLayerWikiStore) GetByChannelId(channelId string) (*model.Wiki, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiStore.GetByChannelId(channelId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerWikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error) {
 
 	tries := 0
 	for {
 		result, err := s.WikiStore.GetForChannel(channelId, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiStore) GetForChannels(channelIds []string, includeDeleted bool) ([]*model.Wiki, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiStore.GetForChannels(channelIds, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiStore) GetForTeam(teamId string, page int, perPage int) ([]*model.Wiki, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiStore.GetForTeam(teamId, page, perPage)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiStore) GetForUser(userId string, teamId string, page int, perPage int) ([]*model.Wiki, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiStore.GetForUser(userId, teamId, page, perPage)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiStore) GetLinkedToChannel(channelId string) ([]*model.Wiki, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiStore.GetLinkedToChannel(channelId)
 		if err == nil {
 			return result, nil
 		}
@@ -19262,11 +19503,11 @@ func (s *RetryLayerWikiStore) GetWikisForExport(channelId string) ([]*model.Wiki
 
 }
 
-func (s *RetryLayerWikiStore) MovePageToWiki(pageId string, targetWikiId string, parentPageId *string) error {
+func (s *RetryLayerWikiStore) MovePageToWiki(pageId string, targetWikiId string, targetChannelId string, parentPageId *string) error {
 
 	tries := 0
 	for {
-		err := s.WikiStore.MovePageToWiki(pageId, targetWikiId, parentPageId)
+		err := s.WikiStore.MovePageToWiki(pageId, targetWikiId, targetChannelId, parentPageId)
 		if err == nil {
 			return nil
 		}
@@ -19277,27 +19518,6 @@ func (s *RetryLayerWikiStore) MovePageToWiki(pageId string, targetWikiId string,
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error) {
-
-	tries := 0
-	for {
-		result, err := s.WikiStore.MoveWikiToChannel(wikiId, targetChannelId, timestamp)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -19372,6 +19592,237 @@ func (s *RetryLayerWikiStore) Update(wiki *model.Wiki) (*model.Wiki, error) {
 	tries := 0
 	for {
 		result, err := s.WikiStore.Update(wiki)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiLinkStore) Delete(sourceId string, destinationId string) error {
+
+	tries := 0
+	for {
+		err := s.WikiLinkStore.Delete(sourceId, destinationId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiLinkStore) DeleteAndCleanupMembers(rctx request.CTX, sourceId string, destinationId string) error {
+
+	tries := 0
+	for {
+		err := s.WikiLinkStore.DeleteAndCleanupMembers(rctx, sourceId, destinationId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiLinkStore) DeleteByDestination(destinationId string) error {
+
+	tries := 0
+	for {
+		err := s.WikiLinkStore.DeleteByDestination(destinationId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiLinkStore) Get(sourceId string, destinationId string) (*model.WikiLink, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiLinkStore.Get(sourceId, destinationId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiLinkStore) GetByDestination(destinationId string) ([]*model.WikiLink, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiLinkStore.GetByDestination(destinationId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiLinkStore) GetBySource(sourceId string) ([]*model.WikiLink, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiLinkStore.GetBySource(sourceId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiLinkStore) GetBySourceMaster(sourceId string) ([]*model.WikiLink, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiLinkStore.GetBySourceMaster(sourceId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiLinkStore) GetBySources(sourceIds []string) ([]*model.WikiLink, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiLinkStore.GetBySources(sourceIds)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiLinkStore) GetByWiki(wikiId string) ([]*model.WikiLink, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiLinkStore.GetByWiki(wikiId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiLinkStore) Save(link *model.WikiLink) (*model.WikiLink, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiLinkStore.Save(link)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiLinkStore) SaveAndPropagateMembers(rctx request.CTX, link *model.WikiLink, sourceChannelId string, propagateAdmin bool) (*model.WikiLink, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiLinkStore.SaveAndPropagateMembers(rctx, link, sourceChannelId, propagateAdmin)
 		if err == nil {
 			return result, nil
 		}
@@ -19484,5 +19935,6 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.ViewStore = &RetryLayerViewStore{ViewStore: childStore.View(), Root: &newStore}
 	newStore.WebhookStore = &RetryLayerWebhookStore{WebhookStore: childStore.Webhook(), Root: &newStore}
 	newStore.WikiStore = &RetryLayerWikiStore{WikiStore: childStore.Wiki(), Root: &newStore}
+	newStore.WikiLinkStore = &RetryLayerWikiLinkStore{WikiLinkStore: childStore.WikiLink(), Root: &newStore}
 	return &newStore
 }

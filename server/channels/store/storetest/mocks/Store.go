@@ -182,6 +182,26 @@ func (_m *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return r0
 }
 
+// WikiLink provides a mock function with no fields
+func (_m *Store) WikiLink() store.WikiLinkStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for WikiLink")
+	}
+
+	var r0 store.WikiLinkStore
+	if rf, ok := ret.Get(0).(func() store.WikiLinkStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.WikiLinkStore)
+		}
+	}
+
+	return r0
+}
+
 // CheckIntegrity provides a mock function with no fields
 func (_m *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	ret := _m.Called()

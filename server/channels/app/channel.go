@@ -93,7 +93,21 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
 
-		_, nErr = a.Srv().Store().Channel().SaveMember(rctx, cm)
+		_, linkedDests, nErr2 := a.Srv().Store().Channel().SaveMemberAndPropagateLinked(rctx, cm)
+		nErr = nErr2
+		if nErr != nil {
+			var cErr *store.ErrConflict
+			if errors.As(nErr, &cErr) {
+				// User is already a member of this default channel — benign.
+				nErr = nil
+				continue
+			}
+			// Propagate non-conflict failures (DB/timeout/constraint) so the
+			// post-loop dispatcher surfaces them instead of silently partial-joining.
+			rctx.Logger().Warn("Failed to save channel member for default channel",
+				mlog.String("channel_id", channel.Id), mlog.String("user_id", user.Id), mlog.Err(nErr))
+			break
+		}
 		if histErr := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); histErr != nil {
 			return model.NewAppError("JoinDefaultChannels", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(histErr)
 		}
@@ -105,6 +119,7 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 		}
 
 		a.invalidateCacheForChannelMembers(channel.Id)
+		a.invalidateLinkedChannelCachesForDestinations(user.Id, linkedDests)
 
 		message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
 		message.Add("user_id", user.Id)
@@ -971,6 +986,10 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 		})
 	}
 
+	if channel.IsWikiBacking() {
+		a.onWikiBackingChannelRestored(rctx, channel.Id)
+	}
+
 	return channel, nil
 }
 
@@ -1723,6 +1742,13 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 	// processing an archived channel.
 	a.cleanupChannelAccessControlPolicy(rctx, channel)
 
+	// Clean up wiki links only after the channel archive commits. If the delete
+	// fails, links stay intact so linked-wiki access matches archive state.
+	a.cleanupWikiLinksForSourceChannel(rctx, channel.Id, "channel archive")
+	if channel.IsWikiBacking() {
+		a.onWikiBackingChannelArchived(rctx, channel.Id)
+	}
+
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
 	var message *model.WebSocketEvent
@@ -1847,6 +1873,8 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	a.Srv().Platform().InvalidateChannelCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
+	a.invalidateLinkedChannelCachesForDestinations(user.Id, linkedDestinations)
+
 	// Synchronize membership change for shared channels
 	if channel.IsShared() {
 		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
@@ -1881,10 +1909,23 @@ func (a *App) AddUserToChannel(rctx request.CTX, user *model.User, channel *mode
 		return nil, err
 	}
 
+	a.afterUserAddedToChannel(rctx, user, channel)
+
+	return newMember, nil
+}
+
+// afterUserAddedToChannel runs the user-facing side-effects (default category,
+// WebSocket events) that follow a successful direct add. Wiki backing channels
+// are internal and skip all of these — putting the predicate in one place makes
+// it impossible to forget on future side-effects.
+func (a *App) afterUserAddedToChannel(rctx request.CTX, user *model.User, channel *model.Channel) {
+	if channel.IsWikiBacking() {
+		return
+	}
 	a.addChannelToDefaultCategory(rctx, user.Id, channel)
 
-	// We are sending separate websocket events to the user added and to the channel
-	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
+	// We are sending separate websocket events to the user added and to the channel.
+	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members.
 	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
@@ -1894,8 +1935,6 @@ func (a *App) AddUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	userMessage.Add("user_id", user.Id)
 	userMessage.Add("team_id", channel.TeamId)
 	a.Publish(userMessage)
-
-	return newMember, nil
 }
 
 type ChannelMemberOpts struct {
@@ -1942,6 +1981,19 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 		return nil, err
 	}
 
+	if err := a.afterChannelMemberAdded(rctx, user, channel, cm, userRequestor, opts); err != nil {
+		return nil, err
+	}
+
+	return cm, nil
+}
+
+// afterChannelMemberAdded runs the post-add lifecycle (UserHasJoined plugin hook
+// + system post). Wiki backing channels are internal and skip all of these.
+func (a *App) afterChannelMemberAdded(rctx request.CTX, user *model.User, channel *model.Channel, cm *model.ChannelMember, userRequestor *model.User, opts ChannelMemberOpts) *model.AppError {
+	if channel.IsWikiBacking() {
+		return nil
+	}
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(rctx)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -1950,9 +2002,9 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 		}, plugin.UserHasJoinedChannelID)
 	})
 
-	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
+	if opts.UserRequestorID == "" || user.Id == opts.UserRequestorID {
 		if err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		a.Srv().Go(func() {
@@ -1961,8 +2013,7 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 			}
 		})
 	}
-
-	return cm, nil
+	return nil
 }
 
 func (a *App) AddDirectChannels(rctx request.CTX, teamID string, user *model.User) *model.AppError {
@@ -2898,6 +2949,11 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 		return err
 	}
 
+	if cm.IsSynthetic() {
+		return model.NewAppError("removeUserFromChannel", "api.channel.remove_user.synthetic_member.app_error", nil,
+			"synthetic memberships cannot be removed directly — leave the source channel instead", http.StatusBadRequest)
+	}
+
 	if err := a.Srv().Store().Channel().RemoveMember(rctx, channel.Id, userIDToRemove); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2939,24 +2995,7 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 		actorUser, _ = a.GetUser(removerUserId)
 	}
 
-	a.Srv().Go(func() {
-		pluginContext := pluginContext(rctx)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
-			return true
-		}, plugin.UserHasLeftChannelID)
-	})
-
-	message := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", channel.Id, "", nil, "")
-	message.Add("user_id", userIDToRemove)
-	message.Add("remover_id", removerUserId)
-	a.Publish(message)
-
-	// because the removed user no longer belongs to the channel we need to send a separate websocket event
-	userMsg := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", "", userIDToRemove, nil, "")
-	userMsg.Add("channel_id", channel.Id)
-	userMsg.Add("remover_id", removerUserId)
-	a.Publish(userMsg)
+	a.afterUserRemovedFromChannel(rctx, channel, cm, actorUser, userIDToRemove, removerUserId)
 
 	// Synchronize membership change for shared channels
 	if channel.IsShared() {
@@ -2964,6 +3003,8 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 			scs.NotifyMembershipChanged(channel.Id, "")
 		}
 	}
+
+	a.removeSyntheticMembershipsForUser(rctx, userIDToRemove, channel.Id)
 
 	return nil
 }
@@ -3482,6 +3523,12 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 	}
 
 	deleteAt := model.GetMillis()
+
+	if err := a.Srv().Store().WikiLink().DeleteByDestination(channel.Id); err != nil {
+		rctx.Logger().Warn("Failed to clean up wiki links by destination during permanent channel delete",
+			mlog.String("channel_id", channel.Id), mlog.Err(err))
+	}
+	a.cleanupWikiLinksForSourceChannel(rctx, channel.Id, "permanent channel delete")
 
 	if nErr := a.Srv().Store().Channel().PermanentDelete(rctx, channel.Id); nErr != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -4647,4 +4694,94 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 	}
 
 	return nil
+}
+
+// cleanupWikiLinksForSourceChannel removes every wiki link where the given channel is the
+// source, cleans up synthetic memberships, and broadcasts wiki_unlinked events. Failures
+// are logged and skipped rather than aborting the caller (best-effort): any synthetic
+// memberships that fail to clean up become orphaned (users retain wiki-channel access until
+// the wiki is deleted or the link is manually removed), which is acceptable under
+// soft-delete semantics. The operation label is included in logs to distinguish call sites.
+func (a *App) cleanupWikiLinksForSourceChannel(rctx request.CTX, channelId, operation string) {
+	links, err := a.Srv().Store().WikiLink().GetBySourceMaster(channelId)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get wiki links for channel, skipping link cleanup",
+			mlog.String("channel_id", channelId), mlog.String("operation", operation), mlog.Err(err))
+		return
+	}
+	for _, link := range links {
+		if delErr := a.Srv().Store().WikiLink().DeleteAndCleanupMembers(rctx, link.SourceId, link.DestinationId); delErr != nil {
+			rctx.Logger().Warn("Failed to clean up wiki link",
+				mlog.String("source_id", link.SourceId), mlog.String("destination_id", link.DestinationId),
+				mlog.String("operation", operation), mlog.Err(delErr))
+			continue
+		}
+		a.invalidateCachesForLinkChange(rctx, link.SourceId, link.DestinationId)
+		wiki, wikiErr := a.GetWikiByChannelId(rctx, link.DestinationId)
+		if wikiErr != nil || wiki == nil {
+			rctx.Logger().Warn("Failed to get wiki for unlink broadcast",
+				mlog.String("wiki_channel_id", link.DestinationId),
+				mlog.String("operation", operation), mlog.Err(wikiErr))
+			continue
+		}
+		a.broadcastWikiLinkEvent(model.WebsocketEventWikiUnlinked, wiki.Id, link.SourceId, model.GetMillis())
+	}
+}
+
+// afterUserRemovedFromChannel runs the user-facing side-effects (UserHasLeft
+// hook + WebSocket events) that follow a successful direct remove. Wiki backing
+// channels skip all of these.
+func (a *App) afterUserRemovedFromChannel(rctx request.CTX, channel *model.Channel, cm *model.ChannelMember, actorUser *model.User, userIDToRemove, removerUserId string) {
+	if channel.IsWikiBacking() {
+		return
+	}
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(rctx)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
+			return true
+		}, plugin.UserHasLeftChannelID)
+	})
+
+	message := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", channel.Id, "", nil, "")
+	message.Add("user_id", userIDToRemove)
+	message.Add("remover_id", removerUserId)
+	a.Publish(message)
+
+	// Because the removed user no longer belongs to the channel we send a separate
+	// event scoped to the user so they receive it.
+	userMsg := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", "", userIDToRemove, nil, "")
+	userMsg.Add("channel_id", channel.Id)
+	userMsg.Add("remover_id", removerUserId)
+	a.Publish(userMsg)
+}
+
+// invalidateLinkedChannelCachesForDestinations invalidates caches for already-known
+// linked destination channels (no DB query). Use after SaveMemberAndPropagateLinked,
+// which returns the destination IDs from its lock query.
+func (a *App) invalidateLinkedChannelCachesForDestinations(userId string, destinationIds []string) {
+	for _, destId := range destinationIds {
+		a.invalidateCacheForChannelMembers(destId)
+	}
+	if len(destinationIds) > 0 {
+		a.Srv().Platform().InvalidateChannelCacheForUser(userId)
+	}
+}
+
+func (a *App) removeSyntheticMembershipsForUser(rctx request.CTX, userId, sourceChannelId string) {
+	links, err := a.Srv().Store().WikiLink().GetBySourceMaster(sourceChannelId)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get channel member links for removal", mlog.Err(err))
+		return
+	}
+	for _, link := range links {
+		removed, rmErr := a.Srv().Store().Channel().RemoveSyntheticMemberForUser(rctx, userId, sourceChannelId, link.DestinationId)
+		if rmErr != nil {
+			rctx.Logger().Warn("Failed to remove synthetic membership", mlog.Err(rmErr))
+		}
+		if removed {
+			a.invalidateCacheForChannelMembers(link.DestinationId)
+			a.Srv().Platform().InvalidateChannelCacheForUser(userId)
+		}
+	}
 }

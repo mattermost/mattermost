@@ -119,6 +119,7 @@ type SqlStoreStores struct {
 	temporaryPost              store.TemporaryPostStore
 	wiki                       store.WikiStore
 	page                       store.PageStore
+	channelMemberLink          store.WikiLinkStore
 }
 
 type SqlStore struct {
@@ -307,6 +308,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.wiki = newSqlWikiStore(store)
 	store.stores.page = newSqlPageStore(store)
+	store.stores.channelMemberLink = newSqlWikiLinkStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1099,4 +1101,8 @@ func (ss *SqlStore) Wiki() store.WikiStore {
 
 func (ss *SqlStore) Page() store.PageStore {
 	return ss.stores.page
+}
+
+func (ss *SqlStore) WikiLink() store.WikiLinkStore {
+	return ss.stores.channelMemberLink
 }

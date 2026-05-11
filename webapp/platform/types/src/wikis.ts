@@ -14,10 +14,18 @@ export type Wiki = {
     update_at: number;
     delete_at: number;
     sort_order: number;
+    props?: Record<string, string>;
+};
+
+export type WikiLink = {
+    source_id: string;
+    wiki_id: string;
+    create_at: number;
+    creator_id?: string;
 };
 
 export type WikiCreate = {
-    channel_id: string;
+    team_id: string;
     title: string;
     description?: string;
     icon?: string;
@@ -30,7 +38,9 @@ export type WikiPatch = {
 };
 
 export type WikisState = {
-    byChannelId: {[channelId: Channel['id']]: IDMappedObjects<Wiki>};
+    byId: IDMappedObjects<Wiki>;
+    byTeam: Record<string, string[]>;
+    linksByChannel: Record<string, WikiLink[]>;
 };
 
 export type BreadcrumbItem = {

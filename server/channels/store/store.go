@@ -104,6 +104,7 @@ type Store interface {
 	TemporaryPost() TemporaryPostStore
 	Wiki() WikiStore
 	Page() PageStore
+	WikiLink() WikiLinkStore
 }
 
 type RetentionPolicyStore interface {
@@ -328,6 +329,23 @@ type ChannelStore interface {
 	GetTeamForChannel(channelID string) (*model.Team, error)
 	IsReadOnlyChannel(channelID string) (bool, error)
 	IsChannelReadOnlyScheme(schemeID string) (bool, error)
+
+	// SaveSyntheticMembers bulk-creates synthetic memberships for all source channel members
+	// in the destination channel.
+	SaveSyntheticMembers(rctx request.CTX, sourceChannelId, destinationChannelId string) error
+	// SaveMemberAndPropagateLinked inserts the direct member and propagates synthetic
+	// memberships to all linked destination channels in one transaction. Returns the
+	// list of linked destination channel IDs so the caller can invalidate caches
+	// without a second WikiLinks query.
+	SaveMemberAndPropagateLinked(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, []string, error)
+
+	// RemoveSyntheticMembersForSource removes synthetic memberships from the destination
+	// channel that originated from the specified source channel.
+	RemoveSyntheticMembersForSource(rctx request.CTX, sourceChannelId, destinationChannelId string) error
+
+	// RemoveSyntheticMemberForUser removes a synthetic membership for one user, checking if
+	// other links still grant access before removing.
+	RemoveSyntheticMemberForUser(rctx request.CTX, userId, sourceChannelId, destinationChannelId string) (removed bool, err error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -1299,6 +1317,20 @@ type WikiStore interface {
 
 	// GetPageCommentsForExport returns comments for a page with user info for export
 	GetPageCommentsForExport(pageId string) ([]*model.PageCommentForExport, error)
+}
+
+type WikiLinkStore interface {
+	Save(link *model.WikiLink) (*model.WikiLink, error)
+	SaveAndPropagateMembers(rctx request.CTX, link *model.WikiLink, sourceChannelId string, propagateAdmin bool) (*model.WikiLink, error)
+	Get(sourceId, destinationId string) (*model.WikiLink, error)
+	GetBySource(sourceId string) ([]*model.WikiLink, error)
+	GetBySourceMaster(sourceId string) ([]*model.WikiLink, error)
+	GetBySources(sourceIds []string) ([]*model.WikiLink, error)
+	GetByDestination(destinationId string) ([]*model.WikiLink, error)
+	GetByWiki(wikiId string) ([]*model.WikiLink, error)
+	Delete(sourceId, destinationId string) error
+	DeleteAndCleanupMembers(rctx request.CTX, sourceId, destinationId string) error
+	DeleteByDestination(destinationId string) error
 }
 
 // PageStore manages page hierarchy operations.
