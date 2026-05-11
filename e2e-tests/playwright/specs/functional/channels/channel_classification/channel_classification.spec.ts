@@ -35,6 +35,9 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
+    if (!setupComplete) {
+        return;
+    }
     const {adminClient} = await getAdminClient();
     try {
         await deleteClassificationFieldsIfExist(adminClient);
@@ -66,6 +69,9 @@ test.describe('Channel Classification - New channel creation', () => {
         const newChannelModal = await channelsPage.openNewChannelModal();
         await newChannelModal.fillDisplayName(`test-${pw.random.id()}`);
         await newChannelModal.publicTypeButton.click();
+
+        // Create button should be enabled before toggling classification
+        await expect(newChannelModal.createButton).toBeEnabled();
 
         // Enable classification toggle
         const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
