@@ -1012,8 +1012,6 @@
   "admin.experimental.allowCustomThemes.title": "맞춤 테마 허용 :",
   "admin.experimental.allowedEmailDomain.desc": "(선택 사항) 설정하면 사용자가 이 도메인으로 끝나는 이메일을 가지고 있어야 토론글을 이동할 수 있습니다. 여러 도메인을 쉼표로 구분하여 지정할 수 있습니다.",
   "admin.experimental.allowedEmailDomain.title": "허용된 이메일 도메인",
-  "admin.experimental.channelCategorySorting.desc": "참이면 채널은 \"/\" 구분 기호를 사용하여 이름에 따라 자동으로 카테고리로 정렬됩니다.",
-  "admin.experimental.channelCategorySorting.title": "채널 카테고리 정렬:",
   "admin.experimental.collapsedThreads.always_on": "항상 활성화",
   "admin.experimental.collapsedThreads.default_off": "활성화 (기본 비활성화)",
   "admin.experimental.collapsedThreads.default_on": "활성화 (기본 활성화)",

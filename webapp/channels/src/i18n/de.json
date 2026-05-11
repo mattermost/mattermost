@@ -1082,8 +1082,6 @@
   "admin.experimental.allowCustomThemes.title": "Benutzerdefiniertes Motive erlauben:",
   "admin.experimental.allowedEmailDomain.desc": "(Optional) Wenn diese Option festgelegt ist, müssen Benutzer eine E-Mail-Endung in dieser Domäne haben, um Unterhaltungen zu verschieben. Mehrere Domänen können durch Kommas getrennt angegeben werden.",
   "admin.experimental.allowedEmailDomain.title": "Erlaubte E-Mail-Domäne",
-  "admin.experimental.channelCategorySorting.desc": "Wenn aktiviert, werden Kanäle automatisch in Kategorien sortiert, die auf dem Kanalnamen mit einem \"/\"-Trenner basieren.",
-  "admin.experimental.channelCategorySorting.title": "Sortierung der Kanalkategorien:",
   "admin.experimental.collapsedThreads.always_on": "Immer An",
   "admin.experimental.collapsedThreads.default_off": "Aktiviert (Standard Aus)",
   "admin.experimental.collapsedThreads.default_on": "Aktiviert (Standard An)",
