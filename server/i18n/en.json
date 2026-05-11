@@ -5203,6 +5203,10 @@
     "translation": "Failed to retrieve the access control attribute group."
   },
   {
+    "id": "app.access_control.build_subject_for_session.get_session_attributes.app_error",
+    "translation": "Failed to retrieve the session attributes."
+  },
+  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "You do not have permission to manage this access control policy."
   },
