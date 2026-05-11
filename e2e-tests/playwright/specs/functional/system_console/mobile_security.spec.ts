@@ -203,12 +203,14 @@ test('should show and enable Intune MAM when Enterprise Advanced licensed and Of
     }
 
     // # Configure Office365 settings
-    const config = await adminClient.getConfig();
-    config.Office365Settings.Enable = true;
-    config.Office365Settings.Id = 'test-client-id';
-    config.Office365Settings.Secret = 'test-client-secret';
-    config.Office365Settings.DirectoryId = 'test-directory-id';
-    await adminClient.updateConfig(config);
+    await adminClient.patchConfig({
+        Office365Settings: {
+            Enable: true,
+            Id: 'test-client-id',
+            Secret: 'test-client-secret',
+            DirectoryId: 'test-directory-id',
+        },
+    } as any);
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -265,9 +267,11 @@ test('should hide Intune MAM when Office365 is not configured', async ({pw}) => 
     }
 
     // # Ensure Office365 is disabled
-    const config = await adminClient.getConfig();
-    config.Office365Settings.Enable = false;
-    await adminClient.updateConfig(config);
+    await adminClient.patchConfig({
+        Office365Settings: {
+            Enable: false,
+        },
+    } as any);
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -297,13 +301,21 @@ test('should configure new IntuneSettings with Office365 auth provider', async (
     }
 
     // # Configure Office365 settings
-    const config = await adminClient.getConfig();
-    config.Office365Settings.Enable = true;
-    config.Office365Settings.Id = 'test-office365-client-id';
-    config.Office365Settings.Secret = 'test-office365-secret';
-    config.Office365Settings.DirectoryId = 'test-office365-directory-id';
-    config.SamlSettings.EmailAttribute = 'useremail';
-    await adminClient.updateConfig(config);
+    await adminClient.patchConfig({
+        Office365Settings: {
+            Enable: true,
+            Id: 'test-office365-client-id',
+            Secret: 'test-office365-secret',
+            DirectoryId: 'test-office365-directory-id',
+        },
+        SamlSettings: {
+            EmailAttribute: 'useremail',
+        },
+    } as any);
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.Office365Settings?.Enable === true && Boolean(cfg.Office365Settings?.Id);
+    });
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -325,7 +337,11 @@ test('should configure new IntuneSettings with Office365 auth provider', async (
     // * Verify Intune is enabled
     await systemConsolePage.mobileSecurity.enableIntuneMAM.toBeTrue();
 
-    // # Select Office365 as auth provider
+    // # Select Office365 as auth provider.
+    // After enabling Intune MAM the form re-renders; scroll the dropdown into view
+    // before selecting so it is both visible and interactive.
+    await systemConsolePage.mobileSecurity.authProvider.dropdown.scrollIntoViewIfNeeded();
+    await expect(systemConsolePage.mobileSecurity.authProvider.dropdown).toBeEnabled({timeout: 15000});
     await systemConsolePage.mobileSecurity.authProvider.select('office365');
 
     // # Fill in Intune configuration
@@ -354,8 +370,6 @@ test('should configure new IntuneSettings with Office365 auth provider', async (
 test('should configure new IntuneSettings with SAML auth provider', async ({pw}) => {
     // # Configure SAML settings
     const {adminUser, adminClient} = await pw.initSetup();
-    const config = await adminClient.getConfig();
-
     const license = await adminClient.getClientLicenseOld();
 
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
@@ -392,21 +406,20 @@ test('should configure new IntuneSettings with SAML auth provider', async ({pw})
     });
 
     // # Configure SAML settings
-    config.SamlSettings.Enable = true;
-    config.SamlSettings.IdpURL = 'https://example.com/saml';
-    config.SamlSettings.IdpDescriptorURL = 'https://example.com/saml/metadata';
-    config.SamlSettings.IdpCertificateFile = 'test-cert.pem';
-    config.SamlSettings.EmailAttribute = 'useremail';
-    config.SamlSettings.UsernameAttribute = 'username';
-    config.SamlSettings.ServiceProviderIdentifier = 'sp-entity-id';
-    config.SamlSettings.AssertionConsumerServiceURL = 'https://sp.example.com/login';
-    config.SamlSettings.IdpCertificateFile = 'saml-idp.crt';
-    config.SamlSettings.PrivateKeyFile = 'saml-idp.crt';
-
-    if ('PublicCertificateFile' in config.SamlSettings) {
-        config.SamlSettings.PublicCertificateFile = 'saml-public-cert.pem';
-    }
-    await adminClient.updateConfig(config);
+    await adminClient.patchConfig({
+        SamlSettings: {
+            Enable: true,
+            IdpURL: 'https://example.com/saml',
+            IdpDescriptorURL: 'https://example.com/saml/metadata',
+            IdpCertificateFile: 'saml-idp.crt',
+            EmailAttribute: 'useremail',
+            UsernameAttribute: 'username',
+            ServiceProviderIdentifier: 'sp-entity-id',
+            AssertionConsumerServiceURL: 'https://sp.example.com/login',
+            PrivateKeyFile: 'saml-idp.crt',
+            PublicCertificateFile: 'saml-public-cert.pem',
+        },
+    } as any);
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -462,12 +475,14 @@ test('should disable Intune inputs when toggle is off', async ({pw}) => {
     }
 
     // # Configure Office365 settings
-    const config = await adminClient.getConfig();
-    config.Office365Settings.Enable = true;
-    config.Office365Settings.Id = 'test-client-id';
-    config.Office365Settings.Secret = 'test-secret';
-    config.Office365Settings.DirectoryId = 'test-directory-id';
-    await adminClient.updateConfig(config);
+    await adminClient.patchConfig({
+        Office365Settings: {
+            Enable: true,
+            Id: 'test-client-id',
+            Secret: 'test-secret',
+            DirectoryId: 'test-directory-id',
+        },
+    } as any);
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
