@@ -12,6 +12,8 @@ import * as Menu from 'components/menu';
 
 import Constants from 'utils/constants';
 
+import MaskedChip from './masked_chip';
+
 import './selector_menus.scss';
 
 // SingleValueSelector handles selection of a single value (operators like 'is', 'contains', etc.)
@@ -22,6 +24,7 @@ const SingleValueSelector = ({
     options = [],
     allowCreateValue = false,
     placeholder,
+    hasMaskedValues = false,
 }: {
     value: string;
     disabled: boolean;
@@ -29,11 +32,24 @@ const SingleValueSelector = ({
     options?: PropertyFieldOption[];
     allowCreateValue?: boolean;
     placeholder?: string;
+    hasMaskedValues?: boolean;
 }) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
     const [inputValue, setInputValue] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+
+    // When masked values are present and the delegated admin holds no visible value,
+    // the row is effectively read-only — show only the masked chip.
+    if (hasMaskedValues && !value) {
+        return (
+            <div className='values-editor'>
+                <div className='value-selector-menu-button__multi-values-container'>
+                    <MaskedChip/>
+                </div>
+            </div>
+        );
+    }
 
     const hasOptions = options.length > 0;
 
