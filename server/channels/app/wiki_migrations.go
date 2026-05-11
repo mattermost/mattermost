@@ -96,7 +96,19 @@ func (s *Server) doSetupPageProperties() error {
 
 	for _, property := range propertiesToCreate {
 		if _, err := s.PropertyService().PropertyAccessService().CreatePropertyField(anonymousCallerID, property); err != nil {
-			return fmt.Errorf("failed to create page property: %q, error: %w", property.Name, err)
+			// Handle race condition: property may have been created by a concurrent migration run
+			// (concurrent server startup or replica lag hiding an already-committed property).
+			existing, fetchErr := s.PropertyService().PropertyAccessService().GetPropertyFieldByName(anonymousCallerID, group.ID, "", property.Name)
+			if fetchErr != nil || existing == nil {
+				return fmt.Errorf("failed to create page property: %q, error: %w", property.Name, err)
+			}
+			existing.Type = property.Type
+			existing.ObjectType = property.ObjectType
+			existing.TargetType = property.TargetType
+			existing.Protected = property.Protected
+			existing.PermissionField = property.PermissionField
+			existing.Attrs = property.Attrs
+			propertiesToUpdate = append(propertiesToUpdate, existing)
 		}
 	}
 

@@ -19,9 +19,8 @@ export {
     createRandomUser,
     getOnPremServerConfig,
     makeClient,
+    mergeWithOnPremServerConfig,
 } from './server';
-
-export {getAdminClient, mergeWithOnPremServerConfig, getOnPremServerConfig} from './server';
 
 export {
     ChannelsPage,
