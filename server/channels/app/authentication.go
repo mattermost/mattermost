@@ -143,7 +143,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 		// transient infra issue could lock out a user with valid creds.
 		if err.Id != "api.user.check_user_password.invalid.app_error" {
 			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
-				return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+				rctx.Logger().Warn("failed to refund login attempt slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
 		}
 		return err
@@ -156,7 +156,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 		// attempt — refund the slot so the probe is not counted.
 		if mfaToken == "" {
 			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
-				return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+				rctx.Logger().Warn("failed to refund MFA probe slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
 		}
 
@@ -188,7 +188,7 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 	if err := a.checkUserPassword(user, password); err != nil {
 		if err.Id != "api.user.check_user_password.invalid.app_error" {
 			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
-				return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+				rctx.Logger().Warn("failed to refund login attempt slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
 		}
 		return err
@@ -276,7 +276,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 			// etc.) on an existing user must not consume the slot we
 			// pre-claimed, or an LDAP outage could lock out everyone.
 			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
-				return nil, model.NewAppError("checkLdapUserPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+				rctx.Logger().Warn("failed to refund LDAP login attempt slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
 		}
 
@@ -285,13 +285,24 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 	}
 
 	if err = a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
-		// The slot we claimed already counts this as a failed attempt;
-		// the only special case is when no mfaToken was provided, which
-		// is treated as a pre-flight MFA-state probe rather than a real
-		// attempt — refund the slot so the probe is not counted.
-		if mfaToken == "" && user.Id != "" {
+		// For existing LDAP users we pre-claimed a slot, so it already
+		// counts as a failed attempt. The only special case is when no
+		// mfaToken was provided, which is treated as a pre-flight
+		// MFA-state probe rather than a real attempt — refund the slot
+		// so the probe is not counted.
+		//
+		// For first-time LDAP users we did not pre-claim (no row to
+		// claim against), so a real MFA attempt with a non-empty token
+		// still needs to be counted explicitly against the freshly
+		// created row.
+		switch {
+		case user.Id == "" && mfaToken != "":
+			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
+				rctx.Logger().Warn("failed to record failed MFA attempt for first-time LDAP user", mlog.String("user_id", ldapUser.Id), mlog.Err(passErr))
+			}
+		case user.Id != "" && mfaToken == "":
 			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(ldapUser.Id); passErr != nil {
-				return nil, model.NewAppError("checkLdapUserPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+				rctx.Logger().Warn("failed to refund LDAP MFA probe slot", mlog.String("user_id", ldapUser.Id), mlog.Err(passErr))
 			}
 		}
 		return nil, err
