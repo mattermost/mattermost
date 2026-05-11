@@ -4385,12 +4385,14 @@ func TestRevokeSessionBotPermissions(t *testing.T) {
 		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 
+		// Seed a real session for the bot directly via the app layer.
+		botSession, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: bot.UserId})
+		require.Nil(t, appErr)
+
 		th.LoginBasic(t)
 
-		// Passes the permission check; a non-existent session ID yields 400, not 403.
-		resp, err := th.Client.RevokeSession(context.Background(), bot.UserId, model.NewId())
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		_, err := th.Client.RevokeSession(context.Background(), bot.UserId, botSession.Id)
+		require.NoError(t, err)
 	})
 }
 
