@@ -39,18 +39,6 @@ const SingleValueSelector = ({
     const [inputValue, setInputValue] = useState('');
     const [isEditing, setIsEditing] = useState(false);
 
-    // When masked values are present and the delegated admin holds no visible value,
-    // the row is effectively read-only — show only the masked chip.
-    if (hasMaskedValues && !value) {
-        return (
-            <div className='values-editor'>
-                <div className='value-selector-menu-button__multi-values-container'>
-                    <MaskedChip/>
-                </div>
-            </div>
-        );
-    }
-
     const hasOptions = options.length > 0;
 
     // Simple input logic for attributes without options
@@ -110,6 +98,21 @@ const SingleValueSelector = ({
             handleCreateValue(filter);
         }
     }, [allowCreateValue, filter, handleCreateValue]);
+
+    // When masked values are present and the caller holds no visible value,
+    // the row is effectively read-only — show only the masked chip.
+    // Placed AFTER hook declarations so hook order stays stable when the
+    // masked state changes between renders (e.g., parent re-renders after
+    // a sibling rule is deleted).
+    if (hasMaskedValues && !value) {
+        return (
+            <div className='values-editor'>
+                <div className='value-selector-menu-button__multi-values-container'>
+                    <MaskedChip/>
+                </div>
+            </div>
+        );
+    }
 
     if (!hasOptions) {
         // For attributes without options, show simple input field
