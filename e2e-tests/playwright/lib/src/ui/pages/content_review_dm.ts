@@ -216,6 +216,7 @@ export default class ContentReviewPage {
     async confirmRemoveWithoutReport() {
         await this.downloadReportCheckbox.uncheck();
         await this.confirmRemoveMessageButton.click();
+        await expect(this.removeWithoutReportButton).toBeVisible({timeout: 10000});
         await this.removeWithoutReportButton.click();
         await this.postActionConformationModal.waitFor({state: 'hidden'});
     }
