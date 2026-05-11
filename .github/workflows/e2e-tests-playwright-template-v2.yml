@@ -188,8 +188,8 @@ jobs:
           playwright-project: ${{ inputs.playwright_project }}
           post-pr-comment: 'true'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          test-type: full
-          server-edition: ${{ inputs.server_edition }}
+          context-name: ${{ inputs.context_name }}
+          server-image: ${{ env.SERVER_IMAGE }}
 
   workers:
     name: dispatch-run-${{ matrix.worker_index }}
@@ -291,14 +291,13 @@ jobs:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.dispatch-begin.outputs.composite-identity-json }}
           framework: playwright
-          test-type: full
           report-type: ${{ inputs.report_type }}
           image-tag: ${{ inputs.server_image_tag }}
           image-aliases: ${{ inputs.server_image_aliases }}
           server-image: ${{ env.SERVER_IMAGE }}
           pr-number: ${{ inputs.pr_number }}
           ref-branch: ${{ inputs.ref_branch }}
-          server-edition: ${{ inputs.server_edition }}
+          context-name: ${{ inputs.context_name }}
           post-pr-comment: 'true'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: ci/publish-webhook

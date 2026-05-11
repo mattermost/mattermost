@@ -72,7 +72,6 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                         visibility: 'when_set',
 
                         // managed: 'admin' avoids the user-managed selector guard
-                        // @ts-expect-error CustomProfileAttribute['attrs'] permits the managed key at runtime
                         managed: 'admin',
                     },
                 },
@@ -81,7 +80,6 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                     type: 'text',
                     attrs: {
                         visibility: 'when_set',
-                        // @ts-expect-error CustomProfileAttribute['attrs'] permits the managed key at runtime
                         managed: 'admin',
                     },
                 },

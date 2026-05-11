@@ -47,9 +47,15 @@ export type CustomProfileAttribute = {
     attrs?: {
         value_type?: string;
         visibility?: string;
+        managed?: string;
         options?: {name: string; color: string}[];
         display_name?: string;
     };
+};
+
+/** Like Record<string, UserPropertyField> but tracks which field IDs this call created (vs reused). */
+export type CpaFieldsMap = Record<string, UserPropertyField> & {
+    __ownedIds: Set<string>;
 };
 
 // Custom attribute definitions for user settings tests (with select/multiselect attributes)
@@ -160,6 +166,12 @@ export async function editTextAttribute(
         await page.locator(`#customAttribute_${fieldId}`).fill(newValue);
     }
     await page.locator('button:has-text("Save")').click();
+    // Wait for the Edit button to reappear — it is only visible when the section is in
+    // display mode (not editing). It returns to display mode only after the save API call
+    // resolves and the component calls updateSection(''). Without this wait, the next
+    // Edit click fires updateSection() while the save is still in-flight, which closes
+    // the active section and disrupts subsequent saves.
+    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
 }
 
 /**
@@ -179,10 +191,22 @@ export async function editSelectAttribute(
     await page.locator(`text=${attributeName}`).scrollIntoViewIfNeeded();
     await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await page.locator(`#customAttribute_${fieldId}Edit`).click();
-    await page.locator(`#customProfileAttribute_${fieldId}`).scrollIntoViewIfNeeded();
-    await page.locator(`#customProfileAttribute_${fieldId}`).click();
-    await page.locator(`#react-select-2-option-${optionIndex}`).click();
+
+    // Open the dropdown — the control div carries the field-scoped id
+    const selectControl = page.locator(`#customProfileAttribute_${fieldId}`);
+    await selectControl.scrollIntoViewIfNeeded();
+    await selectControl.click();
+
+    // Pick the option by index inside this specific dropdown's open menu.
+    // Scoping to the react-select container avoids fragile global react-select-N-option-M IDs.
+    const selectContainer = page.locator(`#customProfileAttribute_${fieldId}`).locator('..');
+    const option = selectContainer.locator('.react-select__option').nth(optionIndex);
+    await option.waitFor({state: 'visible'});
+    await option.click();
+
     await page.locator('button:has-text("Save")').click();
+    // Wait for the Edit button to reappear — same reasoning as editTextAttribute.
+    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
 }
 
 /**
@@ -203,15 +227,25 @@ export async function editMultiselectAttribute(
     await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await page.locator(`#customAttribute_${fieldId}Edit`).click();
 
+    // The react-select container wraps the control; scope option lookups to it
+    // to avoid relying on fragile global react-select-N-option-M IDs.
+    const selectContainer = page.locator(`#customProfileAttribute_${fieldId}`).locator('..');
+
     for (const index of optionIndices) {
-        await page.waitForTimeout(500); // Wait for the dropdown to stabilize
-        await page.locator(`#customProfileAttribute_${fieldId}`).scrollIntoViewIfNeeded();
-        await page.locator(`#customProfileAttribute_${fieldId}`).click();
-        await page.locator(`#react-select-3-option-${index}`).click();
+        // Open the dropdown for each selection (it closes after each pick)
+        const selectControl = page.locator(`#customProfileAttribute_${fieldId}`);
+        await selectControl.scrollIntoViewIfNeeded();
+        await selectControl.click();
+
+        // Wait for menu to appear and click the nth option
+        const option = selectContainer.locator('.react-select__option').nth(index);
+        await option.waitFor({state: 'visible'});
+        await option.click();
     }
 
     await page.locator('button:has-text("Save")').click();
-    await page.waitForTimeout(500); // Wait for save to complete
+    // Wait for the Edit button to reappear — same reasoning as editTextAttribute.
+    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
 }
 
 /**
@@ -221,8 +255,12 @@ export async function editMultiselectAttribute(
  */
 export async function verifyAttributesExistInSettings(page: Page, attributes: CustomProfileAttribute[]): Promise<void> {
     for (const attribute of attributes) {
-        await page.locator(`text=${attribute.name}`).scrollIntoViewIfNeeded();
-        await expect(page.locator(`.user-settings:has-text("${attribute.name}")`)).toBeVisible();
+        // Wait for the attribute label to appear — custom profile attribute fields are
+        // fetched asynchronously after the settings modal opens, so we need an explicit
+        // wait before asserting visibility.
+        const label = page.locator(`.user-settings`).getByText(attribute.name, {exact: false});
+        await label.waitFor({state: 'visible', timeout: 15000});
+        await label.scrollIntoViewIfNeeded();
     }
 }
 
@@ -302,8 +340,9 @@ export async function updateCustomProfileAttributeVisibility(
 export async function setupCustomProfileAttributeFields(
     adminClient: Client4,
     attributes: CustomProfileAttribute[],
-): Promise<Record<string, UserPropertyField>> {
+): Promise<CpaFieldsMap> {
     const fieldsMap: Record<string, UserPropertyField> = {};
+    const ownedIds = new Set<string>();
 
     // Create the attribute fields array
     const attributeFields: UserPropertyFieldPatch[] = attributes.map((attr, index) => {
@@ -335,16 +374,14 @@ export async function setupCustomProfileAttributeFields(
         return field;
     });
 
-    // Get existing fields
+    // Build a name -> existing field map so we can reuse fields that already
+    // exist (e.g. a 'Department' field created by global test setup) and only
+    // create the ones that are genuinely missing.
+    const existingByName: Record<string, UserPropertyField> = {};
     try {
         const existingFields = await adminClient.getCustomProfileAttributeFields();
-
-        // If fields exist, use them
-        if (existingFields && existingFields.length > 0) {
-            for (const field of existingFields) {
-                fieldsMap[field.id] = field;
-            }
-            return fieldsMap;
+        for (const field of existingFields) {
+            existingByName[field.name] = field;
         }
     } catch (error) {
         // If request fails, continue to create new fields
@@ -352,18 +389,67 @@ export async function setupCustomProfileAttributeFields(
         console.log('Error getting existing custom profile fields, will create new ones', error);
     }
 
-    // Create fields sequentially
+    // Create fields sequentially, reusing any that already exist by name AND type.
+    // If a same-name field exists with a different type, delete it first then recreate.
     for (const field of attributeFields) {
-        try {
-            const createdField = await adminClient.createCustomProfileAttributeField(field);
-            fieldsMap[createdField.id] = createdField;
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log(`Failed to create field ${field.name}:`, error);
+        const existing = field.name ? existingByName[field.name] : undefined;
+
+        if (existing && existing.type === field.type) {
+            // Name and type both match — safe to reuse without touching ownedIds.
+            fieldsMap[existing.id] = existing;
+        } else if (existing && existing.type !== field.type) {
+            // Same name but wrong type (e.g. a previous spec created 'Location' as 'text'
+            // while this spec needs it as 'select'). Delete the stale field and recreate.
+            try {
+                await adminClient.deleteCustomProfileAttributeField(existing.id);
+            } catch {
+                // Ignore delete errors — the field may already be gone.
+            }
+            try {
+                const createdField = await adminClient.createCustomProfileAttributeField(field);
+                fieldsMap[createdField.id] = createdField;
+                ownedIds.add(createdField.id);
+            } catch {
+                // Race: another worker recreated it first — borrow it (not owned).
+                try {
+                    const currentFields = await adminClient.getCustomProfileAttributeFields();
+                    const raceCreated = currentFields.find((f) => f.name === field.name);
+                    if (raceCreated) {
+                        fieldsMap[raceCreated.id] = raceCreated;
+                    }
+                } catch {
+                    // ignore — missing field surfaces via getFieldIdByName()
+                }
+            }
+        } else {
+            // Field does not exist at all — create it.
+            try {
+                const createdField = await adminClient.createCustomProfileAttributeField(field);
+                fieldsMap[createdField.id] = createdField;
+                ownedIds.add(createdField.id);
+            } catch {
+                // Race: another shard created the field first — re-fetch and borrow it (not owned).
+                try {
+                    const currentFields = await adminClient.getCustomProfileAttributeFields();
+                    const raceCreated = currentFields.find((f) => f.name === field.name);
+                    if (raceCreated) {
+                        fieldsMap[raceCreated.id] = raceCreated;
+                    }
+                } catch {
+                    // ignore — missing field surfaces via getFieldIdByName()
+                }
+            }
         }
     }
 
-    return fieldsMap;
+    // Non-enumerable so Object.keys/values/entries/JSON.stringify skip it.
+    Object.defineProperty(fieldsMap, '__ownedIds', {
+        value: ownedIds,
+        enumerable: false,
+        configurable: true,
+        writable: true,
+    });
+    return fieldsMap as CpaFieldsMap;
 }
 
 /**
@@ -462,8 +548,11 @@ export async function deleteCustomProfileAttributes(
     adminClient: Client4,
     attributes: Record<string, UserPropertyField>,
 ): Promise<void> {
-    // Delete each field
-    for (const id of Object.keys(attributes)) {
+    // Only delete owned fields; fall back to all keys for legacy callers without __ownedIds.
+    const ownedIds: Set<string> =
+        '__ownedIds' in attributes ? (attributes as CpaFieldsMap).__ownedIds : new Set(Object.keys(attributes));
+
+    for (const id of ownedIds) {
         try {
             await adminClient.deleteCustomProfileAttributeField(id);
         } catch (error) {
@@ -472,15 +561,22 @@ export async function deleteCustomProfileAttributes(
         }
     }
 
-    // Verify deletion was successful
+    // Verify only owned fields were deleted (concurrent tests may still have their own fields).
+    if (ownedIds.size === 0) {
+        return;
+    }
     try {
-        const response = await adminClient.getCustomProfileAttributeFields();
-        if (response && response.length > 0) {
+        const remaining = await adminClient.getCustomProfileAttributeFields();
+        const leakedFields = remaining.filter((f: {id: string}) => ownedIds.has(f.id));
+        if (leakedFields.length > 0) {
             // eslint-disable-next-line no-console
-            console.log('Warning: Not all custom profile attributes were deleted');
+            console.log(
+                `Warning: ${leakedFields.length} field(s) were not deleted:`,
+                leakedFields.map((f: {id: string; name: string}) => f.name).join(', '),
+            );
         }
     } catch (error) {
         // eslint-disable-next-line no-console
-        console.log('Error checking if all fields were deleted:', error);
+        console.log('Error verifying field deletion:', error);
     }
 }
