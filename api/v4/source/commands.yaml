@@ -35,7 +35,7 @@
         required: true
       responses:
         "201":
-          description: Command creation successful
+          description: Command created successfully
           content:
             application/json:
               schema:
@@ -74,7 +74,7 @@
             default: false
       responses:
         "200":
-          description: List Commands retrieve successful
+          description: List Commands retrieved successfully
           content:
             application/json:
               schema:
@@ -108,7 +108,7 @@
             type: string
       responses:
         "200":
-          description: Autocomplete commands retrieval successful
+          description: Autocomplete commands retrieved successfully
           content:
             application/json:
               schema:
@@ -147,7 +147,7 @@
             type: string
       responses:
         "200":
-          description: Commands' autocomplete data retrieval successful
+          description: Commands' autocomplete data retrieved successfully
           content:
             application/json:
               schema:
@@ -184,7 +184,7 @@
             type: string
       responses:
         "200":
-          description: Command get successful
+          description: Command retrieved successfully
           content:
             application/json:
               schema:
@@ -221,7 +221,7 @@
         required: true
       responses:
         "200":
-          description: Command updated successful
+          description: Command updated successfully
           content:
             application/json:
               schema:
@@ -252,7 +252,7 @@
             type: string
       responses:
         "200":
-          description: Command deletion successful
+          description: Command deleted successfully
           content:
             application/json:
               schema:
@@ -299,7 +299,7 @@
         required: true
       responses:
         "200":
-          description: Command move successful
+          description: Command moved successfully
           content:
             application/json:
               schema:
@@ -333,7 +333,7 @@
             type: string
       responses:
         "200":
-          description: Token generation successful
+          description: Token generated successfully
           content:
             application/json:
               schema:
@@ -379,7 +379,7 @@
         required: true
       responses:
         "200":
-          description: Command execution successful
+          description: Command executed successfully
           content:
             application/json:
               schema:

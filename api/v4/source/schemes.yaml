@@ -37,7 +37,7 @@
             default: 60
       responses:
         "200":
-          description: Scheme list retrieval successful
+          description: Scheme list retrieved successfully
           content:
             application/json:
               schema:
@@ -87,7 +87,7 @@
         required: true
       responses:
         "201":
-          description: Scheme creation successful
+          description: Scheme created successfully
           content:
             application/json:
               schema:
@@ -122,7 +122,7 @@
             type: string
       responses:
         "200":
-          description: Scheme retrieval successful
+          description: Scheme retrieved successfully
           content:
             application/json:
               schema:
@@ -154,7 +154,7 @@
             type: string
       responses:
         "200":
-          description: Scheme deletion successful
+          description: Scheme deleted successfully
           content:
             application/json:
               schema:
@@ -209,7 +209,7 @@
         required: true
       responses:
         "200":
-          description: Scheme patch successful
+          description: Scheme patched successfully
           content:
             application/json:
               schema:
@@ -264,7 +264,7 @@
             default: 60
       responses:
         "200":
-          description: Team list retrieval successful
+          description: Team list retrieved successfully
           content:
             application/json:
               schema:
@@ -319,7 +319,7 @@
             default: 60
       responses:
         "200":
-          description: Channel list retrieval successful
+          description: Channel list retrieved successfully
           content:
             application/json:
               schema:

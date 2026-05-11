@@ -25,7 +25,7 @@
                 - certificate
       responses:
         "200":
-          description: Certificate upload successful
+          description: Certificate uploaded successfully
           content:
             application/json:
               schema:
@@ -55,7 +55,7 @@
       operationId: RemoveAuditLogCertificate
       responses:
         "200":
-          description: Certificate deletion successful
+          description: Certificate deleted successfully
           content:
             application/json:
               schema:

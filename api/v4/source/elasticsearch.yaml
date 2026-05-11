@@ -20,7 +20,7 @@
       operationId: TestElasticsearch
       responses:
         "200":
-          description: Elasticsearch test successful
+          description: Elasticsearch tested successfully
           content:
             application/json:
               schema:

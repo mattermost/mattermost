@@ -64,7 +64,7 @@
         required: true
       responses:
         "200":
-          description: Dialog open successful
+          description: Dialog opened successfully
           content:
             application/json:
               schema:
@@ -120,7 +120,7 @@
         required: true
       responses:
         "200":
-          description: Dialog submission successful
+          description: Dialog submitted successfully
           content:
             application/json:
               schema:
@@ -177,7 +177,7 @@
         required: true
       responses:
         "200":
-          description: Dialog lookup successful
+          description: Dialog options retrieved successfully
           content:
             application/json:
               schema:

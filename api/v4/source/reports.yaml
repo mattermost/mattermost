@@ -86,7 +86,7 @@
             type: string
       responses:
         "200":
-          description: User page retrieval successful
+          description: User page retrieved successfully
           content:
             application/json:
               schema:
@@ -146,7 +146,7 @@
             type: string
       responses:
         "200":
-          description: User count retrieval successful
+          description: User count retrieved successfully
           content:
             application/json:
               schema:
