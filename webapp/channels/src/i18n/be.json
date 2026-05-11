@@ -1042,8 +1042,6 @@
   "admin.experimental.allowCustomThemes.title": "Дазволіць карыстальніцкія тэмы:",
   "admin.experimental.allowedEmailDomain.desc": "(Неабавязкова) Калі ўстаноўлена, карыстальнікі павінны мець электронную пошту, якая заканчваецца на гэтым дамене, каб перамяшчаць гілкі. Можна ўказаць некалькі даменаў, падзяляючы іх коскамі.",
   "admin.experimental.allowedEmailDomain.title": "Дазволены дамен электроннай пошты",
-  "admin.experimental.channelCategorySorting.desc": "Калі ўключана, каналы будуць аўтаматычна сартавацца па катэгорыях на аснове іх імёнаў з выкарыстаннем падзельніка \"/\".",
-  "admin.experimental.channelCategorySorting.title": "Сартаванне каналаў па катэгорыях:",
   "admin.experimental.collapsedThreads.always_on": "Заўсёды ўключана",
   "admin.experimental.collapsedThreads.default_off": "Уключана (па змаўчанні выключана)",
   "admin.experimental.collapsedThreads.default_on": "Уключана (па змаўчанні ўключана)",

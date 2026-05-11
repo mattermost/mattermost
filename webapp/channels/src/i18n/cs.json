@@ -1017,8 +1017,6 @@
   "admin.experimental.allowCustomThemes.title": "Povolit vlastní motivy:",
   "admin.experimental.allowedEmailDomain.desc": "(Volitelné) Je-li nastaveno, uživatelé musí mít e-mail na této doméně, aby mohli přesouvat vlákna. Více domén lze zadat tak, že je oddělíte čárkami.",
   "admin.experimental.allowedEmailDomain.title": "Povolené e-mailové domény",
-  "admin.experimental.channelCategorySorting.desc": "Když je nastaveno na pravda, kanály budou automaticky seřazeny do kategorií podle jejich názvů pomocí oddělovače \"/\".",
-  "admin.experimental.channelCategorySorting.title": "Řazení kanálů do kategorií:",
   "admin.experimental.collapsedThreads.always_on": "Vždy zapnuto",
   "admin.experimental.collapsedThreads.default_off": "Povoleno (výchozí hodnota Vypnuto)",
   "admin.experimental.collapsedThreads.default_on": "Povoleno (výchozí hodnota Zapnuto)",

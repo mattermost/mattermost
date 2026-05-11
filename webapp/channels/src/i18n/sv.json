@@ -1050,8 +1050,6 @@
   "admin.experimental.allowCustomThemes.title": "Tillåt anpassade teman:",
   "admin.experimental.allowedEmailDomain.desc": "(Valfritt) När detta anges måste användarna ha en e-postadress i denna domän för att kunna flytta trådar. Flera domäner kan anges genom att separera dem med kommatecken.",
   "admin.experimental.allowedEmailDomain.title": "Tillåten e-postdomän",
-  "admin.experimental.channelCategorySorting.desc": "När aktivt sorteras kanalerna automatiskt i kategorier baserat på deras namn med avgränsaren \"/\".",
-  "admin.experimental.channelCategorySorting.title": "Sortering i Kanal-kategorier:",
   "admin.experimental.collapsedThreads.always_on": "Alltid på",
   "admin.experimental.collapsedThreads.default_off": "Aktiverad (Av som standard)",
   "admin.experimental.collapsedThreads.default_on": "Aktiverad (standard på)",

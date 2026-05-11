@@ -1089,8 +1089,6 @@
   "admin.experimental.allowCustomThemes.title": "Özel temalar kullanılabilsin:",
   "admin.experimental.allowedEmailDomain.desc": "(İsteğe bağlı) Ayarlandığında, kullanıcıların konuları taşıyabilmesi için bu etki alanıyla biten bir e-posta adresi olmalıdır. Virgül ile ayırarak birden fazla etki alanı belirtilebilir.",
   "admin.experimental.allowedEmailDomain.title": "İzin verilen e-posta etki alanı",
-  "admin.experimental.channelCategorySorting.desc": "Açıldığında, kanallar \"/\" sınırlayıcısı kullanılarak adlarına göre otomatik olarak kategorilere ayrılır.",
-  "admin.experimental.channelCategorySorting.title": "Kanal kategori sıralaması:",
   "admin.experimental.collapsedThreads.always_on": "Her zaman açık",
   "admin.experimental.collapsedThreads.default_off": "Açık (varsayılan olarak kapalı)",
   "admin.experimental.collapsedThreads.default_on": "Açık (varsayılan olarak açık)",

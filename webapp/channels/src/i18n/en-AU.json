@@ -1043,8 +1043,6 @@
   "admin.experimental.allowCustomThemes.title": "Allow Custom Themes:",
   "admin.experimental.allowedEmailDomain.desc": "(Optional) When set, users must have an email ending in this domain to move threads. Multiple domains can be specified by separating them with commas.",
   "admin.experimental.allowedEmailDomain.title": "Allowed Email Domain",
-  "admin.experimental.channelCategorySorting.desc": "When true, channels will be automatically sorted into categories based on their names using a '/' delimiter.",
-  "admin.experimental.channelCategorySorting.title": "Channel Category Sorting:",
   "admin.experimental.collapsedThreads.always_on": "Always On",
   "admin.experimental.collapsedThreads.default_off": "Enabled (Default Off)",
   "admin.experimental.collapsedThreads.default_on": "Enabled (Default On)",
