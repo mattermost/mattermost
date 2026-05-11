@@ -15,7 +15,7 @@ import {collectionToArray} from '@mattermost/types/utilities';
 import LoadingScreen from 'components/loading_screen';
 
 import Constants from 'utils/constants';
-import {CPA_FIELD_NAME_MAX_RUNES, CPA_FIELD_NAME_RESERVED_WORDS, filterCELIdentifier, slugifyForCEL} from 'utils/properties';
+import {CPA_FIELD_NAME_RESERVED_WORDS, filterCELIdentifier, slugifyForCEL} from 'utils/properties';
 
 import {DangerText, BorderlessInput, LinkButton} from './controls';
 import {useIsFieldOrphaned} from './orphaned_fields_utils';
@@ -123,8 +123,8 @@ export function UserPropertiesTable({
             return null;
         }
         const runes = [...slug];
-        if (runes.length > CPA_FIELD_NAME_MAX_RUNES) {
-            slug = runes.slice(0, CPA_FIELD_NAME_MAX_RUNES).join('');
+        if (runes.length > Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH) {
+            slug = runes.slice(0, Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH).join('');
         }
         return slug;
     }, []);
@@ -208,7 +208,7 @@ export function UserPropertiesTable({
                             testid='property-display-name-input'
                             deleted={toDelete}
                             disabled={isProtected}
-                            maxLength={255}
+                            maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
                             autoFocus={isCreatePending(row.original) && !supportsOptions(row.original)}
                             onChange={(value: string) => {
                                 handleDisplayNameChange(row.original.id, value);
@@ -312,7 +312,7 @@ export function UserPropertiesTable({
                                 setValue={(value: string) => {
                                     updateField({...row.original, name: value.trim()});
                                 }}
-                                maxLength={CPA_FIELD_NAME_MAX_RUNES}
+                                maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
                             />
                             {!toDelete && warning}
                         </>
