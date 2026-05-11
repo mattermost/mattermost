@@ -194,9 +194,7 @@ func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 	clearCPABackfillMarker(t, th)
 
 	// fieldA exercises the "display_name present as empty string in JSONB" case — the true
-	// idempotency boundary. Phase 1's ToPropertyField always writes the key into the underlying
-	// StringInterface map, so a Phase-1-but-pre-Phase-2 field is stored with an explicit empty
-	// value, not a missing key.
+	// idempotency boundary.
 	fieldABase, convErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: "department",
 		Type: model.PropertyFieldTypeText,
