@@ -123,7 +123,8 @@ test('does not show author avatar in published page view', {tag: '@pages'}, asyn
     await publishPage(page);
 
     // # Wait for navigation to published page
-    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+$/, {timeout: HIERARCHY_TIMEOUT});
+    // URL shape: /:team/wiki/:wikiId/:pageId[?from=...]
+    await page.waitForURL(/\/wiki\/[a-z0-9]{26}\/[a-z0-9]{26}(?:\?.*)?$/, {timeout: HIERARCHY_TIMEOUT});
 
     // * Verify author section is NOT visible in published view
     const authorSection = page.locator('[data-testid="wiki-page-author"]');

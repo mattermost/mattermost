@@ -8,7 +8,6 @@ import {
     createChildPageThroughContextMenu,
     createTestChannel,
     buildWikiPageUrl,
-    buildChannelUrl,
     getHierarchyPanel,
     getPageViewerContent,
     getBreadcrumb,
@@ -16,7 +15,6 @@ import {
     getBreadcrumbLinks,
     deletePageThroughUI,
     SHORT_WAIT,
-    AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
     WEBSOCKET_WAIT,
@@ -29,8 +27,7 @@ import {
  * @objective Verify breadcrumb navigation displays correct page hierarchy
  */
 test('displays breadcrumb navigation for nested pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -152,7 +149,6 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
 
     // # Create child page draft via context menu
     await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Draft', 'Child content');
-    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify breadcrumb shows parent → draft
     // Wait for draft to be fully saved and breadcrumb to update
@@ -168,8 +164,7 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
  * @objective Verify URL routing correctly navigates to pages
  */
 test('navigates to correct page via URL routing', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -197,8 +192,7 @@ test('navigates to correct page via URL routing', {tag: '@pages'}, async ({pw, s
  * @objective Verify deep links to specific pages work correctly
  */
 test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -207,7 +201,7 @@ test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw,
     const deepLinkPage = await createPageThroughUI(page, 'Deep Link Page', 'Deep link test content');
 
     // # Construct deep link URL using helper
-    const deepLinkUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, deepLinkPage.id);
+    const deepLinkUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, deepLinkPage.id);
 
     // # Open deep link (simulating external link)
     await page.goto(deepLinkUrl);
@@ -231,8 +225,7 @@ test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw,
  * @objective Verify browser back/forward navigation works correctly
  */
 test('maintains page state with browser back and forward buttons', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -306,8 +299,7 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
  * @objective Verify 404 handling for non-existent pages
  */
 test('displays 404 error for non-existent page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -316,7 +308,7 @@ test('displays 404 error for non-existent page', {tag: '@pages'}, async ({pw, sh
 
     // # Navigate to non-existent page ID
     const nonExistentPageId = 'nonexistent123456789';
-    await page.goto(buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, nonExistentPageId));
+    await page.goto(buildWikiPageUrl(pw.url, team.name, wiki.id, nonExistentPageId, channel.id));
     await page.waitForLoadState('networkidle');
 
     // * Verify either error message shown OR redirected away from nonexistent page
@@ -335,8 +327,7 @@ test('displays 404 error for non-existent page', {tag: '@pages'}, async ({pw, sh
  * @objective Verify page refresh preserves current page state
  */
 test('preserves page content after browser refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -376,8 +367,7 @@ test('preserves page content after browser refresh', {tag: '@pages'}, async ({pw
  * @objective Verify fullscreen mode allows toggling and viewing comments
  */
 test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -477,16 +467,15 @@ test(
         const {team, user, adminClient} = sharedPagesSetup;
         const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-        const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and page through UI
-        const wiki = await createWikiThroughUI(page, uniqueName('Link Test Wiki'));
+        await createWikiThroughUI(page, uniqueName('Link Test Wiki'));
         const pageTitle = 'Page To Delete For Link Test';
         await createPageThroughUI(page, pageTitle, 'Content for link test');
 
         // # Navigate to Messages tab to see the system notification post
-        await page.goto(buildChannelUrl(pw.url, team.name, channel.name));
-        await channelsPage.toBeVisible();
+        await page.getByRole('tab', {name: 'Messages'}).click();
         await page.waitForLoadState('networkidle');
 
         // * Verify the system post about page creation appears in the channel
@@ -502,10 +491,8 @@ test(
         const pageLinkHref = await pageLink.getAttribute('href');
         expect(pageLinkHref).toBeTruthy();
 
-        // # Navigate back to wiki and delete the page
-        const wikiTab = page.getByRole('tab', {name: wiki.title});
-        await expect(wikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await wikiTab.click();
+        // # Navigate back to wiki page directly via URL to reach the specific page
+        await page.goto(pageLinkHref!);
         await page.waitForLoadState('networkidle');
 
         // # Wait for hierarchy panel to load
@@ -518,9 +505,8 @@ test(
         // * Verify page no longer appears in hierarchy
         await expect(hierarchyPanel).not.toContainText(pageTitle, {timeout: WEBSOCKET_WAIT});
 
-        // # Navigate back to Messages channel
-        await page.goto(buildChannelUrl(pw.url, team.name, channel.name));
-        await channelsPage.toBeVisible();
+        // # Navigate back to Messages tab
+        await page.getByRole('tab', {name: 'Messages'}).click();
         await page.waitForLoadState('networkidle');
 
         // # Click the link to the deleted page in the system notification post
@@ -560,3 +546,32 @@ test(
         }
     },
 );
+
+/**
+ * @objective Verify a wiki page can be deep-linked without a ?from= channel param.
+ * Regression guard for the scenario where the URL used to embed channelId and a
+ * deep link with no ?from= could force the sidebar onto the page's internal
+ * backing channel (which the user may not be a member of).
+ */
+test('deep-links to a wiki page with no ?from= param', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Deep Link Channel'));
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki + page through UI so Redux + server state match a real session
+    const wiki = await createWikiThroughUI(page, uniqueName('Deep Link Wiki'));
+    const rootPage = await createPageThroughUI(page, 'Deep Link Page', 'Deep-linked content');
+
+    // # Hard-navigate to the page URL without ?from= (simulates opening a shared link)
+    const deepLinkUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, rootPage.id!);
+    await page.goto(deepLinkUrl);
+    await page.waitForLoadState('networkidle');
+
+    // * Verify the page content loads
+    const viewer = getPageViewerContent(page);
+    await expect(viewer).toContainText('Deep-linked content', {timeout: PAGE_LOAD_TIMEOUT});
+
+    // * Verify URL did NOT get a ?from= silently appended (no channel was force-selected)
+    await expect(page).toHaveURL(new RegExp(`/${team.name}/wiki/${wiki.id}/${rootPage.id}$`));
+});

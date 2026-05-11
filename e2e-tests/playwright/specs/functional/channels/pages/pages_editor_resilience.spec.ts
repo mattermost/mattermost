@@ -38,9 +38,9 @@ import {
  * @objective Verify editor handles rapid bold button clicks without crashing
  */
 test('handles rapid bold button clicks', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Rapid Bold Wiki'));
@@ -71,9 +71,9 @@ test('handles rapid bold button clicks', {tag: ['@pages', '@flaky']}, async ({pw
  * @objective Verify editor handles rapid slash command open/close cycles
  */
 test('handles rapid slash command open/close', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Rapid Slash Wiki'));
@@ -101,9 +101,9 @@ test('handles rapid slash command open/close', {tag: ['@pages', '@flaky']}, asyn
  * @objective Verify editor handles typing during formatting toggle
  */
 test('handles rapid typing during formatting', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Rapid Type Wiki'));
@@ -133,9 +133,9 @@ test('handles rapid typing during formatting', {tag: ['@pages', '@flaky']}, asyn
  * @objective Verify backwards text selection works with formatting
  */
 test('handles backwards text selection', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Backwards Selection Wiki'));
@@ -169,9 +169,9 @@ test('handles backwards text selection', {tag: ['@pages', '@flaky']}, async ({pw
  * @objective Verify multi-paragraph selection works with formatting
  */
 test('handles multi-paragraph selection', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Multi Para Wiki'));
@@ -205,9 +205,9 @@ test('handles multi-paragraph selection', {tag: ['@pages', '@flaky']}, async ({p
  * @objective Verify empty selection does not cause errors when clicking format buttons
  */
 test('handles empty selection with formatting click', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Empty Selection Wiki'));
@@ -243,9 +243,9 @@ test('handles empty selection with formatting click', {tag: ['@pages', '@flaky']
  * @objective Verify text formatting can be undone with Ctrl+Z
  */
 test('undoes text formatting with Ctrl+Z', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Undo Format Wiki'));
@@ -276,9 +276,9 @@ test('undoes text formatting with Ctrl+Z', {tag: ['@pages', '@flaky']}, async ({
  * @objective Verify text formatting can be redone with Ctrl+Y/Ctrl+Shift+Z
  */
 test('redoes text formatting with Ctrl+Y', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Redo Format Wiki'));
@@ -312,9 +312,9 @@ test('redoes text formatting with Ctrl+Y', {tag: ['@pages', '@flaky']}, async ({
  * @objective Verify multiple undo operations work correctly
  */
 test('handles multiple undo operations', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Multi Undo Wiki'));
@@ -345,9 +345,9 @@ test('handles multiple undo operations', {tag: ['@pages', '@flaky']}, async ({pw
  * @objective Verify editor remains functional after focus loss and refocus
  */
 test('editor remains functional after focus loss', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Focus Undo Wiki'));
@@ -384,9 +384,9 @@ test('editor remains functional after focus loss', {tag: ['@pages', '@flaky']}, 
  * @objective Verify arrow key navigation between blocks
  */
 test('navigates blocks with arrow keys', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Arrow Nav Wiki'));
@@ -420,9 +420,9 @@ test('navigates blocks with arrow keys', {tag: ['@pages', '@flaky']}, async ({pw
  * @objective Verify slash menu can be closed and editor remains functional
  */
 test('recovers from closed slash menu', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Slash Recovery Wiki'));
@@ -448,9 +448,9 @@ test('recovers from closed slash menu', {tag: ['@pages', '@flaky']}, async ({pw,
  * @objective Verify editor handles Tab key in lists (indent behavior)
  */
 test('handles Tab key in lists for indentation', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Tab Indent Wiki'));
@@ -490,9 +490,9 @@ test('handles Tab key in lists for indentation', {tag: ['@pages', '@flaky']}, as
  * @objective Verify editor content is preserved on rapid navigation
  */
 test('preserves content during rapid interactions', {tag: ['@pages', '@flaky']}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     await createWikiThroughUI(page, uniqueName('Rapid Interact Wiki'));

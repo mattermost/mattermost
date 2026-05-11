@@ -4,12 +4,12 @@
         - wikis
       summary: Create wiki
       description: |
-        Creates a new wiki for a channel.
+        Creates a new wiki for a team.
 
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `create_post` permission in the channel.
+        Must have `create_wiki` permission in the team.
       operationId: CreateWiki
       requestBody:
         content:
@@ -17,12 +17,12 @@
             schema:
               type: object
               required:
-                - channel_id
+                - team_id
                 - title
               properties:
-                channel_id:
+                team_id:
                   type: string
-                  description: The ID of the channel this wiki belongs to
+                  description: The ID of the team this wiki belongs to
                 title:
                   type: string
                   description: The title of the wiki
@@ -97,7 +97,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `edit_post` permission in the wiki's channel.
+        Must have `manage_wiki` permission in the wiki.
       operationId: UpdateWiki
       parameters:
         - name: wiki_id
@@ -150,7 +150,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `delete_post` permission in the wiki's channel.
+        Must have `delete_wiki` permission for the wiki.
       operationId: DeleteWiki
       parameters:
         - name: wiki_id
@@ -278,7 +278,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `create_post` permission in the wiki's channel.
+        Must have `create_page` permission in the wiki.
       operationId: CreatePage
       parameters:
         - name: wiki_id
@@ -447,7 +447,7 @@
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /api/v4/wikis/{wiki_id}/drafts/{draft_id}/publish:
+  /api/v4/wikis/{wiki_id}/drafts/{page_id}/publish:
     post:
       tags:
         - wikis
@@ -459,7 +459,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `create_post` permission in the wiki's channel.
+        Must have `create_page` permission in the wiki.
       operationId: PublishPageDraft
       parameters:
         - name: wiki_id
@@ -468,7 +468,7 @@
           required: true
           schema:
             type: string
-        - name: draft_id
+        - name: page_id
           in: path
           description: Draft GUID
           required: true
@@ -558,7 +558,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `edit_post` permission in the wiki's channel.
+        Must have `edit_page` permission in the wiki.
       operationId: UpdatePage
       parameters:
         - name: wiki_id
@@ -613,7 +613,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `delete_post` permission in the wiki's channel.
+        Must have `delete_page` permission in the wiki.
       operationId: DeletePage
       parameters:
         - name: wiki_id
@@ -655,7 +655,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `delete_post` permission in the wiki's channel (restore requires same permission as delete).
+        Must have `delete_page` permission in the wiki (restore requires the same permission as delete).
       operationId: RestorePage
       parameters:
         - name: wiki_id
@@ -686,23 +686,152 @@
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /api/v4/wikis/{wiki_id}/move:
-    patch:
+  /api/v4/wikis/page-status-field:
+    get:
       tags:
         - wikis
-      summary: Move wiki to another channel
+      summary: Get page status property field
       description: |
-        Moves a wiki from one channel to another.
+        Get the property field definition used for page status values. The field
+        is global, not scoped to a wiki.
 
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `delete_post` permission in the source channel and `create_post` permission in the target channel.
-      operationId: MoveWikiToChannel
+        Must be authenticated.
+      operationId: GetPageStatusField
+      responses:
+        "200":
+          description: Status field retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  type:
+                    type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v4/wikis/{wiki_id}/links:
+    get:
+      tags:
+        - wikis
+      summary: Get wiki links by wiki
+      description: |
+        List all WikiLink rows that point to this wiki. Used by clients to
+        discover the source channels that link to a wiki when landing on a
+        wiki URL without prior channel context.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have read access to the wiki.
+      operationId: GetWikiLinksByWiki
       parameters:
         - name: wiki_id
           in: path
           description: Wiki GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Wiki links retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    source_id:
+                      type: string
+                    destination_id:
+                      type: string
+                    create_at:
+                      type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v4/wikis/{wiki_id}/pages/{page_id}/status:
+    get:
+      tags:
+        - wikis
+      summary: Get page status
+      description: |
+        Get the current status of a page.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `read_channel_content` permission in the wiki's channel.
+      operationId: GetPageStatus
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+        - name: page_id
+          in: path
+          description: Page (Post) GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Status retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: The current page status
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    patch:
+      tags:
+        - wikis
+      summary: Update page status
+      description: |
+        Update the status of a page.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `edit_page` permission in the wiki.
+      operationId: UpdatePageStatus
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+        - name: page_id
+          in: path
+          description: Page (Post) GUID
           required: true
           schema:
             type: string
@@ -712,20 +841,20 @@
             schema:
               type: object
               required:
-                - target_channel_id
+                - status
               properties:
-                target_channel_id:
+                status:
                   type: string
-                  description: The ID of the channel to move the wiki to
-        description: Target channel information
+                  description: The new page status value
+        description: Status update request
         required: true
       responses:
         "200":
-          description: Wiki move successful
+          description: Status update successful — returns the full updated page Post
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Wiki"
+                $ref: "#/components/schemas/Post"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -884,7 +1013,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `edit_post` permission for the page being moved.
+        Must have `edit_page` permission for the page being moved.
       operationId: UpdatePageParent
       parameters:
         - name: wiki_id
@@ -937,7 +1066,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `edit_post` permission for the page being moved.
+        Must have `edit_page` permission for the page being moved.
       operationId: MovePage
       parameters:
         - name: wiki_id
@@ -990,7 +1119,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `edit_post` permission for the page and `create_post` permission in the target wiki's channel.
+        Must have `edit_page` permission for the page and `create_page` permission in the target wiki.
       operationId: MovePageToWiki
       parameters:
         - name: wiki_id
@@ -1045,7 +1174,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `read_channel_content` permission for the source page and `create_post` permission in the wiki's channel.
+        Must have `read_page` permission for the source page and `create_page` permission in the target wiki.
       operationId: DuplicatePage
       parameters:
         - name: wiki_id
@@ -1067,83 +1196,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/Post"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-
-  /api/v4/wikis/{wiki_id}/pages/{page_id}/export/markdown:
-    post:
-      tags:
-        - wikis
-      summary: Export page to markdown
-      description: |
-        Exports a page to markdown format with attached files as a ZIP archive.
-        The client provides the pre-converted markdown content and file references,
-        and the server packages them into a downloadable ZIP file.
-
-        __Minimum server version__: TBD
-
-        ##### Permissions
-        Must have `read_channel_content` permission in the wiki's channel.
-      operationId: ExportPageToMarkdown
-      parameters:
-        - name: wiki_id
-          in: path
-          description: Wiki GUID
-          required: true
-          schema:
-            type: string
-        - name: page_id
-          in: path
-          description: Page (Post) GUID
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - markdown
-                - filename
-              properties:
-                markdown:
-                  type: string
-                  description: The markdown content to export
-                filename:
-                  type: string
-                  description: The filename for the markdown file (without extension)
-                files:
-                  type: array
-                  description: List of file references to include in the export
-                  items:
-                    type: object
-                    required:
-                      - file_id
-                      - local_path
-                    properties:
-                      file_id:
-                        type: string
-                        description: The ID of the file to include
-                      local_path:
-                        type: string
-                        description: The local path for the file in the export (e.g., "attachments/image.png")
-        description: Export request data
-        required: true
-      responses:
-        "200":
-          description: Page export successful
-          content:
-            application/zip:
-              schema:
-                type: string
-                format: binary
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1207,7 +1259,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `create_post` permission in the wiki's channel.
+        Must have `comment_page` permission in the wiki.
       operationId: CreatePageComment
       parameters:
         - name: wiki_id
@@ -1262,7 +1314,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `create_post` permission in the wiki's channel.
+        Must have `comment_page` permission in the wiki.
       operationId: CreatePageCommentReply
       parameters:
         - name: wiki_id
@@ -1312,6 +1364,54 @@
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /api/v4/wikis/{wiki_id}/pages/{page_id}/comments/{comment_id}:
+    delete:
+      tags:
+        - wikis
+      summary: Delete page comment
+      description: |
+        Delete a comment on a page.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must be the comment author with `comment_page` permission, the page author with `read_wiki` permission, or have `manage_wiki` permission in the wiki.
+      operationId: DeletePageComment
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+        - name: page_id
+          in: path
+          description: Page (Post) GUID
+          required: true
+          schema:
+            type: string
+        - name: comment_id
+          in: path
+          description: Comment (Post) GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Comment deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/v4/wikis/{wiki_id}/pages/{page_id}/comments/{comment_id}/resolve:
     post:
       tags:
@@ -1323,7 +1423,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `edit_post` permission in the wiki's channel.
+        Must have `comment_page` permission in the wiki.
       operationId: ResolvePageComment
       parameters:
         - name: wiki_id
@@ -1371,7 +1471,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `edit_post` permission in the wiki's channel.
+        Must have `comment_page` permission in the wiki.
       operationId: UnresolvePageComment
       parameters:
         - name: wiki_id
@@ -1454,7 +1554,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must have `create_post` permission in the wiki's channel.
+        Must have `create_page` permission in the wiki.
       operationId: CreatePageDraft
       parameters:
         - name: wiki_id
@@ -1491,7 +1591,7 @@
         "403":
           $ref: "#/components/responses/Forbidden"
 
-  /api/v4/wikis/{wiki_id}/drafts/{draft_id}:
+  /api/v4/wikis/{wiki_id}/drafts/{page_id}:
     get:
       tags:
         - wikis
@@ -1511,7 +1611,7 @@
           required: true
           schema:
             type: string
-        - name: draft_id
+        - name: page_id
           in: path
           description: Draft GUID
           required: true
@@ -1544,7 +1644,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must be the draft owner or have `create_post` permission in the wiki's channel.
+        Must be the draft owner and have `edit_page` permission (existing page) or `create_page` permission (new page) in the wiki.
       operationId: SavePageDraft
       parameters:
         - name: wiki_id
@@ -1553,7 +1653,7 @@
           required: true
           schema:
             type: string
-        - name: draft_id
+        - name: page_id
           in: path
           description: Draft GUID
           required: true
@@ -1600,7 +1700,7 @@
           required: true
           schema:
             type: string
-        - name: draft_id
+        - name: page_id
           in: path
           description: Draft GUID
           required: true
@@ -1623,7 +1723,7 @@
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /api/v4/wikis/{wiki_id}/drafts/{draft_id}/editor_stopped:
+  /api/v4/wikis/{wiki_id}/drafts/{page_id}/editor_stopped:
     post:
       tags:
         - wikis
@@ -1643,7 +1743,7 @@
           required: true
           schema:
             type: string
-        - name: draft_id
+        - name: page_id
           in: path
           description: Draft GUID
           required: true
@@ -1664,7 +1764,7 @@
         "403":
           $ref: "#/components/responses/Forbidden"
 
-  /api/v4/wikis/{wiki_id}/drafts/{draft_id}/move:
+  /api/v4/wikis/{wiki_id}/drafts/{page_id}/move:
     post:
       tags:
         - wikis
@@ -1675,7 +1775,7 @@
         __Minimum server version__: TBD
 
         ##### Permissions
-        Must be the draft owner and have `create_post` permission in the target wiki's channel.
+        Must be the draft owner and have `create_page` permission in the target wiki.
       operationId: MovePageDraft
       parameters:
         - name: wiki_id
@@ -1684,7 +1784,7 @@
           required: true
           schema:
             type: string
-        - name: draft_id
+        - name: page_id
           in: path
           description: Draft GUID
           required: true
@@ -1756,3 +1856,191 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+
+  /api/v4/teams/{team_id}/wikis:
+    get:
+      tags:
+        - wikis
+      summary: List wikis for team
+      description: |
+        Get all wikis for a specific team.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `view_team` permission for the team.
+      operationId: GetTeamWikis
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of wikis per page
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Wikis retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Wiki"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v4/channels/{channel_id}/wikilinks:
+    post:
+      tags:
+        - wikis
+      summary: Link wiki to channel
+      description: |
+        Link an existing wiki to a channel so it appears in that channel's wiki list.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have bookmark add permission in the channel and wiki modify permission in the wiki's backing channel.
+      operationId: LinkWikiToChannel
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - wiki_id
+              properties:
+                wiki_id:
+                  type: string
+                  description: The ID of the wiki to link
+        description: Wiki link request
+        required: true
+      responses:
+        "201":
+          description: Wiki linked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  source_id:
+                    type: string
+                  destination_id:
+                    type: string
+                  create_at:
+                    type: integer
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    get:
+      tags:
+        - wikis
+      summary: Get wiki links for channel
+      description: |
+        Get all wikis linked to a channel.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `read_channel_content` permission in the channel.
+      operationId: GetWikiLinksForChannel
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Wiki links retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    source_id:
+                      type: string
+                    destination_id:
+                      type: string
+                    create_at:
+                      type: integer
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v4/channels/{channel_id}/wikilinks/{wiki_id}:
+    delete:
+      tags:
+        - wikis
+      summary: Unlink wiki from channel
+      description: |
+        Remove a wiki link from a channel.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have bookmark delete permission in the channel and wiki modify permission in the wiki's backing channel.
+      operationId: UnlinkWikiFromChannel
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Wiki unlinked successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

@@ -27,8 +27,7 @@ import {
  * File uploads are enabled on the server
  */
 test('uploads video file via file picker', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -147,8 +146,7 @@ test('uploads video file via file picker', {tag: '@pages'}, async ({pw, sharedPa
  * File uploads are enabled on the server
  */
 test('pastes video from clipboard', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -260,8 +258,7 @@ test('pastes video from clipboard', {tag: '@pages'}, async ({pw, sharedPagesSetu
  * @objective Verify only video and image files are accepted by the editor
  */
 test('rejects non-media files in editor', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -322,8 +319,7 @@ test('rejects non-media files in editor', {tag: '@pages'}, async ({pw, sharedPag
  * File uploads are enabled on the server
  */
 test('supports webm video format', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -437,8 +433,7 @@ test('supports webm video format', {tag: '@pages'}, async ({pw, sharedPagesSetup
  * File uploads are enabled on the server
  */
 test('supports mixed image and video content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 

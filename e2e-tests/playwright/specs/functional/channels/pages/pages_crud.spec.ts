@@ -16,6 +16,7 @@ import {
     loginAndNavigateToChannel,
     SHORT_WAIT,
     uniqueName,
+    verifyNavigatedToWiki,
 } from './test_helpers';
 
 /**
@@ -31,7 +32,7 @@ test('creates wiki and root page through full UI flow', {tag: '@pages'}, async (
     await createWikiThroughUI(page, uniqueName('Test Wiki'));
 
     // * Verify navigated to new wiki
-    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+    await verifyNavigatedToWiki(page);
 
     // # Create page through UI
     await createPageThroughUI(page, 'New Test Page', 'Page content here');
@@ -227,7 +228,6 @@ test('displays page metadata', {tag: '@pages'}, async ({pw, sharedPagesSetup}) =
 /**
  * @objective Verify that a page can be exported to PDF format
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-test.skip('exports page to PDF', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    // Implementation TBD
+test.fixme('exports page to PDF', {tag: '@pages'}, async () => {
+    // PDF export not yet implemented
 });

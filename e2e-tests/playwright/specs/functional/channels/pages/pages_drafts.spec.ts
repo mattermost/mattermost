@@ -26,7 +26,7 @@ import {
     withRolePermissions,
     loginAndNavigateToChannel,
     uniqueName,
-    AUTOSAVE_WAIT,
+    waitForAutoSave,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
     SHORT_WAIT,
@@ -58,7 +58,7 @@ test('auto-saves draft while editing', {tag: '@pages'}, async ({pw, sharedPagesS
     await typeInEditor(page, 'Draft content here');
 
     // * Wait for auto-save to complete
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // # Refresh page
     await page.reload();
@@ -100,13 +100,13 @@ test(
         await editor.click();
         await clearEditorContent(page);
         await typeInEditor(page, 'Draft changes to Page A');
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // # Navigate to Page B
         await clickPageInHierarchy(page, 'Page B');
 
         // * Verify navigation completes immediately without prompt
-        await page.waitForURL(new RegExp(`/wiki/.*/.*/${pageB.id}`));
+        await page.waitForURL(new RegExp(`/wiki/.*/${pageB.id}`));
         await page.waitForLoadState('networkidle');
         await verifyPageContentContains(page, 'Original content B');
 
@@ -176,7 +176,7 @@ test.skip('displays saving indicator during auto-save', {tag: '@pages'}, async (
     await expect(savingIndicator).toContainText(/saving|autosav/i);
 
     // * Wait for save to complete and verify "Saved" indicator
-    await page.waitForTimeout(WEBSOCKET_WAIT); // Wait for auto-save to complete
+    await waitForAutoSave(page);
 
     const savedIndicator = page
         .locator('[data-testid="draft-saved-indicator"], .saved-indicator, [aria-label*="Saved"], .draft-status')
@@ -192,7 +192,7 @@ test.skip('displays saving indicator during auto-save', {tag: '@pages'}, async (
     await expect(savingIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Wait and verify "Saved" appears again
-    await page.waitForTimeout(WEBSOCKET_WAIT);
+    await waitForAutoSave(page);
     await expect(savedIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
@@ -220,7 +220,7 @@ test('discards draft and removes from hierarchy', {tag: '@pages'}, async ({pw, s
     await typeInEditor(page, 'This will be discarded');
 
     // * Wait for auto-save to complete
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // # Delete draft via hierarchy panel context menu
     await deletePageThroughUI(page, 'Draft to Discard');
@@ -252,7 +252,7 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, 
     await getEditorAndWait(page);
     await typeInEditor(page, 'Content 1');
 
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // # Navigate back to wiki (without publishing)
     // First go to channel to deselect any auto-selected drafts
@@ -260,7 +260,7 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, 
     await page.waitForTimeout(SHORT_WAIT);
 
     // Then navigate back to wiki
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
 
     // # Open pages panel if it's collapsed
     await ensurePanelOpen(page);
@@ -278,10 +278,10 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, 
     await getEditorAndWait(page);
     await typeInEditor(page, 'Content 2');
 
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // # Navigate back to check drafts section
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
 
     // * Verify both explicitly created drafts exist in hierarchy (drafts are integrated in tree with data-is-draft attribute)
     const hierarchyPanel = getHierarchyPanel(page);
@@ -322,7 +322,7 @@ test('recovers draft after browser refresh', {tag: '@pages'}, async ({pw, shared
     await typeInEditor(page, 'Content that should survive refresh');
 
     // * Wait for auto-save to complete
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // # Refresh browser
     await page.reload();
@@ -376,7 +376,7 @@ test('converts published page to draft when editing', {tag: '@pages'}, async ({p
     await page.keyboard.press('End');
     await typeInEditor(page, ' - Modified content');
 
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // * Verify URL shows draft pattern
     const currentUrl = page.url();
@@ -396,7 +396,7 @@ test('converts published page to draft when editing', {tag: '@pages'}, async ({p
 
     // # Navigate away to Untitled page (draft-only) to abandon current draft editor
     const urlBeforeNav = page.url();
-    const untitledButton = hierarchyPanel.getByRole('button', {name: 'Untitled page', exact: true});
+    const untitledButton = hierarchyPanel.getByRole('button', {name: 'Go to Untitled page', exact: true});
     await untitledButton.click();
     // Wait for URL to change to a different page
     await page.waitForFunction((oldUrl) => window.location.href !== oldUrl, urlBeforeNav, {timeout: HIERARCHY_TIMEOUT});
@@ -435,10 +435,10 @@ test('navigates to draft editor when clicking draft node', {tag: '@pages'}, asyn
     await getEditorAndWait(page);
     await typeInEditor(page, 'Draft content');
 
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // # Navigate away from draft
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
     await ensurePanelOpen(page);
 
     // # Click draft node in hierarchy (drafts are integrated in tree)
@@ -479,7 +479,6 @@ test('shows draft node as child of intended parent in tree', {tag: '@pages'}, as
 
     // # Create child draft via page actions menu
     await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Draft Node', 'Child content');
-    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify parent node now has expand button (showing it has the child)
     const updatedParentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
@@ -526,7 +525,7 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
     let editor = await getEditorAndWait(page);
     await typeInEditor(page, 'First draft content');
 
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // # Navigate back and create second draft
     // First go to channel to deselect any auto-selected drafts
@@ -534,7 +533,7 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
     await page.waitForTimeout(SHORT_WAIT);
 
     // Then navigate back to wiki
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
 
     // # Open pages panel if it's collapsed
     await ensurePanelOpen(page);
@@ -551,7 +550,7 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
     editor = await getEditorAndWait(page);
     await typeInEditor(page, 'Second draft content');
 
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // # Switch back to first draft (drafts are integrated in tree)
     const hierarchyPanel = getHierarchyPanel(page);
@@ -609,10 +608,10 @@ test(
         await getEditorAndWait(page);
         await typeInEditor(page, 'Draft content');
 
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // # Navigate back to view hierarchy
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
         await ensurePanelOpen(page);
 
         // * Verify draft and published page have different visual indicators
@@ -730,7 +729,7 @@ test(
         await createDraftThroughUI(page, 'Parent Draft', 'Parent draft content');
 
         // # Navigate back to wiki view to see hierarchy
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
 
         // # Ensure pages panel is open
         await ensurePanelOpen(page);
@@ -757,10 +756,10 @@ test(
         await typeInEditor(page, 'Child draft content');
 
         // # Wait for auto-save to complete
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // # Navigate back to wiki view to see updated hierarchy
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
         await page.waitForTimeout(SHORT_WAIT);
 
         // # Ensure pages panel is open after navigation
@@ -802,10 +801,9 @@ test(
 
         // # Wait for publish to complete and websocket events to be processed
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(AUTOSAVE_WAIT);
 
         // # Navigate to wiki view to see hierarchy
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
         await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // # Ensure pages panel is open
@@ -891,10 +889,10 @@ test(
         await editor.click();
         await clearEditorContent(page);
         await typeInEditor(page, 'First edit content');
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // # Navigate away
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
         await ensurePanelOpen(page);
 
         // # Second edit - should update existing draft, not create new one
@@ -904,10 +902,10 @@ test(
         await editor2.click();
         await clearEditorContent(page);
         await typeInEditor(page, 'Second edit content');
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // # Navigate away again
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
         await ensurePanelOpen(page);
 
         // # Third edit - should still be the same draft
@@ -917,10 +915,10 @@ test(
         await editor3.click();
         await clearEditorContent(page);
         await typeInEditor(page, 'Third edit content');
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // # Navigate to wiki view to check hierarchy
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
         await ensurePanelOpen(page);
 
         // * Verify only ONE page node exists (published page with unpublished changes)
@@ -975,10 +973,10 @@ test(
         // # First edit
         await getEditorAndWait(page);
         await typeInEditor(page, 'First version of draft');
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // # Navigate away
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
         await ensurePanelOpen(page);
 
         // # Click draft to edit again
@@ -993,10 +991,10 @@ test(
         await getEditorAndWait(page);
         await clearEditorContent(page);
         await typeInEditor(page, 'Second version of draft');
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // # Navigate away
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
         await ensurePanelOpen(page);
 
         // # Third edit
@@ -1009,10 +1007,10 @@ test(
         await getEditorAndWait(page);
         await clearEditorContent(page);
         await typeInEditor(page, 'Third version of draft');
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // # Navigate to wiki view to count drafts
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
         await ensurePanelOpen(page);
 
         // * Verify exactly ONE draft node exists
@@ -1064,10 +1062,10 @@ test(
         await page.keyboard.type('Edit 5 Final', {delay: 10});
 
         // # Now wait for auto-save to settle
-        await page.waitForTimeout(AUTOSAVE_WAIT * 2);
+        await waitForAutoSave(page);
 
         // # Navigate away and back
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
         await ensurePanelOpen(page);
 
         // * Verify only ONE page entry exists
@@ -1113,13 +1111,13 @@ test(
         await editor1.click();
         await clearEditorContent(tab1);
         await typeInEditor(tab1, 'Draft content from Tab 1');
-        await tab1.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(tab1);
 
         // # Open second tab with same user
         const {page: tab2} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Navigate to the same wiki in tab 2
-        await navigateToWikiView(tab2, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(tab2, pw.url, team.name, wiki.id, channel.id);
         await ensurePanelOpen(tab2);
 
         // # Click on the same page in tab 2
@@ -1154,7 +1152,7 @@ test('reflects draft changes across tabs after refresh', {tag: '@pages'}, async 
 
     // # Open second tab and navigate to same page
     const {page: tab2} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
-    await navigateToWikiView(tab2, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(tab2, pw.url, team.name, wiki.id, channel.id);
     await ensurePanelOpen(tab2);
     await clickPageInHierarchy(tab2, 'Cross Tab Page');
 
@@ -1165,7 +1163,7 @@ test('reflects draft changes across tabs after refresh', {tag: '@pages'}, async 
     await editor1.click();
     await clearEditorContent(tab1);
     await typeInEditor(tab1, 'Updated content from Tab 1');
-    await tab1.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(tab1);
 
     // # Refresh tab 2
     await tab2.reload();
@@ -1207,7 +1205,7 @@ test('preserves draft after logout and login', {tag: '@pages'}, async ({pw, shar
     await editor1.click();
     await clearEditorContent(session1);
     await typeInEditor(session1, 'Draft content before logout');
-    await session1.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(session1);
 
     // # Logout (close page context simulates session end)
     await session1.context().close();
@@ -1216,7 +1214,7 @@ test('preserves draft after logout and login', {tag: '@pages'}, async ({pw, shar
     const {page: session2} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Navigate to the wiki
-    await navigateToWikiView(session2, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(session2, pw.url, team.name, wiki.id, channel.id);
     await ensurePanelOpen(session2);
 
     // # Click on the page
@@ -1251,6 +1249,11 @@ test(
         const {team, user: userA, adminClient} = sharedPagesSetup;
         const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
+        // # Grant edit_page permission to team_user role so User B can publish edits to User A's page.
+        // # Wiki/page perms are team-scoped under the new permission model
+        // # (see plans/wiki-page-permissions-confluence.md, Phase 1).
+        await withRolePermissions(adminClient, 'team_user', ['edit_page']);
+
         // # Create second user
         const {user: userB} = await createTestUserInChannel(pw, adminClient, team, channel);
 
@@ -1267,14 +1270,14 @@ test(
         await editorA.click();
         await clearEditorContent(pageA);
         await typeInEditor(pageA, 'User A draft content');
-        await pageA.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(pageA);
 
         // # User A navigates away (draft saved)
-        await navigateToWikiView(pageA, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(pageA, pw.url, team.name, wiki.id, channel.id);
 
         // # User B logs in and publishes a change
         const {page: pageB} = await loginAndNavigateToChannel(pw, userB, team.name, channel.name);
-        await navigateToWikiView(pageB, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(pageB, pw.url, team.name, wiki.id, channel.id);
         await ensurePanelOpen(pageB);
 
         await clickPageInHierarchy(pageB, 'Conflict Test Page');
@@ -1283,7 +1286,7 @@ test(
         await editorB.click();
         await clearEditorContent(pageB);
         await typeInEditor(pageB, 'User B published content v2');
-        await pageB.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(pageB);
 
         // # User B publishes
         const publishButton = pageB.locator('[data-testid="wiki-page-publish-button"]');
@@ -1321,8 +1324,10 @@ test('handles page deletion while user has unpublished draft', {tag: '@pages'}, 
     const {team, user: userA, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-    // # Grant delete_page permission to channel_user role so User B can delete User A's page
-    const restorePermissions = await withRolePermissions(adminClient, 'channel_user', ['delete_page']);
+    // # Grant delete_page permission to team_user role so User B can delete User A's page.
+    // Wiki/page perms are team-scoped under the new permission model
+    // (see plans/wiki-page-permissions-confluence.md, Phase 1).
+    const restorePermissions = await withRolePermissions(adminClient, 'team_user', ['delete_page']);
 
     // # Create second user with permissions to delete
     const {user: userB} = await createTestUserInChannel(pw, adminClient, team, channel);
@@ -1340,14 +1345,14 @@ test('handles page deletion while user has unpublished draft', {tag: '@pages'}, 
     await editorA.click();
     await clearEditorContent(pageA);
     await typeInEditor(pageA, 'User A draft that will be orphaned');
-    await pageA.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(pageA);
 
     // # User A navigates away
-    await navigateToWikiView(pageA, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(pageA, pw.url, team.name, wiki.id, channel.id);
 
     // # User B logs in and deletes the page
     const {page: pageB} = await loginAndNavigateToChannel(pw, userB, team.name, channel.name);
-    await navigateToWikiView(pageB, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(pageB, pw.url, team.name, wiki.id, channel.id);
     await ensurePanelOpen(pageB);
 
     await deletePageThroughUI(pageB, 'Page To Be Deleted');

@@ -3,12 +3,12 @@
 
 import {expect, test} from './pages_test_fixture';
 import {
-    AUTOSAVE_WAIT,
     buildWikiPageUrl,
     createPageThroughUI,
     createTestChannel,
     createWikiThroughUI,
     DEFAULT_PAGE_STATUS,
+    enterEditMode,
     fillCreatePageModal,
     getEditor,
     getNewPageButton,
@@ -18,6 +18,8 @@ import {
     PAGE_STATUSES,
     publishCurrentPage,
     uniqueName,
+    startWatchForAutoSave,
+    waitForAutoSave,
 } from './test_helpers';
 
 /**
@@ -82,10 +84,9 @@ test('changes page status from in_progress to in_review', {tag: '@pages'}, async
     await expect(statusMenu).toBeVisible();
 
     const inReviewOption = page.locator('.selectable-select-property__option', {hasText: 'In review'});
+    const autoSaveDone = startWatchForAutoSave(page);
     await inReviewOption.click();
-
-    // # Wait for autosave
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await autoSaveDone;
 
     // # Click Update button
     await publishCurrentPage(page);
@@ -127,10 +128,9 @@ test('persists page status after browser refresh', {tag: '@pages'}, async ({pw, 
     await expect(statusMenu).toBeVisible();
 
     const doneOption = page.locator('.selectable-select-property__option', {hasText: 'Done'});
+    const autoSaveDone = startWatchForAutoSave(page);
     await doneOption.click();
-
-    // # Wait for autosave
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await autoSaveDone;
 
     // # Update page
     await publishCurrentPage(page);
@@ -185,10 +185,9 @@ test('allows selection of all valid status values', {tag: '@pages'}, async ({pw,
         // # Select the status
         const statusOption = page.locator('.selectable-select-property__option', {hasText: status});
         await expect(statusOption).toBeVisible();
+        const autoSaveDone = startWatchForAutoSave(page);
         await statusOption.click();
-
-        // # Wait for autosave
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await autoSaveDone;
 
         // # Update page
         await publishCurrentPage(page);
@@ -233,7 +232,7 @@ test(
         await editor.click();
         await editor.fill('Test content');
 
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         await publishCurrentPage(page);
 
@@ -264,22 +263,21 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     await page.waitForLoadState('networkidle');
 
     // # Edit and set status to 'rough_draft'
-    let editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await editButton.click();
-    await page.waitForLoadState('networkidle');
+    await enterEditMode(page);
 
     let statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
     await statusSelector.click();
     let statusMenu = page.locator('.selectable-select-property__menu');
     await expect(statusMenu).toBeVisible();
     const roughDraftOption = page.locator('.selectable-select-property__option', {hasText: 'Rough draft'});
+    let autoSaveDone = startWatchForAutoSave(page);
     await roughDraftOption.click();
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await autoSaveDone;
 
     await publishCurrentPage(page);
 
     // # Navigate back to wiki root
-    await page.goto(buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id));
+    await page.goto(buildWikiPageUrl(pw.url, team.name, wiki.id, undefined, channel.id));
     await page.waitForLoadState('networkidle');
 
     // # Create second page
@@ -287,17 +285,16 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     await page.waitForLoadState('networkidle');
 
     // # Edit and set status to 'done'
-    editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await editButton.click();
-    await page.waitForLoadState('networkidle');
+    await enterEditMode(page);
 
     statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
     await statusSelector.click();
     statusMenu = page.locator('.selectable-select-property__menu');
     await expect(statusMenu).toBeVisible();
     const doneOption = page.locator('.selectable-select-property__option', {hasText: 'Done'});
+    autoSaveDone = startWatchForAutoSave(page);
     await doneOption.click();
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await autoSaveDone;
 
     await publishCurrentPage(page);
 
@@ -307,7 +304,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     expect(statusText?.trim()).toBe('Done');
 
     // # Navigate back to page 1
-    await page.goto(buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, page1.id));
+    await page.goto(buildWikiPageUrl(pw.url, team.name, wiki.id, page1.id, channel.id));
     await page.waitForLoadState('networkidle');
 
     // * Verify page 1 still has status 'Rough draft'
@@ -340,9 +337,7 @@ test('updates status display after edit and update', {tag: '@pages'}, async ({pw
     const initialLabel = initialStatus?.trim();
 
     // # Edit page
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await editButton.click();
-    await page.waitForLoadState('networkidle');
+    await enterEditMode(page);
 
     // # Change status to a different value
     const targetStatusLabel = initialLabel === DEFAULT_PAGE_STATUS ? 'Done' : DEFAULT_PAGE_STATUS;
@@ -354,10 +349,9 @@ test('updates status display after edit and update', {tag: '@pages'}, async ({pw
     await expect(statusMenu).toBeVisible();
 
     const targetOption = page.locator('.selectable-select-property__option', {hasText: targetStatusLabel});
+    const autoSaveDone = startWatchForAutoSave(page);
     await targetOption.click();
-
-    // # Wait for autosave
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await autoSaveDone;
 
     // # Update page
     await publishCurrentPage(page);
@@ -394,7 +388,7 @@ test('persists status selected in draft mode after publishing', {tag: '@pages'},
     await editor.fill('This is draft content');
 
     // # Wait for autosave
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // # Select status 'done' in draft mode
     const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
@@ -405,10 +399,9 @@ test('persists status selected in draft mode after publishing', {tag: '@pages'},
     await expect(statusMenu).toBeVisible();
 
     const doneOption = page.locator('.selectable-select-property__option', {hasText: 'Done'});
+    const autoSaveDoneStatus = startWatchForAutoSave(page);
     await doneOption.click();
-
-    // # Wait for autosave to persist status
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await autoSaveDoneStatus;
 
     // # Publish the page
     await publishCurrentPage(page);
@@ -444,7 +437,7 @@ test('persists status through draft autosave and browser refresh', {tag: '@pages
     await editor.fill('Content with status');
 
     // # Wait for autosave
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // # Select status 'in_review'
     const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
@@ -454,10 +447,9 @@ test('persists status through draft autosave and browser refresh', {tag: '@pages
     await expect(statusMenu).toBeVisible();
 
     const inReviewOption = page.locator('.selectable-select-property__option', {hasText: 'In review'});
+    const autoSaveDone = startWatchForAutoSave(page);
     await inReviewOption.click();
-
-    // # Wait for autosave to persist status
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await autoSaveDone;
 
     // # Capture current URL before refresh
     const currentUrl = page.url();
@@ -512,7 +504,7 @@ test(
         await editor.fill('Testing immediate publish after status change');
 
         // # Wait for content autosave only
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // # Select status 'Done' in draft mode
         const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
@@ -555,9 +547,7 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await page.waitForLoadState('networkidle');
 
     // # Click Edit button to enter draft mode
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await editButton.click();
-    await page.waitForLoadState('networkidle');
+    await enterEditMode(page);
 
     // # Wait for editor to fully load (including status selector)
     await page.waitForSelector('[data-testid="wiki-page-editor"]', {state: 'visible', timeout: HIERARCHY_TIMEOUT});
@@ -571,10 +561,9 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await expect(statusMenu).toBeVisible();
 
     const roughDraftOption = page.locator('.selectable-select-property__option', {hasText: 'Rough draft'});
+    const autoSaveDone = startWatchForAutoSave(page);
     await roughDraftOption.click();
-
-    // # Wait for autosave
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await autoSaveDone;
 
     // # Update the content
     const editor = getEditor(page);
@@ -582,8 +571,8 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await page.keyboard.press('End');
     await editor.type(' Updated content');
 
-    // # Wait for autosave
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    // # Wait for autosave (debounced — register after typing, fires 500ms later)
+    await waitForAutoSave(page);
 
     // # Click Update button
     await publishCurrentPage(page);

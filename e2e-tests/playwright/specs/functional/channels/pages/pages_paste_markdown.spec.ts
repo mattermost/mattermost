@@ -71,8 +71,7 @@ test.describe('Paste Markdown', () => {
      * @objective Verify fenced code blocks are converted to code block nodes
      */
     test('converts fenced code block to rich code block', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -101,8 +100,7 @@ test.describe('Paste Markdown', () => {
      * @objective Verify markdown tables are converted to rich table nodes
      */
     test('converts markdown table to rich table', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -137,8 +135,7 @@ test.describe('Paste Markdown', () => {
      * @objective Verify headers + links (2 medium signals) trigger conversion
      */
     test('converts headers and links to rich content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -171,8 +168,7 @@ test.describe('Paste Markdown', () => {
      * @objective Verify @mentions in pasted markdown become mention nodes
      */
     test('converts @mentions to mention nodes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -200,8 +196,7 @@ test.describe('Paste Markdown', () => {
      * @objective Verify ~channel mentions become channel mention nodes
      */
     test('converts ~channel to channel mention nodes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -228,8 +223,7 @@ test.describe('Paste Markdown', () => {
      * @objective Verify plain text without markdown signals stays as plain text
      */
     test('does not convert plain text without markdown', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -269,8 +263,7 @@ test.describe('Paste Markdown', () => {
      * for single weak signals (no code blocks, tables, etc. are created).
      */
     test('does not convert single weak signal to block elements', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -300,8 +293,7 @@ test.describe('Paste Markdown', () => {
      * @objective Verify HTML paste is not affected by markdown conversion
      */
     test('HTML paste bypasses markdown conversion', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -333,8 +325,7 @@ test.describe('Paste Markdown', () => {
      * @objective Verify email addresses are not converted to mentions
      */
     test('email addresses are not converted to mentions', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -370,8 +361,7 @@ test.describe('Paste Markdown', () => {
      * @objective Verify markdown images are converted to image nodes
      */
     test('converts markdown images to image nodes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 

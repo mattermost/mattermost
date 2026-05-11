@@ -23,9 +23,10 @@ import {
     waitForActiveEditorsIndicator,
     loginAndNavigateToChannel,
     uniqueName,
-    AUTOSAVE_WAIT,
+    getPageIdFromUrl,
     WEBSOCKET_WAIT,
     HIERARCHY_TIMEOUT,
+    waitForAutoSave,
 } from './test_helpers';
 
 /**
@@ -52,14 +53,13 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
     await typeInEditor(page1, 'Initial content');
 
     // # Wait for draft to save
-    await page1.waitForTimeout(WEBSOCKET_WAIT);
+    await waitForAutoSave(page1);
 
     // # Publish the page
     await publishPage(page1);
 
     // # Get page ID from URL
-    const pageUrl = page1.url();
-    const pageId = pageUrl.split('/').pop();
+    const pageId = getPageIdFromUrl(page1.url());
 
     // Verify all URL components are valid
     if (!pageId || !wiki.id || !channel.id || !team.name) {
@@ -72,7 +72,7 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
     const {page: page2} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
     // Navigate to the specific page
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
+    await navigateToPage(page2, pw.url, team.name, wiki.id, pageId!);
 
     // # Start editing the page
     await enterEditMode(page2);
@@ -81,7 +81,7 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
     await typeInEditor(page2, ' User 2 editing');
 
     // # Wait for draft to save
-    await page2.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page2);
 
     // * User 1 should see active editors indicator showing User 2
     const activeEditorsIndicator = await waitForActiveEditorsIndicator(page1, {expectedText: '1 person editing'});
@@ -115,28 +115,27 @@ test('displays multiple active editors with avatars and count', {tag: '@pages'},
 
     await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
-    await page1.waitForTimeout(WEBSOCKET_WAIT);
+    await waitForAutoSave(page1);
 
     // # Publish the page
     await publishPage(page1);
 
     // # Get page ID from URL
-    const pageUrl = page1.url();
-    const pageId = pageUrl.split('/').pop();
+    const pageId = getPageIdFromUrl(page1.url());
 
     // # User 2 logs in and starts editing
     const {page: page2} = await pw.testBrowser.login(user2);
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
+    await navigateToPage(page2, pw.url, team.name, wiki.id, pageId!);
 
     await enterEditMode(page2);
 
     await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 content');
-    await page2.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page2);
 
     // # User 3 logs in and starts editing
     const {page: page3} = await pw.testBrowser.login(user3);
-    await navigateToPage(page3, pw.url, team.name, channel.id, wiki.id, pageId!);
+    await navigateToPage(page3, pw.url, team.name, wiki.id, pageId!);
 
     await enterEditMode(page3);
 
@@ -146,7 +145,7 @@ test('displays multiple active editors with avatars and count', {tag: '@pages'},
     // # Both users type again to ensure they're both active at the same time
     await typeInEditor(page2, '!');
     await typeInEditor(page3, '!');
-    await page3.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page3);
 
     // * User 1 should see active editors indicator showing both users
     const activeEditorsIndicator = await waitForActiveEditorsIndicator(page1, {expectedText: '2 people editing'});
@@ -180,25 +179,24 @@ test('removes editor from indicator when draft is deleted', {tag: '@pages'}, asy
 
     await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
-    await page1.waitForTimeout(WEBSOCKET_WAIT);
+    await waitForAutoSave(page1);
 
     // # Publish the page
     await publishPage(page1);
 
     // # Get page ID from URL
-    const pageUrl = page1.url();
-    const pageId = pageUrl.split('/').pop();
+    const pageId = getPageIdFromUrl(page1.url());
 
     // # User 2 starts editing
     const {page: page2} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
+    await navigateToPage(page2, pw.url, team.name, wiki.id, pageId!);
 
     await enterEditMode(page2);
 
     await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 content');
-    await page2.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page2);
 
     // * User 1 should see active editors indicator
     const activeEditorsIndicator = await waitForActiveEditorsIndicator(page1);
@@ -230,7 +228,7 @@ test('does not show current user in active editors list', {tag: '@pages'}, async
 
     await getEditorAndWait(page);
     await typeInEditor(page, 'User editing their own draft');
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // * Active editors indicator should not be visible
     const activeEditorsIndicator = page.locator('.active-editors-indicator');
@@ -260,20 +258,19 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
 
     await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
-    await page1.waitForTimeout(WEBSOCKET_WAIT);
+    await waitForAutoSave(page1);
 
     // # Publish the page
     await publishPage(page1);
 
     // # Get page ID from URL
-    const pageUrl = page1.url();
-    const pageId = pageUrl.split('/').pop();
+    const pageId = getPageIdFromUrl(page1.url());
 
     // # All 4 users start editing
     const pages = [];
     for (let i = 0; i < 4; i++) {
         const {page: userPage} = await pw.testBrowser.login(users[i]);
-        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, pageId);
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, pageId, channel.id);
         await userPage.goto(wikiPageUrl);
         await userPage.waitForLoadState('networkidle');
 
@@ -292,7 +289,7 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
     for (const p of pages) {
         await typeInEditor(p, '!');
     }
-    await pages[3].waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(pages[3]);
 
     // * User 1 should see active editors indicator with overflow (4 people editing)
     const activeEditorsIndicator = await waitForActiveEditorsIndicator(page1, {expectedText: '4 people editing'});
@@ -337,25 +334,24 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
 
     await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
-    await page1.waitForTimeout(WEBSOCKET_WAIT);
+    await waitForAutoSave(page1);
 
     // # Publish the page
     await publishPage(page1);
 
     // # Get page ID from URL
-    const pageUrl = page1.url();
-    const pageId = pageUrl.split('/').pop();
+    const pageId = getPageIdFromUrl(page1.url());
 
     // # User 2 starts editing
     const {page: page2} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
+    await navigateToPage(page2, pw.url, team.name, wiki.id, pageId!);
 
     await enterEditMode(page2);
 
     await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 editing');
-    await page2.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page2);
 
     // * User 1 should see active editors indicator
     const activeEditorsIndicator = await waitForActiveEditorsIndicator(page1, {expectedText: '1 person editing'});
@@ -369,7 +365,7 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
     await expect(activeEditorsIndicator).not.toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
     // # Verify draft still exists for User 2 (can resume editing)
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
+    await navigateToPage(page2, pw.url, team.name, wiki.id, pageId!);
 
     // # Click Edit button to resume editing the draft
     await enterEditMode(page2);
@@ -412,19 +408,18 @@ test(
         await typeInEditor(page1, 'Initial content');
 
         // # Wait for draft to save
-        await page1.waitForTimeout(WEBSOCKET_WAIT);
+        await waitForAutoSave(page1);
 
         // # Publish the page
         await publishPage(page1);
 
         // # Get page ID from URL
-        const pageUrl = page1.url();
-        const pageId = pageUrl.split('/').pop();
+        const pageId = getPageIdFromUrl(page1.url());
 
         // # User 2 logs in and navigates directly to the wiki page
         const {page: page2} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
-        await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
+        await navigateToPage(page2, pw.url, team.name, wiki.id, pageId!);
 
         // # Start editing the page
         await enterEditMode(page2);
@@ -433,7 +428,7 @@ test(
         await typeInEditor(page2, ' User 2 editing');
 
         // # Wait for draft to save
-        await page2.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page2);
 
         // * User 1 should see active editors indicator showing User 2
         const activeEditorsIndicator = await waitForActiveEditorsIndicator(page1, {expectedText: '1 person editing'});
@@ -442,7 +437,7 @@ test(
         // This catches the bug where useEffect cleanup runs on every dependency change
         for (let i = 0; i < 5; i++) {
             await typeInEditor(page2, ` more text ${i}`);
-            await page2.waitForTimeout(AUTOSAVE_WAIT);
+            await waitForAutoSave(page2);
 
             // * CRITICAL: Indicator should STILL be visible after each autosave cycle
             // With the bug, this would fail because cleanup incorrectly sends PAGE_EDITOR_STOPPED
@@ -479,11 +474,10 @@ test('removes editor when navigating to different wiki page', {tag: '@pages'}, a
     await fillCreatePageModal(page1, 'Page A');
     await getEditorAndWait(page1);
     await typeInEditor(page1, 'Content for Page A');
-    await page1.waitForTimeout(WEBSOCKET_WAIT);
+    await waitForAutoSave(page1);
     await publishPage(page1);
 
-    const pageAUrl = page1.url();
-    const pageAId = pageAUrl.split('/').pop();
+    const pageAId = getPageIdFromUrl(page1.url());
 
     // # Create second page
     const newPageButton2 = getNewPageButton(page1);
@@ -491,18 +485,18 @@ test('removes editor when navigating to different wiki page', {tag: '@pages'}, a
     await fillCreatePageModal(page1, 'Page B');
     await getEditorAndWait(page1);
     await typeInEditor(page1, 'Content for Page B');
-    await page1.waitForTimeout(WEBSOCKET_WAIT);
+    await waitForAutoSave(page1);
     await publishPage(page1);
 
     // Page B is created, but we don't need to capture its ID
 
     // # User 1 navigates to Page A and waits there
-    await navigateToPage(page1, pw.url, team.name, channel.id, wiki.id, pageAId!);
+    await navigateToPage(page1, pw.url, team.name, wiki.id, pageAId!);
 
     // # User 2 starts editing Page A
     const {page: page2} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
 
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageAId!);
+    await navigateToPage(page2, pw.url, team.name, wiki.id, pageAId!);
     await enterEditMode(page2);
 
     await getEditorAndWait(page2);
@@ -510,7 +504,7 @@ test('removes editor when navigating to different wiki page', {tag: '@pages'}, a
 
     // # Type again to ensure User 2 is seen as active
     await typeInEditor(page2, '!');
-    await page2.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page2);
 
     // * User 1 should see User 2 in active editors on Page A (via real-time WebSocket)
     const activeEditorsIndicatorA = await waitForActiveEditorsIndicator(page1, {expectedText: '1 person editing'});
@@ -529,7 +523,7 @@ test('removes editor when navigating to different wiki page', {tag: '@pages'}, a
 
     // # Type again to ensure User 2 is seen as active
     await typeInEditor(page2, '!');
-    await page2.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page2);
 
     // * User 1 navigates to Page B and sees User 2 there
     await clickPageInHierarchy(page1, 'Page B');

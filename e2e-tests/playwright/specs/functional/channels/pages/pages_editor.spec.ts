@@ -25,7 +25,6 @@ import {
     clickPageEditButton,
     loginAndNavigateToChannel,
     uniqueName,
-    AUTOSAVE_WAIT,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
@@ -34,6 +33,7 @@ import {
     PAGE_LOAD_TIMEOUT,
     UI_MICRO_WAIT,
     pressModifierKey,
+    waitForAutoSave,
 } from './test_helpers';
 
 /**
@@ -43,8 +43,7 @@ import {
  * Pages/Wiki feature is enabled on the server
  */
 test('handles large content correctly', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -107,8 +106,7 @@ test('handles large content correctly', {tag: '@pages'}, async ({pw, sharedPages
  * @objective Verify editor handles Unicode and special characters correctly
  */
 test('handles Unicode and special characters correctly', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -175,11 +173,10 @@ test('handles Unicode and special characters correctly', {tag: '@pages'}, async 
  * @objective Verify @user mentions work correctly in editor
  */
 test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Create another user to mention
-    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
+    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned', channel);
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -233,8 +230,7 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
  * @objective Verify ~channel mentions work correctly in editor
  */
 test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Create another channel to mention (user must be a member for it to appear in autocomplete)
     const mentionedChannel = await createTestChannel(adminClient, team.id, uniqueName('mentioned-channel'), 'O', [
@@ -306,12 +302,11 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
  * @objective Verify multiple @mentions work correctly in same page
  */
 test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Create two users to mention
-    const {user: user1} = await createTestUserInTeam(pw, adminClient, team, 'user1');
-    const {user: user2} = await createTestUserInTeam(pw, adminClient, team, 'user2');
+    const {user: user1} = await createTestUserInTeam(pw, adminClient, team, 'user1', channel);
+    const {user: user2} = await createTestUserInTeam(pw, adminClient, team, 'user2', channel);
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -387,11 +382,10 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
  * @objective Verify mention autocomplete does not duplicate typed text after insertion
  */
 test('does not duplicate typed text after mention selection', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Create another user to mention
-    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'matttest');
+    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'matttest', channel);
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -456,12 +450,11 @@ test('does not duplicate typed text after mention selection', {tag: '@pages'}, a
  * @objective Verify multiple mentions can be added in same editing session without refresh
  */
 test('allows multiple mentions in same document without refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Create two users to mention
-    const {user: user1} = await createTestUserInTeam(pw, adminClient, team, 'alice');
-    const {user: user2} = await createTestUserInTeam(pw, adminClient, team, 'bob');
+    const {user: user1} = await createTestUserInTeam(pw, adminClient, team, 'alice', channel);
+    const {user: user2} = await createTestUserInTeam(pw, adminClient, team, 'bob', channel);
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -525,11 +518,10 @@ test(
     'shows mention dropdown on second attempt after canceling first',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, adminClient, channel} = sharedPagesSetup;
 
         // # Create a user to mention
-        const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'testuser');
+        const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'testuser', channel);
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -590,11 +582,10 @@ test.skip(
     'sends notification to mentioned user when page is published',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, adminClient, channel} = sharedPagesSetup;
 
         // # Create a second user who will be mentioned
-        const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
+        const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned', channel);
         await adminClient.addToChannel(mentionedUser.id, channel.id);
 
         // # Also add mentioned user to off-topic channel (they'll navigate there to check mentions)
@@ -690,8 +681,7 @@ test.skip(
  * @objective Verify Ctrl+L keyboard shortcut opens page link modal in editor
  */
 test('opens page link modal with Ctrl+L keyboard shortcut', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -727,8 +717,7 @@ test('opens page link modal with Ctrl+L keyboard shortcut', {tag: '@pages'}, asy
  * @objective Verify page link modal displays and filters available pages
  */
 test('displays and filters pages in link modal', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -791,8 +780,7 @@ test('displays and filters pages in link modal', {tag: '@pages'}, async ({pw, sh
  * @objective Verify selecting page from modal inserts link in editor
  */
 test('inserts page link when page selected from modal', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -828,7 +816,7 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
     await targetPageOption.click();
 
     // # Click Insert Link button
-    const insertLinkButton = linkModal.locator('button:has-text("Insert Link")');
+    const insertLinkButton = linkModal.getByRole('button', {name: 'Insert Link'});
     await insertLinkButton.click();
 
     // * Verify modal closes
@@ -853,8 +841,7 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
  * @objective Verify clicking page link navigates to linked page
  */
 test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -905,7 +892,7 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     await linkTextInput.fill('Linked Target Page');
 
     // # Click Insert Link button
-    const insertLinkButton = linkModal.locator('button:has-text("Insert Link")');
+    const insertLinkButton = linkModal.getByRole('button', {name: 'Insert Link'});
     await insertLinkButton.click();
 
     // # Set title and publish source page
@@ -953,8 +940,7 @@ test(
     'inserts page link via slash command using page title when link text empty',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1056,8 +1042,7 @@ test(
  * @objective Verify multiple page links can be inserted in same page
  */
 test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1109,7 +1094,7 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     await firstPageOption.click();
     await expect(firstPageOption.locator('.icon-check')).toBeVisible({timeout: EDITOR_LOAD_WAIT});
 
-    await linkModal.locator('button:has-text("Insert Link")').click();
+    await linkModal.getByRole('button', {name: 'Insert Link'}).click();
     await linkModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
     await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
@@ -1136,7 +1121,7 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     let linkTextInput = linkModal.locator('input[id="link-text-input"]');
     await linkTextInput.fill('link2');
 
-    await linkModal.locator('button:has-text("Insert Link")').click();
+    await linkModal.getByRole('button', {name: 'Insert Link'}).click();
     await linkModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
     await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
@@ -1163,7 +1148,7 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     linkTextInput = linkModal.locator('input[id="link-text-input"]');
     await linkTextInput.fill('link3');
 
-    await linkModal.locator('button:has-text("Insert Link")').click();
+    await linkModal.getByRole('button', {name: 'Insert Link'}).click();
     await linkModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
     await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
@@ -1240,8 +1225,7 @@ test('displays empty state in link modal when no pages available', {tag: '@pages
  * @objective Verify link modal can be closed with Escape key
  */
 test('closes link modal with Escape key', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1286,8 +1270,7 @@ test('closes link modal with Escape key', {tag: '@pages'}, async ({pw, sharedPag
  * @objective Verify page links work correctly with child pages in hierarchy
  */
 test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1338,7 +1321,7 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     await childPageOption.click();
 
     // # Click Insert Link button
-    const insertLinkButton = linkModal.locator('button:has-text("Insert Link")');
+    const insertLinkButton = linkModal.getByRole('button', {name: 'Insert Link'});
     await insertLinkButton.click();
 
     // * Verify link inserted (should keep the selected text "test text" as the link text)
@@ -1389,8 +1372,7 @@ test(
     'formatting buttons show correct active state for text formatting',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1505,8 +1487,7 @@ test(
     'publishes page with content exceeding 64KB TEXT column limit',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1558,8 +1539,9 @@ test(
         // # Publish page
         await publishPage(page);
 
-        // # Wait for publish to complete (or for error to appear)
-        await page.waitForTimeout(ELEMENT_TIMEOUT);
+        // # Wait for publish to complete (page viewer appears or error shows)
+        const pageContent = getPageViewerContent(page);
+        await expect(pageContent).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
 
         // * Verify publish succeeds WITHOUT "body too long" or similar error
         // Check for common error indicators
@@ -1577,8 +1559,6 @@ test(
         expect(hasBodyTooLongError).toBe(false);
 
         // * Verify page was published successfully
-        const pageContent = getPageViewerContent(page);
-        await expect(pageContent).toBeVisible({timeout: HIERARCHY_TIMEOUT});
         await expect(pageContent).toContainText('Lorem ipsum');
 
         // * Verify large content persists after publish (should be ~100K characters)
@@ -1595,8 +1575,7 @@ test(
  * otherwise uses a generated test image
  */
 test('pastes image from clipboard without broken image icon', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1718,8 +1697,7 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
  * Pages/Wiki feature is enabled on the server
  */
 test('inserts external URL link via link modal', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1768,7 +1746,7 @@ test('inserts external URL link via link modal', {tag: '@pages'}, async ({pw, sh
     await linkTextInput.fill('Mattermost Website');
 
     // # Click Insert Link button
-    await linkModal.locator('button:has-text("Insert Link")').click();
+    await linkModal.getByRole('button', {name: 'Insert Link'}).click();
 
     // * Verify modal closes
     await expect(linkModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
@@ -1811,8 +1789,7 @@ test(
     'clicking external URL link in published page opens in new tab',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1850,7 +1827,7 @@ test(
         await linkTextInput.fill('Example Site');
 
         // # Click Insert Link button
-        await linkModal.locator('button:has-text("Insert Link")').click();
+        await linkModal.getByRole('button', {name: 'Insert Link'}).click();
 
         // * Verify modal closes
         await expect(linkModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
@@ -1888,8 +1865,7 @@ test(
  * Pages/Wiki feature is enabled on the server
  */
 test('uses URL as fallback link text when link text is empty', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1930,7 +1906,7 @@ test('uses URL as fallback link text when link text is empty', {tag: '@pages'}, 
     await expect(linkTextInput).toHaveValue('');
 
     // # Click Insert Link button
-    await linkModal.locator('button:has-text("Insert Link")').click();
+    await linkModal.getByRole('button', {name: 'Insert Link'}).click();
 
     // * Verify modal closes
     await expect(linkModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
@@ -1955,8 +1931,7 @@ test('uses URL as fallback link text when link text is empty', {tag: '@pages'}, 
  * Pages/Wiki feature is enabled on the server
  */
 test('shows error for invalid URL in link modal', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1993,7 +1968,7 @@ test('shows error for invalid URL in link modal', {tag: '@pages'}, async ({pw, s
     await urlInput.fill('not-a-valid-url');
 
     // # Click Insert Link button
-    await linkModal.locator('button:has-text("Insert Link")').click();
+    await linkModal.getByRole('button', {name: 'Insert Link'}).click();
 
     // * Verify error message is shown
     const errorMessage = linkModal.locator('[data-testid="url-error"]');
@@ -2010,8 +1985,7 @@ test('shows error for invalid URL in link modal', {tag: '@pages'}, async ({pw, s
  * Pages/Wiki feature is enabled on the server
  */
 test('hyperlinks selected text to external URL', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -2061,7 +2035,7 @@ test('hyperlinks selected text to external URL', {tag: '@pages'}, async ({pw, sh
     await urlInput.fill('https://docs.mattermost.com');
 
     // # Click Insert Link button
-    await linkModal.locator('button:has-text("Insert Link")').click();
+    await linkModal.getByRole('button', {name: 'Insert Link'}).click();
 
     // * Verify modal closes
     await expect(linkModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
@@ -2147,7 +2121,7 @@ test(
         expect(imageSrc).toMatch(/\/api\/v4\/files\/[a-z0-9]+/i);
 
         // # Wait for auto-save
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // # Reload and verify image persisted
         await page.reload();

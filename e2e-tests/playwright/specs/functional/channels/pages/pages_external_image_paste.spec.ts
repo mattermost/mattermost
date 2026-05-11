@@ -11,8 +11,9 @@ import {
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
-    AUTOSAVE_WAIT,
+    PAGE_LOAD_TIMEOUT,
     loginAndNavigateToChannel,
+    waitForAutoSave,
 } from './test_helpers';
 
 /**
@@ -54,8 +55,7 @@ test.describe('External Image Paste', () => {
         're-hosts external images when pasting HTML with image URLs',
         {tag: '@pages'},
         async ({pw, sharedPagesSetup}) => {
-            const {team, user, adminClient} = sharedPagesSetup;
-            const channel = await adminClient.getChannelByName(team.id, 'town-square');
+            const {team, user, adminClient, channel} = sharedPagesSetup;
 
             // Ensure image proxy is enabled
             const config = await adminClient.getConfig();
@@ -89,12 +89,9 @@ test.describe('External Image Paste', () => {
 
             await pasteHtmlIntoEditor(page, htmlWithImage);
 
-            // # Wait for the re-hosting process to complete
-            // The setTimeout is 100ms, plus fetch + upload time
-            await page.waitForTimeout(ELEMENT_TIMEOUT);
-
-            // * Verify the image src was changed to a Mattermost file URL
+            // * Verify the image src was changed to a Mattermost file URL (re-hosting complete)
             const imageInEditor = editor.locator('img').first();
+            await expect(imageInEditor).toHaveAttribute('src', /\/api\/v4\/files\//, {timeout: PAGE_LOAD_TIMEOUT});
             await expect(imageInEditor).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
             const imageSrc = await imageInEditor.getAttribute('src');
@@ -118,8 +115,7 @@ test.describe('External Image Paste', () => {
      * when pasting HTML that contains both text and external images
      */
     test('preserves text content when pasting HTML with images', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, adminClient, channel} = sharedPagesSetup;
 
         // Ensure image proxy is enabled
         const config = await adminClient.getConfig();
@@ -151,7 +147,10 @@ test.describe('External Image Paste', () => {
         `;
 
         await pasteHtmlIntoEditor(page, htmlWithImage);
-        await page.waitForTimeout(ELEMENT_TIMEOUT);
+
+        // Wait for image re-hosting to complete before checking text
+        const imageInEditor = editor.locator('img').first();
+        await expect(imageInEditor).toHaveAttribute('src', /\/api\/v4\/files\//, {timeout: PAGE_LOAD_TIMEOUT});
 
         // * Verify text content is preserved
         const editorText = await editor.textContent();
@@ -164,8 +163,7 @@ test.describe('External Image Paste', () => {
      * operation are all re-hosted to Mattermost file storage
      */
     test('handles multiple external images in single paste', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, adminClient, channel} = sharedPagesSetup;
 
         // Ensure image proxy is enabled
         const config = await adminClient.getConfig();
@@ -219,8 +217,7 @@ test.describe('External Image Paste', () => {
      * (/api/v4/files/) are not re-hosted, preserving the original URL
      */
     test('ignores already-hosted Mattermost images', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -238,7 +235,7 @@ test.describe('External Image Paste', () => {
         const htmlWithMmImage = `<p>Already hosted image:</p><img src="${mmFileUrl}" alt="MM Image">`;
 
         await pasteHtmlIntoEditor(page, htmlWithMmImage);
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // * Verify the Mattermost URL is preserved (not re-hosted)
         const imageInEditor = editor.locator('img').first();
@@ -253,8 +250,7 @@ test.describe('External Image Paste', () => {
      * re-hosted, preserving the original data URI format
      */
     test('ignores data URI images', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -274,7 +270,7 @@ test.describe('External Image Paste', () => {
         const htmlWithDataUri = `<p>Data URI image:</p><img src="${dataUri}" alt="Data URI">`;
 
         await pasteHtmlIntoEditor(page, htmlWithDataUri);
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // * Verify the data URI is preserved (not re-hosted)
         const imageInEditor = editor.locator('img').first();

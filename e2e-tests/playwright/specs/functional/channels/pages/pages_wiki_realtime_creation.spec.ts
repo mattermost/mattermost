@@ -3,6 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 import {
+    createTestChannel,
     createWikiThroughUI,
     createTestUserInChannel,
     loginAndNavigateToChannel,
@@ -26,7 +27,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # Create user2 and add to channel
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
@@ -75,7 +76,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # Create user2 and add to channel
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');

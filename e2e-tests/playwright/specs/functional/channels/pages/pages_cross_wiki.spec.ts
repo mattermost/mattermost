@@ -15,7 +15,8 @@ import {
     getPageViewerContent,
     clickPageInHierarchy,
     openWikiByTab,
-    moveWikiToChannel,
+    linkWikiToChannel,
+    unlinkWikiFromChannel,
     waitForWikiTab,
     verifyBreadcrumbContains,
     expandPageTreeNode,
@@ -35,8 +36,7 @@ import {
  * Channel must have two wikis
  */
 test('moves page between wikis in same channel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -103,8 +103,7 @@ test('moves page between wikis in same channel', {tag: '@pages'}, async ({pw, sh
  * Channel must have two wikis, source wiki has parent with children
  */
 test('moves page with children between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -172,8 +171,7 @@ test('moves page with children between wikis', {tag: '@pages'}, async ({pw, shar
  * Channel must have two wikis
  */
 test('duplicates page to another wiki via API', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -212,7 +210,7 @@ test('duplicates page to another wiki via API', {tag: '@pages'}, async ({pw, sha
 });
 
 /**
- * @objective Verify wiki can be moved to a different channel in the same team
+ * @objective Verify wiki can be linked to a different channel in the same team
  *
  * @precondition
  * Team must have two channels
@@ -232,18 +230,23 @@ test('moves wiki to different channel in same team', {tag: '@pages'}, async ({pw
     await createPageThroughUI(page, 'Page A', 'Content A');
     await createPageThroughUI(page, 'Page B', 'Content B');
 
-    // # Navigate to channel view to access wiki tab menu
+    // # Get wiki ID from URL — pattern: /:team/wiki/:wikiId[/:pageId][?from=...]
+    const wikiUrl = page.url();
+    const wikiIdMatch = wikiUrl.match(/\/wiki\/([a-z0-9]{26})/);
+    const wikiId = wikiIdMatch ? wikiIdMatch[1] : null;
+    expect(wikiId).toBeTruthy();
+
+    // # Navigate back to source channel
     await channelsPage.goto(team.name, sourceChannel.name);
     await page.waitForLoadState('networkidle');
     await waitForWikiTab(page, wikiName);
 
-    // # Move wiki to target channel
-    await moveWikiToChannel(page, wikiName, targetChannel.id);
+    // # Link wiki to target channel via API
+    await linkWikiToChannel(adminClient, targetChannel.id, wikiId!);
 
-    // * Verify wiki tab is no longer in source channel
-    await page.waitForTimeout(SHORT_WAIT);
-    const sourceWikiTab = page.locator('.channel-tabs-container').locator(`text="${wikiName}"`);
-    await expect(sourceWikiTab).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // # Refresh to see the new link
+    await page.reload();
+    await page.waitForLoadState('networkidle');
 
     // * Navigate to target channel and verify wiki exists
     await channelsPage.goto(team.name, targetChannel.name);
@@ -259,13 +262,31 @@ test('moves wiki to different channel in same team', {tag: '@pages'}, async ({pw
     await clickPageInHierarchy(page, 'Page A');
     const pageContent = getPageViewerContent(page);
     await expect(pageContent).toContainText('Content A', {timeout: ELEMENT_TIMEOUT});
+
+    // # Unlink wiki from source channel
+    await channelsPage.goto(team.name, sourceChannel.name);
+    await page.waitForLoadState('networkidle');
+    await unlinkWikiFromChannel(adminClient, sourceChannel.id, wikiId!);
+
+    // # Refresh to see the unlink
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify wiki tab is no longer in source channel
+    const sourceWikiTab = page.locator('.channel-tabs-container').locator(`text="${wikiName}"`);
+    await expect(sourceWikiTab).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify wiki still exists in target channel
+    await channelsPage.goto(team.name, targetChannel.name);
+    await page.waitForLoadState('networkidle');
+    await waitForWikiTab(page, wikiName);
 });
 
 /**
- * @objective Verify moved wiki with hierarchy maintains parent-child relationships
+ * @objective Verify linked wiki with hierarchy maintains parent-child relationships
  *
  * @precondition
- * Wiki must have nested page structure before moving
+ * Wiki must have nested page structure before linking
  */
 test(
     'preserves page hierarchy when wiki is moved to different channel',
@@ -286,15 +307,23 @@ test(
         const childPage = await createChildPageThroughContextMenu(page, parentPage.id, 'Child', 'Child content');
         await createChildPageThroughContextMenu(page, childPage.id, 'Grandchild', 'Grandchild content');
 
+        // # Get wiki ID from URL
+        const wikiUrl = page.url();
+        const wikiIdMatch = wikiUrl.match(/\/wiki\/([a-z0-9]{26})/);
+        const wikiId = wikiIdMatch ? wikiIdMatch[1] : null;
+        expect(wikiId).toBeTruthy();
+
         // # Navigate to channel view
         await channelsPage.goto(team.name, sourceChannel.name);
         await page.waitForLoadState('networkidle');
         await waitForWikiTab(page, wikiName);
 
-        // # Move wiki to target channel
-        await moveWikiToChannel(page, wikiName, targetChannel.id);
+        // # Link wiki to target channel via API
+        await linkWikiToChannel(adminClient, targetChannel.id, wikiId!);
 
-        // * Navigate to target channel and open wiki
+        // # Refresh and navigate to target channel to open wiki
+        await page.reload();
+        await page.waitForLoadState('networkidle');
         await channelsPage.goto(team.name, targetChannel.name);
         await page.waitForLoadState('networkidle');
         await waitForWikiTab(page, wikiName);
@@ -335,8 +364,7 @@ test(
  * Channel must have two wikis with different structures
  */
 test('updates breadcrumb after moving page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -409,8 +437,7 @@ test('updates breadcrumb after moving page between wikis', {tag: '@pages'}, asyn
  */
 test('preserves content formatting when duplicating across wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     test.slow();
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 

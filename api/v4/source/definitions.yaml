@@ -4904,9 +4904,6 @@ components:
       properties:
         id:
           type: string
-        channel_id:
-          type: string
-          description: The ID of the channel this wiki belongs to
         title:
           type: string
           description: The title of the wiki

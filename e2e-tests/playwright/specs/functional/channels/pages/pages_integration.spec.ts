@@ -25,6 +25,7 @@ import {
     getHierarchyPanel,
     getNewPageButton,
     getPageTreeNodeByTitle,
+    getWikiTab,
     HIERARCHY_TIMEOUT,
     loginAndNavigateToChannel,
     navigateToPage,
@@ -49,9 +50,9 @@ import {
  * @objective Verify complete workflow: create parent page, create child, verify hierarchy
  */
 test('completes full page lifecycle with hierarchy and comments', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     await createWikiThroughUI(page, uniqueName('Integration Wiki'));
@@ -91,9 +92,9 @@ test(
     'saves draft, navigates away, returns to draft, then publishes',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user} = sharedPagesSetup;
+        const {team, user, channel} = sharedPagesSetup;
 
-        const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+        const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
         const wiki = await createWikiThroughUI(page, uniqueName('Draft Flow Wiki'));
@@ -112,11 +113,11 @@ test(
         await page.waitForTimeout(ELEMENT_TIMEOUT);
 
         // # Step 2: Navigate away (without publishing)
-        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
 
         // # Step 3: Return to wiki by clicking the wiki tab
-        const wikiTab = page.getByRole('tab', {name: wiki.title});
+        const wikiTab = getWikiTab(page, wiki.title);
         await expect(wikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await wikiTab.click();
         await page.waitForLoadState('networkidle');
@@ -129,6 +130,7 @@ test(
         await expect(draftNode).toBeVisible({timeout: HIERARCHY_TIMEOUT});
         await draftNode.click();
         await page.waitForLoadState('networkidle');
+        await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
         // * Verify draft content restored
         const editorContent = await editor.textContent();
@@ -150,9 +152,9 @@ test(
  * @objective Verify page with inline comments can be edited without losing comments
  */
 test('preserves inline comments when editing page content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, uniqueName('Comment Preservation Wiki'));
@@ -194,9 +196,9 @@ test(
     'searches page, opens result, adds comment, returns to search',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user} = sharedPagesSetup;
+        const {team, user, channel} = sharedPagesSetup;
 
-        const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and page through UI
         const searchTerm = uniqueName('SearchTerm');
@@ -253,9 +255,9 @@ test(
     'creates multi-level hierarchy with comments and breadcrumb navigation',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user} = sharedPagesSetup;
+        const {team, user, channel} = sharedPagesSetup;
 
-        const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
         await createWikiThroughUI(page, uniqueName('Hierarchy Flow Wiki'));
@@ -298,10 +300,9 @@ test(
  * @objective Verify page deletion with confirmation and hierarchy update
  */
 test('deletes page with children and updates hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, uniqueName('Delete Flow Wiki'));
@@ -311,7 +312,7 @@ test('deletes page with children and updates hierarchy', {tag: '@pages'}, async 
     await createChildPageThroughContextMenu(page, parent.id!, 'Child Page', 'Child content');
 
     // # Navigate back to parent page (createChildPageThroughContextMenu leaves us on the child)
-    await navigateToPage(page, pw.url, team.name, channel.id, wiki.id, parent.id!);
+    await navigateToPage(page, pw.url, team.name, wiki.id, parent.id!);
 
     // # Delete parent page via actions menu
     await deletePageViaActionsMenu(page, 'cascade');
@@ -334,10 +335,9 @@ test('deletes page with children and updates hierarchy', {tag: '@pages'}, async 
  * Inline title editing (clicking title to edit) is not currently implemented.
  */
 test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, uniqueName('Rename Flow Wiki'));
@@ -352,6 +352,8 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
     // # Rename page via context menu
     const pageNode = page.locator(`[data-testid="page-tree-node"][data-page-id="${renamePage.id}"]`);
     const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await pageNode.hover();
+    await menuButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await menuButton.click();
 
     const renameMenuItem = page.locator('[data-testid="page-context-menu-rename"]').first();
@@ -379,10 +381,8 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
     const hierarchyPanelAfterRename = getHierarchyPanel(page);
     await expect(hierarchyPanelAfterRename).toContainText(newTitle, {timeout: ELEMENT_TIMEOUT});
 
-    // # Navigate to child page
-    const childPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, child.id);
-    await page.goto(childPageUrl);
-    await page.waitForLoadState('networkidle');
+    // # Navigate to child page (preserves ?from= channel context from current URL)
+    await navigateToPage(page, pw.url, team.name, wiki.id, child.id!);
 
     // * Verify breadcrumb shows new parent title
     await verifyBreadcrumbContains(page, newTitle);
@@ -406,10 +406,9 @@ test(
     'opens page via deep link, adds comment, edits, verifies hierarchy',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
-        const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki and pages through UI
         const wiki = await createWikiThroughUI(page, uniqueName('Deep Link Flow Wiki'));
@@ -422,7 +421,7 @@ test(
         );
 
         // # Open child page via deep link
-        const deepLink = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, child.id);
+        const deepLink = buildWikiPageUrl(pw.url, team.name, wiki.id, child.id!, channel.id);
         await page.goto(deepLink);
         await page.waitForLoadState('networkidle');
 
@@ -459,9 +458,9 @@ test(
  * @objective Verify complex workflow: multi-level hierarchy, comments, editing, permissions
  */
 test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     await createWikiThroughUI(page, uniqueName('Complex Workflow Wiki'));
@@ -518,10 +517,9 @@ test(
     'creates draft with auto-save, closes browser, recovers and publishes',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
-        const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
         const wiki = await createWikiThroughUI(page, uniqueName('Draft Recovery Wiki'));
@@ -543,11 +541,11 @@ test(
         await page.waitForTimeout(ELEMENT_TIMEOUT);
 
         // # Simulate browser close (navigate away)
-        await page.goto(buildChannelUrl(pw.url, team.name, 'town-square'));
+        await page.goto(buildChannelUrl(pw.url, team.name, channel.name));
         await page.waitForLoadState('networkidle');
 
-        // # Return to wiki (use correct wiki URL format)
-        await page.goto(buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id));
+        // # Return to wiki
+        await page.goto(buildWikiPageUrl(pw.url, team.name, wiki.id, undefined, channel.id));
         await page.waitForLoadState('networkidle');
 
         // # Wait for hierarchy panel to load
@@ -573,8 +571,8 @@ test(
         // * Verify published successfully
         await verifyPageContentContains(page, 'Important draft content that must not be lost');
 
-        // * Verify draft no longer in drafts section (use correct wiki URL format)
-        await page.goto(buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id));
+        // * Verify draft no longer in drafts section
+        await page.goto(buildWikiPageUrl(pw.url, team.name, wiki.id, undefined, channel.id));
         await page.waitForLoadState('networkidle');
 
         const hierarchyPanel2 = getHierarchyPanel(page);
@@ -591,9 +589,9 @@ test(
  * @objective Verify page move affects breadcrumbs, hierarchy, and permissions
  */
 test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     await createWikiThroughUI(page, uniqueName('Move Page Wiki'));
@@ -650,9 +648,9 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
  * @objective Verify pages can be found using wiki tree panel search and results are filtered correctly
  */
 test('searches pages with filters and verifies results', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user} = sharedPagesSetup;
+    const {team, user, channel} = sharedPagesSetup;
 
-    const {page} = await loginAndNavigateToChannel(pw, user, team.name, 'town-square');
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const searchTerm = uniqueName('FilterTest');

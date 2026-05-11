@@ -27,9 +27,9 @@ import {
     loginAndNavigateToChannel,
     UI_MICRO_WAIT,
     EDITOR_LOAD_WAIT,
-    AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
+    waitForAutoSave,
 } from './test_helpers';
 
 /**
@@ -361,7 +361,7 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
 
     // * Wait for AI response (up to 30 seconds for real API call)
     // The editor content should change when AI responds
-    await page.waitForTimeout(AUTOSAVE_WAIT); // Give AI time to start processing
+    await waitForAutoSave(page); // Give AI time to start processing
 
     // Wait for content to change from original
     let contentChanged = false;

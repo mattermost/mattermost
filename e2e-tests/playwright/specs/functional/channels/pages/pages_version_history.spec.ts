@@ -24,6 +24,7 @@ import {
     uniqueName,
     verifyVersionHistoryModal,
     WEBSOCKET_WAIT,
+    withRolePermissions,
 } from './test_helpers';
 
 /**
@@ -41,11 +42,11 @@ test('shows page version history after multiple edits', {tag: '@pages'}, async (
 
     // # Make first edit
     await editPageThroughUI(page, '\n\nEdited content v2');
-    await page.waitForTimeout(AUTOSAVE_WAIT); // Wait for Redux store to update
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Make second edit
     await editPageThroughUI(page, '\n\nFinal content v3');
-    await page.waitForTimeout(AUTOSAVE_WAIT); // Wait for Redux store to update
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Wait for page to be updated in Redux store (visible in tree)
     const pageNode = getPageTreeNodeByTitle(page, 'Version Test Page');
@@ -76,7 +77,7 @@ test('allows non-author to view page version history', {tag: '@pages'}, async ({
 
     // # Edit page to create version history
     await editPageThroughUI(page1, '\n\nEdited by user 1');
-    await page1.waitForTimeout(AUTOSAVE_WAIT); // Wait for auto-save
+    await page1.waitForTimeout(AUTOSAVE_WAIT);
 
     // # User 2 (non-author) opens the same wiki and page
     const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
@@ -87,7 +88,7 @@ test('allows non-author to view page version history', {tag: '@pages'}, async ({
     const {page: page2} = await pw.testBrowser.login(user2);
 
     // # Navigate directly to the wiki page URL
-    const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+    const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
     await page2.goto(wikiPageUrl);
     await page2.waitForLoadState('networkidle');
 
@@ -112,6 +113,7 @@ test('allows non-author to view page version history', {tag: '@pages'}, async ({
  * @objective Verify page version history limits to 10 versions
  */
 test('enforces 10-version limit in page history', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    test.setTimeout(180_000); // 14 sequential UI edits need more than the default 60s
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
@@ -159,11 +161,11 @@ test('views version history modal with edit timestamps', {tag: '@pages'}, async 
 
     // # Make first edit
     await editPageThroughUI(page, '\n\nVersion 2 content');
-    await page.waitForTimeout(AUTOSAVE_WAIT); // Wait for Redux store to update
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Make second edit
     await editPageThroughUI(page, '\n\nVersion 3 content');
-    await page.waitForTimeout(AUTOSAVE_WAIT); // Wait for Redux store to update
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Wait for page to be updated in Redux store (visible in tree)
     const pageNode = getPageTreeNodeByTitle(page, 'Version History Page');
@@ -263,6 +265,11 @@ test('allows non-author to restore page version', {tag: '@pages'}, async ({pw, s
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
+    // # Grant edit_page permission to team_user role so user2 (non-author) can restore versions.
+    // restore_version is bundled under edit_page; wiki/page perms are team-scoped under the
+    // new permission model (see plans/wiki-page-permissions-confluence.md, Phase 1).
+    await withRolePermissions(adminClient, 'team_user', ['edit_page']);
+
     // # User 1 creates page and makes edits
     const {page: page1} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -285,7 +292,7 @@ test('allows non-author to restore page version', {tag: '@pages'}, async ({pw, s
     const {page: page2} = await pw.testBrowser.login(user2);
 
     // # Navigate directly to the wiki page URL
-    const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+    const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
     await page2.goto(wikiPageUrl);
     await page2.waitForLoadState('networkidle');
 

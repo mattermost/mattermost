@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 import {
-    buildChannelPageUrl,
+    buildWikiPageUrl,
     createWikiThroughUI,
     createPageThroughUI,
     getNewPageButton,
@@ -17,8 +17,8 @@ import {
     uniqueName,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
-    AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
+    waitForAutoSave,
 } from './test_helpers';
 
 /**
@@ -28,8 +28,7 @@ import {
  * Pages/Wiki feature is enabled on the server
  */
 test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -53,7 +52,7 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
     const savingIndicator = page.locator('[data-testid="saving-indicator"], .saving-indicator').first();
     await expect(savingIndicator).toBeVisible({timeout: EDITOR_LOAD_WAIT});
     // Wait for "Saved" or "Saving..." to appear
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await waitForAutoSave(page);
 
     // # Try to navigate away via new page button
     const newPageButton2 = getNewPageButton(page);
@@ -90,8 +89,7 @@ test.skip(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         // # Setup: Create published page
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -100,7 +98,7 @@ test.skip(
         const publishedPage = await createPageThroughUI(page, 'Published Page', 'Original content');
 
         // Navigate to page
-        await page.goto(buildChannelPageUrl(pw.url, team.name, channel.name, wiki.id, publishedPage.id));
+        await page.goto(buildWikiPageUrl(pw.url, team.name, wiki.id, publishedPage.id, channel.id));
         await page.waitForLoadState('networkidle');
 
         // # Start editing
@@ -129,8 +127,7 @@ test.skip(
  */
 test.skip('preserves scroll position when navigating back to page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     // # Setup: Create page with long content
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -183,8 +180,7 @@ test.skip('preserves scroll position when navigating back to page', {tag: '@page
  */
 test('handles browser refresh during edit without data loss', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     // # Setup
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -216,8 +212,8 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     await getEditorAndWait(page);
     await typeInEditor(page, 'Content that should survive refresh');
 
-    // * Wait for auto-save (2s debounce + save operation)
-    await page.waitForTimeout(ELEMENT_TIMEOUT);
+    // * Wait for auto-save
+    await waitForAutoSave(page);
 
     // # Refresh browser
     await page.reload();
@@ -236,9 +232,7 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     const titleValue = await titleAfterRefresh.inputValue();
     const editorText = await editorAfterRefresh.textContent();
 
-    // Either exact match or draft was saved to server
-    const titleMatches = titleValue === 'Draft Before Refresh';
-    const contentMatches = editorText?.includes('Content that should survive refresh');
-
-    expect(titleMatches || contentMatches).toBe(true);
+    // Both title and content must be recovered after refresh
+    expect(editorText).toContain('Content that should survive refresh');
+    expect(titleValue).toBe('Draft Before Refresh - Modified');
 });

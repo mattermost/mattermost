@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {randomBytes} from 'crypto';
+
 import {Client4} from '@mattermost/client';
 import {Job} from '@mattermost/types/jobs';
 
@@ -82,14 +84,15 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create a channel and wiki with a page so export has content
         const channel = await adminClient.createChannel({
             team_id: team.id,
-            name: `export-test-${Date.now()}`,
+            name: `export-test-${randomBytes(4).toString('hex')}`,
             display_name: 'Export Test Channel',
             type: 'O',
         });
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: 'Export Test Wiki',
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         // Create a page using the draft workflow
         const pageContent = {
@@ -97,6 +100,16 @@ test.describe('Wiki Export/Import Admin Console', () => {
             content: [{type: 'paragraph', content: [{type: 'text', text: 'Test page content for export'}]}],
         };
         await pw.createPageViaDraft(adminClient, wiki.id, 'Test Page', pageContent);
+
+        // Trigger the export via API scoped to this test's channel. The UI "Run Wiki Export Now"
+        // button creates a job with no channel_ids, which exports every wiki in the database; on
+        // a long-running test DB that accumulates wikis (each wiki now lives in its own backing
+        // channel and is not cleaned up with the source channel), that path takes 60+ seconds and
+        // dominates the test budget. Scoping to one channel keeps this test about the UI surface.
+        const exportJob = await adminClient.createJob({
+            type: 'wiki_export',
+            data: {channel_ids: channel.id},
+        });
 
         // Log in as admin and navigate to wiki export page
         const {page, systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -108,25 +121,25 @@ test.describe('Wiki Export/Import Admin Console', () => {
         const exportPanel = page.locator('#wikiExportPanel');
         await expect(exportPanel).toBeVisible();
 
-        // Click the export button
-        const exportButton = exportPanel.getByRole('button', {name: 'Run Wiki Export Now'});
-        await expect(exportButton).toBeVisible();
-        await exportButton.click();
-
         // Wait for job table to show the job and for it to complete
         const jobTable = exportPanel.locator('[data-testid="jobTable"]');
         await expect(jobTable).toBeVisible();
 
-        // Wait for the job to complete - the first row should show "Success" with a Download link
-        // The table polls every 15 seconds, so we need to wait with extended timeout
-        // Wait for the Download link to appear in the first row (this confirms job completed AND has pages)
-        const firstRow = jobTable.locator('tbody tr').first();
-        const downloadLink = firstRow.getByRole('link', {name: 'Download'});
-        await expect(downloadLink).toBeVisible({timeout: 90000});
+        // Locate the row for our specific job (matched by job id in the Status cell's
+        // title attribute "Job ID: <id>"). The jobs table polls every 15s, so allow up
+        // to 60s for the row to appear and the Download link to render after the job
+        // completes.
+        const jobRow = jobTable
+            .locator('tbody tr')
+            .filter({has: page.locator(`[title*="${exportJob.id}"]`)})
+            .first();
+        const downloadLink = jobRow.getByRole('link', {name: 'Download'});
+        await expect(downloadLink).toBeVisible({timeout: 60000});
 
-        // Verify the link has the correct href pattern
+        // Verify the link points to our job's download endpoint (the rendered href may
+        // include the origin, so substring-match the path).
         const href = await downloadLink.getAttribute('href');
-        expect(href).toMatch(/\/api\/v4\/jobs\/[a-z0-9]+\/download/);
+        expect(href).toContain(`/api/v4/jobs/${exportJob.id}/download`);
     });
 
     test('MM-WIKI-EXPORT-5 Should show "--" for download when no pages exported', async ({pw}) => {
@@ -140,14 +153,15 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create an empty channel with wiki but no pages
         const channel = await adminClient.createChannel({
             team_id: team.id,
-            name: `empty-export-${Date.now()}`,
+            name: `empty-export-${randomBytes(4).toString('hex')}`,
             display_name: 'Empty Export Channel',
             type: 'O',
         });
-        await adminClient.createWiki({
-            channel_id: channel.id,
+        const wiki = await adminClient.createWiki({
+            team_id: team.id,
             title: 'Empty Wiki',
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         // Create export job via API for only the empty channel (not all channels)
         const exportJob = await adminClient.createJob({
@@ -195,15 +209,16 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create source channel with wiki and multiple pages
         const sourceChannel = await adminClient.createChannel({
             team_id: team.id,
-            name: `source-wiki-${Date.now()}`,
+            name: `source-wiki-${randomBytes(4).toString('hex')}`,
             display_name: 'Source Wiki Channel',
             type: 'O',
         });
         const wiki = await adminClient.createWiki({
-            channel_id: sourceChannel.id,
+            team_id: team.id,
             title: 'Source Wiki for Export',
             description: 'Wiki to be exported and imported',
         });
+        await adminClient.linkWikiToChannel(sourceChannel.id, wiki.id);
 
         // Create pages with distinct content for verification
         const page1Content = {
@@ -334,14 +349,15 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create channel with wiki
         const channel = await adminClient.createChannel({
             team_id: team.id,
-            name: `attach-export-${Date.now()}`,
+            name: `attach-export-${randomBytes(4).toString('hex')}`,
             display_name: 'Attachment Export Channel',
             type: 'O',
         });
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: 'Wiki with File Attachments',
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         // Create a page
         const pageContent = {
@@ -365,8 +381,8 @@ test.describe('Wiki Export/Import Admin Console', () => {
         expect(uploadResponse.file_infos.length).toBe(1);
         const fileId = uploadResponse.file_infos[0].id;
 
-        // Patch the page to add the file attachment
-        await adminClient.patchPost({id: page.id, file_ids: [fileId]});
+        // Attach file to page using page-specific endpoint
+        await adminClient.updatePage(wiki.id, page.id, undefined, undefined, undefined, [fileId]);
 
         // Verify page has the attachment
         const pageWithAttachment = await adminClient.getPage(wiki.id, page.id);
@@ -466,10 +482,15 @@ test.describe('Wiki Export/Import Admin Console', () => {
     test('MM-WIKI-EXPORT-2 Should create wiki export job when clicking export button', async ({pw}) => {
         test.slow();
 
-        const {adminUser} = await pw.initSetup();
-        if (!adminUser) {
-            throw new Error('Failed to create admin user');
+        const {adminUser, adminClient} = await pw.initSetup();
+        if (!adminUser || !adminClient) {
+            throw new Error('Failed to create admin user or client');
         }
+
+        // Snapshot the most recent wiki_export job id BEFORE clicking, so we can identify
+        // the new one created by the click.
+        const jobsBeforeClick = await adminClient.getJobsByType('wiki_export');
+        const previousLatestJobId = jobsBeforeClick[0]?.id;
 
         // # Log in as admin
         const {page, systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -497,6 +518,20 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // * Verify the button is still functional (job was submitted)
         // After clicking, the UI should still be responsive
         await expect(exportButton).toBeVisible();
+
+        // The UI button creates an "export every wiki" job (no channel_ids), which on a
+        // long-running test database iterates thousands of accumulated wikis and blocks the
+        // single-threaded wiki_export worker for a minute or more. Cancel the job here so
+        // it doesn't stall downstream tests that rely on the worker being free.
+        const jobsAfterClick = await adminClient.getJobsByType('wiki_export');
+        const newJob = jobsAfterClick.find((j: {id: string}) => j.id !== previousLatestJobId);
+        if (newJob) {
+            try {
+                await adminClient.cancelJob(newJob.id);
+            } catch {
+                // Job may already be running or finished; cancel is best-effort.
+            }
+        }
     });
 
     test('MM-WIKI-EXPORT-3 Should navigate to wiki export via sidebar search', async ({pw}) => {
@@ -537,14 +572,15 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create channel with wiki
         const channel = await adminClient.createChannel({
             team_id: team.id,
-            name: `sort-order-${Date.now()}`,
+            name: `sort-order-${randomBytes(4).toString('hex')}`,
             display_name: 'Sort Order Test Channel',
             type: 'O',
         });
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: 'Sort Order Test Wiki',
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         // Create pages with small delays to ensure different CreateAt timestamps
         const pageContent = (text: string) => ({
@@ -602,14 +638,15 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create channel with wiki
         const channel = await adminClient.createChannel({
             team_id: team.id,
-            name: `page-status-${Date.now()}`,
+            name: `page-status-${randomBytes(4).toString('hex')}`,
             display_name: 'Page Status Test Channel',
             type: 'O',
         });
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: 'Page Status Test Wiki',
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         // Create a page and set its status
         const pageContent = {
@@ -619,7 +656,7 @@ test.describe('Wiki Export/Import Admin Console', () => {
         const page = await pw.createPageViaDraft(adminClient, wiki.id, 'Status Test Page', pageContent);
 
         // Update page status using the dedicated API (valid values: rough_draft, in_progress, in_review, done)
-        await adminClient.updatePageStatus(page.id, 'In progress');
+        await adminClient.updatePageStatus(wiki.id, page.id, 'In progress');
 
         // Create export job
         const exportJob = await adminClient.createJob({
@@ -656,14 +693,15 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create channel with wiki and page
         const channel = await adminClient.createChannel({
             team_id: team.id,
-            name: `resolved-comment-${Date.now()}`,
+            name: `resolved-comment-${randomBytes(4).toString('hex')}`,
             display_name: 'Resolved Comment Test Channel',
             type: 'O',
         });
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: 'Comment Resolution Test Wiki',
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         const pageContent = {
             type: 'doc' as const,
@@ -727,14 +765,15 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create channel with wiki
         const channel = await adminClient.createChannel({
             team_id: team.id,
-            name: `hierarchy-${Date.now()}`,
+            name: `hierarchy-${randomBytes(4).toString('hex')}`,
             display_name: 'Hierarchy Test Channel',
             type: 'O',
         });
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: 'Hierarchy Test Wiki',
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         const pageContent = (text: string) => ({
             type: 'doc' as const,
@@ -808,14 +847,15 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create channel with wiki
         const channel = await adminClient.createChannel({
             team_id: team.id,
-            name: `roundtrip-hier-${Date.now()}`,
+            name: `roundtrip-hier-${randomBytes(4).toString('hex')}`,
             display_name: 'Roundtrip Hierarchy Channel',
             type: 'O',
         });
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: 'Roundtrip Hierarchy Wiki',
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         const pageContent = (text: string) => ({
             type: 'doc' as const,
@@ -922,14 +962,15 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create channel with wiki and page
         const channel = await adminClient.createChannel({
             team_id: team.id,
-            name: `roundtrip-resolved-${Date.now()}`,
+            name: `roundtrip-resolved-${randomBytes(4).toString('hex')}`,
             display_name: 'Roundtrip Resolved Comments Channel',
             type: 'O',
         });
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: 'Roundtrip Resolved Comments Wiki',
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         const pageContent = {
             type: 'doc' as const,
@@ -1152,14 +1193,15 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create a channel with wiki and page to ensure export has content
         const channel = await adminClient.createChannel({
             team_id: team.id,
-            name: `ui-test-${Date.now()}`,
+            name: `ui-test-${randomBytes(4).toString('hex')}`,
             display_name: 'UI Test Channel',
             type: 'O',
         });
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: 'UI Test Wiki',
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
         const pageContent = {
             type: 'doc' as const,
             content: [{type: 'paragraph', content: [{type: 'text', text: 'Test content'}]}],
@@ -1222,15 +1264,16 @@ test.describe('Wiki Export/Import Admin Console', () => {
         // Create channel with wiki
         const channel = await adminClient.createChannel({
             team_id: team.id,
-            name: `full-roundtrip-${Date.now()}`,
+            name: `full-roundtrip-${randomBytes(4).toString('hex')}`,
             display_name: 'Full Roundtrip Test Channel',
             type: 'O',
         });
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: 'Full Roundtrip Wiki',
             description: 'Wiki testing comments and attachments together',
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         // Create pages with hierarchy: Parent -> Child
         const parentContent = {
@@ -1282,9 +1325,9 @@ test.describe('Wiki Export/Import Admin Console', () => {
         const childUpload = await adminClient.uploadFile(childFormData);
         const childFileId = childUpload.file_infos[0].id;
 
-        // Attach files to pages
-        await adminClient.patchPost({id: parentPage.id, file_ids: [parentFileId]});
-        await adminClient.patchPost({id: childPage.id, file_ids: [childFileId]});
+        // Attach files to pages using page-specific endpoint
+        await adminClient.updatePage(wiki.id, parentPage.id, undefined, undefined, undefined, [parentFileId]);
+        await adminClient.updatePage(wiki.id, childPage.id, undefined, undefined, undefined, [childFileId]);
 
         // Add comments to pages
         // Parent page: regular comment + inline comment + reply

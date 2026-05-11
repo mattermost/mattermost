@@ -7,7 +7,6 @@ import {createRandomUser} from '@mattermost/playwright-lib';
 // Regular users are needed because admin users bypass all permission checks.
 import {expect, testWithRegularUser as test} from './pages_test_fixture';
 import {
-    buildChannelPageUrl,
     createWikiThroughUI,
     createPageThroughUI,
     createTestChannel,
@@ -28,15 +27,13 @@ import {
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
     SHORT_WAIT,
-    EDITOR_LOAD_WAIT,
 } from './test_helpers';
 
 /**
  * @objective Verify channel member can create page
  */
 test('allows channel member to create page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -60,9 +57,28 @@ test('allows channel member to create page', {tag: '@pages'}, async ({pw, shared
 
 /**
  * @objective Verify non-member cannot view wiki
+ *
+ * SKIPPED: This test asserts that a user who is not a member of the host private
+ * channel cannot view a wiki on that channel. That premise does not match the
+ * Confluence-aligned permission model the wiki feature is built on:
+ *
+ *   - Wiki/page access is governed by per-wiki ACL (Phase 2) or by team-role
+ *     grant (Phase 1, current). It is NOT derived from channel membership.
+ *     See server/channels/app/wiki_permissions.go and
+ *     plans/wiki-page-permissions-confluence.md.
+ *   - A wiki can be linked to multiple channels with mixed public/private
+ *     visibility. Deriving wiki access from channel membership is incoherent
+ *     in that case (a public-channel link would dominate any private-channel
+ *     link and silently expose the wiki).
+ *   - Channel links are navigation pointers, not access grants — same as a
+ *     Slack message linking to a Confluence page does not grant space access.
+ *
+ * Re-enable after Phase 2 ACL lands and rewrite as: create wiki with
+ * default_open=false, assert a team member without an explicit read_page ACL
+ * row cannot view it, even when the wiki is linked to a public channel.
  */
-test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+test.skip('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Create a private channel (non-members will not have access)
     const privateChannel = await createTestChannel(adminClient, team.id, 'private-wiki-test', 'P');
@@ -84,10 +100,10 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         await adminClient.addToTeam(team.id, createdNonMember.id);
 
         // # Login as non-member and attempt to navigate to wiki
-        const {page: nonMemberPage} = await loginAndNavigateToChannel(pw, createdNonMember, team.name, 'town-square');
+        const {page: nonMemberPage} = await loginAndNavigateToChannel(pw, createdNonMember, team.name, channel.name);
 
         // Now attempt to navigate to the private channel wiki
-        await nonMemberPage.goto(buildChannelPageUrl(pw.url, team.name, privateChannel.name, wiki.id, testPage.id));
+        await nonMemberPage.goto(buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id, privateChannel.id));
         await nonMemberPage.waitForLoadState('networkidle');
 
         // * Verify access denied - user should NOT see the wiki content
@@ -136,8 +152,7 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
  * @objective Verify channel member can edit page
  */
 test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -164,8 +179,7 @@ test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPa
  * @objective Verify channel admin can delete any page
  */
 test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, adminClient, channel} = sharedPagesSetup;
 
     // # Create admin user
     const adminUser = await createRandomUser('admin');
@@ -262,7 +276,7 @@ test.skip(
         const wiki2 = await createWikiThroughUI(page, uniqueName('Wiki 2'));
 
         // # Navigate back to the page in wiki1
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel1.id, wiki1.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki1.id, testPage.id, channel1.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
         await waitForPageViewerLoad(page);
@@ -284,7 +298,7 @@ test.skip(
         await page.waitForLoadState('networkidle');
 
         // * Verify page now accessible via wiki2/channel2 permissions
-        const movedPageUrl = buildWikiPageUrl(pw.url, team.name, channel2.id, wiki2.id, testPage.id);
+        const movedPageUrl = buildWikiPageUrl(pw.url, team.name, wiki2.id, testPage.id, channel2.id);
         await page.goto(movedPageUrl);
         await page.waitForLoadState('networkidle');
 
@@ -301,8 +315,7 @@ test.skip(
  * @precondition License must support guest accounts (Professional or Enterprise)
  */
 test('restricts page actions based on channel permissions', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Enable guest accounts
     const config = await adminClient.getConfig();
@@ -313,41 +326,43 @@ test('restricts page actions based on channel permissions', {tag: '@pages'}, asy
         },
     });
 
-    // # Create wiki and page as regular user first
-    const {page: userPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    try {
+        // # Create wiki and page as regular user first
+        const {page: userPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    const wiki = await createWikiThroughUI(userPage, uniqueName('Readonly Wiki'));
-    const testPage = await createPageThroughUI(userPage, 'Protected Page', 'Protected content');
+        const wiki = await createWikiThroughUI(userPage, uniqueName('Readonly Wiki'));
+        const testPage = await createPageThroughUI(userPage, 'Protected Page', 'Protected content');
 
-    // # Create guest user with read-only access
-    const guestUser = await createRandomUser('guest');
-    const createdGuestUser = await adminClient.createUser(guestUser, '', '');
-    createdGuestUser.password = guestUser.password;
-    await adminClient.demoteUserToGuest(createdGuestUser.id);
-    await adminClient.addToTeam(team.id, createdGuestUser.id);
-    await adminClient.addToChannel(createdGuestUser.id, channel.id);
+        // # Create guest user with read-only access
+        const guestUser = await createRandomUser('guest');
+        const createdGuestUser = await adminClient.createUser(guestUser, '', '');
+        createdGuestUser.password = guestUser.password;
+        await adminClient.demoteUserToGuest(createdGuestUser.id);
+        await adminClient.addToTeam(team.id, createdGuestUser.id);
+        await adminClient.addToChannel(createdGuestUser.id, channel.id);
 
-    // # Login as guest and navigate to the wiki page
-    const {page: guestPage} = await pw.testBrowser.login(createdGuestUser);
-    const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
-    await guestPage.goto(pageUrl);
-    await guestPage.waitForLoadState('networkidle');
+        // # Login as guest and navigate to the wiki page
+        const {page: guestPage} = await pw.testBrowser.login(createdGuestUser);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id, channel.id);
+        await guestPage.goto(pageUrl);
+        await guestPage.waitForLoadState('networkidle');
 
-    // * Verify page is viewable
-    await waitForPageViewerLoad(guestPage);
-    const pageContent = getPageViewerContent(guestPage);
-    await expect(pageContent).toContainText('Protected content');
+        // * Verify page is viewable (guest has read_page via channel_guest role)
+        await waitForPageViewerLoad(guestPage);
+        const pageContent = getPageViewerContent(guestPage);
+        await expect(pageContent).toContainText('Protected content');
 
-    // * Verify edit button is not enabled
-    const editButton = guestPage.locator('[data-testid="wiki-page-edit-button"]');
-    await expect(editButton).not.toBeEnabled({timeout: AUTOSAVE_WAIT});
-
-    // # Restore original guest accounts setting
-    await adminClient.patchConfig({
-        GuestAccountsSettings: {
-            Enable: originalGuestAccountsEnabled,
-        },
-    });
+        // * Verify edit button is not enabled (guest lacks edit_page)
+        const editButton = guestPage.locator('[data-testid="wiki-page-edit-button"]');
+        await expect(editButton).not.toBeEnabled({timeout: AUTOSAVE_WAIT});
+    } finally {
+        // # Restore original guest accounts setting
+        await adminClient.patchConfig({
+            GuestAccountsSettings: {
+                Enable: originalGuestAccountsEnabled,
+            },
+        });
+    }
 });
 
 /**
@@ -405,7 +420,7 @@ test(
         await textarea.fill('Comment by userA that userB should not resolve');
         await pageA.waitForTimeout(SHORT_WAIT);
         await textarea.press('Control+Enter');
-        await pageA.waitForTimeout(EDITOR_LOAD_WAIT);
+        await expect(pageA.locator('[data-testid="wiki-rhs-thread-content"]')).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
         // * Verify comment marker is visible
         await verifyCommentMarkerVisible(pageA);
@@ -443,15 +458,12 @@ test(
         await resolveMenuItem.click();
 
         // Wait for API call to complete
-        await pageB.waitForTimeout(EDITOR_LOAD_WAIT);
+        await pageB.waitForLoadState('networkidle');
 
         // * Verify the comment is still NOT resolved (backend rejected the request)
-        // The comment highlight should still be active (not resolved)
-        const commentHighlight = pageB.locator('.comment-anchor-active').first();
-        await expect(commentHighlight).toBeVisible({timeout: ELEMENT_TIMEOUT});
-
-        // * Alternatively verify by checking if the menu item still says "Resolve" (not "Unresolve")
-        // Re-open menu to check state
+        // Re-open menu and confirm the item still says "Resolve" (not "Unresolve")
+        // Note: .comment-anchor-active is a transient editor focus state, not a
+        // reliable indicator of resolved status — it clears when the menu closes.
         await openCommentDotMenu(pageB, rhs);
         const stillResolveMenuItem = pageB.locator('[id^="resolve_comment_"]').first();
         await expect(stillResolveMenuItem).toBeVisible({timeout: ELEMENT_TIMEOUT});

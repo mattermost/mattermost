@@ -25,8 +25,7 @@ import {
  * @objective Verify slash command menu appears when typing / on blank line
  */
 test('opens slash command menu when typing / on blank line', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -51,8 +50,7 @@ test('opens slash command menu when typing / on blank line', {tag: '@pages'}, as
  * @objective Verify slash command menu only appears when / is typed on a new line
  */
 test('does not open slash command menu when / typed mid-line', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -85,8 +83,7 @@ test('does not open slash command menu when / typed mid-line', {tag: '@pages'}, 
  * @objective Verify slash command menu appears when / is typed on a new line
  */
 test('opens slash command menu when / typed at start of new line', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -123,8 +120,7 @@ test('opens slash command menu when / typed at start of new line', {tag: '@pages
  * @objective Verify slash command menu filters items based on search query
  */
 test('filters slash command menu items by typing search query', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -183,8 +179,7 @@ test('filters slash command menu items by typing search query', {tag: '@pages'},
  * @objective Verify slash command inserts heading when selected from menu
  */
 test('inserts heading 1 when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -216,8 +211,7 @@ test('inserts heading 1 when selected from slash command menu', {tag: '@pages'},
  * @objective Verify slash command inserts bulleted list when selected
  */
 test('inserts bulleted list when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -253,8 +247,7 @@ test('inserts bulleted list when selected from slash command menu', {tag: '@page
  * @objective Verify slash command opens image insertion flow without JS errors
  */
 test('opens image insertion when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -329,8 +322,7 @@ test(
     'navigates slash command menu with arrow keys and selects with Enter',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -365,8 +357,7 @@ test(
  * @objective Verify slash command menu closes when pressing Escape
  */
 test('closes slash command menu when pressing Escape', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -391,8 +382,7 @@ test('closes slash command menu when pressing Escape', {tag: '@pages'}, async ({
  * @objective Verify slash command menu closes when clicking away from it
  */
 test('closes slash command menu when clicking away', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -421,8 +411,7 @@ test('closes slash command menu when clicking away', {tag: '@pages'}, async ({pw
  * @objective Verify ESC key closes slash command menu as expected
  */
 test('verifies ESC key closes slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -455,8 +444,7 @@ test('verifies ESC key closes slash command menu', {tag: '@pages'}, async ({pw, 
  * @objective Verify placeholder text displays in empty editor to invite slash command usage
  */
 test('displays placeholder text in empty editor', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -493,8 +481,7 @@ test('displays placeholder text in empty editor', {tag: '@pages'}, async ({pw, s
  * @objective Verify placeholder appears when cursor moves to beginning of empty line (Confluence-style)
  */
 test('shows placeholder when cursor at beginning of empty line', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -564,8 +551,7 @@ test('shows placeholder when cursor at beginning of empty line', {tag: '@pages'}
  * @objective Verify slash command inserts numbered list when selected
  */
 test('inserts numbered list when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -596,8 +582,7 @@ test('inserts numbered list when selected from slash command menu', {tag: '@page
  * @objective Verify slash command inserts quote block when selected
  */
 test('inserts quote block when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -628,8 +613,7 @@ test('inserts quote block when selected from slash command menu', {tag: '@pages'
  * @objective Verify slash command inserts callout block when selected
  */
 test('inserts callout block when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -660,8 +644,7 @@ test('inserts callout block when selected from slash command menu', {tag: '@page
  * @objective Verify slash command inserts code block when selected
  */
 test('inserts code block when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -692,8 +675,7 @@ test('inserts code block when selected from slash command menu', {tag: '@pages'}
  * @objective Verify slash command inserts divider when selected
  */
 test('inserts divider when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 

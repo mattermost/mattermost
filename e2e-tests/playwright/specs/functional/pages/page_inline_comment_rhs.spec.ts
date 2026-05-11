@@ -4,6 +4,7 @@
 import {expect, test} from '../channels/pages/pages_test_fixture';
 import {
     buildWikiPageUrl,
+    linkWikiToChannel,
     uniqueName,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
@@ -27,9 +28,10 @@ test.describe('Page Inline Comment via RHS', () => {
 
             // # Create a wiki and page with some content
             const wiki = await adminClient.createWiki({
-                channel_id: channel.id,
+                team_id: team.id,
                 title: uniqueName('Inline Comment Test Wiki'),
             });
+            await linkWikiToChannel(adminClient, channel.id, wiki.id);
 
             const pageContent = {
                 type: 'doc' as const,
@@ -47,7 +49,7 @@ test.describe('Page Inline Comment via RHS', () => {
 
             // # Login and navigate to the page
             const {page} = await pw.testBrowser.login(user);
-            const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+            const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
             await page.goto(pageUrl);
             await page.waitForLoadState('networkidle');
 
@@ -100,9 +102,10 @@ test.describe('Page Inline Comment via RHS', () => {
 
             // # Create wiki
             const wiki = await adminClient.createWiki({
-                channel_id: channel.id,
+                team_id: team.id,
                 title: uniqueName('Mention Test Wiki'),
             });
+            await linkWikiToChannel(adminClient, channel.id, wiki.id);
 
             const pageContent = {
                 type: 'doc' as const,
@@ -112,7 +115,7 @@ test.describe('Page Inline Comment via RHS', () => {
 
             // # Login and navigate to page
             const {page} = await pw.testBrowser.login(user);
-            const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+            const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
             await page.goto(pageUrl);
             await page.waitForLoadState('networkidle');
 
@@ -155,9 +158,10 @@ test.describe('Page Inline Comment via RHS', () => {
 
         // # Create wiki
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: uniqueName('Submit Comment Wiki'),
         });
+        await linkWikiToChannel(adminClient, channel.id, wiki.id);
 
         const pageContent = {
             type: 'doc' as const,
@@ -167,7 +171,7 @@ test.describe('Page Inline Comment via RHS', () => {
 
         // # Login and navigate to page
         const {page} = await pw.testBrowser.login(user);
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 
@@ -221,9 +225,10 @@ test.describe('Page Inline Comment via RHS', () => {
 
         // # Create wiki
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: uniqueName('Cancel Comment Wiki'),
         });
+        await linkWikiToChannel(adminClient, channel.id, wiki.id);
 
         const pageContent = {
             type: 'doc' as const,
@@ -233,7 +238,7 @@ test.describe('Page Inline Comment via RHS', () => {
 
         // # Login and navigate to page
         const {page} = await pw.testBrowser.login(user);
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 
@@ -279,9 +284,10 @@ test.describe('Page Inline Comment via RHS', () => {
 
         // # Create wiki
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: uniqueName('Close RHS Wiki'),
         });
+        await linkWikiToChannel(adminClient, channel.id, wiki.id);
 
         const pageContent = {
             type: 'doc' as const,
@@ -291,7 +297,7 @@ test.describe('Page Inline Comment via RHS', () => {
 
         // # Login and navigate to page
         const {page} = await pw.testBrowser.login(user);
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 

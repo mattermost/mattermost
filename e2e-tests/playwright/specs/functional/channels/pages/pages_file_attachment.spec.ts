@@ -30,8 +30,7 @@ test(
     'uploads PDF file via file picker and displays as file attachment',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -113,8 +112,7 @@ test(
     'pastes non-media file from clipboard and displays as file attachment',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -188,8 +186,7 @@ test(
  * @objective Verify executable files are rejected when uploading
  */
 test('rejects executable files in editor', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -249,8 +246,7 @@ test('rejects executable files in editor', {tag: '@pages'}, async ({pw, sharedPa
  * @objective Verify shell script files are rejected when uploading
  */
 test('rejects shell script files in editor', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -306,8 +302,7 @@ test('rejects shell script files in editor', {tag: '@pages'}, async ({pw, shared
  * File uploads are enabled on the server
  */
 test('uploads text file and displays as file attachment', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -368,8 +363,7 @@ test('uploads text file and displays as file attachment', {tag: '@pages'}, async
  * File uploads are enabled on the server
  */
 test('uploads ZIP file and displays as file attachment', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -470,8 +464,7 @@ test('uploads ZIP file and displays as file attachment', {tag: '@pages'}, async 
  * File uploads are enabled on the server
  */
 test('deletes file attachment from editor using delete button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -536,8 +529,7 @@ test('deletes file attachment from editor using delete button', {tag: '@pages'},
  * File uploads are enabled on the server
  */
 test('supports mixed media and file attachments in same page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 

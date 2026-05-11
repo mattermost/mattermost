@@ -5,9 +5,9 @@ import {expect, test} from '../channels/pages/pages_test_fixture';
 import {
     buildChannelUrl,
     createPageContent,
+    linkWikiToChannel,
     uniqueName,
     PAGE_LOAD_TIMEOUT,
-    WEBSOCKET_WAIT,
 } from '../channels/pages/test_helpers';
 
 test.describe('Page Activity Consolidation', () => {
@@ -25,12 +25,13 @@ test.describe('Page Activity Consolidation', () => {
             // # Get town-square channel
             const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-            // # Create a wiki
+            // # Create a wiki and link it to the channel
             const wikiName = uniqueName('Consolidation Wiki');
             const wiki = await adminClient.createWiki({
-                channel_id: channel.id,
+                team_id: team.id,
                 title: wikiName,
             });
+            await linkWikiToChannel(adminClient, channel.id, wiki.id);
 
             // # Login and navigate to the channel
             const {page} = await pw.testBrowser.login(user);
@@ -47,9 +48,6 @@ test.describe('Page Activity Consolidation', () => {
             await pw.createPageViaDraft(adminClient, wiki.id, 'First Page', pageContent);
             await pw.createPageViaDraft(adminClient, wiki.id, 'Second Page', pageContent);
             await pw.createPageViaDraft(adminClient, wiki.id, 'Third Page', pageContent);
-
-            // # Wait for WebSocket messages to propagate
-            await page.waitForTimeout(WEBSOCKET_WAIT);
 
             // * Verify the consolidated message appears in the channel
             // * The message lists all page names in one message instead of 3 separate messages
@@ -78,15 +76,17 @@ test.describe('Page Activity Consolidation', () => {
             // # Get town-square channel
             const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-            // # Create two different wikis
+            // # Create two different wikis and link them to the channel
             const wiki1 = await adminClient.createWiki({
-                channel_id: channel.id,
+                team_id: team.id,
                 title: uniqueName('Wiki One'),
             });
+            await linkWikiToChannel(adminClient, channel.id, wiki1.id);
             const wiki2 = await adminClient.createWiki({
-                channel_id: channel.id,
+                team_id: team.id,
                 title: uniqueName('Wiki Two'),
             });
+            await linkWikiToChannel(adminClient, channel.id, wiki2.id);
 
             // # Login and navigate to the channel
             const {page} = await pw.testBrowser.login(user);
@@ -103,9 +103,6 @@ test.describe('Page Activity Consolidation', () => {
             await pw.createPageViaDraft(adminClient, wiki1.id, 'Page in Wiki 1', pageContent);
             await pw.createPageViaDraft(adminClient, wiki2.id, 'Page in Wiki 2', pageContent);
             await pw.createPageViaDraft(adminClient, wiki1.id, 'Another Page in Wiki 1', pageContent);
-
-            // # Wait for WebSocket messages to propagate
-            await page.waitForTimeout(WEBSOCKET_WAIT);
 
             // * Verify we see individual messages (not consolidated across different wikis)
             // * Each wiki should have its own message(s)
@@ -137,11 +134,12 @@ test.describe('Page Activity Consolidation', () => {
             // # Get town-square channel
             const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-            // # Create a wiki
+            // # Create a wiki and link it to the channel
             const wiki = await adminClient.createWiki({
-                channel_id: channel.id,
+                team_id: team.id,
                 title: uniqueName('Interruption Wiki'),
             });
+            await linkWikiToChannel(adminClient, channel.id, wiki.id);
 
             // # Login and navigate to the channel
             const {page} = await pw.testBrowser.login(user);
@@ -165,9 +163,6 @@ test.describe('Page Activity Consolidation', () => {
 
             // # Create second page
             await pw.createPageViaDraft(adminClient, wiki.id, 'Page After Message', pageContent);
-
-            // # Wait for WebSocket messages to propagate
-            await page.waitForTimeout(WEBSOCKET_WAIT);
 
             // * Verify the messages are separate (not consolidated across the interrupting message)
             const channelFeed = page.locator('#postListContent');
@@ -199,11 +194,12 @@ test.describe('Page Activity Consolidation', () => {
         // # Get town-square channel
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        // # Create a wiki
+        // # Create a wiki and link it to the channel
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: uniqueName('Single Page Wiki'),
         });
+        await linkWikiToChannel(adminClient, channel.id, wiki.id);
 
         // # Login and navigate to the channel
         const {page} = await pw.testBrowser.login(user);
@@ -218,9 +214,6 @@ test.describe('Page Activity Consolidation', () => {
         // # Create single page
         const pageContent = createPageContent('Test content');
         await pw.createPageViaDraft(adminClient, wiki.id, 'Single Page', pageContent);
-
-        // # Wait for WebSocket messages to propagate
-        await page.waitForTimeout(WEBSOCKET_WAIT);
 
         // * Verify the singular message appears
         // * Format: "{username} created {pageLink} in the {wikiTitle} wiki tab"
@@ -240,11 +233,12 @@ test.describe('Page Activity Consolidation', () => {
         // # Get town-square channel
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-        // # Create a wiki
+        // # Create a wiki and link it to the channel
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
+            team_id: team.id,
             title: uniqueName('Terminology Wiki'),
         });
+        await linkWikiToChannel(adminClient, channel.id, wiki.id);
 
         // # Login and navigate to the channel
         const {page} = await pw.testBrowser.login(user);
@@ -259,9 +253,6 @@ test.describe('Page Activity Consolidation', () => {
         // # Create a page
         const pageContent = createPageContent('Test content');
         await pw.createPageViaDraft(adminClient, wiki.id, 'Terminology Test Page', pageContent);
-
-        // # Wait for WebSocket messages to propagate
-        await page.waitForTimeout(WEBSOCKET_WAIT);
 
         // * Verify "wiki tab" is used and NOT "doc tab"
         const channelFeed = page.locator('#postListContent');

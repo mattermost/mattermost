@@ -26,8 +26,7 @@ import {
  * Pages/Wiki feature is enabled on the server
  */
 test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -71,8 +70,7 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, shar
  * @objective Verify XSS attempts in page title are sanitized
  */
 test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -112,8 +110,7 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw, sharedPagesSetu
  * @objective Verify SQL injection attempts in page search are prevented
  */
 test('prevents SQL injection in page search', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -151,8 +148,7 @@ test('prevents SQL injection in page search', {tag: '@pages'}, async ({pw, share
  * @objective Verify page title length and special characters are validated
  */
 test('validates page title length and special characters', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 

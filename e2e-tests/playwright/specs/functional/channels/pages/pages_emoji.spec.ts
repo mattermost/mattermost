@@ -20,8 +20,7 @@ import {
  * @objective Verify emoji option appears in slash command menu when typing /emoji
  */
 test('shows emoji option in slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -42,8 +41,7 @@ test('shows emoji option in slash command menu', {tag: '@pages'}, async ({pw, sh
  * @objective Verify emoji option is filtered when typing /emoji in slash menu
  */
 test('filters to emoji when typing emoji in slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -74,8 +72,7 @@ test(
     'opens emoji picker when selecting emoji from slash command menu',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -109,8 +106,7 @@ test(
  * @objective Verify system emoji is inserted as Unicode character in editor
  */
 test('inserts system emoji as Unicode character', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -173,8 +169,7 @@ test('inserts system emoji as Unicode character', {tag: '@pages'}, async ({pw, s
  * @objective Verify emoji picker closes after emoji selection
  */
 test('closes emoji picker after emoji selection', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -216,8 +211,7 @@ test('closes emoji picker after emoji selection', {tag: '@pages'}, async ({pw, s
  * @objective Verify emoji alias search works (e.g., typing /smiley finds emoji)
  */
 test('finds emoji via alias search in slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -243,8 +237,7 @@ test('finds emoji via alias search in slash command menu', {tag: '@pages'}, asyn
  * @objective Verify emoticon alias search works
  */
 test('finds emoji via emoticon alias in slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -277,8 +270,7 @@ test(
     'shows emoji suggestions when typing colon followed by 2+ characters',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -311,8 +303,7 @@ test(
     'does not show emoji suggestions with only 1 character after colon',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user, channel} = sharedPagesSetup;
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -338,8 +329,7 @@ test(
  * @objective Verify emoji can be selected with Enter key from autocomplete
  */
 test('selects emoji with Enter key from autocomplete', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -375,8 +365,7 @@ test('selects emoji with Enter key from autocomplete', {tag: '@pages'}, async ({
  * @objective Verify emoji autocomplete can be navigated with arrow keys
  */
 test('navigates emoji suggestions with arrow keys', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -420,8 +409,7 @@ test('navigates emoji suggestions with arrow keys', {tag: '@pages'}, async ({pw,
  * @objective Verify emoji autocomplete closes with Escape key
  */
 test('closes emoji autocomplete with Escape key', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -457,8 +445,7 @@ test('closes emoji autocomplete with Escape key', {tag: '@pages'}, async ({pw, s
  * @objective Verify system emoji is inserted as Unicode character via autocomplete
  */
 test('inserts system emoji as Unicode via autocomplete', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 

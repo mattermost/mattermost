@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {makeClient} from '@mattermost/playwright-lib';
+
 import {expect, test} from './pages_test_fixture';
 import {
     buildWikiPageUrl,
@@ -10,7 +12,6 @@ import {
     verifyPageInHierarchy,
     verifyPageNotInHierarchy,
     openMovePageModal,
-    getEditor,
     getHierarchyPanel,
     getPageViewerContent,
     createTestChannel,
@@ -44,7 +45,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates two wikis and a page in source wiki
         const {page: page1, channelsPage: channelsPage1} = await loginAndNavigateToChannel(
@@ -67,7 +68,7 @@ test(
 
         // # User 2 logs in and navigates to source wiki (viewing the page that will be moved)
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        const sourceWikiUrl = buildWikiPageUrl(pw.url, team.name, channel.id, sourceWiki.id, createdPage.id);
+        const sourceWikiUrl = buildWikiPageUrl(pw.url, team.name, sourceWiki.id, createdPage.id, channel.id);
         await user2Page.goto(sourceWikiUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -108,7 +109,7 @@ test(
         });
 
         // # User 1 navigates back to source wiki and moves the page
-        const sourceWikiUrl1 = buildWikiPageUrl(pw.url, team.name, channel.id, sourceWiki.id, createdPage.id);
+        const sourceWikiUrl1 = buildWikiPageUrl(pw.url, team.name, sourceWiki.id, createdPage.id, channel.id);
         await page1.goto(sourceWikiUrl1);
         await page1.waitForLoadState('networkidle');
 
@@ -160,7 +161,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates wiki and page
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -181,7 +182,7 @@ test(
         await channelsPage2.toBeVisible();
 
         // # Then navigate to the page
-        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -266,7 +267,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates wiki and page
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -280,7 +281,7 @@ test(
 
         // # User 2 logs in and navigates to wiki
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        const wikiUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id);
+        const wikiUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, undefined, channel.id);
         await user2Page.goto(wikiUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -353,7 +354,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates wiki and parent page
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -376,7 +377,7 @@ test(
             consoleLogs.push(text);
         });
 
-        const wikiUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id);
+        const wikiUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, undefined, channel.id);
         await user2Page.goto(wikiUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -400,7 +401,7 @@ test(
 
         // Wait for expand button to appear (may take a moment for component to re-render)
         const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
-        await expect(expandButton).toBeVisible({timeout: 10000});
+        await expect(expandButton).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
         // # Expand parent node to make child visible
         await expandButton.click();
@@ -432,7 +433,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates wiki and page
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -450,7 +451,7 @@ test(
         await channelsPage2.toBeVisible();
 
         // # Then navigate to the page
-        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -508,7 +509,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # Grant wiki deletion permissions to channel_user role
         const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
@@ -537,7 +538,7 @@ test(
         await channelsPage2.toBeVisible();
 
         // # Navigate to the wiki page
-        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -566,7 +567,7 @@ test(
 
         // Check if redirected away from wiki (URL change) or if error shown
         const currentUrl = user2Page.url();
-        const isStillInWiki = currentUrl.includes(`/wiki/${channel.id}/${wiki.id}`);
+        const isStillInWiki = currentUrl.includes(`/wiki/${wiki.id}`);
 
         if (isStillInWiki) {
             // May show error message on the page
@@ -591,9 +592,15 @@ test(
                 await user2Page.reload();
                 await user2Page.waitForLoadState('networkidle');
 
+                // After reload, the client detects 404 and redirects away from the wiki URL.
+                // Wait for that navigation to complete before checking the URL.
+                await user2Page.waitForURL((url) => !url.pathname.includes(`/wiki/${wiki.id}`), {
+                    timeout: HIERARCHY_TIMEOUT,
+                });
+
                 // After reload, should be redirected or show error
                 const urlAfterReload = user2Page.url();
-                const redirectedAfterReload = !urlAfterReload.includes(`/wiki/${channel.id}/${wiki.id}`);
+                const redirectedAfterReload = !urlAfterReload.includes(`/wiki/${wiki.id}`);
                 expect(redirectedAfterReload).toBe(true);
             }
         } else {
@@ -617,7 +624,7 @@ test(
  */
 test('removes wiki tab for other users when wiki is deleted', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user: user1, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
     // # Grant wiki deletion permissions
     const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
@@ -720,7 +727,7 @@ test(
         await channelsPage2.goto(team.name, channel.name);
         await channelsPage2.toBeVisible();
 
-        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -783,138 +790,73 @@ test(
 );
 
 /**
- * @objective Verify editing user loses edit access when their edit permission is revoked
+ * @objective Server rejects page updates from a user after their edit permission is revoked.
  *
  * @precondition
  * Pages/Wiki feature is enabled on the server
- * User has edit_page permission initially
+ * team_user role has edit_page and/or edit_own_page (default after wiki perm migration)
  */
-test(
-    'shows appropriate UI when edit permission is revoked while user is editing',
-    {tag: '@pages'},
-    async ({pw, sharedPagesSetup}) => {
-        const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test('server rejects page update after edit permission is revoked', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user: user1, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
-        // # First, grant edit_page permission to channel_user role
-        const role = await adminClient.getRoleByName('channel_user');
-        const originalPermissions = [...role.permissions];
-        const hasEditPage = originalPermissions.includes('edit_page');
+    // Wiki/page perms are team-scoped (server/channels/web/context.go). Revoke both
+    // edit_page and edit_own_page so neither path grants user2 access — author still
+    // needs edit_own_page; non-authors need edit_page.
+    const teamUserRole = await adminClient.getRoleByName('team_user');
+    const hadEditPage = teamUserRole.permissions.includes('edit_page');
+    const hadEditOwnPage = teamUserRole.permissions.includes('edit_own_page');
 
-        if (!hasEditPage) {
-            await adminClient.patchRole(role.id, {
-                permissions: [...originalPermissions, 'edit_page'],
+    const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
+    const wiki = await createWikiThroughUI(page1, uniqueName('Edit Permission Wiki'));
+
+    // user2 authors the page so edit_own_page applies before revoke.
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+    const {page: user2Page, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+    await channelsPage2.goto(team.name, channel.name);
+    await channelsPage2.toBeVisible();
+    await navigateToWikiView(user2Page, pw.url, team.name, wiki.id, channel.id);
+    await user2Page.waitForLoadState('networkidle');
+
+    const pageTitle = uniqueName('Edit Test Page');
+    const createdPage = await createPageThroughUI(user2Page, pageTitle, 'Original content by user2');
+    await user2Page.close();
+
+    try {
+        const permissionsWithoutEdit = teamUserRole.permissions.filter(
+            (p: string) => p !== 'edit_page' && p !== 'edit_own_page',
+        );
+        await adminClient.patchRole(teamUserRole.id, {permissions: permissionsWithoutEdit});
+
+        const {client: user2Client} = await makeClient(user2);
+        let serverStatus: number | undefined;
+        try {
+            await user2Client.updatePage(
+                wiki.id,
+                createdPage.id,
+                undefined,
+                'New content blocked by permission revoke',
+            );
+        } catch (err: any) {
+            serverStatus = err?.status_code ?? err?.statusCode;
+        }
+        expect(serverStatus).toBe(403);
+    } finally {
+        const roleAfter = await adminClient.getRoleByName('team_user');
+        const toRestore: string[] = [];
+        if (hadEditPage && !roleAfter.permissions.includes('edit_page')) {
+            toRestore.push('edit_page');
+        }
+        if (hadEditOwnPage && !roleAfter.permissions.includes('edit_own_page')) {
+            toRestore.push('edit_own_page');
+        }
+        if (toRestore.length > 0) {
+            await adminClient.patchRole(roleAfter.id, {
+                permissions: [...roleAfter.permissions, ...toRestore],
             });
         }
-
-        // # User 1 creates wiki and page
-        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
-
-        const wiki = await createWikiThroughUI(page1, uniqueName('Edit Permission Wiki'));
-        const pageTitle = uniqueName('Edit Test Page');
-        const createdPage = await createPageThroughUI(page1, pageTitle, 'Original content');
-
-        // # Create user2 and add to channel
-        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
-
-        // # User 2 logs in and navigates to the page
-        const {page: user2Page, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
-        await channelsPage2.goto(team.name, channel.name);
-        await channelsPage2.toBeVisible();
-
-        await navigateToWikiView(user2Page, pw.url, team.name, channel.id, wiki.id);
-        await user2Page.waitForLoadState('networkidle');
-
-        // # Navigate to the specific page
-        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
-        await user2Page.goto(wikiPageUrl);
-        await user2Page.waitForLoadState('networkidle');
-
-        // * Verify user2 can see the edit button (has edit permission)
-        const editButton = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
-        await expect(editButton).toBeVisible({timeout: HIERARCHY_TIMEOUT});
-
-        // # User 2 enters edit mode
-        await editButton.click();
-        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
-
-        // * Verify editor is visible
-        const editor = getEditor(user2Page);
-        await expect(editor).toBeVisible({timeout: ELEMENT_TIMEOUT});
-
-        // # Setup WebSocket event logging
-        await setupWebSocketEventLogging(user2Page);
-
-        // # Admin revokes edit_page permission from channel_user role
-        const currentRole = await adminClient.getRoleByName('channel_user');
-        const permissionsWithoutEdit = currentRole.permissions.filter((p: string) => p !== 'edit_page');
-        await adminClient.patchRole(role.id, {
-            permissions: permissionsWithoutEdit,
-        });
-
-        // * Wait for permission change to propagate
-        await user2Page.waitForTimeout(WEBSOCKET_WAIT);
-
-        // # Try to publish to trigger permission check
-        const publishButton = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
-
-        // Fill some content first
-        await editor.click();
-        await editor.pressSequentially('New content added by user2', {delay: 10});
-        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
-
-        // * Check if publish button is still enabled/visible
-        const isPublishVisible = await publishButton.isVisible().catch(() => false);
-
-        if (isPublishVisible) {
-            // # Try to publish - should fail due to permission
-            await publishButton.click();
-            await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
-
-            // * Look for error message about permission
-            const errorIndicators = [
-                user2Page.locator('text=/permission/i'),
-                user2Page.locator('text=/not.*allowed/i'),
-                user2Page.locator('text=/cannot.*edit/i'),
-                user2Page.locator('text=/forbidden/i'),
-                user2Page.locator('.error'),
-                user2Page.locator('[class*="error"]'),
-            ];
-
-            let errorFound = false;
-            for (const indicator of errorIndicators) {
-                if (await indicator.isVisible({timeout: ELEMENT_TIMEOUT}).catch(() => false)) {
-                    errorFound = true;
-                    break;
-                }
-            }
-
-            // If no immediate error, the publish might have succeeded before permission revoke propagated
-            // This is acceptable in some race conditions - just verify the state
-            if (!errorFound) {
-                // Reload and verify edit button is now hidden (permission revoked)
-                await user2Page.reload();
-                await user2Page.waitForLoadState('networkidle');
-
-                // After reload, edit button should not be visible (no edit permission)
-                const editButtonAfterReload = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
-                const editButtonVisible = await editButtonAfterReload
-                    .isVisible({timeout: ELEMENT_TIMEOUT})
-                    .catch(() => false);
-
-                // Edit button should be hidden now that permission is revoked
-                expect(editButtonVisible).toBe(false);
-            }
-        }
-
-        await user2Page.close();
-
-        // # Cleanup: Restore original permissions
-        await adminClient.patchRole(role.id, {
-            permissions: originalPermissions,
-        });
-    },
-);
+    }
+});
 
 /**
  * @objective Verify user sees all pages when opening wiki, not just pages received via WebSocket
@@ -932,7 +874,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates wiki and multiple pages
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -958,7 +900,7 @@ test(
         // IMPORTANT: User 2 was NOT online when pages were created, so they didn't receive
         // WebSocket events. They should still see ALL pages when opening the wiki.
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        const wikiUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id);
+        const wikiUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, undefined, channel.id);
         await user2Page.goto(wikiUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -997,7 +939,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates wiki with parent and child pages (initially siblings)
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -1018,7 +960,7 @@ test(
 
         // # User 2 logs in and navigates to the wiki
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        const wikiUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id);
+        const wikiUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, undefined, channel.id);
         await user2Page.goto(wikiUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -1058,7 +1000,7 @@ test(
 
         // * Verify parent now shows chevron icon (has children)
         const chevronIcon = iconButton.locator('.icon-chevron-right, .icon-chevron-down');
-        await expect(chevronIcon).toBeVisible({timeout: 10000});
+        await expect(chevronIcon).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
         // * Verify child is no longer visible at root level (it's now under collapsed parent)
         // The flat tree only shows children when parent is expanded

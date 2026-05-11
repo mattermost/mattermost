@@ -80,7 +80,7 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
     url.match(/\/pages\/([^/]+)/);
 
     // Navigate back to wiki view to ensure hierarchy panel is visible
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
 
     // * Verify outline initially hidden in hierarchy panel
     const outlineInTree = await getPageOutlineInHierarchy(page, 'Feature Spec');
@@ -141,7 +141,7 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     await createPageThroughUI(page, 'Page with Headings', ' ');
 
     // Navigate back to wiki view to ensure hierarchy panel is visible
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
 
     // # Click on the page to view it, then edit
     const hierarchyPanel = getHierarchyPanel(page);
@@ -219,14 +219,11 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     // # Publish the updated page
     await publishCurrentPage(page);
 
-    // # Ensure outline is still shown after publish (it should persist)
+    // # Wait for outline to collapse after publish (clearOutlineCache is dispatched on publish)
+    // then always re-show it to ensure it is populated with fresh content
     const outlineInTree = await getPageOutlineInHierarchy(page, 'Page with Headings');
-    const outlineVisible = await outlineInTree.isVisible({timeout: 1000}).catch(() => false);
-
-    // If outline collapsed after edit, show it again
-    if (!outlineVisible) {
-        await showPageOutlineViaRightClick(page, 'Page with Headings');
-    }
+    await outlineInTree.waitFor({state: 'hidden', timeout: HIERARCHY_TIMEOUT}).catch(() => {});
+    await showPageOutlineViaRightClick(page, 'Page with Headings');
 
     // * Verify outline reflects the CHANGES (old headings gone, new headings present)
     await verifyOutlineHeadingVisible(page, 'Updated Heading 1', HIERARCHY_TIMEOUT);
@@ -261,7 +258,7 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     await createPageThroughUI(page, 'Navigate to Headings', ' ');
 
     // Navigate back to wiki view to ensure hierarchy panel is visible
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
 
     // # Click on the page to view it, then edit
     const hierarchyPanel = getHierarchyPanel(page);

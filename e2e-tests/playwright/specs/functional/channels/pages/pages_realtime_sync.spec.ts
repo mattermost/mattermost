@@ -4,6 +4,7 @@
 import {expect, test} from './pages_test_fixture';
 import {
     buildWikiPageUrl,
+    createTestChannel,
     createWikiThroughUI,
     createPageThroughUI,
     navigateToWikiView,
@@ -20,10 +21,10 @@ import {
     verifyPageContentContains,
     loginAndNavigateToChannel,
     uniqueName,
-    AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
     WEBSOCKET_WAIT,
+    waitForAutoSave,
 } from './test_helpers';
 
 /**
@@ -38,7 +39,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates wiki
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -50,7 +51,7 @@ test(
 
         // # User 2 logs in and navigates to the same wiki
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        await navigateToWikiView(user2Page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(user2Page, pw.url, team.name, wiki.id, channel.id);
 
         // # Wait for hierarchy panel to load for user2
         const user2HierarchyPanel = getHierarchyPanel(user2Page);
@@ -92,7 +93,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates two wikis and a page in the first wiki
         const {page: page1, channelsPage: channelsPage1} = await loginAndNavigateToChannel(
@@ -115,7 +116,7 @@ test(
 
         // # User 2 logs in and navigates to the target wiki
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        await navigateToWikiView(user2Page, pw.url, team.name, channel.id, targetWiki.id);
+        await navigateToWikiView(user2Page, pw.url, team.name, targetWiki.id, channel.id);
 
         // # Wait for hierarchy panel to load for user2
         const user2HierarchyPanel = getHierarchyPanel(user2Page);
@@ -125,7 +126,7 @@ test(
         await expect(emptyState).toBeVisible();
 
         // # User 1 navigates back to source wiki to move the page
-        await navigateToWikiView(page1, pw.url, team.name, channel.id, sourceWiki.id);
+        await navigateToWikiView(page1, pw.url, team.name, sourceWiki.id, channel.id);
 
         // # User 1 moves page to target wiki using helper
         const moveModal = await openMovePageModal(page1, pageTitle);
@@ -147,7 +148,7 @@ test(
         const user2PageNode = user2HierarchyPanel
             .locator('[data-testid="page-tree-node"]')
             .filter({hasText: pageTitle});
-        await expect(user2PageNode).toBeVisible({timeout: WEBSOCKET_WAIT});
+        await expect(user2PageNode).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
         // * Verify user2 can click on the page and view it
         await user2PageNode.click();
@@ -169,7 +170,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates wiki and publishes a page
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -184,7 +185,7 @@ test(
 
         // # User 2 logs in and navigates to the page (viewing mode)
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -201,9 +202,8 @@ test(
         await page1.waitForLoadState('networkidle');
 
         // # User 1 edits and publishes new content
-        const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
-        await expect(editButton1).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await editButton1.click();
+        // Use enterEditMode to wait for the edit button to be enabled (permissions may load async)
+        await enterEditMode(page1);
 
         const editor1 = getEditor(page1);
         await editor1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
@@ -212,6 +212,7 @@ test(
         await editor1.fill(updatedContent);
 
         const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
+        await expect(publishButton1).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await publishButton1.click();
         await page1.waitForLoadState('networkidle');
 
@@ -235,7 +236,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates wiki and publishes a page
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -250,7 +251,7 @@ test(
 
         // # User 2 logs in and views the page
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -321,7 +322,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates wiki with two pages
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -337,7 +338,7 @@ test(
 
         // # User 2 logs in and views Page A
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        const pageAUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, pageA.id);
+        const pageAUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, pageA.id, channel.id);
         await user2Page.goto(pageAUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -408,7 +409,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates wiki with three pages
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -427,7 +428,7 @@ test(
         const {user: user3} = await createTestUserInChannel(pw, adminClient, team, channel, 'user3');
 
         // # All three users start on Page A
-        const pageAUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, pageA.id);
+        const pageAUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, pageA.id, channel.id);
         await page1.goto(pageAUrl);
         await page1.waitForLoadState('networkidle');
 
@@ -471,8 +472,11 @@ test(
         await page1.waitForLoadState('networkidle');
 
         // Publish a new version of Page A via API (simulates another user/session publishing edits)
-        // Step 1: Get current page to retrieve edit_at timestamp
-        const currentPageA = await adminClient.getPost(pageA.id);
+        // Step 1: Get current page to retrieve edit_at timestamp.
+        // Use getPage (wiki route) rather than getPost: pages live in wiki backing
+        // channels (type 'W') which the standard /channels API and the channel-aware
+        // /posts API both filter out, returning 404 even for system admins.
+        const currentPageA = await adminClient.getPage(wiki.id, pageA.id);
 
         // Step 2: Create a draft for editing the existing page
         // With unified IDs, editing an existing page uses the page's ID as the draft ID
@@ -550,7 +554,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates a wiki and a page
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -566,20 +570,22 @@ test(
         const {page: user2Page} = await pw.testBrowser.login(user2);
 
         // # User 2 navigates to the page and enters edit mode
-        await navigateToPage(user2Page, pw.url, team.name, channel.id, wiki.id, testPage.id);
+        await navigateToPage(user2Page, pw.url, team.name, wiki.id, testPage.id);
         await enterEditMode(user2Page);
 
         // # User 2 makes draft changes (not yet published)
         const user2Editor = await getEditorAndWait(user2Page);
         await typeInEditor(user2Page, 'User 2 draft changes - not yet published');
-        await user2Page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(user2Page);
 
         // * Verify User 2 sees their draft content in the editor
         const user2EditorContent = await user2Editor.textContent();
         expect(user2EditorContent).toContain('User 2 draft changes');
 
-        // # Meanwhile, User 1 publishes an update to the same page via API
-        const currentPage = await adminClient.getPost(testPage.id);
+        // # Meanwhile, User 1 publishes an update to the same page via API.
+        // Use getPage (wiki route) rather than getPost — pages are stored in
+        // wiki backing channels which the channel-aware /posts API filters out.
+        const currentPage = await adminClient.getPage(wiki.id, testPage.id);
 
         const externalUpdateContent = JSON.stringify({
             type: 'doc',
@@ -609,7 +615,7 @@ test(
         await expect(user2Editor).not.toContainText('External update by User 1');
 
         // * Verify User 1 (viewer) sees the published version, not the draft
-        await navigateToPage(page1, pw.url, team.name, channel.id, wiki.id, testPage.id);
+        await navigateToPage(page1, pw.url, team.name, wiki.id, testPage.id);
         await verifyPageContentContains(page1, 'External update by User 1');
         const page1Content = getPageViewerContent(page1);
         const page1Text = await page1Content.textContent();
@@ -631,7 +637,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates a wiki and a page
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -645,15 +651,17 @@ test(
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
         const {page: user2Page} = await pw.testBrowser.login(user2);
 
-        await navigateToPage(user2Page, pw.url, team.name, channel.id, wiki.id, testPage.id);
+        await navigateToPage(user2Page, pw.url, team.name, wiki.id, testPage.id);
         await enterEditMode(user2Page);
 
         await getEditorAndWait(user2Page);
         await typeInEditor(user2Page, 'User 2 draft changes - not published');
-        await user2Page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(user2Page);
 
-        // # Admin publishes a new version via API
-        const currentPage = await adminClient.getPost(testPage.id);
+        // # Admin publishes a new version via API.
+        // Use getPage (wiki route) rather than getPost — pages are stored in
+        // wiki backing channels which the channel-aware /posts API filters out.
+        const currentPage = await adminClient.getPage(wiki.id, testPage.id);
 
         const publishedContent = JSON.stringify({
             type: 'doc',
@@ -682,7 +690,7 @@ test(
         const {user: user3} = await createTestUserInChannel(pw, adminClient, team, channel, 'user3');
         const {page: user3Page} = await pw.testBrowser.login(user3);
 
-        await navigateToPage(user3Page, pw.url, team.name, channel.id, wiki.id, testPage.id);
+        await navigateToPage(user3Page, pw.url, team.name, wiki.id, testPage.id);
         await enterEditMode(user3Page);
 
         // * Verify User 3 starts editing from the latest PUBLISHED version (not User 2's draft)
@@ -708,7 +716,7 @@ test(
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
         // # User 1 creates a wiki and a page
         const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
@@ -722,27 +730,29 @@ test(
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
         const {page: user2Page} = await pw.testBrowser.login(user2);
 
-        await navigateToPage(user2Page, pw.url, team.name, channel.id, wiki.id, testPage.id);
+        await navigateToPage(user2Page, pw.url, team.name, wiki.id, testPage.id);
         await enterEditMode(user2Page);
 
         const user2Editor = await getEditorAndWait(user2Page);
         await typeInEditor(user2Page, 'User 2 draft content');
-        await user2Page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(user2Page);
 
         // # User 3 also starts editing (creates separate draft)
         const {user: user3} = await createTestUserInChannel(pw, adminClient, team, channel, 'user3');
         const {page: user3Page} = await pw.testBrowser.login(user3);
 
-        await navigateToPage(user3Page, pw.url, team.name, channel.id, wiki.id, testPage.id);
+        await navigateToPage(user3Page, pw.url, team.name, wiki.id, testPage.id);
         await enterEditMode(user3Page);
 
         const user3Editor = await getEditorAndWait(user3Page);
         await clearEditorContent(user3Page);
         await typeInEditor(user3Page, 'User 3 draft content');
-        await user3Page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(user3Page);
 
-        // # Admin publishes an external update
-        const currentPage = await adminClient.getPost(testPage.id);
+        // # Admin publishes an external update.
+        // Use getPage (wiki route) rather than getPost — pages are stored in
+        // wiki backing channels which the channel-aware /posts API filters out.
+        const currentPage = await adminClient.getPage(wiki.id, testPage.id);
 
         const externalContent = JSON.stringify({
             type: 'doc',

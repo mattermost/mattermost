@@ -20,7 +20,7 @@ import {
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
     UI_MICRO_WAIT,
-    AUTOSAVE_WAIT,
+    waitForAutoSave,
 } from './test_helpers';
 
 /**
@@ -112,14 +112,13 @@ function getImageAIMenuButton(page: any) {
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
 test('shows Image AI bubble when image is selected', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
     if (!shouldSkipAITests()) {
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
@@ -165,14 +164,13 @@ test('shows Image AI bubble when image is selected', {tag: '@pages'}, async ({pw
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
 test('shows Image AI menu button in enabled state', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
     if (!shouldSkipAITests()) {
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
@@ -216,14 +214,13 @@ test('shows Image AI menu button in enabled state', {tag: '@pages'}, async ({pw,
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
 test('opens Image AI menu when button is clicked', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
     if (!shouldSkipAITests()) {
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
@@ -269,14 +266,13 @@ test('opens Image AI menu when button is clicked', {tag: '@pages'}, async ({pw, 
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
 test('hides Image AI bubble when pressing Escape', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
     if (!shouldSkipAITests()) {
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
@@ -326,14 +322,13 @@ test('hides Image AI bubble when pressing Escape', {tag: '@pages'}, async ({pw, 
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
 test('has proper accessibility attributes on AI button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
     if (!shouldSkipAITests()) {
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
@@ -376,14 +371,13 @@ test('has proper accessibility attributes on AI button', {tag: '@pages'}, async 
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
 test('shows Image AI bubble for resizable images', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
     if (!shouldSkipAITests()) {
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
@@ -424,14 +418,13 @@ test('shows Image AI bubble for resizable images', {tag: '@pages'}, async ({pw, 
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
 test('shows Image AI bubble after publishing and re-editing page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
     if (!shouldSkipAITests()) {
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
@@ -490,14 +483,13 @@ test('shows Image AI bubble after publishing and re-editing page', {tag: '@pages
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
 test('shows AI label in Image AI bubble', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
     if (!shouldSkipAITests()) {
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
@@ -541,14 +533,13 @@ test('shows AI label in Image AI bubble', {tag: '@pages'}, async ({pw, sharedPag
  * AI plugin is enabled with vision-capable agent (test will skip gracefully if not available)
  */
 test('shows Extract Handwriting option in Image AI menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
     if (!shouldSkipAITests()) {
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
@@ -604,14 +595,13 @@ test('shows Extract Handwriting option in Image AI menu', {tag: '@pages'}, async
  * AI plugin is enabled with vision-capable agent (test will skip gracefully if not available)
  */
 test('shows Describe Image option in Image AI menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+    const {team, user, adminClient, channel} = sharedPagesSetup;
 
     // # Configure AI plugin if enabled
     if (!shouldSkipAITests()) {
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
@@ -670,14 +660,13 @@ test(
     'triggers extraction action when Extract Handwriting is clicked',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
+        const {team, user, adminClient, channel} = sharedPagesSetup;
 
         // # Configure AI plugin if enabled
         if (!shouldSkipAITests()) {
             await configureAIPlugin(adminClient);
         }
 
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
@@ -762,14 +751,13 @@ test(
     'extracts handwriting and renders as proper TipTap content',
     {tag: ['@pages', '@ai-integration']},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
+        const {team, user, adminClient, channel} = sharedPagesSetup;
 
         // # Configure AI plugin if enabled
         if (!shouldSkipAITests()) {
             await configureAIPlugin(adminClient);
         }
 
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
@@ -944,7 +932,7 @@ test(
     'supports AI extraction on proxied external images',
     {tag: ['@pages', '@proxy-images']},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
+        const {team, user, adminClient, channel} = sharedPagesSetup;
 
         // # Ensure image proxy is enabled
         const config = await adminClient.getConfig();
@@ -962,7 +950,6 @@ test(
             await configureAIPlugin(adminClient);
         }
 
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
@@ -990,7 +977,7 @@ test(
         const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
 
         await pasteProxiedImageHtml(page, proxyUrl);
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // * Verify the image is visible
         const imageInEditor = editor.locator('img').first();
@@ -1044,7 +1031,7 @@ test(
     'triggers AI describe action for images',
     {tag: ['@pages', '@proxy-images', '@ai-integration']},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
+        const {team, user, adminClient, channel} = sharedPagesSetup;
 
         // # Ensure image proxy is enabled
         const config = await adminClient.getConfig();
@@ -1062,7 +1049,6 @@ test(
             await configureAIPlugin(adminClient);
         }
 
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
@@ -1089,7 +1075,7 @@ test(
         const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
 
         await pasteProxiedImageHtml(page, proxyUrl);
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // * Verify the image is visible
         const imageInEditor = editor.locator('img').first();
@@ -1141,7 +1127,7 @@ test(
     'editor remains functional after AI image action',
     {tag: ['@pages', '@proxy-images']},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
+        const {team, user, adminClient, channel} = sharedPagesSetup;
 
         // # Ensure image proxy is enabled
         const config = await adminClient.getConfig();
@@ -1159,7 +1145,6 @@ test(
             await configureAIPlugin(adminClient);
         }
 
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
         // # Create wiki through UI
@@ -1186,7 +1171,7 @@ test(
         const proxyUrl = `/api/v4/image?url=${encodeURIComponent(externalUrl)}`;
 
         await pasteProxiedImageHtml(page, proxyUrl);
-        await page.waitForTimeout(AUTOSAVE_WAIT);
+        await waitForAutoSave(page);
 
         // * Verify the image is visible
         const imageInEditor = editor.locator('img').first();

@@ -9,8 +9,6 @@ import {
     createChildPageThroughContextMenu,
     waitForPageInHierarchy,
     getWikiTab,
-    openWikiTabMenu,
-    clickWikiTabMenuItem,
     waitForWikiViewLoad,
     getAllWikiTabs,
     renameWikiThroughModal,
@@ -22,7 +20,8 @@ import {
     verifyWikiDeleted,
     waitForWikiTab,
     openWikiByTab,
-    moveWikiToChannel,
+    linkWikiToChannel,
+    unlinkWikiFromChannel,
     getHierarchyPanel,
     getPageViewerContent,
     getBreadcrumb,
@@ -33,8 +32,8 @@ import {
     loginAndNavigateToChannel,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
-    HIERARCHY_TIMEOUT,
     WEBSOCKET_WAIT,
+    WIKI_VIEW_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -117,7 +116,7 @@ test('deletes wiki when wiki tab is deleted', {tag: '@pages'}, async ({pw, share
 
     // # Try to navigate to the deleted wiki URL directly and verify it's inaccessible
     if (wikiId) {
-        await page.goto(`/${team.name}/wiki/${channel.id}/${wikiId}`);
+        await page.goto(`/${team.name}/wiki/${wikiId}`);
         await verifyWikiDeleted(page, channel.name);
     }
 });
@@ -141,7 +140,7 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
     await createWikiThroughUI(page, originalName);
 
     // * Verify navigated to wiki
-    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+    await verifyNavigatedToWiki(page);
 
     // # Navigate back to channel to rename through wiki tab
     await channelsPage.goto(team.name, channel.name);
@@ -152,15 +151,7 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
     const wikiTab = getWikiTab(page, originalName);
     await wikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    await openWikiTabMenu(page, originalName);
-    await clickWikiTabMenuItem(page, 'wiki-tab-rename');
-
-    const renameModal = page.getByRole('dialog');
-    const titleInput = renameModal.locator('#text-input-modal-input');
-    await titleInput.clear();
-    await titleInput.fill(updatedName);
-    await renameModal.getByRole('button', {name: /rename/i}).click();
-    await renameModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    await renameWikiThroughModal(page, originalName, updatedName);
 
     // * Verify wiki tab updated
     const updatedTab = getWikiTab(page, updatedName);
@@ -170,7 +161,7 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
     await updatedTab.click();
 
     // * Verify navigated to wiki
-    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+    await verifyNavigatedToWiki(page);
 
     // * Verify wiki name is displayed in breadcrumb
     const breadcrumb = getBreadcrumb(page);
@@ -199,7 +190,7 @@ test(
         await createWikiThroughUI(page, wikiName);
 
         // * Verify in wiki view
-        await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+        await verifyNavigatedToWiki(page);
 
         // # Navigate to channel to delete wiki tab
         await channelsPage.goto(team.name, channel.name);
@@ -210,12 +201,7 @@ test(
         const wikiTab = getWikiTab(page, wikiName);
         await wikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-        await openWikiTabMenu(page, wikiName);
-        await clickWikiTabMenuItem(page, 'wiki-tab-delete');
-
-        const confirmModal = page.getByRole('dialog');
-        await confirmModal.getByRole('button', {name: /delete|yes/i}).click();
-        await confirmModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+        await deleteWikiThroughModalConfirmation(page, wikiName);
 
         // * Verify navigated to channel (not wiki)
         await expect(page).toHaveURL(new RegExp(`/${team.name}/channels/${channel.name}`));
@@ -268,8 +254,9 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     await waitForWikiViewLoad(page);
 
     // # Wait for auto-selection to complete (URL will include pageId or draftId)
-    // Wiki view automatically selects first page/draft when navigating to wiki root
-    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+/, {timeout: HIERARCHY_TIMEOUT});
+    // Wiki view automatically selects first page/draft when navigating to wiki root.
+    // URL shape: /:team/wiki/:wikiId/(:pageId|drafts/:draftId)[?from=...]
+    await page.waitForURL(/\/wiki\/[a-z0-9]{26}\/(?:drafts\/)?[a-z0-9]{26}/, {timeout: WIKI_VIEW_TIMEOUT});
 
     // # Wait for pages to load in hierarchy panel
     await waitForPageInHierarchy(page, 'Parent Page', 15000);
@@ -290,7 +277,7 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     await waitForPageInHierarchy(page, 'Child Page', 10000);
 
     // # Navigate to child page through hierarchy panel
-    const childPageNode = hierarchyPanel.getByRole('button', {name: 'Child Page', exact: true});
+    const childPageNode = hierarchyPanel.getByRole('button', {name: 'Go to Child Page', exact: true});
     await childPageNode.click();
 
     // * Verify navigated to child page
@@ -326,7 +313,7 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
 test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     test.slow();
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, 'Test Channel');
+    const channel = await createTestChannel(adminClient, team.id, 'Test Channel', 'O', [user.id]);
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -414,12 +401,7 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
     const wikiTab = getWikiTab(page, wikiName);
     await wikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    await openWikiTabMenu(page, wikiName);
-    await clickWikiTabMenuItem(page, 'wiki-tab-delete');
-
-    const confirmModal = page.getByRole('dialog');
-    await confirmModal.getByRole('button', {name: /delete|yes/i}).click();
-    await confirmModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    await deleteWikiThroughModalConfirmation(page, wikiName);
 
     // * Verify wiki tab removed
     await expect(wikiTab).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
@@ -444,112 +426,104 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
 });
 
 /**
- * @objective Verify wiki can be moved to another channel in the same team
+ * @objective Verify wiki can be linked to multiple channels
  *
  * @precondition
  * Two channels must exist in the same team
  */
-test('moves wiki to another channel through wiki tab menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('links and unlinks wiki from channels', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const sourceChannel = await createTestChannel(adminClient, team.id, 'Source Channel');
     const targetChannel = await createTestChannel(adminClient, team.id, 'Target Channel');
 
-    // # Add user to both channels so they appear in the move dropdown
+    // # Add user to both channels
     await adminClient.addToChannel(user.id, sourceChannel.id);
     await adminClient.addToChannel(user.id, targetChannel.id);
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, sourceChannel.name);
 
-    const wikiName = uniqueName('Wiki to Move');
+    const wikiName = uniqueName('Wiki to Link');
 
     // # Create wiki in source channel
     await createWikiThroughUI(page, wikiName);
 
     // * Verify wiki created
-    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+    await verifyNavigatedToWiki(page);
 
-    // # Navigate back to source channel
-    await channelsPage.goto(team.name, sourceChannel.name);
-    await page.waitForLoadState('networkidle');
+    // # Get wiki ID from URL
+    const wikiUrl = page.url();
+    const wikiIdMatch = wikiUrl.match(/\/wiki\/([a-z0-9]{26})/);
+    const wikiId = wikiIdMatch ? wikiIdMatch[1] : null;
+    expect(wikiId).toBeTruthy();
+
+    // # Navigate back to source channel using tab click
+    await navigateToChannelFromWiki(page, channelsPage, team.name, sourceChannel.name);
 
     // # Wait for wiki tab to be visible in source channel
     const sourceWikiTab = getWikiTab(page, wikiName);
     await sourceWikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    // # Open wiki tab menu
-    await openWikiTabMenu(page, wikiName);
+    // # Link wiki to target channel via API
+    await linkWikiToChannel(adminClient, targetChannel.id, wikiId!);
 
-    // # Click "Move wiki" in the dropdown menu
-    await clickWikiTabMenuItem(page, 'wiki-tab-move');
-
-    // # Wait for move modal to appear
-    const moveModal = page.getByRole('dialog');
-    await moveModal.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-
-    // # Wait for channel select to be populated with options
-    const channelSelect = moveModal.locator('#target-channel-select');
-    await channelSelect.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-
-    // # Wait for at least 2 options (placeholder + target channel)
-    await page.waitForFunction(
-        (selectId) => {
-            const select = document.querySelector(`#${selectId}`) as HTMLSelectElement;
-            return select && select.options.length > 1;
-        },
-        'target-channel-select',
-        {timeout: ELEMENT_TIMEOUT},
-    );
-
-    // # Select target channel from dropdown by value
-    await channelSelect.selectOption({value: targetChannel.id});
-
-    // # Click Move Wiki button
-    const moveButton = moveModal.getByRole('button', {name: /move wiki/i});
-    await moveButton.click();
-
-    // # Wait for modal to close
-    await moveModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
-
-    // # Wait for network requests to complete after wiki move
+    // # Refresh to see the new link
+    await page.reload();
     await page.waitForLoadState('networkidle');
-
-    // * Verify wiki tab no longer exists in source channel
-    await expect(sourceWikiTab).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
-
-    // * Verify wiki tab count is zero in source channel (explicit count check)
-    const sourceWikiTabs = getAllWikiTabs(page);
-    await expect(sourceWikiTabs).toHaveCount(0, {timeout: ELEMENT_TIMEOUT});
 
     // # Navigate to target channel
     await channelsPage.goto(team.name, targetChannel.name);
     await page.waitForLoadState('networkidle');
 
-    // * Verify wiki tab now appears in target channel
+    // * Verify wiki tab appears in target channel
     const targetWikiTab = getWikiTab(page, wikiName);
     await expect(targetWikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // * Verify wiki tab count is exactly one in target channel (explicit count check)
+    // * Verify wiki tab count is exactly one in target channel
     const targetWikiTabs = getAllWikiTabs(page);
     await expect(targetWikiTabs).toHaveCount(1, {timeout: ELEMENT_TIMEOUT});
 
-    // # Click on wiki tab to open it
+    // # Click on wiki tab to verify it opens
     await targetWikiTab.click();
 
     // * Verify navigated to wiki view
-    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+    await verifyNavigatedToWiki(page);
 
     // * Verify wiki loads successfully
     await waitForWikiViewLoad(page);
+
+    // # Navigate back to source channel
+    await navigateToChannelFromWiki(page, channelsPage, team.name, sourceChannel.name);
+
+    // # Unlink wiki from source channel via API
+    await unlinkWikiFromChannel(adminClient, sourceChannel.id, wikiId!);
+
+    // # Refresh to see the unlink
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify wiki tab no longer exists in source channel
+    await expect(sourceWikiTab).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify wiki tab count is zero in source channel
+    const sourceWikiTabs = getAllWikiTabs(page);
+    await expect(sourceWikiTabs).toHaveCount(0, {timeout: ELEMENT_TIMEOUT});
+
+    // # Navigate back to target channel to verify wiki still there
+    await channelsPage.goto(team.name, targetChannel.name);
+    await page.waitForLoadState('networkidle');
+
+    // * Verify wiki tab still appears in target channel
+    await expect(targetWikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
- * @objective Verify inline comments are migrated when wiki is moved to another channel
+ * @objective Verify inline comments remain accessible when wiki is linked to another channel
  *
  * @precondition
  * Two channels must exist in the same team
  */
 test(
-    'migrates inline comments when moving wiki to another channel',
+    'inline comments remain accessible after linking wiki to another channel',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
@@ -568,7 +542,7 @@ test(
         await createWikiThroughUI(page, wikiName);
 
         // * Verify wiki created
-        await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+        await verifyNavigatedToWiki(page);
 
         // # Create a page in the wiki through UI
         const pageName = uniqueName('Test Page');
@@ -580,6 +554,12 @@ test(
         const pageIdMatch = pageUrl.match(/\/([^/]+)$/);
         const pageId = pageIdMatch ? pageIdMatch[1] : null;
         expect(pageId).toBeTruthy();
+
+        // # Get wiki ID from URL
+        const wikiUrl = page.url();
+        const wikiIdMatch = wikiUrl.match(/\/wiki\/([a-z0-9]{26})/);
+        const wikiId = wikiIdMatch ? wikiIdMatch[1] : null;
+        expect(wikiId).toBeTruthy();
 
         // # Create inline comment using API (inline comments have empty RootId and page_id in Props)
         const inlineCommentText = uniqueName('Inline comment');
@@ -598,26 +578,46 @@ test(
         expect(inlineComment.root_id).toBe('');
         expect(inlineComment.props.page_id).toBe(pageId);
 
-        // # Navigate back to source channel to move the wiki
-        await channelsPage.goto(team.name, sourceChannel.name);
+        // # Navigate back to source channel
+        await navigateToChannelFromWiki(page, channelsPage, team.name, sourceChannel.name);
+
+        // # Link wiki to target channel via API
+        await linkWikiToChannel(adminClient, targetChannel.id, wikiId!);
+
+        // # Refresh to see the new link
+        await page.reload();
         await page.waitForLoadState('networkidle');
 
-        // # Move wiki to target channel using helper
-        await moveWikiToChannel(page, wikiName, targetChannel.id);
+        // # Navigate to target channel
+        await channelsPage.goto(team.name, targetChannel.name);
+        await page.waitForLoadState('networkidle');
 
-        // # Fetch the inline comment again to verify it was migrated
-        const movedComment = await adminClient.getPost(inlineComment.id);
+        // # Click on wiki tab in target channel
+        const targetWikiTab = getWikiTab(page, wikiName);
+        await targetWikiTab.click();
+        await page.waitForLoadState('networkidle');
 
-        // * Verify inline comment now belongs to target channel
-        expect(movedComment.channel_id).toBe(targetChannel.id);
+        // * Verify wiki opens in target channel
+        await verifyNavigatedToWiki(page);
+        await waitForWikiViewLoad(page);
+
+        // # Open the page we created
+        await page.locator('[data-testid="page-tree-node-title"]', {hasText: pageName}).click();
+        await page.waitForLoadState('networkidle');
+
+        // * Verify page loads successfully
+        await verifyNavigatedToWiki(page);
+
+        // # Fetch the inline comment again to verify it's still accessible
+        const accessibleComment = await adminClient.getPost(inlineComment.id);
 
         // * Verify inline comment still has empty RootId
-        expect(movedComment.root_id).toBe('');
+        expect(accessibleComment.root_id).toBe('');
 
         // * Verify inline comment still has page_id in Props
-        expect(movedComment.props.page_id).toBe(pageId);
+        expect(accessibleComment.props.page_id).toBe(pageId);
 
         // * Verify inline comment message is unchanged
-        expect(movedComment.message).toBe(inlineCommentText);
+        expect(accessibleComment.message).toBe(inlineCommentText);
     },
 );

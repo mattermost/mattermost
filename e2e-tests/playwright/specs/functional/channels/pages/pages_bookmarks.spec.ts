@@ -79,7 +79,7 @@ test('creates bookmark from page to another channel', {tag: '@pages'}, async ({p
     await bookmark.click();
 
     // * Verify navigated to the correct page in source channel
-    await expect(page).toHaveURL(new RegExp(`/${team.name}/wiki/${sourceChannel.id}/${wiki.id}/`));
+    await expect(page).toHaveURL(new RegExp(`/${team.name}/wiki/${wiki.id}/[a-z0-9]{26}(?:\\?.*)?$`));
 
     // * Verify page content is displayed
     await verifyPageContentContains(page, 'Content for bookmarking');

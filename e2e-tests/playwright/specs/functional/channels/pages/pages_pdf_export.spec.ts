@@ -7,6 +7,7 @@ import {
     createPageThroughUI,
     createTestChannel,
     createWikiThroughUI,
+    ELEMENT_TIMEOUT,
     getPageActionsMenuLocator,
     loginAndNavigateToChannel,
     openPageContextMenu,
@@ -86,7 +87,7 @@ test('triggers print dialog when Export to PDF is clicked', {tag: '@pages'}, asy
     await exportPdfOption.click();
 
     // * Wait for window.print() to be called (deterministic polling)
-    await page.waitForFunction(() => (window as any).printCalled === true, {timeout: 5000});
+    await page.waitForFunction(() => (window as any).printCalled === true, {timeout: ELEMENT_TIMEOUT});
 
     // * Verify window.print() was called
     printCalled = await page.evaluate(() => (window as any).printCalled);

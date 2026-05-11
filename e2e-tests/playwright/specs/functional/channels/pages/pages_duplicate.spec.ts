@@ -17,7 +17,6 @@ import {
     loginAndNavigateToChannel,
     uniqueName,
     EDITOR_LOAD_WAIT,
-    AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
 } from './test_helpers';
 
@@ -108,9 +107,6 @@ test('duplicates page content correctly', {tag: '@pages'}, async ({pw, sharedPag
         'Content Page',
         'This is the original page content with some text.',
     );
-
-    // # Wait for page to be fully committed to database
-    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Ensure panel is open
     await ensurePanelOpen(page);

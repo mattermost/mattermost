@@ -21,8 +21,7 @@ import {
  * @objective Verify pages can be found using wiki tree panel search by title
  */
 test('searches pages by title in wiki tree panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -57,8 +56,7 @@ test('searches pages by title in wiki tree panel', {tag: '@pages'}, async ({pw, 
  * For content search, users should use the global Mattermost search.
  */
 test('wiki tree panel search filters by title only', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -104,8 +102,7 @@ test('wiki tree panel search filters by title only', {tag: '@pages'}, async ({pw
  * @objective Verify pages can be found using global Mattermost search by title
  */
 test('searches pages by title using global search', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -137,8 +134,7 @@ test('searches pages by title using global search', {tag: '@pages'}, async ({pw,
  * display "Wiki Page" indicator, and navigate to the page when clicked
  */
 test('searches pages by content using global search', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -211,8 +207,7 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
  * @objective Verify type:page modifier filters search results to only show pages
  */
 test('type:page modifier filters to pages only', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -254,8 +249,7 @@ test('type:page modifier filters to pages only', {tag: '@pages'}, async ({pw, sh
  * @objective Verify -type:page modifier excludes pages from search results
  */
 test('-type:page modifier excludes pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -295,8 +289,7 @@ test('-type:page modifier excludes pages', {tag: '@pages'}, async ({pw, sharedPa
  * @objective Verify wiki: modifier filters search results to a specific wiki
  */
 test('wiki: modifier filters by wiki name', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -340,8 +333,7 @@ test('wiki: modifier filters by wiki name', {tag: '@pages'}, async ({pw, sharedP
  * @objective Verify combined type:page and wiki: modifiers work together
  */
 test('combined type:page wiki: modifiers', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 

@@ -25,6 +25,7 @@ import {
     getPageViewerContent,
     deletePageWithOption,
     getEditorAndWait,
+    getWikiTab,
     openHierarchyNodeActionsMenu,
     uniqueName,
     ELEMENT_TIMEOUT,
@@ -143,9 +144,8 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     const expandButton = page1Node.locator('[data-testid="page-tree-node-expand-button"]').first();
     await expect(expandButton).toBeVisible();
 
-    // Check if Page 1 is collapsed (chevron-right) and expand it
-    const chevronRight = page1Node.locator('.icon-chevron-right').first();
-    const isCollapsed = (await chevronRight.count()) > 0;
+    // Check if Page 1 is collapsed (aria-expanded != true) and expand it
+    const isCollapsed = (await expandButton.getAttribute('aria-expanded')) !== 'true';
     if (isCollapsed) {
         await expandButton.click();
     }
@@ -201,7 +201,7 @@ test(
         const child = await createChildPageThroughContextMenu(page, parent.id!, 'Child', 'Child content');
 
         // Navigate back to wiki view to ensure hierarchy panel is loaded
-        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
 
         // # Attempt to move grandparent under its child (circular) - open modal using helper
         const moveModal = await openMovePageModal(page, 'Grandparent');
@@ -241,7 +241,7 @@ test('moves page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup})
     const wiki2 = await createWikiThroughUI(page, uniqueName('Wiki 2'));
 
     // Navigate back to wiki1 to perform the move
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki1.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki1.id, channel.id);
 
     // # Move page to Wiki 2 using helper
     const moveModal = await openMovePageModal(page, 'Page to Move');
@@ -260,14 +260,14 @@ test('moves page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup})
     await page.waitForLoadState('networkidle');
 
     // * Verify page removed from Wiki 1
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki1.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki1.id, channel.id);
 
     const hierarchyPanel = getHierarchyPanel(page);
     const pageInWiki1Still = hierarchyPanel.locator('text="Page to Move"').first();
     await expect(pageInWiki1Still).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify page appears in Wiki 2
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki2.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki2.id, channel.id);
 
     const pageInWiki2 = hierarchyPanel.locator('text="Page to Move"').first();
     await expect(pageInWiki2).toBeVisible();
@@ -424,7 +424,7 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
     const childPage = await createChildPageThroughContextMenu(page, parentPage.id!, 'Child in Wiki 2', 'Child content');
 
     // # Navigate back to Wiki 1 to perform the move
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki1.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki1.id, channel.id);
 
     // # Move page to Child in Wiki 2 using helper
     const moveModal = await openMovePageModal(page, 'Page to Move');
@@ -441,14 +441,14 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
     await confirmMoveToTarget(page, moveModal, `[data-page-id="${childPage.id}"]`);
 
     // * Verify page removed from Wiki 1
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki1.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki1.id, channel.id);
 
     const hierarchyPanel = getHierarchyPanel(page);
     const pageInWiki1Still = hierarchyPanel.locator('text="Page to Move"').first();
     await expect(pageInWiki1Still).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify page appears in Wiki 2 under Child in Wiki 2
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki2.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki2.id, channel.id);
 
     // Find and expand Parent in Wiki 2
     const parentNode = hierarchyPanel.locator('[data-page-id="' + parentPage.id + '"]').first();
@@ -587,7 +587,7 @@ test.skip('renames page inline via double-click', {tag: '@pages'}, async ({pw, s
     await createPageThroughUI(page, 'Original Title', 'Content');
 
     // Navigate back to wiki view to ensure hierarchy panel is visible
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
 
     // # Rename page inline using helper
     await renamePageInline(page, 'Original Title', 'Inline Renamed');
@@ -753,7 +753,7 @@ test('searches and filters pages in hierarchy', {tag: '@pages'}, async ({pw, sha
     await createPageThroughUI(page, 'Apple Tutorial', 'Apple tutorial content');
 
     // Navigate back to wiki view to ensure hierarchy panel with search is visible
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+    await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
 
     // # Type search query
     const searchInput = page.locator('[data-testid="pages-search-input"]');
@@ -814,7 +814,7 @@ test('preserves expansion state across navigation', {tag: '@pages'}, async ({pw,
     await expect(channelHeader).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Navigate back to wiki by clicking the wiki tab
-    const wikiTab = page.getByRole('tab', {name: wiki.title});
+    const wikiTab = getWikiTab(page, wiki.title);
     await expect(wikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await wikiTab.click();
 
@@ -969,7 +969,7 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     const draft2 = await createDraftThroughUI(page, 'Draft Page 2', 'Draft content 2');
 
     // # Navigate to one of the published pages to see full hierarchy with panel open
-    await navigateToPage(page, pw.url, team.name, channel.id, wiki.id, publishedPage1.id);
+    await navigateToPage(page, pw.url, team.name, wiki.id, publishedPage1.id);
 
     const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
@@ -1080,8 +1080,7 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
  * @objective Verify page hierarchy maintains stable ordering when selecting different pages
  */
 test('maintains stable page order when selecting pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
@@ -1143,8 +1142,7 @@ test('maintains stable page order when selecting pages', {tag: '@pages'}, async 
  * @objective Verify page hierarchy order remains stable when adding new pages
  */
 test('maintains stable order when adding new pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);

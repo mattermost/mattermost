@@ -29,8 +29,7 @@ import {
  * @objective Verify link can be created and displays correctly in the editor
  */
 test('creates page link with correct text and styling', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -76,7 +75,7 @@ test('creates page link with correct text and styling', {tag: '@pages'}, async (
     await targetPageOption.click();
 
     // # Click Insert Link button
-    const insertLinkButton = linkModal.locator('button:has-text("Insert Link")');
+    const insertLinkButton = linkModal.getByRole('button', {name: 'Insert Link'});
     await insertLinkButton.click();
 
     // * Verify modal closes
@@ -100,8 +99,7 @@ test('creates page link with correct text and styling', {tag: '@pages'}, async (
  * @objective Verify that links in editor are persisted after publish
  */
 test('link persists after publishing page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -143,7 +141,7 @@ test('link persists after publishing page', {tag: '@pages'}, async ({pw, sharedP
     await page.waitForTimeout(UI_MICRO_WAIT);
 
     await linkModal.locator(`text="${targetPageName}"`).first().click();
-    await linkModal.locator('button:has-text("Insert Link")').click();
+    await linkModal.getByRole('button', {name: 'Insert Link'}).click();
     await expect(linkModal).not.toBeVisible();
 
     // # Wait for link to be inserted and verify in editor
@@ -173,8 +171,7 @@ test('link persists after publishing page', {tag: '@pages'}, async ({pw, sharedP
  * @objective Verify link text can be customized during link creation
  */
 test('allows custom link text when creating link', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -217,7 +214,7 @@ test('allows custom link text when creating link', {tag: '@pages'}, async ({pw, 
     await linkTextInput.clear();
     await linkTextInput.fill('Custom Link Text');
 
-    await linkModal.locator('button:has-text("Insert Link")').click();
+    await linkModal.getByRole('button', {name: 'Insert Link'}).click();
     await expect(linkModal).not.toBeVisible();
 
     await page.waitForTimeout(SHORT_WAIT);
@@ -232,25 +229,9 @@ test('allows custom link text when creating link', {tag: '@pages'}, async ({pw, 
  * @objective Verify link bubble menu appears when clicking on a link without selecting text
  */
 test('shows link bubble menu when clicking on a link', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
-
-    // Capture console messages for debugging
-    const consoleLogs: string[] = [];
-    page.on('console', (msg) => {
-        const text = msg.text();
-        // Capture LinkBubbleMenu, tippy, and BubbleMenu logs
-        if (
-            text.includes('LinkBubbleMenu') ||
-            text.includes('tippy') ||
-            text.includes('Tippy') ||
-            text.includes('BubbleMenu')
-        ) {
-            consoleLogs.push(text);
-        }
-    });
 
     // # Create wiki through UI
     await createWikiThroughUI(page, uniqueName('Bubble Menu Wiki'));
@@ -286,21 +267,6 @@ test('shows link bubble menu when clicking on a link', {tag: '@pages'}, async ({
     await pageLink.click();
     await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait longer for bubble menu to appear
 
-    // Check if any bubble menu element exists (even if not visible)
-    const bubbleExists = await page.locator('[data-testid="link-bubble-menu"]').count();
-    // eslint-disable-next-line no-console
-    console.log('Bubble menu element count:', bubbleExists);
-
-    // Check for any Tippy-related elements
-    const tippyBoxCount = await page.locator('.tippy-box').count();
-    const tippyContentCount = await page.locator('.tippy-content').count();
-    // eslint-disable-next-line no-console
-    console.log('Tippy elements:', {tippyBoxCount, tippyContentCount});
-
-    // Debug: Print console logs from LinkBubbleMenu
-    // eslint-disable-next-line no-console
-    console.log('LinkBubbleMenu console logs:', consoleLogs.slice(-20));
-
     // * Verify link bubble menu appears
     const bubbleMenu = await waitForLinkBubbleMenu(page);
 
@@ -315,8 +281,7 @@ test('shows link bubble menu when clicking on a link', {tag: '@pages'}, async ({
  * @objective Verify link bubble menu closes when pressing Escape key
  */
 test('closes link bubble menu when pressing Escape', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -368,8 +333,7 @@ test('closes link bubble menu when pressing Escape', {tag: '@pages'}, async ({pw
  * @objective Verify Copy Link button copies URL to clipboard
  */
 test('copies link URL to clipboard when clicking Copy button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -429,8 +393,7 @@ test('copies link URL to clipboard when clicking Copy button', {tag: '@pages'}, 
  * @objective Verify Edit Link button opens the link edit modal
  */
 test('opens link edit modal when clicking Edit button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -484,8 +447,7 @@ test('opens link edit modal when clicking Edit button', {tag: '@pages'}, async (
  * @objective Verify Remove Link button removes the link while keeping text
  */
 test('removes link when clicking Unlink button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -545,8 +507,7 @@ test('removes link when clicking Unlink button', {tag: '@pages'}, async ({pw, sh
  * @objective Verify that pressing space after a link exits the link mark and bubble menu closes
  */
 test('exits link mark when pressing space after link', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const {team, user, channel} = sharedPagesSetup;
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 

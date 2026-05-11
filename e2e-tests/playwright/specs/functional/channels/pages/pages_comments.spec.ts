@@ -37,6 +37,7 @@ import {
     pressModifierKey,
     uniqueName,
     loginAndNavigateToChannel,
+    navigateToPage,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
     HIERARCHY_TIMEOUT,
@@ -446,7 +447,7 @@ test('deletes inline comment and removes marker', {tag: '@pages'}, async ({pw, s
  */
 test('clicks inline comment marker to open RHS', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -576,7 +577,7 @@ test('clicks active comment marker to close RHS', {tag: '@pages'}, async ({pw, s
  */
 test('closes RHS via close button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -608,7 +609,7 @@ test('closes RHS via close button', {tag: '@pages'}, async ({pw, sharedPagesSetu
  */
 test('switches between multiple comment threads in RHS', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -736,7 +737,7 @@ test('switches between Page Comments and All Threads tabs in RHS', {tag: '@pages
  */
 test('displays all threads from multiple pages in All Threads tab', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user.id]);
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
@@ -1348,50 +1349,43 @@ test(
  * Two users have access to the same channel
  * User1 creates an inline comment on a page
  */
-test(
-    'other channel members see inline comments in the channel feed',
-    {tag: '@pages'},
-    async ({pw, sharedPagesSetup}) => {
-        const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
+test('other channel members see inline comments in the wiki view', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user: user1, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-        // # Create user2 FIRST and add to channel (before any comments are created)
-        // This ensures user2 is a channel member when the comment is posted
-        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+    // # Create user2 and add to channel
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-        // # User1 logs in and creates wiki with page
-        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
+    // # User1 logs in and creates wiki with page
+    const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
 
-        // # Create wiki and page
-        await createWikiThroughUI(page1, uniqueName('Channel Feed Wiki'));
-        const pageTitle = uniqueName('Channel Feed Page');
-        const pageContent = 'This content will have an inline comment that should be visible in the channel feed';
-        await createPageThroughUI(page1, pageTitle, pageContent);
+    // # Create wiki and page
+    const wiki = await createWikiThroughUI(page1, uniqueName('Channel Feed Wiki'));
+    const pageTitle = uniqueName('Channel Feed Page');
+    const pageContent = 'This content will have an inline comment visible to other users';
+    const pageResult = await createPageThroughUI(page1, pageTitle, pageContent);
 
-        // # User1 adds an inline comment
-        await enterEditMode(page1);
-        const commentText = uniqueName('Inline comment visible in channel');
-        await addInlineCommentInEditMode(page1, commentText);
-        await publishPage(page1);
+    // # User1 adds an inline comment
+    await enterEditMode(page1);
+    const commentText = uniqueName('Inline comment visible to other users');
+    await addInlineCommentInEditMode(page1, commentText);
+    await publishPage(page1);
 
-        // * Verify comment marker is visible for user1
-        await verifyCommentMarkerVisible(page1);
+    // * Verify comment marker is visible for user1
+    await verifyCommentMarkerVisible(page1);
 
-        // # User2 logs in and navigates to the channel
-        const {page: page2} = await loginAndNavigateToChannel(pw, user2, team.name, channel.name);
+    // # User2 logs in and navigates to the same wiki page
+    const {page: page2} = await pw.testBrowser.login(user2);
+    await navigateToPage(page2, pw.url, team.name, wiki.id, pageResult.id);
 
-        // * Wait for channel to fully load
-        await page2.waitForLoadState('networkidle');
+    // * Verify User2 sees the comment marker on the page
+    await verifyCommentMarkerVisible(page2);
 
-        // * Verify User2 sees the inline comment in the channel feed
-        // The comment should appear as a post in the channel
-        const channelFeed = page2.locator('#postListContent');
-        await expect(channelFeed).toContainText(commentText, {timeout: HIERARCHY_TIMEOUT});
+    // * Verify User2 can open the wiki RHS and see the comment in Page Comments list
+    const rhs = await openWikiRHSViaToggleButton(page2);
+    await switchToWikiRHSTab(page2, rhs, 'Page Comments');
+    await verifyWikiRHSContent(page2, rhs, [commentText]);
 
-        // * Verify the comment shows the "Commented on the page:" context
-        await expect(channelFeed).toContainText('Commented on the page:', {timeout: HIERARCHY_TIMEOUT});
-
-        // # Cleanup
-        await page2.close();
-    },
-);
+    // # Cleanup
+    await page2.close();
+});

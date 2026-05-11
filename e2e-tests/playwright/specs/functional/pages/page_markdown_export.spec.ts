@@ -2,7 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from '../channels/pages/pages_test_fixture';
-import {buildWikiPageUrl, openPageActionsMenu, clickPageContextMenuItem} from '../channels/pages/test_helpers';
+import {
+    buildWikiPageUrl,
+    openPageActionsMenu,
+    clickPageContextMenuItem,
+    uniqueName,
+} from '../channels/pages/test_helpers';
 
 test.describe('Page Copy as Markdown', () => {
     test('MM-PAGE-COPY-MD-1 Copy as Markdown menu item should be visible in page actions', async ({
@@ -16,9 +21,10 @@ test.describe('Page Copy as Markdown', () => {
 
         // Create a wiki and page
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
-            title: `MD Copy Test Wiki ${Date.now()}`,
+            team_id: team.id,
+            title: uniqueName('MD Copy Test Wiki'),
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         const pageContent = {
             type: 'doc' as const,
@@ -31,7 +37,7 @@ test.describe('Page Copy as Markdown', () => {
 
         // Login and navigate to the page
         const {page} = await pw.testBrowser.login(user);
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 
@@ -49,9 +55,10 @@ test.describe('Page Copy as Markdown', () => {
 
         // Create wiki and page with various content
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
-            title: `MD Copy Clipboard ${Date.now()}`,
+            team_id: team.id,
+            title: uniqueName('MD Copy Clipboard'),
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         const pageContent = {
             type: 'doc' as const,
@@ -83,7 +90,7 @@ test.describe('Page Copy as Markdown', () => {
         // Grant clipboard permissions
         await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 
@@ -113,9 +120,10 @@ test.describe('Page Copy as Markdown', () => {
 
         // Create wiki and page
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
-            title: `MD Image Copy ${Date.now()}`,
+            team_id: team.id,
+            title: uniqueName('MD Image Copy'),
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         // Upload an image file to the channel first
         const imageBase64 =
@@ -154,14 +162,14 @@ test.describe('Page Copy as Markdown', () => {
         };
         const testPage = await pw.createPageViaDraft(adminClient, wiki.id, 'Image Copy Test Page', contentWithImage);
 
-        // Attach the file to the page
-        await adminClient.patchPost({id: testPage.id, file_ids: [fileId]});
+        // Explicitly attach the file to the page via the page-specific API
+        await adminClient.updatePage(wiki.id, testPage.id, undefined, undefined, undefined, [fileId]);
 
         // Login and navigate
         const {page} = await pw.testBrowser.login(user);
         await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 

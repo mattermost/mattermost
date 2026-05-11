@@ -16,7 +16,12 @@
  */
 
 import {expect, test} from '../channels/pages/pages_test_fixture';
-import {buildWikiPageUrl, openPageActionsMenu, clickPageContextMenuItem} from '../channels/pages/test_helpers';
+import {
+    buildWikiPageUrl,
+    openPageActionsMenu,
+    clickPageContextMenuItem,
+    uniqueName,
+} from '../channels/pages/test_helpers';
 
 test.describe('Markdown Round-Trip', () => {
     test('MM-PAGE-MD-RT-1 Code block language should be preserved in round-trip', async ({pw, sharedPagesSetup}) => {
@@ -25,9 +30,10 @@ test.describe('Markdown Round-Trip', () => {
 
         // Create wiki
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
-            title: `Code Block RT Test ${Date.now()}`,
+            team_id: team.id,
+            title: uniqueName('Code Block RT Test'),
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         // Create page with code block that has language
         const pageContent = {
@@ -47,7 +53,7 @@ test.describe('Markdown Round-Trip', () => {
         const {page} = await pw.testBrowser.login(user);
         await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 
@@ -72,9 +78,10 @@ test.describe('Markdown Round-Trip', () => {
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
-            title: `Table RT Test ${Date.now()}`,
+            team_id: team.id,
+            title: uniqueName('Table RT Test'),
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         // Create page with table
         const pageContent = {
@@ -146,7 +153,7 @@ test.describe('Markdown Round-Trip', () => {
         const {page} = await pw.testBrowser.login(user);
         await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 
@@ -175,9 +182,10 @@ test.describe('Markdown Round-Trip', () => {
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
-            title: `Ordered List RT Test ${Date.now()}`,
+            team_id: team.id,
+            title: uniqueName('Ordered List RT Test'),
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         const pageContent = {
             type: 'doc' as const,
@@ -205,7 +213,7 @@ test.describe('Markdown Round-Trip', () => {
         const {page} = await pw.testBrowser.login(user);
         await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 
@@ -231,9 +239,10 @@ test.describe('Markdown Round-Trip', () => {
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
-            title: `Full Doc RT Test ${Date.now()}`,
+            team_id: team.id,
+            title: uniqueName('Full Doc RT Test'),
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         // Create a document similar to architecture.md
         const pageContent = {
@@ -311,7 +320,7 @@ test.describe('Markdown Round-Trip', () => {
         const {page} = await pw.testBrowser.login(user);
         await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 
@@ -342,9 +351,10 @@ test.describe('Markdown Round-Trip', () => {
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
         const wiki = await adminClient.createWiki({
-            channel_id: channel.id,
-            title: `Consistency RT Test ${Date.now()}`,
+            team_id: team.id,
+            title: uniqueName('Consistency RT Test'),
         });
+        await adminClient.linkWikiToChannel(channel.id, wiki.id);
 
         // Create page with mixed content
         const pageContent = {
@@ -408,7 +418,7 @@ test.describe('Markdown Round-Trip', () => {
         const {page} = await pw.testBrowser.login(user);
         await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, testPage.id);
         await page.goto(pageUrl);
         await page.waitForLoadState('networkidle');
 
