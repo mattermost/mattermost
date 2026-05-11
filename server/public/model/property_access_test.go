@@ -89,6 +89,29 @@ func TestIsPropertyFieldProtected(t *testing.T) {
 	})
 }
 
+func TestPropertyFieldGetAccessMode(t *testing.T) {
+	t.Run("nil attrs returns public", func(t *testing.T) {
+		f := &PropertyField{Attrs: nil}
+		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
+	})
+	t.Run("missing access_mode returns public", func(t *testing.T) {
+		f := &PropertyField{Attrs: StringInterface{}}
+		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
+	})
+	t.Run("non-string access_mode returns public", func(t *testing.T) {
+		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: 123}}
+		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
+	})
+	t.Run("shared_only returned as-is", func(t *testing.T) {
+		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSharedOnly}}
+		require.Equal(t, PropertyAccessModeSharedOnly, f.GetAccessMode())
+	})
+	t.Run("source_only returned as-is", func(t *testing.T) {
+		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSourceOnly}}
+		require.Equal(t, PropertyAccessModeSourceOnly, f.GetAccessMode())
+	})
+}
+
 func TestValidatePropertyFieldAccessMode(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -208,6 +231,30 @@ func TestValidatePropertyFieldAccessMode(t *testing.T) {
 				Attrs: StringInterface{PropertyAttrsAccessMode: "unknown_mode"},
 			},
 			expectError: true,
+		},
+		{
+			name: "shared_only rejected with member-writable permission_values",
+			field: &PropertyField{
+				Type: PropertyFieldTypeSelect,
+				Attrs: StringInterface{
+					PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+					PropertyAttrsProtected:  true,
+				},
+				PermissionValues: func() *PermissionLevel { p := PermissionLevelMember; return &p }(),
+			},
+			expectError: true,
+		},
+		{
+			name: "shared_only accepted with sysadmin permission_values",
+			field: &PropertyField{
+				Type: PropertyFieldTypeSelect,
+				Attrs: StringInterface{
+					PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+					PropertyAttrsProtected:  true,
+				},
+				PermissionValues: func() *PermissionLevel { p := PermissionLevelSysadmin; return &p }(),
+			},
+			expectError: false,
 		},
 		{
 			name: "nil attrs should not error",

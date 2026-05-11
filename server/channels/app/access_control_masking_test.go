@@ -38,51 +38,8 @@ func TestExtractFieldName(t *testing.T) {
 	}
 }
 
-func TestGetFieldAccessMode(t *testing.T) {
-	tests := []struct {
-		name     string
-		field    *model.PropertyField
-		expected string
-	}{
-		{
-			"nil attrs defaults to public",
-			&model.PropertyField{Attrs: nil},
-			model.PropertyAccessModePublic,
-		},
-		{
-			"empty attrs defaults to public",
-			&model.PropertyField{Attrs: model.StringInterface{}},
-			model.PropertyAccessModePublic,
-		},
-		{
-			"explicit public",
-			&model.PropertyField{Attrs: model.StringInterface{model.PropertyAttrsAccessMode: ""}},
-			model.PropertyAccessModePublic,
-		},
-		{
-			"shared_only",
-			&model.PropertyField{Attrs: model.StringInterface{model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly}},
-			model.PropertyAccessModeSharedOnly,
-		},
-		{
-			"source_only",
-			&model.PropertyField{Attrs: model.StringInterface{model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly}},
-			model.PropertyAccessModeSourceOnly,
-		},
-		{
-			"non-string access_mode defaults to public",
-			&model.PropertyField{Attrs: model.StringInterface{model.PropertyAttrsAccessMode: 123}},
-			model.PropertyAccessModePublic,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			result := getFieldAccessMode(tc.field)
-			assert.Equal(t, tc.expected, result)
-		})
-	}
-}
+// Note: tests for field.GetAccessMode() live in model/property_access_test.go,
+// where the method is defined (TestPropertyFieldGetAccessMode).
 
 func TestExtractVisibleOptionNames(t *testing.T) {
 	t.Run("extracts names from valid options", func(t *testing.T) {

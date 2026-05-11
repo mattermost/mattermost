@@ -691,24 +691,11 @@ func (pas *PropertyAccessService) getSourcePluginID(field *model.PropertyField) 
 	return sourcePluginID
 }
 
-// getAccessMode extracts the access_mode from a PropertyField's attrs.
-// Returns empty string (public access mode) if not set (default).
-func (pas *PropertyAccessService) getAccessMode(field *model.PropertyField) string {
-	if field.Attrs == nil {
-		return model.PropertyAccessModePublic
-	}
-	accessMode, ok := field.Attrs[model.PropertyAttrsAccessMode].(string)
-	if !ok {
-		return model.PropertyAccessModePublic
-	}
-	return accessMode
-}
-
 // checkUnrestrictedFieldReadAccess checks if the given caller can read a PropertyField without restrictions.
 // Returns true if the caller has unrestricted read access (public field or source plugin).
 // Returns an error if access requires filtering or should be denied entirely.
 func (pas *PropertyAccessService) hasUnrestrictedFieldReadAccess(field *model.PropertyField, callerID string) bool {
-	accessMode := pas.getAccessMode(field)
+	accessMode := field.GetAccessMode()
 
 	// Public fields are readable by everyone without restrictions
 	if accessMode == model.PropertyAccessModePublic {
@@ -1071,14 +1058,8 @@ func (pas *PropertyAccessService) applyFieldReadAccessControl(field *model.Prope
 		return field
 	}
 
-	// shared_only + member-writable is a contradictory but valid config; skip option filtering
-	// so users can self-assign a value rather than seeing an empty dropdown.
-	if field.PermissionValues != nil && *field.PermissionValues == model.PermissionLevelMember {
-		return field
-	}
-
 	// Access requires filtering
-	accessMode := pas.getAccessMode(field)
+	accessMode := field.GetAccessMode()
 
 	// Shared-only fields: use existing helper to filter options
 	if accessMode == model.PropertyAccessModeSharedOnly {
@@ -1170,7 +1151,7 @@ func (pas *PropertyAccessService) applyValueReadAccessControl(values []*model.Pr
 			return nil, fmt.Errorf("applyValueReadAccessControl: field not found for value %s", value.ID)
 		}
 
-		accessMode := pas.getAccessMode(field)
+		accessMode := field.GetAccessMode()
 
 		// Check if caller can read this value
 		if pas.hasUnrestrictedFieldReadAccess(field, callerID) {

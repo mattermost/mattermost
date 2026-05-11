@@ -1441,35 +1441,6 @@ func TestLinkedPropertyField_SecurityInheritance(t *testing.T) {
 	})
 }
 
-// TestApplyFieldReadAccessControl_MemberWritable tests the early-return branch in
-// applyFieldReadAccessControl for shared_only fields that are also member-writable.
-// PermissionValues=member is a v2-only field attribute, so this cannot be exercised
-// through CreatePropertyField on the current v1 CPA group; the function is tested directly.
-func TestApplyFieldReadAccessControl_MemberWritable(t *testing.T) {
-	pas := NewPropertyAccessService(nil, nil)
-
-	memberLevel := model.PermissionLevelMember
-	options := []any{
-		map[string]any{"id": "opt1", "name": "Option 1"},
-		map[string]any{"id": "opt2", "name": "Option 2"},
-		map[string]any{"id": "opt3", "name": "Option 3"},
-	}
-
-	field := &model.PropertyField{
-		Type: model.PropertyFieldTypeSelect,
-		Attrs: model.StringInterface{
-			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
-			model.PropertyAttrsProtected:        true,
-			model.PropertyFieldAttributeOptions: options,
-		},
-		PermissionValues: &memberLevel,
-	}
-
-	// A user with no held values would normally see zero options on a shared_only field.
-	// The member-writable guard must return the field as-is so the user can self-assign.
-	result := pas.applyFieldReadAccessControl(field, "some-user-id")
-	require.NotNil(t, result)
-	resultOptions, ok := result.Attrs[model.PropertyFieldAttributeOptions].([]any)
-	require.True(t, ok)
-	assert.Len(t, resultOptions, 3, "member-writable shared_only field must bypass option filtering")
-}
+// The previous "member-writable shared_only" early-return in applyFieldReadAccessControl
+// was removed in favor of rejecting that contradictory configuration at validation time
+// (see TestValidatePropertyFieldAccessMode in server/public/model/property_access_test.go).
