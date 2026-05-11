@@ -15,6 +15,7 @@ import (
 const (
 	driverS3    = "amazons3"
 	driverLocal = "local"
+	driverAzure = "azureblob"
 )
 
 type ReadCloseSeeker interface {
@@ -65,6 +66,13 @@ type FileBackendSettings struct {
 	AmazonS3PresignExpiresSeconds      int64
 	AmazonS3UploadPartSizeBytes        int64
 	AmazonS3StorageClass               string
+	AzureStorageAccount                string
+	AzureAccessKey                     string
+	AzureContainer                     string
+	AzurePathPrefix                    string
+	AzureEndpoint                      string
+	AzureSSL                           bool
+	AzureRequestTimeoutMilliseconds    int64
 }
 
 func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
@@ -130,6 +138,19 @@ func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {
 		settings.AmazonS3Endpoint = "s3.amazonaws.com"
 	}
 
+	return nil
+}
+
+func (settings *FileBackendSettings) CheckMandatoryAzureFields() error {
+	if settings.AzureStorageAccount == "" {
+		return errors.New("missing azure storage account setting")
+	}
+	if settings.AzureContainer == "" {
+		return errors.New("missing azure container setting")
+	}
+	if settings.AzureAccessKey == "" {
+		return errors.New("missing azure access key setting")
+	}
 	return nil
 }
 
