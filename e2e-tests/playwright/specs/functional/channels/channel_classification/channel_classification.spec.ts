@@ -9,6 +9,7 @@
  */
 
 import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
+import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 import {
     TEST_LEVELS,
@@ -20,6 +21,16 @@ import type {ClassificationLevel} from './helpers';
 
 let classificationLevels: ClassificationLevel[] = [];
 let setupComplete = false;
+
+// Teams created by pw.initSetup() in each test are tracked here and deleted in
+// afterEach so local environments don't accumulate stale teams across runs.
+const createdTeamIds: string[] = [];
+
+async function initSetupTracked(pw: PlaywrightExtended) {
+    const setup = await pw.initSetup();
+    createdTeamIds.push(setup.team.id);
+    return setup;
+}
 
 test.beforeAll(async () => {
     const {adminClient} = await getAdminClient();
@@ -59,9 +70,22 @@ test.beforeEach(async () => {
     );
 });
 
+test.afterEach(async () => {
+    if (createdTeamIds.length === 0) {
+        return;
+    }
+    const ids = createdTeamIds.splice(0);
+    try {
+        const {adminClient} = await getAdminClient({skipLog: true});
+        await Promise.allSettled(ids.map((id) => adminClient.deleteTeam(id)));
+    } catch {
+        // Best-effort cleanup
+    }
+});
+
 test.describe('Channel Classification - New channel creation', () => {
     test('Enabling classification toggle without selecting values prevents channel creation', async ({pw}) => {
-        const {adminUser, team} = await pw.initSetup();
+        const {adminUser, team} = await initSetupTracked(pw);
         const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name);
         await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
@@ -82,7 +106,7 @@ test.describe('Channel Classification - New channel creation', () => {
     });
 
     test('Classification dropdown displays the correct levels from the template', async ({pw}) => {
-        const {adminUser, team} = await pw.initSetup();
+        const {adminUser, team} = await initSetupTracked(pw);
         const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name);
         await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
@@ -107,7 +131,7 @@ test.describe('Channel Classification - New channel creation', () => {
     });
 
     test('User can append text to the Banner Text field after selecting a classification', async ({pw}) => {
-        const {adminUser, team} = await pw.initSetup();
+        const {adminUser, team} = await initSetupTracked(pw);
         const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name);
         await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
@@ -144,7 +168,7 @@ test.describe('Channel Classification - New channel creation', () => {
     });
 
     test('Creating channel with classification shows banner with correct color', async ({pw}) => {
-        const {adminUser, team} = await pw.initSetup();
+        const {adminUser, team} = await initSetupTracked(pw);
         const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name);
         await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
@@ -195,7 +219,7 @@ test.describe('Channel Classification - New channel creation', () => {
 
 test.describe('Channel Classification - Existing channel settings', () => {
     test('Classification toggle can be enabled from channel settings', async ({pw}) => {
-        const {adminUser, team, adminClient} = await pw.initSetup();
+        const {adminUser, team, adminClient} = await initSetupTracked(pw);
 
         const channel = await adminClient.createChannel(
             pw.random.channel({teamId: team.id, name: `cls-${pw.random.id()}`, displayName: `Cls ${pw.random.id()}`}),
@@ -224,7 +248,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
     });
 
     test('Classification level can be set once toggle is enabled', async ({pw}) => {
-        const {adminUser, team, adminClient} = await pw.initSetup();
+        const {adminUser, team, adminClient} = await initSetupTracked(pw);
 
         const channel = await adminClient.createChannel(
             pw.random.channel({teamId: team.id, name: `cls-${pw.random.id()}`, displayName: `Cls ${pw.random.id()}`}),
@@ -260,7 +284,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
     });
 
     test('Selecting classification locks banner toggle active and disabled, with matching color', async ({pw}) => {
-        const {adminUser, team, adminClient} = await pw.initSetup();
+        const {adminUser, team, adminClient} = await initSetupTracked(pw);
 
         const channel = await adminClient.createChannel(
             pw.random.channel({teamId: team.id, name: `cls-${pw.random.id()}`, displayName: `Cls ${pw.random.id()}`}),
@@ -300,7 +324,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
     });
 
     test('Editing banner text and saving updates the banner in real time', async ({pw}) => {
-        const {adminUser, team, adminClient} = await pw.initSetup();
+        const {adminUser, team, adminClient} = await initSetupTracked(pw);
 
         const channel = await adminClient.createChannel(
             pw.random.channel({teamId: team.id, name: `cls-${pw.random.id()}`, displayName: `Cls ${pw.random.id()}`}),

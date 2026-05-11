@@ -378,7 +378,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             // atomically rather than waiting for out-of-order WS events.
             const existingChannelField = await fetchChannelClassificationField();
             if (existingChannelField) {
-                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked]}});
+                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked, existingChannelField]}});
             } else {
                 const savedChannelField = await saveCreateChannelLinkedField(savedTemplate.id);
                 dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked, savedChannelField]}});
