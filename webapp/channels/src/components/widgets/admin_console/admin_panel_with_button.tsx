@@ -6,6 +6,8 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import AdminPanel from './admin_panel';
 
 type Props = {
@@ -33,15 +35,16 @@ const AdminPanelWithButton = ({
     if (onButtonClick && buttonText) {
         const buttonId = (buttonText.defaultMessage as string || '').split(' ').join('-').toLowerCase();
         button = (
-            <a
-                className={classNames('btn', 'btn-primary', {disabled})}
-                onClick={disabled ? (e) => e.preventDefault() : onButtonClick}
+            <Button
+                emphasis='primary'
+                className={classNames({disabled})}
+                onClick={disabled ? undefined : onButtonClick}
                 data-testid={buttonId}
             >
                 <FormattedMessage
                     {...buttonText}
                 />
-            </a>
+            </Button>
         );
     }
 

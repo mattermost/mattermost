@@ -104,7 +104,16 @@ test('Post actions tab support', async ({pw, axe}) => {
     await expect(channelsPage.postDotMenu.editMenuItem).toBeFocused();
 
     // * Should move focus to Delete after arrow down
+    // "Quarantine for Review" is inserted between Edit and Delete when content flagging is on.
     await channelsPage.postDotMenu.editMenuItem.press('ArrowDown');
+    if (config.ContentFlaggingSettings?.EnableContentFlagging) {
+        const quarantineMenuItem = page
+            .getByRole('menu', {name: 'Post extra options'})
+            .getByRole('menuitem')
+            .filter({hasText: 'Quarantine for Review'});
+        await expect(quarantineMenuItem).toBeFocused();
+        await page.keyboard.press('ArrowDown');
+    }
     await expect(channelsPage.postDotMenu.deleteMenuItem).toBeFocused();
 
     // * Then, should move focus back to Reply after arrow down

@@ -6,6 +6,7 @@ import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
@@ -545,15 +546,15 @@ export default function TeamPolicyEditor({
                             />
                         </p>
                     </div>
-                    <button
-                        className='btn btn-primary'
+                    <Button
+                        emphasis='primary'
                         onClick={() => setAddChannelOpen(true)}
                     >
                         <FormattedMessage
                             id='admin.access_control.policy.edit_policy.channel_selector.addChannels'
                             defaultMessage='Add channels'
                         />
-                    </button>
+                    </Button>
                 </div>
                 <ChannelList
                     onRemoveCallback={addToRemovedChannels}
@@ -594,8 +595,8 @@ export default function TeamPolicyEditor({
                                     )}
                                 </p>
                             </div>
-                            <button
-                                className='btn btn-danger'
+                            <Button
+                                variant='destructive'
                                 onClick={() => setShowDeleteModal(true)}
                                 disabled={hasChannels()}
                             >
@@ -603,7 +604,7 @@ export default function TeamPolicyEditor({
                                     id='admin.access_control.policy.edit_policy.delete_policy.delete'
                                     defaultMessage='Delete'
                                 />
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </>
@@ -652,20 +653,20 @@ export default function TeamPolicyEditor({
                     }
                     footerContent={
                         <div className='TeamPolicyEditor__delete-modal-footer'>
-                            <button
+                            <Button
                                 type='button'
-                                className='btn btn-tertiary'
+                                emphasis='tertiary'
                                 onClick={() => setShowDeleteModal(false)}
                             >
                                 {formatMessage({id: 'team_settings.policy_editor.delete_confirmation.cancel', defaultMessage: 'Cancel'})}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type='button'
-                                className='btn btn-danger'
+                                variant='destructive'
                                 onClick={handleDelete}
                             >
                                 {formatMessage({id: 'team_settings.policy_editor.delete_confirmation.confirm', defaultMessage: 'Delete'})}
-                            </button>
+                            </Button>
                         </div>
                     }
                 >

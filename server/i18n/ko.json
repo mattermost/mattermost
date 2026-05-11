@@ -9178,10 +9178,6 @@
     "translation": "채널은 그룹이 제한되어 있으며 액세스 제어 정책을 적용할 수 없습니다."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "액세스 제어 정책은 비공개 채널에만 적용할 수 있습니다."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "공유 채널에는 액세스 제어 정책을 적용할 수 없습니다."
   },

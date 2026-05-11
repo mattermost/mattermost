@@ -164,6 +164,7 @@ docker-compose.override.yaml
 
 **/CLAUDE.local.md
 **/CLAUDE.md
+.claude
 .cursorrules
 .cursor/
 server/prev-report.xml

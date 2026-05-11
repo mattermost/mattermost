@@ -32,6 +32,7 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
         const defaultPermissions = [
             Permissions.CREATE_PRIVATE_CHANNEL,
             Permissions.EDIT_POST,
+            Permissions.EDIT_FILE_ATTACHMENT,
             Permissions.DELETE_POST,
             {
                 id: 'guest_' + Permissions.CREATE_POST,

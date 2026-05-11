@@ -7,8 +7,7 @@ import React, {useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
-
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import LevelColorCell from './level_color_cell';
 import LevelNameCell from './level_name_cell';
