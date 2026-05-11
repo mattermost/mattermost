@@ -7,15 +7,15 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {InformationOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {supportsOptions, type UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
 import LoadingScreen from 'components/loading_screen';
 
 import Constants from 'utils/constants';
-import {CPA_FIELD_NAME_MAX_RUNES, CPA_FIELD_NAME_RESERVED_WORDS, filterCELIdentifier} from 'utils/properties';
+import {CPA_FIELD_NAME_MAX_RUNES, CPA_FIELD_NAME_RESERVED_WORDS, filterCELIdentifier, slugifyForCEL} from 'utils/properties';
 
 import {DangerText, BorderlessInput, LinkButton} from './controls';
 import {useIsFieldOrphaned} from './orphaned_fields_utils';
@@ -114,8 +114,12 @@ export function UserPropertiesTable({
     const [, forceNameUpdate] = useState(0);
 
     const computeAutoFillSlug = useCallback((displayName: string): string | null => {
-        let slug = filterCELIdentifier(displayName);
-        if (!slug || CPA_FIELD_NAME_RESERVED_WORDS.has(slug)) {
+        let slug = slugifyForCEL(displayName);
+
+        // slugifyForCEL returns '_copy' when the input normalizes to empty;
+        // treat that as "nothing to auto-fill" rather than writing '_copy'
+        // into the Name field.
+        if (slug === '_copy' || CPA_FIELD_NAME_RESERVED_WORDS.has(slug)) {
             return null;
         }
         const runes = [...slug];
@@ -156,7 +160,7 @@ export function UserPropertiesTable({
     // check correct — do not refactor liveValue to go through onChange.
     const handleNameChange = useCallback((rowId: string, value: string, currentField: UserPropertyField) => {
         const displayName = currentField.attrs?.display_name ?? '';
-        const expectedSlug = filterCELIdentifier(displayName);
+        const expectedSlug = slugifyForCEL(displayName);
         if (value !== expectedSlug) {
             autoFillActiveRef.current.delete(rowId);
             if (Object.prototype.hasOwnProperty.call(nameOverridesRef.current, rowId)) {
@@ -231,21 +235,22 @@ export function UserPropertiesTable({
                 header: () => {
                     return (
                         <ColHeaderLeft>
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.table.property'
-                                defaultMessage='Attribute'
-                            />
-                            <WithTooltip
-                                title={formatMessage({
-                                    id: 'admin.system_properties.user_properties.table.property.tooltip',
-                                    defaultMessage: 'Identifier used in Common Expression Language (CEL) based policies. Only letters, digits, and underscores allowed. Must start with a letter or underscore. Reserved CEL words are not allowed.',
-                                })}
-                            >
-                                <InformationOutlineIcon
-                                    size={14}
-                                    style={{marginLeft: '4px', verticalAlign: 'middle', cursor: 'help'}}
+                            <NameHeaderLabel>
+                                <FormattedMessage
+                                    id='admin.system_properties.user_properties.table.name'
+                                    defaultMessage='Name'
                                 />
-                            </WithTooltip>
+                                <WithTooltip
+                                    title={formatMessage({
+                                        id: 'admin.system_properties.user_properties.table.identifier.tooltip',
+                                        defaultMessage: 'Common Expression Language (CEL) identifier used in policies. Only letters, digits, and underscores allowed. Must start with a letter or underscore. Reserved CEL words are not allowed.',
+                                    })}
+                                >
+                                    <InfoIconWrapper>
+                                        <InformationOutlineIcon size={14}/>
+                                    </InfoIconWrapper>
+                                </WithTooltip>
+                            </NameHeaderLabel>
                         </ColHeaderLeft>
                     );
                 },

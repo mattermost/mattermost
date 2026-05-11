@@ -47,18 +47,22 @@
 .attribute-selector-label {
     display: flex;
     flex-direction: column;
-    gap: 1px;
-    line-height: 1.2;
+    padding: 2px 0;
+    gap: 4px;
 
     &__display-name {
+        color: var(--menu-item-text-color, rgba(var(--center-channel-color-rgb), 1));
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 400;
+        line-height: 20px;
     }
 
     &__unique-name {
-        font-size: 11px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-family: monospace;
+        color: var(--menu-item-text-color, rgba(var(--center-channel-color-rgb), 1));
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 16px;
+        opacity: 0.75;
     }
 }
 

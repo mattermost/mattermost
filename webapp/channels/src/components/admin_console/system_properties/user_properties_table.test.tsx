@@ -421,10 +421,10 @@ describe('UserPropertiesTable input filtering', () => {
         const displayNameInput = screen.getByTestId('property-display-name-input');
         await userEvent.type(displayNameInput, 'D');
 
-        // The Name input should show the slugified preview
+        // The Name input should show the slugified snake_case preview
         const nameInput = screen.getByTestId('property-field-input');
         await waitFor(() => {
-            expect(nameInput).toHaveValue('D');
+            expect(nameInput).toHaveValue('d');
         });
     });
 
@@ -551,6 +551,57 @@ describe('UserPropertiesTable input filtering', () => {
         expect(nameInput).toHaveValue('dept');
     });
 
+    it('auto-fill converts multi-word display names to snake_case', async () => {
+        const pendingField: UserPropertyField = {
+            id: 'pending-snake-case',
+            name: '',
+            type: 'text',
+            group_id: 'custom_profile_attributes',
+            create_at: 0,
+            delete_at: 0,
+            update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+            },
+        };
+
+        renderWithContext(
+            <UserPropertiesTable
+                data={collectionFromArray([pendingField])}
+                canCreate={true}
+                createField={createField}
+                updateField={updateField}
+                deleteField={deleteField}
+                reorderField={reorderField}
+            />,
+        );
+
+        const displayNameInput = screen.getByTestId('property-display-name-input');
+        const nameInput = screen.getByTestId('property-field-input');
+
+        fireEvent.change(displayNameInput, {target: {value: 'My Field Name'}});
+        await waitFor(() => {
+            expect(nameInput).toHaveValue('my_field_name');
+        });
+
+        fireEvent.change(displayNameInput, {target: {value: 'XMLParser'}});
+        await waitFor(() => {
+            expect(nameInput).toHaveValue('xml_parser');
+        });
+
+        fireEvent.change(displayNameInput, {target: {value: 'Does this work?'}});
+        await waitFor(() => {
+            expect(nameInput).toHaveValue('does_this_work');
+        });
+    });
+
     it('auto-fill prepends underscore for leading-digit display names', async () => {
         const pendingField: UserPropertyField = {
             id: 'pending-leading-digit',
@@ -588,7 +639,9 @@ describe('UserPropertiesTable input filtering', () => {
 
         const nameInput = screen.getByTestId('property-field-input');
         await waitFor(() => {
-            expect(nameInput).toHaveValue('_7Department');
+            // snake_case inserts a boundary between the digit and the
+            // following uppercase letter before lowercasing.
+            expect(nameInput).toHaveValue('_7_department');
         });
     });
 
