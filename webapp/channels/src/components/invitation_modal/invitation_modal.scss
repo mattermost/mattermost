@@ -16,7 +16,8 @@
     }
 
     .modal-content {
-        overflow-x: hidden;
+        width: 100%;
+        min-width: 0;
         max-width: 100%;
     }
 
