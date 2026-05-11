@@ -8,9 +8,12 @@ import (
 	"reflect"
 	"regexp"
 	"slices"
+	"unicode/utf8"
 
 	"github.com/hashicorp/go-multierror"
 )
+
+const MessageAttachmentFieldValueMaxRunes = PostMessageMaxRunesV2
 
 var (
 	linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
@@ -203,8 +206,12 @@ func (s *MessageAttachmentField) IsValid() error {
 	var multiErr *multierror.Error
 
 	if s.Value != nil {
-		switch s.Value.(type) {
-		case string, int:
+		switch v := s.Value.(type) {
+		case string:
+			if utf8.RuneCountInString(v) > MessageAttachmentFieldValueMaxRunes {
+				multiErr = multierror.Append(multiErr, fmt.Errorf("attachment field value is too long"))
+			}
+		case int:
 			// Valid types
 		default:
 			multiErr = multierror.Append(multiErr, fmt.Errorf("value must be either a string or int"))

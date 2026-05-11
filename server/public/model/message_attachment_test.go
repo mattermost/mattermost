@@ -4,6 +4,7 @@
 package model
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -166,6 +167,57 @@ func TestMessageAttachment_IsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMessageAttachmentField_ValueBounds(t *testing.T) {
+	limit := MessageAttachmentFieldValueMaxRunes
+
+	t.Run("rejects_overlong_string", func(t *testing.T) {
+		att := &MessageAttachment{
+			Fields: []*MessageAttachmentField{
+				{Title: "t", Value: strings.Repeat("a", limit+1)},
+			},
+		}
+		err := att.IsValid()
+		assert.ErrorContains(t, err, "attachment field value is too long")
+	})
+
+	t.Run("accepts_string_at_limit", func(t *testing.T) {
+		att := &MessageAttachment{
+			Fields: []*MessageAttachmentField{
+				{Title: "t", Value: strings.Repeat("b", limit)},
+			},
+		}
+		assert.NoError(t, att.IsValid())
+	})
+
+	t.Run("accepts_int_value", func(t *testing.T) {
+		att := &MessageAttachment{
+			Fields: []*MessageAttachmentField{
+				{Title: "t", Value: 999999},
+			},
+		}
+		assert.NoError(t, att.IsValid())
+	})
+
+	t.Run("rejects_overlong_unicode_by_runes", func(t *testing.T) {
+		att := &MessageAttachment{
+			Fields: []*MessageAttachmentField{
+				{Title: "t", Value: strings.Repeat("\u0100", limit+1)},
+			},
+		}
+		err := att.IsValid()
+		assert.ErrorContains(t, err, "attachment field value is too long")
+	})
+
+	t.Run("accepts_unicode_at_limit", func(t *testing.T) {
+		att := &MessageAttachment{
+			Fields: []*MessageAttachmentField{
+				{Title: "t", Value: strings.Repeat("\u0100", limit)},
+			},
+		}
+		assert.NoError(t, att.IsValid())
+	})
 }
 
 func TestParseMessageAttachment(t *testing.T) {
