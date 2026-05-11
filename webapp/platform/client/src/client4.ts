@@ -4617,6 +4617,8 @@ export default class Client4 {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
+            } else if (contentType === 'application/zip') {
+                data = await response.blob();
             } else {
                 data = await response.text();
             }
@@ -5074,21 +5076,15 @@ export default class Client4 {
         return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
     };
 
-    generateFlaggedPostReport = async (postId: string, comment: string, action?: 'keep' | 'remove', signal?: AbortSignal): Promise<Blob> => {
-        const url = this.getFlaggedPostReportUrl(postId);
-        const options = this.getOptions({
-            method: 'post',
-            body: JSON.stringify({comment, action}),
-        });
-        const response = await fetch(url, {...options, signal});
-        if (!response.ok) {
-            throw new ClientError(this.getUrl(), {
-                message: `Received status code ${response.status} from the server.`,
-                status_code: response.status,
-                url,
-            });
-        }
-        return response.blob();
+    generateFlaggedPostReport = (postId: string, comment: string, action?: 'keep' | 'remove', signal?: AbortSignal): Promise<Blob> => {
+        return this.doFetch<Blob>(
+            this.getFlaggedPostReportUrl(postId),
+            {
+                method: 'post',
+                body: JSON.stringify({comment, action}),
+                signal,
+            },
+        );
     };
 }
 
