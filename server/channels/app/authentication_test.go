@@ -435,7 +435,7 @@ func TestCheckUserPassword(t *testing.T) {
 		require.Contains(t, updatedUser.Password, "$pbkdf2")
 
 		// Re-check with updated password
-		err = th.App.checkUserPassword(user, pwd)
+		err = th.App.checkUserPassword(updatedUser, pwd)
 		require.Nil(t, err)
 	})
 
@@ -498,7 +498,7 @@ func TestCheckUserPassword(t *testing.T) {
 		require.NotContains(t, updatedUser.Password, "w=10000")
 
 		// Re-check with updated password
-		appErr = th.App.checkUserPassword(user, pwd)
+		appErr = th.App.checkUserPassword(updatedUser, pwd)
 		require.Nil(t, appErr)
 	})
 }
@@ -540,7 +540,7 @@ func TestMigratePassword(t *testing.T) {
 		require.Contains(t, updatedUser.Password, "$pbkdf2")
 
 		// Re-check with updated password
-		err = th.App.checkUserPassword(user, pwd)
+		err = th.App.checkUserPassword(updatedUser, pwd)
 		require.Nil(t, err)
 	})
 }
