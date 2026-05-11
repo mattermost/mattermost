@@ -36,6 +36,7 @@ const (
 
 	ImageDriverLocal = "local"
 	ImageDriverS3    = "amazons3"
+	ImageDriverAzure = "azureblob"
 
 	DatabaseDriverPostgres = "postgres"
 
@@ -1795,6 +1796,13 @@ type FileSettings struct {
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureStorageAccount                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureAccessKey                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureContainer                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureEndpoint                      *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureSSL                           *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
 	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
@@ -1813,6 +1821,13 @@ type FileSettings struct {
 	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureStorageAccount                *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureAccessKey                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureContainer                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureEndpoint                      *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureSSL                           *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportAzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1929,6 +1944,34 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3StorageClass = NewPointer("")
 	}
 
+	if s.AzureStorageAccount == nil {
+		s.AzureStorageAccount = NewPointer("")
+	}
+
+	if s.AzureAccessKey == nil {
+		s.AzureAccessKey = NewPointer("")
+	}
+
+	if s.AzureContainer == nil {
+		s.AzureContainer = NewPointer("")
+	}
+
+	if s.AzurePathPrefix == nil {
+		s.AzurePathPrefix = NewPointer("")
+	}
+
+	if s.AzureEndpoint == nil {
+		s.AzureEndpoint = NewPointer("")
+	}
+
+	if s.AzureSSL == nil {
+		s.AzureSSL = NewPointer(true)
+	}
+
+	if s.AzureRequestTimeoutMilliseconds == nil {
+		s.AzureRequestTimeoutMilliseconds = NewPointer(int64(30000))
+	}
+
 	if s.DedicatedExportStore == nil {
 		s.DedicatedExportStore = NewPointer(false)
 	}
@@ -1997,6 +2040,34 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExportAmazonS3StorageClass == nil {
 		s.ExportAmazonS3StorageClass = NewPointer("")
+	}
+
+	if s.ExportAzureStorageAccount == nil {
+		s.ExportAzureStorageAccount = NewPointer("")
+	}
+
+	if s.ExportAzureAccessKey == nil {
+		s.ExportAzureAccessKey = NewPointer("")
+	}
+
+	if s.ExportAzureContainer == nil {
+		s.ExportAzureContainer = NewPointer("")
+	}
+
+	if s.ExportAzurePathPrefix == nil {
+		s.ExportAzurePathPrefix = NewPointer("")
+	}
+
+	if s.ExportAzureEndpoint == nil {
+		s.ExportAzureEndpoint = NewPointer("")
+	}
+
+	if s.ExportAzureSSL == nil {
+		s.ExportAzureSSL = NewPointer(true)
+	}
+
+	if s.ExportAzureRequestTimeoutMilliseconds == nil {
+		s.ExportAzureRequestTimeoutMilliseconds = NewPointer(int64(30000))
 	}
 }
 
@@ -4396,7 +4467,7 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3) {
+	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3 || *s.DriverName == ImageDriverAzure) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -5059,6 +5130,14 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 
 	if o.FileSettings.ExportAmazonS3SecretAccessKey != nil && *o.FileSettings.ExportAmazonS3SecretAccessKey != "" {
 		*o.FileSettings.ExportAmazonS3SecretAccessKey = FakeSetting
+	}
+
+	if o.FileSettings.AzureAccessKey != nil && *o.FileSettings.AzureAccessKey != "" {
+		*o.FileSettings.AzureAccessKey = FakeSetting
+	}
+
+	if o.FileSettings.ExportAzureAccessKey != nil && *o.FileSettings.ExportAzureAccessKey != "" {
+		*o.FileSettings.ExportAzureAccessKey = FakeSetting
 	}
 
 	if o.EmailSettings.SMTPPassword != nil && *o.EmailSettings.SMTPPassword != "" {

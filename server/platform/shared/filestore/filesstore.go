@@ -82,6 +82,19 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 			Directory:  *fileSettings.Directory,
 		}
 	}
+	if *fileSettings.DriverName == model.ImageDriverAzure {
+		return FileBackendSettings{
+			DriverName:                      *fileSettings.DriverName,
+			AzureStorageAccount:             *fileSettings.AzureStorageAccount,
+			AzureAccessKey:                  *fileSettings.AzureAccessKey,
+			AzureContainer:                  *fileSettings.AzureContainer,
+			AzurePathPrefix:                 *fileSettings.AzurePathPrefix,
+			AzureEndpoint:                   *fileSettings.AzureEndpoint,
+			AzureSSL:                        fileSettings.AzureSSL == nil || *fileSettings.AzureSSL,
+			AzureRequestTimeoutMilliseconds: *fileSettings.AzureRequestTimeoutMilliseconds,
+			SkipVerify:                      skipVerify,
+		}
+	}
 	return FileBackendSettings{
 		DriverName:                         *fileSettings.DriverName,
 		AmazonS3AccessKeyId:                *fileSettings.AmazonS3AccessKeyId,
@@ -106,6 +119,19 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 		return FileBackendSettings{
 			DriverName: *fileSettings.ExportDriverName,
 			Directory:  *fileSettings.ExportDirectory,
+		}
+	}
+	if *fileSettings.ExportDriverName == model.ImageDriverAzure {
+		return FileBackendSettings{
+			DriverName:                      *fileSettings.ExportDriverName,
+			AzureStorageAccount:             *fileSettings.ExportAzureStorageAccount,
+			AzureAccessKey:                  *fileSettings.ExportAzureAccessKey,
+			AzureContainer:                  *fileSettings.ExportAzureContainer,
+			AzurePathPrefix:                 *fileSettings.ExportAzurePathPrefix,
+			AzureEndpoint:                   *fileSettings.ExportAzureEndpoint,
+			AzureSSL:                        fileSettings.ExportAzureSSL == nil || *fileSettings.ExportAzureSSL,
+			AzureRequestTimeoutMilliseconds: *fileSettings.ExportAzureRequestTimeoutMilliseconds,
+			SkipVerify:                      skipVerify,
 		}
 	}
 	return FileBackendSettings{
@@ -180,6 +206,12 @@ func newFileBackend(settings FileBackendSettings, canBeCloud bool) (FileBackend,
 		return &LocalFileBackend{
 			directory: settings.Directory,
 		}, nil
+	case driverAzure:
+		backend, err := NewAzureFileBackend(settings)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to connect to the azure backend")
+		}
+		return backend, nil
 	}
 	return nil, errors.New("no valid filestorage driver found")
 }
