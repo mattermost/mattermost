@@ -833,7 +833,7 @@ func TestUploadFiles(t *testing.T) {
 						if len(tc.expectedImageThumbnailNames) > i {
 							compareImage(client.GetFileThumbnail, tc.expectedImageThumbnailNames[i])
 						}
-						if len(tc.expectedImageThumbnailNames) > i {
+						if len(tc.expectedImagePreviewNames) > i {
 							compareImage(client.GetFilePreview, tc.expectedImagePreviewNames[i])
 						}
 					}

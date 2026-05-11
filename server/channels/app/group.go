@@ -172,7 +172,7 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 	if err != nil {
 		return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	group.MemberCount = new(int(count))
+	newGroup.MemberCount = new(int(count))
 	groupJSON, jsonErr := json.Marshal(newGroup)
 	if jsonErr != nil {
 		return nil, model.NewAppError("CreateGroupWithUserIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)

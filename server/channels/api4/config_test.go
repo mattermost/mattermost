@@ -185,7 +185,6 @@ func TestUpdateConfig(t *testing.T) {
 			//Revert the change
 			badcfg := cfg.Clone()
 			badcfg.PasswordSettings.MinimumLength = new(4)
-			badcfg.PasswordSettings.MinimumLength = new(4)
 			_, resp, err = client.UpdateConfig(context.Background(), badcfg)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
