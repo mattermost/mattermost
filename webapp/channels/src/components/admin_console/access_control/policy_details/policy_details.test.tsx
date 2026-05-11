@@ -16,6 +16,12 @@ jest.mock('utils/browser_history', () => ({
     }),
 }));
 
+// Mock TableEditor so tests can control onMaskedStateChange callbacks
+jest.mock('../editors/table_editor/table_editor', () => jest.fn(({onMaskedStateChange}: any) => {
+    React.useEffect(() => { onMaskedStateChange?.(false); }, []);
+    return <div data-testid='table-editor'/>;
+}));
+
 // Mock the useChannelAccessControlActions hook
 jest.mock('hooks/useChannelAccessControlActions', () => ({
     useChannelAccessControlActions: jest.fn(),
@@ -162,6 +168,70 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         };
         const {container} = renderWithContext(<PolicyDetails {...props}/>);
         expect(container).toMatchSnapshot();
+    });
+
+    test('should show masked values warning banner when policy has masked rows', async () => {
+        // Simulate TableEditor reporting masked rows via onMaskedStateChange
+        const TableEditorMock = jest.requireMock('../editors/table_editor/table_editor');
+        TableEditorMock.mockImplementationOnce(({onMaskedStateChange}: any) => {
+            React.useEffect(() => { onMaskedStateChange?.(true); }, []);
+            return <div data-testid='table-editor'/>;
+        });
+
+        renderWithContext(<PolicyDetails {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('This policy contains restricted values')).toBeInTheDocument();
+        });
+        expect(screen.getByText(/Some rules include attribute values you cannot see/)).toBeInTheDocument();
+    });
+
+    test('should not show masked values warning banner when no masked rows', async () => {
+        renderWithContext(<PolicyDetails {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(screen.queryByText('This policy contains restricted values')).not.toBeInTheDocument();
+        });
+    });
+
+    test('should show masked values warning in delete confirmation modal when policy has masked rows', async () => {
+        const TableEditorMock = jest.requireMock('../editors/table_editor/table_editor');
+        TableEditorMock.mockImplementationOnce(({onMaskedStateChange}: any) => {
+            React.useEffect(() => { onMaskedStateChange?.(true); }, []);
+            return <div data-testid='table-editor'/>;
+        });
+
+        renderWithContext(<PolicyDetails {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Delete policy')).toBeInTheDocument();
+        });
+
+        const deleteButtons = screen.getAllByText('Delete');
+        await userEvent.click(deleteButtons[deleteButtons.length - 1]);
+
+        await waitFor(() => {
+            expect(screen.getByText('Confirm Policy Deletion')).toBeInTheDocument();
+        });
+
+        expect(screen.getByText(/This policy includes attribute values that are hidden from you/)).toBeInTheDocument();
+    });
+
+    test('should not show masked values warning in delete confirmation modal when no masked rows', async () => {
+        renderWithContext(<PolicyDetails {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Delete policy')).toBeInTheDocument();
+        });
+
+        const deleteButtons = screen.getAllByText('Delete');
+        await userEvent.click(deleteButtons[deleteButtons.length - 1]);
+
+        await waitFor(() => {
+            expect(screen.getByText('Confirm Policy Deletion')).toBeInTheDocument();
+        });
+
+        expect(screen.queryByText(/This policy includes attribute values that are hidden from you/)).not.toBeInTheDocument();
     });
 
     test('should handle delete policy', async () => {

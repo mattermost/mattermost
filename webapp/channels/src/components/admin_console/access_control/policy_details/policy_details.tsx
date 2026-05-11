@@ -81,6 +81,7 @@ function PolicyDetails({
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
+    const [hasMaskedRows, setHasMaskedRows] = useState(false);
     const [channelChanges, setChannelChanges] = useState<ChannelChanges>({
         removed: {},
         added: {},
@@ -506,6 +507,23 @@ function PolicyDetails({
                             />
                         </Card.Header>
                         <Card.Body>
+                            {hasMaskedRows && (
+                                <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={
+                                            <FormattedMessage
+                                                id='admin.access_control.policy.edit_policy.masked_values_warning.title'
+                                                defaultMessage='This policy contains restricted values'
+                                            />
+                                        }
+                                        text={formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.masked_values_warning.text',
+                                            defaultMessage: 'Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.',
+                                        })}
+                                    />
+                                </div>
+                            )}
                             {editorMode === 'cel' ? (
                                 <CELEditor
                                     value={expression}
@@ -547,6 +565,7 @@ function PolicyDetails({
                                     }}
                                     enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                                     actions={abacActions}
+                                    onMaskedStateChange={setHasMaskedRows}
                                 />
                             )}
                         </Card.Body>
@@ -698,10 +717,29 @@ function PolicyDetails({
                     confirmButtonVariant='destructive'
                     compassDesign={true}
                 >
-                    <FormattedMessage
-                        id='admin.access_control.policy.edit_policy.delete_confirmation.message'
-                        defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
-                    />
+                    <>
+                        {hasMaskedRows && (
+                            <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
+                                <SectionNotice
+                                    type='warning'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.access_control.policy.edit_policy.masked_values_warning.title'
+                                            defaultMessage='This policy contains restricted values'
+                                        />
+                                    }
+                                    text={formatMessage({
+                                        id: 'admin.access_control.policy.edit_policy.masked_values_warning.delete_text',
+                                        defaultMessage: 'This policy includes attribute values that are hidden from you. Deleting it may remove access for users who match those hidden conditions.',
+                                    })}
+                                />
+                            </div>
+                        )}
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.delete_confirmation.message'
+                            defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
+                        />
+                    </>
                 </GenericModal>
             )}
 
