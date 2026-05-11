@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
@@ -12,6 +13,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import * as Menu from 'components/menu';
+import SectionNotice from 'components/section_notice';
 
 import {getHistory} from 'utils/browser_history';
 
@@ -41,6 +43,7 @@ export default function PolicyList(props: Props): JSX.Element {
     const [searchErrored, setSearchErrored] = useState(false);
     const [cursorHistory, setCursorHistory] = useState<string[]>([]);
     const [total, setTotal] = useState(0);
+    const [pendingDeletePolicy, setPendingDeletePolicy] = useState<AccessControlPolicy | null>(null);
     const intl = useIntl();
 
     const history = useMemo(() => getHistory(), []);
@@ -157,10 +160,18 @@ export default function PolicyList(props: Props): JSX.Element {
         );
     };
 
-    const handleDelete = async (policyId: string) => {
-        await props.actions.deletePolicy(policyId);
+    const initiateDelete = useCallback((policy: AccessControlPolicy) => {
+        setPendingDeletePolicy(policy);
+    }, []);
+
+    const confirmDelete = useCallback(async () => {
+        if (!pendingDeletePolicy) {
+            return;
+        }
+        await props.actions.deletePolicy(pendingDeletePolicy.id);
+        setPendingDeletePolicy(null);
         fetchPolicies(search);
-    };
+    }, [pendingDeletePolicy, search]);
 
     const getRows = (): Row[] => {
         return policies.map((policy: AccessControlPolicy) => {
@@ -223,7 +234,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                     {!props.hideDeleteAction && (
                                         <Menu.Item
                                             id={`policy-menu-delete-${policy.id}`}
-                                            onClick={() => handleDelete(policy.id)}
+                                            onClick={() => initiateDelete(policy)}
                                             leadingElement={<i className='icon icon-trash-can-outline'/>}
                                             labels={
                                                 <FormattedMessage
@@ -404,6 +415,52 @@ export default function PolicyList(props: Props): JSX.Element {
                     </button>
                 ) : undefined}
             />
+            {pendingDeletePolicy && (
+                <GenericModal
+                    onExited={() => setPendingDeletePolicy(null)}
+                    handleConfirm={confirmDelete}
+                    handleCancel={() => setPendingDeletePolicy(null)}
+                    modalHeaderText={
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.delete_confirmation.title'
+                            defaultMessage='Confirm Policy Deletion'
+                        />
+                    }
+                    confirmButtonText={
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.delete_confirmation.confirm_button'
+                            defaultMessage='Delete Policy'
+                        />
+                    }
+                    confirmButtonClassName='btn btn-danger'
+                    isDeleteModal={true}
+                    compassDesign={true}
+                >
+                    <>
+                        {pendingDeletePolicy.rules.some((r) => r.expression === '[REDACTED]') && (
+                            <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
+                                <SectionNotice
+                                    type='warning'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.access_control.policy.edit_policy.masked_values_warning.title'
+                                            defaultMessage='This policy contains restricted values'
+                                        />
+                                    }
+                                    text={intl.formatMessage({
+                                        id: 'admin.access_control.policy.edit_policy.masked_values_warning.delete_text',
+                                        defaultMessage: 'This policy includes attribute values that are hidden from you. Deleting it may remove access for users who match those hidden conditions.',
+                                    })}
+                                />
+                            </div>
+                        )}
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.delete_confirmation.message'
+                            defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
+                        />
+                    </>
+                </GenericModal>
+            )}
         </div>
     );
 }
