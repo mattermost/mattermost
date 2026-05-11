@@ -21,6 +21,26 @@ type Props = {
     size?: TagSize;
     onClick?: MouseEventHandler;
     className?: string;
+    color?: string;
+};
+
+// getContrastingTextColor returns '#ffffff' or '#000000' based on the YIQ
+// brightness of the supplied background color. Accepts 3- or 6-digit hex
+// strings (with or without a leading '#'). For unrecognized inputs it falls
+// back to '#000000' (the safer default on unknown/likely-light backgrounds).
+const getContrastingTextColor = (color: string): string => {
+    let hex = color.trim().replace(/^#/, '');
+    if (hex.length === 3) {
+        hex = hex.split('').map((c) => c + c).join('');
+    }
+    if (hex.length !== 6 || !/^[0-9a-fA-F]{6}$/.test(hex)) {
+        return '#000000';
+    }
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return yiq >= 128 ? '#000000' : '#ffffff';
 };
 
 type TagWrapperProps = Required<Pick<Props, 'uppercase'>>;
@@ -135,6 +155,7 @@ const Tag = ({
     icon: iconName,
     size = 'xs',
     uppercase = false,
+    color,
     ...rest
 }: Props) => {
     const Icon = iconName ? glyphMap[iconName] : null;
@@ -154,6 +175,16 @@ const Tag = ({
         }
     }, [size]);
 
+    const inlineStyle = useMemo(() => {
+        if (!color) {
+            return undefined;
+        }
+        return {
+            backgroundColor: color,
+            color: getContrastingTextColor(color),
+        };
+    }, [color]);
+
     return (
         <TagWrapper
             {...rest}
@@ -161,6 +192,7 @@ const Tag = ({
             uppercase={uppercase}
             onClick={onClick}
             className={classNames('Tag', {[`Tag--${variant}`]: variant, [`Tag--${size}`]: size}, className)}
+            style={inlineStyle}
         >
             {Icon && <Icon size={iconSize}/>}
             <TagText>{text}</TagText>
