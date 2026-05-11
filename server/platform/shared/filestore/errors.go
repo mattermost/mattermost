@@ -38,7 +38,7 @@ func (e *FileBackendNoBucketError) Error() string {
 	if e.Err != nil {
 		return e.Err.Error()
 	}
-	return "no such bucket"
+	return "no such bucket or container"
 }
 
 func (e *FileBackendNoBucketError) Unwrap() error { return e.Err }
