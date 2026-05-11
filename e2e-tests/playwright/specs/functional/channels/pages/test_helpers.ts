@@ -8,7 +8,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {createRandomUser} from '@mattermost/playwright-lib';
+import {createRandomUser, getRandomId} from '@mattermost/playwright-lib';
 
 /**
  * Standard wait times for page operations
@@ -23,7 +23,10 @@ export const ELEMENT_TIMEOUT = 5000; // Standard timeout for element visibility 
 export const HIERARCHY_TIMEOUT = 10000; // Timeout for hierarchy panel operations
 export const PAGE_LOAD_TIMEOUT = 15000; // Timeout for full page load operations
 export const DRAG_ANIMATION_WAIT = 1500; // Wait for drag-and-drop animations to complete
+export const WIKI_VIEW_TIMEOUT = 60000; // Timeout for wiki view load and navigation
 export const STALE_CLEANUP_TIMEOUT = 65000; // Timeout for stale editor cleanup (60s + buffer)
+
+const AUTOSAVE_DRAFT_URL_RE = /\/wikis\/[^/]+\/drafts\/[^/]+$/;
 
 /**
  * Valid page status values - mirrors server/public/model/wiki.go constants.
@@ -192,7 +195,7 @@ export function createContentWithUrlLink(introText: string, url: string, afterTe
  * @returns A unique string like 'Test Wiki 1733789234567'
  */
 export function uniqueName(prefix: string): string {
-    return `${prefix}_${Date.now()}`;
+    return `${prefix}_${getRandomId()}`;
 }
 
 /**
@@ -256,25 +259,27 @@ export async function selectAllText(page: Page): Promise<void> {
 
 /**
  * Extracts the page ID from a wiki URL
- * Handles both draft URLs (/:team/wiki/:channelId/:wikiId/drafts/:draftId)
- * and published URLs (/:team/wiki/:channelId/:wikiId/:pageId)
+ * Handles both draft URLs (/:team/wiki/:wikiId/drafts/:draftId)
+ * and published URLs (/:team/wiki/:wikiId/:pageId)
  * @param url - The URL to extract the page ID from
  * @returns The page ID or null if not found
  */
-export function getPageIdFromUrl(url: string): string | null {
-    // Try draft URL pattern first: /wiki/:channelId/:wikiId/drafts/:draftId
-    const draftMatch = url.match(/\/wiki\/[^/]+\/[^/]+\/drafts\/([^/?]+)/);
+export function getPageIdFromUrl(url: string): string | undefined {
+    const path = url.split('?')[0];
+
+    // Try draft URL pattern first: /wiki/:wikiId/drafts/:draftId
+    const draftMatch = path.match(/\/wiki\/[^/]+\/drafts\/([^/]+)/);
     if (draftMatch) {
         return draftMatch[1];
     }
 
-    // Try published URL pattern: /wiki/:channelId/:wikiId/:pageId
-    const publishedMatch = url.match(/\/wiki\/[^/]+\/[^/]+\/([^/?]+)$/);
+    // Try published URL pattern: /wiki/:wikiId/:pageId
+    const publishedMatch = path.match(/\/wiki\/[^/]+\/([^/]+)$/);
     if (publishedMatch) {
         return publishedMatch[1];
     }
 
-    return null;
+    return undefined;
 }
 
 /**
@@ -302,8 +307,8 @@ export async function createTestChannel(
     type: 'O' | 'P' = 'O',
     userIds?: string[],
 ): Promise<Channel> {
-    const timestamp = Date.now();
-    const uniqueName = `${channelName}-${timestamp}`;
+    const uniqueSuffix = getRandomId();
+    const uniqueName = `${channelName}-${uniqueSuffix}`;
     const channel = await client.createChannel({
         team_id: teamId,
         name: uniqueName.toLowerCase().replace(/[^a-z0-9-_]/g, '-'),
@@ -328,11 +333,20 @@ export async function createTestChannel(
  * @param username - Optional username prefix (defaults to 'user')
  * @returns Object containing the created user and userId
  */
-export async function createTestUserInTeam(pw: any, adminClient: Client4, team: {id: string}, username?: string) {
+export async function createTestUserInTeam(
+    pw: any,
+    adminClient: Client4,
+    team: {id: string},
+    username?: string,
+    channel?: {id: string},
+) {
     const userData = await createRandomUser(username || 'user');
     const user = await adminClient.createUser(userData, '', '');
     user.password = userData.password;
     await adminClient.addToTeam(team.id, user.id);
+    if (channel) {
+        await adminClient.addToChannel(user.id, channel.id);
+    }
     return {user, userId: user.id};
 }
 
@@ -378,12 +392,9 @@ export async function createMultipleTestUsersInChannel(
     count: number,
     prefix: string = 'user',
 ) {
-    const users = [];
-    for (let i = 0; i < count; i++) {
-        const result = await createTestUserInChannel(pw, adminClient, team, channel, `${prefix}${i}`);
-        users.push(result);
-    }
-    return users;
+    return Promise.all(
+        Array.from({length: count}, (_, i) => createTestUserInChannel(pw, adminClient, team, channel, `${prefix}${i}`)),
+    );
 }
 
 /**
@@ -431,11 +442,19 @@ export async function setupWikiInChannel(
  */
 export async function createWikiViaAPI(
     client: Client4,
-    channelId: string,
+    teamId: string,
     title: string,
 ): Promise<{id: string; title: string}> {
-    const wiki = await client.createWiki({channel_id: channelId, title});
+    const wiki = await client.createWiki({team_id: teamId, title});
     return {id: wiki.id, title: wiki.title};
+}
+
+export async function linkWikiToChannel(client: Client4, channelId: string, wikiId: string): Promise<void> {
+    await client.linkWikiToChannel(channelId, wikiId);
+}
+
+export async function unlinkWikiFromChannel(client: Client4, channelId: string, wikiId: string): Promise<void> {
+    await client.unlinkWikiFromChannel(channelId, wikiId);
 }
 
 /**
@@ -492,10 +511,12 @@ export async function setupWikiInChannelViaAPI(
 
     const channel = await createTestChannel(adminClient, team.id, channelNamePrefix);
     const wikiTitle = uniqueName(wikiNamePrefix);
-    const wiki = await createWikiViaAPI(adminClient, channel.id, wikiTitle);
+    const wiki = await createWikiViaAPI(adminClient, team.id, wikiTitle);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
-    await page.goto(`/${team.name}/wiki/${channel.id}/${wiki.id}`);
+    // Include ?from=channelId so the app can resolve the user-facing channel context —
+    // needed for Edit permission checks and menu actions like Move.
+    await page.goto(`/${team.name}/wiki/${wiki.id}?from=${channel.id}`);
     await page.waitForLoadState('networkidle');
     await waitForWikiViewLoad(page);
     await ensurePanelOpen(page);
@@ -533,11 +554,13 @@ export async function setupWikiWithPageViaAPI(
 
     const channel = await createTestChannel(adminClient, team.id, channelNamePrefix);
     const wikiTitle = uniqueName(wikiNamePrefix);
-    const wiki = await createWikiViaAPI(adminClient, channel.id, wikiTitle);
+    const wiki = await createWikiViaAPI(adminClient, team.id, wikiTitle);
     const wikiPage = await createPageViaAPI(adminClient, wiki.id, pageTitle, pageContent);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
-    await page.goto(`/${team.name}/wiki/${channel.id}/${wiki.id}/${wikiPage.id}`);
+    // Include ?from=channelId so the app can resolve the user-facing channel context —
+    // needed for Edit permission checks and menu actions like Move.
+    await page.goto(`/${team.name}/wiki/${wiki.id}/${wikiPage.id}?from=${channel.id}`);
     await page.waitForLoadState('networkidle');
     await waitForWikiViewLoad(page);
     await ensurePanelOpen(page);
@@ -575,10 +598,19 @@ export async function fillCreatePageModal(page: Page, pageTitle: string) {
     await createButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await createButton.waitFor({state: 'attached', timeout: ELEMENT_TIMEOUT});
 
-    // Small delay to ensure the input is fully processed
-    await page.waitForTimeout(SHORT_WAIT / 5);
+    const pageCreatePromise = page
+        .waitForResponse(
+            (r) => (r.url().includes('/drafts') || r.url().includes('/pages')) && r.request().method() === 'POST',
+            {timeout: ELEMENT_TIMEOUT},
+        )
+        .catch(() => null);
 
     await createButton.click();
+
+    const pageCreateResponse = await pageCreatePromise;
+    if (pageCreateResponse && !pageCreateResponse.ok()) {
+        throw new Error(`Page creation API failed: ${pageCreateResponse.status()} ${await pageCreateResponse.text()}`);
+    }
 
     // # Wait for modal to close (longer timeout as it waits for draft creation and navigation)
     await modalInput.waitFor({state: 'hidden', timeout: HIERARCHY_TIMEOUT + 5000});
@@ -594,7 +626,7 @@ export async function openPageLinkModal(editor: Locator): Promise<Locator> {
     await editor.press(`${modifierKey}+KeyL`);
 
     const page = editor.page();
-    return page.locator('[data-testid="page-link-modal"]').first();
+    return getPageLinkModal(page);
 }
 
 /**
@@ -628,7 +660,7 @@ export async function openPageLinkModalViaButton(page: Page): Promise<Locator> {
  * @param wikiName - Name for the wiki
  * @returns The created wiki (extracted from navigation URL)
  */
-export async function createWikiThroughUI(page: Page, wikiName: string) {
+export async function createWikiThroughUI(page: Page, wikiName: string, fallbackChannel = 'town-square') {
     // # Wait for page to fully load after navigation
     await page.waitForLoadState('domcontentloaded');
     await page.waitForLoadState('networkidle');
@@ -639,16 +671,12 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
     const isInWikiView = currentUrl.includes('/wiki/');
 
     if (isInWikiView) {
-        // # Navigate to channel view first
-        const channelIdMatch = currentUrl.match(/\/wiki\/([^/]+)/);
-        if (channelIdMatch) {
-            const channelId = channelIdMatch[1];
-            const teamMatch = currentUrl.match(/\/([^/]+)\/wiki\//);
-            if (teamMatch) {
-                const teamName = teamMatch[1];
-                await page.goto(`/${teamName}/channels/${channelId}`);
-                await page.waitForLoadState('networkidle');
-            }
+        // # Navigate to channel view first — extract team from URL and go to fallback channel
+        const teamMatch = currentUrl.match(/\/([^/]+)\/wiki\//);
+        if (teamMatch) {
+            const teamName = teamMatch[1];
+            await page.goto(`/${teamName}/channels/${fallbackChannel}`);
+            await page.waitForLoadState('networkidle');
         }
     }
 
@@ -660,9 +688,8 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
             .first()
             .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT + 5000});
     } catch {
-        // If none of the typical channel elements are visible, wait a bit and continue
+        // If none of the typical channel elements are visible, continue
         // (may be an empty channel or different UI state)
-        await page.waitForTimeout(WEBSOCKET_WAIT);
     }
 
     // # Wait for the channel tabs container to be visible first
@@ -674,7 +701,7 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
     await addContentButton.click();
 
     // # Click "Wiki" option from the dropdown menu
-    const addWikiMenuItem = page.getByText('Wiki', {exact: true});
+    const addWikiMenuItem = page.getByRole('menuitem', {name: 'Wiki', exact: true});
     await addWikiMenuItem.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await addWikiMenuItem.click();
 
@@ -686,23 +713,31 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
     // # Click Create button - wait for it to be enabled after input fills
     const createButton = page.getByRole('button', {name: 'Create'});
     await expect(createButton).toBeEnabled({timeout: ELEMENT_TIMEOUT});
+
+    const wikiResponsePromise = page.waitForResponse(
+        (r) => r.url().includes('/api/v4/wikis') && r.request().method() === 'POST',
+    );
     await createButton.click();
+    const wikiApiResponse = await wikiResponsePromise;
+    if (wikiApiResponse.status() !== 201) {
+        throw new Error(`Wiki creation API failed: ${wikiApiResponse.status()} ${await wikiApiResponse.text()}`);
+    }
 
     // # Wait for modal to close before expecting navigation
     const modal = page.locator('#text-input-modal-input');
     await modal.waitFor({state: 'detached', timeout: ELEMENT_TIMEOUT});
 
     // # Wait for navigation to wiki page (not just network idle)
-    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+/, {timeout: HIERARCHY_TIMEOUT});
+    await page.waitForURL(/\/wiki\/[^/]+/, {timeout: HIERARCHY_TIMEOUT});
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki view to fully load before interacting with it
     await waitForWikiViewLoad(page);
 
-    // Extract wiki ID from URL
+    // Extract wiki ID from URL (/wiki/<wikiId>)
     const url = page.url();
-    const wikiIdMatch = url.match(/\/wiki\/[^/]+\/([^/]+)/);
-    const wikiId = wikiIdMatch ? wikiIdMatch[1] : null;
+    const wikiUrlMatch = url.match(/\/wiki\/([^/?]+)/);
+    const wikiId = wikiUrlMatch ? wikiUrlMatch[1] : null;
 
     if (!wikiId) {
         throw new Error(`Failed to extract wiki ID from URL: ${url}`);
@@ -726,8 +761,31 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
  * Uses expect().toBeVisible() with retries for more robust handling of
  * race conditions during navigation.
  */
-export async function waitForWikiViewLoad(page: Page, timeout = 60000) {
+export async function waitForWikiViewLoad(page: Page, timeout = WIKI_VIEW_TIMEOUT) {
     const wikiView = page.locator('[data-testid="wiki-view"]');
+
+    // Collect browser console errors and page errors for diagnostics.
+    // Stored on the Page object so we only attach listeners once per page.
+    type DiagPage = Page & {__wikiViewDiag?: {consoleErrors: string[]; pageErrors: string[]}};
+    const diagPage = page as DiagPage;
+    if (!diagPage.__wikiViewDiag) {
+        const diag = {consoleErrors: [] as string[], pageErrors: [] as string[]};
+        diagPage.__wikiViewDiag = diag;
+        page.on('console', (msg) => {
+            if (msg.type() === 'error') {
+                if (diag.consoleErrors.length >= 50) {
+                    diag.consoleErrors.shift();
+                }
+                diag.consoleErrors.push(msg.text());
+            }
+        });
+        page.on('pageerror', (err) => {
+            if (diag.pageErrors.length >= 20) {
+                diag.pageErrors.shift();
+            }
+            diag.pageErrors.push(err.message);
+        });
+    }
 
     // First, wait for the channel tab panel to be present (indicates route mounted)
     const tabPanel = page.locator('.channel-tab-panel');
@@ -770,20 +828,52 @@ export async function waitForWikiViewLoad(page: Page, timeout = 60000) {
             .getAttribute('id')
             .catch(() => 'none');
 
+        // Capture: active tab button (what the UI thinks is selected)
+        const activeTabText = await page
+            .locator('.channel-tabs-container [aria-selected="true"]')
+            .innerText()
+            .catch(() => 'none');
+
+        // Capture: error boundary message if rendered
+        const errorBoundaryText = await page
+            .locator('.wiki-error-boundary')
+            .innerText()
+            .catch(() => '');
+
+        // Capture: a trimmed HTML snapshot of the tab panel region for post-mortem
+        const tabPanelHtml = await page
+            .locator('.channel-tab-panel')
+            .first()
+            .innerHTML()
+            .catch(() => '<unavailable>');
+        const tabPanelHtmlTrimmed = tabPanelHtml.slice(0, 2000);
+
+        const diag = diagPage.__wikiViewDiag ?? {consoleErrors: [], pageErrors: []};
+        const recentConsoleErrors = diag.consoleErrors.slice(-10).join(' | ');
+        const recentPageErrors = diag.pageErrors.slice(-5).join(' | ');
+
         // eslint-disable-next-line no-console
         console.error(
             `[waitForWikiViewLoad] FAIL: url=${url} isWikiUrl=${isWikiUrl} ` +
                 `tabPanelId=${activeTabPanel} channelTabPanelContent=${channelTabPanelContent} ` +
+                `activeTabText="${activeTabText}" ` +
                 `wikiTabContentCount=${wikiTabContent} wikiViewCount=${wikiViewCount} ` +
-                `errorBoundaryCount=${errorBoundaryCount} loadingCount=${loadingCount}`,
+                `errorBoundaryCount=${errorBoundaryCount} errorBoundaryText="${errorBoundaryText}" ` +
+                `loadingCount=${loadingCount}\n` +
+                `  pageErrors: ${recentPageErrors}\n` +
+                `  consoleErrors: ${recentConsoleErrors}\n` +
+                `  tabPanelHtml(2k): ${tabPanelHtmlTrimmed}`,
         );
 
         throw new Error(
             `Wiki view not visible after ${timeout}ms. ` +
                 `URL: ${url}. isWikiUrl: ${isWikiUrl}. ` +
                 `Active tab panel: ${activeTabPanel}. channelTabPanel: ${channelTabPanelContent}. ` +
+                `activeTabText: "${activeTabText}". ` +
                 `Wiki tab content count: ${wikiTabContent}. wikiViewCount: ${wikiViewCount}. ` +
-                `errorBoundaryCount: ${errorBoundaryCount}. loadingCount: ${loadingCount}. ` +
+                `errorBoundaryCount: ${errorBoundaryCount}. errorBoundaryText: "${errorBoundaryText}". ` +
+                `loadingCount: ${loadingCount}. ` +
+                `pageErrors: ${recentPageErrors}. consoleErrors: ${recentConsoleErrors}. ` +
                 `Original error: ${error instanceof Error ? error.message : String(error)}`,
         );
     }
@@ -802,53 +892,57 @@ export async function waitForWikiViewLoad(page: Page, timeout = 60000) {
         // Loading indicator is attached but hidden, which is acceptable
     });
 
-    // Small extra delay to give the hierarchy panel and other async tasks time
-    // to settle before the caller continues with more specific assertions.
-    await page.waitForTimeout(SHORT_WAIT);
+    // Wait explicitly for the hierarchy panel to be visible rather than
+    // sleeping. Callers typically interact with it immediately after.
+    await page
+        .locator('[data-testid="pages-hierarchy-panel"]')
+        .waitFor({state: 'visible', timeout})
+        .catch(() => {
+            // Panel may not be present in every wiki view (e.g. error states);
+            // don't fail here — concrete assertions belong in the caller.
+        });
 }
 
 /**
- * Navigates to a wiki view and waits for it to load
+ * Navigates to a wiki view and waits for it to load.
+ * Preserves the ?from=channelId query param from the current URL when present —
+ * the app uses it to resolve the user-facing channel context for cross-wiki actions
+ * like Move, which query wikis linked to that channel.
  * @param page - Playwright page object
  * @param baseUrl - Base URL (e.g., pw.url)
  * @param teamName - Team name
- * @param channelId - Channel ID
  * @param wikiId - Wiki ID
  */
 export async function navigateToWikiView(
     page: Page,
     baseUrl: string,
     teamName: string,
-    channelId: string,
     wikiId: string,
+    channelId: string,
 ) {
-    await page.goto(`${baseUrl}/${teamName}/wiki/${channelId}/${wikiId}`);
+    await page.goto(buildWikiPageUrl(baseUrl, teamName, wikiId, undefined, channelId));
     await page.waitForLoadState('networkidle');
     await waitForWikiViewLoad(page);
 }
 
 /**
- * Navigates to a specific page in a wiki
+ * Navigates to a specific page in a wiki.
+ * Preserves the ?from=channelId query param from the current URL when present —
+ * the app uses it to resolve the user-facing channel context for menu actions like
+ * Move, and for permission checks that gate the Edit button.
  * @param page - Playwright page object
  * @param baseUrl - Base URL (pw.url)
  * @param teamName - Team name
- * @param channelId - Channel ID (not name!)
  * @param wikiId - Wiki ID
  * @param pageId - Page ID to navigate to
  */
-export async function navigateToPage(
-    page: Page,
-    baseUrl: string,
-    teamName: string,
-    channelId: string,
-    wikiId: string,
-    pageId: string,
-) {
-    const url = `${baseUrl}/${teamName}/wiki/${channelId}/${wikiId}/${pageId}`;
+export async function navigateToPage(page: Page, baseUrl: string, teamName: string, wikiId: string, pageId: string) {
+    const fromChannelId = new URL(page.url()).searchParams.get('from') ?? '';
+    const url = buildWikiPageUrl(baseUrl, teamName, wikiId, pageId, fromChannelId || undefined);
     await page.goto(url);
 
     // Use a longer timeout (60s) to debug potential timing issues with multi-user tests
-    await page.waitForLoadState('networkidle', {timeout: 60000});
+    await page.waitForLoadState('networkidle', {timeout: WIKI_VIEW_TIMEOUT});
 
     // Wait for wiki view and page to load
     await waitForWikiViewLoad(page);
@@ -858,56 +952,29 @@ export async function navigateToPage(
 }
 
 /**
- * Constructs a wiki page URL
- * Matches the URL pattern used by the wiki router: /:team/wiki/:channelId/:wikiId/:pageId
- * @param baseUrl - Base URL (e.g., pw.url)
- * @param teamName - Team name
- * @param channelId - Channel ID (not channel name)
- * @param wikiId - Wiki ID
- * @param pageId - Page ID (optional)
- * @returns Full URL to the wiki page
+ * Constructs a wiki page URL.
+ * Matches the router pattern: /:team/wiki/:wikiId/:pageId?[from=:channelId]
+ * Pass fromChannelId when the test simulates navigation from a channel tab;
+ * the app reads ?from= to resolve the user-facing channel context.
  */
 export function buildWikiPageUrl(
     baseUrl: string,
     teamName: string,
-    channelId: string,
     wikiId: string,
     pageId?: string,
+    fromChannelId?: string,
 ): string {
-    const basePath = `${baseUrl}/${teamName}/wiki/${channelId}/${wikiId}`;
-    return pageId ? `${basePath}/${pageId}` : basePath;
+    const basePath = `${baseUrl}/${teamName}/wiki/${wikiId}`;
+    const path = pageId ? `${basePath}/${pageId}` : basePath;
+    return fromChannelId ? `${path}?from=${fromChannelId}` : path;
 }
 
 /**
  * Constructs a channel URL
  * Matches the URL pattern: /:team/channels/:channelName
- * @param baseUrl - Base URL (e.g., pw.url)
- * @param teamName - Team name
- * @param channelName - Channel name (not channel ID)
- * @returns Full URL to the channel
  */
 export function buildChannelUrl(baseUrl: string, teamName: string, channelName: string): string {
     return `${baseUrl}/${teamName}/channels/${channelName}`;
-}
-
-/**
- * Constructs a channel page URL (wiki page accessed via channel route)
- * Matches the URL pattern: /:team/channels/:channelName/wikis/:wikiId/pages/:pageId
- * @param baseUrl - Base URL (e.g., pw.url)
- * @param teamName - Team name
- * @param channelName - Channel name (not channel ID)
- * @param wikiId - Wiki ID
- * @param pageId - Page ID
- * @returns Full URL to the page via channel route
- */
-export function buildChannelPageUrl(
-    baseUrl: string,
-    teamName: string,
-    channelName: string,
-    wikiId: string,
-    pageId: string,
-): string {
-    return `${baseUrl}/${teamName}/channels/${channelName}/wikis/${wikiId}/pages/${pageId}`;
 }
 
 /**
@@ -933,7 +1000,6 @@ export async function ensurePanelOpen(page: Page) {
         // Panel is collapsed, hamburger is visible → click to open
         await hamburgerButton.click();
         await hierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
-        await page.waitForTimeout(SHORT_WAIT);
     }
     // else: panel is already open, do nothing
 }
@@ -973,8 +1039,15 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
     // Wait for content to be typed and registered
     await page.waitForTimeout(SHORT_WAIT * 0.6);
 
-    // Wait for auto-save to complete (500ms debounce + network + buffer)
-    await page.waitForTimeout(AUTOSAVE_WAIT * 0.75);
+    // Wait for auto-save to complete: watch for the draft PUT request
+    await page
+        .waitForResponse(
+            (response) => AUTOSAVE_DRAFT_URL_RE.test(response.url()) && response.request().method() === 'PUT',
+            {timeout: AUTOSAVE_WAIT},
+        )
+        .catch(() => {
+            // Draft save did not fire (e.g. empty content); proceed without error
+        });
 
     // Verify content was actually entered (skip validation for whitespace-only content)
     const enteredText = await editor.textContent();
@@ -1018,7 +1091,8 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
     }
 
     // # Wait for URL to change from draft to published page (navigation after publish)
-    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+(?:[?#]|$)/, {timeout: PAGE_LOAD_TIMEOUT});
+    // URL shape: /{team}/wiki/{wikiId}/{pageId}(?from=...)
+    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+(?:[?#]|$)/, {timeout: PAGE_LOAD_TIMEOUT});
 
     // # Wait for navigation and network to settle after publish
     await page.waitForLoadState('networkidle');
@@ -1080,8 +1154,15 @@ export async function createChildPageThroughContextMenu(
     // Wait for content to be typed and registered
     await page.waitForTimeout(SHORT_WAIT * 0.6);
 
-    // Wait for auto-save to complete (500ms debounce + network + buffer)
-    await page.waitForTimeout(AUTOSAVE_WAIT * 0.75);
+    // Wait for auto-save to complete: watch for the draft PUT request
+    await page
+        .waitForResponse(
+            (response) => AUTOSAVE_DRAFT_URL_RE.test(response.url()) && response.request().method() === 'PUT',
+            {timeout: AUTOSAVE_WAIT},
+        )
+        .catch(() => {
+            // Draft save did not fire (e.g. empty content); proceed without error
+        });
 
     // Verify content was actually entered (skip validation for whitespace-only content)
     const enteredText = await editor.textContent();
@@ -1125,7 +1206,8 @@ export async function createChildPageThroughContextMenu(
     }
 
     // # Wait for URL to change from draft to published page (navigation after publish)
-    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+(?:[?#]|$)/, {timeout: PAGE_LOAD_TIMEOUT});
+    // URL shape: /{team}/wiki/{wikiId}/{pageId}(?from=...)
+    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+(?:[?#]|$)/, {timeout: PAGE_LOAD_TIMEOUT});
 
     // # Wait for navigation and network to settle after publish
     await page.waitForLoadState('networkidle');
@@ -1202,7 +1284,7 @@ export async function addHeadingToEditor(page: Page, level: 1 | 2 | 3, text: str
  */
 export async function waitForPageInHierarchy(page: Page, pageTitle: string, timeout: number = ELEMENT_TIMEOUT) {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
-    const pageButton = hierarchyPanel.getByRole('button', {name: pageTitle, exact: true});
+    const pageButton = hierarchyPanel.getByRole('button', {name: `Go to ${pageTitle}`, exact: true});
     await pageButton.waitFor({state: 'visible', timeout});
 }
 
@@ -1216,7 +1298,7 @@ export async function waitForPageInHierarchy(page: Page, pageTitle: string, time
 export async function clickPageInHierarchy(page: Page, pageTitle: string, timeout: number = ELEMENT_TIMEOUT) {
     await waitForPageInHierarchy(page, pageTitle, timeout);
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
-    const pageButton = hierarchyPanel.getByRole('button', {name: pageTitle, exact: true});
+    const pageButton = hierarchyPanel.getByRole('button', {name: `Go to ${pageTitle}`, exact: true});
     await pageButton.click();
 
     // Wait for page viewer to load
@@ -1337,9 +1419,6 @@ export async function showPageOutline(page: Page, pageId: string) {
         btn.dispatchEvent(event);
     });
 
-    // Wait for context menu to render
-    await page.waitForTimeout(SHORT_WAIT * 1.6);
-
     // Click "Show outline" button
     const contextMenu = getPageActionsMenuLocator(page);
     await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
@@ -1348,8 +1427,8 @@ export async function showPageOutline(page: Page, pageId: string) {
     await showOutlineButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await showOutlineButton.click();
 
-    // Wait for Redux action and outline rendering
-    await page.waitForTimeout(ELEMENT_TIMEOUT);
+    // Wait for outline to render in the DOM rather than sleeping.
+    await page.locator('[data-testid="page-outline"]').first().waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 }
 
 /**
@@ -1381,8 +1460,8 @@ export async function showPageOutlineViaRightClick(page: Page, pageTitle: string
     await showOutlineButton.waitFor({state: 'visible'});
     await showOutlineButton.click();
 
-    // Wait for Redux action and outline rendering
-    await page.waitForTimeout(SHORT_WAIT);
+    // Wait for outline to render in the DOM rather than sleeping.
+    await page.locator('[data-testid="page-outline"]').first().waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 }
 
 /**
@@ -1456,11 +1535,16 @@ export async function publishCurrentPage(page: Page) {
     // Wait for editor transactions to complete (including HeadingIdPlugin)
     await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // Click outside editor to ensure focus is lost and all pending transactions flush
+    // Click outside editor to ensure focus is lost and all pending transactions flush.
+    // Race the autosave PUT against the click so we capture the response triggered
+    // by the click, with a fallback timeout for setups where autosave already fired.
+    const autosaveResponse = page
+        .waitForResponse((resp) => resp.request().method() === 'PUT' && AUTOSAVE_DRAFT_URL_RE.test(resp.url()), {
+            timeout: WEBSOCKET_WAIT,
+        })
+        .catch(() => null);
     await page.locator('[data-testid="wiki-page-header"]').click();
-
-    // Wait for autosave to complete (500ms debounce + extra buffer)
-    await page.waitForTimeout(WEBSOCKET_WAIT);
+    await autosaveResponse;
 
     // Click publish button
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
@@ -1525,7 +1609,7 @@ export async function createDraftThroughUI(page: Page, draftTitle: string, draft
     // Wait for auto-save to complete
     await page.waitForTimeout(WEBSOCKET_WAIT);
 
-    // Extract draft ID from URL pattern: /:teamName/wiki/:channelId/:wikiId/drafts/:draftId
+    // Extract draft ID from URL pattern: /:teamName/wiki/:wikiId/drafts/:draftId
     const url = page.url();
     const draftIdMatch = url.match(/\/drafts\/([^/?]+)/);
     const draftId = draftIdMatch ? draftIdMatch[1] : null;
@@ -1807,7 +1891,8 @@ export async function verifyWikiNameInBreadcrumb(page: Page, wikiName: string, t
  * @param page - Playwright page object
  */
 export async function verifyNavigatedToWiki(page: Page) {
-    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+    // /:team/wiki/:wikiId[/:pageId][?from=:channelId]
+    await expect(page).toHaveURL(/\/wiki\/[a-z0-9]{26}(?:\/(?:[a-z0-9]{26}|drafts\/[a-z0-9]{26}))?(?:\?.*)?$/);
 }
 
 /**
@@ -1841,15 +1926,40 @@ export async function verifyWikiDeleted(page: Page, channelName: string) {
 }
 
 /**
- * Waits for a wiki tab to appear and be ready for interaction
+ * Waits for a wiki tab to appear and be ready for interaction.
+ *
+ * Channels cap visible wiki tabs and surface the rest through the
+ * `#wiki-overflow-menu` ("+N more") dropdown. When the target wiki is in
+ * overflow, this helper opens the menu and returns the matching menu item so
+ * callers can `.click()` it identically to a top-level tab.
+ *
  * @param page - Playwright page object
  * @param wikiName - Name of the wiki tab to wait for
  * @param timeout - Optional timeout in ms (default: 5000)
  */
 export async function waitForWikiTab(page: Page, wikiName: string, timeout = 5000) {
     const wikiTab = getWikiTab(page, wikiName);
-    await wikiTab.waitFor({state: 'visible', timeout});
-    return wikiTab;
+    const overflowMenu = page.locator('#wiki-overflow-menu');
+
+    // Wait for the wiki to be reachable as either a visible tab or via the
+    // overflow menu button. Either branch satisfies "tab is ready".
+    await wikiTab.or(overflowMenu).first().waitFor({state: 'visible', timeout});
+
+    if (await wikiTab.isVisible().catch(() => false)) {
+        return wikiTab;
+    }
+
+    // Wiki is in overflow — open the menu (only if it isn't already open
+    // from a prior call, since clicking the button toggles visibility) and
+    // return the menu item.
+    const dropdown = page.locator('#wiki-overflow-menu-dropdown');
+    if (!(await dropdown.isVisible().catch(() => false))) {
+        await overflowMenu.click();
+        await dropdown.waitFor({state: 'visible', timeout});
+    }
+    const menuItem = page.getByRole('menuitem').filter({hasText: wikiName}).first();
+    await menuItem.waitFor({state: 'visible', timeout});
+    return menuItem;
 }
 
 /**
@@ -1863,37 +1973,88 @@ export async function openWikiByTab(page: Page, wikiName: string) {
 }
 
 /**
- * Moves a wiki to another channel through the wiki tab menu
+ * Links an existing wiki to a channel through the "+" tab menu → "Link existing wiki" option.
+ * Selects the wiki by title from the dropdown in the Link Wiki modal.
+ *
  * @param page - Playwright page object
- * @param wikiName - Name of the wiki to move
- * @param targetChannelId - ID of the target channel
+ * @param wikiTitle - Title of the wiki to link (must already exist and be visible in the picker)
  */
-export async function moveWikiToChannel(page: Page, wikiName: string, targetChannelId: string) {
-    await openWikiTabMenu(page, wikiName);
-    await clickWikiTabMenuItem(page, 'wiki-tab-move');
+export async function openLinkWikiModal(page: Page): Promise<Locator> {
+    const addContentButton = page.locator('#add-tab-content');
+    await addContentButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await addContentButton.click();
 
-    const moveModal = page.getByRole('dialog');
-    await moveModal.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    const linkWikiMenuItem = page.getByRole('menuitem', {name: 'Link existing wiki', exact: true});
+    await linkWikiMenuItem.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await linkWikiMenuItem.click();
 
-    const channelSelect = moveModal.locator('#target-channel-select');
-    await channelSelect.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    const linkModal = page.getByRole('dialog');
+    await linkModal.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    return linkModal;
+}
+
+export async function linkWikiToChannelThroughUI(page: Page, wikiTitle: string) {
+    const linkModal = await openLinkWikiModal(page);
+
+    // # Wait for the wiki select dropdown to have options loaded
+    const wikiSelect = linkModal.locator('#wiki-select');
+    await wikiSelect.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     await page.waitForFunction(
         (selectId) => {
             const select = document.querySelector(`#${selectId}`) as HTMLSelectElement;
             return select && select.options.length > 1;
         },
-        'target-channel-select',
+        'wiki-select',
         {timeout: ELEMENT_TIMEOUT},
     );
 
-    await channelSelect.selectOption({value: targetChannelId});
+    // # Select the wiki by its title text
+    await wikiSelect.selectOption({label: wikiTitle});
 
-    const moveButton = moveModal.getByRole('button', {name: /move wiki/i});
-    await moveButton.click();
+    // # Click "Link wiki" confirm button
+    const linkButton = linkModal.getByRole('button', {name: /link wiki/i});
+    await linkButton.click();
 
-    await moveModal.waitFor({state: 'hidden', timeout: MODAL_CLOSE_TIMEOUT});
+    // # Wait for modal to close
+    await linkModal.waitFor({state: 'hidden', timeout: MODAL_CLOSE_TIMEOUT});
     await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Unlinks a wiki from a channel through the wiki tab menu → "Unlink from this channel" option.
+ * Confirms the unlink action in the confirmation modal.
+ *
+ * @param page - Playwright page object
+ * @param wikiTitle - Title of the wiki to unlink
+ */
+export async function unlinkWikiFromChannelThroughUI(page: Page, wikiTitle: string) {
+    // # Open the wiki tab menu
+    await openWikiTabMenu(page, wikiTitle);
+
+    // # Click "Unlink from this channel" menu item
+    await clickWikiTabMenuItem(page, 'wiki-tab-unlink');
+
+    // # Wait for the confirmation modal to appear
+    const unlinkModal = page.getByRole('dialog');
+    await unlinkModal.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+
+    // # Click the "Remove" confirm button
+    const removeButton = unlinkModal.getByRole('button', {name: /remove/i});
+    await removeButton.click();
+
+    // # Wait for modal to close
+    await unlinkModal.waitFor({state: 'hidden', timeout: MODAL_CLOSE_TIMEOUT});
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Gets the wiki overflow menu button ("+N more")
+ * @param page - Playwright page object
+ * @returns The overflow menu button locator
+ */
+export function getWikiOverflowMenu(page: Page): Locator {
+    return page.locator('#wiki-overflow-menu');
 }
 
 /**
@@ -2006,6 +2167,30 @@ export function getEditor(page: Page): Locator {
     return page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
 }
 
+export function getPublishButton(page: Page): Locator {
+    return page.locator('[data-testid="wiki-page-publish-button"]').first();
+}
+
+export function getEditButton(page: Page): Locator {
+    return page.locator('[data-testid="wiki-page-edit-button"]').first();
+}
+
+export function getPageTitleInput(page: Page): Locator {
+    return page.locator('[data-testid="wiki-page-title-input"]').first();
+}
+
+export function getWikiRHS(page: Page): Locator {
+    return page.locator('[data-testid="wiki-rhs"]');
+}
+
+export function getSearchInput(page: Page): Locator {
+    return page.locator('[data-testid="pages-search-input"]');
+}
+
+export function getPageLinkModal(page: Page): Locator {
+    return page.locator('[data-testid="page-link-modal"]').first();
+}
+
 /**
  * Clicks edit button and waits for editor to be ready
  * @param page - Playwright page object
@@ -2030,7 +2215,7 @@ export async function enterEditMode(page: Page, timeout = 5000) {
             lastError = error as Error;
             if (attempt < maxRetries) {
                 // Wait before reload to allow HA sync
-                await page.waitForTimeout(1000 * (attempt + 1));
+                await page.waitForTimeout(EDITOR_LOAD_WAIT * (attempt + 1));
                 await page.reload();
                 await page.waitForLoadState('networkidle');
                 await expect(editButton).toBeVisible({timeout});
@@ -2090,6 +2275,7 @@ export async function closeWikiRHS(page: Page): Promise<void> {
 export async function publishPage(page: Page): Promise<void> {
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
     await publishButton.click();
+
     await page.waitForLoadState('networkidle');
 
     // Wait for page to transition to view mode
@@ -2729,9 +2915,10 @@ export async function deletePageThroughUI(page: Page, pageTitle: string) {
     await deleteButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await deleteButton.click();
 
-    // Wait for the modal to close, which indicates the delete operation completed
-    // If the delete fails, the modal stays open and this will timeout
-    await deleteModal.waitFor({state: 'hidden', timeout: MODAL_CLOSE_TIMEOUT});
+    // Wait for the modal to close, which indicates the delete operation completed.
+    // Uses ELEMENT_TIMEOUT instead of MODAL_CLOSE_TIMEOUT because deletion involves
+    // a server API call that can be slow under load.
+    await deleteModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
     await page.waitForLoadState('networkidle');
 }
 
@@ -2887,20 +3074,7 @@ export async function deletePageViaActionsMenu(page: Page, option?: 'cascade' | 
  * @param clearExisting - Whether to clear existing content first (default: false)
  */
 export async function editPageThroughUI(page: Page, newContent: string, clearExisting: boolean = false) {
-    // Wait for edit button to be visible and enabled (not disabled)
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await editButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-
-    // Wait for button to be enabled (page data must be loaded)
-    await page.waitForFunction(
-        () => {
-            const button = document.querySelector('[data-testid="wiki-page-edit-button"]') as HTMLButtonElement;
-            return button && !button.disabled;
-        },
-        {timeout: ELEMENT_TIMEOUT},
-    );
-
-    await editButton.click();
+    await enterEditMode(page, ELEMENT_TIMEOUT);
 
     // Wait for editor to appear
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
@@ -2920,16 +3094,43 @@ export async function editPageThroughUI(page: Page, newContent: string, clearExi
     // Type new content
     await editor.type(newContent);
 
+    // Register listener before the debounce fires so we don't miss the autosave PUT.
+    // Then wait just past the 500ms debounce and blur; the listener catches the response.
+    const autosaveSettled = page
+        .waitForResponse((resp) => resp.request().method() === 'PUT' && AUTOSAVE_DRAFT_URL_RE.test(resp.url()), {
+            timeout: WEBSOCKET_WAIT,
+        })
+        .catch(() => null);
+    await page.waitForTimeout(SHORT_WAIT * 1.2); // 600ms > 500ms debounce
+    await page.locator('[data-testid="wiki-page-title-input"]').click();
+    await autosaveSettled;
+
     // Publish the changes
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    await publishButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await publishButton.click();
 
     // Wait for navigation after publish (similar to createPageThroughUI)
     await page.waitForLoadState('networkidle');
 
-    // Wait for page viewer to appear (increased timeout to match createPageThroughUI)
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    await pageViewer.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT * 3});
+    // A post-publish autosave (TipTap editor unmount) can arrive at the server after the
+    // publish completes, creating a stale draft that triggers "Page conflict" on the next
+    // edit. If the dialog appears, overwrite — it is always safe in test context.
+    const conflictDialog = page.getByRole('dialog', {name: 'Page conflict'});
+    const hasConflict = await conflictDialog
+        .waitFor({state: 'visible', timeout: EDITOR_LOAD_WAIT})
+        .then(() => true)
+        .catch(() => false);
+    if (hasConflict) {
+        // Select the "Overwrite published version" radio option, then click confirm
+        await page.getByRole('button', {name: /Overwrite published version/i}).click();
+        await page.getByRole('button', {name: 'Overwrite page'}).click();
+        await page.waitForLoadState('networkidle');
+    }
+
+    // Wait for view mode: edit button visible means isDraft=false (publish/overwrite succeeded and navigated away from draft URL)
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]').first();
+    await editButton.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT * 3});
 }
 
 /**
@@ -2998,7 +3199,7 @@ export async function waitForDuplicatedPageInHierarchy(
             lastError = error as Error;
             if (attempt < maxRetries) {
                 // Wait then reload to force fresh data fetch (helps in HA environments)
-                await page.waitForTimeout(1000 * (attempt + 1));
+                await page.waitForTimeout(EDITOR_LOAD_WAIT * (attempt + 1));
                 await page.reload();
                 await page.waitForLoadState('networkidle');
             }
@@ -3045,7 +3246,7 @@ export async function waitForActiveEditorsIndicator(
             lastError = error as Error;
             if (attempt < maxRetries) {
                 // Wait with increasing delays then reload to force fresh data fetch
-                await page.waitForTimeout(2000 * (attempt + 1));
+                await page.waitForTimeout(AUTOSAVE_WAIT * (attempt + 1));
                 await page.reload();
                 await page.waitForLoadState('networkidle');
                 // Extra wait for WebSocket reconnection after reload
@@ -3224,7 +3425,7 @@ export async function setupPageInEditMode(
     await createPageThroughUI(page, pageTitle, pageContent || '');
     await waitForPageInHierarchy(page, pageTitle);
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
-    const pageNode = hierarchyPanel.getByRole('button', {name: pageTitle, exact: true});
+    const pageNode = hierarchyPanel.getByRole('button', {name: `Go to ${pageTitle}`, exact: true});
     await pageNode.click();
     await clickPageEditButton(page);
     const editor = page.locator('.tiptap.ProseMirror');
@@ -3725,8 +3926,8 @@ export async function expandPageTreeNode(
     const expandButton = pageNode.locator('[data-testid="page-tree-node-expand-button"]');
     await expect(expandButton).toBeVisible({timeout});
 
-    // Check if the node is already expanded (chevron-down icon)
-    const isAlreadyExpanded = (await pageNode.locator('.icon-chevron-down').count()) > 0;
+    // Check if the node is already expanded (aria-expanded="true")
+    const isAlreadyExpanded = (await expandButton.getAttribute('aria-expanded')) === 'true';
     if (isAlreadyExpanded) {
         return;
     }
@@ -3734,8 +3935,8 @@ export async function expandPageTreeNode(
     // Click to expand
     await expandButton.click();
 
-    // Wait for the expand animation - the icon should change from chevron-right to chevron-down
-    await expect(pageNode.locator('.icon-chevron-down')).toBeVisible({timeout});
+    // Wait for the expand animation - aria-expanded should become true
+    await expect(expandButton).toHaveAttribute('aria-expanded', 'true', {timeout});
 }
 
 /**
@@ -3939,18 +4140,38 @@ export async function withRolePermissions(
     roleName: string,
     permissions: string[],
 ): Promise<() => Promise<void>> {
+    // Snapshot current role permissions before modifying
     const role = await adminClient.getRoleByName(roleName);
     const originalPermissions = [...role.permissions];
 
-    await adminClient.patchRole(role.id, {
-        permissions: [...role.permissions, ...permissions],
-    });
+    await ensureRolePermissions(adminClient, roleName, permissions);
 
     return async () => {
-        await adminClient.patchRole(role.id, {
-            permissions: originalPermissions,
-        });
+        // Restore original permissions exactly
+        await adminClient.patchRole(role.id, {permissions: originalPermissions});
     };
+}
+
+/**
+ * Ensures a role has the specified permissions (additive, idempotent).
+ * Does NOT remove permissions — only adds missing ones.
+ *
+ * @param adminClient - Admin client to use for API calls
+ * @param roleName - Name of the role to modify (e.g., 'channel_user')
+ * @param permissions - Array of permission strings to ensure exist on the role
+ */
+export async function ensureRolePermissions(
+    adminClient: Client4,
+    roleName: string,
+    permissions: string[],
+): Promise<void> {
+    const role = await adminClient.getRoleByName(roleName);
+    const missing = permissions.filter((p) => !role.permissions.includes(p));
+    if (missing.length > 0) {
+        await adminClient.patchRole(role.id, {
+            permissions: [...role.permissions, ...missing],
+        });
+    }
 }
 
 /**
@@ -4072,7 +4293,7 @@ export async function loginAndNavigateToChannel(
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(teamName, channelName);
     await page.waitForLoadState('networkidle');
-    await page.waitForSelector('[data-testid="channel_view"]', {state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
+    await expect(page.locator('[data-testid="channel_view"]')).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
     await channelsPage.toBeVisible();
     return {page, channelsPage};
 }
@@ -4084,6 +4305,7 @@ export interface SharedPagesSetup {
     team: Team;
     user: UserProfile;
     adminClient: Client4;
+    channel: Channel;
 }
 
 /**
@@ -4101,10 +4323,8 @@ export async function setupWikiPageInEditMode(
     sharedPagesSetup: SharedPagesSetup,
     wikiNamePrefix: string,
     pageTitle: string,
-    channelName: string = 'town-square',
 ): Promise<{page: Page; editor: Locator}> {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, channelName);
+    const {team, user, channel} = sharedPagesSetup;
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     await createWikiThroughUI(page, uniqueName(wikiNamePrefix));
@@ -4254,4 +4474,34 @@ export async function clickFormattingButtonByIcon(page: Page, iconClass: string)
     const button = formattingBar.locator(`button:has(i.${iconClass})`);
     await button.click();
     await page.waitForTimeout(UI_MICRO_WAIT);
+}
+
+/**
+ * Waits for the autosave draft PUT request to complete.
+ * Only safe to call when the PUT fires after a debounce (e.g., after typing in the editor).
+ * For actions that trigger an immediate PUT (e.g., status dropdown), use startWatchForAutoSave instead.
+ */
+export async function waitForAutoSave(page: Page): Promise<void> {
+    await page.waitForResponse(
+        (response) => AUTOSAVE_DRAFT_URL_RE.test(response.url()) && response.request().method() === 'PUT',
+        {timeout: AUTOSAVE_WAIT + WEBSOCKET_WAIT},
+    );
+}
+
+/**
+ * Starts listening for the autosave draft PUT before an action that triggers an immediate save.
+ * Call this BEFORE the action, then await the returned Promise AFTER the action.
+ *
+ * @example
+ *   const saved = startWatchForAutoSave(page);
+ *   await option.click();      // fires the PUT synchronously
+ *   await saved;
+ */
+export function startWatchForAutoSave(page: Page): Promise<void> {
+    return page
+        .waitForResponse(
+            (response) => AUTOSAVE_DRAFT_URL_RE.test(response.url()) && response.request().method() === 'PUT',
+            {timeout: AUTOSAVE_WAIT + WEBSOCKET_WAIT},
+        )
+        .then(() => {});
 }

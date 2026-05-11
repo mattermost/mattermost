@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Client4} from '@mattermost/client';
@@ -12,6 +13,7 @@ import {
     createRandomTeam,
     getOnPremServerConfig,
     createRandomUser,
+    getRandomId,
     makeClient,
 } from '@mattermost/playwright-lib';
 
@@ -35,6 +37,7 @@ type PagesTestFixtures = {
         team: Team;
         user: UserProfile;
         adminClient: Client4;
+        channel: Channel;
     };
 };
 
@@ -71,10 +74,35 @@ export const test: ReturnType<typeof base.extend<PagesTestFixtures, PagesWorkerF
             config.TeamSettings.LockTeammateNameDisplay = false;
             await adminClient.updateConfig(config);
 
+            // Snapshot before mutating so teardown can restore exactly.
+            // Wiki/page permissions are team-scoped (SessionHasWikiPermission →
+            // SessionHasPermissionToTeam), so they must be on team_user, not channel_user.
+            // manage_wiki must NOT be granted to team_user: CanResolvePageComment and the
+            // comment edit/delete path gate on it, so granting it to all members would
+            // let any user resolve or edit others' comments.
+            const teamUserRole = await adminClient.getRoleByName('team_user');
+            const originalTeamUserPermissions = [...teamUserRole.permissions];
+            const patchedTeamUserPermissions = new Set([
+                ...originalTeamUserPermissions.filter((p) => p !== 'manage_wiki'),
+                'create_wiki',
+                'read_wiki',
+                'create_page',
+                'read_page',
+                'edit_page',
+                'delete_own_page',
+            ]);
+            await adminClient.patchRole(teamUserRole.id, {
+                permissions: Array.from(patchedTeamUserPermissions),
+            });
+
             // Create shared team for all pages tests in this worker
             const team = await adminClient.createTeam(await createRandomTeam('pages-team', 'Pages Team'));
 
-            await use({team, adminUser: adminUser!, adminClient});
+            try {
+                await use({team, adminUser: adminUser!, adminClient});
+            } finally {
+                await adminClient.patchRole(teamUserRole.id, {permissions: originalTeamUserPermissions});
+            }
         },
         {scope: 'worker', timeout: 120000},
     ],
@@ -82,7 +110,10 @@ export const test: ReturnType<typeof base.extend<PagesTestFixtures, PagesWorkerF
     // Test-scoped fixture: creates a fresh admin user for each test
     // Using admin bypasses all role-based permission checks,
     // avoiding HA cluster sync issues entirely.
-    // Each test gets a dedicated user to avoid relying on shared sysadmin state.
+    // Each test gets a dedicated user and a dedicated channel to avoid sharing
+    // mutable state across tests. The channel is unique per test so wikis
+    // created during the test don't accumulate against the server-side
+    // MaxLinkedWikisPerChannel cap on a shared channel.
     sharedPagesSetup: async ({pagesWorkerSetup}, use) => {
         const {team, adminClient} = pagesWorkerSetup;
 
@@ -97,6 +128,16 @@ export const test: ReturnType<typeof base.extend<PagesTestFixtures, PagesWorkerF
         // Add user to the team
         await adminClient.addToTeam(team.id, user.id);
 
+        // Create a dedicated public channel for this test
+        const channelSuffix = getRandomId();
+        const channel = await adminClient.createChannel({
+            team_id: team.id,
+            name: `pages-test-${channelSuffix}`,
+            display_name: `Pages Test ${channelSuffix}`,
+            type: 'O',
+        } as Channel);
+        await adminClient.addToChannel(user.id, channel.id);
+
         // Set user preferences (skip tutorial, show username as display name)
         const {client: userClient} = await makeClient(user);
         const preferences = [
@@ -106,7 +147,11 @@ export const test: ReturnType<typeof base.extend<PagesTestFixtures, PagesWorkerF
         ];
         await userClient.savePreferences(user.id, preferences);
 
-        await use({team, user, adminClient});
+        try {
+            await use({team, user, adminClient, channel});
+        } finally {
+            await adminClient.deleteChannel(channel.id).catch(() => {});
+        }
     },
 });
 
@@ -142,6 +187,7 @@ type PermissionsTestFixtures = {
         team: Team;
         user: UserProfile;
         adminClient: Client4;
+        channel: Channel;
     };
 };
 
@@ -169,35 +215,68 @@ export const testWithRegularUser: ReturnType<typeof base.extend<PermissionsTestF
                 config.TeamSettings.LockTeammateNameDisplay = false;
                 await adminClient.updateConfig(config);
 
-                // Ensure wiki/page permissions are in channel_user and channel_guest roles.
-                // We ALWAYS patch the roles to trigger cache invalidation across all HA nodes.
+                // Snapshot all roles before mutating so teardown can restore exactly.
+                // This prevents cross-run and cross-worker permission pollution:
+                // patchRole is additive, so without a restore stale grants accumulate.
                 const channelUserRole = await adminClient.getRoleByName('channel_user');
-                const allPermissions = new Set([...channelUserRole.permissions, ...WIKI_PAGE_PERMISSIONS]);
-
-                await adminClient.patchRole(channelUserRole.id, {
-                    permissions: Array.from(allPermissions),
-                });
-
                 const channelGuestRole = await adminClient.getRoleByName('channel_guest');
-                const guestPermissions = new Set([...channelGuestRole.permissions, 'read_page']);
+                const teamGuestRole = await adminClient.getRoleByName('team_guest');
+                const teamUserRole = await adminClient.getRoleByName('team_user');
 
-                await adminClient.patchRole(channelGuestRole.id, {
-                    permissions: Array.from(guestPermissions),
+                const originalChannelUserPermissions = [...channelUserRole.permissions];
+                const originalChannelGuestPermissions = [...channelGuestRole.permissions];
+                const originalTeamGuestPermissions = [...teamGuestRole.permissions];
+                const originalTeamUserPermissions = [...teamUserRole.permissions];
+
+                // channel_user: add wiki/page permissions so regular members can operate on pages.
+                await adminClient.patchRole(channelUserRole.id, {
+                    permissions: Array.from(new Set([...originalChannelUserPermissions, ...WIKI_PAGE_PERMISSIONS])),
                 });
 
-                // Wait for HA cluster nodes to sync role cache.
-                // Using 30 seconds as a balance between reliability and test speed.
-                // Permission tests may still be flaky in HA environments due to
-                // ClusterSendBestEffort delivery semantics.
-                const HA_SYNC_DELAY_MS = 30000;
-                await new Promise((resolve) => setTimeout(resolve, HA_SYNC_DELAY_MS));
+                // channel_guest: guests need read_page to view pages.
+                await adminClient.patchRole(channelGuestRole.id, {
+                    permissions: Array.from(new Set([...originalChannelGuestPermissions, 'read_page'])),
+                });
+
+                // team_guest: GetWikiForRead checks SessionHasWikiPermission(read_wiki) via
+                // SessionHasPermissionToTeam — channel roles are never consulted. Guests need
+                // read_wiki on their team role to load the wiki bundle (fetchWiki, fetchPages,
+                // fetchWikiLinks all gate on it).
+                await adminClient.patchRole(teamGuestRole.id, {
+                    permissions: Array.from(new Set([...originalTeamGuestPermissions, 'read_wiki'])),
+                });
+
+                // team_user: add read_wiki so regular members can load wiki metadata.
+                // manage_wiki must NOT be granted: CanResolvePageComment and the comment
+                // edit/delete path gate on it, so granting it to all team_users lets any
+                // member resolve or edit others' comments — breaking the permission tests.
+                await adminClient.patchRole(teamUserRole.id, {
+                    permissions: Array.from(
+                        new Set([
+                            ...originalTeamUserPermissions.filter((p) => p !== 'manage_wiki'),
+                            'read_wiki',
+                            'read_page',
+                        ]),
+                    ),
+                });
+
+                // Role cache sync in HA clusters is best-effort (ClusterSendBestEffort).
+                // Permission tests that depend on immediate sync should be annotated
+                // with test.fixme() in single-node CI where this delay is not needed.
 
                 // Create shared team for all permission tests in this worker
                 const team = await adminClient.createTeam(
                     await createRandomTeam('pages-perm-team', 'Pages Permission Team'),
                 );
 
-                await use({team, adminClient});
+                try {
+                    await use({team, adminClient});
+                } finally {
+                    await adminClient.patchRole(channelUserRole.id, {permissions: originalChannelUserPermissions});
+                    await adminClient.patchRole(channelGuestRole.id, {permissions: originalChannelGuestPermissions});
+                    await adminClient.patchRole(teamGuestRole.id, {permissions: originalTeamGuestPermissions});
+                    await adminClient.patchRole(teamUserRole.id, {permissions: originalTeamUserPermissions});
+                }
             },
             {scope: 'worker', timeout: 180000},
         ],
@@ -212,6 +291,16 @@ export const testWithRegularUser: ReturnType<typeof base.extend<PermissionsTestF
             user.password = randomUser.password;
             await adminClient.addToTeam(team.id, user.id);
 
+            // Create a dedicated public channel for this test
+            const channelSuffix = getRandomId();
+            const channel = await adminClient.createChannel({
+                team_id: team.id,
+                name: `pages-perm-test-${channelSuffix}`,
+                display_name: `Pages Perm Test ${channelSuffix}`,
+                type: 'O',
+            } as Channel);
+            await adminClient.addToChannel(user.id, channel.id);
+
             // Set user preferences (skip tutorial)
             const {client: userClient} = await makeClient(user);
             const preferences = [
@@ -220,7 +309,7 @@ export const testWithRegularUser: ReturnType<typeof base.extend<PermissionsTestF
             ];
             await userClient.savePreferences(user.id, preferences);
 
-            await use({team, user, adminClient});
+            await use({team, user, adminClient, channel});
         },
     });
 
