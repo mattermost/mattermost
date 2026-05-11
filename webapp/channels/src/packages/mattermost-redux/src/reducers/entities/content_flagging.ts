@@ -55,7 +55,7 @@ function postValues(state: ContentFlaggingState['postValues'] = {}, action: MMRe
     }
     case ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED: {
         const postId = action.data.target_id as string;
-        const existingPropertyValues = state[postId] || {};
+        const existingPropertyValues = state[postId] || [];
         const updatedPropertyValues = JSON.parse(action.data.property_values);
 
         const valuesByFieldId = {} as Record<string, PropertyValue<unknown>>;
