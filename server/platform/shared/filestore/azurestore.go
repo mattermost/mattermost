@@ -500,17 +500,18 @@ func (b *AzureFileBackend) writeZip(zw *zip.Writer, p string, method uint16) err
 }
 
 func (b *AzureFileBackend) writeZipEntry(zw *zip.Writer, blobPath, name string, method uint16) error {
-	data, err := b.ReadFile(blobPath)
+	r, err := b.Reader(blobPath)
 	if err != nil {
 		return err
 	}
+	defer r.Close()
 	header := &zip.FileHeader{Name: name, Method: method}
 	header.SetMode(0644)
 	w, err := zw.CreateHeader(header)
 	if err != nil {
 		return err
 	}
-	_, err = w.Write(data)
+	_, err = io.Copy(w, r)
 	return err
 }
 
