@@ -148,6 +148,7 @@ type TeamStore interface {
 	GetAllTeamListing() ([]*model.Team, error)
 	GetTeamsByUserId(userID string) ([]*model.Team, error)
 	GetDeletedTeamsByUserIdSince(userID string, since int64) ([]*model.Team, error)
+	UserCanJoinAnyTeam(userID string, listPublic, listPrivate bool) (bool, error)
 	GetByInviteId(inviteID string) (*model.Team, error)
 	GetByEmptyInviteID() ([]*model.Team, error)
 	PermanentDelete(teamID string) error

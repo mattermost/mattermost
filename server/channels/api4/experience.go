@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -35,7 +36,10 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userID := c.AppContext.Session().UserId
 
-	resp, appErr := c.App.GetInitialLoad(c.AppContext, userID, activeTeamID, activeChannelID, since)
+	listPublic := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams)
+	listPrivate := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPrivateTeams)
+
+	resp, appErr := c.App.GetInitialLoad(c.AppContext, userID, activeTeamID, activeChannelID, since, listPublic, listPrivate)
 	if appErr != nil {
 		c.Err = appErr
 		return

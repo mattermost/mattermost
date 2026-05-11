@@ -12055,6 +12055,22 @@ func (s *TimerLayerTeamStore) UserBelongsToTeams(userID string, teamIds []string
 	return result, err
 }
 
+func (s *TimerLayerTeamStore) UserCanJoinAnyTeam(userID string, listPublic bool, listPrivate bool) (bool, error) {
+	start := time.Now()
+
+	result, err := s.TeamStore.UserCanJoinAnyTeam(userID, listPublic, listPrivate)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.UserCanJoinAnyTeam", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTemporaryPostStore) Delete(rctx request.CTX, id string) error {
 	start := time.Now()
 

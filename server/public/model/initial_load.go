@@ -68,6 +68,13 @@ type InitialLoadResponse struct {
 
 	// Hints for the client about which data to prioritize on first render.
 	PriorityHints *InitialLoadPriorityHints `json:"priority_hints,omitempty"`
+
+	// CanJoinOtherTeams is true when there exists at least one non-deleted team the
+	// caller is not yet a member of AND is allowed to list (per ListPublicTeams /
+	// ListPrivateTeams permissions). Drives the "Join Another Team" UI without the
+	// client needing to paginate GET /teams. Always sent (also in delta) since it's
+	// cheap to compute and may change between requests as teams are created/joined.
+	CanJoinOtherTeams bool `json:"can_join_other_teams"`
 }
 
 // InitialLoadUser is the compact user representation for the logged-in user.

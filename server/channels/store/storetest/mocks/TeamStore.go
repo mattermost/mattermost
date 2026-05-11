@@ -1454,6 +1454,34 @@ func (_m *TeamStore) UserBelongsToTeams(userID string, teamIds []string) (bool, 
 	return r0, r1
 }
 
+// UserCanJoinAnyTeam provides a mock function with given fields: userID, listPublic, listPrivate
+func (_m *TeamStore) UserCanJoinAnyTeam(userID string, listPublic bool, listPrivate bool) (bool, error) {
+	ret := _m.Called(userID, listPublic, listPrivate)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserCanJoinAnyTeam")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, bool, bool) (bool, error)); ok {
+		return rf(userID, listPublic, listPrivate)
+	}
+	if rf, ok := ret.Get(0).(func(string, bool, bool) bool); ok {
+		r0 = rf(userID, listPublic, listPrivate)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, bool, bool) error); ok {
+		r1 = rf(userID, listPublic, listPrivate)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewTeamStore creates a new instance of TeamStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewTeamStore(t interface {

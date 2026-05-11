@@ -56,16 +56,17 @@ var initialLoadPreferenceCategories = []string{
 //
 // Pass since=0 for a full cold-start response; pass the cursor returned by a
 // previous call for a delta response.
-func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID string, activeChannelID string, since int64) (*model.InitialLoadResponse, *model.AppError) {
+func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID string, activeChannelID string, since int64, listPublicTeams, listPrivateTeams bool) (*model.InitialLoadResponse, *model.AppError) {
 	// -----------------------------------------------------------------------
 	// Phase A — fully parallel, no inter-dependencies
 	// -----------------------------------------------------------------------
 	var (
-		me           *model.User
-		teams        []*model.Team
-		deletedTeams []*model.Team // archived teams (Team.DeleteAt > since); delta only
-		teamMembers  []*model.TeamMember
-		prefs        model.Preferences
+		me                *model.User
+		teams             []*model.Team
+		deletedTeams      []*model.Team // archived teams (Team.DeleteAt > since); delta only
+		teamMembers       []*model.TeamMember
+		prefs             model.Preferences
+		canJoinOtherTeams bool
 	)
 
 	var egA errgroup.Group
@@ -126,6 +127,17 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 				prefs = append(prefs, p)
 			}
 		}
+		return nil
+	})
+
+	// CanJoinOtherTeams — single EXISTS query, gated by ListPublicTeams /
+	// ListPrivateTeams permissions (skipped entirely when both are false).
+	egA.Go(func() error {
+		canJoin, err := a.Srv().Store().Team().UserCanJoinAnyTeam(userID, listPublicTeams, listPrivateTeams)
+		if err != nil {
+			return model.NewAppError("GetInitialLoad", "app.team.user_can_join_any_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		canJoinOtherTeams = canJoin
 		return nil
 	})
 
@@ -561,6 +573,7 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 		DirectProfiles:      directProfiles,
 		Timestamp:           model.GetMillis(),
 		PriorityHints:       buildPriorityHints(resolvedTeamID, activeChannelID, allChannels, channelMembers),
+		CanJoinOtherTeams:   canJoinOtherTeams,
 	}
 
 	return resp, nil
