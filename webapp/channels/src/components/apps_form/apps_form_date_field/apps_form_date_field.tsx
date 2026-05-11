@@ -58,19 +58,23 @@ const AppsFormDateField: React.FC<Props> = ({
         setIsInteracting?.(isOpen);
     }, [setIsInteracting]);
 
+    // Resolve effective min/max dates (datetime_config takes precedence over deprecated top-level fields)
+    const effectiveMinDate = field.datetime_config?.min_date ?? field.min_date;
+    const effectiveMaxDate = field.datetime_config?.max_date ?? field.max_date;
+
     const disabledDays = useMemo(() => {
         const disabled = [];
 
-        if (field.min_date) {
-            const resolvedMinDate = resolveRelativeDate(field.min_date);
+        if (effectiveMinDate) {
+            const resolvedMinDate = resolveRelativeDate(effectiveMinDate);
             const minDate = stringToDate(resolvedMinDate);
             if (minDate) {
                 disabled.push({before: minDate});
             }
         }
 
-        if (field.max_date) {
-            const resolvedMaxDate = resolveRelativeDate(field.max_date);
+        if (effectiveMaxDate) {
+            const resolvedMaxDate = resolveRelativeDate(effectiveMaxDate);
             const maxDate = stringToDate(resolvedMaxDate);
             if (maxDate) {
                 disabled.push({after: maxDate});
@@ -78,7 +82,7 @@ const AppsFormDateField: React.FC<Props> = ({
         }
 
         return disabled.length > 0 ? disabled : undefined;
-    }, [field.min_date, field.max_date]);
+    }, [effectiveMinDate, effectiveMaxDate]);
 
     const placeholder = field.hint || intl.formatMessage({
         id: 'apps_form.date_field.placeholder',

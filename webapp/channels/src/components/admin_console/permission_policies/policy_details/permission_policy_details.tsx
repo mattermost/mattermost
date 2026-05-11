@@ -6,6 +6,7 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties';
@@ -718,8 +719,7 @@ function PermissionPolicyDetails({
                                     defaultMessage='Delete Policy'
                                 />
                             }
-                            confirmButtonClassName='btn btn-danger'
-                            isDeleteModal={true}
+                            confirmButtonVariant='destructive'
                             compassDesign={true}
                         >
                             <FormattedMessage
@@ -742,7 +742,7 @@ function PermissionPolicyDetails({
                             }
                         />
                         <BlockableLink
-                            className='btn btn-quaternary'
+                            className={buttonClassNames({emphasis: 'quaternary'})}
                             to='/admin_console/system_attributes/permission_policies'
                         >
                             <FormattedMessage

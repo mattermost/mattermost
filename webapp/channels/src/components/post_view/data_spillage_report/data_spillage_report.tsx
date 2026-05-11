@@ -149,8 +149,13 @@ export function DataSpillageReport({post, isRHS}: Props) {
             return null;
         }
 
-        return (<DataSpillageFooter post={post}/>);
-    }, [isRHS, post]);
+        return (
+            <DataSpillageFooter
+                post={post}
+                flaggedPostID={reportedPostId}
+            />
+        );
+    }, [isRHS, post, reportedPostId]);
 
     const actionRow = useMemo(() => {
         if (!reportedPost || !reportingUser) {

@@ -519,7 +519,7 @@ func (a *App) getFileMetadataForPost(rctx request.CTX, post *model.Post, fromMas
 		return nil, 0, nil
 	}
 
-	return a.GetFileInfosForPost(rctx, post.Id, fromMaster, includeDeleted)
+	return a.GetFileInfosForPost(rctx, post, fromMaster, includeDeleted)
 }
 
 func (a *App) getEmojisAndReactionsForPost(rctx request.CTX, post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {

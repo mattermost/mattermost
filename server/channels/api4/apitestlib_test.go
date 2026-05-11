@@ -60,7 +60,7 @@ func TestEnvironmentVariableHandling(t *testing.T) {
 		customConsoleLevel := *config2.LogSettings.ConsoleLevel
 
 		// Verify our manual implementation works
-		assert.Equal(t, mlog.LvlStdLog.Name, defaultConsoleLevel, "Default should be stdlog")
+		assert.Equal(t, mlog.LvlDebug.Name, defaultConsoleLevel, "Default should be debug")
 		assert.Equal(t, "DEBUG", customConsoleLevel, "Environment variable should be respected")
 		assert.NotEqual(t, defaultConsoleLevel, customConsoleLevel, "Values should be different")
 	})

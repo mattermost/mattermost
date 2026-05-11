@@ -201,7 +201,20 @@ export default class ChannelsPage {
 
     async openChannelSettings(): Promise<ChannelSettingsModal> {
         await this.centerView.header.openChannelMenu();
-        await this.page.locator('#channelSettings[role="menuitem"]').click();
+
+        const channelSettingsMenuItem = this.page.getByRole('menuitem', {name: 'Channel Settings'});
+        const moreActionsMenuItem = this.page.getByRole('menuitem', {name: /More actions/i});
+
+        const channelSettingsVisible = await channelSettingsMenuItem.isVisible({timeout: 1500}).catch(() => false);
+        if (!channelSettingsVisible) {
+            const moreActionsVisible = await moreActionsMenuItem.isVisible({timeout: 1500}).catch(() => false);
+            if (moreActionsVisible) {
+                await moreActionsMenuItem.click();
+            }
+        }
+
+        await expect(channelSettingsMenuItem).toBeVisible();
+        await channelSettingsMenuItem.click();
         await this.channelSettingsModal.toBeVisible();
 
         return this.channelSettingsModal;
@@ -298,5 +311,9 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.selectCustomTime();
 
         return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+    }
+
+    async getFlaggedPostViewDetailButton(flaggedPostId: string) {
+        return this.page.getByTestId(`data-spillage-action-view-details_${flaggedPostId}`);
     }
 }

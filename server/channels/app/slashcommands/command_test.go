@@ -250,6 +250,17 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, resp.IconURL, post.GetProp(model.PostPropsOverrideIconURL))
 	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
+	resp.IconURL = ""
+
+	// When both command and response icon URLs are empty and EnablePostIconOverride is enabled,
+	// override_icon_url must not be set (avoids spurious "prop must be a valid URL" warning).
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+	assert.Nil(t, err)
+	assert.Nil(t, post.GetProp(model.PostPropsOverrideIconURL))
+	assert.NotContains(t, post.GetProps(), model.PostPropsOverrideIconURL)
+
+	resp.IconURL = "Response icon url"
+
 	// Test Slack text conversion.
 	resp.Text = "<!channel>"
 

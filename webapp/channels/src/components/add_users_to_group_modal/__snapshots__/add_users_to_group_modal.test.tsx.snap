@@ -160,7 +160,7 @@ exports[`component/add_users_to_group_modal should match snapshot 1`] = `
                       class="multi-select__footer modal-footer"
                     >
                       <button
-                        class="btn btn-tertiary multiselect-back"
+                        class="btn btn-tertiary"
                       >
                         Back
                       </button>
