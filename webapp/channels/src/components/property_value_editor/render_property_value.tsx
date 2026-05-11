@@ -11,6 +11,7 @@ import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
+import Tag from 'components/widgets/tag/tag';
 import Avatar from 'components/widgets/users/avatar/avatar';
 
 import {imageURLForUser} from 'utils/utils';
@@ -32,18 +33,6 @@ function isEmpty(value: unknown): boolean {
         return true;
     }
     return false;
-}
-
-function OptionPill({option}: {option: PropertyFieldOption}) {
-    const style: React.CSSProperties = option.color ? {backgroundColor: option.color} : {};
-    return (
-        <span
-            className='property-pill'
-            style={style}
-        >
-            {option.name}
-        </span>
-    );
 }
 
 function UserValue({userId}: {userId: string}) {
@@ -107,7 +96,13 @@ export function renderPropertyValue(
         if (!option) {
             return null;
         }
-        return <OptionPill option={option}/>;
+        return (
+            <Tag
+                text={option.name}
+                color={option.color}
+                size='sm'
+            />
+        );
     }
     case 'multiselect': {
         if (!Array.isArray(value)) {
@@ -123,9 +118,11 @@ export function renderPropertyValue(
         return (
             <span className='property-pills'>
                 {selected.map((opt) => (
-                    <OptionPill
+                    <Tag
                         key={opt.id}
-                        option={opt}
+                        text={opt.name}
+                        color={opt.color}
+                        size='sm'
                     />
                 ))}
             </span>

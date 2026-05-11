@@ -10,6 +10,7 @@ import {
     FormatListBulletedIcon,
     TextBoxOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import type {PropertyField} from '@mattermost/types/properties';
 
 type Props = {
@@ -25,6 +26,14 @@ const ICON_BY_TYPE: Record<string, IconComponent> = {
     select: CheckCircleOutlineIcon,
     multiselect: FormatListBulletedIcon,
     user: AccountOutlineIcon,
+};
+
+export const GLYPH_BY_TYPE: Record<string, IconGlyphTypes> = {
+    text: 'text-box-outline',
+    date: 'calendar-outline',
+    select: 'check-circle-outline',
+    multiselect: 'format-list-bulleted',
+    user: 'account-outline',
 };
 
 export default function PropertyTypeIcon({type, size = 16}: Props) {

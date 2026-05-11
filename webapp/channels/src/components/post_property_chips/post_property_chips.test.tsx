@@ -194,10 +194,36 @@ describe('components/post_property_chips/PostPropertyChips', () => {
             />,
         );
 
-        expect(container.querySelector('.property-type-icon--text')).toBeInTheDocument();
+        // The outer chip Tag carries an icon (rendered as an svg by compass-icons).
+        const chip = container.querySelector('[data-property-field-id="f1"]');
+        expect(chip).not.toBeNull();
+        expect(chip?.querySelector('svg')).toBeInTheDocument();
     });
 
-    test('renders select values as a colored option pill', () => {
+    test('renders the outer chip as a small Tag carrying the field id', () => {
+        const field = makeField({id: 'f1', name: 'Notes', type: 'text'});
+
+        const {container} = render(
+            <PostPropertyChips
+                postId='post-1'
+                fields={[field]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: 'remember the milk'}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+            />,
+        );
+
+        const chip = container.querySelector('[data-property-field-id="f1"]') as HTMLElement | null;
+        expect(chip).not.toBeNull();
+        expect(chip).toHaveClass('Tag', 'Tag--sm');
+
+        // The field-name prefix is preserved alongside the value.
+        expect(chip).toHaveTextContent('Notes');
+        expect(chip).toHaveTextContent('remember the milk');
+    });
+
+    test('renders select values as a colored option Tag inside the chip', () => {
         const field = makeField({
             id: 'f1',
             name: 'Status',
@@ -221,13 +247,23 @@ describe('components/post_property_chips/PostPropertyChips', () => {
             />,
         );
 
-        const pill = container.querySelector('.property-pill') as HTMLElement | null;
-        expect(pill).not.toBeNull();
-        expect(pill).toHaveTextContent('Open');
-        expect(pill?.style.backgroundColor).toBeTruthy();
+        const chip = container.querySelector('[data-property-field-id="f1"]') as HTMLElement | null;
+        expect(chip).not.toBeNull();
+        expect(chip).toHaveTextContent('Open');
+
+        // The inner option Tag carries the option color as a background.
+        // The outer chip is the first .Tag (no color) — the inner option Tag has the color.
+        const innerTags = chip!.querySelectorAll('.Tag--sm');
+
+        // Outer Tag wraps the inner option Tag — so we expect at least 2 Tag wrappers.
+        // Find the one with the colored background.
+        const colored = Array.from(innerTags).find((el) => (el as HTMLElement).style.backgroundColor) as HTMLElement | undefined;
+        expect(colored).toBeDefined();
+        expect(colored).toHaveStyle({backgroundColor: '#ff00aa'});
+        expect(colored).toHaveTextContent('Open');
     });
 
-    test('renders a single chip with one pill per selected option for multiselect values', () => {
+    test('renders a single chip with one Tag per selected option for multiselect values', () => {
         const field = makeField({
             id: 'f1',
             name: 'Tags',
@@ -251,14 +287,18 @@ describe('components/post_property_chips/PostPropertyChips', () => {
             />,
         );
 
-        const chips = container.querySelectorAll('.property-chip');
+        const chips = container.querySelectorAll('[data-property-field-id="f1"]');
         expect(chips).toHaveLength(1);
         expect(chips[0]).toHaveTextContent('Tags');
 
-        const pills = chips[0].querySelectorAll('.property-chip__multi-pill');
-        expect(pills).toHaveLength(2);
-        expect(pills[0]).toHaveTextContent('urgent');
-        expect(pills[1]).toHaveTextContent('bug');
+        // Each selected option becomes an inner Tag with its color background.
+        const allSmTags = chips[0].querySelectorAll('.Tag--sm');
+        const coloredInner = Array.from(allSmTags).filter((el) => (el as HTMLElement).style.backgroundColor) as HTMLElement[];
+        expect(coloredInner).toHaveLength(2);
+        expect(coloredInner[0]).toHaveTextContent('urgent');
+        expect(coloredInner[0]).toHaveStyle({backgroundColor: '#ff0000'});
+        expect(coloredInner[1]).toHaveTextContent('bug');
+        expect(coloredInner[1]).toHaveStyle({backgroundColor: '#00ff00'});
     });
 
     test('renders a date value formatted via FormattedDate', () => {

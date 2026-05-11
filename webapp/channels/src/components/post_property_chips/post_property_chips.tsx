@@ -3,10 +3,11 @@
 
 import React, {useEffect} from 'react';
 
-import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
+import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {renderPropertyValue} from 'components/property_value_editor/render_property_value';
-import PropertyTypeIcon from 'components/property_value_editor/type_icon';
+import {GLYPH_BY_TYPE} from 'components/property_value_editor/type_icon';
+import Tag from 'components/widgets/tag/tag';
 
 import './post_property_chips.scss';
 
@@ -30,65 +31,27 @@ function isFilled(raw: unknown): boolean {
     return true;
 }
 
-function getOptions(field: PropertyField): PropertyFieldOption[] {
-    return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
-}
-
-function Chip({field, content, optionColor}: {
+function Chip({field, content}: {
     field: PropertyField;
     content: React.ReactNode;
-    optionColor?: string;
 }) {
-    const style: React.CSSProperties = optionColor ? {backgroundColor: optionColor} : {};
-    return (
-        <span
-            className='property-chip'
-            data-property-field-id={field.id}
-            style={style}
-        >
-            <span className='property-chip__icon'>
-                <PropertyTypeIcon type={field.type}/>
-            </span>
+    const text = (
+        <>
             <span className='property-chip__name'>{field.name}</span>
             <span className='property-chip__value'>{content}</span>
-        </span>
+        </>
+    );
+    return (
+        <Tag
+            size='sm'
+            icon={GLYPH_BY_TYPE[field.type] ?? 'text-box-outline'}
+            text={text}
+            data-property-field-id={field.id}
+        />
     );
 }
 
 function renderChipsForField(field: PropertyField, raw: unknown): React.ReactNode[] {
-    if (field.type === 'multiselect' && Array.isArray(raw)) {
-        const options = getOptions(field);
-        const selected = raw.
-            map((id) => options.find((opt) => opt.id === id)).
-            filter((opt): opt is PropertyFieldOption => Boolean(opt));
-
-        if (selected.length === 0) {
-            return [];
-        }
-
-        const content = (
-            <span className='property-chip__multi'>
-                {selected.map((opt) => (
-                    <span
-                        key={opt.id}
-                        className='property-chip__multi-pill'
-                        style={opt.color ? {backgroundColor: opt.color} : undefined}
-                    >
-                        {opt.name}
-                    </span>
-                ))}
-            </span>
-        );
-
-        return [
-            <Chip
-                key={field.id}
-                field={field}
-                content={content}
-            />,
-        ];
-    }
-
     const summary = renderPropertyValue(field, raw);
     if (!summary) {
         return [];

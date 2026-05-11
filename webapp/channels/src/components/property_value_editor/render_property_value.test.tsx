@@ -52,7 +52,7 @@ describe('components/property_value_editor/renderPropertyValue', () => {
         expect(screen.getByTestId('wrap')).toHaveTextContent('hello');
     });
 
-    test('renders a colored option pill for select fields', () => {
+    test('renders a colored option Tag for select fields', () => {
         const field = makeField({
             type: 'select',
             attrs: {
@@ -64,32 +64,35 @@ describe('components/property_value_editor/renderPropertyValue', () => {
         const {container} = renderWithContext(
             <span data-testid='wrap'>{renderPropertyValue(field, 'opt1')}</span>,
         );
-        const pill = container.querySelector('.property-pill') as HTMLElement | null;
-        expect(pill).not.toBeNull();
-        expect(pill?.textContent).toBe('Open');
+        const tag = container.querySelector('.Tag--sm') as HTMLElement | null;
+        expect(tag).not.toBeNull();
+        expect(tag).toHaveClass('Tag', 'Tag--sm');
+        expect(tag?.textContent).toBe('Open');
 
         // jsdom normalizes hex to rgb
-        expect(pill?.style.backgroundColor).toBe('rgb(255, 0, 170)');
+        expect(tag?.style.backgroundColor).toBe('rgb(255, 0, 170)');
     });
 
-    test('renders multiple pills for multiselect fields', () => {
+    test('renders multiple Tag pills for multiselect fields', () => {
         const field = makeField({
             type: 'multiselect',
             attrs: {
                 options: [
-                    {id: 'opt1', name: 'Bug', color: '#aaa'},
-                    {id: 'opt2', name: 'Urgent', color: '#bbb'},
-                    {id: 'opt3', name: 'Other', color: '#ccc'},
+                    {id: 'opt1', name: 'Bug', color: '#aaaaaa'},
+                    {id: 'opt2', name: 'Urgent', color: '#bbbbbb'},
+                    {id: 'opt3', name: 'Other', color: '#cccccc'},
                 ],
             },
         });
         const {container} = renderWithContext(
             <span data-testid='wrap'>{renderPropertyValue(field, ['opt1', 'opt2'])}</span>,
         );
-        const pills = container.querySelectorAll('.property-pill');
-        expect(pills).toHaveLength(2);
-        expect(pills[0].textContent).toBe('Bug');
-        expect(pills[1].textContent).toBe('Urgent');
+        const tags = container.querySelectorAll('.Tag--sm');
+        expect(tags).toHaveLength(2);
+        expect(tags[0].textContent).toBe('Bug');
+        expect(tags[1].textContent).toBe('Urgent');
+        expect(tags[0]).toHaveStyle({backgroundColor: '#aaaaaa'});
+        expect(tags[1]).toHaveStyle({backgroundColor: '#bbbbbb'});
     });
 
     test('renders user display name for user fields', () => {
