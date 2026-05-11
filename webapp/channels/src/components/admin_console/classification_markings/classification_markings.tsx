@@ -374,6 +374,8 @@ export default function ClassificationMarkings({disabled}: Props) {
             }
 
             // Ensure the channel_classification linked field exists as part of the set.
+            // Push saved fields into Redux eagerly so the banner updates
+            // atomically rather than waiting for out-of-order WS events.
             const existingChannelField = await fetchChannelClassificationField();
             if (existingChannelField) {
                 dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked]}});

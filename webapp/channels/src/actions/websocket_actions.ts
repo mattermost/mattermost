@@ -782,15 +782,16 @@ function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChan
     }
 }
 
-// handleChannelConvertedEvent handles updating of channel which is converted from public to private
+// handleChannelConvertedEvent handles updating of channel which is converted between public and private
 function handleChannelConvertedEvent(msg: WebSocketMessages.ChannelConverted) {
     const channelId = msg.data.channel_id;
     if (channelId) {
         const channel = getChannel(getState(), channelId);
         if (channel) {
+            const newType = msg.data.channel_type === General.OPEN_CHANNEL ? General.OPEN_CHANNEL : General.PRIVATE_CHANNEL;
             dispatch({
                 type: ChannelTypes.RECEIVED_CHANNEL,
-                data: {...channel, type: General.PRIVATE_CHANNEL},
+                data: {...channel, type: newType},
             });
         }
     }
@@ -1302,6 +1303,9 @@ function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdate
             values,
         };
 
+        // Populate the Redux property values store so any component that reads
+        // from entities.properties.values (e.g. GlobalClassificationBanner) gets
+        // real-time updates without an extra network round-trip.
         doDispatch({
             type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
             data: {values},

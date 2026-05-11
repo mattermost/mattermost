@@ -40,6 +40,8 @@ function selectLinkedSystemField(state: GlobalState): PropertyField | undefined 
     if (!byId) {
         return undefined;
     }
+
+    // The linked system field has object_type 'system' and a linked_field_id set.
     return Object.values(byId).find(
         (f) => f.object_type === LINKED_OBJECT_TYPE && f.name === LINKED_FIELD_NAME && f.linked_field_id && f.delete_at === 0,
     );
@@ -78,6 +80,7 @@ export default function GlobalClassificationBanner({position}: Props) {
         }
     }, [featureEnabled, templateField, linkedField, systemValue, dispatch]);
 
+    // Display conditions are encoded in the linked field's attrs.actions.
     const actions = (linkedField?.attrs?.actions as string[] | undefined) ?? [];
     const shouldRenderTop = actions.includes(DISPLAY_BANNER_TOP);
     const shouldRenderBottom = actions.includes(DISPLAY_BANNER_BOTTOM);
