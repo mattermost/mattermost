@@ -110,9 +110,11 @@ func (ps *PlatformService) ClearUserSessionCache(userID string) {
 }
 
 func (ps *PlatformService) ClearAllUsersSessionCache() error {
-	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
-		return err
-	}
+	// Mirrors the per-user shape: the SkipClusterSend helper handles the
+	// local cache purge and the WebConn hub fan-out, then we broadcast to
+	// peer nodes. The broadcast still runs on local-purge failure so peers
+	// can act independently.
+	err := ps.ClearSessionCacheForAllUsersSkipClusterSend()
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
@@ -121,7 +123,7 @@ func (ps *PlatformService) ClearAllUsersSessionCache() error {
 		}
 		ps.clusterIFace.SendClusterMessage(msg)
 	}
-	return nil
+	return err
 }
 
 func (ps *PlatformService) GetSession(rctx request.CTX, token string) (*model.Session, error) {

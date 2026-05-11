@@ -34,6 +34,12 @@ services:
       MINIO_ROOT_USER: minioaccesskey
       MINIO_ROOT_PASSWORD: miniosecretkey
       MINIO_KMS_SECRET_KEY: my-minio-key:OSMM+vkKUTCvQs9YL/CVMIMt43HFhkUpqJxTmGl6rYw=
+  azurite:
+    image: "mcr.microsoft.com/azure-storage/azurite:3.34.0"
+    logging: *default-logging
+    command: "azurite-blob --blobHost 0.0.0.0 --blobPort 10000 --skipApiVersionCheck"
+    networks:
+      - mm-test
   inbucket:
     image: "inbucket/inbucket:3.1.1"
     logging: *default-logging

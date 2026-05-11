@@ -10666,10 +10666,6 @@
     "translation": "チャンネルはグループによって制限されており、アクセス制御ポリシーを適用できません。"
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "アクセス制御ポリシーは非公開チャンネルに対してのみ適用できます。"
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "共有チャンネルにはアクセス制御ポリシーを適用できません。"
   },

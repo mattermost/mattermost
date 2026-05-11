@@ -330,12 +330,12 @@ Object {
                     class="sectionNoticeActions"
                   >
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-primary"
+                      class="btn btn-primary btn-sm sectionNoticeButton"
                     >
                       Send a test notification
                     </button>
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-tertiary"
+                      class="btn btn-tertiary btn-sm sectionNoticeButton"
                     >
                       Troubleshooting docs
                       <i
@@ -677,12 +677,12 @@ Object {
                   class="sectionNoticeActions"
                 >
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-primary"
+                    class="btn btn-primary btn-sm sectionNoticeButton"
                   >
                     Send a test notification
                   </button>
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-tertiary"
+                    class="btn btn-tertiary btn-sm sectionNoticeButton"
                   >
                     Troubleshooting docs
                     <i
@@ -1092,12 +1092,12 @@ Object {
                     class="sectionNoticeActions"
                   >
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-primary"
+                      class="btn btn-primary btn-sm sectionNoticeButton"
                     >
                       Send a test notification
                     </button>
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-tertiary"
+                      class="btn btn-tertiary btn-sm sectionNoticeButton"
                     >
                       Troubleshooting docs
                       <i
@@ -1441,12 +1441,12 @@ Object {
                   class="sectionNoticeActions"
                 >
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-primary"
+                    class="btn btn-primary btn-sm sectionNoticeButton"
                   >
                     Send a test notification
                   </button>
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-tertiary"
+                    class="btn btn-tertiary btn-sm sectionNoticeButton"
                   >
                     Troubleshooting docs
                     <i
@@ -1818,12 +1818,12 @@ Object {
                     class="sectionNoticeActions"
                   >
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-primary"
+                      class="btn btn-primary btn-sm sectionNoticeButton"
                     >
                       Send a test notification
                     </button>
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-tertiary"
+                      class="btn btn-tertiary btn-sm sectionNoticeButton"
                     >
                       Troubleshooting docs
                       <i
@@ -2129,12 +2129,12 @@ Object {
                   class="sectionNoticeActions"
                 >
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-primary"
+                    class="btn btn-primary btn-sm sectionNoticeButton"
                   >
                     Send a test notification
                   </button>
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-tertiary"
+                    class="btn btn-tertiary btn-sm sectionNoticeButton"
                   >
                     Troubleshooting docs
                     <i

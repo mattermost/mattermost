@@ -10672,10 +10672,6 @@
     "translation": "Kanaal is groepsgebonden en kan geen toegangscontrolebeleid hebben."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Beleid voor toegangscontrole kan alleen worden toegepast op privékanalen."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "Op gedeelde kanalen kan geen toegangscontrolebeleid worden toegepast."
   },

@@ -11,6 +11,8 @@ import {getLogErrorAction} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 
+import {getConnectionId} from 'selectors/general';
+
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
 import {localizeMessage} from 'utils/utils';
@@ -51,6 +53,11 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
         });
 
         xhr.setRequestHeader('Accept', 'application/json');
+
+        const connectionId = getConnectionId(getState());
+        if (connectionId) {
+            xhr.setRequestHeader('Connection-Id', connectionId);
+        }
 
         const formData = new FormData();
         formData.append('channel_id', channelId);

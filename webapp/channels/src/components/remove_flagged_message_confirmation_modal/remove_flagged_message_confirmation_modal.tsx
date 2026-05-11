@@ -105,13 +105,13 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
     let subtext;
     let body;
     let buttonText;
-    let confirmButtonClass;
+    let confirmButtonVariant;
 
     if (action === 'remove') {
         label = removeActionLabel;
         body = removeActionBody;
         buttonText = removeMessageButtonText;
-        confirmButtonClass = 'btn-danger';
+        confirmButtonVariant = 'destructive' as const;
 
         if (contentFlaggingConfig?.notify_reporter_on_removal) {
             subtext = removeActionBodySubTextReporterNotification;
@@ -122,7 +122,6 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         label = keepActionLabel;
         body = keepActionBody;
         buttonText = keepMessageButtonText;
-        confirmButtonClass = 'btn-primary';
 
         if (contentFlaggingConfig?.notify_reporter_on_dismissal) {
             subtext = keepActionBodySubTextReporterNotification;
@@ -177,7 +176,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
             handleCancel={noop}
             onExited={onExited}
             confirmButtonText={buttonText}
-            confirmButtonClassName={confirmButtonClass}
+            confirmButtonVariant={confirmButtonVariant}
             autoCloseOnConfirmButton={false}
             isConfirmDisabled={submitting}
         >
