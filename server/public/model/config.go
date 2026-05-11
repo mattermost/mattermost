@@ -4492,6 +4492,10 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.amazons3_timeout.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
 	}
 
+	if *s.AzureRequestTimeoutMilliseconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_timeout.app_error", map[string]any{"Value": *s.AzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
+	}
+
 	if *s.AmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.AmazonS3StorageClass) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.AmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
@@ -4500,12 +4504,24 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.AmazonS3PathPrefix", "Value": *s.AmazonS3PathPrefix}, "", http.StatusBadRequest)
 	}
 
+	if strings.TrimSpace(*s.AzurePathPrefix) != *s.AzurePathPrefix {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.AzurePathPrefix", "Value": *s.AzurePathPrefix}, "", http.StatusBadRequest)
+	}
+
 	if *s.ExportAmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.ExportAmazonS3StorageClass) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.ExportAmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
 
+	if *s.ExportAzureRequestTimeoutMilliseconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.export_azure_timeout.app_error", map[string]any{"Value": *s.ExportAzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
+	}
+
 	if strings.TrimSpace(*s.ExportAmazonS3PathPrefix) != *s.ExportAmazonS3PathPrefix {
 		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.ExportAmazonS3PathPrefix", "Value": *s.ExportAmazonS3PathPrefix}, "", http.StatusBadRequest)
+	}
+
+	if strings.TrimSpace(*s.ExportAzurePathPrefix) != *s.ExportAzurePathPrefix {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.ExportAzurePathPrefix", "Value": *s.ExportAzurePathPrefix}, "", http.StatusBadRequest)
 	}
 
 	if strings.TrimSpace(*s.ExportDirectory) != *s.ExportDirectory {

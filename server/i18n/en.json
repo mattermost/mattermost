@@ -11035,6 +11035,10 @@
     "translation": "Workers must be between 1 and 64."
   },
   {
+    "id": "model.config.is_valid.azure_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "Cache type must be either lru or redis."
   },
@@ -11215,8 +11219,12 @@
     "translation": "Invalid value for RetentionDays. Value should be greater than 0"
   },
   {
+    "id": "model.config.is_valid.export_azure_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Invalid driver name for file settings. Must be 'local' or 'amazons3'."
+    "translation": "Invalid driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'."
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
