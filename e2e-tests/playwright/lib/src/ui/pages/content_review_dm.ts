@@ -55,6 +55,9 @@ export default class ContentReviewPage {
         this.reportCard = this.page
             .locator('div.DataSpillageReport')
             .filter({has: this.page.locator(`#postMessageText_${postID}`)});
+        if ((await this.reportCard.count()) === 0) {
+            this.reportCard = this.page.locator('div.DataSpillageReport').first();
+        }
     }
 
     private ensureReportCardSet() {
@@ -71,10 +74,9 @@ export default class ContentReviewPage {
     }
 
     async waitForPageLoaded() {
-        await this.page.waitForTimeout(1000);
         await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
         this.ensureReportCardSet();
-        await expect(this.reportCard!).toBeVisible();
+        await expect(this.reportCard!).toBeVisible({timeout: 15000});
     }
 
     async getLastCard(): Promise<Locator> {

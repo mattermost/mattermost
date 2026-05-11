@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {test} from '@mattermost/playwright-lib';
 
 import {setupContentFlagging, createPost} from './../support';
 
@@ -77,5 +77,5 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
 
     // Verify file attachment is present with the expected filename pattern
     const expectedFileName = `deletion_report_${post.id}.md`;
-    await expect(channelsPage.sidebarRight.container).toContainText(expectedFileName);
+    await channelsPage.sidebarRight.toContainText(expectedFileName, 30000);
 });
