@@ -6360,10 +6360,6 @@
     "translation": "Nepodařilo se získat kanály pro daná id."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Nepodařilo se získat počet kanálů."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Nepodařilo se získat kanály pro dané schéma."
   },

@@ -6292,10 +6292,6 @@
     "translation": "Nie można uzyskać kanałów według identyfikatorów."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Nie można uzyskać liczby kanałów."
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Napotkaliśmy błąd aktualizując zespół."
   },
@@ -12540,10 +12536,6 @@
     "translation": "Nie masz wymaganego dostępu do przesyłania plików na ten kanał."
   },
   {
-    "id": "api.managed_category.feature_not_available.app_error",
-    "translation": "Zarządzane kategorie kanałów nie są dostępne."
-  },
-  {
     "id": "api.shared_channel.attachment.creator_id_required.app_error",
     "translation": "FileInfo.CreatorId jest wymagany."
   },
@@ -12786,5 +12778,9 @@
   {
     "id": "model.property_group.is_valid.app_error",
     "translation": "Nieprawidłowa grupa właściwości: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "Kanał ten nie jest już udostępniany innej przestrzeni roboczej."
   }
 ]

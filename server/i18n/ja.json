@@ -6474,10 +6474,6 @@
     "translation": "チャンネルを取得できませんでした。"
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "チャンネル数を取得できませんでした。"
-  },
-  {
     "id": "api.user.update_password.user_and_hashed.app_error",
     "translation": "システム管理者のみがハッシュ化されたパスワードを設定できます。"
   },
@@ -8011,7 +8007,7 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "{{.channelName}} へ返信する"
+    "translation": "{{.channelName}} への返信"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
@@ -8039,7 +8035,7 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
-    "translation": "ダイレクトメッセージへ返信する"
+    "translation": "ダイレクトメッセージへの返信"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",

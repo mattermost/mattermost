@@ -5008,10 +5008,6 @@
     "translation": "دریافت کانال ها امکان پذیر نیست."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "شمارش کانال امکان پذیر نیست."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "گرفتن کانالهای طرح ارائه شده امکان پذیر نیست."
   },

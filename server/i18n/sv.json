@@ -3768,10 +3768,6 @@
     "translation": "Kunde inte hämta kanalerna."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Kunde inte hämta antalet kanaler."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Kunde inte få fram kanaler för angivet schema."
   },

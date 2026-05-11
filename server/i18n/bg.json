@@ -4234,10 +4234,6 @@
     "translation": "Каналите не могат да се получат."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Броят на каналите не може да бъде получен."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Каналите за предоставената схема не могат да се получат."
   },

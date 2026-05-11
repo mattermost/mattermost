@@ -6450,10 +6450,6 @@
     "translation": "无法以 id 获得频道。"
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "无法获取频道数。"
-  },
-  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "无法以指定的日期计算消息数。"
   },
@@ -11790,10 +11786,6 @@
     "translation": "您没有向此频道上传文件所需的访问权限。"
   },
   {
-    "id": "api.managed_category.feature_not_available.app_error",
-    "translation": "托管频道分类不可用。"
-  },
-  {
     "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
     "translation": "invalid_grant：令牌授权并非发放给此客户端。"
   },
@@ -12772,5 +12764,217 @@
   {
     "id": "model.property_group.is_valid.app_error",
     "translation": "属性组无效：{{.FieldName}}（{{.Reason}}）。"
+  },
+  {
+    "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
+    "translation": "此频道已应用基于属性的成员资格策略。请先移除该策略，再在公共频道和私有频道之间转换。"
+  },
+  {
+    "id": "api.property_value.field_object_type_mismatch.app_error",
+    "translation": "一个或多个属性字段与路由的对象类型不匹配。"
+  },
+  {
+    "id": "api.property_value.system_use_dedicated_route.app_error",
+    "translation": "系统值必须使用专用的系统值端点。"
+  },
+  {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.display_name_too_long.app_error",
+    "translation": "CPA 字段 display_name 超过了 {{.MaxRunes}} 个字符的最大长度。"
+  },
+  {
+    "id": "app.data_spillage.report.cleared",
+    "translation": "已清除"
+  },
+  {
+    "id": "app.data_spillage.report.column.detail",
+    "translation": "详情"
+  },
+  {
+    "id": "app.data_spillage.report.column.status",
+    "translation": "状态"
+  },
+  {
+    "id": "app.data_spillage.report.column.step",
+    "translation": "步骤"
+  },
+  {
+    "id": "app.data_spillage.report.detail.deleted",
+    "translation": "已删除。"
+  },
+  {
+    "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
+    "translation": "无法获取编辑历史。"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_attachments_info_ids",
+    "translation": "**文件信息 ID：** {{.FileInfoIDs}}"
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_data_found",
+    "translation": "未找到数据。"
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_files",
+    "translation": "未找到文件。"
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_rows_to_delete",
+    "translation": "没有可删除的行。"
+  },
+  {
+    "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
+    "translation": "消息已清理并删除。"
+  },
+  {
+    "id": "app.data_spillage.report.detail.thread_data_deleted",
+    "translation": "话题、表情回应及相关数据已删除。"
+  },
+  {
+    "id": "app.data_spillage.report.error_log",
+    "translation": "错误日志"
+  },
+  {
+    "id": "app.data_spillage.report.generated",
+    "translation": "生成时间："
+  },
+  {
+    "id": "app.data_spillage.report.incomplete_warning",
+    "translation": "消息删除未完成。请查看错误日志，并联系系统管理员进行手动修复。"
+  },
+  {
+    "id": "app.data_spillage.report.post_id",
+    "translation": "消息 ID："
+  },
+  {
+    "id": "app.data_spillage.report.revision",
+    "translation": "修订"
+  },
+  {
+    "id": "app.data_spillage.report.revisions_found",
+    "translation": "发现的修订："
+  },
+  {
+    "id": "app.data_spillage.report.status.failed",
+    "translation": "失败"
+  },
+  {
+    "id": "app.data_spillage.report.status.not_applicable",
+    "translation": "不适用"
+  },
+  {
+    "id": "app.data_spillage.report.status.partial",
+    "translation": "部分完成"
+  },
+  {
+    "id": "app.data_spillage.report.status.removed",
+    "translation": "已移除"
+  },
+  {
+    "id": "app.data_spillage.report.status.unknown",
+    "translation": "未知"
+  },
+  {
+    "id": "app.data_spillage.report.step.acknowledgements",
+    "translation": "已读确认"
+  },
+  {
+    "id": "app.data_spillage.report.step.edit_histories",
+    "translation": "编辑历史"
+  },
+  {
+    "id": "app.data_spillage.report.step.file_attachments",
+    "translation": "文件附件"
+  },
+  {
+    "id": "app.data_spillage.report.step.fileinfo_rows",
+    "translation": "文件信息记录"
+  },
+  {
+    "id": "app.data_spillage.report.step.persistent_notifications",
+    "translation": "持久通知"
+  },
+  {
+    "id": "app.data_spillage.report.step.post_itself",
+    "translation": "消息记录"
+  },
+  {
+    "id": "app.data_spillage.report.step.priority_data",
+    "translation": "优先级元数据"
+  },
+  {
+    "id": "app.data_spillage.report.step.reminders",
+    "translation": "提醒"
+  },
+  {
+    "id": "app.data_spillage.report.step.thread_data",
+    "translation": "话题、回复和表情回应"
+  },
+  {
+    "id": "app.data_spillage.report.summary",
+    "translation": "摘要"
+  },
+  {
+    "id": "app.data_spillage.report.title",
+    "translation": "消息删除报告"
+  },
+  {
+    "id": "app.data_spillage.report.total_steps",
+    "translation": "总步骤："
+  },
+  {
+    "id": "app.file_info.not_found",
+    "translation": "文件存储中未找到路径对应的文件。"
+  },
+  {
+    "id": "app.file_info.remove_file.app_error",
+    "translation": "无法从文件存储中移除文件。"
+  },
+  {
+    "id": "app.pap.access_control.channel_default",
+    "translation": "成员资格策略不能应用于团队默认频道。"
+  },
+  {
+    "id": "app.pap.access_control.channel_type_not_supported",
+    "translation": "访问控制策略只能应用于公共频道或私有频道。"
+  },
+  {
+    "id": "app.recap.mark_viewed.app_error",
+    "translation": "无法将回顾标记为已查看。"
+  },
+  {
+    "id": "model.cluster.is_valid.site_url.app_error",
+    "translation": "必须设置 SiteURL。"
+  },
+  {
+    "id": "model.cpa_field.name.invalid_charset.app_error",
+    "translation": "无效的 CPA 字段名称“{{.Name}}”：必须匹配 ^[A-Za-z_][A-Za-z0-9_]*$（CEL 标识符规则）。"
+  },
+  {
+    "id": "model.cpa_field.name.reserved_word.app_error",
+    "translation": "无效的 CPA 字段名称“{{.Name}}”：这是 CEL 保留字，不能用作字段标识符。"
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared",
+    "translation": "此频道不再与 {{.WorkspaceName}} 共享。"
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "此频道不再与另一个工作区共享。"
+  },
+  {
+    "id": "shared_channel.system_message.now_shared",
+    "translation": "此频道现已与 {{.WorkspaceName}} 共享。"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "other": "已从磁盘中移除 {{.Count}} 个文件。"
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "other": "已清除 {{.Count}} 个修订，共 {{.Total}} 个。"
+    }
   }
 ]

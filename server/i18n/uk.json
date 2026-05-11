@@ -6276,10 +6276,6 @@
     "translation": "Не вдається отримати канали за ідентифікаторами."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Не вдається отримати кількість каналів."
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Ми зіткнулися з помилкою при оновленні команди."
   },

@@ -6424,10 +6424,6 @@
     "translation": "Canalele nu pot fi obținute prin ID-uri."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Imposibil de obținut numărul de canale."
-  },
-  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Imposibil de numărat mesaje de la data dată."
   },
