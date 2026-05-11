@@ -2247,10 +2247,10 @@ func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team,
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
 func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*Team, int64, *Response, error) {
 	if search.Page == nil {
-		search.Page = NewPointer(0)
+		search.Page = new(0)
 	}
 	if search.PerPage == nil {
-		search.PerPage = NewPointer(100)
+		search.PerPage = new(100)
 	}
 	r, err := c.doAPIPostJSON(ctx, c.teamsRoute().Join("search"), search)
 	if err != nil {

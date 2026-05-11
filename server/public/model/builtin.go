@@ -4,7 +4,9 @@
 package model
 
 // NewPointer returns a pointer to the object passed.
-func NewPointer[T any](t T) *T { return &t }
+//
+//go:fix inline
+func NewPointer[T any](t T) *T { return new(t) }
 
 // SafeDereference returns the zero value of T if t is nil.
 // Otherwise, it returns t dereferenced.
