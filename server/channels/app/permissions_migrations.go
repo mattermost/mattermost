@@ -203,7 +203,8 @@ func applyPermissionsMap(role *model.Role, roleMap map[string]map[string]bool, m
 
 	roleName := role.Name
 	for _, transformation := range migrationMap {
-		if transformation.On(role, roleMap) {
+		matched := transformation.On(role, roleMap)
+		if matched {
 			for _, permission := range transformation.Add {
 				roleMap[roleName][permission] = true
 			}
@@ -1316,38 +1317,6 @@ func (a *App) getAddManageAgentPermissionsMigration() (permissionsMap, error) {
 	}, nil
 }
 
-func (a *App) getAddPagePermissionsMigration() (permissionsMap, error) {
-	return permissionsMap{
-		permissionTransformation{
-			On:  isRole(model.ChannelGuestRoleId),
-			Add: []string{model.PermissionReadPage.Id},
-		},
-		permissionTransformation{
-			On: isRole(model.ChannelUserRoleId),
-			Add: []string{
-				model.PermissionReadPage.Id,
-				model.PermissionCreatePage.Id,
-				model.PermissionEditPage.Id,
-				model.PermissionDeleteOwnPage.Id,
-			},
-		},
-		permissionTransformation{
-			On: isRole(model.ChannelAdminRoleId),
-			Add: []string{
-				model.PermissionReadPage.Id,
-				model.PermissionCreatePage.Id,
-				model.PermissionEditPage.Id,
-				model.PermissionDeleteOwnPage.Id,
-				model.PermissionDeletePage.Id,
-			},
-		},
-		permissionTransformation{
-			On:  isRole(model.TeamAdminRoleId),
-			Add: []string{model.PermissionDeletePage.Id},
-		},
-	}, nil
-}
-
 func (a *App) getAddEditFileAttachmentPermissionMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
@@ -1418,8 +1387,8 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddSharedChannelManagerPermissions, Migration: a.getAddSharedChannelManagerPermissionsMigration},
 		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
-		{Key: model.MigrationKeyAddPagePermissions, Migration: a.getAddPagePermissionsMigration},
 		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
+		{Key: model.MigrationKeyAddWikiPagePermissions, Migration: a.getAddWikiPagePermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

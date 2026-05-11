@@ -9,8 +9,71 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestDoSetupPageProperties(t *testing.T) {
+	t.Run("should register property group and fields with correct PSAv2 attributes", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, "pages")
+		require.Nil(t, appErr)
+		require.NotNil(t, group)
+		require.Equal(t, "pages", group.Name)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 2)
+
+		fieldsByName := map[string]*model.PropertyField{}
+		for _, f := range fields {
+			fieldsByName[f.Name] = f
+		}
+
+		wikiField, ok := fieldsByName["wiki"]
+		require.True(t, ok, "wiki property field must exist")
+		assert.Equal(t, model.PropertyFieldObjectTypePost, wikiField.ObjectType)
+		assert.Equal(t, string(model.PropertyFieldTargetLevelSystem), wikiField.TargetType)
+		assert.True(t, wikiField.Protected)
+		require.NotNil(t, wikiField.PermissionField)
+		assert.Equal(t, model.PermissionLevelNone, *wikiField.PermissionField)
+
+		statusField, ok := fieldsByName["status"]
+		require.True(t, ok, "status property field must exist")
+		assert.Equal(t, model.PropertyFieldObjectTypePost, statusField.ObjectType)
+		assert.Equal(t, string(model.PropertyFieldTargetLevelSystem), statusField.TargetType)
+		assert.True(t, statusField.Protected)
+		require.NotNil(t, statusField.PermissionField)
+		assert.Equal(t, model.PermissionLevelNone, *statusField.PermissionField)
+
+		data, sysErr := th.Store.System().GetByName(pagePropertiesSetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, pageMigrationVersion, data.Value)
+	})
+
+	t.Run("the migration is idempotent", func(t *testing.T) {
+		th := Setup(t)
+
+		_, err := th.Store.System().PermanentDeleteByName(pagePropertiesSetupDoneKey)
+		require.NoError(t, err)
+
+		err = th.Server.doSetupPageProperties()
+		require.NoError(t, err)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, "pages")
+		require.Nil(t, appErr)
+		require.Equal(t, "pages", group.Name)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 2)
+
+		data, sysErr := th.Store.System().GetByName(pagePropertiesSetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, pageMigrationVersion, data.Value)
+	})
+}
 
 func TestDoSetupContentFlaggingProperties(t *testing.T) {
 	t.Run("should register property group and fields", func(t *testing.T) {

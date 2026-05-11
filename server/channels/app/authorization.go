@@ -105,20 +105,18 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 
 	channel, appErr := a.GetChannel(rctx, channelID)
 	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
-		return false, false
+		// App.GetChannel excludes wiki backing channels (type 'W'); fall back
+		// so wiki page/draft permission checks can resolve against the backing channel.
+		channel, appErr = a.GetWikiBackingChannel(rctx, channelID)
+		if appErr != nil {
+			return false, false
+		}
 	} else if appErr != nil {
 		rctx.Logger().Warn("Failed to get channel", mlog.String("channel_id", channelID), mlog.Err(appErr))
 		return false, false
 	}
 
-	rctx.Logger().Debug("SessionHasPermissionToChannel called",
-		mlog.String("user_id", session.UserId),
-		mlog.String("channel_id", channelID),
-		mlog.String("permission", permission.Id),
-	)
-
 	if session.IsUnrestricted() {
-		rctx.Logger().Debug("User has unrestricted access")
 		return true, false
 	}
 
@@ -129,36 +127,28 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 		if roles, ok := ids[channelID]; ok {
 			isMember = true
 			channelRoles = strings.Fields(roles)
-			rctx.Logger().Debug("User channel roles found",
-				mlog.String("roles", roles),
-				mlog.Int("role_count", len(channelRoles)),
-			)
 			if a.RolesGrantPermission(channelRoles, permission.Id) {
-				rctx.Logger().Debug("Channel roles grant permission")
 				return true, isMember
 			}
-			rctx.Logger().Debug("Channel roles do NOT grant permission",
-				mlog.String("roles", roles),
-				mlog.String("required_permission", permission.Id),
-			)
-		} else {
-			rctx.Logger().Debug("User is not a member of channel")
 		}
 	} else {
 		rctx.Logger().Warn("Failed to get channel members", mlog.Err(err))
 	}
 
 	if a.RolesGrantPermission(session.GetUserRoles(), model.PermissionManageSystem.Id) {
-		rctx.Logger().Debug("User has manage system permission")
 		return true, isMember
 	}
 
 	if channel.TeamId != "" {
-		rctx.Logger().Debug("Checking team-level permission")
+		if channel.IsWikiBacking() {
+			// Wiki backing channels are excluded from GetAllChannelMembersForUser, so the
+			// standard role-based fallback would grant access to all team members. Use
+			// direct membership + role check instead.
+			return a.hasPermissionToWikiBackingChannel(rctx, session, channelID, permission)
+		}
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission), isMember
 	}
 
-	rctx.Logger().Debug("Checking system-level permission")
 	return a.SessionHasPermissionTo(session, permission), isMember
 }
 
@@ -493,6 +483,11 @@ func (a *App) HasPermissionToReadChannel(rctx request.CTX, userID string, channe
 
 	if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
 		return a.HasPermissionToTeam(rctx, userID, channel.TeamId, model.PermissionReadPublicChannel), false
+	}
+
+	if channel.IsWikiBacking() {
+		_, err := a.GetChannelMember(rctx, channel.Id, userID)
+		return err == nil, err == nil
 	}
 
 	return false, false
