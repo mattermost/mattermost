@@ -33,6 +33,7 @@ export default {
         'node:path',
         'node:fs',
         'node:os',
+        'node:crypto',
         'mime-types',
         'uuid',
         'async-wait-until',

@@ -65,7 +65,27 @@ export {
 
 export {TestArgs, ScreenshotOptions} from './types';
 
-export {getAdminClient} from './server';
+export {
+    getAdminClient,
+    MockRemoteClusterServer,
+    SHARED_CHANNEL_MSG_TOPICS,
+    buildRemoteClusterMsgOkResponse,
+    REMOTE_CLUSTER_HEADERS,
+    REMOTE_CLUSTER_RESPONSE_STATUS,
+    mattermostNewId,
+    decryptRemoteClusterInviteFromBase64,
+    postRemoteClusterConfirmInviteFromPeer,
+    type MockOutboundPeer,
+    type NextConfirmInviteDecision,
+    type NextRemoteClusterMsgDecision,
+    type RemoteClusterMsgResponseWire,
+    type MockRemoteClusterInboundRecord,
+    type MockRemoteClusterServerOptions,
+    type RemoteClusterFrameWire,
+    type DecryptedRemoteClusterInvite,
+    type PostRemoteClusterConfirmInviteFromPeerParams,
+    type PostRemoteClusterConfirmInviteFromPeerResult,
+} from './server';
 
 export {
     enableAutotranslationConfig,
