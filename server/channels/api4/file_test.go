@@ -8,7 +8,12 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -57,6 +62,62 @@ func fileBytes(t *testing.T, path string) []byte {
 	bb, err := io.ReadAll(f)
 	require.NoError(t, err)
 	return bb
+}
+
+var updateImageFixtures = flag.Bool("update-fixtures", false, "overwrite image fixture files with actual server output")
+
+// compareImageBytes decodes both byte slices as images and compares them
+// pixel-by-pixel. For JPEG a small per-channel tolerance absorbs encoder
+// drift across Go versions; PNG comparisons are exact.
+// When -update-fixtures is set, actual is written over the fixture file instead.
+func compareImageBytes(t *testing.T, name string, actual []byte) {
+	t.Helper()
+
+	fixturePath := filepath.Join(testDir, name)
+
+	if *updateImageFixtures {
+		require.NoError(t, os.WriteFile(fixturePath, actual, 0600), "updating fixture %s", name)
+		return
+	}
+
+	expected, err := os.ReadFile(fixturePath)
+	require.NoError(t, err, "reading fixture %s", name)
+
+	wantImg, _, err := image.Decode(bytes.NewReader(expected))
+	require.NoError(t, err, "decoding expected %s", name)
+	gotImg, _, err := image.Decode(bytes.NewReader(actual))
+	require.NoError(t, err, "decoding actual %s", name)
+
+	require.Equal(t, wantImg.Bounds(), gotImg.Bounds(), "image bounds mismatch for %s", name)
+
+	ext := strings.ToLower(filepath.Ext(name))
+	var tolerance uint32
+	if ext == ".jpg" || ext == ".jpeg" {
+		tolerance = 514 // ±2 in 8-bit space (16-bit RGBA values: 2*257=514)
+	}
+
+	b := gotImg.Bounds()
+	total := b.Dx() * b.Dy()
+	var diffCount int
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			wr, wg, wb, wa := wantImg.At(x, y).RGBA()
+			gr, gg, gb, ga := gotImg.At(x, y).RGBA()
+			if absDiff32(wr, gr) > tolerance || absDiff32(wg, gg) > tolerance || absDiff32(wb, gb) > tolerance || absDiff32(wa, ga) > tolerance {
+				diffCount++
+			}
+		}
+	}
+	if diffCount > 0 {
+		t.Errorf("image %s: %d/%d pixels (%.2f%%) differ beyond tolerance", name, diffCount, total, 100*float64(diffCount)/float64(total))
+	}
+}
+
+func absDiff32(a, b uint32) uint32 {
+	if a > b {
+		return a - b
+	}
+	return b - a
 }
 
 func testDoUploadFileRequest(tb testing.TB, c *model.Client4, url string, blob []byte, contentType string,
@@ -759,16 +820,21 @@ func TestUploadFiles(t *testing.T) {
 								t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
 							}
 						}
+						compareImage := func(get func(context.Context, string) ([]byte, *model.Response, error), name string) {
+							data, _, getErr := get(context.Background(), ri.Id)
+							require.NoError(t, getErr)
+							compareImageBytes(t, name, data)
+						}
 						if len(tc.expectedPayloadNames) == 0 {
 							tc.expectedPayloadNames = tc.names
 						}
 
 						compare(client.GetFile, tc.expectedPayloadNames[i])
 						if len(tc.expectedImageThumbnailNames) > i {
-							compare(client.GetFileThumbnail, tc.expectedImageThumbnailNames[i])
+							compareImage(client.GetFileThumbnail, tc.expectedImageThumbnailNames[i])
 						}
 						if len(tc.expectedImageThumbnailNames) > i {
-							compare(client.GetFilePreview, tc.expectedImagePreviewNames[i])
+							compareImage(client.GetFilePreview, tc.expectedImagePreviewNames[i])
 						}
 					}
 
@@ -845,11 +911,11 @@ func TestGetFile(t *testing.T) {
 		reviewer := th.CreateUser(t)
 		response, err := th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
-				EnableContentFlagging: model.NewPointer(true),
+				EnableContentFlagging: new(true),
 			},
 			ReviewerSettings: &model.ReviewSettingsRequest{
 				ReviewerSettings: model.ReviewerSettings{
-					CommonReviewers: model.NewPointer(true),
+					CommonReviewers: new(true),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
 					CommonReviewerIds: []string{reviewer.Id},
@@ -878,11 +944,11 @@ func TestGetFile(t *testing.T) {
 		// Try again after removing the user from content reviewers
 		response, err = th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
-				EnableContentFlagging: model.NewPointer(true),
+				EnableContentFlagging: new(true),
 			},
 			ReviewerSettings: &model.ReviewSettingsRequest{
 				ReviewerSettings: model.ReviewerSettings{
-					CommonReviewers: model.NewPointer(true),
+					CommonReviewers: new(true),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
 					CommonReviewerIds: []string{th.BasicUser.Id},
