@@ -60,9 +60,9 @@ func (s *MmctlE2ETestSuite) TestWikiExportJob() {
 
 		// Create a wiki with pages for export
 		wiki := &model.Wiki{
-			SourceChannelId: testChannel.Id,
-			Title:           "Export Test Wiki " + testSuffix,
-			Description:     "Wiki for export testing",
+			ChannelId:   testChannel.Id,
+			Title:       "Export Test Wiki " + testSuffix,
+			Description: "Wiki for export testing",
 		}
 		createdWiki, appErr := s.th.App.CreateWiki(s.th.Context, wiki, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
@@ -168,9 +168,9 @@ func (s *MmctlE2ETestSuite) TestWikiImportJob() {
 
 		// Step 1: Create a wiki with pages for export
 		wiki := &model.Wiki{
-			SourceChannelId: s.th.BasicChannel.Id,
-			Title:           "Import Test Wiki",
-			Description:     "Wiki for import testing",
+			ChannelId:   s.th.BasicChannel.Id,
+			Title:       "Import Test Wiki",
+			Description: "Wiki for import testing",
 		}
 		createdWiki, appErr := s.th.App.CreateWiki(s.th.Context, wiki, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
@@ -277,9 +277,9 @@ func (s *MmctlE2ETestSuite) TestWikiExportImportComprehensive() {
 
 		// --- Wiki 1: In channel1 ---
 		wiki1 := &model.Wiki{
-			SourceChannelId: channel1.Id,
-			Title:           "Comprehensive Wiki 1 " + testSuffix,
-			Description:     "First wiki for comprehensive testing",
+			ChannelId:   channel1.Id,
+			Title:       "Comprehensive Wiki 1 " + testSuffix,
+			Description: "First wiki for comprehensive testing",
 		}
 		createdWiki1, appErr := s.th.App.CreateWiki(s.th.Context, wiki1, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
@@ -314,9 +314,9 @@ func (s *MmctlE2ETestSuite) TestWikiExportImportComprehensive() {
 
 		// --- Wiki 2: In channel2 ---
 		wiki2 := &model.Wiki{
-			SourceChannelId: channel2.Id,
-			Title:           "Comprehensive Wiki 2 " + testSuffix,
-			Description:     "Second wiki for comprehensive testing",
+			ChannelId:   channel2.Id,
+			Title:       "Comprehensive Wiki 2 " + testSuffix,
+			Description: "Second wiki for comprehensive testing",
 		}
 		createdWiki2, appErr := s.th.App.CreateWiki(s.th.Context, wiki2, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
@@ -520,9 +520,9 @@ func (s *MmctlE2ETestSuite) TestWikiExportWithAttachments() {
 
 		// Create wiki with a page
 		wiki := &model.Wiki{
-			SourceChannelId: testChannel.Id,
-			Title:           "Attachment Test Wiki " + testSuffix,
-			Description:     "Wiki for attachment export testing",
+			ChannelId:   testChannel.Id,
+			Title:       "Attachment Test Wiki " + testSuffix,
+			Description: "Wiki for attachment export testing",
 		}
 		createdWiki, appErr := s.th.App.CreateWiki(s.th.Context, wiki, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
@@ -649,9 +649,9 @@ func (s *MmctlE2ETestSuite) TestWikiExportMultipleChannels() {
 			channels[i] = ch
 
 			wiki := &model.Wiki{
-				SourceChannelId: channels[i].Id,
-				Title:           fmt.Sprintf("Multi Export Wiki %d %s", i+1, testSuffix),
-				Description:     fmt.Sprintf("Wiki %d for multi-channel export test", i+1),
+				ChannelId:   channels[i].Id,
+				Title:       fmt.Sprintf("Multi Export Wiki %d %s", i+1, testSuffix),
+				Description: fmt.Sprintf("Wiki %d for multi-channel export test", i+1),
 			}
 			createdWiki, appErr := s.th.App.CreateWiki(s.th.Context, wiki, s.th.BasicUser.Id)
 			s.Require().Nil(appErr)
@@ -751,9 +751,9 @@ func (s *MmctlE2ETestSuite) TestWikiVerifyCommand() {
 
 		// Create a wiki with pages
 		wiki := &model.Wiki{
-			SourceChannelId: s.th.BasicChannel.Id,
-			Title:           "Verify Test Wiki",
-			Description:     "Wiki for verify testing",
+			ChannelId:   s.th.BasicChannel.Id,
+			Title:       "Verify Test Wiki",
+			Description: "Wiki for verify testing",
 		}
 		createdWiki, appErr := s.th.App.CreateWiki(s.th.Context, wiki, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
@@ -803,9 +803,9 @@ func (s *MmctlE2ETestSuite) TestWikiResolveLinksCommand() {
 
 		// Create a wiki
 		wiki := &model.Wiki{
-			SourceChannelId: s.th.BasicChannel.Id,
-			Title:           "Resolve Links Test Wiki",
-			Description:     "Wiki for resolve links testing",
+			ChannelId:   s.th.BasicChannel.Id,
+			Title:       "Resolve Links Test Wiki",
+			Description: "Wiki for resolve links testing",
 		}
 		createdWiki, appErr := s.th.App.CreateWiki(s.th.Context, wiki, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)

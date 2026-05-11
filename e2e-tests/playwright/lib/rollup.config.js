@@ -18,8 +18,7 @@ export default {
     plugins: [
         typescript(),
         copy({
-            targets: [{src: 'src/asset/**/*', dest: 'dist/asset'}],
-            overwrite: true,
+            targets: [{src: 'src/asset/**/*', dest: 'dist/asset'}], // Copy assets to dist/
         }),
     ],
     external: [

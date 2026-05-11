@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MarkdownSerializerState} from '@tiptap/pm/markdown';
-import {MarkdownSerializer} from '@tiptap/pm/markdown';
 import {Node, Schema} from '@tiptap/pm/model';
+import type {MarkdownSerializerState} from 'prosemirror-markdown';
+import {MarkdownSerializer} from 'prosemirror-markdown';
 
 import {makeUrlSafe} from 'utils/url';
 

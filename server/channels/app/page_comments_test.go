@@ -130,11 +130,14 @@ func TestCanResolvePageComment(t *testing.T) {
 	})
 
 	t.Run("wiki admin can resolve", func(t *testing.T) {
-		// BasicUser created the wiki and is therefore SchemeAdmin in the wiki backing channel.
-		// They are not the page author and not the comment author, so this exercises the
-		// SchemeAdmin path in CanResolvePageComment.
+		// BasicUser created the wiki. IsWikiOwner checks view_team via SessionHasPermissionToTeam,
+		// which needs the session to carry team-member data — a bare UserId-only session fails that
+		// lookup. Load the real team membership so the permission check resolves correctly.
+		tm, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
 		session := &model.Session{
-			UserId: th.BasicUser.Id,
+			UserId:      th.BasicUser.Id,
+			TeamMembers: []*model.TeamMember{tm},
 		}
 		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id, page)
 		require.True(t, canResolve, "wiki admin should be able to resolve any comment")

@@ -38,6 +38,7 @@
     "@tiptap/extension-task-list": "3.23.1",
     "@tiptap/extension-text-style": "3.23.1",
     "@tiptap/pm": "3.23.1",
+    "prosemirror-markdown": "1.13.4",
     "@tiptap/react": "3.23.1",
     "@tiptap/starter-kit": "3.23.1",
     "@tiptap/suggestion": "3.23.1",
