@@ -297,14 +297,23 @@ func mergeConditionValues(submitted model.Condition, hiddenValues []string) mode
 
 	switch v := submitted.Value.(type) {
 	case []any:
+		// Strip the masked-token sentinel from submitted values: it's the
+		// server's own placeholder for hidden values (from a masked GET),
+		// not a real value, and we're about to re-inject the actual stored
+		// hidden values from hiddenValues.
 		seen := make(map[string]struct{})
+		cleaned := make([]any, 0, len(v))
 		for _, item := range v {
 			if s, ok := item.(string); ok {
+				if s == maskedTokenValue {
+					continue
+				}
 				seen[s] = struct{}{}
 			}
+			cleaned = append(cleaned, item)
 		}
-		result := make([]any, 0, len(v)+len(hiddenValues))
-		result = append(result, v...)
+		result := make([]any, 0, len(cleaned)+len(hiddenValues))
+		result = append(result, cleaned...)
 		for _, hidden := range hiddenValues {
 			if _, exists := seen[hidden]; !exists {
 				result = append(result, hidden)
@@ -313,7 +322,9 @@ func mergeConditionValues(submitted model.Condition, hiddenValues []string) mode
 		merged.Value = result
 
 	case string:
-		if v == "" && len(hiddenValues) > 0 {
+		// Empty string and the masked-token sentinel both mean "no real value
+		// submitted here"; restore from hidden values.
+		if (v == "" || v == maskedTokenValue) && len(hiddenValues) > 0 {
 			merged.Value = hiddenValues[0]
 		}
 
@@ -515,10 +526,17 @@ func (a *App) validateConditionValues(rctx request.CTX, cond *model.Condition, c
 		return nil
 	}
 
+	// The masked-token sentinel is what the server itself emits when masking the
+	// raw CEL of policy GET / search responses. If the frontend round-trips a GET
+	// response back to us unchanged (e.g. the admin only modified channel
+	// assignment, not the rules), it will appear here. Skip it during validation;
+	// mergeConditionValues will strip it from the merged result and re-inject the
+	// actual hidden values from the stored policy.
 	values := extractStringValues(cond.Value)
+	nonTokenValues := make([]string, 0, len(values))
 	for _, v := range values {
-		if v == maskedTokenValue {
-			return invalidValueError()
+		if v != maskedTokenValue {
+			nonTokenValues = append(nonTokenValues, v)
 		}
 	}
 
@@ -536,7 +554,7 @@ func (a *App) validateConditionValues(rctx request.CTX, cond *model.Condition, c
 	case model.PropertyAccessModePublic:
 		return nil
 	case model.PropertyAccessModeSourceOnly:
-		if len(values) > 0 {
+		if len(nonTokenValues) > 0 {
 			return invalidValueError()
 		}
 		return nil
@@ -548,14 +566,14 @@ func (a *App) validateConditionValues(rctx request.CTX, cond *model.Condition, c
 			callerID, _ := CallerIDFromRequestContext(rctx)
 			visibleNames = a.getCallerTextValues(rctx, callerID, field, cpaGroupID)
 		}
-		for _, v := range values {
+		for _, v := range nonTokenValues {
 			if _, visible := visibleNames[v]; !visible {
 				return invalidValueError()
 			}
 		}
 		return nil
 	default:
-		if len(values) > 0 {
+		if len(nonTokenValues) > 0 {
 			return invalidValueError()
 		}
 		return nil

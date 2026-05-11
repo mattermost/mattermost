@@ -19,34 +19,11 @@ func TestInvalidValueError(t *testing.T) {
 	assert.Equal(t, "Invalid value.", err.DetailedError)
 }
 
-func TestMaskedTokenRejection(t *testing.T) {
-	// The masked token "--------" must be rejected as a value.
-	// This tests the sentinel check logic.
+func TestMaskedTokenConstant(t *testing.T) {
+	// The masked-token sentinel must be the eight-dash string the frontend
+	// renders for hidden chips and the server emits when masking raw CEL
+	// on GET / search responses.
 	assert.Equal(t, "--------", maskedTokenValue)
-
-	t.Run("masked token in single value", func(t *testing.T) {
-		values := extractStringValues("--------")
-		found := false
-		for _, v := range values {
-			if v == maskedTokenValue {
-				found = true
-				break
-			}
-		}
-		assert.True(t, found)
-	})
-
-	t.Run("masked token in multi-value", func(t *testing.T) {
-		values := extractStringValues([]any{"Alpha", "--------", "Bravo"})
-		found := false
-		for _, v := range values {
-			if v == maskedTokenValue {
-				found = true
-				break
-			}
-		}
-		assert.True(t, found)
-	})
 }
 
 func TestValidateConditionValues_AttrValueSkipped(t *testing.T) {
