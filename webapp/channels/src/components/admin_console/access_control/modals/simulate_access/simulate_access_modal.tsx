@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
@@ -21,17 +21,25 @@ import {SESSION_ATTRIBUTES_GROUP_ID} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {simulatePolicyForUsers} from 'mattermost-redux/actions/access_control';
+import {getProfiles, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import * as Menu from 'components/menu';
 
-import AddUsersInline from './add_users_inline';
-import {aggregateDecisions} from './decision_aggregate';
 import PickerRow from './picker_row';
+import {userIsSystemAdmin} from './role_applicability';
 import type {TargetScope} from './role_applicability';
 import type {RowState, UserDecisionsBundle} from './types';
 
 import './simulate_access_modal.scss';
+
+// Initial page size kept tight (10) so the modal opens fast even on
+// large rosters and the simulator only fans out to 10 users per
+// dispatch. Pagination handles the long tail; typed search bypasses
+// pagination and falls back to the searchProfiles top-N response.
+const USER_PAGE_SIZE = 10;
+const USER_SEARCH_DEBOUNCE_MS = 200;
 
 type Props = {
     onExited: () => void;
@@ -115,11 +123,25 @@ function SimulateAccessModal({
     accessControlFields,
 }: Props): JSX.Element {
     const dispatch = useDispatch();
+    const currentUser = useSelector(getCurrentUser);
     const {formatMessage} = useIntl();
 
-    const [rows, setRows] = useState<Map<string, RowState>>(() => new Map());
+    const [users, setUsers] = useState<UserProfile[]>([]);
+    const [page, setPage] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [hasNextPage, setHasNextPage] = useState(false);
+    const [isLoadingUsers, setIsLoadingUsers] = useState<boolean>(true);
+    const [usersError, setUsersError] = useState<string>('');
+
+    // Per-user session-attribute overrides survive search/pagination
+    // so editing user A's overrides on page 1, navigating to page 2,
+    // and coming back keeps the edits in place. Keyed on user.id; the
+    // RowState views below derive overrides from this map at render time.
+    const [sessionOverridesById, setSessionOverridesById] = useState<Map<string, Record<string, string>>>(() => new Map());
+
     const [results, setResults] = useState<Map<string, UserDecisionsBundle>>(() => new Map());
     const [pending, setPending] = useState<boolean>(false);
+    const [simulationError, setSimulationError] = useState<string>('');
     const [scope, setScope] = useState<PolicyEvaluationScope>('all');
 
     // Permission filter: empty string means "All permissions". When the
@@ -159,8 +181,142 @@ function SimulateAccessModal({
     // after a faster second one).
     const requestSeq = useRef(0);
 
+    // ── User fetch (search + pagination) ─────────────────────────────────
+    // Fetches the candidate user list whenever the search term, page,
+    // or scope inputs change. Pre-populates page 0 on mount so the
+    // table is non-empty immediately. Strategy:
+    //
+    //   - Typed search → `searchProfiles` (top-N by relevance, no
+    //     pagination — Mattermost's search API doesn't cursor); the
+    //     paginator hides while a search term is active.
+    //   - Channel scope (no term) → `getProfilesInChannel` with the
+    //     current page / page size. The channel roster can omit a
+    //     system admin who isn't a member of THIS channel; we merge
+    //     the signed-in sysadmin into page 0 when missing so the
+    //     author can still pick themselves without scrolling.
+    //   - System / no-channel scope (no term) → `getProfiles`
+    //     paginated, optionally narrowed to the active team.
+    //
+    // After the network call we fetch one extra (`PAGE_SIZE + 1`) and
+    // expose `hasNextPage` from whether the over-fetch returned the
+    // extra row. This avoids a second "total count" round trip — for
+    // search the paginator is hidden anyway. We then bulk-fetch
+    // channel memberships only when needed (channel scope + a target
+    // role) to apply role-chain applicability client-side.
+    useEffect(() => {
+        let cancelled = false;
+        setIsLoadingUsers(true);
+        setUsersError('');
+
+        const debounce = searchTerm ? USER_SEARCH_DEBOUNCE_MS : 0;
+        const fetchSize = USER_PAGE_SIZE + 1;
+        const handle = window.setTimeout(async () => {
+            try {
+                let raw: UserProfile[];
+
+                if (searchTerm) {
+                    const opts: Record<string, any> = {limit: fetchSize};
+                    if (teamId) {
+                        opts.team_id = teamId;
+                    }
+                    if (targetScope === 'channel' && channelId) {
+                        opts.in_channel_id = channelId;
+                    }
+                    const action = await dispatch(searchProfiles(searchTerm, opts));
+                    if (cancelled) {
+                        return;
+                    }
+                    raw = (action as ActionResult<UserProfile[]>).data ?? [];
+                } else if (targetScope === 'channel' && channelId) {
+                    const action = await dispatch(
+                        getProfilesInChannel(channelId, page, fetchSize),
+                    );
+                    if (cancelled) {
+                        return;
+                    }
+                    raw = (action as ActionResult<UserProfile[]>).data ?? [];
+
+                    // Merge the signed-in sysadmin onto page 0 when
+                    // missing from the channel roster — only on the
+                    // first page so subsequent pages stay clean.
+                    if (
+                        page === 0 &&
+                        currentUser &&
+                        userIsSystemAdmin(currentUser) &&
+                        !raw.some((u) => u.id === currentUser.id)
+                    ) {
+                        raw = [currentUser, ...raw];
+                    }
+                } else {
+                    const profileOpts: Record<string, any> = {};
+                    if (teamId) {
+                        profileOpts.in_team = teamId;
+                    }
+                    const action = await dispatch(
+                        getProfiles(page, fetchSize, profileOpts),
+                    );
+                    if (cancelled) {
+                        return;
+                    }
+                    raw = (action as ActionResult<UserProfile[]>).data ?? [];
+                }
+
+                const overFetch = raw.length > USER_PAGE_SIZE;
+                const visible = overFetch ? raw.slice(0, USER_PAGE_SIZE) : raw;
+
+                // We deliberately DO NOT filter client-side by
+                // applicability (system role / channel role) here.
+                // Filtering after server-side pagination produces the
+                // "page 1 has 2 admins, page 2 has 3, page 3 has 1"
+                // pathology — each fetched window of N members
+                // collapses to a different subset, breaking the
+                // page-count mental model. Instead we surface every
+                // candidate the underlying endpoint returns and let
+                // the simulator stamp inapplicable subjects with a
+                // `no_applicable_policy` blame, which the picker
+                // renders as "Policy doesn't apply" — so authors can
+                // still tell which rows their rule doesn't govern,
+                // and pagination matches the API page count exactly.
+                setUsers(visible);
+                setHasNextPage(overFetch && !searchTerm);
+                setIsLoadingUsers(false);
+            } catch (err) {
+                if (cancelled) {
+                    return;
+                }
+                setUsersError(err instanceof Error ? err.message : String(err));
+                setUsers([]);
+                setHasNextPage(false);
+                setIsLoadingUsers(false);
+            }
+        }, debounce);
+
+        return () => {
+            cancelled = true;
+            window.clearTimeout(handle);
+        };
+
+        // currentUser is intentionally omitted: we only consume it on
+        // the page-0 merge and re-running the whole fetch every time
+        // the current-user object identity refreshes (Redux store
+        // churn) is wasteful. The merge target is stable across the
+        // modal lifetime.
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchTerm, page, channelId, teamId, targetRole, targetScope, dispatch]);
+
+    // Derived view of the visible rows. Each row pairs the fetched user
+    // with any session-attribute overrides the author staged for that
+    // user during this modal session — overrides survive
+    // search/pagination because they're stored in `sessionOverridesById`
+    // and re-applied by id whenever the user list changes.
+    const rows = useMemo<RowState[]>(() => users.map((user) => ({
+        user,
+        sessionOverrides: sessionOverridesById.get(user.id) ?? {},
+    })), [users, sessionOverridesById]);
+
     const runSimulate = useCallback(async (rowList?: RowState[], scopeOverride?: PolicyEvaluationScope) => {
-        const list = rowList ?? Array.from(rows.values());
+        const list = rowList ?? rows;
         const evaluationScope = scopeOverride ?? scope;
         if (list.length === 0 || actions.length === 0) {
             setResults(new Map());
@@ -197,8 +353,25 @@ function SimulateAccessModal({
             return;
         }
 
+        // Preserve previously-rendered decisions when the simulator
+        // call errors out: wiping `results` to an empty Map would
+        // silently swap every chip back to its pristine "no chip"
+        // state with no explanation, which reads as a regression.
+        // Instead surface the error in a banner above the table and
+        // leave the existing data in place so authors can still see
+        // the last successful run while we report the failure.
+        const actionRes = result as ActionResult<PolicySimulationResponse>;
+        if (actionRes.error) {
+            const message = actionRes.error instanceof Error ?
+                actionRes.error.message :
+                String(actionRes.error);
+            setSimulationError(message || 'Unknown error');
+            setPending(false);
+            return;
+        }
+
         const next = new Map<string, UserDecisionsBundle>();
-        const data = (result as ActionResult<PolicySimulationResponse>).data;
+        const data = actionRes.data;
         if (data) {
             for (const r of data.results) {
                 if (r.user) {
@@ -206,71 +379,41 @@ function SimulateAccessModal({
                 }
             }
         }
+        setSimulationError('');
         setResults(next);
         setPending(false);
     }, [rows, actions, dispatch, policy, ruleName, channelId, teamId, scope]);
 
-    // Add-user is the one trigger that auto-runs the simulator: picking
-    // a user is the most common state change and the row would otherwise
-    // sit there in pristine "no chip" state until the author manually
-    // clicked Re-run. Other staged changes (scope toggle, session
-    // overrides, denied filter, removing a row) still wait for an
-    // explicit Re-run click. We pass the freshly-merged row list to
-    // runSimulate directly so the dispatch sees the new user even before
-    // React re-renders with the updated rows state.
-    const handleAddUser = useCallback((user: UserProfile) => {
-        setRows((prev) => {
-            if (prev.has(user.id)) {
-                return prev;
-            }
-            const next = new Map(prev);
-            next.set(user.id, {
-                user,
-                sessionOverrides: {},
-            });
-            runSimulate(Array.from(next.values()));
-            return next;
-        });
-    }, [runSimulate]);
-
-    const handleRemoveUser = useCallback((userId: string) => {
-        setRows((prev) => {
-            if (!prev.has(userId)) {
-                return prev;
-            }
-            const next = new Map(prev);
-            next.delete(userId);
-            return next;
-        });
-        setResults((prev) => {
-            if (!prev.has(userId)) {
-                return prev;
-            }
-            const next = new Map(prev);
-            next.delete(userId);
-            return next;
-        });
-        setExpandedUserIds((prev) => {
-            if (!prev.has(userId)) {
-                return prev;
-            }
-            const next = new Set(prev);
-            next.delete(userId);
-            return next;
-        });
-    }, []);
-
     const handleApplyOverrides = useCallback((userId: string, overrides: Record<string, string>) => {
-        setRows((prev) => {
-            const row = prev.get(userId);
-            if (!row) {
-                return prev;
-            }
+        setSessionOverridesById((prev) => {
             const next = new Map(prev);
-            next.set(userId, {...row, sessionOverrides: overrides});
+            if (Object.keys(overrides).length === 0) {
+                next.delete(userId);
+            } else {
+                next.set(userId, overrides);
+            }
             return next;
         });
     }, []);
+
+    // Auto-run the simulator whenever the visible row set changes —
+    // a search edit, a page navigation, an override apply, or the
+    // initial page-0 fetch. The picker used to require a manual
+    // "+ Add users" → click flow before the simulator ever ran; with
+    // the data-driven flow, every visible row needs a fresh decision
+    // chip the moment it appears, so we kick off `runSimulate`
+    // unconditionally. Empty rows short-circuit inside `runSimulate`.
+    //
+    // We deliberately do NOT depend on `runSimulate` itself (whose
+    // identity changes whenever rows do) because that would form a
+    // feedback loop. Listing every input that should trigger a
+    // re-run keeps the dependency graph explicit. Scope changes go
+    // through `handleScopeChange` which dispatches its own re-run.
+    useEffect(() => {
+        runSimulate(rows);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rows]);
 
     const handleToggleExpand = useCallback((userId: string) => {
         setExpandedUserIds((prev) => {
@@ -296,37 +439,27 @@ function SimulateAccessModal({
             return;
         }
         setScope(next);
-        if (rows.size > 0) {
+        if (rows.length > 0) {
             runSimulate(undefined, next);
         }
     }, [scope, rows, runSimulate]);
 
-    // The picker no longer hides rows — the permission filter narrows
-    // the chip/summary scope per row instead. Keeping `visibleRows` as
-    // a thin alias of `rows.values()` preserves the surrounding code
-    // shape (single point to extend later if a new filter is added).
-    const visibleRows = useMemo(() => Array.from(rows.values()), [rows]);
+    const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(event.target.value);
 
-    // Footer summary counts. Aggregates over `effectiveActions` so the
-    // tallies match what the row chips show — picking a single
-    // permission filters the summary to that permission's verdicts.
-    const summary = useMemo(() => {
-        let allowed = 0;
-        let denied = 0;
-        for (const row of rows.values()) {
-            const bundle = results.get(row.user.id);
-            if (!bundle?.decisions) {
-                continue;
-            }
-            const state = aggregateDecisions(effectiveActions, bundle.decisions, false);
-            if (state === 'allowed') {
-                allowed++;
-            } else if (state === 'denied' || state === 'mixed') {
-                denied++;
-            }
-        }
-        return {users: rows.size, allowed, denied};
-    }, [rows, results, effectiveActions]);
+        // Reset to page 0 whenever the term changes — paging through
+        // page N of the OLD term's results after searching for a new
+        // term would surface unrelated users.
+        setPage(0);
+    }, []);
+
+    const handlePrevPage = useCallback(() => {
+        setPage((p) => Math.max(0, p - 1));
+    }, []);
+
+    const handleNextPage = useCallback(() => {
+        setPage((p) => p + 1);
+    }, []);
 
     return (
         <GenericModal
@@ -347,49 +480,54 @@ function SimulateAccessModal({
             ariaLabel={formatMessage({id: 'admin.access_control.simulate_access.title', defaultMessage: 'Simulate access'})}
             isStacked={isStacked}
 
-            // We render our own footer so the row-count summary can sit
-            // inline with the Close + Re-run buttons (left-aligned text +
-            // right-aligned action group share the same row). The
-            // GenericModal default footer only supports right-aligned
-            // buttons, so opting into footerContent gives us full
-            // control over the layout.
+            // Custom footer hosting only the prev/next pagination
+            // (right-aligned). The GenericModal's X close in the
+            // top-right serves as the primary dismiss affordance —
+            // duplicating it as a footer "Close" button was
+            // redundant. The auto-rerun on every search/page/scope/
+            // override change makes a manual "Re-run" button likewise
+            // redundant. The aggregate "X users · Y allowed · Z
+            // denied" summary was also removed: paginated results
+            // would only summarize the visible page, which mislead
+            // authors into thinking the tally reflected the policy's
+            // whole audience.
+            //
+            // Pagination disappears whole-cloth during typed search
+            // (Mattermost's search API returns top-N matches, not a
+            // paginated cursor) and when a single page exhausts the
+            // result set — the footer then collapses to an empty band.
             footerContent={
-                <div
-                    className='SimulateAccessModal__footer'
-                    data-testid='simulate-access-footer'
-                >
+                !searchTerm && (page > 0 || hasNextPage) ? (
                     <div
-                        className='SimulateAccessModal__summary'
-                        data-testid='simulate-access-summary'
+                        className='SimulateAccessModal__footer'
+                        data-testid='simulate-access-pagination'
                     >
-                        <FormattedMessage
-                            id='admin.access_control.simulate_access.summary'
-                            defaultMessage='{users, plural, one {# user} other {# users}} · {allowed} allowed · {denied} denied'
-                            values={{users: summary.users, allowed: summary.allowed, denied: summary.denied}}
-                        />
-                    </div>
-                    <div className='SimulateAccessModal__footerActions'>
                         <Button
                             emphasis='tertiary'
-                            onClick={onExited}
+                            size='sm'
+                            onClick={handlePrevPage}
+                            disabled={page === 0 || isLoadingUsers || pending}
+                            data-testid='simulate-access-pagination-prev'
                         >
                             <FormattedMessage
-                                id='admin.access_control.simulate_access.close'
-                                defaultMessage='Close'
+                                id='admin.access_control.simulate_access.pagination.previous'
+                                defaultMessage='Previous'
                             />
                         </Button>
                         <Button
-                            data-testid='simulate-access-rerun'
-                            disabled={rows.size === 0 || pending}
-                            onClick={() => runSimulate()}
+                            emphasis='tertiary'
+                            size='sm'
+                            onClick={handleNextPage}
+                            disabled={!hasNextPage || isLoadingUsers || pending}
+                            data-testid='simulate-access-pagination-next'
                         >
                             <FormattedMessage
-                                id='admin.access_control.simulate_access.rerun'
-                                defaultMessage='Re-run'
+                                id='admin.access_control.simulate_access.pagination.next'
+                                defaultMessage='Next'
                             />
                         </Button>
                     </div>
-                </div>
+                ) : null
             }
 
             // The user picker uses a FloatingPortal popover that lives in
@@ -406,17 +544,23 @@ function SimulateAccessModal({
                 <p>
                     <FormattedMessage
                         id='admin.access_control.simulate_access.subtitle'
-                        defaultMessage="Pick users to evaluate against the selected scope. Each row shows whether the action would be allowed for that user's most recent session."
+                        defaultMessage="Search and page through users to evaluate against the selected scope. Each row shows whether the action would be allowed for that user's most recent session."
                     />
                 </p>
-                <AddUsersInline
-                    onAdd={handleAddUser}
-                    excludeIdsKey={Array.from(rows.keys()).sort().join(',')}
-                    excludeIds={rows}
-                    targetRole={targetRole}
-                    targetScope={targetScope}
-                    teamId={teamId}
-                    channelId={channelId}
+                <input
+                    type='text'
+                    className='SimulateAccessModal__search'
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    placeholder={formatMessage({
+                        id: 'admin.access_control.simulate_access.search_placeholder',
+                        defaultMessage: 'Search users',
+                    })}
+                    aria-label={formatMessage({
+                        id: 'admin.access_control.simulate_access.search_aria',
+                        defaultMessage: 'Search users to simulate',
+                    })}
+                    data-testid='simulate-access-search'
                 />
             </div>
 
@@ -538,72 +682,116 @@ function SimulateAccessModal({
             </div>
 
             <div className='SimulateAccessModal__body'>
-                {rows.size === 0 ? (
-                    <div className='SimulateAccessModal__empty'>
+                {simulationError ? (
+                    <div
+                        className='SimulateAccessModal__simulateError'
+                        data-testid='simulate-access-simulate-error'
+                        role='alert'
+                    >
                         <FormattedMessage
-                            id='admin.access_control.simulate_access.empty_state'
-                            defaultMessage='Pick users to dry-run the access expression as the policy decision point would at request time.'
+                            id='admin.access_control.simulate_access.simulate_error'
+                            defaultMessage="Couldn't evaluate the policy. Showing the previous results."
                         />
                     </div>
-                ) : (
-                    <table
-                        className={classNames('SimulateAccessModal__table', {
-                            'SimulateAccessModal__table--noActivity': !sessionAttributesEnabled,
-                        })}
-                    >
-                        <thead>
-                            <tr>
-                                <th>
+                ) : null}
+                {(() => {
+                    if (usersError) {
+                        return (
+                            <div
+                                className='SimulateAccessModal__empty SimulateAccessModal__empty--error'
+                                data-testid='simulate-access-load-error'
+                                role='alert'
+                            >
+                                <FormattedMessage
+                                    id='admin.access_control.simulate_access.load_error'
+                                    defaultMessage="Couldn't load users. Try closing and reopening the modal."
+                                />
+                            </div>
+                        );
+                    }
+                    if (rows.length === 0 && !isLoadingUsers) {
+                        return (
+                            <div className='SimulateAccessModal__empty'>
+                                {searchTerm ? (
                                     <FormattedMessage
-                                        id='admin.access_control.simulate_access.col.user'
-                                        defaultMessage='User'
+                                        id='admin.access_control.simulate_access.no_search_results'
+                                        defaultMessage='No users match this search.'
                                     />
-                                </th>
-                                <th>
+                                ) : (
                                     <FormattedMessage
-                                        id='admin.access_control.simulate_access.col.result'
-                                        defaultMessage='Result'
+                                        id='admin.access_control.simulate_access.no_candidates'
+                                        defaultMessage='No users in scope to simulate against this rule.'
                                     />
-                                </th>
-                                {sessionAttributesEnabled ? (
+                                )}
+                            </div>
+                        );
+                    }
+                    return (
+                        <table
+                            className={classNames('SimulateAccessModal__table', {
+                                'SimulateAccessModal__table--noActivity': !sessionAttributesEnabled,
+                            })}
+                        >
+                            <thead>
+                                <tr>
                                     <th>
                                         <FormattedMessage
-                                            id='admin.access_control.simulate_access.col.recent_activity'
-                                            defaultMessage='Recent activity'
+                                            id='admin.access_control.simulate_access.col.user'
+                                            defaultMessage='User'
                                         />
                                     </th>
-                                ) : null}
-                                <th>
-                                    <span className='sr-only'>
+                                    <th>
                                         <FormattedMessage
-                                            id='admin.access_control.simulate_access.col.actions'
-                                            defaultMessage='Actions'
+                                            id='admin.access_control.simulate_access.col.result'
+                                            defaultMessage='Result'
                                         />
-                                    </span>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {visibleRows.map((row) => (
-                                <PickerRow
-                                    key={row.user.id}
-                                    row={row}
-                                    actions={effectiveActions}
-                                    actionLabels={actionLabels}
-                                    pending={pending}
-                                    bundle={results.get(row.user.id)}
-                                    policy={policy}
-                                    sessionAttributeFields={sessionAttributeFields}
-                                    sessionAttributesEnabled={sessionAttributesEnabled}
-                                    expanded={expandedUserIds.has(row.user.id)}
-                                    onToggleExpand={handleToggleExpand}
-                                    onApplyOverrides={handleApplyOverrides}
-                                    onRemove={handleRemoveUser}
-                                />
-                            ))}
-                        </tbody>
-                    </table>
-                )}
+                                    </th>
+                                    {sessionAttributesEnabled ? (
+                                        <>
+                                            <th>
+                                                <FormattedMessage
+                                                    id='admin.access_control.simulate_access.col.recent_activity'
+                                                    defaultMessage='Recent activity'
+                                                />
+                                            </th>
+                                            <th>
+                                                <span className='sr-only'>
+                                                    <FormattedMessage
+                                                        id='admin.access_control.simulate_access.col.actions'
+                                                        defaultMessage='Actions'
+                                                    />
+                                                </span>
+                                            </th>
+                                        </>
+                                    ) : null}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((row) => (
+                                    <PickerRow
+                                        key={row.user.id}
+                                        row={row}
+                                        actions={effectiveActions}
+                                        actionLabels={actionLabels}
+                                        pending={pending}
+                                        bundle={results.get(row.user.id)}
+                                        policy={policy}
+                                        sessionAttributeFields={sessionAttributeFields}
+                                        sessionAttributesEnabled={sessionAttributesEnabled}
+                                        expanded={expandedUserIds.has(row.user.id)}
+                                        onToggleExpand={handleToggleExpand}
+                                        onApplyOverrides={handleApplyOverrides}
+                                    />
+                                ))}
+                            </tbody>
+                        </table>
+                    );
+                })()}
+
+                {/* The paginator now lives in the modal footer (right-
+                  * aligned next to the row-count summary) — see the
+                  * `footerContent` block above. The body region is
+                  * just the table / empty state. */}
             </div>
 
         </GenericModal>

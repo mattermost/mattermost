@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useMemo, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy, PolicySimulationActionDecision} from '@mattermost/types/access_control';
 import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control';
@@ -44,7 +44,6 @@ type Props = {
     expanded: boolean;
     onToggleExpand: (userId: string) => void;
     onApplyOverrides: (userId: string, overrides: Record<string, string>) => void;
-    onRemove: (userId: string) => void;
 };
 
 /**
@@ -68,9 +67,7 @@ export default function PickerRow({
     expanded,
     onToggleExpand,
     onApplyOverrides,
-    onRemove,
 }: Props): JSX.Element {
-    const {formatMessage} = useIntl();
     const {user} = row;
     const [showDetails, setShowDetails] = useState(false);
 
@@ -244,14 +241,14 @@ export default function PickerRow({
                         )}
                     </td>
                 ) : null}
-                <td
-                    className='SimulateAccessModal__rowActions'
+                {sessionAttributesEnabled ? (
+                    <td
+                        className='SimulateAccessModal__rowActions'
 
-                    // Stop row-click propagation so clicking the pencil
-                    // or remove button doesn't also expand/collapse.
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    {sessionAttributesEnabled ? (
+                        // Stop row-click propagation so clicking the
+                        // pencil button doesn't also expand/collapse.
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <SessionAttributeEditorButton
                             userId={user.id}
                             displayName={displayUsername(user, 'full_name') || user.username}
@@ -259,16 +256,8 @@ export default function PickerRow({
                             currentOverrides={row.sessionOverrides}
                             onApply={onApplyOverrides}
                         />
-                    ) : null}
-                    <button
-                        type='button'
-                        className='SimulateAccessModal__rowRemove'
-                        aria-label={formatMessage({id: 'admin.access_control.simulate_access.row.remove', defaultMessage: 'Remove user'})}
-                        onClick={() => onRemove(user.id)}
-                    >
-                        <i className='icon icon-close'/>
-                    </button>
-                </td>
+                    </td>
+                ) : null}
             </tr>
             {expanded && bundle?.sessions ? (
                 bundle.sessions.map((session, idx) => (

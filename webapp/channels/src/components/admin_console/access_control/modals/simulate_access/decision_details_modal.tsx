@@ -6,7 +6,6 @@ import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {
     AccessControlPolicy,
@@ -236,22 +235,14 @@ function ActionDetailsRow({action, label, decision, pending, traces}: ActionDeta
             </div>
             {traces.length > 0 ? (
                 <>
-                    <Button
-                        emphasis='tertiary'
-                        size='sm'
+                    <button
+                        type='button'
                         className='SimulateAccessModal__detailsToggle'
                         data-testid={`simulate-access-details-toggle-${action}`}
                         aria-expanded={showDetails}
                         aria-controls={`simulate-access-details-rule-${action}`}
                         onClick={() => setShowDetails((s) => !s)}
                     >
-                        <i
-                            className={classNames('icon', {
-                                'icon-chevron-down': !showDetails,
-                                'icon-chevron-up': showDetails,
-                            })}
-                            aria-hidden='true'
-                        />
                         {showDetails ? (
                             <FormattedMessage
                                 id='admin.access_control.simulate_access.details.hide_trace'
@@ -263,7 +254,14 @@ function ActionDetailsRow({action, label, decision, pending, traces}: ActionDeta
                                 defaultMessage='Show evaluation trace'
                             />
                         )}
-                    </Button>
+                        <i
+                            className={classNames('icon', {
+                                'icon-chevron-down': !showDetails,
+                                'icon-chevron-up': showDetails,
+                            })}
+                            aria-hidden='true'
+                        />
+                    </button>
                     {showDetails ? (
                         <div
                             id={`simulate-access-details-rule-${action}`}
@@ -583,6 +581,7 @@ type TraceOriginHeaderProps = {
  *    enough context).
  */
 function TraceOriginHeader({action, trace}: TraceOriginHeaderProps): JSX.Element | null {
+    const {formatMessage} = useIntl();
     const {ruleName, role, mergedRules} = trace;
     const merged = mergedRules ?? [];
     const hasMerge = merged.length > 1;
@@ -614,13 +613,10 @@ function TraceOriginHeader({action, trace}: TraceOriginHeaderProps): JSX.Element
                         type='button'
                         className='SimulateAccessModal__detailsCombinedHelp'
                         data-testid={`simulate-access-details-origin-help-${action}`}
-                        aria-label={
-
-                            // Keep the aria-label literal so screen
-                            // readers announce the same explanation
-                            // hover users see in the tooltip.
-                            'Show contributing rules'
-                        }
+                        aria-label={formatMessage({
+                            id: 'admin.access_control.simulate_access.details.show_contributing_rules',
+                            defaultMessage: 'Show contributing rules',
+                        })}
                     >
                         <i
                             className='icon icon-help-circle-outline'
@@ -983,15 +979,17 @@ function ExpressionTraceNode({node}: ExpressionTraceNodeProps): JSX.Element {
     // attribute).
     const showActualLine = !isCompound &&
         node.outcome === POLICY_SIMULATION_EVALUATION_OUTCOME.FALSE &&
-        Boolean(node.actual_value);
+        node.actual_value != null;
     const showError = !isCompound &&
         node.outcome === POLICY_SIMULATION_EVALUATION_OUTCOME.ERROR &&
         Boolean(node.error);
 
     // Build a "got: X" tooltip on the expression itself so the value
     // is still discoverable on TRUE leaves (where we hide the line)
-    // and as supplementary info on FALSE leaves.
-    const expressionTitle = node.actual_value ? `actual: ${node.actual_value}` : undefined;
+    // and as supplementary info on FALSE leaves. Use a nullish check
+    // so legitimate falsy values (false, 0, '') still surface in the
+    // tooltip — only null/undefined should suppress it.
+    const expressionTitle = node.actual_value == null ? undefined : `actual: ${node.actual_value}`;
 
     return (
         <div

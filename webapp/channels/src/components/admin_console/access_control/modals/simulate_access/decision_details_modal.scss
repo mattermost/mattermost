@@ -199,11 +199,15 @@
 // Per-row disclosure toggle: the rule + tree details start collapsed
 // behind this button so the modal opens with a tight summary view.
 // Tertiary-button look matches the rest of the admin-console copy.
+// Left padding is dropped to 0 so the "Show evaluation trace" text
+// aligns with the permission label above it (both start at the card's
+// 12px content gutter). The chevron sits at the end of the line, after
+// the text, mirroring the standard expand affordance pattern.
 .SimulateAccessModal__detailsToggle {
     display: inline-flex;
     align-items: center;
     align-self: flex-start;
-    padding: 4px 8px;
+    padding: 4px 8px 4px 0;
     border: 0;
     border-radius: 4px;
     background: transparent;
@@ -213,16 +217,13 @@
     font-weight: 600;
     gap: 4px;
 
-    &:hover {
-        background: rgba(var(--button-bg-rgb), 0.08);
-    }
-
-    // Keep keyboard focus visible. Mirrors the focus-ring pattern used
-    // by .SimulateAccessModal__rowChipButton (outline 2px solid +
-    // 2px offset against --button-bg) so the disclosure toggle
-    // matches every other focusable affordance in the picker.
+    // No hover background or underline: the toggle reads as a
+    // brand-colored link inside a tinted card; a hover tint or
+    // underline both felt like clutter. Cursor change + brand color
+    // already make it discoverable as interactive. Keyboard-focus
+    // still gets the 2px outline ring so the focus state stays
+    // accessible.
     &:focus-visible {
-        background: rgba(var(--button-bg-rgb), 0.08);
         outline: 2px solid var(--button-bg);
         outline-offset: 2px;
     }

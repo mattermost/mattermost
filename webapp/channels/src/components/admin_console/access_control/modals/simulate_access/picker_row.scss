@@ -78,47 +78,39 @@
 }
 
 .SimulateAccessModal__rowActions {
-    width: 88px;
+    // Slightly narrower now that the row hosts only the pencil-icon
+    // override editor (no remove button) — kept as a fixed column so
+    // the pencil sits on a stable right-edge axis across rows.
+    width: 56px;
     text-align: right;
     white-space: nowrap;
 }
 
-.SimulateAccessModal__rowConfigure,
-.SimulateAccessModal__rowRemove {
+// Pencil-icon override editor button. Highlighted with a subtle
+// frame and brand-colored glyph so it reads as a primary per-row
+// affordance — when sessionAttributes are configured, this is the
+// only action in the row. Sized like a 28px chip so it lines up
+// with the result chip's vertical rhythm.
+.SimulateAccessModal__rowConfigure {
     display: inline-flex;
     width: 28px;
     height: 28px;
     align-items: center;
     justify-content: center;
     padding: 0;
-    border: 0;
+    border: 1px solid rgba(var(--button-bg-rgb), 0.32);
     border-radius: 4px;
     background: transparent;
-    color: rgba(var(--center-channel-color-rgb), 0.72);
+    color: var(--button-bg);
     cursor: pointer;
     vertical-align: middle;
 
     &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: var(--center-channel-color);
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
     }
 
     i {
         font-size: 16px;
-    }
-}
-
-.SimulateAccessModal__rowConfigure {
-    // Highlight the pencil with a subtle frame per the design spec
-    // so it reads as a primary affordance per row and is visually
-    // distinct from the adjacent remove button.
-    border: 1px solid rgba(var(--button-bg-rgb), 0.32);
-    border-radius: 4px;
-    margin-right: 4px;
-    color: var(--button-bg);
-
-    &:hover {
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg);
     }
 }

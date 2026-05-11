@@ -81,7 +81,7 @@ describe('SimulateAccessModal — picker UX', () => {
         mockSimulatePolicyForUsers.mockResolvedValue({data: {results: [], total: 0}});
     });
 
-    it('renders the empty state, the Add users button, and the scope toggle defaulting to "All policies"', async () => {
+    it('renders the inline search bar and the scope toggle defaulting to "All policies"', async () => {
         renderWithContext(
             <SimulateAccessModal
                 onExited={jest.fn()}
@@ -97,7 +97,10 @@ describe('SimulateAccessModal — picker UX', () => {
             expect(screen.getByRole('dialog')).toBeInTheDocument();
         });
 
-        expect(screen.getByRole('button', {name: /Add users/i})).toBeInTheDocument();
+        // Search bar is always visible (replaces the previous "+ Add users"
+        // popover trigger). The scope toggle defaults to "All policies".
+        expect(screen.getByTestId('simulate-access-search')).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /Add users/i})).not.toBeInTheDocument();
         expect(screen.getByTestId('simulate-access-scope-all')).toHaveAttribute('aria-pressed', 'true');
         expect(screen.getByTestId('simulate-access-scope-this-rule')).toHaveAttribute('aria-pressed', 'false');
 
@@ -107,7 +110,12 @@ describe('SimulateAccessModal — picker UX', () => {
         expect(screen.queryByTestId('simulate-access-permission-filter')).not.toBeInTheDocument();
     });
 
-    it('does not call simulator when no users are picked, and Re-run button is disabled', async () => {
+    it('does not call simulator when the initial user fetch returns no candidates', async () => {
+        // Default mocks return empty user lists, so the initial fetch
+        // resolves with no rows and the auto-run effect short-circuits.
+        // The footer no longer carries a Re-run button (auto-rerun on
+        // every search/page/scope/override change makes it redundant)
+        // and a manual Close button (the modal X handles dismissal).
         renderWithContext(
             <SimulateAccessModal
                 onExited={jest.fn()}
@@ -119,39 +127,47 @@ describe('SimulateAccessModal — picker UX', () => {
             />,
         );
 
-        // Without picking any user, no simulate dispatch happens — even
-        // after waiting (manual-only re-run; nothing is on a timer).
+        // Allow the initial fetch + debounced effect to settle.
         await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 50));
+            await new Promise((resolve) => setTimeout(resolve, 100));
         });
         expect(mockSimulatePolicyForUsers).not.toHaveBeenCalled();
 
-        const rerun = screen.getByRole('button', {name: /Re-run/i});
-        expect(rerun).toBeDisabled();
+        // Footer hosts only the summary line (and the paginator when
+        // there are multiple pages). The Re-run text button is gone
+        // — auto-rerun handles every relevant state change. The
+        // modal's standard X close in the top-right corner remains
+        // (aria-label=\"Close\") and serves as the only dismiss
+        // affordance.
+        expect(screen.queryByRole('button', {name: /Re-run/i})).not.toBeInTheDocument();
     });
 
+    // The picker is now data-driven: the modal pre-populates page 0
+    // on mount via getProfiles/getProfilesInChannel; the inline search
+    // input drives `searchProfiles` for typed queries. To stage a user
+    // for assertion we type the username into the search bar and wait
+    // for the row to mount in the table — no popover or click on a
+    // result item is required.
     async function pickUser(user: any) {
-        await userEvent.click(screen.getByRole('button', {name: /Add users/i}));
+        const searchInput = await screen.findByTestId('simulate-access-search') as HTMLInputElement;
 
-        const searchInput = await screen.findByLabelText(/Search by name or email/i) as HTMLInputElement;
+        // Allow the initial page-0 fetch (getProfiles / getProfilesInChannel)
+        // to settle before the search dispatch lands so the assertion
+        // races aren't fighting two pending promises.
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        });
 
-        // fireEvent.change avoids floating-ui useDismiss treating the
-        // per-key pointer dance as an outside-press in jsdom; one
-        // synthetic change drives the picker's debounced search effect.
         fireEvent.change(searchInput, {target: {value: user.username}});
 
-        // Wait for the picker's search debounce + the dispatched mock
-        // search promise to resolve into setResults.
+        // Wait for the search debounce + dispatched search to land,
+        // then for the row to mount with the auto-run simulator
+        // having dispatched.
         await act(async () => {
             await new Promise((resolve) => setTimeout(resolve, 350));
         });
 
-        const resultButton = await screen.findByRole(
-            'button',
-            {name: new RegExp(user.username)},
-            {timeout: 3000},
-        );
-        await userEvent.click(resultButton);
+        await screen.findByText(new RegExp(`@${user.username}`), undefined, {timeout: 3000});
     }
 
     it('auto-runs the simulator when a user is picked, with the scope param', async () => {
@@ -314,7 +330,6 @@ describe('SimulateAccessModal — picker UX', () => {
         );
 
         await pickUser(user);
-        await userEvent.click(screen.getByRole('button', {name: /Re-run/i}));
 
         // Recent activity reads "1 of 2 sessions" because one session
         // denied; clicking the row expands the per-session breakdown.
@@ -370,31 +385,27 @@ describe('SimulateAccessModal — picker UX', () => {
         );
 
         await pickUser(user);
-        await userEvent.click(screen.getByRole('button', {name: /Re-run/i}));
 
         // Permission filter is rendered (multi-action rule). Default
         // label is "All permissions" → mixed aggregate chip.
         const filterButton = await screen.findByTestId('simulate-access-permission-filter');
         expect(filterButton).toHaveTextContent(/All permissions/);
         await screen.findByText(/Mixed/i);
-        expect(screen.getByTestId('simulate-access-summary')).toHaveTextContent(/1 user · 0 allowed · 1 denied/);
 
         // Select "Download files" → only the allowed verdict is
-        // shown; the row chip flips to allow and the summary tally
-        // rebalances.
+        // shown; the row chip flips to allow and the filter label
+        // updates to reflect the active narrowing.
         await userEvent.click(filterButton);
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /Download files/i}));
         await screen.findByTestId('simulate-access-row-chip-allow');
         expect(screen.queryByText(/Mixed/i)).not.toBeInTheDocument();
-        expect(screen.getByTestId('simulate-access-summary')).toHaveTextContent(/1 user · 1 allowed · 0 denied/);
         expect(filterButton).toHaveTextContent(/Download files/);
 
-        // Switch to "Upload files" → row collapses to deny,
-        // summary flips back.
+        // Switch to "Upload files" → row collapses to deny, label
+        // flips to the upload action.
         await userEvent.click(filterButton);
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /Upload files/i}));
         await screen.findByTestId('simulate-access-row-chip-deny');
-        expect(screen.getByTestId('simulate-access-summary')).toHaveTextContent(/1 user · 0 allowed · 1 denied/);
         expect(filterButton).toHaveTextContent(/Upload files/);
     });
 
@@ -422,15 +433,15 @@ describe('SimulateAccessModal — picker UX', () => {
         const editor = await screen.findByTestId('simulate-access-row-editor');
         expect(editor).toBeInTheDocument();
 
-        // The single configured field renders as a dropdown because it's
-        // type=select with options. Setting it + Apply writes into the
-        // row's session_overrides for the next Re-run.
+        // The single configured field renders as a dropdown because
+        // it's type=select with options. Setting it + Apply writes
+        // into the user's session_overrides; the auto-rerun effect
+        // (triggered by the rows' session-overrides change) re-fires
+        // the simulator without an explicit Re-run click.
         const select = editor.querySelector('select') as HTMLSelectElement;
         expect(select).toBeInTheDocument();
         fireEvent.change(select, {target: {value: 'WiFi'}});
         await userEvent.click(screen.getByRole('button', {name: /Apply/i}));
-
-        await userEvent.click(screen.getByRole('button', {name: /Re-run/i}));
 
         await waitFor(() => {
             expect(mockSimulatePolicyForUsers).toHaveBeenCalled();
@@ -459,15 +470,18 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        // Wait for the row to render (the remove button is unconditional).
-        await screen.findByRole('button', {name: /Remove user/i});
+        // Wait for the row to render — the username is the cheapest
+        // observable that confirms the picker row mounted (the picker
+        // dropped the remove-user button when the modal moved to a
+        // data-driven user list).
+        await screen.findByText(`@${user.username}`);
         expect(screen.queryByTestId(`simulate-access-row-edit-${user.id}`)).not.toBeInTheDocument();
 
         // The "Recent activity" column header must not appear.
         expect(screen.queryByRole('columnheader', {name: /Recent activity/i})).not.toBeInTheDocument();
     });
 
-    it('renders a 3-column table with Result adjacent to the remove button when no session-attribute fields are configured', async () => {
+    it('renders a 2-column table when no session-attribute fields are configured so Result hugs the right edge', async () => {
         const user = TestHelper.getUserMock({id: 'u5', username: 'epsilon', roles: 'system_user'});
         mockSearchProfiles.mockResolvedValue({data: [user]});
         mockSimulatePolicyForUsers.mockResolvedValue({
@@ -498,31 +512,27 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        // 3 column headers (User / Result / Actions sr-only) — no
-        // Recent activity. The actions header has visually-hidden text
-        // ("Actions") so the column is still announced to screen
-        // readers, hence we can find all three with `getAllByRole`.
+        // 2 column headers (User / Result) — Recent activity and
+        // Actions are both dropped when no session-attribute fields
+        // are configured. Earlier the empty Actions column padded
+        // Result away from the right edge of the table; with the
+        // column gone Result snaps to the trailing edge as intended.
         await waitFor(() => {
-            expect(screen.getAllByRole('columnheader')).toHaveLength(3);
+            expect(screen.getAllByRole('columnheader')).toHaveLength(2);
         });
 
-        // The data row should likewise have exactly 3 cells: user
-        // identity, result chip, and the remove-button cell. This
-        // guarantees Result and Remove are direct DOM neighbours so
-        // the chip "hugs" the X.
+        // The data row should likewise have exactly 2 cells: user
+        // identity and the result chip. The chip's <td> is the last
+        // cell in the row, so the chip and its column header sit at
+        // the table's right edge with no empty trailing column.
         const rowCells = screen.getAllByRole('row')[1].querySelectorAll('td');
-        expect(rowCells).toHaveLength(3);
+        expect(rowCells).toHaveLength(2);
 
         const denyChip = await screen.findByTestId('simulate-access-row-chip-deny');
-
-        // Confirm DOM ordering: the deny chip must appear before the
-        // remove-user button without any other cell between them.
-        const removeButton = screen.getByRole('button', {name: /Remove user/i});
         const denyCell = denyChip.closest('td');
-        const removeCell = removeButton.closest('td');
         expect(denyCell).not.toBeNull();
-        expect(removeCell).not.toBeNull();
-        expect(denyCell?.nextElementSibling).toBe(removeCell);
+        expect(denyCell?.classList.contains('SimulateAccessModal__rowResult')).toBe(true);
+        expect(denyCell?.nextElementSibling).toBeNull();
     });
 
     it('does not expand the row even when the response carries sessions[] if no session-attribute fields are configured', async () => {
@@ -622,7 +632,6 @@ describe('SimulateAccessModal — picker UX', () => {
         );
 
         await pickUser(user);
-        await userEvent.click(screen.getByRole('button', {name: /Re-run/i}));
 
         const stacked = await screen.findByTestId('simulate-access-row-chip-stacked-mixed');
         expect(stacked).toHaveTextContent(/Mixed/i);
@@ -1630,12 +1639,12 @@ describe('SimulateAccessModal — picker UX', () => {
         expect(screen.queryByTestId('simulate-access-details-rule-upload_file_attachment')).not.toBeInTheDocument();
     });
 
-    // The picker pre-populates the dropdown with the first page of
-    // candidates the moment "+ Add users" is clicked, before the
-    // author types anything. This is the "I just want to see who's
-    // available" affordance — channel-scope drafts pull channel
-    // members; system-scope drafts pull general profiles.
-    it('pre-populates the dropdown with channel members when targetScope is channel', async () => {
+    // The modal pre-populates page 0 on mount via getProfilesInChannel
+    // (channel scope) or getProfiles (system / no-channel scope) and
+    // auto-runs the simulator against those rows. Authors no longer
+    // have to click "+ Add users" to see anything — the data shows up
+    // immediately.
+    it('pre-populates the table with channel members when targetScope is channel', async () => {
         const channelMember = TestHelper.getUserMock({id: 'cm1', username: 'member.one', roles: 'system_user'});
         mockGetProfilesInChannel.mockResolvedValue({data: [channelMember]});
 
@@ -1651,30 +1660,26 @@ describe('SimulateAccessModal — picker UX', () => {
             />,
         );
 
-        const dialog = await screen.findByRole('dialog');
-
-        // Open the picker; do NOT type anything — the pre-populate
-        // path is the contract under test. Scope to this modal so we do
-        // not click another surface's control when multiple suites render.
-        await userEvent.click(within(dialog).getByRole('button', {name: /Add users/i}));
-
         await waitFor(
             () => {
+                // Asserts both that we hit the channel-members endpoint
+                // AND that we requested an over-fetch (PAGE_SIZE + 1)
+                // so the modal can decide whether to expose the Next
+                // page button without a separate count call.
                 expect(mockGetProfilesInChannel).toHaveBeenCalledWith('channel-id-1', 0, expect.any(Number));
             },
             {timeout: 5000},
         );
 
-        // The fetched member appears in the dropdown without any
-        // search input (results render in a portal, not inside dialog).
-        await screen.findByRole('button', {name: new RegExp(channelMember.username)});
+        // The fetched member appears in the table directly.
+        await screen.findByText(`@${channelMember.username}`, undefined, {timeout: 5000});
 
-        // searchProfiles must NOT have been called: pre-populate uses
-        // the cheaper "first page of channel members" path.
+        // searchProfiles must NOT have been called: the initial render
+        // bypasses the typed-search path entirely.
         expect(mockSearchProfiles).not.toHaveBeenCalled();
     });
 
-    it('pre-populates the dropdown with general profiles when no channel context is available', async () => {
+    it('pre-populates the table with general profiles when no channel context is available', async () => {
         const profile = TestHelper.getUserMock({id: 'p1', username: 'admin.user', roles: 'system_admin'});
         mockGetProfiles.mockResolvedValue({data: [profile]});
 
@@ -1689,9 +1694,6 @@ describe('SimulateAccessModal — picker UX', () => {
             />,
         );
 
-        const dialog = await screen.findByRole('dialog');
-        await userEvent.click(within(dialog).getByRole('button', {name: /Add users/i}));
-
         await waitFor(
             () => {
                 expect(mockGetProfiles).toHaveBeenCalled();
@@ -1699,7 +1701,109 @@ describe('SimulateAccessModal — picker UX', () => {
             {timeout: 5000},
         );
 
-        await screen.findByRole('button', {name: new RegExp(profile.username)});
+        await screen.findByText(`@${profile.username}`, undefined, {timeout: 5000});
         expect(mockSearchProfiles).not.toHaveBeenCalled();
+    });
+
+    // Pagination: when the initial fetch returns more than PAGE_SIZE
+    // rows (we over-fetch by one to detect this without a count
+    // round-trip), the modal exposes a Next button. Clicking it
+    // refetches the next page; the previous button stays disabled on
+    // page 0 and becomes available once we navigate forward.
+    it('exposes a Next button when the first page over-fetches and refetches on click', async () => {
+        // PAGE_SIZE is 10 in the modal. Building 11 mocked profiles
+        // makes the over-fetch reveal the "next page exists" hint.
+        const pageOne = Array.from({length: 11}, (_, i) =>
+            TestHelper.getUserMock({id: `p1-${i}`, username: `pageone${i}`, roles: 'system_user'}),
+        );
+        const pageTwo = [
+            TestHelper.getUserMock({id: 'p2-0', username: 'pagetwo0', roles: 'system_user'}),
+        ];
+
+        mockGetProfiles.mockImplementation((page: number) => {
+            if (page === 0) {
+                return Promise.resolve({data: pageOne});
+            }
+            return Promise.resolve({data: pageTwo});
+        });
+
+        renderWithContext(
+            <SimulateAccessModal
+                onExited={jest.fn()}
+                policy={draftPolicy}
+                actions={['upload_file_attachment']}
+                ruleName='rule1'
+                targetRole=''
+                targetScope='system'
+            />,
+        );
+
+        // Page 0 mounts with 10 visible rows (the over-fetch row is
+        // sliced off the visible list and only used to set the Next
+        // button enabled state).
+        await screen.findByText('@pageone0', undefined, {timeout: 5000});
+
+        // Paginator lives in the modal footer; Prev disabled on page
+        // 0, Next enabled because the over-fetch detected more rows.
+        const paginator = await screen.findByTestId('simulate-access-pagination');
+        const prev = within(paginator).getByTestId('simulate-access-pagination-prev');
+        const next = within(paginator).getByTestId('simulate-access-pagination-next');
+        expect(prev).toBeDisabled();
+        expect(next).toBeEnabled();
+
+        // Click Next → page 1 fetched, the page-2 user replaces
+        // page-1 rows, and `prev` is now enabled.
+        await userEvent.click(next);
+        await waitFor(() => {
+            expect(mockGetProfiles).toHaveBeenCalledWith(1, expect.any(Number), expect.anything());
+        });
+        await screen.findByText('@pagetwo0', undefined, {timeout: 5000});
+        expect(within(paginator).getByTestId('simulate-access-pagination-prev')).toBeEnabled();
+    });
+
+    // Typed search bypasses pagination — Mattermost's search API
+    // returns top-N matches and isn't cursor-paginated, so showing the
+    // paginator would lie about the available navigation. The modal
+    // hides the paginator while a search term is active and refetches
+    // via searchProfiles instead.
+    it('hides the paginator while a search term is active and uses searchProfiles', async () => {
+        const matched = TestHelper.getUserMock({id: 'sm1', username: 'searched', roles: 'system_user'});
+
+        // Initial fetch has more than one page so the paginator would
+        // otherwise be visible — that lets us assert it disappears
+        // when the search term lands. PAGE_SIZE=10, so we need >10
+        // users in the over-fetch window to reveal the paginator.
+        const initial = Array.from({length: 11}, (_, i) =>
+            TestHelper.getUserMock({id: `init${i}`, username: `init${i}`, roles: 'system_user'}),
+        );
+        mockGetProfiles.mockResolvedValue({data: initial});
+        mockSearchProfiles.mockResolvedValue({data: [matched]});
+
+        renderWithContext(
+            <SimulateAccessModal
+                onExited={jest.fn()}
+                policy={draftPolicy}
+                actions={['upload_file_attachment']}
+                ruleName='rule1'
+                targetRole=''
+                targetScope='system'
+            />,
+        );
+
+        // Wait for the paginator to mount on the un-searched view.
+        await screen.findByTestId('simulate-access-pagination');
+
+        // Type a search term → debounced refetch via searchProfiles.
+        const searchInput = await screen.findByTestId('simulate-access-search') as HTMLInputElement;
+        fireEvent.change(searchInput, {target: {value: 'searched'}});
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 350));
+        });
+
+        await screen.findByText('@searched', undefined, {timeout: 5000});
+
+        // Paginator is hidden during search.
+        expect(screen.queryByTestId('simulate-access-pagination')).not.toBeInTheDocument();
+        expect(mockSearchProfiles).toHaveBeenCalledWith('searched', expect.objectContaining({limit: expect.any(Number)}));
     });
 });
