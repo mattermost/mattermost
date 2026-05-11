@@ -138,6 +138,26 @@ describe('Reducers.ContentFlagging', () => {
         expect(state).toBe(stateWithValues);
     });
 
+    test('CONTENT_FLAGGING_REPORT_VALUE_UPDATED ignores valid non-array property values', () => {
+        const stateWithValues = contentFlaggingReducer(undefined, {
+            type: ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_VALUES,
+            data: {
+                postId: 'post-1',
+                values: [makeValue({field_id: 'review_status', value: 'pending'})],
+            },
+        });
+
+        const state = contentFlaggingReducer(stateWithValues, {
+            type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
+            data: {
+                target_id: 'post-1',
+                property_values: '{}',
+            },
+        });
+
+        expect(state).toBe(stateWithValues);
+    });
+
     test('CONTENT_FLAGGING_REPORT_VALUE_UPDATED tolerates non-array cached values', () => {
         const updatedValue = makeValue({field_id: 'review_status', value: 'removed'});
         const invalidState = {
