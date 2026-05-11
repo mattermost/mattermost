@@ -125,9 +125,12 @@ func (s *FileBackendTestSuite) SetupTest() {
 
 	// This is needed to create the bucket if it doesn't exist.
 	err = s.backend.TestConnection()
-	if _, ok := err.(*S3FileBackendNoBucketError); ok {
-		s3Backend := s.backend.(*S3FileBackend)
-		s.NoError(s3Backend.MakeBucket())
+	if _, ok := err.(*FileBackendNoBucketError); ok {
+		if s3Backend, isS3 := s.backend.(*S3FileBackend); isS3 {
+			s.NoError(s3Backend.MakeBucket())
+		} else {
+			s.NoError(err)
+		}
 	} else {
 		s.NoError(err)
 	}
@@ -699,7 +702,7 @@ func BenchmarkFileStore(b *testing.B) {
 
 	// Create bucket if it doesn't exist
 	err = s3Backend.TestConnection()
-	if _, ok := err.(*S3FileBackendNoBucketError); ok {
+	if _, ok := err.(*FileBackendNoBucketError); ok {
 		require.NoError(b, s3Backend.(*S3FileBackend).MakeBucket())
 	} else {
 		require.NoError(b, err)
@@ -851,7 +854,7 @@ func BenchmarkS3WriteFile(b *testing.B) {
 
 		// This is needed to create the bucket if it doesn't exist.
 		err = backend.TestConnection()
-		if _, ok := err.(*S3FileBackendNoBucketError); ok {
+		if _, ok := err.(*FileBackendNoBucketError); ok {
 			require.NoError(b, backend.(*S3FileBackend).MakeBucket())
 		} else {
 			require.NoError(b, err)

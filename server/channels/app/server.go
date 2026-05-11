@@ -900,8 +900,10 @@ func (s *Server) Start() error {
 
 	err := s.FileBackend().TestConnection()
 	if err != nil {
-		if _, ok := err.(*filestore.S3FileBackendNoBucketError); ok {
-			err = s.FileBackend().(*filestore.S3FileBackend).MakeBucket()
+		if _, ok := err.(*filestore.FileBackendNoBucketError); ok {
+			if s3Backend, isS3 := s.FileBackend().(*filestore.S3FileBackend); isS3 {
+				err = s3Backend.MakeBucket()
+			}
 		}
 		if err != nil {
 			mlog.Error("Problem with file storage settings", mlog.Err(err))

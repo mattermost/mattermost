@@ -76,10 +76,10 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 
 func connectionTestErrorToAppError(connTestErr error) *model.AppError {
 	switch err := connTestErr.(type) {
-	case *filestore.S3FileBackendAuthError:
-		return model.NewAppError("TestConnection", "api.file.test_connection_s3_auth.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	case *filestore.S3FileBackendNoBucketError:
-		return model.NewAppError("TestConnection", "api.file.test_connection_s3_bucket_does_not_exist.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	case *filestore.FileBackendAuthError:
+		return model.NewAppError("TestConnection", "api.file.test_connection_auth.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	case *filestore.FileBackendNoBucketError:
+		return model.NewAppError("TestConnection", "api.file.test_connection_no_bucket.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	default:
 		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, "", http.StatusInternalServerError).Wrap(connTestErr)
 	}
