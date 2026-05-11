@@ -223,8 +223,14 @@ func (s *LocalCacheUserStore) UpdateFailedPasswordAttempts(userID string, attemp
 }
 
 func (s *LocalCacheUserStore) TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error) {
-	s.InvalidateProfileCacheForUser(userID)
-	return s.UserStore.TryIncrementFailedPasswordAttempts(userID, maxAttempts)
+	claimed, err := s.UserStore.TryIncrementFailedPasswordAttempts(userID, maxAttempts)
+	if err != nil {
+		return false, err
+	}
+	if claimed {
+		s.InvalidateProfileCacheForUser(userID)
+	}
+	return claimed, nil
 }
 
 func (s *LocalCacheUserStore) DecrementFailedPasswordAttempts(userID string) error {

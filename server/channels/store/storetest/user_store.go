@@ -412,18 +412,29 @@ func testUserStoreTryIncrementFailedPasswordAttempts(t *testing.T, rctx request.
 		const goroutines = 50
 		var wg sync.WaitGroup
 		var claimed atomic.Int64
+		start := make(chan struct{})
+		errCh := make(chan error, goroutines)
 		wg.Add(goroutines)
 		for range goroutines {
 			go func() {
 				defer wg.Done()
+				<-start
 				ok, err := ss.User().TryIncrementFailedPasswordAttempts(u1.Id, maxAttempts)
-				require.NoError(t, err)
+				if err != nil {
+					errCh <- err
+					return
+				}
 				if ok {
 					claimed.Add(1)
 				}
 			}()
 		}
+		close(start)
 		wg.Wait()
+		close(errCh)
+		for err := range errCh {
+			require.NoError(t, err)
+		}
 
 		require.Equal(t, int64(maxAttempts), claimed.Load(), "exactly maxAttempts goroutines must have claimed a slot")
 
