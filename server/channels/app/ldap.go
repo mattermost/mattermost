@@ -7,7 +7,6 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -268,10 +267,6 @@ func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.A
 }
 
 func (a *App) removeLdapFile(filename string) *model.AppError {
-	if !slices.Contains([]string{model.LdapPublicCertificateName, model.LdapPrivateKeyName}, filename) {
-		return model.NewAppError("RemoveLdapFile", "api.context.invalid_param.app_error", map[string]any{"Name": "filename"}, "", http.StatusBadRequest)
-	}
-
 	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
 		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, "", http.StatusInternalServerError).Wrap(err)
 	}
