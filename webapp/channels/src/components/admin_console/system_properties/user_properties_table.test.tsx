@@ -10,6 +10,7 @@ import {collectionFromArray} from '@mattermost/types/utilities';
 import {Client4} from 'mattermost-redux/client';
 
 import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import Constants from 'utils/constants';
 
 import {UserPropertiesTable, useUserPropertiesTable} from './user_properties_table';
 import {ValidationWarningNameInvalidCEL} from './user_properties_utils';
@@ -645,7 +646,7 @@ describe('UserPropertiesTable input filtering', () => {
         });
     });
 
-    it('auto-fill truncates display names longer than 255 runes', async () => {
+    it('auto-fill truncates display names longer than the max attribute name length', async () => {
         const pendingField: UserPropertyField = {
             id: 'pending-truncate',
             name: '',
@@ -679,13 +680,14 @@ describe('UserPropertiesTable input filtering', () => {
 
         const displayNameInput = screen.getByTestId('property-display-name-input');
 
-        // fireEvent.change bypasses the input's maxLength so the 256-rune value
+        // fireEvent.change bypasses the input's maxLength so an oversize value
         // reaches the onChange handler and exercises the truncation branch.
-        fireEvent.change(displayNameInput, {target: {value: 'a'.repeat(256)}});
+        const oversize = Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH + 1;
+        fireEvent.change(displayNameInput, {target: {value: 'a'.repeat(oversize)}});
 
         const nameInput = screen.getByTestId('property-field-input') as HTMLInputElement;
         await waitFor(() => {
-            expect(nameInput.value).toHaveLength(255);
+            expect(nameInput.value).toHaveLength(Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH);
         });
     });
 });

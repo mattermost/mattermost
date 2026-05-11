@@ -198,10 +198,11 @@ describe('UserPropertyDotMenu', () => {
 
         // Wait for createField to be called
         await waitFor(() => {
-            // Verify createField was called with the correct parameters
+            // Verify createField was called with the slugified snake_case name
+            // ('Test Field' -> 'test_field') plus the _copy suffix.
             expect(createField).toHaveBeenCalledWith(expect.objectContaining({
                 id: baseField.id,
-                name: 'Test_Field_copy',
+                name: 'test_field_copy',
             }));
         });
     });
@@ -210,7 +211,7 @@ describe('UserPropertyDotMenu', () => {
         const existingCopy = {
             ...baseField,
             id: 'copy-id',
-            name: 'Test_Field_copy',
+            name: 'test_field_copy',
             attrs: {
                 ...baseField.attrs,
                 sort_order: 1,
@@ -253,7 +254,7 @@ describe('UserPropertyDotMenu', () => {
         await userEvent.click(screen.getByText(/Duplicate attribute/));
 
         await waitFor(() => {
-            expect(screen.getByText('Test_Field_copy_2')).toBeInTheDocument();
+            expect(screen.getByText('test_field_copy_2')).toBeInTheDocument();
         });
     });
 
