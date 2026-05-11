@@ -79,22 +79,32 @@ const (
 	WebsocketEventDraftCreated                        WebsocketEventType = "draft_created"
 	WebsocketEventDraftUpdated                        WebsocketEventType = "draft_updated"
 	WebsocketEventDraftDeleted                        WebsocketEventType = "draft_deleted"
-	WebsocketEventPagePublished                       WebsocketEventType = "page_published"
-	WebsocketEventPageDeleted                         WebsocketEventType = "page_deleted"
-	WebsocketEventPageDraftCreated                    WebsocketEventType = "page_draft_created"
-	WebsocketEventPageDraftUpdated                    WebsocketEventType = "page_draft_updated"
-	WebsocketEventPageDraftDeleted                    WebsocketEventType = "page_draft_deleted"
-	WebsocketEventPageEditorStopped                   WebsocketEventType = "page_editor_stopped"
-	WebsocketEventPageCommentCreated                  WebsocketEventType = "page_comment_created"
-	WebsocketEventPageCommentResolved                 WebsocketEventType = "page_comment_resolved"
-	WebsocketEventPageCommentUnresolved               WebsocketEventType = "page_comment_unresolved"
-	WebsocketEventPageCommentDeleted                  WebsocketEventType = "page_comment_deleted"
-	WebsocketEventPageTitleUpdated                    WebsocketEventType = "page_title_updated"
-	WebsocketEventPageMoved                           WebsocketEventType = "page_moved"
-	WebsocketEventWikiCreated                         WebsocketEventType = "wiki_created"
-	WebsocketEventWikiUpdated                         WebsocketEventType = "wiki_updated"
-	WebsocketEventWikiMoved                           WebsocketEventType = "wiki_moved"
-	WebsocketEventWikiDeleted                         WebsocketEventType = "wiki_deleted"
+	// Page events — broadcast to the wiki's linked source channels only (never the wiki backing channel).
+	// Data: {"page_id": string, "wiki_id": string, "channel_id": string, ...}
+	WebsocketEventPagePublished         WebsocketEventType = "page_published"
+	WebsocketEventPageEdited            WebsocketEventType = "page_edited"
+	WebsocketEventPageDeleted           WebsocketEventType = "page_deleted"
+	WebsocketEventPageDraftUpdated      WebsocketEventType = "page_draft_updated"
+	WebsocketEventPageDraftDeleted      WebsocketEventType = "page_draft_deleted"
+	WebsocketEventPageEditorStopped     WebsocketEventType = "page_editor_stopped"
+	WebsocketEventPageCommentCreated    WebsocketEventType = "page_comment_created"
+	WebsocketEventPageCommentResolved   WebsocketEventType = "page_comment_resolved"
+	WebsocketEventPageCommentUnresolved WebsocketEventType = "page_comment_unresolved"
+	WebsocketEventPageCommentDeleted    WebsocketEventType = "page_comment_deleted"
+	WebsocketEventPageTitleUpdated      WebsocketEventType = "page_title_updated"
+	WebsocketEventPageMoved             WebsocketEventType = "page_moved"
+	// Wiki lifecycle events — broadcast to the wiki's linked source channels only (never the wiki backing channel).
+	// Data: {"wiki_id": string, "channel_id": string, ...}
+	WebsocketEventWikiCreated WebsocketEventType = "wiki_created"
+	WebsocketEventWikiUpdated WebsocketEventType = "wiki_updated"
+	WebsocketEventWikiMoved   WebsocketEventType = "wiki_moved"
+	WebsocketEventWikiDeleted WebsocketEventType = "wiki_deleted"
+	// WebsocketEventWikiLinked is sent when a wiki is linked to a source channel.
+	// Data: {"wiki_id": string, "source_channel_id": string}
+	WebsocketEventWikiLinked WebsocketEventType = "wiki_linked"
+	// WebsocketEventWikiUnlinked is sent when a wiki is unlinked from a source channel.
+	// Data: {"wiki_id": string, "source_channel_id": string}
+	WebsocketEventWikiUnlinked                        WebsocketEventType = "wiki_unlinked"
 	WebsocketEventAcknowledgementAdded                WebsocketEventType = "post_acknowledgement_added"
 	WebsocketEventAcknowledgementRemoved              WebsocketEventType = "post_acknowledgement_removed"
 	WebsocketEventPersistentNotificationTriggered     WebsocketEventType = "persistent_notification_triggered"

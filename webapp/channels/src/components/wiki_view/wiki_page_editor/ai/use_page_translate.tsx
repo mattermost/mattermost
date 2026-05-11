@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Editor} from '@tiptap/react';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -16,6 +16,8 @@ import {createPage as createPageAction} from 'actions/pages';
 import {getWiki} from 'selectors/pages';
 
 import {RewriteAction} from 'components/advanced_text_editor/rewrite_action';
+
+import {useIsMounted} from 'hooks/useIsMounted';
 
 import type {GlobalState} from 'types/store';
 
@@ -56,16 +58,7 @@ const usePageTranslate = (
     const [showModal, setShowModal] = useState(false);
     const [selectedAgentId, setSelectedAgentId] = useState<string>('');
 
-    // Ref to track mounted state for cleanup
-    const isMountedRef = useRef(true);
-
-    // Cleanup on unmount
-    useEffect(() => {
-        isMountedRef.current = true;
-        return () => {
-            isMountedRef.current = false;
-        };
-    }, []);
+    const isMounted = useIsMounted();
 
     // Load agents on mount
     useEffect(() => {
@@ -164,7 +157,7 @@ const usePageTranslate = (
             const translatedDoc = await translateDocument(currentDoc, language);
 
             // Check if still mounted before continuing
-            if (!isMountedRef.current) {
+            if (!isMounted()) {
                 return;
             }
 
@@ -172,7 +165,7 @@ const usePageTranslate = (
             const translatedTitle = await translateText(pageTitle, language);
 
             // Check if still mounted before continuing
-            if (!isMountedRef.current) {
+            if (!isMounted()) {
                 return;
             }
 
@@ -187,15 +180,17 @@ const usePageTranslate = (
             }
 
             // Check if still mounted before continuing
-            if (!isMountedRef.current) {
+            if (!isMounted()) {
                 return;
             }
 
             const draftId = createResult.data as string;
 
-            // Save translated content to the draft (user can review before publishing)
+            // Save translated content to the draft (user can review before publishing).
+            // wiki.channel_id is intentionally not exposed by the server; the
+            // server-side draft save resolves the channel from the wiki itself.
             const translatedContent = JSON.stringify(translatedDoc);
-            const channelId = wiki?.channel_id || '';
+            const channelId = '';
             const saveResult = await dispatch(savePageDraft(
                 channelId,
                 wikiId,
@@ -215,18 +210,18 @@ const usePageTranslate = (
             }
 
             // Check if still mounted before updating state
-            if (!isMountedRef.current) {
+            if (!isMounted()) {
                 return;
             }
 
             // Close modal and navigate to the draft for review
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 setShowModal(false);
                 onPageCreated?.(draftId);
             }
         } catch (err) {
             // Only update error state if still mounted
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 const serverError: ServerError = {
                     message: err instanceof Error ? err.message : 'Translation failed',
                     server_error_id: 'translate_error',
@@ -237,7 +232,7 @@ const usePageTranslate = (
             throw err;
         } finally {
             // Only update state if still mounted
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 setIsTranslating(false);
             }
         }

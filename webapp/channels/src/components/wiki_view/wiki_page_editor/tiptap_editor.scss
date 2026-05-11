@@ -526,14 +526,14 @@
 .inline-comment-highlight {
     padding: 2px 0;
     border-radius: 2px;
-    border-bottom: 2px solid rgba(255, 193, 7, 0.6);
-    background-color: rgba(255, 235, 59, 0.3);
+    border-bottom: 2px solid rgba(var(--mention-highlight-link-rgb), 0.6);
+    background-color: rgba(var(--mention-highlight-bg-rgb), 0.3);
     cursor: pointer;
     transition: background-color 0.2s ease;
 
     &:hover {
-        border-bottom-color: rgba(255, 193, 7, 0.9);
-        background-color: rgba(255, 235, 59, 0.5);
+        border-bottom-color: rgba(var(--mention-highlight-link-rgb), 0.9);
+        background-color: rgba(var(--mention-highlight-bg-rgb), 0.5);
     }
 }
 
@@ -574,14 +574,14 @@
 .comment-anchor-active {
     padding: 2px 0;
     border-radius: 2px;
-    border-bottom: 2px solid rgba(255, 193, 7, 0.6);
-    background-color: rgba(255, 235, 59, 0.2);
+    border-bottom: 2px solid rgba(var(--mention-highlight-link-rgb), 0.6);
+    background-color: rgba(var(--mention-highlight-bg-rgb), 0.2);
     cursor: pointer;
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
-        border-bottom-color: rgba(255, 193, 7, 0.9);
-        background-color: rgba(255, 235, 59, 0.4);
+        border-bottom-color: rgba(var(--mention-highlight-link-rgb), 0.9);
+        background-color: rgba(var(--mention-highlight-bg-rgb), 0.4);
     }
 }
 
@@ -591,19 +591,19 @@
 .comment-anchor-active:target,
 .comment-anchor-active.anchor-highlighted {
     animation: anchor-pulse 0.5s ease-in-out 2;
-    background-color: rgba(255, 235, 59, 0.5);
-    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.4);
+    background-color: rgba(var(--mention-highlight-bg-rgb), 0.5);
+    box-shadow: 0 0 0 3px rgba(var(--mention-highlight-link-rgb), 0.4);
 }
 
 @keyframes anchor-pulse {
     0%, 100% {
-        background-color: rgba(255, 235, 59, 0.5);
-        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.4);
+        background-color: rgba(var(--mention-highlight-bg-rgb), 0.5);
+        box-shadow: 0 0 0 3px rgba(var(--mention-highlight-link-rgb), 0.4);
     }
 
     50% {
-        background-color: rgba(255, 235, 59, 0.7);
-        box-shadow: 0 0 0 5px rgba(255, 193, 7, 0.6);
+        background-color: rgba(var(--mention-highlight-bg-rgb), 0.7);
+        box-shadow: 0 0 0 5px rgba(var(--mention-highlight-link-rgb), 0.6);
     }
 }
 

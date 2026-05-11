@@ -56,7 +56,7 @@ describe('components/wiki_view/wiki_page_editor/SlashCommandMenu', () => {
             />,
         );
 
-        const buttons = screen.getAllByRole('button');
+        const buttons = screen.getAllByRole('option');
         expect(buttons[0]).toHaveClass('selected');
         expect(buttons[1]).not.toHaveClass('selected');
     });
@@ -90,7 +90,7 @@ describe('components/wiki_view/wiki_page_editor/SlashCommandMenu', () => {
         });
 
         await waitFor(() => {
-            const buttons = screen.getAllByRole('button');
+            const buttons = screen.getAllByRole('option');
             expect(buttons[1]).toHaveClass('selected');
         });
     });
@@ -116,7 +116,7 @@ describe('components/wiki_view/wiki_page_editor/SlashCommandMenu', () => {
         });
 
         await waitFor(() => {
-            const buttons = screen.getAllByRole('button');
+            const buttons = screen.getAllByRole('option');
             expect(buttons[0]).toHaveClass('selected');
         });
     });
@@ -137,7 +137,7 @@ describe('components/wiki_view/wiki_page_editor/SlashCommandMenu', () => {
         });
 
         await waitFor(() => {
-            const buttons = screen.getAllByRole('button');
+            const buttons = screen.getAllByRole('option');
             expect(buttons[2]).toHaveClass('selected');
         });
     });
@@ -164,7 +164,7 @@ describe('components/wiki_view/wiki_page_editor/SlashCommandMenu', () => {
         });
 
         await waitFor(() => {
-            const buttons = screen.getAllByRole('button');
+            const buttons = screen.getAllByRole('option');
             expect(buttons[0]).toHaveClass('selected');
         });
     });
@@ -215,7 +215,7 @@ describe('components/wiki_view/wiki_page_editor/SlashCommandMenu', () => {
         );
 
         // First verify first item is selected
-        let buttons = screen.getAllByRole('button');
+        let buttons = screen.getAllByRole('option');
         expect(buttons[0]).toHaveClass('selected');
 
         // Rerender with new items
@@ -232,7 +232,7 @@ describe('components/wiki_view/wiki_page_editor/SlashCommandMenu', () => {
         );
 
         // First item of new list should be selected
-        buttons = screen.getAllByRole('button');
+        buttons = screen.getAllByRole('option');
         expect(buttons[0]).toHaveClass('selected');
         expect(screen.getByText('New Item 1')).toBeInTheDocument();
     });

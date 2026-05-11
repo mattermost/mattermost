@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
-
 import {UserTypes} from 'mattermost-redux/action_types';
 
 import {ActionTypes} from 'utils/constants';
 import type {Heading} from 'utils/page_outline';
+
+import type {MMAction} from 'types/store';
 
 export type PagesHierarchyViewState = {
     expandedNodes: {[wikiId: string]: {[pageId: string]: boolean}};
@@ -24,7 +24,7 @@ const initialState: PagesHierarchyViewState = {
     lastViewedPage: {},
 };
 
-export default function pagesHierarchyReducer(state = initialState, action: AnyAction): PagesHierarchyViewState {
+export default function pagesHierarchyReducer(state = initialState, action: MMAction): PagesHierarchyViewState {
     switch (action.type) {
     case ActionTypes.TOGGLE_PAGE_NODE_EXPANDED: {
         const {wikiId, nodeId} = action.data;

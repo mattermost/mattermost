@@ -21,6 +21,11 @@ func (a *App) SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*
 		return nil, err
 	}
 
+	// Pages have their own content model; emoji reactions on page posts are not supported.
+	if IsPagePost(post) {
+		return nil, model.NewAppError("SaveReactionForPost", "api.post.not_a_post.app_error", nil, "reactions are not supported on pages", http.StatusBadRequest)
+	}
+
 	if post.Type == model.PostTypeBurnOnRead && post.UserId != reaction.UserId {
 		receipt, err := a.Srv().Store().ReadReceipt().Get(rctx, post.Id, reaction.UserId)
 		if err != nil && !store.IsErrNotFound(err) {

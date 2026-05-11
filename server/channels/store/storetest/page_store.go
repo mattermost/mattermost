@@ -260,6 +260,8 @@ func testGetChannelPages(t *testing.T, rctx request.CTX, ss store.Store) {
 	page1, err = ss.Post().Save(rctx, page1)
 	require.NoError(t, err)
 
+	time.Sleep(2 * time.Millisecond) // ensure distinct CreateAt for ASC ordering assertion
+
 	page2 := &model.Post{
 		ChannelId: channel1.Id,
 		UserId:    model.NewId(),
@@ -268,6 +270,8 @@ func testGetChannelPages(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	page2, err = ss.Post().Save(rctx, page2)
 	require.NoError(t, err)
+
+	time.Sleep(2 * time.Millisecond)
 
 	childPage := &model.Post{
 		ChannelId:    channel1.Id,
@@ -1391,17 +1395,9 @@ func testChangePageParent(t *testing.T, rctx request.CTX, ss store.Store) {
 		page, err = ss.Post().Save(rctx, page)
 		require.NoError(t, err)
 
-		staleUpdateAt := page.UpdateAt
+		// Use a stale UpdateAt value (simulating concurrent modification)
+		staleUpdateAt := page.UpdateAt - 1000
 
-		// Make a copy of the original for Update
-		originalPage := page.Clone()
-
-		// Simulate a concurrent modification by updating the page
-		page.Message = "Modified page"
-		_, err = ss.Post().Update(rctx, page, originalPage)
-		require.NoError(t, err)
-
-		// Now try to change parent with stale UpdateAt - should fail
 		err = ss.Page().ChangePageParent(page.Id, newParent.Id, staleUpdateAt)
 		require.Error(t, err)
 		var nfErr *store.ErrNotFound

@@ -7,9 +7,10 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector, useStore} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
 
-import {getChannel, getChannelMember, selectChannel} from 'mattermost-redux/actions/channels';
+import {getChannel, getChannelMember} from 'mattermost-redux/actions/channels';
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import {getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
@@ -26,7 +27,7 @@ import ConflictWarningModal from 'components/conflict_warning_modal';
 import PageVersionHistoryModal from 'components/page_version_history';
 
 import {ModalIdentifiers, PagePropsKeys} from 'utils/constants';
-import {getPageTitle} from 'utils/post_utils';
+import {getPageTitle} from 'utils/page_utils';
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
@@ -93,24 +94,13 @@ export function useWikiPageData(
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const member = useSelector((state: GlobalState) => state.entities.channels.myMembers[channelId]);
 
-    // Use refs to avoid re-running effect when channel/member objects change reference
-    const channelRef = useRef(channel);
-    const memberRef = useRef(member);
     const historyRef = useRef(history);
     const currentTeamRef = useRef(currentTeam);
-    channelRef.current = channel;
-    memberRef.current = member;
     historyRef.current = history;
     currentTeamRef.current = currentTeam;
 
-    // Persistent channel selection: ensures channel stays selected even after route changes
-    useEffect(() => {
-        const currentChannel = channelRef.current;
-        const currentMember = memberRef.current;
-        if (currentChannel && currentMember && channelId) {
-            dispatch(selectChannel(channelId));
-        }
-    }, [channelId, dispatch]); // Removed channel and member from dependencies - using refs instead
+    // Channel selection is owned by wiki_router; it dispatches selectChannel
+    // once the channel is in Redux. Duplicating it here raced with that path.
 
     useEffect(() => {
         // Cancellation flag: if pageId/wikiId/channelId changes while an async fetch
@@ -122,65 +112,65 @@ export function useWikiPageData(
             // Reset loading state when pageId/draftId changes to prevent flash of empty content
             setLoading(true);
 
-            if (!channelId) {
+            // No wiki context at all — nothing to load.
+            if (!pageId && !wikiId) {
                 if (!cancelled) {
                     setLoading(false);
                 }
                 return;
             }
 
-            // Track the loaded channel for redirects (may differ from channelRef if just loaded)
             let loadedChannel = channel;
 
-            try {
-                // Parallelize independent fetches for better performance
-                const fetchPromises: Array<Promise<unknown>> = [];
-                const needsChannel = !channel;
-                const needsMember = !member;
+            if (channelId) {
+                try {
+                    // Parallelize independent fetches for better performance
+                    const fetchPromises: Array<Promise<unknown>> = [];
+                    const needsChannel = !channel;
+                    const needsMember = !member;
 
-                if (needsChannel) {
-                    fetchPromises.push(dispatch(getChannel(channelId)));
-                }
-                if (needsMember) {
-                    fetchPromises.push(dispatch(getChannelMember(channelId, currentUserId)));
-                }
-
-                if (fetchPromises.length > 0) {
-                    const results = await Promise.all(fetchPromises);
-                    if (cancelled) {
-                        return;
-                    }
-
-                    // Process results in order
-                    let resultIndex = 0;
                     if (needsChannel) {
-                        const channelResult = results[resultIndex++] as {data?: Channel};
-                        if (channelResult.data) {
-                            loadedChannel = channelResult.data;
-                        }
+                        fetchPromises.push(dispatch(getChannel(channelId)));
                     }
                     if (needsMember) {
-                        const memberResult = results[resultIndex] as {error?: {status_code: number}};
+                        fetchPromises.push(dispatch(getChannelMember(channelId, currentUserId)));
+                    }
 
-                        // Check for permission error (non-member trying to access channel)
-                        if (memberResult.error) {
-                            const defaultChannel = 'town-square';
-                            const teamName = currentTeamRef.current?.name || '';
-                            setLoading(false);
-                            historyRef.current.replace(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
+                    if (fetchPromises.length > 0) {
+                        const results = await Promise.all(fetchPromises);
+                        if (cancelled) {
                             return;
                         }
-                    }
-                }
 
-                dispatch(selectChannel(channelId));
-            } catch (error) {
-                // Handle unexpected errors with redirect
-                const defaultChannel = 'town-square';
-                const teamName = currentTeamRef.current?.name || '';
-                setLoading(false);
-                historyRef.current.replace(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
-                return;
+                        // Process results in order
+                        let resultIndex = 0;
+                        if (needsChannel) {
+                            const channelResult = results[resultIndex++] as {data?: Channel};
+                            if (channelResult.data) {
+                                loadedChannel = channelResult.data;
+                            }
+                        }
+                        if (needsMember) {
+                            const memberResult = results[resultIndex] as {error?: {status_code: number}};
+
+                            // Check for permission error (non-member trying to access channel)
+                            if (memberResult.error) {
+                                const defaultChannel = 'town-square';
+                                const teamName = currentTeamRef.current?.name || '';
+                                setLoading(false);
+                                historyRef.current.replace(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
+                                return;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    // Handle unexpected errors with redirect
+                    const defaultChannel = 'town-square';
+                    const teamName = currentTeamRef.current?.name || '';
+                    setLoading(false);
+                    historyRef.current.replace(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
+                    return;
+                }
             }
 
             if (pageId) {
@@ -200,7 +190,7 @@ export function useWikiPageData(
 
                         if (result.error && (result.error.status_code === 403 || result.error.status_code === 404)) {
                             const teamName = currentTeamRef.current?.name || '';
-                            const channelName = loadedChannel?.name || channelId;
+                            const channelName = loadedChannel?.name || channelId || 'town-square';
                             historyRef.current.replace(`/${teamName}/channels/${channelName}`);
                             setLoading(false);
                             return;
@@ -211,14 +201,7 @@ export function useWikiPageData(
                 return;
             }
 
-            // No pageId in URL - at wiki root (e.g., /team/wiki/channelId/wikiId)
-            // Safety check: channelId should always exist in wiki routes
-            if (!channelId) {
-                setLoading(false);
-                return;
-            }
-
-            // Load pages list for the hierarchy panel
+            // No pageId in URL - at wiki root. Load pages list for the hierarchy panel.
             if (wikiId) {
                 // First check if wiki exists by trying to fetch it from Redux (or API if not cached)
                 // This will return 404 if wiki was deleted
@@ -229,21 +212,23 @@ export function useWikiPageData(
                 if (wikiResult.error) {
                     // Wiki was deleted or user doesn't have permission - redirect to channel
                     const teamName = currentTeamRef.current?.name || '';
-                    const channelName = loadedChannel?.name || channelId;
+                    const channelName = loadedChannel?.name || channelId || 'town-square';
                     setLoading(false);
                     historyRef.current.replace(`/${teamName}/channels/${channelName}`);
                     return;
                 }
 
                 // Wiki exists - pages and drafts are loaded by parent WikiView component
-            } else {
-                // No wikiId - load default page if available (for channel wiki without explicit wikiId)
+            } else if (channelId) {
+                // No wikiId but a channel context — load that channel's default page.
                 try {
                     await dispatch(fetchChannelDefaultPage(channelId));
                     if (cancelled) {
                         return;
                     }
                 } catch (error) {
+                    dispatch(logError(error));
+
                     // Error loading default page - continue anyway
                 }
             }
@@ -290,6 +275,7 @@ export function useWikiPageActions(
 ): UseWikiPageActionsResult {
     const dispatch = useDispatch();
     const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isPublishingRef = useRef(false);
     const latestContentRef = useRef<string>('');
     const latestTitleRef = useRef<string>('');
     const latestStatusRef = useRef<string | null>(null);
@@ -343,7 +329,7 @@ export function useWikiPageActions(
                 const prevTitle = latestTitleRef.current;
                 const additionalProps = extractDraftAdditionalProps(prevDraft);
 
-                dispatch(savePageDraft(
+                Promise.resolve(dispatch(savePageDraft(
                     channelId,
                     wikiId,
                     prevDraft.rootId,
@@ -351,7 +337,11 @@ export function useWikiPageActions(
                     prevTitle,
                     undefined,
                     additionalProps,
-                ));
+                ))).then((result) => {
+                    if (result && 'error' in result) {
+                        dispatch(logError(result.error));
+                    }
+                });
             }
         } else if (autosaveTimeoutRef.current && !currentDraft) {
             // Transitioning to null (draft deleted/published) - just cancel the timeout
@@ -394,7 +384,7 @@ export function useWikiPageActions(
         // Navigate to draft on success
         if (result.data) {
             const teamName = getTeamNameFromPath(location.pathname);
-            const draftPath = getWikiUrl(teamName, channelId, wikiId, result.data, true);
+            const draftPath = getWikiUrl(teamName, wikiId, result.data, true);
             history.replace(draftPath);
         }
 
@@ -421,7 +411,7 @@ export function useWikiPageActions(
             }
 
             const draft = currentDraftRef.current;
-            if (!draft || !wikiIdRef.current) {
+            if (!draft || !wikiIdRef.current || isPublishingRef.current) {
                 return;
             }
 
@@ -432,7 +422,7 @@ export function useWikiPageActions(
 
             if (hasUnsavedTitle || hasUnsavedContent) {
                 const additionalProps = extractDraftAdditionalProps(draft);
-                dispatchRef.current(savePageDraft(
+                Promise.resolve(dispatchRef.current(savePageDraft(
                     channelIdRef.current,
                     wikiIdRef.current,
                     draft.rootId,
@@ -440,7 +430,11 @@ export function useWikiPageActions(
                     latestTitleRef.current,
                     undefined,
                     additionalProps,
-                ));
+                ))).then((result) => {
+                    if (result && 'error' in result) {
+                        dispatchRef.current(logError(result.error));
+                    }
+                });
             }
         };
     }, []);
@@ -470,7 +464,7 @@ export function useWikiPageActions(
                 return;
             }
 
-            dispatchRef.current(savePageDraft(
+            Promise.resolve(dispatchRef.current(savePageDraft(
                 capturedChannelId,
                 capturedWikiId,
                 draftId,
@@ -478,7 +472,11 @@ export function useWikiPageActions(
                 title,
                 undefined,
                 additionalProps,
-            ));
+            ))).then((result) => {
+                if (result && 'error' in result) {
+                    dispatchRef.current(logError(result.error));
+                }
+            });
         }, AUTOSAVE_DEBOUNCE_MS);
     }, []);
 
@@ -514,7 +512,7 @@ export function useWikiPageActions(
         const content = latestContentRef.current ?? draft.message ?? '';
         const additionalProps = extractDraftAdditionalProps(draft);
 
-        dispatchRef.current(savePageDraft(
+        Promise.resolve(dispatchRef.current(savePageDraft(
             channelIdRef.current,
             wikiIdRef.current,
             draft.rootId,
@@ -522,7 +520,11 @@ export function useWikiPageActions(
             title,
             undefined,
             additionalProps,
-        ));
+        ))).then((result) => {
+            if (result && 'error' in result) {
+                dispatchRef.current(logError(result.error));
+            }
+        });
     }, []);
 
     const handlePublish = useCallback(async () => {
@@ -530,6 +532,10 @@ export function useWikiPageActions(
         const capturedWikiId = wikiIdRef.current;
         const capturedChannelId = channelIdRef.current;
         const capturedDraft = currentDraftRef.current;
+
+        if (isPublishingRef.current) {
+            return;
+        }
 
         if (!capturedWikiId || !capturedDraft) {
             return;
@@ -569,6 +575,7 @@ export function useWikiPageActions(
         }
 
         try {
+            isPublishingRef.current = true;
             const result = await dispatch(publishPageDraft(
                 capturedWikiId,
                 draftRootId,
@@ -614,7 +621,7 @@ export function useWikiPageActions(
                             onViewChanges: () => {
                                 if (conflictPage?.id && capturedWikiId) {
                                     const teamName = getTeamNameFromPath(location.pathname);
-                                    const pageUrl = getWikiUrl(teamName, capturedChannelId, capturedWikiId, conflictPage.id);
+                                    const pageUrl = getWikiUrl(teamName, capturedWikiId, conflictPage.id, false);
                                     history.push(pageUrl);
                                 }
                             },
@@ -622,15 +629,16 @@ export function useWikiPageActions(
                                 // Modal closed, user stays on their draft
                             },
                             onOverwrite: async () => {
-                                if (!capturedWikiId || !capturedDraft) {
+                                const freshDraft = currentDraftRef.current;
+                                if (!capturedWikiId || !freshDraft) {
                                     return;
                                 }
 
-                                const overwriteContent = conflictContentRef.current ?? latestContentRef.current ?? capturedDraft.message ?? '';
-                                const overwriteTitle = latestTitleRef.current ?? capturedDraft.props?.[PagePropsKeys.TITLE] ?? '';
-                                const overwriteStatus = latestStatusRef.current === null ? (capturedDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
-                                const overwriteDraftRootId = capturedDraft.rootId;
-                                const overwritePageParentIdFromDraft = capturedDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
+                                const overwriteContent = conflictContentRef.current ?? latestContentRef.current ?? freshDraft.message ?? '';
+                                const overwriteTitle = latestTitleRef.current ?? freshDraft.props?.[PagePropsKeys.TITLE] ?? '';
+                                const overwriteStatus = latestStatusRef.current === null ? (freshDraft.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined) : latestStatusRef.current;
+                                const overwriteDraftRootId = freshDraft.rootId;
+                                const overwritePageParentIdFromDraft = freshDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
 
                                 try {
                                     const overwriteResult = await dispatch(publishPageDraft(
@@ -646,11 +654,11 @@ export function useWikiPageActions(
 
                                     if (overwriteResult.data) {
                                         const teamName = getTeamNameFromPath(location.pathname);
-                                        const redirectUrl = getWikiUrl(teamName, capturedChannelId, capturedWikiId, overwriteResult.data.id);
+                                        const redirectUrl = getWikiUrl(teamName, capturedWikiId, overwriteResult.data.id, false);
                                         history.replace(redirectUrl);
                                     }
                                 } catch (e) {
-                                    // Handle error silently
+                                    dispatch(logError(e as ServerError));
                                 }
                             },
                         },
@@ -662,11 +670,13 @@ export function useWikiPageActions(
 
             if (result.data) {
                 const teamName = getTeamNameFromPath(location.pathname);
-                const redirectUrl = getWikiUrl(teamName, capturedChannelId, capturedWikiId, result.data.id);
+                const redirectUrl = getWikiUrl(teamName, capturedWikiId, result.data.id, false);
                 history.replace(redirectUrl);
             }
         } catch (error) {
-            // Unexpected error - already logged by publishPageDraft action
+            dispatch(logError(error as ServerError));
+        } finally {
+            isPublishingRef.current = false;
         }
     }, [location.pathname, history, dispatch]);
 
@@ -699,7 +709,7 @@ export function useWikiPageActions(
             propsToSave[PagePropsKeys.ORIGINAL_PAGE_EDIT_AT] = originalPageEditAt;
         }
 
-        dispatch(savePageDraft(
+        Promise.resolve(dispatch(savePageDraft(
             channelId,
             wikiId,
             draftId,
@@ -707,7 +717,11 @@ export function useWikiPageActions(
             title,
             undefined,
             propsToSave,
-        ));
+        ))).then((result) => {
+            if (result && 'error' in result) {
+                dispatch(logError(result.error));
+            }
+        });
     }, [channelId, wikiId, draftId, currentDraft, dispatch]);
 
     const cancelAutosave = useCallback(() => {
@@ -817,11 +831,11 @@ export function useAutoPageSelection({
             const lastViewedPage = allPages.find((p) => p.id === lastViewedPageId);
 
             if (lastViewedNewDraft && wikiId) {
-                const draftUrl = getWikiUrl(teamName, channelId, wikiId, lastViewedNewDraft.rootId, true);
+                const draftUrl = getWikiUrl(teamName, wikiId, lastViewedNewDraft.rootId, true);
                 history.replace(draftUrl);
                 return;
             } else if (lastViewedPage && wikiId) {
-                const pageUrl = getWikiUrl(teamName, channelId, wikiId, lastViewedPage.id, false);
+                const pageUrl = getWikiUrl(teamName, wikiId, lastViewedPage.id, false);
                 history.replace(pageUrl);
                 return;
             }
@@ -831,7 +845,7 @@ export function useAutoPageSelection({
         if (newDrafts.length > 0 && wikiId) {
             const firstDraft = newDrafts[0];
             if (firstDraft) {
-                const draftUrl = getWikiUrl(teamName, channelId, wikiId, firstDraft.rootId, true);
+                const draftUrl = getWikiUrl(teamName, wikiId, firstDraft.rootId, true);
                 history.replace(draftUrl);
                 return;
             }
@@ -841,7 +855,7 @@ export function useAutoPageSelection({
         if (allPages.length > 0 && wikiId) {
             const firstPage = allPages[0];
             if (firstPage) {
-                const pageUrl = getWikiUrl(teamName, channelId, wikiId, firstPage.id, false);
+                const pageUrl = getWikiUrl(teamName, wikiId, firstPage.id, false);
                 history.replace(pageUrl);
             }
         }

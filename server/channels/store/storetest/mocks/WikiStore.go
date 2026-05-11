@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -14,29 +15,29 @@ type WikiStore struct {
 	mock.Mock
 }
 
-// CreateWikiWithDefaultPage provides a mock function with given fields: wiki, userId
-func (_m *WikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string) (*model.Wiki, error) {
-	ret := _m.Called(wiki, userId)
+// Create provides a mock function with given fields: rctx, wiki, backingChannel, creatorMember, defaultDraft
+func (_m *WikiStore) Create(rctx request.CTX, wiki *model.Wiki, backingChannel *model.Channel, creatorMember *model.ChannelMember, defaultDraft *model.Draft) (*model.Wiki, error) {
+	ret := _m.Called(rctx, wiki, backingChannel, creatorMember, defaultDraft)
 
 	if len(ret) == 0 {
-		panic("no return value specified for CreateWikiWithDefaultPage")
+		panic("no return value specified for Create")
 	}
 
 	var r0 *model.Wiki
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Wiki, string) (*model.Wiki, error)); ok {
-		return rf(wiki, userId)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Wiki, *model.Channel, *model.ChannelMember, *model.Draft) (*model.Wiki, error)); ok {
+		return rf(rctx, wiki, backingChannel, creatorMember, defaultDraft)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Wiki, string) *model.Wiki); ok {
-		r0 = rf(wiki, userId)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Wiki, *model.Channel, *model.ChannelMember, *model.Draft) *model.Wiki); ok {
+		r0 = rf(rctx, wiki, backingChannel, creatorMember, defaultDraft)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Wiki)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Wiki, string) error); ok {
-		r1 = rf(wiki, userId)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Wiki, *model.Channel, *model.ChannelMember, *model.Draft) error); ok {
+		r1 = rf(rctx, wiki, backingChannel, creatorMember, defaultDraft)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -140,6 +141,36 @@ func (_m *WikiStore) GetAbandonedPages(cutoffTime int64) ([]*model.Post, error) 
 	return r0, r1
 }
 
+// GetByChannelId provides a mock function with given fields: channelId
+func (_m *WikiStore) GetByChannelId(channelId string) (*model.Wiki, error) {
+	ret := _m.Called(channelId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByChannelId")
+	}
+
+	var r0 *model.Wiki
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Wiki, error)); ok {
+		return rf(channelId)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Wiki); ok {
+		r0 = rf(channelId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Wiki)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForChannel provides a mock function with given fields: channelId, includeDeleted
 func (_m *WikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error) {
 	ret := _m.Called(channelId, includeDeleted)
@@ -163,6 +194,126 @@ func (_m *WikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*mo
 
 	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(channelId, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetForChannels provides a mock function with given fields: channelIds, includeDeleted
+func (_m *WikiStore) GetForChannels(channelIds []string, includeDeleted bool) ([]*model.Wiki, error) {
+	ret := _m.Called(channelIds, includeDeleted)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForChannels")
+	}
+
+	var r0 []*model.Wiki
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string, bool) ([]*model.Wiki, error)); ok {
+		return rf(channelIds, includeDeleted)
+	}
+	if rf, ok := ret.Get(0).(func([]string, bool) []*model.Wiki); ok {
+		r0 = rf(channelIds, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Wiki)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string, bool) error); ok {
+		r1 = rf(channelIds, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetForTeam provides a mock function with given fields: teamId, page, perPage
+func (_m *WikiStore) GetForTeam(teamId string, page int, perPage int) ([]*model.Wiki, error) {
+	ret := _m.Called(teamId, page, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForTeam")
+	}
+
+	var r0 []*model.Wiki
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int, int) ([]*model.Wiki, error)); ok {
+		return rf(teamId, page, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Wiki); ok {
+		r0 = rf(teamId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Wiki)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
+		r1 = rf(teamId, page, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetForUser provides a mock function with given fields: userId, teamId, page, perPage
+func (_m *WikiStore) GetForUser(userId string, teamId string, page int, perPage int) ([]*model.Wiki, error) {
+	ret := _m.Called(userId, teamId, page, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForUser")
+	}
+
+	var r0 []*model.Wiki
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, int, int) ([]*model.Wiki, error)); ok {
+		return rf(userId, teamId, page, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, int, int) []*model.Wiki); ok {
+		r0 = rf(userId, teamId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Wiki)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
+		r1 = rf(userId, teamId, page, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetLinkedToChannel provides a mock function with given fields: channelId
+func (_m *WikiStore) GetLinkedToChannel(channelId string) ([]*model.Wiki, error) {
+	ret := _m.Called(channelId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLinkedToChannel")
+	}
+
+	var r0 []*model.Wiki
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.Wiki, error)); ok {
+		return rf(channelId)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.Wiki); ok {
+		r0 = rf(channelId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Wiki)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -320,52 +471,22 @@ func (_m *WikiStore) GetWikisForExport(channelId string) ([]*model.WikiForExport
 	return r0, r1
 }
 
-// MovePageToWiki provides a mock function with given fields: pageId, targetWikiId, parentPageId
-func (_m *WikiStore) MovePageToWiki(pageId string, targetWikiId string, parentPageId *string) error {
-	ret := _m.Called(pageId, targetWikiId, parentPageId)
+// MovePageToWiki provides a mock function with given fields: pageId, targetWikiId, targetChannelId, parentPageId
+func (_m *WikiStore) MovePageToWiki(pageId string, targetWikiId string, targetChannelId string, parentPageId *string) error {
+	ret := _m.Called(pageId, targetWikiId, targetChannelId, parentPageId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for MovePageToWiki")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, *string) error); ok {
-		r0 = rf(pageId, targetWikiId, parentPageId)
+	if rf, ok := ret.Get(0).(func(string, string, string, *string) error); ok {
+		r0 = rf(pageId, targetWikiId, targetChannelId, parentPageId)
 	} else {
 		r0 = ret.Error(0)
 	}
 
 	return r0
-}
-
-// MoveWikiToChannel provides a mock function with given fields: wikiId, targetChannelId, timestamp
-func (_m *WikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error) {
-	ret := _m.Called(wikiId, targetChannelId, timestamp)
-
-	if len(ret) == 0 {
-		panic("no return value specified for MoveWikiToChannel")
-	}
-
-	var r0 *model.Wiki
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, int64) (*model.Wiki, error)); ok {
-		return rf(wikiId, targetChannelId, timestamp)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, int64) *model.Wiki); ok {
-		r0 = rf(wikiId, targetChannelId, timestamp)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Wiki)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
-		r1 = rf(wikiId, targetChannelId, timestamp)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // ResolveNamesToIDs provides a mock function with given fields: names, teamId

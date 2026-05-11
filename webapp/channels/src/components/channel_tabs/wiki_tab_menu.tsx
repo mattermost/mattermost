@@ -11,19 +11,22 @@ import {
     PencilOutlineIcon,
     TrashCanOutlineIcon,
     LinkVariantIcon,
-    ArrowRightIcon,
+    LinkVariantOffIcon,
 } from '@mattermost/compass-icons/components';
 import type {Wiki} from '@mattermost/types/wikis';
 
+import {updateWiki as updateWikiMattermost} from 'mattermost-redux/actions/wikis';
 import {getCurrentTeam, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {updateWiki, deleteWiki, moveWikiToChannel} from 'actions/pages';
+import {deleteWiki} from 'actions/pages';
 import {openModal} from 'actions/views/modals';
+import {unlinkWikiFromChannel} from 'actions/wiki_actions';
 
 import * as Menu from 'components/menu';
-import MoveWikiModal from 'components/move_wiki_modal';
 import TextInputModal from 'components/text_input_modal';
 import WikiDeleteModal from 'components/wiki_delete_modal';
+import WikiUnlinkModal from 'components/wiki_unlink_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {getWikiUrl, getSiteURL} from 'utils/url';
@@ -46,13 +49,13 @@ function WikiTabMenu({wiki, channelId}: Props) {
         getCurrentRelativeTeamUrl(state),
     );
 
-    const match = useRouteMatch<{wikiId: string}>(`${teamUrl}/wiki/:channelId/:wikiId/*`);
+    const match = useRouteMatch<{wikiId: string}>(`${teamUrl}/wiki/:wikiId/*`);
     const isViewingThisWiki = match?.params.wikiId === wiki.id;
 
     const renameLabel = formatMessage({id: 'wiki_tab.rename', defaultMessage: 'Rename'});
-    const moveLabel = formatMessage({id: 'wiki_tab.move', defaultMessage: 'Move wiki'});
     const deleteLabel = formatMessage({id: 'wiki_tab.delete', defaultMessage: 'Delete'});
     const copyLinkLabel = formatMessage({id: 'wiki_tab.copy_link', defaultMessage: 'Copy link'});
+    const unlinkLabel = formatMessage({id: 'wiki_tab.unlink', defaultMessage: 'Remove from channel'});
 
     const handleRename = useCallback(() => {
         dispatch(openModal({
@@ -65,12 +68,18 @@ function WikiTabMenu({wiki, channelId}: Props) {
                 confirmButtonText: formatMessage({id: 'wiki_tab.rename_modal_confirm', defaultMessage: 'Rename'}),
                 initialValue: wiki.title,
                 onConfirm: async (newTitle: string) => {
-                    await dispatch(updateWiki(wiki.id, {title: newTitle}));
+                    const result = await dispatch(updateWikiMattermost({
+                        ...wiki,
+                        title: newTitle,
+                    })) as ActionResult;
+                    if (result?.error) {
+                        throw new Error(String(result.error));
+                    }
                 },
                 onCancel: () => {},
             },
         }));
-    }, [dispatch, formatMessage, wiki.id, wiki.title]);
+    }, [dispatch, formatMessage, wiki]);
 
     const handleDelete = useCallback(() => {
         dispatch(openModal({
@@ -90,25 +99,25 @@ function WikiTabMenu({wiki, channelId}: Props) {
     }, [dispatch, wiki.id, wiki.title, isViewingThisWiki, currentTeam, history, teamUrl, channelId]);
 
     const handleCopyLink = useCallback(() => {
-        const wikiUrl = `${getSiteURL()}${getWikiUrl(teamName, channelId, wiki.id)}`;
+        const wikiUrl = `${getSiteURL()}${getWikiUrl(teamName, wiki.id)}`;
         copyToClipboard(wikiUrl);
-    }, [teamName, channelId, wiki.id]);
+    }, [teamName, wiki.id]);
 
-    const handleMove = useCallback(() => {
+    const handleUnlink = useCallback(() => {
         dispatch(openModal({
-            modalId: ModalIdentifiers.WIKI_MOVE,
-            dialogType: MoveWikiModal,
+            modalId: ModalIdentifiers.WIKI_UNLINK,
+            dialogType: WikiUnlinkModal,
             dialogProps: {
                 wikiTitle: wiki.title,
-                currentChannelId: channelId,
-                onConfirm: async (targetChannelId: string) => {
-                    await dispatch(moveWikiToChannel(wiki.id, targetChannelId));
-
+                onConfirm: async () => {
+                    const result = await dispatch(unlinkWikiFromChannel(channelId, wiki.id)) as ActionResult;
+                    if (result?.error) {
+                        throw new Error(String(result.error));
+                    }
                     if (isViewingThisWiki && currentTeam) {
                         history.push(`${teamUrl}/channels/${channelId}`);
                     }
                 },
-                onExited: () => {},
             },
         }));
     }, [dispatch, wiki.id, wiki.title, channelId, isViewingThisWiki, currentTeam, history, teamUrl]);
@@ -148,12 +157,12 @@ function WikiTabMenu({wiki, channelId}: Props) {
                     aria-label={copyLinkLabel}
                 />
                 <Menu.Item
-                    key='wiki-tab-move'
-                    id='wiki-tab-move'
-                    onClick={handleMove}
-                    leadingElement={<ArrowRightIcon size={18}/>}
-                    labels={<span>{moveLabel}</span>}
-                    aria-label={moveLabel}
+                    key='wiki-tab-unlink'
+                    id='wiki-tab-unlink'
+                    onClick={handleUnlink}
+                    leadingElement={<LinkVariantOffIcon size={18}/>}
+                    labels={<span>{unlinkLabel}</span>}
+                    aria-label={unlinkLabel}
                 />
                 <Menu.Item
                     key='wiki-tab-delete'

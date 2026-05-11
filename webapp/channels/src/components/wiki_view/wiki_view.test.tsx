@@ -67,18 +67,17 @@ jest.mock('react-router-dom', () => ({
     useRouteMatch: () => ({
         params: {
             pageId: 'page-123',
-            channelId: 'channel-123',
             wikiId: 'wiki-123',
         },
-        path: '/wiki/:channelId/:wikiId/:pageId',
+        path: '/wiki/:wikiId/:pageId',
     }),
     useHistory: () => ({
         push: jest.fn(),
         replace: jest.fn(),
     }),
     useLocation: () => ({
-        pathname: '/wiki/channel-123/wiki-123/page-123',
-        search: '',
+        pathname: '/wiki/wiki-123/page-123',
+        search: '?from=channel-123',
         hash: '',
     }),
 }));

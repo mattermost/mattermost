@@ -4,11 +4,11 @@
 import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Post} from '@mattermost/types/posts';
 
 import Tab from 'components/tabs/tab';
 import Tabs from 'components/tabs/tabs';
-import WithTooltip from 'components/with_tooltip';
 
 import type {InlineAnchor} from 'types/store/pages';
 
@@ -22,7 +22,7 @@ type Props = {
     pageId: string | null;
     wikiId: string | null;
     pageTitle: string;
-    channelLoaded: boolean;
+    pageHydrated: boolean;
     activeTab: 'page_comments' | 'all_threads';
     focusedInlineCommentId: string | null;
     pendingInlineAnchor: InlineAnchor | null;
@@ -39,7 +39,7 @@ type Props = {
     };
 };
 
-const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedInlineCommentId, pendingInlineAnchor, isExpanded, isSubmittingComment, actions}: Props) => {
+const WikiRHS = ({pageId, wikiId, pageTitle, pageHydrated, activeTab, focusedInlineCommentId, pendingInlineAnchor, isExpanded, isSubmittingComment, actions}: Props) => {
     const {formatMessage} = useIntl();
 
     // Destructure actions to use stable references in dependency arrays
@@ -141,7 +141,11 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                         anchor={pendingInlineAnchor}
                     />
                 ) : (
-                    <div className='WikiRHS__loading'>
+                    <div
+                        className='WikiRHS__loading'
+                        role='status'
+                        aria-live='polite'
+                    >
                         <FormattedMessage
                             id='wiki_rhs.submitting_comment'
                             defaultMessage='Submitting comment...'
@@ -220,7 +224,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                     className='WikiRHS__thread-content'
                     data-testid='wiki-rhs-thread-content'
                 >
-                    {pageId && channelLoaded && (
+                    {pageId && pageHydrated && (
                         <WikiThreadViewer
                             key={`${pageId}-${focusedInlineCommentId || 'list'}`}
                             rootPostId={pageId}
@@ -306,7 +310,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                         className='WikiRHS__comments-content'
                         data-testid='wiki-rhs-comments-content'
                     >
-                        {pageId && channelLoaded && (
+                        {pageId && pageHydrated && (
                             <WikiThreadViewer
                                 key={pageId}
                                 rootPostId={pageId}
@@ -315,7 +319,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                                 hideRootPost={true}
                             />
                         )}
-                        {pageId && !channelLoaded && (
+                        {pageId && !pageHydrated && (
                             <div
                                 className='WikiRHS__empty-state'
                                 data-testid='wiki-rhs-loading'

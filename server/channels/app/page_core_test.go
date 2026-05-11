@@ -15,7 +15,7 @@ func TestGetPage(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	t.Run("get existing page", func(t *testing.T) {
@@ -44,7 +44,7 @@ func TestGetPage(t *testing.T) {
 		retrievedPage, appErr := th.App.GetPage(th.Context, regularPost.Id)
 		require.NotNil(t, appErr)
 		require.Nil(t, retrievedPage)
-		require.Equal(t, "app.page.get.not_a_page.app_error", appErr.Id)
+		require.Equal(t, "app.page.get.not_found.app_error", appErr.Id)
 	})
 }
 
@@ -54,13 +54,12 @@ func TestGetPageWithDeleted(t *testing.T) {
 	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	wiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	// Delete the page
@@ -91,7 +90,7 @@ func TestPlainTextConversion(t *testing.T) {
 
 	t.Run("plain text content is converted to TipTap JSON", func(t *testing.T) {
 		plainTextContent := "This is plain text content"
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Plain Text Page", "", plainTextContent, th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Plain Text Page", "", plainTextContent, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 		require.NotNil(t, page)
 
@@ -112,7 +111,7 @@ func TestGetPageVersionHistory(t *testing.T) {
 	t.Run("returns version history after multiple edits", func(t *testing.T) {
 		// Create a page with initial content
 		initialContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Initial content"}]}]}`
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Version History Test", "", initialContent, th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Version History Test", "", initialContent, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 		require.NotNil(t, page)
 
@@ -155,7 +154,7 @@ func TestGetPageVersionHistory(t *testing.T) {
 
 	t.Run("returns empty list for page with no edit history", func(t *testing.T) {
 		// Create a new page without any edits
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "No Edits Page", "", "", th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "No Edits Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		// Get version history - should return empty list since no edits have been made
@@ -166,7 +165,7 @@ func TestGetPageVersionHistory(t *testing.T) {
 
 	t.Run("pagination works correctly", func(t *testing.T) {
 		// Create a page
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Pagination Test", "", "", th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Pagination Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		// Make multiple edits to create history
@@ -197,7 +196,7 @@ func TestGetPageVersionHistory(t *testing.T) {
 	t.Run("content is loaded for historical versions", func(t *testing.T) {
 		// Create a page with content
 		initialContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Has content"}]}]}`
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Content Test", "", initialContent, th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Content Test", "", initialContent, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		// Make an edit
@@ -228,7 +227,7 @@ func TestRestorePageVersion(t *testing.T) {
 	t.Run("restores page to previous version", func(t *testing.T) {
 		// Create a page with initial content
 		initialContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Restore Test", "", initialContent, th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Restore Test", "", initialContent, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 		require.NotNil(t, page)
 
@@ -264,7 +263,7 @@ func TestRestorePageVersion(t *testing.T) {
 
 	t.Run("restores page with different file IDs", func(t *testing.T) {
 		// Create a page
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "File Restore Test", "", "", th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "File Restore Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		// Make an edit
@@ -288,7 +287,7 @@ func TestRestorePageVersion(t *testing.T) {
 
 	t.Run("returns error for non-existent version", func(t *testing.T) {
 		// Create a page
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Invalid Version Test", "", "", th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Invalid Version Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		// Make an edit to ensure some history exists
@@ -310,7 +309,7 @@ func TestRestorePageVersion(t *testing.T) {
 
 	t.Run("restores title from historical version props", func(t *testing.T) {
 		// Create a page
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Title Restore Test", "", "", th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Title Restore Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		// Make multiple edits
@@ -347,7 +346,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 	rctx := th.CreateSessionContext()
 
 	t.Run("returns empty list for page with no active editors", func(t *testing.T) {
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "No Editors Page", "", "", th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "No Editors Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		editors, appErr := th.App.GetPageActiveEditors(rctx, page.Id)
@@ -359,13 +358,12 @@ func TestGetPageActiveEditors(t *testing.T) {
 	t.Run("returns active editors with page content drafts", func(t *testing.T) {
 		// Create a wiki first for the draft content
 		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki for Editors",
+			Title: "Test Wiki for Editors",
 		}
 		createdWiki, wikiErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 		require.Nil(t, wikiErr)
 
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Active Editors Page", "", "", th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Active Editors Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		// Create a page draft entry using UpsertPageDraftContent

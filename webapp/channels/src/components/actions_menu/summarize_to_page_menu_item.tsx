@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
@@ -11,6 +11,8 @@ import type {Post} from '@mattermost/types/posts';
 import {Client4} from 'mattermost-redux/client';
 import {getAgents} from 'mattermost-redux/selectors/entities/agents';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+
+import {makeGetChannelWikis} from 'selectors/pages';
 
 import * as Menu from 'components/menu';
 
@@ -28,14 +30,10 @@ const SummarizeToPageMenuItem: React.FC<Props> = ({post, onMenuClose}) => {
     const team = useSelector(getCurrentTeam);
     const agents = useSelector(getAgents);
 
-    // Get wiki for the post's channel
+    const getChannelWikis = useMemo(() => makeGetChannelWikis(), []);
     const wikiId = useSelector((state: GlobalState) => {
-        const channelWikiIds = state.entities.wikis?.byChannel?.[post.channel_id];
-        if (channelWikiIds && channelWikiIds.length > 0) {
-            // Return the first wiki ID for the channel
-            return channelWikiIds[0];
-        }
-        return null;
+        const wikis = getChannelWikis(state, post.channel_id);
+        return wikis.length > 0 ? wikis[0].id : null;
     });
 
     const handleClick = useCallback(async () => {

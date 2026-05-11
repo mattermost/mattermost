@@ -14,7 +14,7 @@ import {closeModal} from 'actions/views/modals';
 import {getDescendantIds} from 'components/pages_hierarchy_panel/utils/tree_builder';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {getPageTitle} from 'utils/post_utils';
+import {getPageTitle} from 'utils/page_utils';
 
 import './page_destination_modal.scss';
 
@@ -64,19 +64,25 @@ const PageDestinationModal = ({
     useEffect(() => {
         if (!selectedWikiId) {
             setAllPages([]);
-            return;
+            return undefined;
         }
-
+        let cancelled = false;
         const fetchPages = async () => {
             try {
                 const pages = await fetchPagesForWiki(selectedWikiId);
-                setAllPages(pages);
+                if (!cancelled) {
+                    setAllPages(pages);
+                }
             } catch (error) {
-                setAllPages([]);
+                if (!cancelled) {
+                    setAllPages([]);
+                }
             }
         };
-
         fetchPages();
+        return () => {
+            cancelled = true;
+        };
     }, [selectedWikiId, fetchPagesForWiki]);
 
     // Build descendant set to prevent circular references
@@ -230,6 +236,7 @@ const PageDestinationModal = ({
                                 type='button'
                                 className={`PageDestinationModal__pageOption ${parentPageId === undefined ? 'PageDestinationModal__pageOption--selected' : ''}`}
                                 onClick={() => setParentPageId(undefined)}
+                                aria-pressed={parentPageId === undefined}
                             >
                                 {formatMessage({id: 'page_destination_modal.root_level', defaultMessage: 'Root level (no parent)'})}
                             </button>
@@ -255,6 +262,7 @@ const PageDestinationModal = ({
                                         data-page-id={page.id}
                                         className={`PageDestinationModal__pageOption ${parentPageId === page.id ? 'PageDestinationModal__pageOption--selected' : ''}`}
                                         onClick={() => setParentPageId(page.id)}
+                                        aria-pressed={parentPageId === page.id}
                                     >
                                         {displayTitle}
                                     </button>

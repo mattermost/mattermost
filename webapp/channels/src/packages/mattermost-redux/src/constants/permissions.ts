@@ -260,7 +260,6 @@ const values = {
         MANAGE_MEMBERS: 'manage_members',
         USE_CHANNEL_MENTIONS: 'use_channel_mentions',
         MANAGE_BOOKMARKS: 'manage_bookmarks',
-        MANAGE_PAGES: 'manage_pages',
     },
     MANAGE_BOTS: 'manage_bots',
     MANAGE_OTHERS_BOTS: 'manage_others_bots',
@@ -289,8 +288,16 @@ const values = {
     CREATE_PAGE: 'create_page',
     READ_PAGE: 'read_page',
     EDIT_PAGE: 'edit_page',
+    EDIT_OWN_PAGE: 'edit_own_page',
     DELETE_OWN_PAGE: 'delete_own_page',
     DELETE_PAGE: 'delete_page',
+    COMMENT_PAGE: 'comment_page',
+
+    CREATE_WIKI: 'create_wiki',
+    READ_WIKI: 'read_wiki',
+    MANAGE_WIKI: 'manage_wiki',
+    DELETE_WIKI: 'delete_wiki',
+    ADMIN_WIKI: 'admin_wiki',
 };
 
 values.SYSCONSOLE_READ_PERMISSIONS = [

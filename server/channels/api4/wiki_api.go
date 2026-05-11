@@ -6,6 +6,8 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -15,10 +17,9 @@ import (
 func (api *API) InitWiki() {
 	api.BaseRoutes.Wikis.Handle("", api.APISessionRequired(createWiki)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("", api.APISessionRequired(getWiki)).Methods(http.MethodGet)
-	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/wikis", api.APISessionRequired(listChannelWikis)).Methods(http.MethodGet)
+	api.BaseRoutes.Channel.Handle("/wikis", api.APISessionRequired(listChannelWikis)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("", api.APISessionRequired(updateWiki)).Methods(http.MethodPatch)
 	api.BaseRoutes.Wiki.Handle("", api.APISessionRequired(deleteWiki)).Methods(http.MethodDelete)
-	api.BaseRoutes.Wiki.Handle("/move", api.APISessionRequired(moveWikiToChannel)).Methods(http.MethodPatch)
 	api.BaseRoutes.Wiki.Handle("/pages", api.APISessionRequired(getWikiPages)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages", api.APISessionRequired(createPage)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(getWikiPage)).Methods(http.MethodGet)
@@ -34,54 +35,47 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments", api.APISessionRequired(getPageComments)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments", api.APISessionRequired(createPageComment)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{parent_comment_id:[A-Za-z0-9]+}/replies", api.APISessionRequired(createPageCommentReply)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{comment_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePageComment)).Methods(http.MethodDelete)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{comment_id:[A-Za-z0-9]+}/resolve", api.APISessionRequired(resolvePageComment)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{comment_id:[A-Za-z0-9]+}/unresolve", api.APISessionRequired(unresolvePageComment)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/status", api.APISessionRequired(updatePageStatus)).Methods(http.MethodPatch)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/status", api.APISessionRequired(getPageStatus)).Methods(http.MethodGet)
+	api.BaseRoutes.Wikis.Handle("/page-status-field", api.APISessionRequired(getPageStatusField)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/extract-image", api.APISessionRequired(extractPageImageText)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/summarize-thread", api.APISessionRequired(summarizeThreadToPage)).Methods(http.MethodPost)
 	api.BaseRoutes.Channel.Handle("/pages", api.APISessionRequired(getChannelPages)).Methods(http.MethodGet)
+	api.BaseRoutes.TeamWikis.Handle("", api.APISessionRequired(getTeamWikis)).Methods(http.MethodGet)
 }
 
 func createWiki(c *Context, w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 	var wiki model.Wiki
 	if err := json.NewDecoder(r.Body).Decode(&wiki); err != nil {
 		c.SetInvalidParamWithErr("wiki", err)
 		return
 	}
 
-	wiki.PreSave()
-	if err := wiki.IsValid(); err != nil {
-		c.Err = err
-		return
-	}
-
-	auditRec := c.MakeAuditRecord("createWiki", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateWiki, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	auditRec.AddMeta("channel_id", wiki.ChannelId)
+	auditRec.AddMeta("team_id", wiki.TeamId)
 
-	if !model.IsValidId(wiki.ChannelId) {
-		c.SetInvalidParam("channel_id")
+	if !model.IsValidId(wiki.TeamId) {
+		c.Err = model.NewAppError("createWiki", "api.wiki.create.missing_team", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
+	if strings.TrimSpace(wiki.Title) == "" {
+		c.Err = model.NewAppError("createWiki", "api.wiki.create.missing_title.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+	if utf8.RuneCountInString(wiki.Title) > model.WikiTitleMaxRunes {
+		c.Err = model.NewAppError("createWiki", "api.wiki.create.title_too_long.app_error",
+			map[string]any{"MaxLength": model.WikiTitleMaxRunes}, "", http.StatusBadRequest)
 		return
 	}
 
-	if channel.DeleteAt != 0 {
-		c.Err = model.NewAppError("createWiki", "api.wiki.create.deleted_channel.forbidden.app_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	if !c.CheckWikiModifyPermission(channel) {
-		return
-	}
-
-	// Wiki creation also requires CreatePage permission since it creates a default draft page
-	// that will need to be published. Without this check, users could create wikis but be
-	// unable to publish the default page if manage_pages moderation is disabled.
-	if !c.CheckChannelPagePermission(channel, app.PageOperationCreate) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), wiki.TeamId, model.PermissionCreateWiki) {
+		c.SetPermissionError(model.PermissionCreateWiki)
 		return
 	}
 
@@ -135,7 +129,30 @@ func listChannelWikis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wikis, appErr := c.App.GetWikisForChannel(c.AppContext, c.Params.ChannelId, false)
+	wikis, appErr := c.App.GetWikisLinkedToChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(wikis); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getTeamWikis(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	perPage := max(1, min(c.Params.PerPage, 200))
+	wikis, appErr := c.App.GetUserWikis(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, c.Params.Page, perPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -152,6 +169,10 @@ func updateWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Bound the request body to mitigate resource-exhaustion on the update path.
+	// 1 MiB is generous for title/description fields while rejecting abusive uploads.
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+
 	var wiki model.Wiki
 	if err := json.NewDecoder(r.Body).Decode(&wiki); err != nil {
 		c.SetInvalidParamWithErr("wiki", err)
@@ -159,17 +180,35 @@ func updateWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	wiki.Id = c.Params.WikiId
 
-	auditRec := c.MakeAuditRecord("updateWiki", model.AuditStatusFail)
+	if wiki.Title != "" && strings.TrimSpace(wiki.Title) == "" {
+		c.Err = model.NewAppError("updateWiki", "api.wiki.update.missing_title.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+	if utf8.RuneCountInString(wiki.Title) > model.WikiTitleMaxRunes {
+		c.Err = model.NewAppError("updateWiki", "api.wiki.update.title_too_long.app_error",
+			map[string]any{"MaxLength": model.WikiTitleMaxRunes}, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateWiki, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", wiki.Id)
 
-	oldWiki, _, ok := c.GetWikiForModify("updateWiki")
+	oldWiki, _, ok := c.GetWikiForModify()
 	if !ok {
 		return
 	}
 	auditRec.AddEventPriorState(oldWiki)
 
+	if !c.App.SessionHasWikiPermission(*c.AppContext.Session(), oldWiki, model.PermissionManageWiki) {
+		c.SetPermissionError(model.PermissionManageWiki)
+		return
+	}
+
 	wiki.ChannelId = oldWiki.ChannelId
+	wiki.CreateAt = oldWiki.CreateAt
+	wiki.TeamId = oldWiki.TeamId
+	wiki.CreatorId = oldWiki.CreatorId
 
 	updatedWiki, appErr := c.App.UpdateWiki(c.AppContext, &wiki)
 	if appErr != nil {
@@ -198,15 +237,20 @@ func deleteWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteWiki", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteWiki, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 
-	oldWiki, _, ok := c.GetWikiForModify("deleteWiki")
+	oldWiki, _, ok := c.GetWikiForModify()
 	if !ok {
 		return
 	}
 	auditRec.AddEventPriorState(oldWiki)
+
+	if !c.App.SessionHasWikiPermission(*c.AppContext.Session(), oldWiki, model.PermissionDeleteWiki) {
+		c.SetPermissionError(model.PermissionDeleteWiki)
+		return
+	}
 
 	if appErr := c.App.DeleteWiki(c.AppContext, c.Params.WikiId, c.AppContext.Session().UserId, oldWiki); appErr != nil {
 		c.Err = appErr
@@ -220,60 +264,6 @@ func deleteWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func moveWikiToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireWikiId()
-	if c.Err != nil {
-		return
-	}
-
-	var req struct {
-		TargetChannelId string `json:"target_channel_id"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		c.SetInvalidParamWithErr("body", err)
-		return
-	}
-
-	if !model.IsValidId(req.TargetChannelId) {
-		c.SetInvalidParam("target_channel_id")
-		return
-	}
-
-	wiki, _, ok := c.GetWikiForModify("moveWikiToChannel")
-	if !ok {
-		return
-	}
-
-	targetChannel, err := c.App.GetChannel(c.AppContext, req.TargetChannelId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if !c.CheckWikiModifyPermission(targetChannel) {
-		return
-	}
-
-	auditRec := c.MakeAuditRecord("moveWikiToChannel", model.AuditStatusFail)
-	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	model.AddEventParameterToAuditRec(auditRec, "wiki_id", c.Params.WikiId)
-	model.AddEventParameterToAuditRec(auditRec, "source_channel_id", wiki.ChannelId)
-	model.AddEventParameterToAuditRec(auditRec, "target_channel_id", req.TargetChannelId)
-
-	movedWiki, appErr := c.App.MoveWikiToChannel(c.AppContext, wiki, targetChannel, c.AppContext.Session().UserId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	auditRec.Success()
-	auditRec.AddEventResultState(movedWiki)
-
-	if err := json.NewEncoder(w).Encode(movedWiki); err != nil {
-		c.Logger.Warn("Error writing response", mlog.Err(err))
-	}
-}
-
 func getPageActiveEditors(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	c.RequirePageId()
@@ -282,17 +272,13 @@ func getPageActiveEditors(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Use GetPageForRead to combine page validation and wiki/channel fetch in one operation
-	pagePost, _, channel, ok := c.GetPageForRead()
+	_, _, channel, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}
 
 	if channel.DeleteAt != 0 {
 		c.SetPermissionError(model.PermissionReadChannel)
-		return
-	}
-
-	if !c.CheckPagePermission(pagePost, app.PageOperationRead) {
 		return
 	}
 
@@ -316,24 +302,19 @@ func getPageVersionHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Use GetPageForRead to combine page validation and wiki/channel fetch in one operation
-	pagePost, _, channel, ok := c.GetPageForRead()
+	_, _, channel, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}
 
-	if channel.DeleteAt != 0 {
+	if channel != nil && channel.DeleteAt != 0 {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
-	if !c.CheckPagePermission(pagePost, app.PageOperationRead) {
-		return
-	}
+	// GetPageForRead already enforces PermissionReadPage; no extra check needed.
 
-	perPage := c.Params.PerPage
-	if perPage > model.PostEditHistoryLimit {
-		perPage = model.PostEditHistoryLimit
-	}
+	perPage := min(c.Params.PerPage, model.PostEditHistoryLimit)
 	versionHistory, appErr := c.App.GetPageVersionHistory(c.AppContext, c.Params.PageId, c.Params.Page*perPage, perPage)
 	if appErr != nil {
 		c.Err = appErr

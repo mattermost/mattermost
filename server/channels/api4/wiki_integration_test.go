@@ -21,15 +21,18 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.TeamUserRoleId)
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicTeam.Id,
 		Title:       "Test Wiki",
 		Description: "Integration test wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.LinkWikiToChannel(th.Context, wiki.Id, th.BasicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	t.Run("page_published event broadcasted to channel on publish", func(t *testing.T) {
@@ -69,7 +72,7 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 				if event.EventType() == model.WebsocketEventPagePublished {
 					eventReceived = true
 
-					assert.Equal(t, th.BasicChannel.Id, event.GetBroadcast().ChannelId)
+					assert.Contains(t, []string{wiki.ChannelId, th.BasicChannel.Id}, event.GetBroadcast().ChannelId)
 					assert.Equal(t, publishedPage.Id, event.GetData()["page_id"])
 					assert.Equal(t, wiki.Id, event.GetData()["wiki_id"])
 					assert.Equal(t, pageId, event.GetData()["draft_id"])
@@ -140,13 +143,13 @@ func TestMultiUserPageEditing(t *testing.T) {
 
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.TeamUserRoleId)
 
 	th.LinkUserToTeam(t, th.BasicUser2, th.BasicTeam)
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicTeam.Id,
 		Title:       "Shared Wiki",
 		Description: "Multi-user test wiki",
 	}
@@ -271,12 +274,12 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.TeamUserRoleId)
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicTeam.Id,
 		Title:       "Concurrent Test Wiki",
 		Description: "Concurrent operations test",
 	}
@@ -394,71 +397,66 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 	})
 }
 
+// TestPagePermissionsMultiUser exercises team-membership-as-page-access. Page
+// perms are team-scoped, so a user who is a member of the wiki's team gets read
+// access via the default team_user role; a user not on that team is denied.
+// (Per-wiki ACL — denying a specific user even though they're on the team —
+// returns in Phase 2; see plans/wiki-page-permissions-confluence.md.)
 func TestPagePermissionsMultiUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
-
-	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
-
-	privateChannel := th.CreatePrivateChannel(t)
-	th.AddUserToChannel(t, th.BasicUser, privateChannel)
 	th.Context.Session().UserId = th.BasicUser.Id
 
-	privateWiki := &model.Wiki{
-		ChannelId:   privateChannel.Id,
-		Title:       "Private Wiki",
-		Description: "Private channel wiki",
+	wiki := &model.Wiki{
+		TeamId:      th.BasicTeam.Id,
+		Title:       "Team Wiki",
+		Description: "Team wiki",
 	}
-	privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
+	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	pageId := model.NewId()
-	draftContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Private page"}]}]}`
-	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, privateWiki.Id, pageId, draftContent, "Private Page", 0, nil)
+	draftContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Page body"}]}]}`
+	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, pageId, draftContent, "Team Page", 0, nil)
 	require.Nil(t, appErr)
-
-	privatePage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, model.PublishPageDraftOptions{
-		WikiId: privateWiki.Id,
+	page, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, model.PublishPageDraftOptions{
+		WikiId: wiki.Id,
 		PageId: pageId,
-		Title:  "Private Page",
+		Title:  "Team Page",
 	})
 	require.Nil(t, appErr)
 
-	// Create a client for User2 to test permission checks via API
-	client2 := th.CreateClient()
-	_, _, loginErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
+	// Outsider user belongs to a different team and has no access to BasicTeam.
+	outsider := th.CreateUser(t)
+	outsiderTeam := th.CreateTeam(t)
+	th.LinkUserToTeam(t, outsider, outsiderTeam)
+	outsiderClient := th.CreateClient()
+	_, _, loginErr := outsiderClient.Login(context.Background(), outsider.Email, outsider.Password)
 	require.NoError(t, loginErr)
 
-	t.Run("user2 cannot access private channel page via API", func(t *testing.T) {
-		// Permission check happens in API layer (GetWikiForRead), not App layer
-		_, resp, err := client2.GetPage(context.Background(), privateWiki.Id, privatePage.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("user2 can access after being added to private channel", func(t *testing.T) {
-		th.AddUserToChannel(t, th.BasicUser2, privateChannel)
-
-		retrievedPage, resp, err := client2.GetPage(context.Background(), privateWiki.Id, privatePage.Id)
+	t.Run("user on wiki's team can read the page", func(t *testing.T) {
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
+		require.NoError(t, lErr)
+		retrieved, resp, err := client2.GetPage(context.Background(), wiki.Id, page.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		assert.Equal(t, privatePage.Id, retrievedPage.Id)
+		assert.Equal(t, page.Id, retrieved.Id)
 	})
 
-	t.Run("user2 loses access after being removed from private channel", func(t *testing.T) {
-		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, th.BasicUser.Id, privateChannel)
-		require.Nil(t, appErr)
-
-		// Permission check happens in API layer
-		_, resp, err := client2.GetPage(context.Background(), privateWiki.Id, privatePage.Id)
+	t.Run("user not on wiki's team cannot read the page", func(t *testing.T) {
+		_, resp, err := outsiderClient.GetPage(context.Background(), wiki.Id, page.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("outsider gains access after joining the team", func(t *testing.T) {
+		th.LinkUserToTeam(t, outsider, th.BasicTeam)
+		retrieved, resp, err := outsiderClient.GetPage(context.Background(), wiki.Id, page.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Equal(t, page.Id, retrieved.Id)
 	})
 }
 
@@ -469,16 +467,16 @@ func TestPublishPageDraft_OptimisticLocking_Success(t *testing.T) {
 
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.TeamUserRoleId)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicTeam.Id,
 		Title:       "Test Wiki",
 		Description: "Test wiki for optimistic locking",
 	}
@@ -523,16 +521,16 @@ func TestPublishPageDraft_OptimisticLocking_Returns409(t *testing.T) {
 
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.TeamUserRoleId)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicTeam.Id,
 		Title:       "Test Wiki",
 		Description: "Test wiki for optimistic locking conflict",
 	}
@@ -614,16 +612,16 @@ func TestPublishPageDraft_WrongBaseEditAtReturns409(t *testing.T) {
 
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.TeamUserRoleId)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicTeam.Id,
 		Title:       "Test Wiki",
 		Description: "Test wiki for wrong baseEditAt",
 	}

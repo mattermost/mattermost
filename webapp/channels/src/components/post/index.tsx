@@ -160,7 +160,7 @@ function makeMapStateToProps() {
 
         const currentTeam = getCurrentTeam(state);
         const team = getTeam(state, channel.team_id);
-        let teamName = currentTeam?.name;
+        let teamName = team?.name || currentTeam?.name;
         let teamDisplayName;
 
         const memberships = getTeamMemberships(state);

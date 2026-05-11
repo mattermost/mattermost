@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -30,6 +31,18 @@ const (
 	PageOperationRead
 	PageOperationEdit
 	PageOperationDelete
+	PageOperationRestore
+)
+
+// PageCommentOperation represents the type of operation being performed on a page comment.
+// Page comments live in wiki backing channels (type 'W') which the public channel API
+// excludes; their permission flow evaluates against the wiki's source channels via
+// HasLinkedChannelPermission rather than the wiki backing channel itself.
+type PageCommentOperation int
+
+const (
+	PageCommentOperationEdit PageCommentOperation = iota
+	PageCommentOperationDelete
 )
 
 const (
@@ -38,11 +51,22 @@ const (
 	ActiveEditorTimeoutMs = 5 * 60 * 1000 // 5 minutes
 )
 
+// sessionUserID returns the user ID from the request context's session, or ""
+// if no session is present. Use this instead of inline nil checks on rctx.Session().
+func sessionUserID(rctx request.CTX) string {
+	if s := rctx.Session(); s != nil {
+		return s.UserId
+	}
+	return ""
+}
+
 // CreatePage creates a new page with title and content.
 // If pageID is provided, it will be used as the page's ID (for publishing drafts with unified IDs).
 // If pageID is empty, a new ID will be generated.
 func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, content, userID, searchText, pageID string) (*model.Post, *model.AppError) {
-	channel, chanErr := a.GetChannel(rctx, channelID)
+	// Pages live in wiki backing channels (ChannelTypeWiki), which are hidden from
+	// generic GetChannel. Use the wiki-aware store accessor.
+	channel, chanErr := a.GetWikiBackingChannel(rctx, channelID)
 	if chanErr != nil {
 		return nil, chanErr
 	}
@@ -65,7 +89,7 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 	if title == "" {
 		return nil, model.NewAppError("CreatePage", "app.page.create.missing_title.app_error", nil, "", http.StatusBadRequest)
 	}
-	if len(title) > model.MaxPageTitleLength {
+	if utf8.RuneCountInString(title) > model.MaxPageTitleLength {
 		return nil, model.NewAppError("CreatePage", "app.page.create.title_too_long.app_error", map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
 	}
 
@@ -118,11 +142,15 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 		Message:      message,
 		PageParentId: pageParentID,
 		Props: model.StringInterface{
-			"title": title,
+			model.PagePropsTitle: title,
 		},
 	}
 
-	// Set initial sort order for the new page (append at end of siblings)
+	// Set initial sort order for the new page (append at end of siblings).
+	// Known race: GetSiblingPages reads from a replica; two concurrent creates may
+	// read the same max sort order and produce duplicates. A future fix should move
+	// this to an atomic DB-level increment or accept master-only reads via a
+	// context-aware store method.
 	siblings, sibErr := a.Srv().Store().Page().GetSiblingPages(pageParentID, channelID)
 	if sibErr != nil {
 		rctx.Logger().Warn("Failed to get sibling pages for sort order",
@@ -153,13 +181,11 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 	if content != "" {
 		fileIds := extractFileIdsFromContent(content)
 		if len(fileIds) > 0 {
-			a.attachFileIDsToPost(rctx, createdPage.Id, channelID, userID, fileIds)
+			createdPage.FileIds = a.attachFileIDsToPost(rctx, createdPage.Id, channelID, userID, fileIds)
 		}
 	}
 
-	if enrichErr := a.EnrichPageWithProperties(rctx, createdPage, true); enrichErr != nil {
-		return nil, enrichErr
-	}
+	a.EnrichPageWithProperties(rctx, createdPage, true)
 
 	// Invalidate cache across cluster so other nodes see the new page
 	a.invalidateCacheForChannelPosts(createdPage.ChannelId)
@@ -171,30 +197,26 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 // Returns error if not found or if the post is not a page type.
 // Note: Uses master DB to avoid read-after-write issues with replica lag in cloud deployments.
 func (a *App) GetPage(rctx request.CTX, pageID string) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetSingle(RequestContextWithMaster(rctx), pageID, false)
+	post, err := a.Srv().Store().Page().GetPage(RequestContextWithMaster(rctx), pageID, false)
 	if err != nil {
-		return nil, model.NewAppError("GetPage", "app.page.get.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		if store.IsErrNotFound(err) {
+			return nil, model.NewAppError("GetPage", "app.page.get.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, model.NewAppError("GetPage", "app.page.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	if !IsPagePost(post) {
-		return nil, model.NewAppError("GetPage", "app.page.get.not_a_page.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	return post, nil
 }
 
 // GetPageWithDeleted fetches a page including soft-deleted pages.
 // Use for restore operations.
 func (a *App) GetPageWithDeleted(rctx request.CTX, pageID string) (*model.Post, *model.AppError) {
-	post, err := a.Srv().Store().Post().GetSingle(RequestContextWithMaster(rctx), pageID, true)
+	post, err := a.Srv().Store().Page().GetPage(RequestContextWithMaster(rctx), pageID, true)
 	if err != nil {
-		return nil, model.NewAppError("GetPageWithDeleted", "app.page.get.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		if store.IsErrNotFound(err) {
+			return nil, model.NewAppError("GetPageWithDeleted", "app.page.get.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, model.NewAppError("GetPageWithDeleted", "app.page.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	if !IsPagePost(post) {
-		return nil, model.NewAppError("GetPageWithDeleted", "app.page.get.not_a_page.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	return post, nil
 }
 
@@ -214,9 +236,7 @@ func (a *App) GetPageWithContent(rctx request.CTX, pageID string) (*model.Post, 
 		return nil, err
 	}
 
-	if enrichErr := a.EnrichPageWithProperties(rctx, page); enrichErr != nil {
-		return nil, enrichErr
-	}
+	a.EnrichPageWithProperties(rctx, page)
 
 	return page, nil
 }
@@ -227,8 +247,12 @@ func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, sea
 	pageID := page.Id
 
 	if title != "" {
+		title = strings.TrimSpace(title)
 		title = model.SanitizeUnicode(title)
-		if len(title) > model.MaxPageTitleLength {
+		if title == "" {
+			return nil, model.NewAppError("UpdatePage", "app.page.update.missing_title.app_error", nil, "", http.StatusBadRequest)
+		}
+		if utf8.RuneCountInString(title) > model.MaxPageTitleLength {
 			return nil, model.NewAppError("UpdatePage", "app.page.update.title_too_long.app_error", map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
 		}
 	}
@@ -255,56 +279,40 @@ func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, sea
 		return nil, model.NewAppError("UpdatePage", "app.page.update.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
-	session := rctx.Session()
+	return a.finalizePageUpdate(rctx, updatedPost, title, content, channel)
+}
 
-	// Attach files referenced in the content to this page
-	if content != "" {
-		fileIds := extractFileIdsFromContent(content)
-		if len(fileIds) > 0 {
-			a.attachFileIDsToPost(rctx, pageID, updatedPost.ChannelId, session.UserId, fileIds)
-		}
-	}
-	if content != "" {
-		// Use provided channel or fetch if not provided
-		if channel == nil {
-			var chanErr *model.AppError
-			channel, chanErr = a.GetChannel(rctx, updatedPost.ChannelId)
-			if chanErr != nil {
-				rctx.Logger().Warn("Failed to get channel for mention handling",
-					mlog.String("page_id", pageID),
-					mlog.String("channel_id", updatedPost.ChannelId),
-					mlog.Err(chanErr))
-			}
-		}
-		if channel != nil {
-			a.handlePageMentions(rctx, updatedPost, channel, content, session.UserId)
-		}
+// AttachFilesToPage associates uploaded files with a page and merges them into
+// the page's FileIds. Files are attached using the session user as the
+// uploader: page editors who aren't the original author can still attach their
+// own uploads (the underlying SQL match requires the file's CreatorId to equal
+// the supplied uploaderID).
+//
+// Existing FileIds are preserved — newly-attached IDs are appended (deduped).
+// If no new files attach (e.g. all IDs failed the ownership check), the page
+// is returned unchanged without a write.
+func (a *App) AttachFilesToPage(rctx request.CTX, page *model.Post, fileIds []string) (*model.Post, *model.AppError) {
+	uploaderID := page.UserId
+	if session := rctx.Session(); session != nil && session.UserId != "" {
+		uploaderID = session.UserId
 	}
 
-	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost, true); enrichErr != nil {
-		return nil, enrichErr
+	newlyAttached := a.attachFileIDsToPost(rctx, page.Id, page.ChannelId, uploaderID, fileIds)
+	if len(newlyAttached) == 0 {
+		return page, nil
 	}
 
-	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId, nil, nil)
+	updatedPage := page.Clone()
+	updatedPage.FileIds = utils.RemoveDuplicatesFromStringArray(append(page.FileIds, newlyAttached...))
 
-	// CRITICAL: Invalidate cache across cluster BEFORE WebSocket broadcast.
-	// In HA clusters, clients on other nodes may request data immediately after
-	// receiving the WebSocket event. Cache must be invalidated first to prevent
-	// serving stale data.
-	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
-
-	// Broadcast POST_EDITED event so clients update the page
-	a.sendPageEditedEvent(rctx, updatedPost)
-
-	// Broadcast title update if title was changed
-	if title != "" {
-		wikiId, _ := updatedPost.Props["wiki_id"].(string)
-		if wikiId != "" {
-			a.BroadcastPageTitleUpdated(pageID, title, wikiId, updatedPost.ChannelId, updatedPost.UpdateAt)
-		}
+	if _, err := a.Srv().Store().Post().Overwrite(rctx, updatedPage); err != nil {
+		return nil, model.NewAppError("AttachFilesToPage", "app.page.attach_files.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return updatedPost, nil
+	// Invalidate cache so HA nodes don't serve stale page content after file attachment.
+	a.invalidateCacheForChannelPosts(updatedPage.ChannelId)
+
+	return updatedPage, nil
 }
 
 // UpdatePageWithOptimisticLocking updates a page with first-one-wins concurrency control.
@@ -326,14 +334,19 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 	// This is critical for conflict detection - we need the latest EditAt value
 	post, err := a.GetSinglePost(RequestContextWithMaster(rctx), pageID, false)
 	if err != nil {
-		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		return nil, model.NewAppError("UpdatePageWithOptimisticLocking",
+			"app.page.update.not_found.app_error", nil, "", err.StatusCode).Wrap(err)
 	}
 
-	session := rctx.Session()
+	userID := sessionUserID(rctx)
 
 	if title != "" {
+		title = strings.TrimSpace(title)
 		title = model.SanitizeUnicode(title)
-		if len(title) > model.MaxPageTitleLength {
+		if title == "" {
+			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.missing_title.app_error", nil, "", http.StatusBadRequest)
+		}
+		if utf8.RuneCountInString(title) > model.MaxPageTitleLength {
 			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.title_too_long.app_error", map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
 		}
 	}
@@ -347,11 +360,23 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 		}
 	}
 
+	// TODO: baseEditAt == 0 bypasses conflict detection because the wire type uses
+	// omitempty and older clients omit the field entirely. A future protocol version
+	// should require the field so we can return 400 when baseEditAt == 0 and force == false.
+
 	// Check for conflicts only when content is being updated.
 	// Title-only updates (rename) skip conflict detection because:
 	// 1. Title changes are atomic and don't risk losing content
 	// 2. Users expect consecutive renames to work without conflict errors
 	// 3. Conflict detection is meant to protect content edits, not metadata changes
+	rctx.Logger().Debug("UpdatePageWithOptimisticLocking conflict check",
+		mlog.String("page_id", pageID),
+		mlog.String("user_id", userID),
+		mlog.Int("db_edit_at", int(post.EditAt)),
+		mlog.Int("base_edit_at", int(baseEditAt)),
+		mlog.Bool("force", force),
+		mlog.Bool("has_content", content != ""),
+	)
 	if content != "" && !force && post.EditAt != baseEditAt {
 		modifiedBy := post.UserId
 		if lastModifiedBy, ok := post.Props[model.PagePropsLastModifiedBy].(string); ok && lastModifiedBy != "" {
@@ -371,7 +396,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 		if post.Props == nil {
 			post.Props = make(model.StringInterface)
 		}
-		post.Props["title"] = title
+		post.Props[model.PagePropsTitle] = title
 	}
 
 	if content != "" {
@@ -381,7 +406,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 	if post.Props == nil {
 		post.Props = make(model.StringInterface)
 	}
-	post.Props[model.PagePropsLastModifiedBy] = session.UserId
+	post.Props[model.PagePropsLastModifiedBy] = userID
 
 	updatedPost, storeErr := a.Srv().Store().Page().Update(rctx, post)
 	if storeErr != nil {
@@ -393,33 +418,39 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
+	return a.finalizePageUpdate(rctx, updatedPost, title, content, channel)
+}
+
+// finalizePageUpdate handles post-store-update side effects shared by UpdatePage and UpdatePageWithOptimisticLocking:
+// file attachment, mention handling, property enrichment, cache invalidation, and WebSocket broadcasts.
+func (a *App) finalizePageUpdate(rctx request.CTX, updatedPost *model.Post, title, content string, channel *model.Channel) (*model.Post, *model.AppError) {
+	userID := sessionUserID(rctx)
+
 	// Attach files referenced in the content to this page
 	if content != "" {
 		fileIds := extractFileIdsFromContent(content)
 		if len(fileIds) > 0 {
-			a.attachFileIDsToPost(rctx, pageID, updatedPost.ChannelId, session.UserId, fileIds)
+			updatedPost.FileIds = a.attachFileIDsToPost(rctx, updatedPost.Id, updatedPost.ChannelId, userID, fileIds)
 		}
 	}
 
 	if content != "" {
 		if channel == nil {
 			var chanErr *model.AppError
-			channel, chanErr = a.GetChannel(rctx, updatedPost.ChannelId)
+			channel, chanErr = a.GetWikiBackingChannel(rctx, updatedPost.ChannelId)
 			if chanErr != nil {
 				rctx.Logger().Warn("Failed to get channel for mention handling",
-					mlog.String("page_id", pageID),
+					mlog.String("page_id", updatedPost.Id),
 					mlog.String("channel_id", updatedPost.ChannelId),
 					mlog.Err(chanErr))
 			}
 		}
 		if channel != nil {
-			a.handlePageMentions(rctx, updatedPost, channel, content, session.UserId)
+			a.handlePageMentions(rctx, updatedPost, channel, content, userID)
 		}
 	}
 
-	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost, true); enrichErr != nil {
-		return nil, enrichErr
-	}
+	a.EnrichPageWithProperties(rctx, updatedPost, true)
 
 	// CRITICAL: Invalidate cache across cluster BEFORE WebSocket broadcast.
 	// In HA clusters, clients on other nodes may request data immediately after
@@ -427,10 +458,21 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 	// serving stale data.
 	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
 
-	// Broadcast POST_EDITED event so all clients update their page content
+	// Broadcast page_edited event so clients update the page
 	a.sendPageEditedEvent(rctx, updatedPost)
 
-	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId, nil, nil)
+	a.handlePageUpdateNotification(rctx, updatedPost, userID, nil, nil)
+
+	// Broadcast title update if title was changed
+	if title != "" {
+		wikiId, wikiErr := a.GetWikiIdForPost(rctx, updatedPost)
+		if wikiErr != nil {
+			rctx.Logger().Warn("Failed to get wiki ID for page, title broadcast skipped",
+				mlog.String("post_id", updatedPost.Id), mlog.Err(wikiErr))
+		} else if wikiId != "" {
+			a.BroadcastPageTitleUpdated(updatedPost.Id, title, wikiId, updatedPost.UpdateAt)
+		}
+	}
 
 	return updatedPost, nil
 }
@@ -447,12 +489,12 @@ func (a *App) DeletePage(rctx request.CTX, page *model.Post, wikiId string) *mod
 	}()
 
 	pageID := page.Id
-	session := rctx.Session()
+	userID := sessionUserID(rctx)
 
 	// Atomic deletion with reparenting: reparents children to the deleted page's parent,
 	// then deletes content, comments, and page post - all in a single transaction.
 	// This prevents race conditions where a new child could be added between reparenting and deletion.
-	if err := a.Srv().Store().Page().DeletePage(pageID, session.UserId, page.PageParentId); err != nil {
+	if err := a.Srv().Store().Page().DeletePage(pageID, userID, page.PageParentId); err != nil {
 		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -461,7 +503,7 @@ func (a *App) DeletePage(rctx request.CTX, page *model.Post, wikiId string) *mod
 	// receiving the WebSocket event.
 	a.invalidateCacheForChannelPosts(page.ChannelId)
 
-	a.broadcastPageDeleted(pageID, wikiId, page.ChannelId, rctx.Session().UserId)
+	a.broadcastPageDeleted(pageID, wikiId, userID, page.PageParentId)
 	return nil
 }
 
@@ -476,7 +518,7 @@ func (a *App) RestorePage(rctx request.CTX, page *model.Post) *model.AppError {
 			"app.page.restore.not_deleted.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	session := rctx.Session()
+	userID := sessionUserID(rctx)
 
 	// Atomic restoration of content and page post in a single transaction
 	if err := a.Srv().Store().Page().RestorePage(pageID); err != nil {
@@ -484,35 +526,42 @@ func (a *App) RestorePage(rctx request.CTX, page *model.Post) *model.AppError {
 			"app.page.restore.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Update local copy for broadcasting (DB was updated by store)
-	restoredPost := post.Clone()
-	restoredPost.DeleteAt = 0
-	restoredPost.UpdateAt = model.GetMillis()
+	// Re-fetch from master to get DB-authoritative timestamps
+	restoredPost, readErr := a.GetPage(RequestContextWithMaster(rctx), pageID)
+	if readErr != nil {
+		// Fallback: construct from clone
+		restoredPost = post.Clone()
+		restoredPost.DeleteAt = 0
+		restoredPost.UpdateAt = model.GetMillis()
+	}
 
 	// CRITICAL: Invalidate cache across cluster BEFORE WebSocket broadcast.
 	a.invalidateCacheForChannelPosts(restoredPost.ChannelId)
 
-	if enrichErr := a.EnrichPageWithProperties(rctx, restoredPost, true); enrichErr != nil {
-		rctx.Logger().Warn("Failed to enrich restored page", mlog.String("page_id", pageID), mlog.Err(enrichErr))
-	}
+	a.EnrichPageWithProperties(rctx, restoredPost, true)
 
 	wikiId, wikiErr := a.GetWikiIdForPage(rctx, pageID)
 	if wikiErr != nil {
+		rctx.Logger().Warn("Failed to get wiki ID for restored page; broadcasting without wiki context",
+			mlog.String("page_id", pageID), mlog.Err(wikiErr))
 		wikiId = ""
 	}
 
-	a.BroadcastPagePublished(restoredPost, wikiId, restoredPost.ChannelId, "", session.UserId)
+	a.BroadcastPagePublished(restoredPost, wikiId, "", userID)
 	return nil
 }
 
-// PermanentDeletePage permanently deletes a page.
+// PermanentDeletePage permanently deletes a page and its associated file blobs.
 func (a *App) PermanentDeletePage(rctx request.CTX, page *model.Post) *model.AppError {
-	session := rctx.Session()
-
-	if err := a.PermanentDeletePost(rctx, page.Id, session.UserId); err != nil {
-		return err
+	if len(page.FileIds) > 0 {
+		if err := a.PermanentDeleteFilesByPost(rctx, page.Id, nil); err != nil {
+			return err
+		}
 	}
-
+	if err := a.Srv().Store().Page().PermanentDeletePage(page.Id); err != nil {
+		return model.NewAppError("PermanentDeletePage", "app.page.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	a.invalidateCacheForChannelPosts(page.ChannelId)
 	return nil
 }
 
@@ -566,7 +615,7 @@ func (a *App) RestorePageVersion(
 	// Extract title from historical post
 	var title string
 	if toRestorePostVersion.Props != nil {
-		if titleValue, ok := toRestorePostVersion.Props["title"]; ok {
+		if titleValue, ok := toRestorePostVersion.Props[model.PagePropsTitle]; ok {
 			if titleStr, isString := titleValue.(string); isString {
 				title = titleStr
 			}
@@ -587,28 +636,28 @@ func (a *App) RestorePageVersion(
 
 	// Restore FileIds if they differ (UpdatePageWithContent doesn't handle FileIds)
 	if !toRestorePostVersion.FileIds.Equals(updatedPost.FileIds) {
-		postPatch := &model.PostPatch{
-			FileIds: &toRestorePostVersion.FileIds,
-		}
-
-		patchPostOptions := &model.UpdatePostOptions{
-			IsRestorePost: true,
-		}
-
-		var patchErr *model.AppError
-		updatedPost, _, patchErr = a.PatchPost(rctx, pageID, postPatch, patchPostOptions)
-		if patchErr != nil {
+		var fileIdsErr error
+		updatedPost, fileIdsErr = a.Srv().Store().Page().UpdatePageFileIds(pageID, toRestorePostVersion.FileIds)
+		if fileIdsErr != nil {
 			return nil, model.NewAppError("RestorePageVersion",
 				"app.page.restore.update_fileids.app_error", nil, "",
-				http.StatusInternalServerError).Wrap(patchErr)
+				http.StatusInternalServerError).Wrap(fileIdsErr)
 		}
 	}
 
-	// Reload the complete page for WebSocket event
-	freshPage, getErr := a.GetPageWithContent(rctx, pageID)
+	// Reload the complete page for WebSocket event.
+	// RequestContextWithMaster ensures we read from the primary in HA deployments
+	// to avoid replica lag after the preceding writes.
+	freshPage, getErr := a.GetPageWithContent(RequestContextWithMaster(rctx), pageID)
 	if getErr != nil {
 		freshPage = updatedPost
 	}
+
+	// CRITICAL: Invalidate cache across cluster BEFORE WebSocket broadcast.
+	// In HA clusters, clients on other nodes may request data immediately after
+	// receiving the WebSocket event. Cache must be invalidated first to prevent
+	// serving stale data.
+	a.invalidateCacheForChannelPosts(freshPage.ChannelId)
 
 	// Send WebSocket POST_EDITED event so clients update the page
 	a.sendPageEditedEvent(rctx, freshPage)
@@ -616,8 +665,14 @@ func (a *App) RestorePageVersion(
 	return updatedPost, nil
 }
 
-// sendPageEditedEvent sends a WebSocket POST_EDITED event for a page
-// This is necessary because publishWebsocketEventForPost returns early for pages
+// SendPageEditedBroadcast broadcasts a page_edited WS event. Use when file IDs or other
+// metadata are updated after the primary UpdatePage call already emitted a broadcast.
+func (a *App) SendPageEditedBroadcast(rctx request.CTX, page *model.Post) {
+	a.sendPageEditedEvent(rctx, page)
+}
+
+// sendPageEditedEvent sends a WebSocket page_edited event for a page.
+// Uses a dedicated page event type (not post_edited) to avoid contaminating post Redux state.
 func (a *App) sendPageEditedEvent(rctx request.CTX, page *model.Post) {
 	pageJSON, jsonErr := page.ToJSON()
 	if jsonErr != nil {
@@ -627,14 +682,21 @@ func (a *App) sendPageEditedEvent(rctx request.CTX, page *model.Post) {
 		return
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", page.ChannelId, "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventPageEdited, "", "", "", nil, "")
 	message.Add("post", pageJSON)
-	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId:           page.ChannelId,
-		ReliableClusterSend: true,
-	})
+	wikiId, _ := page.GetProps()[model.PagePropsWikiID].(string)
+	if wikiId == "" {
+		// Without a wiki id we have no audience: backing-channel members never
+		// receive these events (channel type is excluded), and the helper resolves
+		// recipients from WikiLinks keyed on the wiki. Drop the broadcast rather
+		// than emit to an empty audience.
+		rctx.Logger().Debug("Skipping page_edited broadcast: page has no wiki_id prop",
+			mlog.String("page_id", page.Id))
+		return
+	}
+	message.Add("wiki_id", wikiId)
 
-	a.Publish(message)
+	a.publishToLinkedSourceChannels(wikiId, message)
 }
 
 // extractFileIdsFromContent extracts Mattermost file IDs from TipTap JSON content.
@@ -678,12 +740,18 @@ func validateAndNormalizePageContent(content, searchText string) (string, string
 
 	trimmedContent := strings.TrimSpace(content)
 
-	// If content looks like JSON (starts with {), validate it as TipTap (no fallthrough - fail fast)
+	// If content looks like JSON (starts with {), parse and sanitize it as TipTap.
+	// ParseTipTapDocument validates structure AND sanitizes URLs (blocking javascript: etc.).
 	if strings.HasPrefix(trimmedContent, "{") {
-		if err := model.ValidateTipTapDocument(content); err != nil {
+		doc, err := model.ParseTipTapDocument(content)
+		if err != nil {
 			return "", "", err
 		}
-		return content, searchText, nil
+		sanitized, err := json.Marshal(doc)
+		if err != nil {
+			return "", "", err
+		}
+		return string(sanitized), searchText, nil
 	}
 
 	// Markdown content → convert to TipTap
@@ -692,6 +760,11 @@ func validateAndNormalizePageContent(content, searchText string) (string, string
 		if err != nil {
 			// Fallback to plain text if markdown conversion fails
 			tiptap = convertPlainTextToTipTapJSON(content)
+		}
+		if doc, parseErr := model.ParseTipTapDocument(tiptap); parseErr == nil {
+			if sanitized, marshalErr := json.Marshal(doc); marshalErr == nil {
+				tiptap = string(sanitized)
+			}
 		}
 		// Leave searchText empty; PreSave() computes it from TipTap JSON
 		return tiptap, "", nil
@@ -753,4 +826,86 @@ func convertPlainTextToTipTapJSON(plainText string) string {
 	}
 
 	return string(jsonBytes)
+}
+
+// CreateWikiPage creates a new page in a wiki.
+// If pageID is provided, it will be used as the page's ID (for publishing drafts with unified IDs).
+// If pageID is empty, a new ID will be generated.
+//
+// Atomicity note: this performs two separate store writes — Posts (CreatePageWithChannel)
+// and PropertyValues (AddPageToWiki). A forward error from AddPageToWiki triggers a
+// store-level rollback (DeletePage below). A process crash between the two writes
+// would leave an orphaned page row with no wiki association; that hazard is accepted
+// here in favor of keeping the store API surface small. Full crash-atomicity would
+// require extending SqlPageStore.CreatePage to accept the wiki property IDs and
+// perform both inserts inside a single transaction.
+func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content, userId, searchText, pageID string) (*model.Post, *model.AppError) {
+	isChild := parentId != ""
+	rctx.Logger().Debug("CreateWikiPage entry",
+		mlog.String("wiki_id", wikiId),
+		mlog.String("parent_id", parentId),
+		mlog.String("title", title),
+		mlog.String("page_id", pageID),
+		mlog.Bool("is_child_page", isChild))
+
+	wiki, err := a.GetWiki(rctx, wikiId)
+	if err != nil {
+		return nil, err
+	}
+
+	if wiki.ChannelId == "" {
+		return nil, model.NewAppError("CreateWikiPage", "app.wiki.create_page.no_channel.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Fetch channel once and reuse for page creation, notification, and mentions.
+	// Wiki backing channels are ChannelTypeWiki and hidden from generic GetChannel —
+	// use the wiki-aware store accessor.
+	channel, chanErr := a.GetWikiBackingChannel(rctx, wiki.ChannelId)
+	if chanErr != nil {
+		return nil, model.NewAppError("CreateWikiPage", "app.wiki.create_page.channel_not_found.app_error", nil, "", http.StatusNotFound).Wrap(chanErr)
+	}
+
+	createdPage, createErr := a.CreatePageWithChannel(rctx, channel, title, parentId, content, userId, searchText, pageID)
+	if createErr != nil {
+		return nil, createErr
+	}
+
+	rctx.Logger().Debug("Page created, now linking to wiki",
+		mlog.String("page_id", createdPage.Id),
+		mlog.String("wiki_id", wikiId),
+		mlog.Bool("is_child_page", isChild))
+
+	if linkErr := a.AddPageToWiki(rctx, createdPage.Id, wikiId, createdPage); linkErr != nil {
+		rctx.Logger().Error("Failed to link page to wiki",
+			mlog.String("page_id", createdPage.Id),
+			mlog.String("wiki_id", wikiId),
+			mlog.Bool("is_child_page", isChild),
+			mlog.Err(linkErr))
+		// Use permanent delete for rollback so the failed page leaves no trace.
+		// Store-only (no WS broadcast) since clients never received a creation event.
+		if deleteErr := a.Srv().Store().Page().PermanentDeletePage(createdPage.Id); deleteErr != nil {
+			rctx.Logger().Warn("Failed to delete page after wiki link failure", mlog.String("page_id", createdPage.Id), mlog.Err(deleteErr))
+		} else {
+			a.invalidateCacheForChannelPosts(createdPage.ChannelId)
+		}
+		return nil, linkErr
+	}
+
+	// Add wiki_id to the in-memory post so subsequent updates don't lose it
+	createdPage.AddProp(model.PagePropsWikiID, wikiId)
+
+	rctx.Logger().Debug("Wiki page created and linked successfully",
+		mlog.String("page_id", createdPage.Id),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("parent_id", parentId),
+		mlog.String("title", title),
+		mlog.Bool("is_child_page", isChild))
+
+	a.sendPageAddedNotification(rctx, createdPage, wiki, channel, userId, title)
+
+	if content != "" {
+		a.handlePageMentions(rctx, createdPage, channel, content, userId)
+	}
+
+	return createdPage, nil
 }

@@ -432,12 +432,12 @@ function renderMeMessage(post: Post): ReactNode {
     return renderFormattedText(message);
 }
 
-function renderWikiAddedMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
+function renderWikiAddedMessage(post: Post, currentTeamName: string): ReactNode {
     const wikiTitle = ensureString(post.props.wiki_title);
     const wikiId = ensureString(post.props.wiki_id);
     const username = renderUsername(post.props.username);
 
-    const wikiUrl = getWikiUrl(currentTeamName, channel.id, wikiId);
+    const wikiUrl = getWikiUrl(currentTeamName, wikiId);
     const wikiLink = <Link to={wikiUrl}>{wikiTitle}</Link>;
 
     return (
@@ -468,14 +468,14 @@ function renderWikiDeletedMessage(post: Post): ReactNode {
     );
 }
 
-function renderPageAddedMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
+function renderPageAddedMessage(post: Post, currentTeamName: string): ReactNode {
     const pageTitle = ensureString(post.props.page_title);
     const pageId = ensureString(post.props.page_id);
     const wikiTitle = ensureString(post.props.wiki_title);
     const wikiId = ensureString(post.props.wiki_id);
     const username = renderUsername(post.props.username);
 
-    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, pageId)}`;
+    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, wikiId, pageId, false)}`;
     const pageLink = <a href={pageUrl}>{pageTitle}</a>;
 
     return (
@@ -491,7 +491,7 @@ function renderPageAddedMessage(post: Post, currentTeamName: string, channel: Ch
     );
 }
 
-function renderCombinedPageActivityMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
+function renderCombinedPageActivityMessage(post: Post, currentTeamName: string): ReactNode {
     const wikiTitle = ensureString(post.props.wiki_title);
     const wikiId = ensureString(post.props.wiki_id);
     const username = renderUsername(post.props.username);
@@ -502,7 +502,7 @@ function renderCombinedPageActivityMessage(post: Post, currentTeamName: string, 
     }
 
     const pageLinks = pages.map((page: {pageId: string; pageTitle: string}, index: number) => {
-        const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, page.pageId)}`;
+        const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, wikiId, page.pageId, false)}`;
         return (
             <React.Fragment key={page.pageId}>
                 {index > 0 && ', '}
@@ -538,14 +538,14 @@ function renderCombinedPageActivityMessage(post: Post, currentTeamName: string, 
     );
 }
 
-function renderPageMentionMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
+function renderPageMentionMessage(post: Post, currentTeamName: string): ReactNode {
     const pageTitle = ensureString(post.props.page_title);
     const pageId = ensureString(post.props.page_id);
     const wikiId = ensureString(post.props.wiki_id);
     const username = renderUsername(post.props.username);
     const mentionContext = ensureString(post.props.mention_context);
 
-    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, pageId)}`;
+    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, wikiId, pageId, false)}`;
     const pageLink = <a href={pageUrl}>{pageTitle}</a>;
 
     return (
@@ -567,14 +567,14 @@ function renderPageMentionMessage(post: Post, currentTeamName: string, channel: 
     );
 }
 
-function renderPageUpdatedMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
+function renderPageUpdatedMessage(post: Post, currentTeamName: string): ReactNode {
     const pageTitle = ensureString(post.props.page_title);
     const pageId = ensureString(post.props.page_id);
     const wikiTitle = ensureString(post.props.wiki_title);
     const wikiId = ensureString(post.props.wiki_id);
     const updaterIds = post.props.updater_ids;
 
-    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, pageId)}`;
+    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, wikiId, pageId, false)}`;
     const pageLink = <a href={pageUrl}>{pageTitle}</a>;
 
     let usersText: ReactNode = '';
@@ -704,15 +704,15 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
 
         return null;
     } else if (post.type === Posts.POST_TYPES.WIKI_ADDED) {
-        return renderWikiAddedMessage(post, currentTeamName, channel);
+        return renderWikiAddedMessage(post, currentTeamName);
     } else if (post.type === Posts.POST_TYPES.WIKI_DELETED) {
         return renderWikiDeletedMessage(post);
     } else if (post.type === Posts.POST_TYPES.PAGE_ADDED) {
-        return renderPageAddedMessage(post, currentTeamName, channel);
+        return renderPageAddedMessage(post, currentTeamName);
     } else if (post.type === Posts.POST_TYPES.PAGE_MENTION) {
-        return renderPageMentionMessage(post, currentTeamName, channel);
+        return renderPageMentionMessage(post, currentTeamName);
     } else if (post.type === Posts.POST_TYPES.PAGE_UPDATED) {
-        return renderPageUpdatedMessage(post, currentTeamName, channel);
+        return renderPageUpdatedMessage(post, currentTeamName);
     } else if (systemMessageRenderers[post.type]) {
         return systemMessageRenderers[post.type](post);
     } else if (post.type === Posts.POST_TYPES.GUEST_JOIN_CHANNEL) {
@@ -730,7 +730,7 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
             />
         );
     } else if (post.type === Posts.POST_TYPES.COMBINED_PAGE_ACTIVITY) {
-        return renderCombinedPageActivityMessage(post, currentTeamName, channel);
+        return renderCombinedPageActivityMessage(post, currentTeamName);
     } else if (post.type === Posts.POST_TYPES.GM_CONVERTED_TO_CHANNEL) {
         // This is rendered via a separate component instead of registering in
         // systemMessageRenderers because we need to format a list with keeping i18n support

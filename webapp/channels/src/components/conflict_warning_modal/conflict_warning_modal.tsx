@@ -13,7 +13,7 @@ import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {closeModal} from 'actions/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {getPageTitle} from 'utils/post_utils';
+import {getPageTitle} from 'utils/page_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -144,6 +144,7 @@ export default function ConflictWarningModal({
                         className={`conflict-option ${selectedOption === 'review' ? 'selected' : ''}`}
                         onClick={() => setSelectedOption('review')}
                         type='button'
+                        aria-pressed={selectedOption === 'review'}
                     >
                         <div className='conflict-option-icon'>
                             <i className='icon icon-source-merge'/>
@@ -164,7 +165,10 @@ export default function ConflictWarningModal({
                         </div>
                         {selectedOption === 'review' && (
                             <div className='conflict-option-check'>
-                                <i className='icon icon-check'/>
+                                <i
+                                    className='icon icon-check'
+                                    aria-hidden='true'
+                                />
                             </div>
                         )}
                     </button>
@@ -172,6 +176,7 @@ export default function ConflictWarningModal({
                         className={`conflict-option ${selectedOption === 'continue' ? 'selected' : ''}`}
                         onClick={() => setSelectedOption('continue')}
                         type='button'
+                        aria-pressed={selectedOption === 'continue'}
                     >
                         <div className='conflict-option-icon'>
                             <i className='icon icon-pencil-outline'/>
@@ -192,7 +197,10 @@ export default function ConflictWarningModal({
                         </div>
                         {selectedOption === 'continue' && (
                             <div className='conflict-option-check'>
-                                <i className='icon icon-check'/>
+                                <i
+                                    className='icon icon-check'
+                                    aria-hidden='true'
+                                />
                             </div>
                         )}
                     </button>
@@ -200,6 +208,7 @@ export default function ConflictWarningModal({
                         className={`conflict-option danger ${selectedOption === 'overwrite' ? 'selected' : ''}`}
                         onClick={() => setSelectedOption('overwrite')}
                         type='button'
+                        aria-pressed={selectedOption === 'overwrite'}
                     >
                         <div className='conflict-option-icon'>
                             <i className='icon icon-file-replace-outline'/>
@@ -220,7 +229,10 @@ export default function ConflictWarningModal({
                         </div>
                         {selectedOption === 'overwrite' && (
                             <div className='conflict-option-check'>
-                                <i className='icon icon-check'/>
+                                <i
+                                    className='icon icon-check'
+                                    aria-hidden='true'
+                                />
                             </div>
                         )}
                     </button>

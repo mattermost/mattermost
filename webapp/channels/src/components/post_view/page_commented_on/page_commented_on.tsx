@@ -19,8 +19,7 @@ import UserProfile from 'components/user_profile';
 import {getPageAnchorUrl} from 'components/wiki_view/page_anchor';
 
 import {usePageForComment} from 'hooks/usePageForComment';
-import {isPageComment, getPageInlineAnchorText, getPageInlineAnchorId} from 'utils/page_utils';
-import {getPageTitle} from 'utils/post_utils';
+import {isPageComment, getPageInlineAnchorText, getPageInlineAnchorId, getPageTitle} from 'utils/page_utils';
 import {getWikiUrl} from 'utils/url';
 
 import './page_commented_on.scss';
@@ -45,7 +44,7 @@ function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props
         if (!anchorId || !pagePost || !wikiId || !currentTeam?.name) {
             return undefined;
         }
-        const basePageUrl = getWikiUrl(currentTeam.name, pagePost.channel_id, wikiId, pagePost.id);
+        const basePageUrl = getWikiUrl(currentTeam.name, wikiId, pagePost.id);
         return getPageAnchorUrl(basePageUrl, anchorId);
     }, [anchorId, pagePost, wikiId, currentTeam?.name]);
 

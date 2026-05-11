@@ -485,7 +485,7 @@ describe('Conflict Modal - Copy Content Behavior', () => {
             (extractPlaintextFromTipTapJSON as jest.Mock).mockReturnValue(plainText);
 
             const convertedText = extractPlaintextFromTipTapJSON(tiptapJSON);
-            await navigator.clipboard.writeText(convertedText);
+            await navigator.clipboard.writeText(convertedText!);
 
             expect(mockClipboard.writeText).toHaveBeenCalledWith(plainText);
             expect(mockClipboard.writeText).not.toHaveBeenCalledWith(tiptapJSON);

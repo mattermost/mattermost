@@ -275,7 +275,6 @@ const PagesHierarchyPanel = ({
                         onCopyMarkdown={menuHandlers.handleCopyMarkdown}
                         deletingPageId={menuHandlers.deletingPageId}
                         wikiId={wikiId}
-                        channelId={channelId}
                     />
                 )}
             </div>

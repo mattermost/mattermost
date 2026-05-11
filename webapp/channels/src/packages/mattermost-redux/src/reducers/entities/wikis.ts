@@ -3,118 +3,136 @@
 
 import type {AnyAction} from 'redux';
 
-import type {Wiki} from '@mattermost/types/wikis';
+import type {Wiki, WikiLink} from '@mattermost/types/wikis';
 
 import {UserTypes, WikiTypes} from 'mattermost-redux/action_types';
 
 type WikisState = {
-    byChannel: Record<string, string[]>;
     byId: Record<string, Wiki>;
+    byTeam: Record<string, string[]>;
+    linksByChannel: Record<string, WikiLink[]>;
 };
 
 const initialState: WikisState = {
-    byChannel: {},
     byId: {},
+    byTeam: {},
+    linksByChannel: {},
 };
+
+function mergeWiki(existing: Wiki | undefined, incoming: Wiki): Wiki {
+    return existing ? {...existing, ...incoming} : incoming;
+}
 
 export default function wikisReducer(state = initialState, action: AnyAction): WikisState {
     switch (action.type) {
     case WikiTypes.RECEIVED_WIKI: {
         const wiki: Wiki = action.data;
-        const existingWiki = state.byId[wiki.id];
+        const updatedById = {...state.byId, [wiki.id]: mergeWiki(state.byId[wiki.id], wiki)};
 
-        const nextByChannel = {...state.byChannel};
-
-        // If wiki existed in a different channel, remove it from old channel
-        if (existingWiki && existingWiki.channel_id !== wiki.channel_id) {
-            const oldChannelWikis = nextByChannel[existingWiki.channel_id] || [];
-            nextByChannel[existingWiki.channel_id] = oldChannelWikis.filter((id) => id !== wiki.id);
+        // Keep byTeam consistent when the team has already been loaded.
+        // Without this, selectWikisByTeam returns stale results after a single-wiki fetch.
+        let updatedByTeam = state.byTeam;
+        if (wiki.team_id) {
+            const existing = state.byTeam[wiki.team_id];
+            if (existing && !existing.includes(wiki.id)) {
+                updatedByTeam = {...state.byTeam, [wiki.team_id]: [...existing, wiki.id]};
+            }
         }
 
-        // Add wiki to new channel if not already there
-        const currentWikiIds = nextByChannel[wiki.channel_id] || [];
-        const nextWikiIds = currentWikiIds.includes(wiki.id) ? currentWikiIds : [...currentWikiIds, wiki.id];
-        nextByChannel[wiki.channel_id] = nextWikiIds;
-
-        // Merge with existing wiki data to preserve fields not included in partial updates
-        // (e.g., websocket events may only include updated fields)
-        const mergedWiki = existingWiki ? {...existingWiki, ...wiki} : wiki;
-
-        return {
-            ...state,
-            byChannel: nextByChannel,
-            byId: {
-                ...state.byId,
-                [wiki.id]: mergedWiki,
-            },
-        };
+        return {...state, byId: updatedById, byTeam: updatedByTeam};
     }
     case WikiTypes.RECEIVED_WIKIS: {
         const wikis: Wiki[] = action.data;
         if (!wikis || wikis.length === 0) {
             return state;
         }
-
-        const nextByChannel = {...state.byChannel};
         const nextById = {...state.byId};
-
-        // Group wikis by channel to properly update ordering
-        const wikisByChannel: Record<string, string[]> = {};
-
         wikis.forEach((wiki) => {
-            const existingWiki = nextById[wiki.id];
-
-            // If wiki existed in a different channel, remove it from old channel
-            if (existingWiki && existingWiki.channel_id !== wiki.channel_id) {
-                const oldChannelWikis = nextByChannel[existingWiki.channel_id] || [];
-                nextByChannel[existingWiki.channel_id] = oldChannelWikis.filter((id) => id !== wiki.id);
-            }
-
-            // Track wikis by channel in received order
-            if (!wikisByChannel[wiki.channel_id]) {
-                wikisByChannel[wiki.channel_id] = [];
-            }
-            wikisByChannel[wiki.channel_id].push(wiki.id);
-
-            // Merge with existing wiki data to preserve fields not included in partial updates
-            nextById[wiki.id] = existingWiki ? {...existingWiki, ...wiki} : wiki;
+            nextById[wiki.id] = mergeWiki(nextById[wiki.id], wiki);
         });
-
-        // Update byChannel with the new order for each channel that received wikis
-        Object.entries(wikisByChannel).forEach(([channelId, wikiIds]) => {
-            const existingIds = nextByChannel[channelId] || [];
-
-            // Keep existing wikis that weren't in this update, then add the updated ones in order
-            const otherIds = existingIds.filter((id) => !wikiIds.includes(id));
-            nextByChannel[channelId] = [...wikiIds, ...otherIds];
-        });
-
-        return {
-            ...state,
-            byChannel: nextByChannel,
-            byId: nextById,
-        };
+        return {...state, byId: nextById};
     }
     case WikiTypes.DELETED_WIKI: {
         const {wikiId} = action.data;
         const deletedWiki = state.byId[wikiId];
-
         if (!deletedWiki) {
             return state;
-        }
-
-        const nextByChannel = {...state.byChannel};
-        if (nextByChannel[deletedWiki.channel_id]) {
-            nextByChannel[deletedWiki.channel_id] = nextByChannel[deletedWiki.channel_id].filter((id) => id !== wikiId);
         }
 
         const nextById = {...state.byId};
         delete nextById[wikiId];
 
+        // Remove links pointing to the deleted wiki.
+        let nextLinksByChannel = state.linksByChannel;
+        for (const [channelId, links] of Object.entries(state.linksByChannel)) {
+            if (links.some((l) => l.wiki_id === wikiId)) {
+                if (nextLinksByChannel === state.linksByChannel) {
+                    nextLinksByChannel = {...state.linksByChannel};
+                }
+                nextLinksByChannel[channelId] = links.filter((l) => l.wiki_id !== wikiId);
+            }
+        }
+
+        let nextByTeam = state.byTeam;
+        for (const [teamId, wikiIds] of Object.entries(state.byTeam)) {
+            if (wikiIds.includes(wikiId)) {
+                if (nextByTeam === state.byTeam) {
+                    nextByTeam = {...state.byTeam};
+                }
+                nextByTeam[teamId] = wikiIds.filter((id) => id !== wikiId);
+            }
+        }
+
+        return {byId: nextById, byTeam: nextByTeam, linksByChannel: nextLinksByChannel};
+    }
+    case WikiTypes.RECEIVED_WIKI_LINKS: {
+        const {channelId, links} = action.data as {channelId: string; links: WikiLink[]};
         return {
             ...state,
-            byChannel: nextByChannel,
+            linksByChannel: {...state.linksByChannel, [channelId]: links},
+        };
+    }
+    case WikiTypes.RECEIVED_WIKI_LINK: {
+        const {channelId, link, wikiId} = action.data as {channelId: string; link: WikiLink; wikiId: string};
+        const storedLink: WikiLink = {...link, wiki_id: wikiId};
+        const existingLinks = state.linksByChannel[channelId] || [];
+        const alreadyExists = existingLinks.some(
+            (l) => l.source_id === storedLink.source_id && l.wiki_id === wikiId,
+        );
+        if (alreadyExists) {
+            return state;
+        }
+        return {
+            ...state,
+            linksByChannel: {...state.linksByChannel, [channelId]: [...existingLinks, storedLink]},
+        };
+    }
+    case WikiTypes.REMOVED_WIKI_LINK: {
+        const {channelId, wikiId} = action.data as {channelId: string; wikiId: string};
+        const existingLinks = state.linksByChannel[channelId];
+        if (!existingLinks || !existingLinks.some((l) => l.wiki_id === wikiId)) {
+            return state;
+        }
+        return {
+            ...state,
+            linksByChannel: {
+                ...state.linksByChannel,
+                [channelId]: existingLinks.filter((l) => l.wiki_id !== wikiId),
+            },
+        };
+    }
+    case WikiTypes.RECEIVED_TEAM_WIKIS: {
+        const {teamId, wikis} = action.data as {teamId: string; wikis: Wiki[]};
+        const nextById = {...state.byId};
+        const wikiIds: string[] = [];
+        wikis.forEach((wiki) => {
+            nextById[wiki.id] = mergeWiki(nextById[wiki.id], wiki);
+            wikiIds.push(wiki.id);
+        });
+        return {
+            ...state,
             byId: nextById,
+            byTeam: {...state.byTeam, [teamId]: wikiIds},
         };
     }
     case UserTypes.LOGOUT_SUCCESS:

@@ -5,14 +5,13 @@ import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
 import {getWikiUrl} from 'utils/url';
 
-// URL pattern: /:team/wiki/:channelId/:wikiId/:pageId
-const PAGE_URL_PATTERN = /^\/([^/]+)\/wiki\/([^/]+)\/([^/]+)\/([^/]+)$/;
+const PAGE_URL_PATTERN = /^\/([^/?]+)\/wiki\/([^/?]+)\/([^/?]+)(?:\?.*)?$/;
 
 export function isPageBookmark(bookmark: ChannelBookmark): boolean {
     return PAGE_URL_PATTERN.test(bookmark.link_url || '');
 }
 
-export function parsePageUrl(url: string): {teamName: string; channelId: string; wikiId: string; pageId: string} | null {
+export function parsePageUrl(url: string): {teamName: string; wikiId: string; pageId: string} | null {
     const match = url.match(PAGE_URL_PATTERN);
     if (!match) {
         return null;
@@ -20,12 +19,11 @@ export function parsePageUrl(url: string): {teamName: string; channelId: string;
 
     return {
         teamName: match[1],
-        channelId: match[2],
-        wikiId: match[3],
-        pageId: match[4],
+        wikiId: match[2],
+        pageId: match[3],
     };
 }
 
-export function buildPageUrl(teamName: string, channelId: string, wikiId: string, pageId: string): string {
-    return getWikiUrl(teamName, channelId, wikiId, pageId);
+export function buildPageUrl(teamName: string, wikiId: string, pageId: string): string {
+    return getWikiUrl(teamName, wikiId, pageId, false);
 }

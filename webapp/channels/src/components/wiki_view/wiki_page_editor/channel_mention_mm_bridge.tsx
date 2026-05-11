@@ -27,7 +27,11 @@ const ChannelMentionSuggestionList: React.FC<{
     selectedIndex: number;
     selectItem: (index: number) => void;
 }> = ({items, selectedIndex, selectItem}) => (
-    <ul className='tiptap-mention-suggestions tiptap-channel-mention-suggestions'>
+    <ul
+        className='tiptap-mention-suggestions tiptap-channel-mention-suggestions'
+        role='listbox'
+        aria-label='Channel mentions'
+    >
         {items.map((item, index) => (
             <ChannelMentionSuggestion
                 key={item.id}
@@ -49,15 +53,23 @@ export function createChannelMentionSuggestion(props: ChannelMentionBridgeProps)
         props.delayChannelAutocomplete ?? false,
     );
 
+    let currentSeq = 0;
+
     return {
         char: '~',
 
         items: async ({query}: {query: string; editor: Editor}): Promise<Channel[]> => {
+            const mySeq = ++currentSeq;
             return new Promise((resolve) => {
                 let callbackCount = 0;
                 let pendingTimeout: NodeJS.Timeout | null = null;
 
                 provider.handlePretextChanged(`~${query}`, (results: any) => {
+                    if (mySeq !== currentSeq) {
+                        resolve([]);
+                        return;
+                    }
+
                     callbackCount++;
 
                     if (!results || !results.groups) {
@@ -84,6 +96,10 @@ export function createChannelMentionSuggestion(props: ChannelMentionBridgeProps)
 
                     if (isFirstCallback && !hasMoreChannelsWithItems && allItems.length === 0) {
                         pendingTimeout = setTimeout(() => {
+                            if (mySeq !== currentSeq) {
+                                resolve([]);
+                                return;
+                            }
                             resolve(allItems);
                         }, 150);
                         return;

@@ -245,8 +245,9 @@ const state: GlobalState = {
         },
         wikiPages: null,
         wikis: {
-            byChannel: {},
             byId: {},
+            byTeam: {},
+            linksByChannel: {},
         },
         activeEditors: {
             byPageId: {},

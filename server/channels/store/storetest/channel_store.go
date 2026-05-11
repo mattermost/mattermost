@@ -163,6 +163,10 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, rctx, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, rctx, ss) })
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
+	t.Run("SaveSyntheticMembers", func(t *testing.T) { testSaveSyntheticMembers(t, rctx, ss, s) })
+	t.Run("SaveMemberAndPropagateLinked", func(t *testing.T) { testSaveMemberAndPropagateLinked(t, rctx, ss, s) })
+	t.Run("RemoveSyntheticMembersForSource", func(t *testing.T) { testRemoveSyntheticMembersForSource(t, rctx, ss, s) })
+	t.Run("RemoveSyntheticMemberForUser", func(t *testing.T) { testRemoveSyntheticMemberForUser(t, rctx, ss, s) })
 }
 
 func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -8853,5 +8857,441 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 		require.Len(t, unreads, 0)
 		require.Len(t, mentions, 0)
 		require.Len(t, times, 0)
+	})
+}
+
+func testSaveSyntheticMembers(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	team := &model.Team{
+		DisplayName: "Synthetic Members Team",
+		Name:        model.NewId(),
+		Email:       "synthetic@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+	defer func() { _ = ss.Team().PermanentDelete(team.Id) }()
+
+	t.Run("propagates members from source to destination with SourceId set", func(t *testing.T) {
+		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		user1 := createUserForLinkTest(t, rctx, ss)
+		user2 := createUserForLinkTest(t, rctx, ss)
+		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user1.Id)
+		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user2.Id)
+
+		err := ss.Channel().SaveSyntheticMembers(rctx, sourceChannel.Id, destChannel.Id)
+		require.NoError(t, err)
+
+		m1, mErr := ss.Channel().GetMember(rctx, destChannel.Id, user1.Id)
+		require.NoError(t, mErr)
+		assert.Equal(t, sourceChannel.Id, m1.SourceId)
+
+		m2, mErr := ss.Channel().GetMember(rctx, destChannel.Id, user2.Id)
+		require.NoError(t, mErr)
+		assert.Equal(t, sourceChannel.Id, m2.SourceId)
+	})
+
+	t.Run("skips users already present in destination", func(t *testing.T) {
+		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		user1 := createUserForLinkTest(t, rctx, ss)
+		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user1.Id)
+		addChannelMemberForLinkTest(t, rctx, ss, destChannel.Id, user1.Id)
+
+		err := ss.Channel().SaveSyntheticMembers(rctx, sourceChannel.Id, destChannel.Id)
+		require.NoError(t, err)
+
+		m1, mErr := ss.Channel().GetMember(rctx, destChannel.Id, user1.Id)
+		require.NoError(t, mErr)
+		assert.Empty(t, m1.SourceId)
+	})
+
+	t.Run("works with empty source channel", func(t *testing.T) {
+		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		err := ss.Channel().SaveSyntheticMembers(rctx, sourceChannel.Id, destChannel.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("invalid IDs return error", func(t *testing.T) {
+		err := ss.Channel().SaveSyntheticMembers(rctx, "invalid", model.NewId())
+		assert.Error(t, err)
+		var inputErr *store.ErrInvalidInput
+		assert.ErrorAs(t, err, &inputErr)
+
+		err = ss.Channel().SaveSyntheticMembers(rctx, model.NewId(), "invalid")
+		assert.Error(t, err)
+		assert.ErrorAs(t, err, &inputErr)
+	})
+}
+
+func testSaveMemberAndPropagateLinked(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	team := &model.Team{
+		DisplayName: "Propagate Linked Team",
+		Name:        model.NewId(),
+		Email:       "propagate@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+	defer func() { _ = ss.Team().PermanentDelete(team.Id) }()
+
+	t.Run("saves direct member and propagates to linked channels", func(t *testing.T) {
+		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		link := &model.WikiLink{
+			SourceId: sourceChannel.Id,
+
+			DestinationId: destChannel.Id,
+			CreatorId:     model.NewId(),
+		}
+		_, linkErr := ss.WikiLink().Save(link)
+		require.NoError(t, linkErr)
+
+		user1 := createUserForLinkTest(t, rctx, ss)
+		member := &model.ChannelMember{
+			ChannelId:   sourceChannel.Id,
+			UserId:      user1.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+
+		saved, _, saveErr := ss.Channel().SaveMemberAndPropagateLinked(rctx, member)
+		require.NoError(t, saveErr)
+		require.NotNil(t, saved)
+		assert.Equal(t, sourceChannel.Id, saved.ChannelId)
+		assert.Equal(t, user1.Id, saved.UserId)
+
+		dm, mErr := ss.Channel().GetMember(rctx, destChannel.Id, user1.Id)
+		require.NoError(t, mErr)
+		assert.Equal(t, sourceChannel.Id, dm.SourceId)
+	})
+
+	t.Run("duplicate member returns conflict error", func(t *testing.T) {
+		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		user1 := createUserForLinkTest(t, rctx, ss)
+		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user1.Id)
+
+		member := &model.ChannelMember{
+			ChannelId:   sourceChannel.Id,
+			UserId:      user1.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+
+		_, _, saveErr := ss.Channel().SaveMemberAndPropagateLinked(rctx, member)
+		assert.Error(t, saveErr)
+		var conflictErr *store.ErrConflict
+		assert.ErrorAs(t, saveErr, &conflictErr)
+	})
+
+	t.Run("no linked channels just saves member normally", func(t *testing.T) {
+		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		user1 := createUserForLinkTest(t, rctx, ss)
+		member := &model.ChannelMember{
+			ChannelId:   sourceChannel.Id,
+			UserId:      user1.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+
+		saved, _, saveErr := ss.Channel().SaveMemberAndPropagateLinked(rctx, member)
+		require.NoError(t, saveErr)
+		require.NotNil(t, saved)
+		assert.Equal(t, sourceChannel.Id, saved.ChannelId)
+		assert.Equal(t, user1.Id, saved.UserId)
+	})
+
+	t.Run("propagated members have correct SourceId", func(t *testing.T) {
+		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+		dest1 := createChannelForLinkTest(t, rctx, ss, team.Id)
+		dest2 := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		link1 := &model.WikiLink{
+			SourceId: sourceChannel.Id,
+
+			DestinationId: dest1.Id,
+			CreatorId:     model.NewId(),
+		}
+		_, linkErr := ss.WikiLink().Save(link1)
+		require.NoError(t, linkErr)
+
+		link2 := &model.WikiLink{
+			SourceId: sourceChannel.Id,
+
+			DestinationId: dest2.Id,
+			CreatorId:     model.NewId(),
+		}
+		_, linkErr = ss.WikiLink().Save(link2)
+		require.NoError(t, linkErr)
+
+		user1 := createUserForLinkTest(t, rctx, ss)
+		member := &model.ChannelMember{
+			ChannelId:   sourceChannel.Id,
+			UserId:      user1.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+
+		_, _, saveErr := ss.Channel().SaveMemberAndPropagateLinked(rctx, member)
+		require.NoError(t, saveErr)
+
+		m1, mErr := ss.Channel().GetMember(rctx, dest1.Id, user1.Id)
+		require.NoError(t, mErr)
+		assert.Equal(t, sourceChannel.Id, m1.SourceId)
+
+		m2, mErr := ss.Channel().GetMember(rctx, dest2.Id, user1.Id)
+		require.NoError(t, mErr)
+		assert.Equal(t, sourceChannel.Id, m2.SourceId)
+	})
+}
+
+func testRemoveSyntheticMembersForSource(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	team := &model.Team{
+		DisplayName: "Remove Synthetic Team",
+		Name:        model.NewId(),
+		Email:       "removesynthetic@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+	defer func() { _ = ss.Team().PermanentDelete(team.Id) }()
+
+	t.Run("removes synthetic members when no alternative source exists", func(t *testing.T) {
+		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		user1 := createUserForLinkTest(t, rctx, ss)
+		user2 := createUserForLinkTest(t, rctx, ss)
+		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user1.Id)
+		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user2.Id)
+
+		link := &model.WikiLink{
+			SourceId: sourceChannel.Id,
+
+			DestinationId: destChannel.Id,
+			CreatorId:     model.NewId(),
+		}
+		_, linkErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
+		require.NoError(t, linkErr)
+
+		// Verify members exist in dest
+		_, mErr := ss.Channel().GetMember(rctx, destChannel.Id, user1.Id)
+		require.NoError(t, mErr)
+		_, mErr = ss.Channel().GetMember(rctx, destChannel.Id, user2.Id)
+		require.NoError(t, mErr)
+
+		err := ss.Channel().RemoveSyntheticMembersForSource(rctx, sourceChannel.Id, destChannel.Id)
+		require.NoError(t, err)
+
+		// Synthetic members should be gone
+		_, mErr = ss.Channel().GetMember(rctx, destChannel.Id, user1.Id)
+		assert.Error(t, mErr)
+		_, mErr = ss.Channel().GetMember(rctx, destChannel.Id, user2.Id)
+		assert.Error(t, mErr)
+	})
+
+	t.Run("reassigns SourceId when alternative source exists", func(t *testing.T) {
+		source1 := createChannelForLinkTest(t, rctx, ss, team.Id)
+		source2 := createChannelForLinkTest(t, rctx, ss, team.Id)
+		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		sharedUser := createUserForLinkTest(t, rctx, ss)
+		addChannelMemberForLinkTest(t, rctx, ss, source1.Id, sharedUser.Id)
+		addChannelMemberForLinkTest(t, rctx, ss, source2.Id, sharedUser.Id)
+
+		// Link source1 -> dest (propagates sharedUser)
+		link1 := &model.WikiLink{
+			SourceId: source1.Id,
+
+			DestinationId: destChannel.Id,
+			CreatorId:     model.NewId(),
+		}
+		_, linkErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link1, source1.Id, false)
+		require.NoError(t, linkErr)
+
+		// Link source2 -> dest (sharedUser already in dest)
+		link2 := &model.WikiLink{
+			SourceId: source2.Id,
+
+			DestinationId: destChannel.Id,
+			CreatorId:     model.NewId(),
+		}
+		_, linkErr = ss.WikiLink().SaveAndPropagateMembers(rctx, link2, source2.Id, false)
+		require.NoError(t, linkErr)
+
+		// Verify sharedUser has SourceId=source1
+		m, mErr := ss.Channel().GetMember(rctx, destChannel.Id, sharedUser.Id)
+		require.NoError(t, mErr)
+		assert.Equal(t, source1.Id, m.SourceId)
+
+		// Remove synthetic members for source1
+		err := ss.Channel().RemoveSyntheticMembersForSource(rctx, source1.Id, destChannel.Id)
+		require.NoError(t, err)
+
+		// sharedUser should still exist with SourceId reassigned to source2
+		m, mErr = ss.Channel().GetMember(rctx, destChannel.Id, sharedUser.Id)
+		require.NoError(t, mErr)
+		assert.Equal(t, source2.Id, m.SourceId)
+	})
+
+	t.Run("direct members not affected", func(t *testing.T) {
+		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		directUser := createUserForLinkTest(t, rctx, ss)
+		addChannelMemberForLinkTest(t, rctx, ss, destChannel.Id, directUser.Id)
+
+		syntheticUser := createUserForLinkTest(t, rctx, ss)
+		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, syntheticUser.Id)
+
+		link := &model.WikiLink{
+			SourceId: sourceChannel.Id,
+
+			DestinationId: destChannel.Id,
+			CreatorId:     model.NewId(),
+		}
+		_, linkErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
+		require.NoError(t, linkErr)
+
+		err := ss.Channel().RemoveSyntheticMembersForSource(rctx, sourceChannel.Id, destChannel.Id)
+		require.NoError(t, err)
+
+		// Direct member should still be present
+		m, mErr := ss.Channel().GetMember(rctx, destChannel.Id, directUser.Id)
+		require.NoError(t, mErr)
+		assert.Empty(t, m.SourceId)
+
+		// Synthetic member should be removed
+		_, mErr = ss.Channel().GetMember(rctx, destChannel.Id, syntheticUser.Id)
+		assert.Error(t, mErr)
+	})
+
+	t.Run("invalid IDs return error", func(t *testing.T) {
+		err := ss.Channel().RemoveSyntheticMembersForSource(rctx, "invalid", model.NewId())
+		assert.Error(t, err)
+		var inputErr *store.ErrInvalidInput
+		assert.ErrorAs(t, err, &inputErr)
+
+		err = ss.Channel().RemoveSyntheticMembersForSource(rctx, model.NewId(), "invalid")
+		assert.Error(t, err)
+		assert.ErrorAs(t, err, &inputErr)
+	})
+}
+
+func testRemoveSyntheticMemberForUser(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	team := &model.Team{
+		DisplayName: "Remove Single Synthetic Team",
+		Name:        model.NewId(),
+		Email:       "removesingle@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+	defer func() { _ = ss.Team().PermanentDelete(team.Id) }()
+
+	t.Run("returns deleted true when member removed with no alternative source", func(t *testing.T) {
+		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		user1 := createUserForLinkTest(t, rctx, ss)
+		addChannelMemberForLinkTest(t, rctx, ss, sourceChannel.Id, user1.Id)
+
+		link := &model.WikiLink{
+			SourceId: sourceChannel.Id,
+
+			DestinationId: destChannel.Id,
+			CreatorId:     model.NewId(),
+		}
+		_, linkErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link, sourceChannel.Id, false)
+		require.NoError(t, linkErr)
+
+		// Verify synthetic member exists
+		_, mErr := ss.Channel().GetMember(rctx, destChannel.Id, user1.Id)
+		require.NoError(t, mErr)
+
+		deleted, rmErr := ss.Channel().RemoveSyntheticMemberForUser(rctx, user1.Id, sourceChannel.Id, destChannel.Id)
+		require.NoError(t, rmErr)
+		assert.True(t, deleted)
+
+		// Member should be gone
+		_, mErr = ss.Channel().GetMember(rctx, destChannel.Id, user1.Id)
+		assert.Error(t, mErr)
+	})
+
+	t.Run("returns deleted false when member reassigned to alternative source", func(t *testing.T) {
+		source1 := createChannelForLinkTest(t, rctx, ss, team.Id)
+		source2 := createChannelForLinkTest(t, rctx, ss, team.Id)
+		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		user1 := createUserForLinkTest(t, rctx, ss)
+		addChannelMemberForLinkTest(t, rctx, ss, source1.Id, user1.Id)
+		addChannelMemberForLinkTest(t, rctx, ss, source2.Id, user1.Id)
+
+		// Link source1 -> dest (propagates user1)
+		link1 := &model.WikiLink{
+			SourceId: source1.Id,
+
+			DestinationId: destChannel.Id,
+			CreatorId:     model.NewId(),
+		}
+		_, linkErr := ss.WikiLink().SaveAndPropagateMembers(rctx, link1, source1.Id, false)
+		require.NoError(t, linkErr)
+
+		// Link source2 -> dest (user1 already in dest)
+		link2 := &model.WikiLink{
+			SourceId: source2.Id,
+
+			DestinationId: destChannel.Id,
+			CreatorId:     model.NewId(),
+		}
+		_, linkErr = ss.WikiLink().SaveAndPropagateMembers(rctx, link2, source2.Id, false)
+		require.NoError(t, linkErr)
+
+		deleted, rmErr := ss.Channel().RemoveSyntheticMemberForUser(rctx, user1.Id, source1.Id, destChannel.Id)
+		require.NoError(t, rmErr)
+		assert.False(t, deleted)
+
+		// Member should still exist with SourceId reassigned to source2
+		m, mErr := ss.Channel().GetMember(rctx, destChannel.Id, user1.Id)
+		require.NoError(t, mErr)
+		assert.Equal(t, source2.Id, m.SourceId)
+	})
+
+	t.Run("no-op for non-existent member", func(t *testing.T) {
+		sourceChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+		destChannel := createChannelForLinkTest(t, rctx, ss, team.Id)
+
+		nonExistentUser := createUserForLinkTest(t, rctx, ss)
+
+		deleted, rmErr := ss.Channel().RemoveSyntheticMemberForUser(rctx, nonExistentUser.Id, sourceChannel.Id, destChannel.Id)
+		require.NoError(t, rmErr)
+		assert.False(t, deleted)
+	})
+
+	t.Run("invalid IDs return error", func(t *testing.T) {
+		err := func() error {
+			_, e := ss.Channel().RemoveSyntheticMemberForUser(rctx, "invalid", model.NewId(), model.NewId())
+			return e
+		}()
+		assert.Error(t, err)
+		var inputErr *store.ErrInvalidInput
+		assert.ErrorAs(t, err, &inputErr)
+
+		err = func() error {
+			_, e := ss.Channel().RemoveSyntheticMemberForUser(rctx, model.NewId(), "invalid", model.NewId())
+			return e
+		}()
+		assert.Error(t, err)
+		assert.ErrorAs(t, err, &inputErr)
+
+		err = func() error {
+			_, e := ss.Channel().RemoveSyntheticMemberForUser(rctx, model.NewId(), model.NewId(), "invalid")
+			return e
+		}()
+		assert.Error(t, err)
+		assert.ErrorAs(t, err, &inputErr)
 	})
 }

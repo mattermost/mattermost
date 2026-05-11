@@ -531,8 +531,9 @@ const TipTapEditor = ({
                         }
                     },
                 }, dispatch);
-            } catch {
-                // Primary error handling is in uploadMediaForEditor
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error('TipTap: File attachment upload failed:', e);
             }
             return;
         }
@@ -676,7 +677,7 @@ const TipTapEditor = ({
                                         if (!currentEditor) {
                                             return;
                                         }
-                                        const url = getWikiUrl(currentTeamRef.current?.name || 'team', channelIdRef.current || '', pageWikiId, pageId);
+                                        const url = getWikiUrl(currentTeamRef.current?.name || 'team', pageWikiId, pageId, false);
                                         const {from: selFrom, to: selTo} = currentEditor.state.selection;
                                         currentEditor.
                                             chain().
@@ -758,6 +759,7 @@ const TipTapEditor = ({
                 },
             }).configure({
                 openOnClick: false,
+                validate: (href: string) => isUrlSafe(href),
                 HTMLAttributes: {
                     class: 'wiki-page-link',
                     target: null,
@@ -839,7 +841,7 @@ const TipTapEditor = ({
                                 if (!currentEditor) {
                                     return;
                                 }
-                                const url = getWikiUrl(currentTeamRef.current?.name || 'team', channelIdRef.current || '', pageWikiId, pageId);
+                                const url = getWikiUrl(currentTeamRef.current?.name || 'team', pageWikiId, pageId, false);
                                 const {from: selFrom, to: selTo} = currentEditor.state.selection;
                                 currentEditor.
                                     chain().
@@ -962,7 +964,7 @@ const TipTapEditor = ({
                                                 fileItems.forEach((item) => {
                                                     const file = item.getAsFile();
                                                     if (file) {
-                                                        handleFileUpload(editor, file);
+                                                        handleFileUpload(editor, file).catch(() => {});
                                                     }
                                                 });
 
@@ -1063,7 +1065,7 @@ const TipTapEditor = ({
                                                     editor,
                                                     file,
                                                     pos?.pos,
-                                                );
+                                                ).catch(() => {});
                                             });
 
                                             return true;
@@ -1514,6 +1516,9 @@ const TipTapEditor = ({
                         // External link - open in new tab with security attributes
                         event.preventDefault();
                         event.stopPropagation();
+                        if (!isUrlSafe(href)) {
+                            return;
+                        }
                         window.open(href, '_blank', 'noopener,noreferrer');
                     }
                 }
@@ -1612,7 +1617,7 @@ const TipTapEditor = ({
         }
 
         // Use the selected page's wiki_id (not the current page's wikiId)
-        const url = getWikiUrl(currentTeam?.name || 'team', channelId || '', pageWikiId, pageId);
+        const url = getWikiUrl(currentTeam?.name || 'team', pageWikiId, pageId, false);
 
         const {from, to} = editor.state.selection;
 

@@ -415,9 +415,14 @@ function PostComponent(props: Props) {
 
         props.actions.setRhsExpanded(false);
 
-        // For page posts, navigate to the wiki page view instead of permalink
-        if (isPagePost(post) && post.props?.wiki_id && props.teamName) {
-            navigateToPageFromPost(post, props.teamName);
+        // props.teamName can be undefined for search-result posts whose channel
+        // is not hydrated in state (e.g. wiki BO channels the user never opened,
+        // which make the `post/index.tsx` mapStateToProps bail with channel === null).
+        // Fall back to the team name in the current URL path so Jump still routes.
+        const teamNameForNav = props.teamName || window.location.pathname.split('/')[1];
+
+        if (isPagePost(post) && post.props?.wiki_id && teamNameForNav) {
+            navigateToPageFromPost(post, teamNameForNav);
             return;
         }
 
@@ -427,7 +432,7 @@ function PostComponent(props: Props) {
             return;
         }
 
-        getHistory().push(`/${props.teamName}/pl/${post.id}`);
+        getHistory().push(`/${teamNameForNav}/pl/${post.id}`);
     }, [props.isMobileView, props.actions, props.teamName, props.isPinnedPosts, post]);
 
     const {selectPostFromRightHandSideSearch} = props.actions;

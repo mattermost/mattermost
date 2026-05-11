@@ -12,19 +12,30 @@ type SuggestionProvider = {
 };
 
 /**
- * Wraps a Mattermost suggestion provider's callback-based handlePretextChanged
- * into a Promise-based async function for use with TipTap suggestions.
+ * Creates a stateful wrapper that adds per-instance query sequencing to
+ * wrapProviderCallback. Call this once per suggestion provider instance
+ * (not per query) to get an `items` function suitable for TipTap suggestions.
  *
- * The provider calls its callback multiple times:
- * 1. First with immediate local/cached results
- * 2. Later with server results after async fetch completes
- *
- * We use a debounce approach to wait for all results before resolving.
- *
- * @param provider - Provider with handlePretextChanged method
- * @param pretext - The pretext string to pass to the provider (e.g., "@query", ":query")
- * @returns Promise resolving to array of items
+ * When the user types rapidly, old in-flight requests resolve with an empty
+ * array instead of updating the suggestion list with stale results.
  */
+export function createProviderItemsFn<T>(
+    provider: SuggestionProvider,
+    buildPretext: (query: string) => string,
+): ({query}: {query: string}) => Promise<T[]> {
+    let currentSeq = 0;
+
+    return ({query}: {query: string}): Promise<T[]> => {
+        const mySeq = ++currentSeq;
+        return wrapProviderCallback<T>(provider, buildPretext(query)).then((items) => {
+            if (mySeq !== currentSeq) {
+                return [];
+            }
+            return items;
+        });
+    };
+}
+
 export function wrapProviderCallback<T>(
     provider: SuggestionProvider,
     pretext: string,
@@ -43,6 +54,7 @@ export function wrapProviderCallback<T>(
 
         const handled = provider.handlePretextChanged(pretext, (results: ProviderResults<unknown>) => {
             if (!results || !('groups' in results) || !results.groups) {
+                resolveWithItems();
                 return;
             }
 

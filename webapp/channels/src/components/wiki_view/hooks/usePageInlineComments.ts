@@ -38,6 +38,9 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     // Track which pages have had comments loaded to avoid redundant fetches
     const loadedPagesRef = useRef<Set<string>>(new Set());
 
+    // Generation counter — incremented on each fetch start so stale responses can be discarded.
+    const fetchGenRef = useRef(0);
+
     // Track timeout IDs for cleanup to prevent memory leaks
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const highlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -58,8 +61,18 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
             return;
         }
 
+        // Capture generation counter at call time. If a newer fetch starts before this
+        // one resolves (e.g. user navigated to a different page), the counter increments
+        // and the stale response is discarded below.
+        const gen = ++fetchGenRef.current;
+
         try {
             const result = await dispatch(getPageComments(wikiId, pageId));
+
+            // Discard stale response — a newer fetch superseded this one
+            if (fetchGenRef.current !== gen) {
+                return;
+            }
 
             if (result.error || !result.data) {
                 setInlineComments([]);
@@ -140,7 +153,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
         }
 
         const handleCommentUpdate = (msg: WebSocketMessage) => {
-            const data = msg.data as {comment_id?: string; page_id?: string} | undefined;
+            const data = msg.data as {comment_id?: string; page_id?: string; anchor_id?: string} | undefined;
 
             // Handle comment resolution - removes highlight
             if (msg.event === SocketEvents.PAGE_COMMENT_RESOLVED) {
@@ -169,10 +182,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                 const eventPageId = data?.page_id;
 
                 if (commentId && eventPageId === pageId) {
-                    // Find the anchor ID from the ref (synchronous access to current state)
-                    const deletedComment = inlineCommentsRef.current.find((comment) => comment.id === commentId);
-                    const inlineAnchor = deletedComment?.props?.inline_anchor as {anchor_id?: string} | undefined;
-                    const anchorId = inlineAnchor?.anchor_id;
+                    const anchorId = data?.anchor_id;
 
                     // Track the anchor ID so the editor can remove the mark
                     if (anchorId) {

@@ -49,7 +49,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
         pageId: mockPageId,
         wikiId: mockWikiId,
         pageTitle: 'Test Page',
-        channelLoaded: true,
+        pageHydrated: true,
         activeTab: 'page_comments' as const,
         focusedInlineCommentId: null,
         pendingInlineAnchor: null,
@@ -210,10 +210,10 @@ describe('components/wiki_rhs/WikiRHS', () => {
             expect(screen.getByText('Save page to enable comments')).toBeInTheDocument();
         });
 
-        test('should show loading when channelLoaded is false', () => {
+        test('should show loading when pageHydrated is false', () => {
             const baseProps = {
                 ...getBaseProps(),
-                channelLoaded: false,
+                pageHydrated: false,
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());

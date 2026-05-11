@@ -13,28 +13,85 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
+func updatePageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdatePageStatus, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+	var req struct {
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Status == "" {
+		c.SetInvalidParam("status")
+		return
+	}
+
+	_, page, _, ok := c.GetPageForModify(app.PageOperationEdit, "updatePageStatus")
+	if !ok {
+		return
+	}
+
+	if err := c.App.SetPageStatus(c.AppContext, page, req.Status); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func getPageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	page, _, _, ok := c.GetPageForRead()
+	if !ok {
+		return
+	}
+
+	c.App.EnrichPageWithProperties(c.AppContext, page)
+	status, _ := page.GetProps()[model.PagePropsPageStatus].(string)
+	if status == "" {
+		status = model.PageStatusInProgress
+	}
+
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": status}); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getPageStatusField(c *Context, w http.ResponseWriter, r *http.Request) {
+	field, err := c.App.GetPageStatusField()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(field); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func getWikiPages(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	if c.Err != nil {
 		return
 	}
 
-	wiki, channel, ok := c.GetWikiForRead()
+	_, _, ok := c.GetWikiForRead()
 	if !ok {
 		return
-	}
-
-	if wiki.DeleteAt != 0 {
-		c.Err = model.NewAppError("getWikiPages", "api.wiki.get_pages.wiki_deleted.app_error", nil, "", http.StatusNotFound)
-		return
-	}
-
-	// Guests cannot access pages in DM/Group channels
-	if channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypeDirect {
-		if c.AppContext.Session().IsGuest() {
-			c.Err = model.NewAppError("getWikiPages", "api.page.permission.guest_cannot_access.app_error", nil, "", http.StatusForbidden)
-			return
-		}
 	}
 
 	pages, appErr := c.App.GetWikiPages(c.AppContext, c.Params.WikiId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
@@ -42,8 +99,6 @@ func getWikiPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-
-	c.Logger.Debug("API returning pages", mlog.Int("count", len(pages)), mlog.String("wiki_id", c.Params.WikiId))
 
 	if err := json.NewEncoder(w).Encode(pages); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -57,41 +112,14 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, _, ok := c.GetWikiForRead()
+	page, _, _, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}
 
-	if wiki.DeleteAt != 0 {
-		c.Err = model.NewAppError("getWikiPage", "api.wiki.get_page.wiki_deleted.app_error", nil, "", http.StatusNotFound)
-		return
-	}
+	// Enrich page with properties (GetPageForRead doesn't include content enrichment)
+	c.App.EnrichPageWithProperties(c.AppContext, page)
 
-	page, appErr := c.App.GetPageWithContent(c.AppContext, c.Params.PageId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.CheckPagePermission(page, app.PageOperationRead) {
-		return
-	}
-
-	// Validate page belongs to the wiki in URL (using already-fetched page)
-	pageWikiId, wikiIdOk := page.Props[model.PagePropsWikiID].(string)
-	if !wikiIdOk || pageWikiId == "" {
-		// Fallback: get wiki_id from PropertyValues (source of truth)
-		var wikiErr *model.AppError
-		pageWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
-		if wikiErr != nil || pageWikiId == "" {
-			c.Err = model.NewAppError("getWikiPage", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-	}
-	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("getWikiPage", "api.wiki.page_wiki_mismatch.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
 	if err := json.NewEncoder(w).Encode(page); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -104,8 +132,8 @@ func deletePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deletePage", model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeletePage, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
@@ -132,10 +160,16 @@ func restorePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("restorePage", model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
+	auditRec := c.MakeAuditRecord(model.AuditEventRestorePage, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
+
+	// Get wiki and check read permission first (prevents deleted page ID enumeration)
+	wiki, _, ok := c.GetWikiForRead()
+	if !ok {
+		return
+	}
 
 	// Get the deleted page (must use GetPageWithDeleted since normal GetPage excludes deleted)
 	page, appErr := c.App.GetPageWithDeleted(c.AppContext, c.Params.PageId)
@@ -144,36 +178,28 @@ func restorePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate page belongs to this wiki
-	pageWikiId, ok := page.Props[model.PagePropsWikiID].(string)
-	if !ok || pageWikiId == "" {
-		// Fallback: get wiki_id from PropertyValues (source of truth)
-		var wikiErr *model.AppError
-		pageWikiId, wikiErr = c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
-		if wikiErr != nil || pageWikiId == "" {
-			c.Err = model.NewAppError("restorePage", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-	}
-	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("restorePage", "api.wiki.page_wiki_mismatch.app_error", nil, "", http.StatusBadRequest)
+	pageWikiId, wikiErr := c.App.GetWikiIdForPost(c.AppContext, page)
+	if wikiErr != nil || pageWikiId == "" {
+		c.Err = model.NewAppError("restorePage", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
-
-	// Get wiki and check modify permission
-	wiki, _, ok := c.GetWikiForModify("restorePage")
-	if !ok {
+	if pageWikiId != c.Params.WikiId {
+		c.Err = model.NewAppError("restorePage", "api.wiki.page_not_found.app_error", nil, "", http.StatusNotFound)
 		return
 	}
 
 	// Validate page's channel matches wiki's channel
 	if page.ChannelId != wiki.ChannelId {
-		c.Err = model.NewAppError("restorePage", "api.wiki.page_channel_mismatch.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("restorePage", "api.wiki.page_not_found.app_error", nil, "", http.StatusNotFound)
 		return
 	}
 
-	// Check delete permission (restore requires same permission as delete)
-	if !c.CheckPagePermission(page, app.PageOperationDelete) {
+	// Restore requires admin-level delete permission (PermissionDeletePage),
+	// not just PermissionDeleteOwnPage. Rationale: a deleted page is gone from
+	// the user's view; re-introducing it affects channel-wide state and is a
+	// moderator action even if the restorer was the original author. Channel
+	// admins can restore on behalf of regular users if needed.
+	if !c.CheckPagePermission(page, app.PageOperationRestore) {
 		return
 	}
 
@@ -200,6 +226,7 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		Content      string `json:"content,omitempty"`
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, model.PageContentMaxSize)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.SetInvalidParamWithErr("request", err)
 		return
@@ -216,20 +243,22 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createPage", model.AuditStatusFail)
+	if req.PageParentId != "" && !model.IsValidId(req.PageParentId) {
+		c.SetInvalidParam("page_parent_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventCreatePage, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("parent_id", req.PageParentId)
 
-	_, channel, ok := c.GetWikiForModify("createPage")
+	wiki, _, ok := c.GetWikiForModify()
 	if !ok {
 		return
 	}
 
-	// Additive permission check: Need BOTH page permission (content) AND wiki permission (container)
-
-	// Check page permission (content)
-	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePage); !hasPermission {
+	if !c.App.SessionHasWikiPermission(*c.AppContext.Session(), wiki, model.PermissionCreatePage) {
 		c.SetPermissionError(model.PermissionCreatePage)
 		return
 	}
@@ -245,11 +274,11 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("page")
 
 	// Broadcast page_published event (for direct page creation via API, not draft publishing)
-	c.App.BroadcastPagePublished(page, c.Params.WikiId, page.ChannelId, "", c.AppContext.Session().UserId)
+	c.App.BroadcastPagePublished(page, c.Params.WikiId, "", c.AppContext.Session().UserId)
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(page); err != nil {
-		c.Logger.Warn("Error encoding response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -261,13 +290,15 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Title      string `json:"title,omitempty"`
-		Content    string `json:"content,omitempty"`
-		SearchText string `json:"search_text,omitempty"`
-		BaseEditAt int64  `json:"base_edit_at,omitempty"`
-		Force      bool   `json:"force,omitempty"`
+		Title      string   `json:"title,omitempty"`
+		Content    string   `json:"content,omitempty"`
+		SearchText string   `json:"search_text,omitempty"`
+		BaseEditAt int64    `json:"base_edit_at,omitempty"`
+		Force      bool     `json:"force,omitempty"`
+		FileIds    []string `json:"file_ids,omitempty"`
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, model.PageContentMaxSize)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.SetInvalidParamWithErr("request", err)
 		return
@@ -275,7 +306,27 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	req.Title = strings.TrimSpace(req.Title)
 
-	auditRec := c.MakeAuditRecord("updatePage", model.AuditStatusFail)
+	if req.Title == "" && req.Content == "" && len(req.FileIds) == 0 {
+		c.Err = model.NewAppError("updatePage", "api.page.update.empty_update.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if len(req.Title) > model.MaxPageTitleLength {
+		c.Err = model.NewAppError("updatePage", "api.page.update.title_too_long.app_error",
+			map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
+		return
+	}
+
+	// Validate file_ids format before any DB write so a malformed ID can't leave
+	// the page partially updated.
+	for _, fid := range req.FileIds {
+		if !model.IsValidId(fid) {
+			c.SetInvalidParam("file_ids")
+			return
+		}
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdatePage, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
@@ -291,13 +342,25 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(req.FileIds) > 0 {
+		updatedPage, appErr = c.App.AttachFilesToPage(c.AppContext, updatedPage, req.FileIds)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		// Re-broadcast so connected clients receive the page with the final file IDs.
+		// UpdatePageWithOptimisticLocking already broadcast before attachment; this
+		// second broadcast ensures the last state clients observe is complete.
+		c.App.SendPageEditedBroadcast(c.AppContext, updatedPage)
+	}
+
 	auditRec.Success()
 	auditRec.AddEventResultState(updatedPage)
 	auditRec.AddEventObjectType("page")
 
 	w.Header().Set(model.HeaderEtagServer, updatedPage.Etag())
 	if err := json.NewEncoder(w).Encode(updatedPage); err != nil {
-		c.Logger.Warn("Error encoding response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -307,48 +370,33 @@ func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !model.IsValidId(c.Params.ChannelId) {
-		c.SetInvalidParam("channel_id")
-		return
-	}
-
 	includeContent := r.URL.Query().Get("include_content") == "true"
 
-	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
-	if err != nil {
-		c.Err = err
+	// Check channel existence before permission to return 404 (not 403) for missing channels.
+	if _, chErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId); chErr != nil {
+		c.Err = chErr
 		return
 	}
 
-	if hasPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !hasPermission {
+	// PermissionReadChannelContent governs access, including for guests in DM/Group channels.
+	// Guests who are members of a DM or group channel may see pages linked to it — this is
+	// intentional since those users already have read access to the channel's content.
+	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannelContent); !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
-	// Guests cannot access pages in DM/Group channels
-	if channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypeDirect {
-		if c.AppContext.Session().IsGuest() {
-			c.Err = model.NewAppError("getChannelPages", "api.page.permission.guest_cannot_access.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-	}
-
-	postList, err := c.App.GetChannelPages(c.AppContext, c.Params.ChannelId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	postList, hasPartialContent, appErr := c.App.GetPagesForChannel(c.AppContext, c.Params.ChannelId, c.Params.Page, c.Params.PerPage, includeContent)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
-
-	if !includeContent {
-		for _, post := range postList.Posts {
-			if post.Type == model.PostTypePage {
-				post.Message = ""
-			}
-		}
+	if hasPartialContent {
+		w.Header().Set("X-Mattermost-Partial-Content", "true")
 	}
 
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList)
-	clientPostList, _, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	clientPostList, _, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -366,17 +414,12 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Audit logging for AI image extraction
-	auditRec := c.MakeAuditRecord("extractPageImageText", model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
+	auditRec := c.MakeAuditRecord(model.AuditEventExtractPageImageText, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 
-	wiki, _, ok := c.GetWikiForRead()
+	_, _, ok := c.GetWikiForRead()
 	if !ok {
-		return
-	}
-
-	if wiki.DeleteAt != 0 {
-		c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.wiki_deleted.app_error", nil, "", http.StatusNotFound)
 		return
 	}
 
@@ -391,6 +434,10 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !model.IsValidId(req.AgentID) {
 		c.SetInvalidParam("agent_id")
+		return
+	}
+
+	if !checkAIRateLimit(c, w, c.AppContext.Session().UserId, AIEndpointExtractPageImageText) {
 		return
 	}
 
@@ -457,7 +504,7 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 			// File not attached to post - verify user owns it or user is admin
 			if fileInfo.CreatorId != c.AppContext.Session().UserId {
 				if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-					c.SetPermissionError(model.PermissionReadChannel)
+					c.SetPermissionError(model.PermissionManageSystem)
 					return
 				}
 			}
@@ -507,7 +554,6 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(*response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -520,37 +566,24 @@ func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.RequireChannelId()
-	if c.Err != nil {
+	if !checkAIRateLimit(c, w, c.AppContext.Session().UserId, AIEndpointSummarizeThreadToPage) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("summarizeThreadToPage", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventSummarizeThreadToPage, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	auditRec.AddMeta("channel_id", c.Params.ChannelId)
 
-	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !hasPermission {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return
-	}
-
-	wiki, channel, ok := c.GetWikiForModify("summarizeThreadToPage")
+	wiki, _, ok := c.GetWikiForModify()
 	if !ok {
 		return
 	}
 
-	// Check page creation permission on the wiki's channel
-	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePage); !hasPermission {
+	if !c.App.SessionHasWikiPermission(*c.AppContext.Session(), wiki, model.PermissionCreatePage) {
 		c.SetPermissionError(model.PermissionCreatePage)
 		return
 	}
 
 	auditRec.AddMeta("wiki_id", wiki.Id)
-
-	if wiki.DeleteAt != 0 {
-		c.Err = model.NewAppError("summarizeThreadToPage", "api.wiki.summarize_thread.wiki_deleted.app_error", nil, "", http.StatusNotFound)
-		return
-	}
 
 	var req app.SummarizeThreadToPageRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -573,6 +606,11 @@ func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if strings.TrimSpace(req.Title) == "" {
 		c.SetInvalidParam("title")
+		return
+	}
+	if len(req.Title) > model.MaxPageTitleLength {
+		c.Err = model.NewAppError("summarizeThreadToPage", "api.page.summarize_thread.title_too_long.app_error",
+			map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
 		return
 	}
 

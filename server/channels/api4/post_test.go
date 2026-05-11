@@ -6499,8 +6499,7 @@ func TestGetChannelPagesPermissions(t *testing.T) {
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	_, appErr := th.App.CreateWiki(th.Context, &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
@@ -6524,8 +6523,7 @@ func TestGetChannelPagesPermissions(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 
 		_, appErr := th.App.CreateWiki(th.Context, &model.Wiki{
-			ChannelId: privateChannel.Id,
-			Title:     "Private Wiki",
+			Title: "Private Wiki",
 		}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 

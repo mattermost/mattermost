@@ -64,23 +64,42 @@ export function getChannelWikis(channelId: string): ActionFuncAsync<Wiki[]> {
     };
 }
 
-export function createWiki(channelId: string, title: string): ActionFuncAsync<Wiki> {
+export function createWiki(teamId: string, channelId: string, title: string): ActionFuncAsync<Wiki> {
     return async (dispatch, getState) => {
+        let wiki: Wiki | undefined;
         try {
-            const wiki = await Client4.createWiki({
-                channel_id: channelId,
+            wiki = await Client4.createWiki({
+                team_id: teamId,
                 title,
             });
 
-            dispatch({
-                type: WikiTypes.RECEIVED_WIKI,
-                data: wiki,
-            });
+            let link;
+            try {
+                link = await Client4.linkWikiToChannel(channelId, wiki.id);
+            } catch (linkError) {
+                try {
+                    await Client4.deleteWiki(wiki.id);
+                } catch {
+                    // best-effort cleanup; ignore secondary failure
+                }
+                throw linkError;
+            }
+
+            dispatch(batchActions([
+                {
+                    type: WikiTypes.RECEIVED_WIKI,
+                    data: wiki,
+                },
+                {
+                    type: WikiTypes.RECEIVED_WIKI_LINK,
+                    data: {channelId, link, wikiId: wiki.id},
+                },
+            ]));
 
             return {data: wiki};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
             return {error};
         }
     };
@@ -108,37 +127,14 @@ export function updateWiki(wiki: Wiki): ActionFuncAsync<Wiki> {
 export function deleteWiki(wikiId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
-            const state = getState();
-            const wiki = state.entities.wikis.byId[wikiId];
-            const channelId = wiki?.channel_id;
-
             await Client4.deleteWiki(wikiId);
 
             dispatch({
                 type: WikiTypes.DELETED_WIKI,
-                data: {wikiId, channelId},
+                data: {wikiId},
             });
 
             return {data: true};
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
-            return {error};
-        }
-    };
-}
-
-export function moveWikiToChannel(wikiId: string, targetChannelId: string): ActionFuncAsync<Wiki> {
-    return async (dispatch, getState) => {
-        try {
-            const wiki = await Client4.moveWikiToChannel(wikiId, targetChannelId);
-
-            dispatch({
-                type: WikiTypes.RECEIVED_WIKI,
-                data: wiki,
-            });
-
-            return {data: wiki};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
@@ -156,15 +152,13 @@ export function getPages(wikiId: string, page: number, perPage: number): ActionF
         try {
             const pages = await Client4.getPages(wikiId, page, perPage);
 
-            dispatch({
-                type: WikiTypes.GET_PAGES_SUCCESS,
-                data: {wikiId, pages},
-            });
-
-            // Always dispatch so byWiki[wikiId] is populated even for empty pages;
-            // otherwise arePagesLoaded stays false and callers refetch in a loop.
-            // The reducer preserves any non-empty message already in state, so list
-            // endpoints (which return pages without TipTap content) don't clobber it.
+            // RECEIVED_PAGES is the single "pages loaded" signal: it populates
+            // entities.pages (byId + byWiki) AND clears the loading flag in
+            // requests/wiki.ts. Always dispatch so byWiki[wikiId] is populated
+            // even for empty wikis — otherwise arePagesLoaded stays false and
+            // callers refetch in a loop. The reducer preserves any non-empty
+            // message already in state so list endpoints (which return pages
+            // without TipTap content) don't clobber it.
             dispatch({
                 type: WikiTypes.RECEIVED_PAGES,
                 data: {wikiId, pages: pages || []},
@@ -190,7 +184,7 @@ export function getChannelPages(channelId: string): ActionFuncAsync {
                 // instead of N individual RECEIVED_PAGE actions (one re-render each).
                 const pagesByWiki: Record<string, Post[]> = {};
                 for (const page of Object.values(data.posts)) {
-                    const wikiId = (page.props as Record<string, unknown> | undefined)?.[PagePropsKeys.WIKI_ID] as string | undefined;
+                    const wikiId = page.props[PagePropsKeys.WIKI_ID] as string | undefined;
                     if (wikiId) {
                         if (!pagesByWiki[wikiId]) {
                             pagesByWiki[wikiId] = [];
@@ -247,7 +241,7 @@ export function getChannelDefaultWikiPage(channelId: string): ActionFuncAsync<Po
 
             dispatch({
                 type: WikiTypes.RECEIVED_PAGE,
-                data: {page: data, wikiId: (data.props as Record<string, unknown> | undefined)?.[PagePropsKeys.WIKI_ID] as string | undefined},
+                data: {page: data, wikiId: data.props[PagePropsKeys.WIKI_ID] as string | undefined},
             });
 
             return {data};
@@ -284,6 +278,8 @@ export function movePageParent(wikiId: string, pageId: string, newParentId: stri
     return async (dispatch, getState) => {
         try {
             await Client4.movePage(wikiId, pageId, newParentId);
+            const updatedPage = await Client4.getPage(wikiId, pageId) as Post;
+            dispatch({type: WikiTypes.RECEIVED_PAGE, data: {page: updatedPage, wikiId}});
             return {data: true};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -297,6 +293,8 @@ export function movePageToWiki(sourceWikiId: string, pageId: string, targetWikiI
     return async (dispatch, getState) => {
         try {
             await Client4.movePageToWiki(sourceWikiId, pageId, targetWikiId, parentPageId);
+            const updatedPage = await Client4.getPage(targetWikiId, pageId) as Post;
+            dispatch({type: WikiTypes.RECEIVED_PAGE, data: {page: updatedPage, wikiId: targetWikiId}});
             return {data: true};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -358,7 +356,9 @@ export function getPageComments(wikiId: string, pageId: string): ActionFuncAsync
 export function createPageComment(wikiId: string, pageId: string, message: string, inlineAnchor?: InlineAnchor): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         if (!message || message.trim() === '') {
-            return {error: {message: 'Comment message cannot be empty'}};
+            const err = new Error('Comment message cannot be empty');
+            dispatch(logError(err));
+            return {error: err};
         }
 
         try {
@@ -375,7 +375,9 @@ export function createPageComment(wikiId: string, pageId: string, message: strin
 export function createPageCommentReply(wikiId: string, pageId: string, parentCommentId: string, message: string): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         if (!message || message.trim() === '') {
-            return {error: {message: 'Reply message cannot be empty'}};
+            const err = new Error('Reply message cannot be empty');
+            dispatch(logError(err));
+            return {error: err};
         }
 
         try {
@@ -445,7 +447,7 @@ export function getPageBreadcrumb(wikiId: string, pageId: string): ActionFuncAsy
 // Page Status
 
 export function getPageStatusField(): ActionFuncAsync {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
         try {
             const field = await Client4.getPageStatusField();
 
@@ -456,6 +458,7 @@ export function getPageStatusField(): ActionFuncAsync {
 
             return {data: field};
         } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
@@ -465,26 +468,26 @@ export function getPageStatusField(): ActionFuncAsync {
 export function updatePageStatus(postId: string, status: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
-            await Client4.updatePageStatus(postId, status);
-
             const state = getState();
             const post = state.entities.pages.byId[postId];
-
-            if (post) {
-                const wikiId = (post.props as Record<string, unknown> | undefined)?.[PagePropsKeys.WIKI_ID] as string | undefined;
-                const updatedPost = {
-                    ...post,
-                    props: {
-                        ...post.props,
-                        [PagePropsKeys.PAGE_STATUS]: status,
-                    },
-                };
-
-                dispatch({
-                    type: WikiTypes.RECEIVED_PAGE,
-                    data: {page: updatedPost, wikiId},
-                });
+            const wikiId = post?.props[PagePropsKeys.WIKI_ID] as string | undefined;
+            if (!wikiId) {
+                return {error: new Error('updatePageStatus: missing wikiId for page ' + postId)};
             }
+            await Client4.updatePageStatus(wikiId, postId, status);
+
+            const updatedPost = {
+                ...post,
+                props: {
+                    ...post.props,
+                    [PagePropsKeys.PAGE_STATUS]: status,
+                },
+            };
+
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: updatedPost, wikiId},
+            });
 
             return {data: true};
         } catch (error) {

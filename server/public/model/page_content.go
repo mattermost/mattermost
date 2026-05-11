@@ -73,6 +73,10 @@ func ParseTipTapDocument(contentJSON string) (TipTapDocument, error) {
 		return TipTapDocument{}, err
 	}
 
+	if doc.Type != TipTapDocType {
+		return TipTapDocument{}, errors.New("content must be valid TipTap JSON with type: doc")
+	}
+
 	sanitizeTipTapDocument(&doc)
 	return doc, nil
 }

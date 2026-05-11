@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig} from '@mattermost/types/config';
 import type {UserThread} from '@mattermost/types/threads';
 
@@ -13,7 +12,6 @@ import {fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
 import {getNewestPostThread, getPostThread} from 'mattermost-redux/actions/posts';
 import {getThread as fetchThread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -44,7 +42,6 @@ type OwnProps = {
 function makeMapStateToProps() {
     // Use our filtering selector instead of the default getPostIdsForThread
     const getFilteredPostIds = makeGetFilteredPostIdsForWikiThread();
-    const getChannel = makeGetChannel();
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const currentUserId = getCurrentUserId(state);
@@ -60,7 +57,6 @@ function makeMapStateToProps() {
 
         let postIds: string[] = [];
         let userThread: UserThread | null = null;
-        let channel: Channel | undefined;
         let lastUpdateAt = 0;
 
         if (selected) {
@@ -70,7 +66,6 @@ function makeMapStateToProps() {
 
             postIds = getFilteredPostIds(state, threadRootId, focusedInlineCommentId);
             userThread = getThread(state, threadRootId);
-            channel = getChannel(state, selected.channel_id);
             lastUpdateAt = getThreadLastUpdateAt(state, threadRootId);
         }
 
@@ -83,7 +78,6 @@ function makeMapStateToProps() {
             selected,
             postIds,
             socketConnectionStatus: socketStatus.connected,
-            channel,
             highlightedPostId,
             selectedPostFocusedAt,
             enableWebSocketEventScope,

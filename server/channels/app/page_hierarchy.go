@@ -6,6 +6,8 @@ package app
 import (
 	"errors"
 	"net/http"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -27,15 +29,13 @@ func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.Get
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetPageChildren", "app.page.get_children.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return nil, model.NewAppError("GetPageChildren", "app.page.get_children.invalid_input.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetPageChildren", "app.page.get_children.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
-		return nil, enrichErr
-	}
+	a.EnrichPagesWithProperties(rctx, postList)
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
 
@@ -46,18 +46,10 @@ func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.Get
 func (a *App) GetPageAncestors(rctx request.CTX, postID string) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store().Page().GetPageAncestors(postID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetPageAncestors", "app.page.get_ancestors.not_found", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetPageAncestors", "app.page.get_ancestors.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		return nil, model.NewAppError("GetPageAncestors", "app.page.get_ancestors.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
-		return nil, enrichErr
-	}
+	a.EnrichPagesWithProperties(rctx, postList)
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
 
@@ -77,9 +69,7 @@ func (a *App) GetPageDescendants(rctx request.CTX, postID string) (*model.PostLi
 		}
 	}
 
-	if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
-		return nil, enrichErr
-	}
+	a.EnrichPagesWithProperties(rctx, postList)
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
 
@@ -127,13 +117,99 @@ func (a *App) GetChannelPages(rctx request.CTX, channelID string, offset, limit 
 		}
 	}
 
-	if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
-		return nil, enrichErr
-	}
+	a.EnrichPagesWithProperties(rctx, postList)
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
 
 	return postList, nil
+}
+
+// GetPagesForChannel fetches pages from all wikis linked to a channel, merges results,
+// and applies pagination. Returns the page list and whether results are partial (some
+// wiki fetches failed). Callers are responsible for initial channel permission checks.
+// When includeContent is false, page message bodies are stripped before returning.
+func (a *App) GetPagesForChannel(rctx request.CTX, channelId string, page, perPage int, includeContent bool) (*model.PostList, bool, *model.AppError) {
+	wikis, wikiErr := a.GetWikisLinkedToChannel(rctx, channelId)
+	if wikiErr != nil {
+		return nil, false, wikiErr
+	}
+
+	const maxPerWikiLimit = 200
+	perWikiLimit := (page + 1) * perPage
+	if perWikiLimit <= 0 || perWikiLimit > maxPerWikiLimit {
+		perWikiLimit = maxPerWikiLimit
+	}
+
+	session := rctx.Session()
+	allPages := model.NewPostList()
+	var mu sync.Mutex
+	var failCount atomic.Int64
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, 10)
+	for _, wiki := range wikis {
+		wg.Go(func() {
+			select {
+			case sem <- struct{}{}:
+				defer func() { <-sem }()
+			case <-rctx.Context().Done():
+				failCount.Add(1)
+				return
+			}
+			// Per-wiki permission filter: applied here (rather than at the API layer) because
+			// GetPagesForChannel is a fan-out over multiple wikis within a single channel.
+			// Internal callers (session.UserId == "") bypass this filter intentionally.
+			if session.UserId != "" && !a.SessionHasWikiPermission(*session, wiki, model.PermissionReadPage) {
+				return
+			}
+			wikiPages, pagesErr := a.GetChannelPages(rctx, wiki.ChannelId, 0, perWikiLimit)
+			if pagesErr != nil {
+				rctx.Logger().Warn("Failed to fetch pages for wiki, skipping",
+					mlog.String("wiki_channel_id", wiki.ChannelId), mlog.Err(pagesErr))
+				failCount.Add(1)
+				return
+			}
+			if wikiPages == nil {
+				return
+			}
+			mu.Lock()
+			allPages.Extend(wikiPages)
+			mu.Unlock()
+		})
+	}
+	wg.Wait()
+
+	if n := int64(len(wikis)); n > 0 && failCount.Load() == n {
+		return nil, false, model.NewAppError("GetPagesForChannel", "app.page.get_channel_pages.all_wikis_failed.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	hasPartialContent := failCount.Load() > 0
+
+	allPages.SortByCreateAt()
+
+	postList := model.NewPostList()
+	start := page * perPage
+	end := start + perPage
+	if start < len(allPages.Order) {
+		if end > len(allPages.Order) {
+			end = len(allPages.Order)
+		}
+		postList.Order = allPages.Order[start:end]
+		for _, id := range postList.Order {
+			if p, ok := allPages.Posts[id]; ok {
+				postList.Posts[id] = p
+			}
+		}
+	}
+
+	if !includeContent {
+		for _, post := range postList.Posts {
+			if post.Type == model.PostTypePage {
+				post.Message = ""
+			}
+		}
+	}
+
+	return postList, hasPartialContent, nil
 }
 
 // calculateMaxDepthFromPostList calculates the maximum depth in a page hierarchy
@@ -187,15 +263,7 @@ func (a *App) MovePage(rctx request.CTX, postID string, newParentID *string, wik
 	// Use master DB to avoid replica lag issues in HA
 	page, err := a.GetPage(RequestContextWithMaster(rctx), postID)
 	if err != nil {
-		// Check underlying error type to determine appropriate status code
-		var nfErr *store.ErrNotFound
-		statusCode := http.StatusInternalServerError
-		errKey := "app.page.move.get_page.app_error"
-		if errors.As(err, &nfErr) {
-			statusCode = http.StatusNotFound
-			errKey = "app.page.move.not_found.app_error"
-		}
-		return nil, model.NewAppError("MovePage", errKey, nil, "", statusCode).Wrap(err)
+		return nil, err
 	}
 	post := page
 
@@ -244,7 +312,7 @@ func (a *App) MovePage(rctx request.CTX, postID string, newParentID *string, wik
 
 		ancestors, ancestorErr := a.GetPageAncestors(rctx, effectiveParentID)
 		if ancestorErr != nil {
-			return nil, ancestorErr
+			return nil, model.NewAppError("MovePage", "app.page.move.get_ancestors.app_error", nil, "", http.StatusInternalServerError).Wrap(ancestorErr)
 		}
 
 		for _, ancestor := range ancestors.Posts {
@@ -305,7 +373,7 @@ func (a *App) MovePage(rctx request.CTX, postID string, newParentID *string, wik
 		opts := PageMovedBroadcastOptions{
 			Siblings: siblings, // Include updated sort orders so all clients sync
 		}
-		a.BroadcastPageMoved(postID, oldParentID, effectiveParentID, wikiID, post.ChannelId, model.GetMillis(), opts)
+		a.BroadcastPageMoved(postID, oldParentID, effectiveParentID, wikiID, model.GetMillis(), opts)
 	}
 
 	rctx.Logger().Info("Page moved",
@@ -392,8 +460,7 @@ func (a *App) calculateSubtreeMaxDepth(rctx request.CTX, pageID string) (int, *m
 }
 
 // BuildBreadcrumbPath builds the breadcrumb navigation path for a page.
-// Accepts pre-fetched wiki, channel, and optionally team to avoid redundant DB queries.
-func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel, team *model.Team) (*model.BreadcrumbPath, *model.AppError) {
+func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *model.Wiki) (*model.BreadcrumbPath, *model.AppError) {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -408,23 +475,22 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *mode
 		return nil, err
 	}
 
-	// Use provided team or fetch if not provided
-	if team == nil {
-		var teamErr *model.AppError
-		team, teamErr = a.GetTeam(channel.TeamId)
-		if teamErr != nil {
-			return nil, teamErr
+	wikiId := wiki.Id
+
+	teamName := ""
+	if wiki.TeamId != "" {
+		if team, teamErr := a.GetTeam(wiki.TeamId); teamErr != nil {
+			rctx.Logger().Warn("BuildBreadcrumbPath: failed to fetch team for wiki", mlog.String("wiki_id", wiki.Id), mlog.Err(teamErr))
+		} else {
+			teamName = team.Name
 		}
 	}
 
-	wikiId := wiki.Id
-
 	wikiRoot := &model.BreadcrumbItem{
-		Id:        wikiId,
-		Title:     wiki.Title,
-		Type:      "wiki",
-		Path:      model.BuildWikiUrl(team.Name, page.ChannelId, wikiId),
-		ChannelId: page.ChannelId,
+		Id:    wikiId,
+		Title: wiki.Title,
+		Type:  "wiki",
+		Path:  model.BuildWikiUrl(teamName, wikiId),
 	}
 	breadcrumbItems = append(breadcrumbItems, wikiRoot)
 
@@ -432,11 +498,10 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *mode
 		for _, ancestorId := range ancestors.Order {
 			if ancestor, ok := ancestors.Posts[ancestorId]; ok {
 				item := &model.BreadcrumbItem{
-					Id:        ancestor.Id,
-					Title:     ancestor.GetPageTitle(),
-					Type:      "page",
-					Path:      model.BuildPageUrl(team.Name, ancestor.ChannelId, wikiId, ancestor.Id),
-					ChannelId: ancestor.ChannelId,
+					Id:    ancestor.Id,
+					Title: ancestor.GetPageTitle(),
+					Type:  "page",
+					Path:  model.BuildPageUrl(teamName, wikiId, ancestor.Id),
 				}
 				breadcrumbItems = append(breadcrumbItems, item)
 			}
@@ -444,11 +509,10 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *mode
 	}
 
 	currentPage := &model.BreadcrumbItem{
-		Id:        page.Id,
-		Title:     page.GetPageTitle(),
-		Type:      "page",
-		Path:      model.BuildPageUrl(team.Name, page.ChannelId, wikiId, page.Id),
-		ChannelId: page.ChannelId,
+		Id:    page.Id,
+		Title: page.GetPageTitle(),
+		Type:  "page",
+		Path:  model.BuildPageUrl(teamName, wikiId, page.Id),
 	}
 
 	return &model.BreadcrumbPath{

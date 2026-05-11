@@ -41,7 +41,7 @@ describe('pages reducer', () => {
         },
     };
 
-    describe('RECEIVED_PAGES (replaces GET_PAGES_SUCCESS)', () => {
+    describe('RECEIVED_PAGES', () => {
         test('should store page IDs in byWiki', () => {
             const pages = [mockPage, {...mockPage, id: 'page456'}];
             const action = {

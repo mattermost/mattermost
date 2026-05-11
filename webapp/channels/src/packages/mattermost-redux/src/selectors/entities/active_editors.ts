@@ -8,13 +8,14 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getUsers} from 'mattermost-redux/selectors/entities/users';
 
 const EMPTY_EDITORS: ActiveEditorInfo[] = [];
+const EMPTY_EDITORS_MAP: Record<string, ActiveEditorInfo> = {};
 
 export function getActiveEditorsState(state: GlobalState) {
     return state.entities.activeEditors;
 }
 
 export function getActiveEditorsByPageId(state: GlobalState, pageId: string): Record<string, ActiveEditorInfo> {
-    return getActiveEditorsState(state).byPageId[pageId] || {};
+    return getActiveEditorsState(state).byPageId[pageId] ?? EMPTY_EDITORS_MAP;
 }
 
 export const getActiveEditorsForPage = createSelector(

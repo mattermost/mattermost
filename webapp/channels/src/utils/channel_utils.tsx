@@ -186,18 +186,3 @@ export function makeNewEmptyChannel(displayName: string, teamId: string): Channe
     };
 }
 
-type RouteMatch = {
-    path: string;
-    params: Record<string, any>;
-};
-
-export function getActiveTabFromRoute(match: RouteMatch): string {
-    const wikiMatch = match.path?.match(/\/wiki\/:channelId\(.*?\)\/:wikiId\(/);
-    if (wikiMatch) {
-        const wikiId = match.params.wikiId;
-        if (wikiId) {
-            return `wiki-${wikiId}`;
-        }
-    }
-    return 'messages';
-}

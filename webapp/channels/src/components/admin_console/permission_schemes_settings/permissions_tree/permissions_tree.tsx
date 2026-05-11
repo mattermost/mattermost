@@ -209,6 +209,16 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                     Permissions.DELETE_PAGE,
                 ],
             },
+            {
+                id: 'wikis',
+                permissions: [
+                    Permissions.CREATE_WIKI,
+                    Permissions.READ_WIKI,
+                    Permissions.MANAGE_WIKI,
+                    Permissions.DELETE_WIKI,
+                    Permissions.ADMIN_WIKI,
+                ],
+            },
         ];
         this.updateGroups();
     }

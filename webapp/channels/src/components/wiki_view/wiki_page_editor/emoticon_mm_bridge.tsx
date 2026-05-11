@@ -15,13 +15,12 @@ import EmoticonProvider, {
     type EmojiItem,
 } from 'components/suggestion/emoticon_provider';
 
-import {wrapProviderCallback} from './provider_bridge_utils';
+import {createProviderItemsFn} from './provider_bridge_utils';
 import {createSuggestionRenderer} from './suggestion_renderer';
 
 import './emoticon_suggestion_list.scss';
 
 const emojiSuggestionPluginKey = new PluginKey('emojiSuggestion');
-const provider = new EmoticonProvider();
 
 // List component matching MM patterns
 const EmoticonSuggestionList: React.FC<{
@@ -32,6 +31,7 @@ const EmoticonSuggestionList: React.FC<{
     <ul
         className='tiptap-emoticon-suggestions'
         role='listbox'
+        aria-label='Emoji suggestions'
     >
         {items.map((item, index) => (
             <EmoticonSuggestion
@@ -49,6 +49,11 @@ const EmoticonSuggestionList: React.FC<{
 );
 
 function createEmoticonSuggestion(): Partial<SuggestionOptions<EmojiItem>> {
+    // Per-extension-instance provider. Module-scoped would be shared across all
+    // editor instances and concurrent emoji queries from two editors would
+    // resolve to the same callback.
+    const provider = new EmoticonProvider();
+
     return {
         char: ':',
         pluginKey: emojiSuggestionPluginKey,
@@ -59,9 +64,7 @@ function createEmoticonSuggestion(): Partial<SuggestionOptions<EmojiItem>> {
             return query.length >= MIN_EMOTICON_LENGTH;
         },
 
-        items: ({query}): Promise<EmojiItem[]> => {
-            return wrapProviderCallback<EmojiItem>(provider, `:${query}`);
-        },
+        items: createProviderItemsFn<EmojiItem>(provider, (query) => `:${query}`),
 
         ...createSuggestionRenderer<EmojiItem>({
             popupClassName: 'tiptap-emoticon-popup',

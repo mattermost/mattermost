@@ -16,20 +16,19 @@ func TestHandlePageUpdateNotification(t *testing.T) {
 	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	wiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Notification Test Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreatePage(th.Context, wiki.ChannelId, "Notification Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	t.Run("creates new notification on first call", func(t *testing.T) {
 		th.App.handlePageUpdateNotification(th.Context, page, th.BasicUser.Id, wiki, nil)
 
 		// Verify a PostTypePageUpdated post was created in the channel
-		postList, postErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: th.BasicChannel.Id, Page: 0, PerPage: 50})
+		postList, postErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: wiki.ChannelId, Page: 0, PerPage: 50})
 		require.Nil(t, postErr)
 
 		var found *model.Post
@@ -50,7 +49,7 @@ func TestHandlePageUpdateNotification(t *testing.T) {
 		// Call again - should update the existing notification instead of creating a new one
 		th.App.handlePageUpdateNotification(th.Context, page, th.BasicUser.Id, wiki, nil)
 
-		postList, postErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: th.BasicChannel.Id, Page: 0, PerPage: 50})
+		postList, postErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: wiki.ChannelId, Page: 0, PerPage: 50})
 		require.Nil(t, postErr)
 
 		var notifPosts []*model.Post
@@ -77,19 +76,15 @@ func TestHandlePageUpdateNotification(t *testing.T) {
 	})
 
 	t.Run("handle notification for page without wiki - no panic", func(t *testing.T) {
-		otherChannel, chanErr := th.App.CreateChannel(th.Context, &model.Channel{
-			TeamId:      th.BasicTeam.Id,
-			Name:        "no-wiki-channel",
-			DisplayName: "No Wiki Channel",
-			Type:        model.ChannelTypeOpen,
-		}, false)
-		require.Nil(t, chanErr)
-
-		otherPage, appErr := th.App.CreatePage(th.Context, otherChannel.Id, "No Wiki Page", "", "", th.BasicUser.Id, "", "")
-		require.Nil(t, appErr)
+		orphanPage := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			Type:      model.PostTypePage,
+			UserId:    th.BasicUser.Id,
+		}
 
 		require.NotPanics(t, func() {
-			th.App.handlePageUpdateNotification(th.Context, otherPage, th.BasicUser.Id, nil, nil)
+			th.App.handlePageUpdateNotification(th.Context, orphanPage, th.BasicUser.Id, nil, nil)
 		})
 	})
 }
@@ -100,8 +95,7 @@ func TestCreateNewPageUpdateNotification(t *testing.T) {
 	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	wiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
@@ -109,18 +103,18 @@ func TestCreateNewPageUpdateNotification(t *testing.T) {
 	channel, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
 	require.Nil(t, err)
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Notification Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreatePage(th.Context, wiki.ChannelId, "Notification Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	t.Run("create page update notification - no panic", func(t *testing.T) {
 		require.NotPanics(t, func() {
-			th.App.createNewPageUpdateNotification(th.Context, page, wiki, channel, th.BasicUser.Id, 1)
+			th.App.createNewPageUpdateNotification(th.Context, page, wiki, channel, th.BasicUser.Id, th.BasicUser.Username, 1)
 		})
 	})
 
 	t.Run("create notification with high update count - no panic", func(t *testing.T) {
 		require.NotPanics(t, func() {
-			th.App.createNewPageUpdateNotification(th.Context, page, wiki, channel, th.BasicUser.Id, 100)
+			th.App.createNewPageUpdateNotification(th.Context, page, wiki, channel, th.BasicUser.Id, th.BasicUser.Username, 100)
 		})
 	})
 }

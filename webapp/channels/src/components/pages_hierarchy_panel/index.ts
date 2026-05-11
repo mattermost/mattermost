@@ -9,7 +9,7 @@ import {fetchPageDraftsForWiki, removePageDraft} from 'actions/page_drafts';
 import {fetchPages, createPage, updatePage, deletePage, movePageToWiki, duplicatePage} from 'actions/pages';
 import {toggleNodeExpanded, expandAncestors, closePagesPanel} from 'actions/views/pages_hierarchy';
 import {getUnpublishedPageDraftsForWiki} from 'selectors/page_drafts';
-import {getPages, getPagesLoading} from 'selectors/pages';
+import {makeGetPages, getPagesLoading} from 'selectors/pages';
 import {getExpandedNodes, getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 
 import type {GlobalState} from 'types/store';
@@ -24,6 +24,8 @@ type OwnProps = {
     onVersionHistory?: (pageId: string) => void;
     onCancelAutosave?: () => void;
 };
+
+const getPages = makeGetPages();
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const {wikiId} = ownProps;

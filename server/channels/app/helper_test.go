@@ -43,6 +43,7 @@ type TestHelper struct {
 	BasicUser2   *model.User
 	BasicChannel *model.Channel
 	BasicPost    *model.Post
+	BasicWiki    *model.Wiki
 
 	SystemAdminUser   *model.User
 	LogBuffer         *mlog.Buffer
@@ -328,6 +329,31 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	th.LinkUserToTeam(tb, th.BasicUser2, th.BasicTeam)
 	th.BasicChannel = th.CreateChannel(tb, th.BasicTeam)
 	th.BasicPost = th.CreatePost(tb, th.BasicChannel)
+
+	// Pages live in dedicated wiki backing channels (ChannelTypeWiki). Create a
+	// standalone wiki (no source channel linkage) so tests can call CreatePage
+	// using BasicWiki.ChannelId without polluting BasicChannel's wiki list.
+	// Set import_source_id so import tests can resolve this wiki by source id.
+	wiki := &model.Wiki{
+		TeamId: th.BasicTeam.Id,
+		Title:  "Basic Test Wiki",
+		Props: model.StringInterface{
+			model.PostPropsImportSourceId: "basic-test-wiki",
+		},
+	}
+	createdWiki, wikiErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(tb, wikiErr)
+	th.BasicWiki = createdWiki
+
+	// CreateWiki inserts a default page draft (ChannelId=wiki.Id) so the wiki
+	// has something to publish. Remove it so tests that assert on draft counts
+	// against BasicWiki don't see this fixture-created draft.
+	defaultDrafts, draftsErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, th.BasicWiki.Id, 0, 100, th.BasicWiki, nil)
+	require.Nil(tb, draftsErr)
+	for _, d := range defaultDrafts {
+		delErr := th.App.DeletePageDraft(th.Context, th.BasicUser.Id, th.BasicWiki.Id, d.PageId)
+		require.Nil(tb, delErr)
+	}
 	return th
 }
 
@@ -654,6 +680,9 @@ func (th *TestHelper) ResetRoleMigration(tb testing.TB) {
 
 	_, err = sqlStore.GetMaster().Exec("DELETE from Systems where Name = ?", model.AdvancedPermissionsMigrationKey)
 	require.NoError(tb, err)
+
+	_, err = sqlStore.GetMaster().Exec("DELETE from Systems where Name = ?", model.MigrationKeyAddWikiPagePermissions)
+	require.NoError(tb, err)
 }
 
 func (th *TestHelper) ResetEmojisMigration(tb testing.TB) {
@@ -713,7 +742,41 @@ func (th *TestHelper) SetupPluginAPI() *PluginAPI {
 	return NewPluginAPI(th.App, th.Context, manifest)
 }
 
+// RemovePermissionFromRole removes a permission from the named role and registers
+// a cleanup that re-adds it when the test ends. Concurrency caveat: tests running
+// in parallel that touch the same global role can still observe each other's
+// mid-flight modifications. Use scheme-scoped helpers for parallel safety.
 func (th *TestHelper) RemovePermissionFromRole(tb testing.TB, permission string, roleName string) {
+	if changed := th.removePermissionFromRoleNoCleanup(tb, permission, roleName); changed {
+		tb.Cleanup(func() { th.addPermissionToRoleNoCleanup(tb, permission, roleName) })
+	}
+}
+
+// AddPermissionToRole adds a permission to the named role and registers a cleanup
+// that removes it when the test ends. See RemovePermissionFromRole for the
+// concurrency caveat.
+func (th *TestHelper) AddPermissionToRole(tb testing.TB, permission string, roleName string) {
+	if changed := th.addPermissionToRoleNoCleanup(tb, permission, roleName); changed {
+		tb.Cleanup(func() { th.removePermissionFromRoleNoCleanup(tb, permission, roleName) })
+	}
+}
+
+func (th *TestHelper) addPermissionToRoleNoCleanup(tb testing.TB, permission, roleName string) bool {
+	role, appErr := th.App.GetRoleByName(th.Context, roleName)
+	require.Nil(tb, appErr)
+
+	if slices.Contains(role.Permissions, permission) {
+		return false
+	}
+
+	role.Permissions = append(role.Permissions, permission)
+
+	_, err2 := th.App.UpdateRole(role)
+	require.Nil(tb, err2)
+	return true
+}
+
+func (th *TestHelper) removePermissionFromRoleNoCleanup(tb testing.TB, permission, roleName string) bool {
 	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, err1)
 
@@ -725,27 +788,14 @@ func (th *TestHelper) RemovePermissionFromRole(tb testing.TB, permission string,
 	}
 
 	if strings.Join(role.Permissions, " ") == strings.Join(newPermissions, " ") {
-		return
+		return false
 	}
 
 	role.Permissions = newPermissions
 
 	_, err2 := th.App.UpdateRole(role)
 	require.Nil(tb, err2)
-}
-
-func (th *TestHelper) AddPermissionToRole(tb testing.TB, permission string, roleName string) {
-	role, appErr := th.App.GetRoleByName(th.Context, roleName)
-	require.Nil(tb, appErr)
-
-	if slices.Contains(role.Permissions, permission) {
-		return
-	}
-
-	role.Permissions = append(role.Permissions, permission)
-
-	_, err2 := th.App.UpdateRole(role)
-	require.Nil(tb, err2)
+	return true
 }
 
 func (th *TestHelper) AddPermissionsToRole(permissions []string, roleName string) {
@@ -896,7 +946,7 @@ const (
 func (th *TestHelper) CreateTestWiki(tb testing.TB, title string) *model.Wiki {
 	tb.Helper()
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicTeam.Id,
 		Title:       title,
 		Description: "Test Description",
 	}
@@ -910,7 +960,6 @@ func (th *TestHelper) CreateTestWiki(tb testing.TB, title string) *model.Wiki {
 func (th *TestHelper) CreateTestWikiInChannel(tb testing.TB, channel *model.Channel, title string) *model.Wiki {
 	tb.Helper()
 	wiki := &model.Wiki{
-		ChannelId:   channel.Id,
 		Title:       title,
 		Description: "Test Description",
 	}
@@ -924,7 +973,7 @@ func (th *TestHelper) CreateTestWikiInChannel(tb testing.TB, channel *model.Chan
 func (th *TestHelper) CreateTestPage(tb testing.TB, title string) *model.Post {
 	tb.Helper()
 	th.SetupPagePermissions()
-	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, title, "", "", th.BasicUser.Id, "", "")
+	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, title, "", "", th.BasicUser.Id, "", "")
 	require.Nil(tb, err)
 	require.NotNil(tb, page)
 	return page
@@ -934,7 +983,7 @@ func (th *TestHelper) CreateTestPage(tb testing.TB, title string) *model.Post {
 func (th *TestHelper) CreateTestPageWithContent(tb testing.TB, title, content string) *model.Post {
 	tb.Helper()
 	th.SetupPagePermissions()
-	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, title, "", content, th.BasicUser.Id, "", "")
+	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, title, "", content, th.BasicUser.Id, "", "")
 	require.Nil(tb, err)
 	require.NotNil(tb, page)
 	return page

@@ -19,7 +19,6 @@ func (a *App) handlePageCommentThreadCreation(rctx request.CTX, post *model.Post
 	rctx.Logger().Debug("handlePageCommentThreadCreation called", mlog.String("post_id", post.Id), mlog.String("message", post.Message))
 
 	if err := a.createThreadEntryForPageComment(rctx, post, channel); err != nil {
-		rctx.Logger().Error("Failed to create thread entry for page comment", mlog.Err(err))
 		return err
 	}
 
@@ -66,7 +65,7 @@ func (a *App) GetPageComments(rctx request.CTX, pageID string, offset, limit int
 	}
 
 	page, pageExists := postList.Posts[pageID]
-	if !pageExists || page.Type != model.PostTypePage {
+	if !pageExists || !IsPagePost(page) {
 		return nil, model.NewAppError("GetPageComments",
 			"app.page.get_comments.page_not_found.app_error",
 			nil, "", http.StatusNotFound)
@@ -99,21 +98,14 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 		var err *model.AppError
 		page, err = a.GetPage(rctx, pageID)
 		if err != nil {
-			if err.Id == "app.page.get.not_a_page.app_error" {
-				return nil, model.NewAppError("CreatePageComment",
-					"app.page.create_comment.not_a_page.app_error",
-					nil, "", http.StatusBadRequest).Wrap(err)
-			}
-			return nil, model.NewAppError("CreatePageComment",
-				"app.page.create_comment.page_not_found.app_error",
-				nil, "", http.StatusNotFound).Wrap(err)
+			return nil, err
 		}
 	}
 
 	// Use provided channel or fetch if not provided
 	if channel == nil {
 		var chanErr *model.AppError
-		channel, chanErr = a.GetChannel(rctx, page.ChannelId)
+		channel, chanErr = a.GetWikiBackingChannel(rctx, page.ChannelId)
 		if chanErr != nil {
 			return nil, chanErr
 		}
@@ -141,9 +133,14 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 		rootID = ""
 	}
 
+	userId := sessionUserID(rctx)
+	if userId == "" {
+		rctx.Logger().Warn("Creating page comment without a user session", mlog.String("page_id", pageID))
+	}
+
 	comment := &model.Post{
 		ChannelId: page.ChannelId,
-		UserId:    rctx.Session().UserId,
+		UserId:    userId,
 		RootId:    rootID,
 		Message:   message,
 		Type:      model.PostTypePageComment,
@@ -155,7 +152,7 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 		return nil, createErr
 	}
 
-	a.SendCommentCreatedEvent(rctx, createdComment, page, channel)
+	a.SendCommentCreatedEvent(rctx, createdComment, page)
 
 	rctx.Logger().Debug("Page comment created",
 		mlog.String("comment_id", createdComment.Id),
@@ -198,7 +195,10 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 			nil, "parent is not a page comment", http.StatusBadRequest)
 	}
 
-	parentPageID, _ := parentComment.Props[model.PagePropsPageID].(string)
+	parentPageID := ""
+	if parentComment.Props != nil {
+		parentPageID, _ = parentComment.Props[model.PagePropsPageID].(string)
+	}
 	if parentPageID != pageID {
 		return nil, model.NewAppError("CreatePageCommentReply",
 			"app.page.create_comment_reply.parent_wrong_page.app_error",
@@ -214,7 +214,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 	// Use provided channel or fetch if not provided
 	if channel == nil {
 		var chanErr *model.AppError
-		channel, chanErr = a.GetChannel(rctx, page.ChannelId)
+		channel, chanErr = a.GetWikiBackingChannel(rctx, page.ChannelId)
 		if chanErr != nil {
 			return nil, chanErr
 		}
@@ -241,9 +241,14 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		replyProps[model.PagePropsWikiID] = wikiID
 	}
 
+	replyUserId := sessionUserID(rctx)
+	if replyUserId == "" {
+		rctx.Logger().Warn("Creating page comment reply without a user session", mlog.String("page_id", pageID))
+	}
+
 	reply := &model.Post{
 		ChannelId: page.ChannelId,
-		UserId:    rctx.Session().UserId,
+		UserId:    replyUserId,
 		RootId:    rootID,
 		Message:   message,
 		Type:      model.PostTypePageComment,
@@ -255,7 +260,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		return nil, createErr
 	}
 
-	a.SendCommentCreatedEvent(rctx, createdReply, page, channel)
+	a.SendCommentCreatedEvent(rctx, createdReply, page)
 
 	rctx.Logger().Debug("Page comment reply created",
 		mlog.String("reply_id", createdReply.Id),
@@ -325,12 +330,20 @@ func (a *App) CanResolvePageComment(rctx request.CTX, session *model.Session, co
 		return true
 	}
 
-	member, memberErr := a.GetChannelMember(rctx, page.ChannelId, session.UserId)
-	if memberErr != nil {
+	// Check ManageWiki permission via wiki-scoped permission resolution.
+	// Checking SchemeAdmin on the wiki backing channel is wrong: the backing
+	// channel has no members, so that check always returns false.
+	// Derive the wiki from the page's backing channel (authoritative, always set).
+	wiki, getWikiErr := a.GetWikiByChannelId(rctx, page.ChannelId)
+	if getWikiErr != nil {
 		return false
 	}
 
-	return member.SchemeAdmin
+	if a.IsWikiOwner(*session, wiki) {
+		return true
+	}
+
+	return a.SessionHasPermissionToTeam(*session, wiki.TeamId, model.PermissionManageWiki)
 }
 
 // ResolvePageComment marks a comment as resolved.
@@ -348,25 +361,23 @@ func (a *App) ResolvePageComment(rctx request.CTX, comment *model.Post, userId s
 	newProps[model.PagePropsResolvedAt] = model.GetMillis()
 	newProps[model.PagePropsResolvedBy] = userId
 	newProps[model.PagePropsResolutionReason] = model.PageResolutionReasonManual
-	comment.SetProps(newProps)
 
-	updatedComment, _, updateErr := a.UpdatePost(rctx, comment, &model.UpdatePostOptions{})
-	if updateErr != nil {
-		return nil, updateErr
+	updatedComment, storeErr := a.Srv().Store().Page().UpdateCommentProps(comment.Id, newProps)
+	if storeErr != nil {
+		return nil, model.NewAppError("ResolvePageComment", "app.page.resolve_comment.update_props.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
-	// Send WebSocket event - use provided page/channel or fetch if not provided
-	if page != nil && channel != nil {
-		a.SendCommentResolvedEvent(rctx, updatedComment, page, channel)
+	// Send WebSocket event - use provided page or fetch if not provided
+	if page != nil {
+		a.SendCommentResolvedEvent(rctx, updatedComment, page)
 	} else {
 		pageId, ok := comment.Props[model.PagePropsPageID].(string)
 		if ok && pageId != "" {
-			fetchedPage, pageErr := a.GetSinglePost(rctx, pageId, false)
-			if pageErr == nil {
-				fetchedChannel, channelErr := a.GetChannel(rctx, fetchedPage.ChannelId)
-				if channelErr == nil {
-					a.SendCommentResolvedEvent(rctx, updatedComment, fetchedPage, fetchedChannel)
-				}
+			fetchedPage, pageErr := a.GetPage(rctx, pageId)
+			if pageErr != nil {
+				rctx.Logger().Warn("Failed to fetch page for comment_resolved event", mlog.String("page_id", pageId), mlog.String("comment_id", comment.Id), mlog.Err(pageErr))
+			} else {
+				a.SendCommentResolvedEvent(rctx, updatedComment, fetchedPage)
 			}
 		}
 	}
@@ -384,26 +395,24 @@ func (a *App) UnresolvePageComment(rctx request.CTX, comment *model.Post, page *
 	delete(newProps, model.PagePropsCommentResolved)
 	delete(newProps, model.PagePropsResolvedAt)
 	delete(newProps, model.PagePropsResolvedBy)
-	delete(newProps, "resolution_reason")
-	comment.SetProps(newProps)
+	delete(newProps, model.PagePropsResolutionReason)
 
-	updatedComment, _, updateErr := a.UpdatePost(rctx, comment, &model.UpdatePostOptions{})
-	if updateErr != nil {
-		return nil, updateErr
+	updatedComment, storeErr := a.Srv().Store().Page().UpdateCommentProps(comment.Id, newProps)
+	if storeErr != nil {
+		return nil, model.NewAppError("UnresolvePageComment", "app.page.unresolve_comment.update_props.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
-	// Send WebSocket event - use provided page/channel or fetch if not provided
-	if page != nil && channel != nil {
-		a.SendCommentUnresolvedEvent(rctx, updatedComment, page, channel)
+	// Send WebSocket event - use provided page or fetch if not provided
+	if page != nil {
+		a.SendCommentUnresolvedEvent(rctx, updatedComment, page)
 	} else {
 		pageId, ok := comment.Props[model.PagePropsPageID].(string)
 		if ok && pageId != "" {
-			fetchedPage, pageErr := a.GetSinglePost(rctx, pageId, false)
-			if pageErr == nil {
-				fetchedChannel, channelErr := a.GetChannel(rctx, fetchedPage.ChannelId)
-				if channelErr == nil {
-					a.SendCommentUnresolvedEvent(rctx, updatedComment, fetchedPage, fetchedChannel)
-				}
+			fetchedPage, pageErr := a.GetPage(rctx, pageId)
+			if pageErr != nil {
+				rctx.Logger().Warn("Failed to fetch page for comment_unresolved event", mlog.String("page_id", pageId), mlog.String("comment_id", comment.Id), mlog.Err(pageErr))
+			} else {
+				a.SendCommentUnresolvedEvent(rctx, updatedComment, fetchedPage)
 			}
 		}
 	}
@@ -411,7 +420,7 @@ func (a *App) UnresolvePageComment(rctx request.CTX, comment *model.Post, page *
 	return updatedComment, nil
 }
 
-func (a *App) SendCommentCreatedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
+func (a *App) SendCommentCreatedEvent(rctx request.CTX, comment *model.Post, page *model.Post) {
 	commentJSON, jsonErr := comment.ToJSON()
 	if jsonErr != nil {
 		rctx.Logger().Warn("Failed to encode comment to JSON for WebSocket event",
@@ -420,77 +429,95 @@ func (a *App) SendCommentCreatedEvent(rctx request.CTX, comment *model.Post, pag
 		return
 	}
 
-	message := model.NewWebSocketEvent(
-		model.WebsocketEventPageCommentCreated,
-		channel.TeamId,
-		comment.ChannelId,
-		"",
-		nil,
-		"",
-	)
+	wikiId, _ := page.GetProps()[model.PagePropsWikiID].(string)
+	if wikiId == "" {
+		rctx.Logger().Debug("Skipping comment_created broadcast: page has no wiki_id prop",
+			mlog.String("page_id", page.Id))
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPageCommentCreated, "", "", "", nil, "")
 	message.Add("comment_id", comment.Id)
 	message.Add("page_id", page.Id)
 	message.Add("comment", commentJSON)
-	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId:           comment.ChannelId,
-		ReliableClusterSend: true,
-	})
-	a.Publish(message)
+	a.publishToLinkedSourceChannels(wikiId, message)
 }
 
-func (a *App) SendCommentResolvedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
-	message := model.NewWebSocketEvent(
-		model.WebsocketEventPageCommentResolved,
-		channel.TeamId,
-		comment.ChannelId,
-		"",
-		nil,
-		"",
-	)
+func (a *App) SendCommentResolvedEvent(rctx request.CTX, comment *model.Post, page *model.Post) {
+	wikiId, _ := page.GetProps()[model.PagePropsWikiID].(string)
+	if wikiId == "" {
+		rctx.Logger().Debug("Skipping comment_resolved broadcast: page has no wiki_id prop",
+			mlog.String("page_id", page.Id))
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPageCommentResolved, "", "", "", nil, "")
 	props := comment.GetProps()
 	message.Add("comment_id", comment.Id)
 	message.Add("page_id", page.Id)
 	message.Add("resolved_at", props[model.PagePropsResolvedAt])
 	message.Add("resolved_by", props[model.PagePropsResolvedBy])
-	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId:           comment.ChannelId,
-		ReliableClusterSend: true,
-	})
-	a.Publish(message)
+	a.publishToLinkedSourceChannels(wikiId, message)
 }
 
-func (a *App) SendCommentUnresolvedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
-	message := model.NewWebSocketEvent(
-		model.WebsocketEventPageCommentUnresolved,
-		channel.TeamId,
-		comment.ChannelId,
-		"",
-		nil,
-		"",
-	)
+func (a *App) SendCommentUnresolvedEvent(rctx request.CTX, comment *model.Post, page *model.Post) {
+	wikiId, _ := page.GetProps()[model.PagePropsWikiID].(string)
+	if wikiId == "" {
+		rctx.Logger().Debug("Skipping comment_unresolved broadcast: page has no wiki_id prop",
+			mlog.String("page_id", page.Id))
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPageCommentUnresolved, "", "", "", nil, "")
 	message.Add("comment_id", comment.Id)
 	message.Add("page_id", page.Id)
-	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId:           comment.ChannelId,
-		ReliableClusterSend: true,
-	})
-	a.Publish(message)
+	a.publishToLinkedSourceChannels(wikiId, message)
 }
 
-func (a *App) SendCommentDeletedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
-	message := model.NewWebSocketEvent(
-		model.WebsocketEventPageCommentDeleted,
-		channel.TeamId,
-		comment.ChannelId,
-		"",
-		nil,
-		"",
-	)
+// DeletePageComment soft-deletes a page comment and broadcasts the deletion event.
+// page and channel are optional; if nil the method fetches them from the comment's props.
+func (a *App) DeletePageComment(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) *model.AppError {
+	userID := sessionUserID(rctx)
+	if err := a.Srv().Store().Post().Delete(rctx, comment.Id, model.GetMillis(), userID); err != nil {
+		return model.NewAppError("DeletePageComment", "app.page.delete_comment.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.Srv().Go(func() {
+		a.deleteFlaggedPosts(rctx, comment.Id)
+	})
+
+	if page != nil {
+		a.SendCommentDeletedEvent(rctx, comment, page)
+	} else {
+		pageId, ok := comment.Props[model.PagePropsPageID].(string)
+		if ok && pageId != "" {
+			fetchedPage, pageErr := a.GetPage(rctx, pageId)
+			if pageErr != nil {
+				rctx.Logger().Warn("Failed to fetch page for comment_deleted event", mlog.String("page_id", pageId), mlog.String("comment_id", comment.Id), mlog.Err(pageErr))
+			} else {
+				a.SendCommentDeletedEvent(rctx, comment, fetchedPage)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (a *App) SendCommentDeletedEvent(rctx request.CTX, comment *model.Post, page *model.Post) {
+	wikiId, _ := page.GetProps()[model.PagePropsWikiID].(string)
+	if wikiId == "" {
+		rctx.Logger().Debug("Skipping comment_deleted broadcast: page has no wiki_id prop",
+			mlog.String("page_id", page.Id))
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPageCommentDeleted, "", "", "", nil, "")
 	message.Add("comment_id", comment.Id)
 	message.Add("page_id", page.Id)
-	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId:           comment.ChannelId,
-		ReliableClusterSend: true,
-	})
-	a.Publish(message)
+	if anchor, ok := comment.Props[model.PagePropsInlineAnchor].(map[string]any); ok {
+		if anchorID, ok := anchor["anchor_id"].(string); ok && anchorID != "" {
+			message.Add("anchor_id", anchorID)
+		}
+	}
+	a.publishToLinkedSourceChannels(wikiId, message)
 }

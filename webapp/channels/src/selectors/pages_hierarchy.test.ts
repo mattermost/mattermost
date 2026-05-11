@@ -29,7 +29,8 @@ jest.mock('components/pages_hierarchy_panel/utils/tree_builder', () => ({
 
 // Mock the pages selector
 jest.mock('selectors/pages', () => ({
-    getPages: jest.fn((state, wikiId) => state.mockPages?.[wikiId] || []),
+    getPages: jest.fn((state: any, wikiId: string) => state.mockPages?.[wikiId] || []),
+    makeGetPages: jest.fn(() => jest.fn((state: any, wikiId: string) => state.mockPages?.[wikiId] || [])),
 }));
 
 describe('pages_hierarchy selectors', () => {

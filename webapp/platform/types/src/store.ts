@@ -38,6 +38,7 @@ import type {TeamsState} from './teams';
 import type {ThreadsState} from './threads';
 import type {Typing} from './typing';
 import type {UsersState} from './users';
+import type {WikisState} from './wikis';
 
 export type GlobalState = {
     entities: {
@@ -112,10 +113,7 @@ export type GlobalState = {
             deletedDraftTimestamps: Record<string, number>;
         };
         wikiPages: SelectPropertyField | null;
-        wikis: {
-            byChannel: Record<string, string[]>;
-            byId: Record<string, any>;
-        };
+        wikis: WikisState;
         activeEditors: {
             byPageId: Record<string, Record<string, {
                 userId: string;

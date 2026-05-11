@@ -101,6 +101,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MigrationKeyAccessControlPolicyV0_3).Return(&model.System{Name: model.MigrationKeyAccessControlPolicyV0_3, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddManageAgentPermissions).Return(&model.System{Name: model.MigrationKeyAddManageAgentPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddEditFileAttachmentPermission).Return(&model.System{Name: model.MigrationKeyAddEditFileAttachmentPermission, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationKeyAddWikiPagePermissions).Return(&model.System{Name: model.MigrationKeyAddWikiPagePermissions, Value: "true"}, nil)
 
 	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
@@ -184,6 +185,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyFieldStore.On("CreatePropertyField", mock.Anything).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("Create", mock.AnythingOfType("*model.PropertyField")).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("UpdatePropertyFields", mock.Anything, mock.Anything).Return([]*model.PropertyField{}, nil)
+	propertyFieldStore.On("CheckPropertyNameConflict", mock.AnythingOfType("*model.PropertyField"), mock.AnythingOfType("string")).Return(model.PropertyFieldTargetLevel(""), nil)
 
 	managedCategoryField := &model.PropertyField{ID: model.NewId(), GroupID: managedCategoryGroup.ID, Name: model.ManagedCategoryPropertyFieldName}
 	propertyFieldStore.On("GetFieldByName", mock.Anything, managedCategoryGroup.ID, "", model.ManagedCategoryPropertyFieldName).Return(managedCategoryField, nil)

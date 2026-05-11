@@ -73,6 +73,10 @@ export const getHaveIChannelBookmarkPermission = (state: GlobalState, channelId:
         return myMembership?.channel_id === channelId;
     }
 
+    if (type !== OPEN_CHANNEL && type !== PRIVATE_CHANNEL) {
+        return false;
+    }
+
     const permission = BOOKMARK_PERMISSION[key(action, type)];
 
     return channel && permission && haveIChannelPermission(state, channel.team_id, channelId, permission);

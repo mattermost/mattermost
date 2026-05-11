@@ -442,11 +442,9 @@ func TestPublishPageDraft(t *testing.T) {
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	user := th.BasicUser
-	channel := th.BasicChannel
 
 	wiki := &model.Wiki{
-		ChannelId: channel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, user.Id)
 	require.Nil(t, err)
@@ -469,7 +467,7 @@ func TestPublishPageDraft(t *testing.T) {
 		assert.JSONEq(t, content, publishedPage.Message)
 		assert.Equal(t, title, publishedPage.Props["title"])
 		assert.Equal(t, model.PostTypePage, publishedPage.Type)
-		assert.Equal(t, channel.Id, publishedPage.ChannelId)
+		assert.Equal(t, createdWiki.ChannelId, publishedPage.ChannelId)
 
 		_, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId, false)
 		assert.NotNil(t, getDraftErr)
@@ -571,7 +569,7 @@ func TestPublishPageDraft(t *testing.T) {
 		assert.JSONEq(t, content, publishedPage.Message, "Page content should match draft")
 		assert.Equal(t, title, publishedPage.Props["title"], "Page title should match draft")
 		assert.Equal(t, model.PostTypePage, publishedPage.Type, "Post type should be PostTypePage")
-		assert.Equal(t, channel.Id, publishedPage.ChannelId, "Page should be in correct channel")
+		assert.Equal(t, createdWiki.ChannelId, publishedPage.ChannelId, "Page should be in wiki's backing channel")
 		assert.Equal(t, user.Id, publishedPage.UserId, "Page should be created by correct user")
 
 		retrievedPage, getErr := th.App.GetPageWithContent(th.Context, publishedPage.Id)
@@ -682,7 +680,6 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 	channel := th.BasicChannel
 
 	wiki := &model.Wiki{
-		ChannelId:   channel.Id,
 		Title:       "Test Wiki for Deletion Tests",
 		Description: "Testing draft behavior when pages are deleted",
 	}

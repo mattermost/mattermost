@@ -64,6 +64,7 @@ const ImageExtractionCompleteDialog = ({
         <GenericModal
             id='image-extraction-complete-dialog'
             className='image-extraction-complete-dialog'
+            compassDesign={true}
             modalHeaderText={getTitle()}
             show={show}
             onExited={() => {}}

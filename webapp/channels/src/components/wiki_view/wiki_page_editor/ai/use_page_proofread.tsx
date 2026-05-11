@@ -15,6 +15,8 @@ import {savePageDraft} from 'actions/page_drafts';
 import {createPage as createPageAction} from 'actions/pages';
 import {getWiki} from 'selectors/pages';
 
+import {useIsMounted} from 'hooks/useIsMounted';
+
 import type {GlobalState} from 'types/store';
 
 import type {ProofreadProgress, ProofreadResult} from './proofread_action';
@@ -57,16 +59,7 @@ const usePageProofread = (
     // Ref to track current promise for cancellation
     const currentPromiseRef = useRef<Promise<ProofreadResult>>();
 
-    // Ref to track mounted state for cleanup
-    const isMountedRef = useRef(true);
-
-    // Cleanup on unmount
-    useEffect(() => {
-        isMountedRef.current = true;
-        return () => {
-            isMountedRef.current = false;
-        };
-    }, []);
+    const isMounted = useIsMounted();
 
     // Load agents on mount
     useEffect(() => {
@@ -110,7 +103,7 @@ const usePageProofread = (
             const result = await promise;
 
             // Only continue if this is still the current operation and component is mounted
-            if (currentPromiseRef.current !== promise || !isMountedRef.current) {
+            if (currentPromiseRef.current !== promise || !isMounted()) {
                 return;
             }
 
@@ -128,15 +121,17 @@ const usePageProofread = (
                     throw createResult.error;
                 }
 
-                if (!isMountedRef.current) {
+                if (!isMounted()) {
                     return;
                 }
 
                 const draftId = createResult.data as string;
 
-                // Save proofread content to the draft (user can review before publishing)
+                // Save proofread content to the draft (user can review before publishing).
+                // wiki.channel_id is intentionally not exposed by the server; the
+                // server-side draft save resolves the channel from the wiki itself.
                 const proofreadContent = JSON.stringify(result.doc);
-                const channelId = wiki?.channel_id || '';
+                const channelId = '';
                 const saveResult = await dispatch(savePageDraft(
                     channelId,
                     wikiId,
@@ -151,7 +146,7 @@ const usePageProofread = (
                     throw saveResult.error;
                 }
 
-                if (!isMountedRef.current) {
+                if (!isMounted()) {
                     return;
                 }
 
@@ -171,7 +166,7 @@ const usePageProofread = (
                 setServerError?.(serverError);
             }
         } catch (err) {
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 const serverError: ServerError = {
                     message: err instanceof Error ? err.message : 'Unknown error',
                     server_error_id: 'proofread_error',
@@ -182,7 +177,7 @@ const usePageProofread = (
                 setProgress(null);
             }
         } finally {
-            if (isMountedRef.current && currentPromiseRef.current === promise) {
+            if (isMounted() && currentPromiseRef.current === promise) {
                 setIsProcessing(false);
                 currentPromiseRef.current = undefined;
             }

@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {copyPageAsMarkdown} from './page_utils';
-import {DEFAULT_PAGE_TITLE} from './post_utils';
+import {copyPageAsMarkdown, DEFAULT_PAGE_TITLE, getActiveTabFromRoute} from './page_utils';
 import {tiptapToMarkdown} from './tiptap_to_markdown';
 
 jest.mock('./tiptap_to_markdown', () => ({
@@ -162,5 +161,33 @@ describe('copyPageAsMarkdown', () => {
             expect(result).toBe(false);
             expect(mockWriteText).not.toHaveBeenCalled();
         });
+    });
+});
+
+describe('getActiveTabFromRoute', () => {
+    test('returns "messages" for regular channel route', () => {
+        const match = {path: '/team/channel/:channelId', params: {}};
+        expect(getActiveTabFromRoute(match)).toBe('messages');
+    });
+
+    test('returns "messages" for route without wiki pattern', () => {
+        const match = {path: '/team/channel/:channelId/files', params: {}};
+        expect(getActiveTabFromRoute(match)).toBe('messages');
+    });
+
+    test('returns wiki tab id for wiki route with wikiId', () => {
+        const match = {
+            path: '/wiki/:wikiId([a-z0-9]{26})',
+            params: {wikiId: 'abc123def456ghi789jkl012'},
+        };
+        expect(getActiveTabFromRoute(match)).toBe('wiki-abc123def456ghi789jkl012');
+    });
+
+    test('returns "messages" for wiki route without wikiId param', () => {
+        const match = {
+            path: '/wiki/:wikiId([a-z0-9]{26})',
+            params: {},
+        };
+        expect(getActiveTabFromRoute(match)).toBe('messages');
     });
 });

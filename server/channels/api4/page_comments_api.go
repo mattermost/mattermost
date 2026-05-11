@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -19,8 +20,7 @@ func getPageComments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use combined validator to avoid double wiki fetch
-	page, _, channel, ok := c.GetPageForRead()
+	_, _, channel, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}
@@ -30,17 +30,12 @@ func getPageComments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.CheckPagePermission(page, app.PageOperationRead) {
-		return
-	}
-
 	comments, appErr := c.App.GetPageComments(c.AppContext, c.Params.PageId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(comments); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -63,29 +58,35 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Message == "" {
+	if strings.TrimSpace(req.Message) == "" {
 		c.SetInvalidParam("message")
 		return
 	}
 
-	// Use combined validator to avoid double wiki fetch
-	page, _, channel, ok := c.GetPageForRead()
+	// Inline-anchor structural validation: same shape the import path enforces.
+	// Reject anchors without a non-empty string "text" key so client input
+	// can't smuggle arbitrary JSON into stored comment props.
+	if len(req.InlineAnchor) > 0 {
+		text, hasText := req.InlineAnchor["text"].(string)
+		if !hasText || strings.TrimSpace(text) == "" {
+			c.SetInvalidParam("inline_anchor")
+			return
+		}
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventCreatePageComment, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
+	page, wiki, channel, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}
 
-	if !c.CheckPagePermission(page, app.PageOperationRead) {
+	if !c.App.SessionHasPagePermission(*c.AppContext.Session(), wiki, page, model.PermissionCommentPage) {
+		c.SetPermissionError(model.PermissionCommentPage)
 		return
 	}
-
-	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePost); !hasPermission {
-		c.SetPermissionError(model.PermissionCreatePost)
-		return
-	}
-
-	auditRec := c.MakeAuditRecord("createPageComment", model.AuditStatusFail)
-	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	auditRec.AddMeta("page_id", c.Params.PageId)
 
 	comment, appErr := c.App.CreatePageComment(c.AppContext, c.Params.PageId, req.Message, req.InlineAnchor, c.Params.WikiId, page, channel)
 	if appErr != nil {
@@ -125,30 +126,25 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if req.Message == "" {
+	if strings.TrimSpace(req.Message) == "" {
 		c.SetInvalidParam("message")
 		return
 	}
 
-	// Use combined validator to avoid double wiki fetch
-	page, _, channel, ok := c.GetPageForRead()
+	auditRec := c.MakeAuditRecord(model.AuditEventCreatePageCommentReply, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+	auditRec.AddMeta("parent_comment_id", parentCommentId)
+
+	page, wiki, channel, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}
 
-	if !c.CheckPagePermission(page, app.PageOperationRead) {
+	if !c.App.SessionHasPagePermission(*c.AppContext.Session(), wiki, page, model.PermissionCommentPage) {
+		c.SetPermissionError(model.PermissionCommentPage)
 		return
 	}
-
-	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePost); !hasPermission {
-		c.SetPermissionError(model.PermissionCreatePost)
-		return
-	}
-
-	auditRec := c.MakeAuditRecord("createPageCommentReply", model.AuditStatusFail)
-	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	auditRec.AddMeta("page_id", c.Params.PageId)
-	auditRec.AddMeta("parent_comment_id", parentCommentId)
 
 	reply, appErr := c.App.CreatePageCommentReply(c.AppContext, c.Params.PageId, parentCommentId, req.Message, c.Params.WikiId, page, channel)
 	if appErr != nil {
@@ -186,7 +182,7 @@ func validateInlinePageComment(c *Context, commentId, pageId, handlerName string
 		return nil
 	}
 
-	if comment.Type != model.PostTypePageComment {
+	if !app.IsPageComment(comment) {
 		c.Err = model.NewAppError(
 			handlerName,
 			"api.wiki.comment.not_comment.app_error",
@@ -197,8 +193,8 @@ func validateInlinePageComment(c *Context, commentId, pageId, handlerName string
 		return nil
 	}
 
-	commentPageId, ok := comment.Props[model.PagePropsPageID].(string)
-	if !ok || commentPageId != pageId {
+	commentPageId, _ := comment.GetProps()[model.PagePropsPageID].(string)
+	if commentPageId != pageId {
 		c.Err = model.NewAppError(
 			handlerName,
 			"api.wiki.comment.wrong_page.app_error",
@@ -209,7 +205,7 @@ func validateInlinePageComment(c *Context, commentId, pageId, handlerName string
 		return nil
 	}
 
-	commentType, _ := comment.Props[model.PostPropsCommentType].(string)
+	commentType, _ := comment.GetProps()[model.PostPropsCommentType].(string)
 	if commentType != model.PageCommentTypeInline {
 		c.Err = model.NewAppError(
 			handlerName,
@@ -237,7 +233,7 @@ func resolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("resolvePageComment", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventResolvePageComment, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("comment_id", commentId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
@@ -254,7 +250,7 @@ func resolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId, page) {
-		c.SetPermissionError(model.PermissionCreatePost)
+		c.SetPermissionError(model.PermissionManageWiki)
 		return
 	}
 
@@ -286,7 +282,7 @@ func unresolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("unresolvePageComment", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUnresolvePageComment, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("comment_id", commentId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
@@ -303,7 +299,7 @@ func unresolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId, page) {
-		c.SetPermissionError(model.PermissionCreatePost)
+		c.SetPermissionError(model.PermissionManageWiki)
 		return
 	}
 
@@ -320,4 +316,68 @@ func unresolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(unresolvedComment); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func deletePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	commentId := c.Params.CommentId
+	if commentId == "" || !model.IsValidId(commentId) {
+		c.SetInvalidParam("comment_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventDeletePageComment, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("comment_id", commentId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
+	page, _, channel, ok := c.GetPageForRead()
+	if !ok {
+		return
+	}
+
+	comment, appErr := c.App.GetSinglePost(c.AppContext, commentId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if comment.DeleteAt != 0 {
+		c.Err = model.NewAppError("deletePageComment", "api.wiki.comment.deleted.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	if !app.IsPageComment(comment) {
+		c.Err = model.NewAppError("deletePageComment", "api.wiki.comment.not_comment.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	commentPageId := ""
+	if comment.Props != nil {
+		commentPageId, _ = comment.Props[model.PagePropsPageID].(string)
+	}
+	if commentPageId != c.Params.PageId {
+		c.Err = model.NewAppError("deletePageComment", "api.wiki.comment.wrong_page.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !c.CheckPageCommentPermission(comment, app.PageCommentOperationDelete) {
+		return
+	}
+
+	if appErr := c.App.DeletePageComment(c.AppContext, comment, page, channel); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.AddEventPriorState(comment)
+	auditRec.AddEventObjectType("page_comment")
+	auditRec.Success()
+
+	ReturnStatusOK(w)
 }

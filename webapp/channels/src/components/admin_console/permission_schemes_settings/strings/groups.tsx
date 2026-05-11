@@ -415,4 +415,64 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Allow users to delete any page.',
         },
     }),
+    wikis: defineMessages({
+        name: {
+            id: 'admin.permissions.group.wikis.name',
+            defaultMessage: 'Manage Wikis',
+        },
+        description: {
+            id: 'admin.permissions.group.wikis.description',
+            defaultMessage: 'Create, view, manage and delete wikis.',
+        },
+    }),
+    create_wiki: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.create_wiki.name',
+            defaultMessage: 'Create Wikis',
+        },
+        description: {
+            id: 'admin.permissions.permission.create_wiki.description',
+            defaultMessage: 'Allow users to create wikis.',
+        },
+    }),
+    read_wiki: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.read_wiki.name',
+            defaultMessage: 'View Wikis',
+        },
+        description: {
+            id: 'admin.permissions.permission.read_wiki.description',
+            defaultMessage: 'Allow users to view wikis.',
+        },
+    }),
+    manage_wiki: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_wiki.name',
+            defaultMessage: 'Manage Wikis',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_wiki.description',
+            defaultMessage: 'Allow users to update wiki settings.',
+        },
+    }),
+    delete_wiki: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.delete_wiki.name',
+            defaultMessage: 'Delete Wikis',
+        },
+        description: {
+            id: 'admin.permissions.permission.delete_wiki.description',
+            defaultMessage: 'Allow users to delete wikis.',
+        },
+    }),
+    admin_wiki: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.admin_wiki.name',
+            defaultMessage: 'Administer Wiki Access',
+        },
+        description: {
+            id: 'admin.permissions.permission.admin_wiki.description',
+            defaultMessage: 'Allow users to manage wiki access lists and override per-page restrictions.',
+        },
+    }),
 };

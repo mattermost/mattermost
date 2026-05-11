@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 
-import {getPageTitle} from 'utils/post_utils';
+import {getPageTitle} from 'utils/page_utils';
 import {isUrlSafe, isValidUrl} from 'utils/url';
 
 import './page_link_modal.scss';
@@ -37,6 +37,9 @@ const PageLinkModal = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
+
+    // eslint-disable-next-line no-console
+    console.log('[E2E-INSTRUMENT] PageLinkModal rendered, pages count:', pages?.length ?? 'null', 'wikiId:', wikiId);
 
     const [mode, setMode] = useState<LinkMode>('page');
     const [searchQuery, setSearchQuery] = useState('');

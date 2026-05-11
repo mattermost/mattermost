@@ -6,7 +6,7 @@ IFS=$'\n\t'
 # To stem the introduction of new, undocumented APIs while we find time to document the old ones,
 # filter out all the "known issues" to support the automated CI check.
 
-API_YAML=$ROOT../api/v4/html/static/mattermost-openapi-v4.yaml
+API_YAML=$(cd "$ROOT../api/v4/html/static" && pwd)/mattermost-openapi-v4.yaml
 OUTPUT=$($GO vet -vettool=$GOBIN/mattermost-govet -openApiSync -openApiSync.spec=$API_YAML ./... 2>&1 || true)
 
 echo "All output, some ignored"

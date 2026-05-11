@@ -202,7 +202,9 @@ type ChannelStore interface {
 	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamID string) error
 	ClearSidebarOnTeamLeave(userID, teamID string) error
 	Get(id string, allowFromCache bool) (*model.Channel, error)
+	GetWikiBackingChannel(id string) (*model.Channel, error)
 	GetMany(ids []string, allowFromCache bool) (model.ChannelList, error)
+	GetManyIncludingWiki(ids []string, allowFromCache bool) (model.ChannelList, error)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamID, name string)
 	Delete(channelID string, timestamp int64) error
@@ -1264,17 +1266,24 @@ type TemporaryPostStore interface {
 
 type WikiStore interface {
 	Save(wiki *model.Wiki) (*model.Wiki, error)
-	CreateWikiWithDefaultPage(wiki *model.Wiki, userId string) (*model.Wiki, error)
+	// Create atomically inserts pre-validated wiki, backing channel, creator membership,
+	// join history entry, and (if defaultDraft != nil) a default page draft. Construction
+	// and validation of the inputs are the caller's responsibility (see app.CreateWiki).
+	Create(rctx request.CTX, wiki *model.Wiki, backingChannel *model.Channel, creatorMember *model.ChannelMember, defaultDraft *model.Draft) (*model.Wiki, error)
 	Get(id string) (*model.Wiki, error)
 	GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error)
+	GetForChannels(channelIds []string, includeDeleted bool) ([]*model.Wiki, error)
+	GetLinkedToChannel(channelId string) ([]*model.Wiki, error)
+	GetByChannelId(channelId string) (*model.Wiki, error)
+	GetForTeam(teamId string, page, perPage int) ([]*model.Wiki, error)
+	GetForUser(userId, teamId string, page, perPage int) ([]*model.Wiki, error)
 	Update(wiki *model.Wiki) (*model.Wiki, error)
 	Delete(id string, hard bool) error
 	GetPages(wikiId string, offset, limit int) ([]*model.Post, error)
 	GetPageByTitleInWiki(wikiId, title string) (*model.Post, error)
 	GetAbandonedPages(cutoffTime int64) ([]*model.Post, error)
 	DeleteAllPagesForWiki(wikiId string) error
-	MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error
-	MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error)
+	MovePageToWiki(pageId, targetWikiId, targetChannelId string, parentPageId *string) error
 	SetWikiIdInPostProps(pageId, wikiId string) error
 	// ResolveNamesToIDs converts wiki names/IDs to wiki IDs.
 	// Supports both direct wiki IDs and case-insensitive name matching.
@@ -1309,12 +1318,6 @@ type PageStore interface {
 
 	// RestorePage restores a soft-deleted page post
 	RestorePage(pageID string) error
-
-	// SoftDeletePageComments soft-deletes all comments for a page
-	SoftDeletePageComments(pageID, deleteByID string) error
-
-	// SoftDeletePagePost soft-deletes the page post itself
-	SoftDeletePagePost(pageID, deleteByID string) error
 
 	// GetPageChildren fetches direct children of a page
 	GetPageChildren(postID string, options model.GetPostsOptions) (*model.PostList, error)
@@ -1353,11 +1356,6 @@ type PageStore interface {
 	// Returns ErrInvalidInput if the move would create a cycle.
 	MovePage(pageID, channelID string, newParentID *string, newIndex *int64, expectedUpdateAt int64) ([]*model.Post, error)
 
-	// ReparentChildren updates all direct children of a page to a new parent.
-	// Used when deleting a page to avoid orphaning its children.
-	// If newParentID is empty, children become root pages.
-	ReparentChildren(pageID string, newParentID string) error
-
 	// UpdatePageWithContent updates a page's title and/or content and creates edit history
 	UpdatePageWithContent(rctx request.CTX, pageID, title, content string) (*model.Post, error)
 
@@ -1376,6 +1374,24 @@ type PageStore interface {
 	// from concurrent modifications. Returns the updated post, or nil if no matching
 	// notification was found (caller should create a new one).
 	AtomicUpdatePageNotification(channelID, pageID, userID, username, pageTitle string, sinceTime int64) (*model.Post, error)
+
+	// UpdateCommentProps sets the Props column on a page comment and bumps UpdateAt.
+	// Used for metadata-only changes such as resolve/unresolve that intentionally
+	// bypass post edit history. No permission checks or pipeline side-effects —
+	// callers are responsible for WebSocket events.
+	UpdateCommentProps(commentID string, props model.StringInterface) (*model.Post, error)
+
+	// UpdatePageFileIds sets the FileIds column on a page post and bumps UpdateAt.
+	// No permission checks or pipeline side-effects — callers are responsible for WebSocket events.
+	UpdatePageFileIds(pageID string, fileIds model.StringArray) (*model.Post, error)
+
+	// PermanentDeletePage hard-deletes the page post and all its comments, threads, and file info.
+	PermanentDeletePage(pageID string) error
+
+	// BatchSetPageParent updates PageParentId for multiple pages in a single query.
+	// Intended for bulk import repair — skips cycle detection (caller is responsible).
+	// updates maps pageID -> newParentID (empty string = root).
+	BatchSetPageParent(updates map[string]string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

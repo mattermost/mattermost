@@ -1,16 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
 
-import {getPageById} from 'mattermost-redux/selectors/entities/pages';
-
-import {submitPageComment} from 'actions/views/create_page_comment';
-
-import type {GlobalState} from 'types/store';
 import type {InlineAnchor} from 'types/store/pages';
+
+import {usePageCommentSubmit} from './usePageCommentSubmit';
 
 import './wiki_new_comment_view.scss';
 
@@ -21,36 +17,7 @@ type Props = {
 
 const WikiNewCommentView = ({pageId, anchor}: Props) => {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch();
-    const page = useSelector((state: GlobalState) => getPageById(state, pageId));
-
-    const [message, setMessage] = useState('');
-    const [submitting, setSubmitting] = useState(false);
-
-    const handleSubmit = useCallback(async () => {
-        if (!message.trim() || submitting || !page) {
-            return;
-        }
-        setSubmitting(true);
-        await dispatch(submitPageComment(pageId, {
-            message,
-            fileInfos: [],
-            uploadsInProgress: [],
-            channelId: page.channel_id,
-            rootId: pageId,
-            createAt: 0,
-            updateAt: 0,
-        }));
-        setSubmitting(false);
-        setMessage('');
-    }, [dispatch, message, pageId, page, submitting]);
-
-    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            handleSubmit();
-        }
-    }, [handleSubmit]);
+    const {page, message, submitting, handleChange, handleKeyDown} = usePageCommentSubmit(pageId);
 
     if (!page) {
         return null;
@@ -74,12 +41,13 @@ const WikiNewCommentView = ({pageId, anchor}: Props) => {
                 <textarea
                     className='WikiNewCommentView__textarea'
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     placeholder={formatMessage({
                         id: 'wiki_rhs.new_comment.placeholder',
                         defaultMessage: 'Add your comment...',
                     })}
+                    aria-label={formatMessage({id: 'wiki_rhs.new_comment.label', defaultMessage: 'New inline comment'})}
                     disabled={submitting}
                 />
             </div>

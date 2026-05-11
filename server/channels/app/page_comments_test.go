@@ -17,7 +17,7 @@ func TestGetPageComments(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	t.Run("get comments for page with no comments", func(t *testing.T) {
@@ -55,7 +55,7 @@ func TestResolvePageComment(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	comment, appErr := th.App.CreatePageComment(rctx, page.Id, "Comment to resolve", nil, "", nil, nil)
@@ -77,7 +77,7 @@ func TestUnresolvePageComment(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	comment, appErr := th.App.CreatePageComment(rctx, page.Id, "Comment to unresolve", nil, "", nil, nil)
@@ -101,12 +101,14 @@ func TestCanResolvePageComment(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
 
-	// Create page owned by BasicUser
-	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	// BasicUser is the wiki creator and therefore SchemeAdmin in the wiki backing channel.
+	// Create the page with BasicUser2 as author so BasicUser is neither page author nor
+	// comment author, allowing us to test the wiki-admin (SchemeAdmin) resolve path separately.
+	rctxUser2 := th.CreateSessionContextForUser(th.BasicUser2)
+	page, appErr := th.App.CreatePage(rctxUser2, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser2.Id, "", "")
 	require.Nil(t, appErr)
 
-	// Create comment by BasicUser2 so we can test different scenarios
-	rctxUser2 := th.CreateSessionContextForUser(th.BasicUser2)
+	// Create comment by BasicUser2
 	comment, appErr := th.App.CreatePageComment(rctxUser2, page.Id, "Test comment", nil, "", nil, nil)
 	require.Nil(t, appErr)
 	require.Equal(t, th.BasicUser2.Id, comment.UserId)
@@ -121,33 +123,26 @@ func TestCanResolvePageComment(t *testing.T) {
 
 	t.Run("page author can resolve", func(t *testing.T) {
 		session := &model.Session{
-			UserId: th.BasicUser.Id,
+			UserId: th.BasicUser2.Id,
 		}
 		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id, page)
 		require.True(t, canResolve, "page author should be able to resolve comments on their page")
 	})
 
-	t.Run("channel admin can resolve", func(t *testing.T) {
-		// Create a new user and make them channel admin
-		adminUser := th.CreateUser(t)
-		th.LinkUserToTeam(t, adminUser, th.BasicTeam)
-		th.AddUserToChannel(t, adminUser, th.BasicChannel)
-		_, appErr := th.App.UpdateChannelMemberSchemeRoles(th.Context, th.BasicChannel.Id, adminUser.Id, false, true, true)
-		require.Nil(t, appErr)
-
+	t.Run("wiki admin can resolve", func(t *testing.T) {
+		// BasicUser created the wiki and is therefore SchemeAdmin in the wiki backing channel.
+		// They are not the page author and not the comment author, so this exercises the
+		// SchemeAdmin path in CanResolvePageComment.
 		session := &model.Session{
-			UserId: adminUser.Id,
+			UserId: th.BasicUser.Id,
 		}
 		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id, page)
-		require.True(t, canResolve, "channel admin should be able to resolve any comment")
+		require.True(t, canResolve, "wiki admin should be able to resolve any comment")
 	})
 
 	t.Run("regular user cannot resolve others comment", func(t *testing.T) {
-		// Create a new regular user (not comment author, not page author, not admin)
+		// A user not in the wiki backing channel cannot resolve others' comments.
 		regularUser := th.CreateUser(t)
-		th.LinkUserToTeam(t, regularUser, th.BasicTeam)
-		th.AddUserToChannel(t, regularUser, th.BasicChannel)
-
 		session := &model.Session{
 			UserId: regularUser.Id,
 		}
@@ -172,7 +167,7 @@ func TestTransformPageCommentReply(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	parentComment, appErr := th.App.CreatePageComment(rctx, page.Id, "Parent", nil, "", nil, nil)

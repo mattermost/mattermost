@@ -17,7 +17,7 @@ import LoadingScreen from 'components/loading_screen';
 import ProfilePicture from 'components/profile_picture';
 import UserProfile from 'components/user_profile';
 
-import {getPageTitle} from 'utils/post_utils';
+import {getPageTitle} from 'utils/page_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';

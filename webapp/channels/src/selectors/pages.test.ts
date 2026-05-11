@@ -12,13 +12,14 @@ import type {GlobalState} from 'types/store';
 import {
     getPage,
     getPageAncestors,
-    getPages,
+    makeGetPages,
     getChannelPages,
     getPagesLoading,
     getPagesError,
 } from './pages';
 
 describe('pages selectors', () => {
+    const getPages = makeGetPages();
     const wikiId = 'wiki123';
     const pageId1 = 'page1';
     const pageId2 = 'page2';

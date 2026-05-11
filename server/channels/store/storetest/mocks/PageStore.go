@@ -381,24 +381,6 @@ func (_m *PageStore) MovePage(pageID string, channelID string, newParentID *stri
 	return r0, r1
 }
 
-// ReparentChildren provides a mock function with given fields: pageID, newParentID
-func (_m *PageStore) ReparentChildren(pageID string, newParentID string) error {
-	ret := _m.Called(pageID, newParentID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ReparentChildren")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(pageID, newParentID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // RestorePage provides a mock function with given fields: pageID
 func (_m *PageStore) RestorePage(pageID string) error {
 	ret := _m.Called(pageID)
@@ -410,42 +392,6 @@ func (_m *PageStore) RestorePage(pageID string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(pageID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SoftDeletePageComments provides a mock function with given fields: pageID, deleteByID
-func (_m *PageStore) SoftDeletePageComments(pageID string, deleteByID string) error {
-	ret := _m.Called(pageID, deleteByID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SoftDeletePageComments")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(pageID, deleteByID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SoftDeletePagePost provides a mock function with given fields: pageID, deleteByID
-func (_m *PageStore) SoftDeletePagePost(pageID string, deleteByID string) error {
-	ret := _m.Called(pageID, deleteByID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SoftDeletePagePost")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(pageID, deleteByID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -541,6 +487,102 @@ func (_m *PageStore) UpdatePageWithContent(rctx request.CTX, pageID string, titl
 	}
 
 	return r0, r1
+}
+
+// UpdateCommentProps provides a mock function with given fields: postID, props
+func (_m *PageStore) UpdateCommentProps(postID string, props model.StringInterface) (*model.Post, error) {
+	ret := _m.Called(postID, props)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateCommentProps")
+	}
+
+	var r0 *model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, model.StringInterface) (*model.Post, error)); ok {
+		return rf(postID, props)
+	}
+	if rf, ok := ret.Get(0).(func(string, model.StringInterface) *model.Post); ok {
+		r0 = rf(postID, props)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, model.StringInterface) error); ok {
+		r1 = rf(postID, props)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdatePageFileIds provides a mock function with given fields: pageID, fileIds
+func (_m *PageStore) UpdatePageFileIds(pageID string, fileIds model.StringArray) (*model.Post, error) {
+	ret := _m.Called(pageID, fileIds)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePageFileIds")
+	}
+
+	var r0 *model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, model.StringArray) (*model.Post, error)); ok {
+		return rf(pageID, fileIds)
+	}
+	if rf, ok := ret.Get(0).(func(string, model.StringArray) *model.Post); ok {
+		r0 = rf(pageID, fileIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, model.StringArray) error); ok {
+		r1 = rf(pageID, fileIds)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PermanentDeletePage provides a mock function with given fields: pageID
+func (_m *PageStore) PermanentDeletePage(pageID string) error {
+	ret := _m.Called(pageID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeletePage")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pageID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// BatchSetPageParent provides a mock function with given fields: updates
+func (_m *PageStore) BatchSetPageParent(updates map[string]string) error {
+	ret := _m.Called(updates)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BatchSetPageParent")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(map[string]string) error); ok {
+		r0 = rf(updates)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewPageStore creates a new instance of PageStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

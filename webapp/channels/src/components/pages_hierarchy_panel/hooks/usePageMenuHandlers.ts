@@ -8,6 +8,7 @@ import {useDispatch} from 'react-redux';
 import type {Post} from '@mattermost/types/posts';
 import type {Wiki} from '@mattermost/types/wikis';
 
+import {logError} from 'mattermost-redux/actions/errors';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {removePageDraft, savePageDraft} from 'actions/page_drafts';
@@ -20,8 +21,7 @@ import MovePageModal from 'components/move_page_modal';
 import TextInputModal from 'components/text_input_modal';
 
 import {ModalIdentifiers, PageDisplayTypes} from 'utils/constants';
-import {copyPageAsMarkdown} from 'utils/page_utils';
-import {getPageTitle} from 'utils/post_utils';
+import {copyPageAsMarkdown, getPageTitle} from 'utils/page_utils';
 
 import type {PostDraft} from 'types/store/draft';
 
@@ -316,8 +316,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         try {
             await dispatch(duplicatePage(pageId, wikiId));
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('Failed to duplicate page:', error);
+            dispatch(logError(error as Error));
         }
     }, [wikiId, dispatch]);
 
@@ -332,8 +331,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
             }
             return [];
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('Failed to fetch pages for wiki:', error);
+            dispatch(logError(error as Error));
             return [];
         }
     }, [channelId, dispatch]);
@@ -379,8 +377,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                 },
             }));
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('Failed to open move page modal:', error);
+            dispatch(logError(error as Error));
         }
     }, [channelId, dispatch, wikiId, fetchPagesForWiki]);
 

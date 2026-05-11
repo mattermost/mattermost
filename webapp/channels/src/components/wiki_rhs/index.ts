@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 import type {Dispatch} from 'redux';
 import {bindActionCreators} from 'redux';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {publishPage} from 'actions/pages';
@@ -23,13 +22,17 @@ function makeMapStateToProps() {
         const pageId = getSelectedPageId(state);
         const page = pageId ? getPageById(state, pageId) : null;
         const pageTitle = (typeof page?.props?.title === 'string' ? page.props.title : 'Page');
-        const channel = page?.channel_id ? getChannel(state, page.channel_id) : null;
+
+        // True once the page entity is hydrated (has channel_id). The wiki RHS uses
+        // page-comment endpoints, not channel-post endpoints, so the wiki backing channel
+        // does not need to be in entities.channels.channels.
+        const pageHydrated = Boolean(page?.channel_id);
 
         return {
             pageId,
             wikiId: getWikiRhsWikiId(state),
             pageTitle,
-            channelLoaded: Boolean(channel),
+            pageHydrated,
             activeTab: getWikiRhsActiveTab(state),
             focusedInlineCommentId: getFocusedInlineCommentId(state),
             pendingInlineAnchor: getPendingInlineAnchor(state),

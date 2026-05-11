@@ -13,7 +13,7 @@ import InlineCommentContext from 'components/inline_comment_context';
 import Markdown from 'components/markdown';
 import {getPageAnchorUrl} from 'components/wiki_view/page_anchor';
 
-import {getPageTitle} from 'utils/post_utils';
+import {getPageTitle} from 'utils/page_utils';
 import {getWikiUrl} from 'utils/url';
 
 type MarkdownPreviewOptions = {
@@ -46,7 +46,7 @@ export function renderPageCommentPreview(
     if (anchorId && wikiId && currentRelativeTeamUrl) {
         // Extract team name from relative URL (e.g., "/teamname" -> "teamname")
         const teamName = currentRelativeTeamUrl.replace(/^\//, '');
-        const basePageUrl = getWikiUrl(teamName, pagePost.channel_id, wikiId, pagePost.id);
+        const basePageUrl = getWikiUrl(teamName, wikiId, pagePost.id);
         pageUrl = getPageAnchorUrl(basePageUrl, anchorId);
     }
 

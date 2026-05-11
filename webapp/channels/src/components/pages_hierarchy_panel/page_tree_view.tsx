@@ -3,7 +3,7 @@
 
 import React, {useMemo, useCallback, useState} from 'react';
 import {DragDropContext, Droppable, Draggable, type DropResult, type DraggableProvidedDragHandleProps} from 'react-beautiful-dnd';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -36,7 +36,6 @@ type NodeWrapperProps = {
     isRenaming?: boolean;
     isDeleting?: boolean;
     wikiId?: string;
-    channelId?: string;
     dragHandleProps?: DraggableProvidedDragHandleProps | null;
 };
 
@@ -56,7 +55,6 @@ const PageTreeNodeWrapper = React.memo(({
     isRenaming,
     isDeleting,
     wikiId,
-    channelId,
     dragHandleProps,
 }: NodeWrapperProps) => {
     const handleSelect = useCallback(() => {
@@ -83,7 +81,6 @@ const PageTreeNodeWrapper = React.memo(({
             isRenaming={isRenaming}
             isDeleting={isDeleting}
             wikiId={wikiId}
-            channelId={channelId}
             dragHandleProps={dragHandleProps}
         />
     );
@@ -105,7 +102,6 @@ type Props = {
     onCopyMarkdown?: (pageId: string) => void;
     deletingPageId?: string | null;
     wikiId?: string;
-    channelId?: string;
 };
 
 const PageTreeView = ({
@@ -124,8 +120,8 @@ const PageTreeView = ({
     onCopyMarkdown,
     deletingPageId,
     wikiId,
-    channelId,
 }: Props) => {
+    const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const currentTeam = useSelector(getCurrentTeam);
     const outlineExpandedNodes = useSelector((state: GlobalState) => state.views.pagesHierarchy.outlineExpandedNodes);
@@ -244,6 +240,8 @@ const PageTreeView = ({
                     <div
                         className={`PageTreeView ${snapshot.isDraggingOver ? 'PageTreeView--dragging-over' : ''}`}
                         ref={provided.innerRef}
+                        role='tree'
+                        aria-label={formatMessage({id: 'pages_hierarchy.tree.label', defaultMessage: 'Pages'})}
                         {...provided.droppableProps}
                     >
                         {visibleNodes.map((node, index) => {
@@ -288,7 +286,6 @@ const PageTreeView = ({
                                                     onCopyMarkdown={onCopyMarkdown}
                                                     isDeleting={deletingPageId === node.id}
                                                     wikiId={wikiId}
-                                                    channelId={channelId}
                                                     dragHandleProps={provided.dragHandleProps}
                                                 />
                                                 {isOutlineExpanded && (
@@ -306,7 +303,6 @@ const PageTreeView = ({
                                                                         currentPageId={currentPageId}
                                                                         teamName={currentTeam?.name || ''}
                                                                         wikiId={wikiId}
-                                                                        channelId={channelId}
                                                                     />
                                                                 ))}
                                                             </>

@@ -29,6 +29,7 @@ const (
 	ChannelTypePrivate ChannelType = "P"
 	ChannelTypeDirect  ChannelType = "D"
 	ChannelTypeGroup   ChannelType = "G"
+	ChannelTypeWiki    ChannelType = "W"
 
 	ChannelGroupMaxUsers       = 8
 	ChannelGroupMinUsers       = 3
@@ -289,7 +290,7 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup) {
+	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup || o.Type == ChannelTypeWiki) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -333,6 +334,12 @@ func (o *Channel) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+// IsWikiBacking reports whether the channel type is ChannelTypeWiki.
+// This checks only the channel type field — it does not verify that a Wikis row exists.
+func (o *Channel) IsWikiBacking() bool {
+	return o.Type == ChannelTypeWiki
 }
 
 func (o *Channel) PreSave() {

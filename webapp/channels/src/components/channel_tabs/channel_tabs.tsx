@@ -11,19 +11,21 @@ import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
 import {createWiki} from 'mattermost-redux/actions/wikis';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getCurrentChannel, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 import type {getFile} from 'mattermost-redux/selectors/entities/files';
 import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
 import {fetchChannelWikis} from 'actions/pages';
 import {openModal, closeModal} from 'actions/views/modals';
-import {getChannelWikis} from 'selectors/pages';
+import {fetchWikiLinksForChannel} from 'actions/wiki_actions';
+import {makeGetChannelWikis} from 'selectors/pages';
 
 import BookmarkIcon from 'components/channel_bookmarks/bookmark_icon';
 import {useBookmarkAddActions} from 'components/channel_bookmarks/channel_bookmarks_menu';
 import {useChannelBookmarkPermission, useCanUploadFiles} from 'components/channel_bookmarks/utils';
 import FilePreviewModal from 'components/file_preview_modal';
+import LinkWikiModal from 'components/link_wiki_modal';
 import * as Menu from 'components/menu';
 import TextInputModal from 'components/text_input_modal';
 
@@ -165,6 +167,8 @@ const tabs: TabConfig[] = [
     },
 ];
 
+const MAX_VISIBLE_WIKI_TABS = 2;
+
 function ChannelTabs({
     activeTab,
     onTabChange,
@@ -178,7 +182,12 @@ function ChannelTabs({
     const teamUrl = useSelector((state: GlobalState) => getCurrentRelativeTeamUrl(state));
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const teamName = currentTeam?.name || 'team';
-    const channel = useSelector((state: GlobalState) => getCurrentChannel(state));
+
+    // On a /wiki/ route getCurrentChannel(state) can be undefined because no channel
+    // route is active. Fall back to the channel identified by the channelId prop
+    // (owned by the tabs' parent) so navigating back to Messages always works.
+    const channel = useSelector((state: GlobalState) => getCurrentChannel(state) || getChannel(state, channelId));
+    const myMemberships = useSelector((state: GlobalState) => getMyChannelMemberships(state));
 
     // Get permissions and actions
     const canAdd = useChannelBookmarkPermission(channelId, 'add');
@@ -190,15 +199,18 @@ function ChannelTabs({
         return Object.values(bookmarksObj).sort((a, b) => a.sort_order - b.sort_order);
     }, [bookmarksObj]);
 
-    // Get wiki pages from Redux
+    const getChannelWikis = useMemo(() => makeGetChannelWikis(), []);
     const wikis = useSelector((state: GlobalState) => getChannelWikis(state, channelId));
     const hasWikiPages = wikis.length > 0;
+
+    const overflowWikis = wikis.length > MAX_VISIBLE_WIKI_TABS ? wikis.slice(MAX_VISIBLE_WIKI_TABS) : [];
 
     // Fetch bookmarks and wiki pages when component mounts or channel changes
     useEffect(() => {
         if (channelId) {
             dispatch(fetchChannelBookmarks(channelId));
             dispatch(fetchChannelWikis(channelId));
+            dispatch(fetchWikiLinksForChannel(channelId));
         }
     }, [channelId, dispatch]);
 
@@ -255,10 +267,10 @@ function ChannelTabs({
                 confirmButtonText: formatMessage({id: 'channel_tabs.create', defaultMessage: 'Create'}),
                 placeholder: formatMessage({id: 'channel_tabs.wiki_name_placeholder', defaultMessage: 'Enter wiki name'}),
                 onConfirm: async (wikiName: string) => {
-                    const result = await dispatch(createWiki(channelId, wikiName.trim()));
+                    const result = await dispatch(createWiki(currentTeam?.id ?? '', channelId, wikiName.trim()));
                     dispatch(closeModal(ModalIdentifiers.TEXT_INPUT_MODAL));
                     if (result.data?.id) {
-                        history.push(getWikiUrl(teamName, channelId, result.data.id));
+                        history.push(getWikiUrl(teamName, result.data.id));
                     }
                 },
                 onCancel: () => {
@@ -266,7 +278,17 @@ function ChannelTabs({
                 },
             },
         }));
-    }, [channelId, dispatch, formatMessage, onTabChange, teamName]);
+    }, [channelId, currentTeam?.id, dispatch, formatMessage, history, teamName]);
+
+    const handleLinkWiki = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.WIKI_LINK,
+            dialogType: LinkWikiModal,
+            dialogProps: {
+                channelId,
+            },
+        }));
+    }, [channelId, dispatch]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         let delta = 0;
@@ -310,7 +332,7 @@ function ChannelTabs({
                 tabElement.focus();
             }
         }, 0);
-    }, [activeTab, onTabChange]);
+    }, [activeTab, hasWikiPages, onTabChange]);
 
     const handleTabClick = useCallback((tabId: TabType) => {
         if (tabId === 'bookmarks') {
@@ -320,12 +342,16 @@ function ChannelTabs({
         // If it's a wiki tab, navigate to the wiki URL
         if (tabId.startsWith('wiki-')) {
             const wikiId = tabId.replace('wiki-', '');
-            history.push(getWikiUrl(teamName, channelId, wikiId));
+            history.push(getWikiUrl(teamName, wikiId));
             return;
         }
 
-        // For messages tab, navigate to the channel URL if we're currently on a wiki route
-        if (tabId === 'messages' && channel) {
+        // For messages tab, navigate to the channel URL if we're currently on a wiki route.
+        // Skip navigation when the user has no membership on this channel — e.g. a standalone
+        // wiki with no source-channel context. Using membership (not channel type) keeps the
+        // check wiki-agnostic: wiki backing channels are filtered out of GetMyChannels by the
+        // server, so their absence here is the right signal without branching on server type.
+        if (tabId === 'messages' && channel && myMemberships[channel.id]) {
             const currentPath = window.location.pathname;
             if (currentPath.includes('/wiki/')) {
                 history.push(`${teamUrl}/channels/${channel.name}`);
@@ -335,7 +361,7 @@ function ChannelTabs({
 
         // For other tabs (messages), just change the tab state
         onTabChange(tabId);
-    }, [onTabChange, history, teamName, teamUrl, channelId, channel]);
+    }, [onTabChange, history, teamName, teamUrl, channelId, channel, myMemberships]);
 
     return (
         <div
@@ -370,7 +396,7 @@ function ChannelTabs({
                             return null;
                         }
 
-                        return wikis.map((wiki) => {
+                        return wikis.slice(0, MAX_VISIBLE_WIKI_TABS).map((wiki) => {
                             const wikiTabId = `wiki-${wiki.id}`;
                             const isWikiActive = activeTab === wikiTabId;
 
@@ -418,6 +444,47 @@ function ChannelTabs({
                         </div>
                     );
                 })}
+                {overflowWikis.length > 0 && (
+                    <div className='channel-tabs-container__tab-wrapper'>
+                        <Menu.Container
+                            menuButton={{
+                                id: 'wiki-overflow-menu',
+                                'aria-label': formatMessage(
+                                    {id: 'channel_tabs.wiki_overflow', defaultMessage: '+{count} more'},
+                                    {count: overflowWikis.length},
+                                ),
+                                class: 'channel-tab',
+                                children: (
+                                    <div className='channel-tab__content'>
+                                        <span className='channel-tab__icon'>
+                                            <i className='icon-file-multiple-outline'/>
+                                        </span>
+                                        <span className='channel-tab__text'>
+                                            <FormattedMessage
+                                                id='channel_tabs.wiki_overflow'
+                                                defaultMessage='+{count} more'
+                                                values={{count: overflowWikis.length}}
+                                            />
+                                        </span>
+                                        <i className='icon icon-chevron-down channel-tab__dropdown-icon'/>
+                                    </div>
+                                ),
+                            }}
+                            menu={{
+                                id: 'wiki-overflow-menu-dropdown',
+                            }}
+                        >
+                            {overflowWikis.map((wiki) => (
+                                <Menu.Item
+                                    key={wiki.id}
+                                    leadingElement={<FileMultipleOutlineIcon size={16}/>}
+                                    labels={<span>{wiki.title}</span>}
+                                    onClick={() => handleTabClick(`wiki-${wiki.id}`)}
+                                />
+                            ))}
+                        </Menu.Container>
+                    </div>
+                )}
             </div>
 
             <div className='channel-tabs-container__tab-actions'>
@@ -447,6 +514,17 @@ function ChannelTabs({
                                 />
                             }
                             onClick={handleCreateWiki}
+                        />,
+                        <Menu.Item
+                            key='link-wiki'
+                            leadingElement={<LinkVariantIcon size={18}/>}
+                            labels={
+                                <FormattedMessage
+                                    id='channel_tabs.link_wiki'
+                                    defaultMessage='Link existing wiki'
+                                />
+                            }
+                            onClick={handleLinkWiki}
                         />,
                     ]}
                 </Menu.Container>

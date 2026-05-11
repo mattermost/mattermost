@@ -12,9 +12,9 @@ import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import CreationOutlineIcon from '@mattermost/compass-icons/components/creation-outline';
 import MessageTextOutlineIcon from '@mattermost/compass-icons/components/message-text-outline';
 import PencilOutlineIcon from '@mattermost/compass-icons/components/pencil-outline';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import * as Menu from 'components/menu';
-import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import {isUrlSafe} from 'utils/url';
@@ -304,6 +304,8 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                             onMouseDown={handleMouseDown}
                             onClick={onSetLink}
                             className={`formatting-btn ${action.isActive?.(editor) ? 'is-active' : ''}`}
+                            aria-label={action.title}
+                            aria-pressed={action.isActive ? Boolean(action.isActive(editor)) : undefined}
                             title={action.title}
                         >
                             <i className={`icon ${action.icon}`}/>
@@ -327,6 +329,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                             onMouseDown={handleMouseDown}
                             onClick={onAddMedia}
                             className='formatting-btn'
+                            aria-label={action.title}
                             title={action.title}
                         >
                             <i className={`icon ${action.icon}`}/>
@@ -346,6 +349,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                             onMouseDown={handleMouseDown}
                             onClick={onAddEmoji}
                             className='formatting-btn'
+                            aria-label={action.title}
                             title={action.title}
                         >
                             <i className={`icon ${action.icon}`}/>
@@ -369,6 +373,8 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                     onMouseDown={handleMouseDown}
                     onClick={() => action.command(editor)}
                     className={`formatting-btn ${action.isActive?.(editor) ? 'is-active' : ''}`}
+                    aria-label={action.title}
+                    aria-pressed={action.isActive ? Boolean(action.isActive(editor)) : undefined}
                     title={action.keyboardShortcut ? `${action.title} (${action.keyboardShortcut})` : action.title}
                 >
                     <i className={`icon ${action.icon}`}/>

@@ -3,6 +3,7 @@
 
 import React, {useState} from 'react';
 import {Modal} from 'react-bootstrap';
+import {useIntl} from 'react-intl';
 
 import './inline_comment_modal.scss';
 
@@ -13,6 +14,7 @@ type Props = {
 };
 
 const InlineCommentModal = ({selectedText, onSubmit, onExited}: Props) => {
+    const {formatMessage} = useIntl();
     const [show, setShow] = useState(true);
     const [message, setMessage] = useState('');
 
@@ -47,23 +49,23 @@ const InlineCommentModal = ({selectedText, onSubmit, onExited}: Props) => {
                     componentClass='h1'
                     id='inlineCommentModalLabel'
                 >
-                    {'Add Comment'}
+                    {formatMessage({id: 'inline_comment_modal.title', defaultMessage: 'Add Comment'})}
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <div className='InlineCommentModal__content'>
                     <div className='InlineCommentModal__selected-text'>
-                        <label>{'Commenting on:'}</label>
+                        <label>{formatMessage({id: 'inline_comment_modal.commenting_on', defaultMessage: 'Commenting on:'})}</label>
                         <blockquote>{selectedText}</blockquote>
                     </div>
                     <div className='InlineCommentModal__input'>
-                        <label htmlFor='inline-comment-input'>{'Your comment'}</label>
+                        <label htmlFor='inline-comment-input'>{formatMessage({id: 'inline_comment_modal.your_comment', defaultMessage: 'Your comment'})}</label>
                         <textarea
                             id='inline-comment-input'
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             onKeyDown={handleKeyPress}
-                            placeholder='Add your comment...'
+                            placeholder={formatMessage({id: 'inline_comment_modal.placeholder', defaultMessage: 'Add your comment...'})}
                             rows={4}
                             autoFocus={true}
                         />
@@ -77,7 +79,7 @@ const InlineCommentModal = ({selectedText, onSubmit, onExited}: Props) => {
                     onClick={handleHide}
                     data-testid='cancel-button'
                 >
-                    {'Cancel'}
+                    {formatMessage({id: 'inline_comment_modal.cancel', defaultMessage: 'Cancel'})}
                 </button>
                 <button
                     type='button'
@@ -86,7 +88,7 @@ const InlineCommentModal = ({selectedText, onSubmit, onExited}: Props) => {
                     disabled={!message.trim()}
                     data-testid='inline-comment-submit'
                 >
-                    {'Comment'}
+                    {formatMessage({id: 'inline_comment_modal.submit', defaultMessage: 'Comment'})}
                 </button>
             </Modal.Footer>
         </Modal>

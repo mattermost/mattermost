@@ -10,13 +10,12 @@ import {getActiveEditorsWithProfiles} from 'mattermost-redux/selectors/entities/
 
 import {
     fetchActiveEditors,
-    handleDraftCreated,
     handleDraftUpdated,
     handleDraftDeleted,
     removeStaleEditors,
 } from 'actions/active_editors';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, GlobalState} from 'types/store';
 
 export type ActiveEditorWithUser = {
     userId: string;
@@ -42,13 +41,28 @@ export function useActiveEditors(wikiId: string, pageId: string): ActiveEditorWi
             return undefined;
         }
 
-        dispatch(fetchActiveEditors(wikiId, pageId));
+        let cancelled = false;
+        const controller = new AbortController();
+
+        // Fetch initial active editors, ignoring the response if pageId changed.
+        // Redux state is keyed by pageId so stale responses for old pageIds are harmless,
+        // but skipping the dispatch avoids unnecessary Redux updates after unmount.
+        Promise.resolve(dispatch(fetchActiveEditors(wikiId, pageId))).then(() => {
+            // Intentionally empty: we use `cancelled` only to guard future work,
+            // not to undo the dispatched action.
+        }).catch(() => {
+            // Errors are handled inside fetchActiveEditors via logError dispatch.
+        });
 
         cleanupIntervalRef.current = setInterval(() => {
-            dispatch(removeStaleEditors(pageId));
+            if (!cancelled) {
+                dispatch(removeStaleEditors(pageId));
+            }
         }, 60000);
 
         return () => {
+            cancelled = true;
+            controller.abort();
             if (cleanupIntervalRef.current) {
                 clearInterval(cleanupIntervalRef.current);
             }
@@ -61,27 +75,24 @@ export function useActiveEditors(wikiId: string, pageId: string): ActiveEditorWi
 /**
  * WebSocket event handlers (called from global WebSocket handler)
  */
-export function handleActiveEditorDraftCreated(pageId: string, userId: string, timestamp: number) {
-    return (dispatch: any) => {
-        dispatch(handleDraftCreated(pageId, userId, timestamp));
-    };
-}
-
-export function handleActiveEditorDraftUpdated(pageId: string, userId: string, timestamp: number) {
-    return (dispatch: any) => {
+export function handleActiveEditorDraftUpdated(pageId: string, userId: string, timestamp: number): ActionFunc {
+    return (dispatch) => {
         dispatch(handleDraftUpdated(pageId, userId, timestamp));
+        return {data: true};
     };
 }
 
-export function handleActiveEditorDraftDeleted(pageId: string, userId: string) {
-    return (dispatch: any) => {
+export function handleActiveEditorDraftDeleted(pageId: string, userId: string): ActionFunc {
+    return (dispatch) => {
         dispatch(handleDraftDeleted(pageId, userId));
+        return {data: true};
     };
 }
 
-export function handleActiveEditorStopped(pageId: string, userId: string) {
-    return (dispatch: any) => {
+export function handleActiveEditorStopped(pageId: string, userId: string): ActionFunc {
+    return (dispatch) => {
         // Same behavior as draft deleted - remove user from active editors
         dispatch(handleDraftDeleted(pageId, userId));
+        return {data: true};
     };
 }

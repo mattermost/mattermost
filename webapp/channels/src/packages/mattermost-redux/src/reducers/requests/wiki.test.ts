@@ -20,19 +20,34 @@ describe('wiki requests reducer', () => {
             expect(nextState.loading[wikiId]).toBe(true);
         });
 
-        test('should set loading to false on GET_PAGES_SUCCESS', () => {
+        test('should set loading to false on RECEIVED_PAGES with wikiId', () => {
             const initialState = {
                 loading: {[wikiId]: true},
                 error: {},
             };
             const action = {
-                type: WikiTypes.GET_PAGES_SUCCESS,
+                type: WikiTypes.RECEIVED_PAGES,
                 data: {wikiId, pages: []},
             };
 
             const nextState = wikiRequestsReducer(initialState, action);
 
             expect(nextState.loading[wikiId]).toBe(false);
+        });
+
+        test('should leave loading unchanged on RECEIVED_PAGES without wikiId', () => {
+            const initialState = {
+                loading: {[wikiId]: true},
+                error: {},
+            };
+            const action = {
+                type: WikiTypes.RECEIVED_PAGES,
+                data: {pages: []},
+            };
+
+            const nextState = wikiRequestsReducer(initialState, action);
+
+            expect(nextState.loading[wikiId]).toBe(true);
         });
 
         test('should set loading to false on GET_PAGES_FAILURE', () => {

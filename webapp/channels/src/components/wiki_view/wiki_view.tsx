@@ -7,17 +7,18 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch, useHistory, useLocation} from 'react-router-dom';
 
-import {Client4} from 'mattermost-redux/client';
+import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {notifyPageEditorStopped} from 'actions/pages';
 import {openPagesPanel, setLastViewedPage} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsMode} from 'actions/views/wiki_rhs';
 import {fetchWikiBundle} from 'actions/wiki_actions';
 import {getPageDraft, getPageDraftsForWiki, getNewDraftsForWiki} from 'selectors/page_drafts';
-import {getPage, getPages} from 'selectors/pages';
+import {getPage, makeGetPages, getResolvedChannelId} from 'selectors/pages';
 import {getIsPanesPanelCollapsed, getLastViewedPage} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
@@ -26,8 +27,7 @@ import PagesHierarchyPanel from 'components/pages_hierarchy_panel';
 import {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/usePageMenuHandlers';
 
 import {usePublishedDraftCleanup} from 'hooks/usePublishedDraftCleanup';
-import {isEditingExistingPage, getPublishedPageIdFromDraft, copyPageAsMarkdown} from 'utils/page_utils';
-import {canEditPage} from 'utils/post_utils';
+import {isEditingExistingPage, getPublishedPageIdFromDraft, copyPageAsMarkdown, canEditPageInWiki} from 'utils/page_utils';
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
@@ -47,8 +47,9 @@ const WikiView = () => {
     const {formatMessage} = useIntl();
     const history = useHistory();
     const location = useLocation();
-    const {params, path} = useRouteMatch<{pageId?: string; draftId?: string; channelId: string; wikiId: string}>();
-    const {pageId, draftId, channelId, wikiId} = params;
+    const {params, path} = useRouteMatch<{pageId?: string; draftId?: string; wikiId: string}>();
+    const {pageId, draftId, wikiId} = params;
+    const channelId = useSelector((state: GlobalState) => getResolvedChannelId(state, wikiId || ''));
 
     const teamId = useSelector(getCurrentTeamId);
     const currentTeam = useSelector(getCurrentTeam);
@@ -70,12 +71,31 @@ const WikiView = () => {
     // Track if we're navigating to select a draft
     const isSelectingDraftRef = React.useRef(false);
 
+    const [wikiBundleLoadError, setWikiBundleLoadError] = React.useState(false);
+
     // Load wiki data (pages, drafts) on wiki change
     // Uses cache-first pattern: only fetches pages if not already loaded
     React.useEffect(() => {
-        if (wikiId) {
-            dispatch(fetchWikiBundle(wikiId));
+        if (!wikiId) {
+            return undefined;
         }
+        let cancelled = false;
+        setWikiBundleLoadError(false);
+        dispatch(fetchWikiBundle(wikiId)).then((result) => {
+            if (cancelled) {
+                return;
+            }
+            if ('error' in result && result.error) {
+                setWikiBundleLoadError(true);
+            }
+        }).catch(() => {
+            if (!cancelled) {
+                setWikiBundleLoadError(true);
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [wikiId, dispatch]);
 
     const {isLoading} = useWikiPageData(
@@ -132,6 +152,7 @@ const WikiView = () => {
         }
     }, [currentPage?.page_parent_id, currentDraft?.props?.page_parent_id, currentDraft?.props?.title]);
 
+    const getPages = React.useMemo(() => makeGetPages(), []);
     const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
     const newDrafts = useSelector((state: GlobalState) => (wikiId ? getNewDraftsForWiki(state, wikiId) : []));
     const allPages = useSelector((state: GlobalState) => (wikiId ? getPages(state, wikiId) : []));
@@ -150,29 +171,29 @@ const WikiView = () => {
     // Version history modal via modal manager
     const {handleVersionHistory} = useVersionHistory({wikiId: wikiId || '', allPages});
 
-    // Get the actual channel ID from the page or draft (URL params may have wikiId in channelId position)
-    const actualChannelId = currentPage?.channel_id || currentDraft?.channelId || allDrafts[0]?.channelId || channelId;
-
     // isDraft derived from route - draftId in URL (via /drafts/ path) means we're editing
     const isDraft = Boolean(draftId);
 
-    // Get the current channel for permission checks
-    const currentChannel = useSelector((state: GlobalState) => getChannel(state, actualChannelId));
+    // Channel for sidebar selection. channelId comes from getResolvedChannelId,
+    // which walks WikiLinks for a member-channel match. Lazy-fetch if not in Redux
+    // (covers the deep-link case where the channel hasn't been visited this session).
+    const currentChannel = useSelector((state: GlobalState) => getChannel(state, channelId));
 
-    // Check if user can edit the current page (only applies to published pages, not drafts)
+    React.useEffect(() => {
+        if (channelId && !currentChannel) {
+            dispatch(fetchChannel(channelId));
+        }
+    }, [channelId, currentChannel, dispatch]);
+
+    // canEdit checks against the wiki's permission graph (backing channel + linked
+    // source channels), not against the resolved "viewing channel" — the latter
+    // depends on resolution timing and breaks after a page reload that wiped
+    // linksByChannel. canEditPageInWiki mirrors the server's check.
     const canEdit = useSelector((state: GlobalState) => {
-        // For drafts, always allow editing (the header shows Publish button instead of Edit anyway)
         if (!pageId || isDraft) {
             return true;
         }
-
-        // For published pages, check permissions if we have the data
-        if (currentPage && currentChannel) {
-            return canEditPage(state, currentPage, currentChannel);
-        }
-
-        // Default to false while loading to prevent showing Edit button prematurely
-        return false;
+        return canEditPageInWiki(state, currentPage);
     });
 
     // Single source of truth for empty state (no drafts, no pages)
@@ -206,25 +227,24 @@ const WikiView = () => {
         // If the page being edited changed, notify about the OLD page
         const previousPage = editorStoppedRef.current;
         if (previousPage && (!currentEditingPage || previousPage.pageId !== currentEditingPage.pageId)) {
-            Client4.notifyPageEditorStopped(previousPage.wikiId, previousPage.pageId).catch(() => {
-                // Silently handle errors - this is best-effort notification
-            });
+            dispatch(notifyPageEditorStopped(previousPage.wikiId, previousPage.pageId));
         }
 
         // Update ref to track current editing state
         editorStoppedRef.current = currentEditingPage;
-    }, [isDraft, wikiId, draftId, currentDraft?.props?.page_id, publishedPageForDraft?.id]);
+    }, [isDraft, wikiId, draftId, currentDraft?.props?.page_id, publishedPageForDraft?.id, dispatch]);
 
     // Notify server on component unmount
     React.useEffect(() => {
         return () => {
             if (editorStoppedRef.current) {
                 const {wikiId: wiki, pageId: page} = editorStoppedRef.current;
-                Client4.notifyPageEditorStopped(wiki, page).catch(() => {
-                    // Silently handle errors - this is best-effort notification
-                });
+                dispatch(notifyPageEditorStopped(wiki, page));
             }
         };
+
+        // Intentionally only run on unmount; dispatch is stable
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Auto-select page when at wiki root (extracted to hook)
@@ -267,12 +287,6 @@ const WikiView = () => {
         return undefined;
     }, [location.search, location.pathname, location.hash, pageId, draftId, wikiId, isWikiRhsOpen, isLoading, dispatch, history]);
 
-    // --------------------------------------------------------------------------
-    // Clear editingDraftId when the draft is deleted or published while we are
-    // editing it. This prevents the editor from getting stuck with a non-existent
-    // draft id in local state.
-    // Phase 1 Refactor: Removed cleanup effect - no longer needed with route-based draft IDs
-
     const {handleEdit, handlePublish, handleTitleChange, handleTitleBlur, handleContentChange, handleDraftStatusChange, cancelAutosave} = useWikiPageActions(
         channelId,
         pageId,
@@ -295,11 +309,11 @@ const WikiView = () => {
         if (result && 'error' in result && result.error?.id === 'api.page.edit.unsaved_draft_exists') {
             if (currentPageId && wikiId) {
                 const teamName = getTeamNameFromPath(location.pathname);
-                const draftPath = getWikiUrl(teamName, channelId, wikiId, currentPageId, true);
+                const draftPath = getWikiUrl(teamName, wikiId, currentPageId, true);
                 history.push(draftPath);
             }
         }
-    }, [handleEdit, wikiId, channelId, history, location]);
+    }, [handleEdit, wikiId, history, location]);
 
     const handleToggleComments = React.useCallback(() => {
         if (isWikiRhsOpen) {
@@ -317,7 +331,7 @@ const WikiView = () => {
     }, [isWikiRhsOpen, dispatch, pageId, currentDraft, wikiId]);
 
     const handlePageSelect = React.useCallback((selectedPageId: string, isDraftHint?: boolean) => {
-        if (!wikiId || !channelId) {
+        if (!wikiId) {
             return;
         }
 
@@ -333,7 +347,7 @@ const WikiView = () => {
         // Published pages should always open in view mode, even if they have unsaved drafts
         const isDraftPage = isDraftHint ?? newDraftsRef.current.some((draft) => draft.rootId === selectedPageId);
 
-        const url = getWikiUrl(teamName, channelId, wikiId, selectedPageId, isDraftPage);
+        const url = getWikiUrl(teamName, wikiId, selectedPageId, isDraftPage);
 
         history.push(url);
 
@@ -341,7 +355,7 @@ const WikiView = () => {
         if (isWikiRhsOpen && selectedPageId && !isDraftPage) {
             dispatch(openWikiRhs(selectedPageId, wikiId || '', undefined));
         }
-    }, [wikiId, channelId, dispatch, location.pathname, history, isWikiRhsOpen]);
+    }, [wikiId, dispatch, location.pathname, history, isWikiRhsOpen]);
 
     // Use shared menu handlers hook - it will combine pages and drafts internally
     const menuHandlers = usePageMenuHandlers({
@@ -376,7 +390,7 @@ const WikiView = () => {
         }
 
         const currentPageIdForHeader = currentDraft ? draftId : (pageId || '');
-        const pageLink = currentPageIdForHeader && wikiId && channelId ? getWikiUrl(currentTeam?.name || 'team', channelId, wikiId, currentPageIdForHeader) : undefined;
+        const pageLink = currentPageIdForHeader && wikiId ? getWikiUrl(currentTeam?.name || 'team', wikiId, currentPageIdForHeader, false) : undefined;
 
         // For drafts, wait until currentDraft is loaded to avoid breadcrumb issues
         if (isDraft && draftId && !currentDraft) {
@@ -393,14 +407,14 @@ const WikiView = () => {
         return {
             wikiId: wikiId || '',
             pageId: currentPageIdForHeader || '',
-            channelId: actualChannelId,
+            channelId,
             isDraft,
             isExistingPage,
             parentPageId: effectiveParentId,
             draftTitle: effectiveTitle,
             pageLink,
         };
-    }, [isEmptyState, currentDraft, draftId, pageId, wikiId, channelId, currentTeam?.name, isDraft, actualChannelId]);
+    }, [isEmptyState, currentDraft, draftId, pageId, wikiId, channelId, currentTeam?.name, isDraft]);
 
     // Memoized header action callbacks to avoid recreating functions on every render
     const handleCreateChild = React.useCallback(() => {
@@ -439,21 +453,21 @@ const WikiView = () => {
         }
     }, [headerProps?.pageId, handleVersionHistory]);
 
-    const handleCopyMarkdown = React.useCallback(() => {
+    const handleCopyMarkdown = React.useCallback(async () => {
         const content = isDraft ? currentDraft?.message : currentPage?.message;
         const title = isDraft ? currentDraft?.props?.title : currentPage?.props?.title;
-        copyPageAsMarkdown(content, typeof title === 'string' ? title : undefined);
+        await copyPageAsMarkdown(content, typeof title === 'string' ? title : undefined);
     }, [isDraft, currentDraft?.message, currentDraft?.props?.title, currentPage?.message, currentPage?.props?.title]);
 
     // Handler for when a translated/proofread draft is created - navigate to the new draft
     const handleTranslatedPageCreated = React.useCallback((newPageId: string) => {
-        if (!wikiId || !channelId) {
+        if (!wikiId) {
             return;
         }
         const teamName = getTeamNameFromPath(location.pathname);
-        const url = getWikiUrl(teamName, channelId, wikiId, newPageId, true);
+        const url = getWikiUrl(teamName, wikiId, newPageId, true);
         history.push(url);
-    }, [wikiId, channelId, location.pathname, history]);
+    }, [wikiId, location.pathname, history]);
 
     // Memoized editor props to avoid inline IIFE recreation on every render
     const editorProps = React.useMemo(() => {
@@ -478,7 +492,7 @@ const WikiView = () => {
             content: currentDraft.message || '',
             authorId,
             currentUserId,
-            channelId: actualChannelId,
+            channelId,
             teamId,
             pageId: isExistingPage ? publishedPageId : draftId,
             wikiId,
@@ -488,16 +502,27 @@ const WikiView = () => {
             draftStatus: currentDraft.props?.page_status as string | undefined,
             onTranslatedPageCreated: handleTranslatedPageCreated,
         };
-    }, [draftId, currentDraft, publishedPageForDraft, currentUserId, actualChannelId, teamId, wikiId, handleTranslatedPageCreated]);
+    }, [draftId, currentDraft, publishedPageForDraft, currentUserId, channelId, teamId, wikiId, handleTranslatedPageCreated]);
 
-    // DISABLED: Auto-updating RHS when navigating causes 60+ second render blocks
-    // The RHS ThreadViewer mounting blocks PageViewer from rendering
-    // Users can manually toggle RHS to update it to the new page
-    // React.useEffect(() => {
-    //     if (isWikiRhsOpen && pageId) {
-    //         dispatch(openWikiRhs(pageId, wikiId || ''));
-    //     }
-    // }, [pageId, isWikiRhsOpen, wikiId, dispatch]);
+    // Auto-updating RHS on page navigation is intentionally not done — the RHS ThreadViewer
+    // mount blocks PageViewer rendering for ~60s; users toggle RHS manually instead.
+
+    if (wikiBundleLoadError) {
+        return (
+            <div
+                className='WikiView no-results__holder'
+                data-testid='wiki-view-error'
+            >
+                <i className='icon icon-alert-outline'/>
+                <p>
+                    <FormattedMessage
+                        id='wiki.load_error'
+                        defaultMessage='Failed to load wiki. Please try refreshing the page.'
+                    />
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div

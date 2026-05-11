@@ -22,7 +22,7 @@ const (
 	// Pages have separate lifecycle management and should not be included in
 	// regular post operations like retention policies, exports, or cleanup.
 	// Page comments are allowed since they appear in the channel feed.
-	reactionRegularPostsFilter = "(p.Type NOT IN ('page') OR p.Type IS NULL)"
+	reactionRegularPostsFilter = "(p.Type NOT IN ('page', 'page_mention') OR p.Type IS NULL)"
 )
 
 type SqlReactionStore struct {

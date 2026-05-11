@@ -11,8 +11,7 @@ import Posts from 'mattermost-redux/constants/posts';
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
 import PostMessageView from 'components/post_view/post_message_view';
 
-import {isPagePost} from 'utils/page_utils';
-import {getPageTitle} from 'utils/post_utils';
+import {isPagePost, getPageTitle} from 'utils/page_utils';
 import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
 import type {PluginsState} from 'types/store/plugins';
@@ -47,7 +46,7 @@ export default function MessageWithAdditionalContent({
         let plainText = '';
 
         try {
-            plainText = extractPlaintextFromTipTapJSON(post.message);
+            plainText = extractPlaintextFromTipTapJSON(post.message) ?? '';
         } catch (error) {
             plainText = '';
         }

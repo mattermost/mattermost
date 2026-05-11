@@ -86,7 +86,7 @@ func (s *SqlDraftStore) Get(userId, channelId, rootId string, includeDeleted boo
 	}
 
 	dt := model.Draft{}
-	err := s.GetMaster().GetBuilder(&dt, query)
+	err := s.GetReplica().GetBuilder(&dt, query)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -752,7 +752,7 @@ func (s *SqlDraftStore) GetPageDraftsForUser(userId, wikiId string, offset, limi
 	}
 
 	drafts := []*model.Draft{}
-	if err := s.GetMaster().SelectBuilder(&drafts, query); err != nil {
+	if err := s.GetReplica().SelectBuilder(&drafts, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to get page drafts for userId=%s, wikiId=%s", userId, wikiId)
 	}
 
@@ -773,7 +773,7 @@ func (s *SqlDraftStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64
 		})
 
 	drafts := []*model.Draft{}
-	if err := s.GetMaster().SelectBuilder(&drafts, query); err != nil {
+	if err := s.GetReplica().SelectBuilder(&drafts, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to get active editors for pageId=%s", pageId)
 	}
 

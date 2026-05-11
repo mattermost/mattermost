@@ -19,7 +19,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 	rctx := th.CreateSessionContext()
 
 	t.Run("successfully creates thread entry for inline page comment", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		inlineComment := &model.Post{
@@ -47,7 +47,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 	})
 
 	t.Run("successfully creates thread entry for inline page comment via CreatePageComment", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page 2", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page 2", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		inlineAnchor := map[string]any{
@@ -63,7 +63,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 		require.NoError(t, threadErr)
 		require.NotNil(t, thread)
 		require.Equal(t, inlineComment.Id, thread.PostId)
-		require.Equal(t, th.BasicChannel.Id, thread.ChannelId)
+		require.Equal(t, th.BasicWiki.ChannelId, thread.ChannelId)
 		require.Equal(t, th.BasicTeam.Id, thread.TeamId)
 	})
 
@@ -80,7 +80,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 			cfg.ServiceSettings.ThreadAutoFollow = &autoFollowEnabled
 		})
 
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page 3", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page 3", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		comment := &model.Post{
@@ -121,7 +121,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 			cfg.ServiceSettings.ThreadAutoFollow = &autoFollowDisabled
 		})
 
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page 4", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page 4", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		comment := &model.Post{
@@ -159,7 +159,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 	})
 
 	t.Run("handles concurrent thread creation gracefully", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Concurrent Test Page", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Concurrent Test Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		comment := &model.Post{
@@ -205,7 +205,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 	})
 
 	t.Run("creates thread for inline comment and verifies reply structure", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Reply Test Page", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Reply Test Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		inlineAnchor := map[string]any{
@@ -236,7 +236,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 	})
 
 	t.Run("verifies thread entry is created with correct channel and team", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Verify Channel Team", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Verify Channel Team", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		comment := &model.Post{
@@ -269,7 +269,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 	})
 
 	t.Run("thread entry includes correct participants for inline comment", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Participants Test", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Participants Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		inlineAnchor := map[string]any{
@@ -289,7 +289,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 	})
 
 	t.Run("thread LastReplyAt matches inline comment CreateAt", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "LastReplyAt Test", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "LastReplyAt Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		inlineAnchor := map[string]any{
@@ -313,7 +313,7 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 	th.SetupPagePermissions()
 
 	t.Run("successfully creates thread entry with all required fields", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Thread Entry Test", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Thread Entry Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		comment := &model.Post{
@@ -345,7 +345,7 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 	})
 
 	t.Run("handles multiple comments creating separate threads", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Multiple Threads Test", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Multiple Threads Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		comment1 := &model.Post{
@@ -392,7 +392,7 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 	})
 
 	t.Run("thread entry created for different users", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Multi-User Thread Test", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Multi-User Thread Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		user2 := th.CreateUser(t)
@@ -424,7 +424,7 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 	})
 
 	t.Run("handles duplicate thread creation attempt gracefully (idempotent)", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Duplicate Thread Test", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Duplicate Thread Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		comment := &model.Post{
@@ -462,7 +462,7 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 	})
 
 	t.Run("thread entry TeamId matches channel TeamId", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "TeamId Test", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "TeamId Test", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		comment := &model.Post{
@@ -498,12 +498,20 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 		_, addErr := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
 		require.Nil(t, addErr)
 
-		page, err := th.App.CreatePage(th.Context, privateChannel.Id, "Private Page", "", "", th.BasicUser.Id, "", "")
+		privateWiki, err := th.App.CreateWiki(th.Context, &model.Wiki{
+			Title: "Private Wiki",
+		}, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		wikiChannel, err := th.App.GetWikiBackingChannel(th.Context, privateWiki.ChannelId)
+		require.Nil(t, err)
+
+		page, err := th.App.CreatePage(th.Context, privateWiki.ChannelId, "Private Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		comment := &model.Post{
 			Id:        model.NewId(),
-			ChannelId: privateChannel.Id,
+			ChannelId: privateWiki.ChannelId,
 			UserId:    th.BasicUser.Id,
 			RootId:    page.Id,
 			Message:   "Comment in private channel",
@@ -514,13 +522,13 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 			},
 		}
 
-		appErr := th.App.createThreadEntryForPageComment(th.Context, comment, privateChannel)
+		appErr := th.App.createThreadEntryForPageComment(th.Context, comment, wikiChannel)
 		require.Nil(t, appErr)
 
 		thread, threadErr := th.App.Srv().Store().Thread().Get(comment.Id)
 		require.NoError(t, threadErr)
 		require.NotNil(t, thread)
-		require.Equal(t, privateChannel.Id, thread.ChannelId)
-		require.Equal(t, privateChannel.TeamId, thread.TeamId)
+		require.Equal(t, privateWiki.ChannelId, thread.ChannelId)
+		require.Equal(t, wikiChannel.TeamId, thread.TeamId)
 	})
 }

@@ -161,6 +161,10 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if channel.IsWikiBacking() {
+		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.wiki_type.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if channel.TeamId == "" {
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1283,7 +1287,7 @@ func buildChannelModerations(rctx request.CTX, channelType model.ChannelType, me
 			Enabled: higherScopedMemberPermissions[permissionKey],
 		}
 
-		if permissionKey == "manage_members" || permissionKey == "manage_bookmarks" || permissionKey == "manage_pages" {
+		if permissionKey == "manage_members" || permissionKey == "manage_bookmarks" {
 			roles.Guests = nil
 		} else {
 			roles.Guests = &model.ChannelModeratedRole{
@@ -1638,16 +1642,18 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 		return err
 	}
 
-	var archiveRejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		archiveRejectionReason = hooks.ChannelWillBeArchived(pluginContext, channel)
-		return archiveRejectionReason == ""
-	}, plugin.ChannelWillBeArchivedID)
+	if !channel.IsWikiBacking() {
+		var archiveRejectionReason string
+		pluginContext := pluginContext(rctx)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			archiveRejectionReason = hooks.ChannelWillBeArchived(pluginContext, channel)
+			return archiveRejectionReason == ""
+		}, plugin.ChannelWillBeArchivedID)
 
-	if archiveRejectionReason != "" {
-		return model.NewAppError("DeleteChannel", "app.channel.delete_channel.rejected_by_plugin",
-			map[string]any{"Reason": archiveRejectionReason}, "", http.StatusBadRequest)
+		if archiveRejectionReason != "" {
+			return model.NewAppError("DeleteChannel", "app.channel.delete_channel.rejected_by_plugin",
+				map[string]any{"Reason": archiveRejectionReason}, "", http.StatusBadRequest)
+		}
 	}
 
 	deleteAt := model.GetMillis()
@@ -1733,7 +1739,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 }
 
 func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate {
+	if channel.IsWikiBacking() || (channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate) {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1802,29 +1808,36 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 		}
 	}
 
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		updatedMember, reason := hooks.ChannelMemberWillBeAdded(pluginContext, newMember)
-		if reason != "" {
-			rejectionReason = reason
-			return false
-		}
-		if updatedMember != nil {
-			newMember = updatedMember
-		}
-		return true
-	}, plugin.ChannelMemberWillBeAddedID)
+	if !channel.IsWikiBacking() {
+		var rejectionReason string
+		pluginContext := pluginContext(rctx)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			updatedMember, reason := hooks.ChannelMemberWillBeAdded(pluginContext, newMember)
+			if reason != "" {
+				rejectionReason = reason
+				return false
+			}
+			if updatedMember != nil {
+				newMember = updatedMember
+			}
+			return true
+		}, plugin.ChannelMemberWillBeAddedID)
 
-	if rejectionReason != "" {
-		return nil, model.NewAppError("AddUserToChannel", "app.channel.add_user.to.channel.rejected_by_plugin",
-			map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
+		if rejectionReason != "" {
+			return nil, model.NewAppError("AddUserToChannel", "app.channel.add_user.to.channel.rejected_by_plugin",
+				map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
+		}
 	}
 
-	newMember, nErr = a.Srv().Store().Channel().SaveMember(rctx, newMember)
+	var linkedDestinations []string
+	newMember, linkedDestinations, nErr = a.Srv().Store().Channel().SaveMemberAndPropagateLinked(rctx, newMember)
 	if nErr != nil {
+		var cErr *store.ErrConflict
+		if errors.As(nErr, &cErr) {
+			return nil, model.NewAppError("AddUserToChannel", "app.channel.save_member.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+		}
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-			fmt.Sprintf("failed to add member: %v, user_id: %s, channel_id: %s", nErr, user.Id, channel.Id), http.StatusInternalServerError)
+			fmt.Sprintf("user_id: %s, channel_id: %s", user.Id, channel.Id), http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if nErr := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); nErr != nil {
@@ -2132,6 +2145,21 @@ func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel,
 	return channel, nil
 }
 
+func (a *App) GetWikiBackingChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
+	channel, err := a.Srv().Store().Channel().GetWikiBackingChannel(channelID)
+	if err != nil {
+		errCtx := map[string]any{"channel_id": channelID}
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetWikiBackingChannel", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetWikiBackingChannel", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return channel, nil
+}
+
 func (a *App) GetChannels(rctx request.CTX, channelIDs []string) ([]*model.Channel, *model.AppError) {
 	channels, err := a.Srv().Store().Channel().GetMany(channelIDs, true)
 	if err != nil {
@@ -2142,6 +2170,38 @@ func (a *App) GetChannels(rctx request.CTX, channelIDs []string) ([]*model.Chann
 			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return channels, nil
+}
+
+// GetChannelIncludingWiki resolves a channel by ID without excluding wiki backing
+// channels (type 'W'). Use this in post-lifecycle paths — DeletePost,
+// CleanUpAfterPostDeletion, GetPostIfAuthorized, etc. — where the channel ID
+// comes from the post itself and may legitimately be a wiki backing channel
+// (page comments live in those). User-facing channel endpoints should keep
+// using GetChannel so the wiki-channel exclusion stays enforced at the boundary.
+func (a *App) GetChannelIncludingWiki(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
+	channels, appErr := a.GetChannelsIncludingWiki(rctx, []string{channelID})
+	if appErr != nil {
+		return nil, appErr
+	}
+	return channels[0], nil
+}
+
+// GetChannelsIncludingWiki resolves channels by ID without excluding wiki backing channels.
+// Use this only for permission-filter paths that must evaluate wiki-backed Posts (e.g. post search).
+// Most callers should use GetChannels.
+func (a *App) GetChannelsIncludingWiki(rctx request.CTX, channelIDs []string) ([]*model.Channel, *model.AppError) {
+	channels, err := a.Srv().Store().Channel().GetManyIncludingWiki(channelIDs, true)
+	if err != nil {
+		errCtx := map[string]any{"channel_id": channelIDs}
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannelsIncludingWiki", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetChannelsIncludingWiki", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return channels, nil

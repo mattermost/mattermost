@@ -18,18 +18,18 @@ func TestCreatePageWithContent(t *testing.T) {
 	th.SetupPagePermissions()
 
 	t.Run("creates page with empty content", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
 		require.Equal(t, model.PostTypePage, page.Type)
-		require.Equal(t, th.BasicChannel.Id, page.ChannelId)
+		require.Equal(t, th.BasicWiki.ChannelId, page.ChannelId)
 		require.Equal(t, "Test Page", page.Props["title"])
 		require.NotEmpty(t, page.Id)
 	})
 
 	t.Run("creates page with JSON content", func(t *testing.T) {
 		validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content"}]}]}`
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", validContent, th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", validContent, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
@@ -37,10 +37,10 @@ func TestCreatePageWithContent(t *testing.T) {
 	})
 
 	t.Run("creates child page with parent", func(t *testing.T) {
-		parentPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent Page", "", "", th.BasicUser.Id, "", "")
+		parentPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Parent Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		childPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child Page", parentPage.Id, "", th.BasicUser.Id, "", "")
+		childPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child Page", parentPage.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, childPage)
 		require.Equal(t, parentPage.Id, childPage.PageParentId)
@@ -48,7 +48,7 @@ func TestCreatePageWithContent(t *testing.T) {
 
 	t.Run("fails with invalid JSON content", func(t *testing.T) {
 		invalidContent := `{"invalid json`
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", invalidContent, th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", invalidContent, th.BasicUser.Id, "", "")
 		require.NotNil(t, err)
 		require.Nil(t, page)
 		require.Equal(t, "app.page.create.invalid_content.app_error", err.Id)
@@ -62,7 +62,7 @@ func TestCreatePageWithContent(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, postErr)
 
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", regularPost.Id, "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", regularPost.Id, "", th.BasicUser.Id, "", "")
 		require.NotNil(t, err)
 		require.Nil(t, page)
 		require.Equal(t, "app.page.create.invalid_parent.app_error", err.Id)
@@ -80,10 +80,13 @@ func TestCreatePageWithContent(t *testing.T) {
 		_, addErr := th.App.AddUserToChannel(th.Context, th.BasicUser, otherChannel, false)
 		require.Nil(t, addErr)
 
-		parentPageInOtherChannel, parentErr := th.App.CreatePage(th.Context, otherChannel.Id, "Parent in Other Channel", "", "", th.BasicUser.Id, "", "")
+		otherWiki, wikiErr := th.App.CreateWiki(th.Context, &model.Wiki{TeamId: otherChannel.TeamId, Title: "Other Wiki"}, th.BasicUser.Id)
+		require.Nil(t, wikiErr)
+
+		parentPageInOtherChannel, parentErr := th.App.CreatePage(th.Context, otherWiki.ChannelId, "Parent in Other Channel", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, parentErr)
 
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child Page", parentPageInOtherChannel.Id, "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child Page", parentPageInOtherChannel.Id, "", th.BasicUser.Id, "", "")
 		require.NotNil(t, err)
 		require.Nil(t, page)
 		require.Equal(t, "app.page.create.parent_different_channel.app_error", err.Id)
@@ -92,21 +95,21 @@ func TestCreatePageWithContent(t *testing.T) {
 	t.Run("sanitizes unicode in page title", func(t *testing.T) {
 		// Title with BIDI control characters that should be stripped
 		titleWithBIDI := "Test\u202APage\u202BTitle"
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, titleWithBIDI, "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, titleWithBIDI, "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
 		require.Equal(t, "TestPageTitle", page.Props["title"], "BIDI characters should be stripped from title")
 	})
 
 	t.Run("fails with empty title", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "", "", "", th.BasicUser.Id, "", "")
 		require.NotNil(t, err)
 		require.Nil(t, page)
 		require.Equal(t, "app.page.create.missing_title.app_error", err.Id)
 	})
 
 	t.Run("fails with whitespace only title", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "   ", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "   ", "", "", th.BasicUser.Id, "", "")
 		require.NotNil(t, err)
 		require.Nil(t, page)
 		require.Equal(t, "app.page.create.missing_title.app_error", err.Id)
@@ -114,7 +117,7 @@ func TestCreatePageWithContent(t *testing.T) {
 
 	t.Run("fails with title too long", func(t *testing.T) {
 		longTitle := strings.Repeat("a", model.MaxPageTitleLength+1)
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, longTitle, "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, longTitle, "", "", th.BasicUser.Id, "", "")
 		require.NotNil(t, err)
 		require.Nil(t, page)
 		require.Equal(t, "app.page.create.title_too_long.app_error", err.Id)
@@ -127,7 +130,7 @@ func TestCreatePageWithContent(t *testing.T) {
 	})
 
 	t.Run("fails with deleted channel", func(t *testing.T) {
-		deletedChannel, chanErr := th.App.CreateChannel(th.Context, &model.Channel{
+		sourceChannel, chanErr := th.App.CreateChannel(th.Context, &model.Channel{
 			TeamId:      th.BasicTeam.Id,
 			Name:        "deleted-channel-test",
 			DisplayName: "Deleted Channel Test",
@@ -135,10 +138,16 @@ func TestCreatePageWithContent(t *testing.T) {
 		}, false)
 		require.Nil(t, chanErr)
 
-		deleteErr := th.App.DeleteChannel(th.Context, deletedChannel, th.BasicUser.Id)
+		deletedWiki, wikiErr := th.App.CreateWiki(th.Context, &model.Wiki{TeamId: sourceChannel.TeamId, Title: "Deleted Wiki"}, th.BasicUser.Id)
+		require.Nil(t, wikiErr)
+
+		backingChannel, chErr := th.App.GetWikiBackingChannel(th.Context, deletedWiki.ChannelId)
+		require.Nil(t, chErr)
+
+		deleteErr := th.App.DeleteChannel(th.Context, backingChannel, th.BasicUser.Id)
 		require.Nil(t, deleteErr)
 
-		page, err := th.App.CreatePage(th.Context, deletedChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, deletedWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 		require.NotNil(t, err)
 		require.Nil(t, page)
 		require.Equal(t, "app.page.create.deleted_channel.app_error", err.Id)
@@ -146,7 +155,7 @@ func TestCreatePageWithContent(t *testing.T) {
 
 	t.Run("creates page with custom ID", func(t *testing.T) {
 		customId := model.NewId()
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Custom ID Page", "", "", th.BasicUser.Id, "", customId)
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Custom ID Page", "", "", th.BasicUser.Id, "", customId)
 		require.Nil(t, err)
 		require.NotNil(t, page)
 		require.Equal(t, customId, page.Id)
@@ -154,7 +163,7 @@ func TestCreatePageWithContent(t *testing.T) {
 
 	t.Run("converts markdown content to TipTap", func(t *testing.T) {
 		markdownContent := "# Hello\n\nThis is **bold** text."
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Markdown Page", "", markdownContent, th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Markdown Page", "", markdownContent, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
@@ -175,7 +184,7 @@ func TestCreatePageWithContent(t *testing.T) {
 
 	t.Run("converts bullet list markdown to TipTap", func(t *testing.T) {
 		markdownContent := "- item one\n- item two"
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "List Page", "", markdownContent, th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "List Page", "", markdownContent, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
@@ -200,7 +209,7 @@ func TestCreatePageWithContent(t *testing.T) {
 
 	t.Run("converts fenced code block markdown to TipTap", func(t *testing.T) {
 		markdownContent := "```go\nfmt.Println(\"hello\")\n```"
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Code Page", "", markdownContent, th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Code Page", "", markdownContent, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
@@ -221,7 +230,7 @@ func TestCreatePageWithContent(t *testing.T) {
 
 	t.Run("plain text without markdown is wrapped in paragraphs", func(t *testing.T) {
 		plainContent := "This is plain text"
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Plain Page", "", plainContent, th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Plain Page", "", plainContent, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
@@ -246,7 +255,7 @@ func TestGetPageWithContent(t *testing.T) {
 
 	t.Run("successfully retrieves page with content", func(t *testing.T) {
 		validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content"}]}]}`
-		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", validContent, th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", validContent, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		retrievedPage, err := th.App.GetPageWithContent(sessionCtx, createdPage.Id)
@@ -273,7 +282,7 @@ func TestGetPageWithContent(t *testing.T) {
 		page, err := th.App.GetPageWithContent(sessionCtx, regularPost.Id)
 		require.NotNil(t, err)
 		require.Nil(t, page)
-		require.Equal(t, "app.page.get.not_a_page.app_error", err.Id)
+		require.Equal(t, "app.page.get.not_found.app_error", err.Id)
 	})
 }
 
@@ -284,7 +293,7 @@ func TestUpdatePage(t *testing.T) {
 	sessionCtx := th.CreateSessionContext()
 
 	t.Run("successfully updates page title and content", func(t *testing.T) {
-		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Original Title", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
@@ -299,7 +308,7 @@ func TestUpdatePage(t *testing.T) {
 	})
 
 	t.Run("fails with invalid JSON content", func(t *testing.T) {
-		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
@@ -319,7 +328,7 @@ func TestUpdatePage(t *testing.T) {
 	})
 
 	t.Run("sanitizes unicode in updated page title", func(t *testing.T) {
-		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", "", th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Original Title", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
@@ -341,7 +350,7 @@ func TestDeletePage(t *testing.T) {
 	sessionCtx := th.CreateSessionContext()
 
 	t.Run("successfully deletes page and its content", func(t *testing.T) {
-		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", `{"type":"doc","content":[{"type":"paragraph"}]}`, th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", `{"type":"doc","content":[{"type":"paragraph"}]}`, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
@@ -363,16 +372,16 @@ func TestDeletePage(t *testing.T) {
 	})
 
 	t.Run("deleting root page reparents children to become root pages", func(t *testing.T) {
-		parent, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent Page", "", "", th.BasicUser.Id, "", "")
+		parent, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Parent Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		child1, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child 1", parent.Id, "", th.BasicUser.Id, "", "")
+		child1, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child 1", parent.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		child2, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child 2", parent.Id, "", th.BasicUser.Id, "", "")
+		child2, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child 2", parent.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		grandchild, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Grandchild", child1.Id, "", th.BasicUser.Id, "", "")
+		grandchild, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Grandchild", child1.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		parentPage, err := th.App.GetPage(sessionCtx, parent.Id)
@@ -394,13 +403,13 @@ func TestDeletePage(t *testing.T) {
 	})
 
 	t.Run("deleting middle page reparents direct children to grandparent", func(t *testing.T) {
-		root, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Root", "", "", th.BasicUser.Id, "", "")
+		root, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Root", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		middle, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Middle", root.Id, "", th.BasicUser.Id, "", "")
+		middle, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Middle", root.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		leaf, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Leaf", middle.Id, "", th.BasicUser.Id, "", "")
+		leaf, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Leaf", middle.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		middlePage, err := th.App.GetPage(sessionCtx, middle.Id)
@@ -418,10 +427,10 @@ func TestDeletePage(t *testing.T) {
 	})
 
 	t.Run("GetPageChildren fails for deleted parent", func(t *testing.T) {
-		parent, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent to Delete", "", "", th.BasicUser.Id, "", "")
+		parent, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Parent to Delete", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		child, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child", parent.Id, "", th.BasicUser.Id, "", "")
+		child, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child", parent.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		parentPage, err := th.App.GetPage(sessionCtx, parent.Id)
@@ -439,7 +448,7 @@ func TestDeletePage(t *testing.T) {
 
 	t.Run("deleting page cleans up thread entries for inline page comments", func(t *testing.T) {
 		// Create a page
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page with Comments", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Page with Comments", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		// Create an INLINE comment on the page (with anchor - this creates a Thread entry)
@@ -495,7 +504,7 @@ func TestRestorePage(t *testing.T) {
 
 	t.Run("successfully restores deleted page with content", func(t *testing.T) {
 		contentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content that should be preserved"}]}]}`
-		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", contentJSON, th.BasicUser.Id, "searchable text", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", contentJSON, th.BasicUser.Id, "searchable text", "")
 		require.Nil(t, err)
 
 		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
@@ -527,7 +536,7 @@ func TestRestorePage(t *testing.T) {
 	})
 
 	t.Run("fails to restore already active page", func(t *testing.T) {
-		activePage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Active Page", "", "", th.BasicUser.Id, "", "")
+		activePage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Active Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		page, err := th.App.GetPage(sessionCtx, activePage.Id)
@@ -545,7 +554,7 @@ func TestPermanentDeletePage(t *testing.T) {
 
 	t.Run("permanently deletes page and content", func(t *testing.T) {
 		contentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Content to be permanently deleted"}]}]}`
-		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page to Purge", "", contentJSON, th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Page to Purge", "", contentJSON, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		page, err := th.App.GetPage(sessionCtx, createdPage.Id)
@@ -577,13 +586,13 @@ func TestGetPageChildren(t *testing.T) {
 	sessionCtx := th.CreateSessionContext()
 
 	t.Run("retrieves all child pages", func(t *testing.T) {
-		parentPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent Page", "", "", th.BasicUser.Id, "", "")
+		parentPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Parent Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		child1, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child 1", parentPage.Id, "", th.BasicUser.Id, "", "")
+		child1, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child 1", parentPage.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		child2, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child 2", parentPage.Id, "", th.BasicUser.Id, "", "")
+		child2, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child 2", parentPage.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		children, err := th.App.GetPageChildren(sessionCtx, parentPage.Id, model.GetPostsOptions{})
@@ -595,7 +604,7 @@ func TestGetPageChildren(t *testing.T) {
 	})
 
 	t.Run("returns empty list for page with no children", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page No Children", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Page No Children", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		children, err := th.App.GetPageChildren(sessionCtx, page.Id, model.GetPostsOptions{})
@@ -612,13 +621,13 @@ func TestGetPageAncestors(t *testing.T) {
 	sessionCtx := th.CreateSessionContext()
 
 	t.Run("retrieves all ancestors in order", func(t *testing.T) {
-		grandparent, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Grandparent", "", "", th.BasicUser.Id, "", "")
+		grandparent, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Grandparent", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		parent, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent", grandparent.Id, "", th.BasicUser.Id, "", "")
+		parent, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Parent", grandparent.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		child, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child", parent.Id, "", th.BasicUser.Id, "", "")
+		child, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child", parent.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		ancestors, err := th.App.GetPageAncestors(sessionCtx, child.Id)
@@ -630,7 +639,7 @@ func TestGetPageAncestors(t *testing.T) {
 	})
 
 	t.Run("returns empty list for root page", func(t *testing.T) {
-		rootPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Root Page", "", "", th.BasicUser.Id, "", "")
+		rootPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Root Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		ancestors, err := th.App.GetPageAncestors(sessionCtx, rootPage.Id)
@@ -647,16 +656,16 @@ func TestGetPageDescendants(t *testing.T) {
 	sessionCtx := th.CreateSessionContext()
 
 	t.Run("retrieves all descendants recursively", func(t *testing.T) {
-		root, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Root", "", "", th.BasicUser.Id, "", "")
+		root, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Root", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		child1, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child 1", root.Id, "", th.BasicUser.Id, "", "")
+		child1, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child 1", root.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		child2, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child 2", root.Id, "", th.BasicUser.Id, "", "")
+		child2, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child 2", root.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		grandchild, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Grandchild", child1.Id, "", th.BasicUser.Id, "", "")
+		grandchild, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Grandchild", child1.Id, "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		descendants, err := th.App.GetPageDescendants(sessionCtx, root.Id)
@@ -676,13 +685,13 @@ func TestGetChannelPages(t *testing.T) {
 	sessionCtx := th.CreateSessionContext()
 
 	t.Run("retrieves all pages in channel", func(t *testing.T) {
-		page1, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page 1", "", "", th.BasicUser.Id, "", "")
+		page1, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Page 1", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		page2, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page 2", "", "", th.BasicUser.Id, "", "")
+		page2, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Page 2", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		pages, err := th.App.GetChannelPages(sessionCtx, th.BasicChannel.Id, 0, 0)
+		pages, err := th.App.GetChannelPages(sessionCtx, th.BasicWiki.ChannelId, 0, 0)
 		require.Nil(t, err)
 		require.NotNil(t, pages)
 		require.GreaterOrEqual(t, len(pages.Posts), 2)
@@ -718,8 +727,7 @@ func TestMovePage(t *testing.T) {
 
 	// Create a wiki for the basic channel
 	wiki, wikiErr := th.App.CreateWiki(th.Context, &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}, th.BasicUser.Id)
 	require.Nil(t, wikiErr)
 
@@ -823,10 +831,10 @@ func TestMovePage(t *testing.T) {
 		_, addErr := th.App.AddUserToChannel(th.Context, th.BasicUser, otherChannel, false)
 		require.Nil(t, addErr)
 
-		// Create a wiki for the other channel
+		// Create a wiki in the same team as the other channel
 		otherWiki, otherWikiErr := th.App.CreateWiki(th.Context, &model.Wiki{
-			ChannelId: otherChannel.Id,
-			Title:     "Other Wiki",
+			TeamId: otherChannel.TeamId,
+			Title:  "Other Wiki",
 		}, th.BasicUser.Id)
 		require.Nil(t, otherWikiErr)
 
@@ -850,10 +858,10 @@ func TestMovePageWithReorder(t *testing.T) {
 
 	sessionCtx := th.CreateSessionContext()
 
-	// Create a wiki for the basic channel
+	// Create a wiki in the basic team
 	wiki, wikiErr := th.App.CreateWiki(th.Context, &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Reorder Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Reorder Test Wiki",
 	}, th.BasicUser.Id)
 	require.Nil(t, wikiErr)
 
@@ -1045,8 +1053,7 @@ func TestPageDepthLimit(t *testing.T) {
 
 	// Create a wiki for the basic channel
 	wiki, wikiErr := th.App.CreateWiki(th.Context, &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}, th.BasicUser.Id)
 	require.Nil(t, wikiErr)
 
@@ -1526,7 +1533,7 @@ func TestCreatePageComment(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 	require.NotNil(t, page)
 
@@ -1550,7 +1557,7 @@ func TestCreatePageComment(t *testing.T) {
 		comment, appErr := th.App.CreatePageComment(rctx, "invalid_page_id", "Comment on non-existent page", nil, "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, comment)
-		require.Equal(t, "app.page.create_comment.page_not_found.app_error", appErr.Id)
+		require.Equal(t, "app.page.get.not_found.app_error", appErr.Id)
 	})
 
 	t.Run("fails when root post is not a page", func(t *testing.T) {
@@ -1564,7 +1571,7 @@ func TestCreatePageComment(t *testing.T) {
 		comment, appErr := th.App.CreatePageComment(rctx, regularPost.Id, "Comment on regular post", nil, "", nil, nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, comment)
-		require.Equal(t, "app.page.create_comment.not_a_page.app_error", appErr.Id)
+		require.Equal(t, "app.page.get.not_found.app_error", appErr.Id)
 	})
 
 	t.Run("creates multiple comments on same page", func(t *testing.T) {
@@ -1612,7 +1619,7 @@ func TestCreatePageCommentReply(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 
 	topLevelComment, appErr := th.App.CreatePageComment(rctx, page.Id, "Top-level comment", nil, "", nil, nil)
@@ -1700,7 +1707,7 @@ func TestCreatePageCommentReply(t *testing.T) {
 	})
 
 	t.Run("fails when parent comment belongs to different page", func(t *testing.T) {
-		otherPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Other Page", "", "", th.BasicUser.Id, "", "")
+		otherPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Other Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		reply, appErr := th.App.CreatePageCommentReply(rctx, otherPage.Id, topLevelComment.Id, "Reply with wrong page", "", nil, nil)
@@ -1716,7 +1723,7 @@ func TestGetPageStatus(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 	require.NotNil(t, createdPage)
 
@@ -1759,7 +1766,7 @@ func TestGetPageStatus(t *testing.T) {
 		// With type-safe Page wrapper, non-page posts are caught at GetPage
 		_, appErr := th.App.GetPage(rctx, regularPost.Id)
 		require.NotNil(t, appErr)
-		require.Contains(t, appErr.Id, "not_a_page")
+		require.Contains(t, appErr.Id, "not_found")
 	})
 }
 
@@ -1769,7 +1776,7 @@ func TestSetPageStatus(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 
 	t.Run("successfully sets page status", func(t *testing.T) {
@@ -1843,7 +1850,7 @@ func TestSetPageStatus(t *testing.T) {
 		// With type-safe Page wrapper, non-page posts are caught at GetPage
 		_, appErr := th.App.GetPage(rctx, regularPost.Id)
 		require.NotNil(t, appErr)
-		require.Contains(t, appErr.Id, "not_a_page")
+		require.Contains(t, appErr.Id, "not_found")
 	})
 }
 
@@ -1908,9 +1915,9 @@ func TestPageMentionSystemMessages(t *testing.T) {
 	th.AddUserToChannel(t, user3, th.BasicChannel)
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
 		Title:       "Test Wiki",
 		Description: "Test wiki for mentions",
+		TeamId:      th.BasicTeam.Id,
 	}
 	createdWiki, wikiErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, wikiErr)
@@ -1926,7 +1933,7 @@ func TestPageMentionSystemMessages(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
-		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: th.BasicChannel.Id, Time: 0}, true, map[string]bool{})
+		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: createdWiki.ChannelId, Time: 0}, true, map[string]bool{})
 		require.NoError(t, searchErr)
 
 		var mentionMessage *model.Post
@@ -1939,7 +1946,7 @@ func TestPageMentionSystemMessages(t *testing.T) {
 
 		require.NotNil(t, mentionMessage, "System message should be created")
 		require.Equal(t, model.PostTypePageMention, mentionMessage.Type)
-		require.Equal(t, th.BasicChannel.Id, mentionMessage.ChannelId)
+		require.Equal(t, createdWiki.ChannelId, mentionMessage.ChannelId)
 		require.Equal(t, th.BasicUser.Id, mentionMessage.UserId)
 		require.Contains(t, mentionMessage.Message, user2.Username)
 		require.Contains(t, mentionMessage.Message, "Test Page")
@@ -1988,7 +1995,7 @@ func TestPageMentionSystemMessages(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
-		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: th.BasicChannel.Id, Time: 0}, true, map[string]bool{})
+		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: createdWiki.ChannelId, Time: 0}, true, map[string]bool{})
 		require.NoError(t, searchErr)
 
 		systemMessagesForPage := []*model.Post{}
@@ -2033,7 +2040,7 @@ func TestPageMentionSystemMessages(t *testing.T) {
 		_, updatePageErr := th.App.UpdatePage(rctx, page, "Update Test Page", updatedContent, "", nil)
 		require.Nil(t, updatePageErr)
 
-		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: th.BasicChannel.Id, Time: 0}, true, map[string]bool{})
+		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: createdWiki.ChannelId, Time: 0}, true, map[string]bool{})
 		require.NoError(t, searchErr)
 
 		var mentionMessage *model.Post
@@ -2061,7 +2068,7 @@ func TestPageVersionHistory(t *testing.T) {
 
 	t.Run("content versioned on edit", func(t *testing.T) {
 		// Create page
-		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Version Test", "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 1"}]}]}`, th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Version Test", "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 1"}]}]}`, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, createdPage)
 
@@ -2093,7 +2100,7 @@ func TestPageVersionHistory(t *testing.T) {
 
 	t.Run("Non-author can view page history", func(t *testing.T) {
 		// Create page as BasicUser
-		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Shared Page", "", `{"type":"doc","content":[]}`, th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Shared Page", "", `{"type":"doc","content":[]}`, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		// Edit as BasicUser
@@ -2108,7 +2115,7 @@ func TestPageVersionHistory(t *testing.T) {
 
 	t.Run("Restore page version restores both content and title", func(t *testing.T) {
 		// Create page
-		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original Content"}]}]}`, th.BasicUser.Id, "", "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Original Title", "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original Content"}]}]}`, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		// Edit page (change both title and content)
@@ -2153,7 +2160,7 @@ func TestUpdatePageWithOptimisticLocking_Success(t *testing.T) {
 	sessionCtx := th.CreateSessionContext()
 
 	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
-	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", validContent, th.BasicUser.Id, "", "")
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Original Title", "", validContent, th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 	require.NotNil(t, createdPage)
 
@@ -2180,7 +2187,7 @@ func TestUpdatePageWithOptimisticLocking_Conflict(t *testing.T) {
 	sessionCtx := th.CreateSessionContext()
 
 	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
-	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", validContent, th.BasicUser.Id, "", "")
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Original Title", "", validContent, th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 	require.NotNil(t, createdPage)
 
@@ -2224,7 +2231,7 @@ func TestUpdatePageWithOptimisticLocking_DeletedPage(t *testing.T) {
 	sessionCtx := th.CreateSessionContext()
 
 	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
-	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", validContent, th.BasicUser.Id, "", "")
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Original Title", "", validContent, th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 	require.NotNil(t, createdPage)
 
@@ -2234,7 +2241,7 @@ func TestUpdatePageWithOptimisticLocking_DeletedPage(t *testing.T) {
 	page, appErr := th.App.GetPage(sessionCtx, createdPage.Id)
 	require.Nil(t, appErr)
 
-	_, deleteErr := th.App.DeletePost(th.Context, createdPage.Id, th.BasicUser.Id)
+	deleteErr := th.App.DeletePage(sessionCtx, page, th.BasicWiki.Id)
 	require.Nil(t, deleteErr)
 
 	// Try to update with the page reference from before deletion
@@ -2264,7 +2271,7 @@ func TestUpdatePageWithOptimisticLocking_ErrorDetailsIncludeModifier(t *testing.
 	user2Session := th.Context.WithSession(session2)
 
 	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
-	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", validContent, th.BasicUser.Id, "", "")
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Original Title", "", validContent, th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 	require.NotNil(t, createdPage)
 
@@ -2358,14 +2365,14 @@ func TestCreatePageContentValidation(t *testing.T) {
 
 	t.Run("accepts valid TipTap JSON", func(t *testing.T) {
 		validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Valid content"}]}]}`
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test", "", validContent, th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test", "", validContent, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
 	})
 
 	t.Run("rejects malformed JSON starting with {", func(t *testing.T) {
 		invalidJSON := `{"invalid json without closing`
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test", "", invalidJSON, th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test", "", invalidJSON, th.BasicUser.Id, "", "")
 		require.NotNil(t, err)
 		require.Nil(t, page)
 		require.Equal(t, "app.page.create.invalid_content.app_error", err.Id)
@@ -2373,7 +2380,7 @@ func TestCreatePageContentValidation(t *testing.T) {
 
 	t.Run("rejects valid JSON without type doc", func(t *testing.T) {
 		wrongTypeJSON := `{"type":"paragraph","content":[]}`
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test", "", wrongTypeJSON, th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test", "", wrongTypeJSON, th.BasicUser.Id, "", "")
 		require.NotNil(t, err)
 		require.Nil(t, page)
 		require.Equal(t, "app.page.create.invalid_content.app_error", err.Id)
@@ -2381,7 +2388,7 @@ func TestCreatePageContentValidation(t *testing.T) {
 
 	t.Run("auto-converts plain text to TipTap JSON", func(t *testing.T) {
 		plainText := "This is plain text that should be converted"
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test", "", plainText, th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test", "", plainText, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
@@ -2444,7 +2451,7 @@ func TestCreatePageAttachesFiles(t *testing.T) {
 
 		// Create page with content referencing the file
 		content := `{"type":"doc","content":[{"type":"image","attrs":{"src":"/api/v4/files/` + fileInfo.Id + `"}}]}`
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page with Image", "", content, th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Page with Image", "", content, th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
@@ -2464,7 +2471,7 @@ func TestUpdatePageAttachesFiles(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 
 		// Create a page without files
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		// Create a file with empty PostId
@@ -2493,7 +2500,7 @@ func TestUpdatePageWithOptimisticLockingAttachesFiles(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 
 		// Create a page without files
-		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		// Create a file with empty PostId

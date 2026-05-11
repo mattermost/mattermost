@@ -1151,20 +1151,13 @@ func (s *SqlThreadStore) UpdateTeamIdForChannelThreads(channelId, teamId string)
 }
 
 func (s *SqlThreadStore) CreateThreadForPageComment(thread *model.Thread) error {
-	existingThread, err := s.Get(thread.PostId)
-	if err == nil && existingThread != nil {
-		return nil
+	query := s.getQueryBuilder().
+		Insert("Threads").
+		Columns("PostId", "ChannelId", "ReplyCount", "LastReplyAt", "Participants", "ThreadTeamId").
+		Values(thread.PostId, thread.ChannelId, thread.ReplyCount, thread.LastReplyAt, thread.Participants, thread.TeamId).
+		Suffix("ON CONFLICT (PostId) DO NOTHING")
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to insert thread entry for page comment")
 	}
-
-	query := `INSERT INTO Threads
-		(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
-		VALUES
-		(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :TeamId)`
-
-	_, execErr := s.GetMaster().NamedExec(query, thread)
-	if execErr != nil {
-		return errors.Wrap(execErr, "failed to insert thread entry for page comment")
-	}
-
 	return nil
 }

@@ -168,6 +168,9 @@ func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channel *mo
 	wikiId, _ := page.Props[model.PagePropsWikiID].(string)
 	a.sendPageMentionNotifications(rctx, page, channel, authorUserID, newMentions, content, wikiId)
 
+	// Best-effort TOCTOU: two concurrent edits can each read the same notified_mentions
+	// set and clobber the other's update. A full fix requires an atomic read-modify-write
+	// at the store level; the duplicate-notification risk is accepted for now.
 	updatedPage := page.Clone()
 	a.SetNotifiedMentions(updatedPage, currentMentions)
 
@@ -175,6 +178,8 @@ func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channel *mo
 		rctx.Logger().Warn("Failed to update page props with notified mentions",
 			mlog.String("page_id", page.Id),
 			mlog.Err(updateErr))
+	} else {
+		a.invalidateCacheForChannelPosts(page.ChannelId)
 	}
 }
 
@@ -288,7 +293,7 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 			mlog.String("context", mentionContext),
 			mlog.Int("context_length", len(mentionContext)))
 
-		pageURL := model.BuildPageUrl(team.Name, channel.Id, wikiId, page.Id)
+		pageURL := model.BuildPageUrl(team.Name, wikiId, page.Id)
 		postMessage := fmt.Sprintf("Mentioned @%s on the page: [%s](%s)\n\n%s",
 			mentionedUser.Username,
 			pageTitle,
@@ -301,12 +306,12 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 			Message:   postMessage,
 			Type:      model.PostTypePageMention,
 			Props: model.StringInterface{
-				"page_id":           page.Id,
-				"wiki_id":           wikiId,
-				"mentioned_user_id": mentionedUserID,
-				"username":          mentionedUser.Username,
-				"page_title":        pageTitle,
-				"mention_context":   mentionContext,
+				model.PagePropsPageID: page.Id,
+				model.PagePropsWikiID: wikiId,
+				"mentioned_user_id":   mentionedUserID,
+				"username":            mentionedUser.Username,
+				"page_title":          pageTitle,
+				"mention_context":     mentionContext,
 			},
 		}
 

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {FormattingAction} from './formatting_actions';
 
@@ -17,6 +18,7 @@ export interface SlashCommandMenuRef {
 }
 
 const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenuProps>((props, ref) => {
+    const {formatMessage} = useIntl();
     const [selectedIndex, setSelectedIndex] = useState(0);
     const selectedItemRef = useRef<HTMLButtonElement>(null);
 
@@ -75,16 +77,22 @@ const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenuProps>(
 
     if (props.items.length === 0) {
         return (
-            <div className='slash-command-menu'>
+            <div
+                className='slash-command-menu'
+                role='listbox'
+            >
                 <div className='slash-command-empty'>
-                    {'No results found'}
+                    {formatMessage({id: 'slash_command_menu.no_results', defaultMessage: 'No results found'})}
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='slash-command-menu'>
+        <div
+            className='slash-command-menu'
+            role='listbox'
+        >
             {props.items.map((item, index) => (
                 <button
                     key={item.id}
@@ -92,6 +100,8 @@ const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenuProps>(
                     className={`slash-command-item ${index === selectedIndex ? 'selected' : ''}`}
                     onClick={() => selectItem(index)}
                     type='button'
+                    role='option'
+                    aria-selected={index === selectedIndex}
                 >
                     <i className={`icon ${item.icon} slash-command-icon`}/>
                     <div className='slash-command-content'>

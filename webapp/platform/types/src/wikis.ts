@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from './channels';
 import type {IDMappedObjects} from './utilities';
 
 export type Wiki = {
     id: string;
-    channel_id: string;
+    team_id: string;
+    creator_id: string;
     title: string;
     description: string;
     icon: string;
@@ -38,7 +38,6 @@ export type BreadcrumbItem = {
     title: string;
     type: 'wiki' | 'page';
     path: string;
-    channel_id: string;
 };
 
 export type BreadcrumbPath = {

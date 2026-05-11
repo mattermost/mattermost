@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -45,7 +46,9 @@ const (
 
 type Wiki struct {
 	Id          string          `json:"id"`
-	ChannelId   string          `json:"channel_id"`
+	ChannelId   string          `json:"-"`
+	TeamId      string          `json:"team_id"`
+	CreatorId   string          `json:"creator_id"`
 	Title       string          `json:"title"`
 	Description string          `json:"description,omitempty"`
 	Icon        string          `json:"icon,omitempty"`
@@ -61,7 +64,7 @@ func (w *Wiki) PreSave() {
 		w.Id = NewId()
 	}
 
-	w.Title = SanitizeUnicode(w.Title)
+	w.Title = strings.TrimSpace(SanitizeUnicode(w.Title))
 	w.Description = SanitizeUnicode(w.Description)
 
 	if w.CreateAt == 0 {
@@ -76,7 +79,7 @@ func (w *Wiki) PreSave() {
 
 func (w *Wiki) PreUpdate() {
 	w.UpdateAt = GetMillis()
-	w.Title = SanitizeUnicode(w.Title)
+	w.Title = strings.TrimSpace(SanitizeUnicode(w.Title))
 	w.Description = SanitizeUnicode(w.Description)
 }
 
@@ -84,6 +87,8 @@ func (w *Wiki) Auditable() map[string]any {
 	return map[string]any{
 		"id":          w.Id,
 		"channel_id":  w.ChannelId,
+		"team_id":     w.TeamId,
+		"creator_id":  w.CreatorId,
 		"title":       w.Title,
 		"description": w.Description,
 		"icon":        w.Icon,
@@ -112,11 +117,21 @@ func (w *Wiki) IsValid() *AppError {
 		return NewAppError("Wiki.IsValid", "model.wiki.is_valid.update_at.app_error", nil, "id="+w.Id, http.StatusBadRequest)
 	}
 
-	if !IsValidId(w.ChannelId) {
+	// ChannelId is the backing channel id, assigned by the store during Create.
+	// It is empty on input to CreateWiki and populated on return.
+	if w.ChannelId != "" && !IsValidId(w.ChannelId) {
 		return NewAppError("Wiki.IsValid", "model.wiki.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(w.Title) == 0 {
+	if w.TeamId != "" && !IsValidId(w.TeamId) {
+		return NewAppError("Wiki.IsValid", "model.wiki.is_valid.team_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if w.CreatorId != "" && !IsValidId(w.CreatorId) {
+		return NewAppError("Wiki.IsValid", "model.wiki.is_valid.creator_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if strings.TrimSpace(w.Title) == "" {
 		return NewAppError("Wiki.IsValid", "model.wiki.is_valid.title.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -149,11 +164,10 @@ func WikiFromJSON(data []byte) (*Wiki, error) {
 
 // BreadcrumbItem represents a single item in the breadcrumb path
 type BreadcrumbItem struct {
-	Id        string `json:"id"`
-	Title     string `json:"title"`
-	Type      string `json:"type"` // "wiki", "page"
-	Path      string `json:"path"`
-	ChannelId string `json:"channel_id"`
+	Id    string `json:"id"`
+	Title string `json:"title"`
+	Type  string `json:"type"` // "wiki", "page"
+	Path  string `json:"path"`
 }
 
 // BreadcrumbPath represents the full breadcrumb navigation path
@@ -198,22 +212,21 @@ type WikiForExport struct {
 	ChannelName string `json:"channel_name" db:"ChannelName"`
 }
 
-// PageForExport contains page data with content and metadata for bulk export
-// Note: db tags use lowercase to match PostgreSQL's default behavior of lowercasing unquoted column names
+// PageForExport contains page data with content and metadata for bulk export.
+// db tags match the double-quoted SQL aliases in SqlWikiStore.GetPagesForExport.
 type PageForExport struct {
-	Id                   string `json:"id" db:"id"`
+	Id                   string `json:"id" db:"Id"`
 	TeamName             string `json:"team_name" db:"TeamName"`
 	ChannelName          string `json:"channel_name" db:"ChannelName"`
 	Username             string `json:"username" db:"Username"`
 	Title                string `json:"title" db:"Title"`
 	Content              string `json:"content" db:"Content"`
-	WikiId               string `json:"wiki_id" db:"WikiId"`
 	PageParentId         string `json:"page_parent_id,omitempty" db:"PageParentId"`
 	ParentImportSourceId string `json:"parent_import_source_id,omitempty" db:"ParentImportSourceId"`
-	Props                string `json:"props,omitempty" db:"props"`
-	CreateAt             int64  `json:"create_at" db:"createat"`
-	UpdateAt             int64  `json:"update_at" db:"updateat"`
-	FileIds              string `json:"file_ids,omitempty" db:"fileids"`
+	Props                string `json:"props,omitempty" db:"Props"`
+	CreateAt             int64  `json:"create_at" db:"CreateAt"`
+	UpdateAt             int64  `json:"update_at" db:"UpdateAt"`
+	FileIds              string `json:"file_ids,omitempty" db:"FileIds"`
 }
 
 // PageCommentForExport contains page comment data for bulk export

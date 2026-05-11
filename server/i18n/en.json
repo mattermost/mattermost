@@ -276,31 +276,7 @@
     "translation": "Failed to create the channel bookmark."
   },
   {
-    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
-    "translation": "User is not allowed to create a channel bookmark."
-  },
-  {
-    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
-    "translation": "Failed to create the channel bookmark."
-  },
-  {
-    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
-    "translation": "Failed to create the channel bookmark."
-  },
-  {
     "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
-    "translation": "Failed to delete the channel bookmark."
-  },
-  {
-    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
-    "translation": "Failed to delete the channel bookmark."
-  },
-  {
-    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
-    "translation": "Failed to delete the channel bookmark."
-  },
-  {
-    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
     "translation": "Failed to delete the channel bookmark."
   },
   {
@@ -308,31 +284,7 @@
     "translation": "Failed to update the channel bookmark."
   },
   {
-    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
-    "translation": "Failed to update the channel bookmark."
-  },
-  {
-    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
-    "translation": "Failed to update the channel bookmark."
-  },
-  {
-    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
-    "translation": "Failed to update the channel bookmark."
-  },
-  {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
-    "translation": "Failed to update the channel bookmark's sort order."
-  },
-  {
-    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
-    "translation": "Failed to update the channel bookmark's sort order."
-  },
-  {
-    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
-    "translation": "Failed to update the channel bookmark's sort order."
-  },
-  {
-    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
     "translation": "Failed to update the channel bookmark's sort order."
   },
   {
@@ -370,6 +322,10 @@
   {
     "id": "api.channel.create_channel.missing_team_id.error",
     "translation": "Missing team_id in request body"
+  },
+  {
+    "id": "api.channel.create_channel.wiki_type.app_error",
+    "translation": "Cannot create a channel with wiki type directly."
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -570,6 +526,10 @@
   {
     "id": "api.channel.remove_members.denied",
     "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_user.synthetic_member.app_error",
+    "translation": "Synthetic memberships cannot be removed directly. Leave the source channel instead."
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
@@ -2809,28 +2769,12 @@
     "translation": "Page title is too long. Maximum length is {{.MaxLength}} characters."
   },
   {
-    "id": "api.page.editor_stopped.page_not_in_wiki.app_error",
-    "translation": "The page does not belong to the specified wiki."
-  },
-  {
-    "id": "api.page.permission.guest_cannot_access",
-    "translation": "Guests cannot access pages."
-  },
-  {
-    "id": "api.page.permission.guest_cannot_access.app_error",
-    "translation": "Guests cannot access pages."
-  },
-  {
-    "id": "api.page.permission.guest_cannot_modify",
-    "translation": "Guests cannot modify pages."
-  },
-  {
-    "id": "api.page.permission.invalid_channel_type",
-    "translation": "Invalid channel type for page operations."
-  },
-  {
     "id": "api.page.permission.invalid_operation",
     "translation": "Invalid operation on page."
+  },
+  {
+    "id": "api.page.permission.no_channel",
+    "translation": "Page operations require a wiki with a backing channel."
   },
   {
     "id": "api.page.permission.no_channel_access",
@@ -2839,6 +2783,22 @@
   {
     "id": "api.page.save_draft.title_too_long.app_error",
     "translation": "Page draft title is too long. Maximum length is {{.MaxLength}} characters."
+  },
+  {
+    "id": "api.page.summarize_thread.title_too_long.app_error",
+    "translation": "Page title is too long. Maximum length is {{.MaxLength}} characters."
+  },
+  {
+    "id": "api.page.update.empty_update.app_error",
+    "translation": "Page update request is empty."
+  },
+  {
+    "id": "api.page.update.title_too_long.app_error",
+    "translation": "Page title is too long. Maximum length is {{.MaxLength}} characters."
+  },
+  {
+    "id": "api.page_draft.not_found.app_error",
+    "translation": "Page draft not found."
   },
   {
     "id": "api.payload.parse.error",
@@ -3055,6 +3015,10 @@
     "translation": "You do not have permission to move this thread."
   },
   {
+    "id": "api.post.not_a_post.app_error",
+    "translation": "This endpoint is not available for pages. Use the pages API instead."
+  },
+  {
     "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
     "translation": "Burn-on-read posts cannot be updated."
   },
@@ -3169,6 +3133,10 @@
   {
     "id": "api.post.update_post.find.app_error",
     "translation": "Unable to find the existing post or comment to update."
+  },
+  {
+    "id": "api.post.update_post.page_type.app_error",
+    "translation": "Pages cannot be updated through the post API. Use the page-specific endpoints."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -5243,6 +5211,10 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
+    "id": "api.wiki.ai.rate_limited.app_error",
+    "translation": "Too many AI requests. Please slow down and try again shortly."
+  },
+  {
     "id": "api.wiki.comment.deleted.app_error",
     "translation": "Cannot modify deleted comment."
   },
@@ -5259,8 +5231,16 @@
     "translation": "Comment does not belong to this page."
   },
   {
-    "id": "api.wiki.create.deleted_channel.forbidden.app_error",
-    "translation": "Cannot create wiki in archived channel."
+    "id": "api.wiki.create.missing_team",
+    "translation": "Invalid or missing team_id."
+  },
+  {
+    "id": "api.wiki.create.missing_title.app_error",
+    "translation": "Wiki title is required."
+  },
+  {
+    "id": "api.wiki.create.title_too_long.app_error",
+    "translation": "Wiki title is too long. Maximum length is {{.MaxLength}} characters."
   },
   {
     "id": "api.wiki.extract_image.both_file_and_url.app_error",
@@ -5291,18 +5271,6 @@
     "translation": "Image URL exceeds maximum length."
   },
   {
-    "id": "api.wiki.extract_image.wiki_deleted.app_error",
-    "translation": "Wiki has been deleted."
-  },
-  {
-    "id": "api.wiki.get_page.wiki_deleted.app_error",
-    "translation": "Wiki has been deleted."
-  },
-  {
-    "id": "api.wiki.get_pages.wiki_deleted.app_error",
-    "translation": "Wiki has been deleted."
-  },
-  {
     "id": "api.wiki.move_page.parent_different_wiki.app_error",
     "translation": "Parent page is in a different wiki."
   },
@@ -5311,8 +5279,8 @@
     "translation": "Parent page not found."
   },
   {
-    "id": "api.wiki.move_page.parent_not_page.app_error",
-    "translation": "Parent is not a page."
+    "id": "api.wiki.no_channel.app_error",
+    "translation": "Wiki channel not found."
   },
   {
     "id": "api.wiki.not_found",
@@ -5323,11 +5291,11 @@
     "translation": "Page channel does not match wiki channel."
   },
   {
-    "id": "api.wiki.page_channel_mismatch.app_error",
-    "translation": "Page does not belong to this channel."
+    "id": "api.wiki.page_not_found",
+    "translation": "Page not found."
   },
   {
-    "id": "api.wiki.page_not_found",
+    "id": "api.wiki.page_not_found.app_error",
     "translation": "Page not found."
   },
   {
@@ -5351,16 +5319,28 @@
     "translation": "Wiki operations are not allowed in direct or group messages."
   },
   {
-    "id": "api.wiki.permission.direct_or_group_channels_by_guests.app_error",
-    "translation": "Guests cannot perform wiki operations in direct or group messages."
+    "id": "api.wiki.permission.guest_not_allowed.app_error",
+    "translation": "Guests cannot modify wikis."
   },
   {
-    "id": "api.wiki.permission.forbidden.app_error",
-    "translation": "You do not have permission to access this wiki."
+    "id": "api.wiki.update.missing_title.app_error",
+    "translation": "Wiki title is required."
   },
   {
-    "id": "api.wiki.summarize_thread.wiki_deleted.app_error",
-    "translation": "Cannot summarize thread: the wiki has been deleted."
+    "id": "api.wiki.update.title_too_long.app_error",
+    "translation": "Wiki title is too long. Maximum length is {{.MaxLength}} characters."
+  },
+  {
+    "id": "api.wiki_link.cross_team_not_allowed",
+    "translation": "Wiki links across different teams are not allowed."
+  },
+  {
+    "id": "api.wiki_link.invalid_source_channel_type",
+    "translation": "Wiki links can only be created from public or private channels."
+  },
+  {
+    "id": "api.wiki_link.not_found",
+    "translation": "Wiki link not found."
   },
   {
     "id": "api4.plugin.reattachPlugin.invalid_request",
@@ -5557,10 +5537,6 @@
   {
     "id": "app.channel.bookmark.get_existing.app_err",
     "translation": "Could not get existing bookmark to update."
-  },
-  {
-    "id": "app.channel.bookmark.no_permission_to_page_channel.app_error",
-    "translation": "You do not have permission to access the page's channel."
   },
   {
     "id": "app.channel.bookmark.page_missing_wiki_id.app_error",
@@ -6477,6 +6453,10 @@
     "translation": "Unable to delete the page draft content."
   },
   {
+    "id": "app.draft.delete_page.not_found.app_error",
+    "translation": "Page draft not found."
+  },
+  {
     "id": "app.draft.delete_page.wiki_not_found.app_error",
     "translation": "Wiki not found for page draft."
   },
@@ -6547,10 +6527,6 @@
   {
     "id": "app.draft.publish.delete_draft_failed.app_error",
     "translation": "Failed to delete draft after publishing."
-  },
-  {
-    "id": "app.draft.publish_page.check_existing_error",
-    "translation": "Unable to check for existing page during draft publishing."
   },
   {
     "id": "app.draft.publish_page.content_error",
@@ -6997,10 +6973,6 @@
     "translation": "Import data line has unknown type \"{{.Type}}\"."
   },
   {
-    "id": "app.import.import_page.channel_not_found.error",
-    "translation": "Error importing page. Channel with name \"{{.ChannelName}}\" could not be found."
-  },
-  {
     "id": "app.import.import_page.lookup_error",
     "translation": "Error importing page. Failed to lookup existing page by import source ID."
   },
@@ -7026,7 +6998,7 @@
   },
   {
     "id": "app.import.import_page.wiki_not_found.error",
-    "translation": "Error importing page. Wiki for channel \"{{.ChannelName}}\" could not be found."
+    "translation": "Error importing page. Wiki with import_source_id \"{{.WikiImportSourceId}}\" could not be found."
   },
   {
     "id": "app.import.import_page_comment.lookup_error",
@@ -7037,12 +7009,24 @@
     "translation": "Error importing page comment. Page with import source ID \"{{.PageImportSourceId}}\" could not be found."
   },
   {
+    "id": "app.import.import_page_comment.page_wiki_mismatch.error",
+    "translation": "Error importing page comment. Page does not belong to the specified wiki."
+  },
+  {
     "id": "app.import.import_page_comment.parent_lookup_error",
     "translation": "Error importing page comment. Failed to lookup parent comment by import source ID."
   },
   {
+    "id": "app.import.import_page_comment.team_not_found.error",
+    "translation": "Error importing page comment. Team not found."
+  },
+  {
     "id": "app.import.import_page_comment.user_not_found.error",
     "translation": "Error importing page comment. User with username \"{{.Username}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_page_comment.wiki_not_found.error",
+    "translation": "Error importing page comment. Wiki not found."
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
@@ -7117,36 +7101,8 @@
     "translation": "Failed to read profile image data."
   },
   {
-    "id": "app.import.resolve_page_id_placeholders.channel_not_found.error",
-    "translation": "Error resolving page ID placeholders. Channel not found."
-  },
-  {
-    "id": "app.import.resolve_page_id_placeholders.no_wiki.error",
-    "translation": "Error resolving page ID placeholders. No wiki found in channel."
-  },
-  {
-    "id": "app.import.resolve_page_id_placeholders.team_not_found.error",
-    "translation": "Error resolving page ID placeholders. Team not found."
-  },
-  {
-    "id": "app.import.resolve_page_placeholders.channel_not_found.error",
-    "translation": "Error resolving page title placeholders. Channel not found."
-  },
-  {
     "id": "app.import.resolve_page_placeholders.get_pages.error",
     "translation": "Error resolving page title placeholders. Failed to get pages for channel \"{{.ChannelId}}\"."
-  },
-  {
-    "id": "app.import.resolve_page_placeholders.get_wikis.error",
-    "translation": "Error resolving page title placeholders. Failed to get wikis for channel."
-  },
-  {
-    "id": "app.import.resolve_page_placeholders.no_wiki.error",
-    "translation": "Error resolving page title placeholders. No wiki found in channel."
-  },
-  {
-    "id": "app.import.resolve_page_placeholders.team_not_found.error",
-    "translation": "Error resolving page title placeholders. Team not found."
   },
   {
     "id": "app.import.resolve_placeholders.get_content.error",
@@ -7157,12 +7113,12 @@
     "translation": "Error resolving placeholders. Failed to update page content."
   },
   {
-    "id": "app.import.resolve_wiki_placeholders.channel_not_found.error",
-    "translation": "Error resolving wiki placeholders. Channel with name \"{{.ChannelName}}\" could not be found."
-  },
-  {
     "id": "app.import.resolve_wiki_placeholders.team_not_found.error",
     "translation": "Error resolving wiki placeholders. Team with name \"{{.TeamName}}\" could not be found."
+  },
+  {
+    "id": "app.import.resolve_wiki_placeholders.wiki_not_found.error",
+    "translation": "Error resolving wiki placeholders. Wiki with import_source_id \"{{.WikiImportSourceId}}\" could not be found."
   },
   {
     "id": "app.import.update_post_props.app_error",
@@ -7321,16 +7277,20 @@
     "translation": "Error validating page comment import data. Page import source ID is required."
   },
   {
+    "id": "app.import.validate_page_comment_import_data.team_missing.error",
+    "translation": "Error validating page comment import data. Team name is required."
+  },
+  {
     "id": "app.import.validate_page_comment_import_data.user_missing.error",
     "translation": "Error validating page comment import data. User name is required."
   },
   {
-    "id": "app.import.validate_page_import_data.attachment.error",
-    "translation": "Error validating page import data. Invalid attachment data."
+    "id": "app.import.validate_page_comment_import_data.wiki_import_source_id_missing.error",
+    "translation": "Error validating page comment import data. Wiki import source ID is required."
   },
   {
-    "id": "app.import.validate_page_import_data.channel_missing.error",
-    "translation": "Error validating page import data. Channel name is required."
+    "id": "app.import.validate_page_import_data.attachment.error",
+    "translation": "Error validating page import data. Invalid attachment data."
   },
   {
     "id": "app.import.validate_page_import_data.content_missing.error",
@@ -7351,6 +7311,10 @@
   {
     "id": "app.import.validate_page_import_data.user_missing.error",
     "translation": "Error validating page import data. User name is required."
+  },
+  {
+    "id": "app.import.validate_page_import_data.wiki_import_source_id_missing.error",
+    "translation": "Error validating page import data. wiki_import_source_id is required."
   },
   {
     "id": "app.import.validate_post_import_data.attachment.error",
@@ -7441,16 +7405,16 @@
     "translation": "Missing required Reply property: User."
   },
   {
-    "id": "app.import.validate_resolve_wiki_placeholders.channel_missing.error",
-    "translation": "Error validating resolve_wiki_placeholders data. Channel name is required."
-  },
-  {
     "id": "app.import.validate_resolve_wiki_placeholders.null_data.error",
     "translation": "Error validating resolve_wiki_placeholders data. Data is null."
   },
   {
     "id": "app.import.validate_resolve_wiki_placeholders.team_missing.error",
     "translation": "Error validating resolve_wiki_placeholders data. Team name is required."
+  },
+  {
+    "id": "app.import.validate_resolve_wiki_placeholders.wiki_import_source_id_missing.error",
+    "translation": "Error validating resolve_wiki_placeholders data. wiki_import_source_id is required."
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
@@ -7973,6 +7937,10 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.page.attach_files.store_error.app_error",
+    "translation": "Unable to attach files to the page."
+  },
+  {
     "id": "app.page.calculate_depth.ancestors.app_error",
     "translation": "Failed to fetch ancestors for depth calculation."
   },
@@ -8021,14 +7989,6 @@
     "translation": "Comment message cannot be empty."
   },
   {
-    "id": "app.page.create_comment.not_a_page.app_error",
-    "translation": "Cannot create comment: post is not a page."
-  },
-  {
-    "id": "app.page.create_comment.page_not_found.app_error",
-    "translation": "Page not found for comment."
-  },
-  {
     "id": "app.page.create_comment_reply.empty_message.app_error",
     "translation": "Comment reply message cannot be empty."
   },
@@ -8057,12 +8017,12 @@
     "translation": "Unable to delete page."
   },
   {
-    "id": "app.page.duplicate.channel_deleted",
-    "translation": "Cannot duplicate page to archived channel."
+    "id": "app.page.delete_comment.store_error.app_error",
+    "translation": "An error occurred while deleting the page comment."
   },
   {
-    "id": "app.page.duplicate.cross_channel_not_supported",
-    "translation": "Cross-channel page duplication is not supported."
+    "id": "app.page.duplicate.channel_deleted",
+    "translation": "Cannot duplicate page to archived channel."
   },
   {
     "id": "app.page.duplicate.target_wiki_not_found",
@@ -8087,6 +8047,10 @@
   {
     "id": "app.page.extract_image.invalid_action",
     "translation": "Invalid action for image text extraction."
+  },
+  {
+    "id": "app.page.extract_image.no_session",
+    "translation": "No active user session."
   },
   {
     "id": "app.page.extract_image.not_image",
@@ -8125,8 +8089,8 @@
     "translation": "Failed to upload fetched image."
   },
   {
-    "id": "app.page.get.not_a_page.app_error",
-    "translation": "Post is not a page."
+    "id": "app.page.get.app_error",
+    "translation": "Unable to get page."
   },
   {
     "id": "app.page.get.not_found.app_error",
@@ -8141,8 +8105,8 @@
     "translation": "Unable to get page ancestors."
   },
   {
-    "id": "app.page.get_ancestors.not_found",
-    "translation": "Page not found."
+    "id": "app.page.get_channel_pages.all_wikis_failed.app_error",
+    "translation": "Failed to retrieve pages from all wikis."
   },
   {
     "id": "app.page.get_channel_pages.app_error",
@@ -8151,6 +8115,10 @@
   {
     "id": "app.page.get_children.app_error",
     "translation": "Unable to get page children."
+  },
+  {
+    "id": "app.page.get_children.invalid_input.app_error",
+    "translation": "Invalid input for retrieving page children."
   },
   {
     "id": "app.page.get_children.parent.app_error",
@@ -8205,12 +8173,12 @@
     "translation": "Cannot move page: would create circular reference."
   },
   {
-    "id": "app.page.move.cross_channel_not_supported",
-    "translation": "Cross-channel page moves are not supported."
-  },
-  {
     "id": "app.page.move.failed",
     "translation": "Failed to move page."
+  },
+  {
+    "id": "app.page.move.get_ancestors.app_error",
+    "translation": "Failed to retrieve page ancestors."
   },
   {
     "id": "app.page.move.get_descendants_failed",
@@ -8265,12 +8233,12 @@
     "translation": "Target wiki not found for page move."
   },
   {
-    "id": "app.page.move.wiki_channel_mismatch",
-    "translation": "Wiki and channel do not match."
-  },
-  {
     "id": "app.page.move.wiki_not_found.app_error",
     "translation": "Wiki not found for page."
+  },
+  {
+    "id": "app.page.permanent_delete.app_error",
+    "translation": "Unable to permanently delete the page."
   },
   {
     "id": "app.page.publish.circular_reference.app_error",
@@ -8283,6 +8251,14 @@
   {
     "id": "app.page.publish.parent_not_found.app_error",
     "translation": "Cannot publish page: parent page not found."
+  },
+  {
+    "id": "app.page.repair_hierarchy.batch_update.app_error",
+    "translation": "Failed to batch update page hierarchy."
+  },
+  {
+    "id": "app.page.resolve_comment.update_props.app_error",
+    "translation": "Unable to update comment properties when resolving the comment."
   },
   {
     "id": "app.page.restore.not_deleted.app_error",
@@ -8299,6 +8275,10 @@
   {
     "id": "app.page.restore.update_fileids.app_error",
     "translation": "Unable to update page file IDs during restore."
+  },
+  {
+    "id": "app.page.search_status_values.app_error",
+    "translation": "Unable to retrieve the page status."
   },
   {
     "id": "app.page.set_status.app_error",
@@ -8341,12 +8321,24 @@
     "translation": "Wiki ID is required for summarization."
   },
   {
+    "id": "app.page.summarize_thread.no_session",
+    "translation": "No active user session."
+  },
+  {
+    "id": "app.page.unresolve_comment.update_props.app_error",
+    "translation": "Unable to update comment properties when unresolving the comment."
+  },
+  {
     "id": "app.page.update.conflict.app_error",
     "translation": "Page update conflict detected. Please refresh and try again."
   },
   {
     "id": "app.page.update.invalid_content.app_error",
     "translation": "Invalid content for page update."
+  },
+  {
+    "id": "app.page.update.missing_title.app_error",
+    "translation": "Page title cannot be empty."
   },
   {
     "id": "app.page.update.not_found.app_error",
@@ -10367,20 +10359,44 @@
     "translation": "Unable to add page to wiki."
   },
   {
-    "id": "app.wiki.create.channel_not_found.app_error",
-    "translation": "Channel not found for wiki creation."
+    "id": "app.wiki.create.channel_id_not_allowed.app_error",
+    "translation": "Channel ID is not allowed when creating this wiki."
   },
   {
-    "id": "app.wiki.create.deleted_channel.app_error",
-    "translation": "Cannot create wiki in archived channel."
+    "id": "app.wiki.create.error",
+    "translation": "Failed to create wiki."
+  },
+  {
+    "id": "app.wiki.create.invalid_backing_channel.app_error",
+    "translation": "Could not create the wiki backing channel."
+  },
+  {
+    "id": "app.wiki.create.invalid_channel_member.app_error",
+    "translation": "Could not prepare wiki channel membership."
+  },
+  {
+    "id": "app.wiki.create.invalid_wiki.app_error",
+    "translation": "Invalid wiki data."
+  },
+  {
+    "id": "app.wiki.create.team_not_found.app_error",
+    "translation": "The specified team was not found."
   },
   {
     "id": "app.wiki.create_page.channel_not_found.app_error",
     "translation": "Channel not found for wiki."
   },
   {
-    "id": "app.wiki.delete.app_error",
-    "translation": "Unable to delete wiki."
+    "id": "app.wiki.create_page.no_channel.app_error",
+    "translation": "Cannot create a page: wiki has no associated channel."
+  },
+  {
+    "id": "app.wiki.delete.pages_failed",
+    "translation": "Failed to delete wiki pages."
+  },
+  {
+    "id": "app.wiki.delete.wiki_record_failed",
+    "translation": "Failed to delete wiki record."
   },
   {
     "id": "app.wiki.delete_page.app_error",
@@ -10403,8 +10419,28 @@
     "translation": "Unable to get wiki."
   },
   {
+    "id": "app.wiki.get.not_found",
+    "translation": "Wiki not found."
+  },
+  {
+    "id": "app.wiki.get_by_channel_id.app_error",
+    "translation": "Failed to get wiki by channel ID."
+  },
+  {
+    "id": "app.wiki.get_by_channel_id.not_found",
+    "translation": "Wiki not found for the given channel ID."
+  },
+  {
     "id": "app.wiki.get_for_channel.app_error",
     "translation": "Unable to get wikis for channel."
+  },
+  {
+    "id": "app.wiki.get_for_team.app_error",
+    "translation": "Unable to get wikis for team."
+  },
+  {
+    "id": "app.wiki.get_for_user.app_error",
+    "translation": "Unable to get wikis for user."
   },
   {
     "id": "app.wiki.get_group.app_error",
@@ -10435,22 +10471,6 @@
     "translation": "Unable to marshal wiki ID."
   },
   {
-    "id": "app.wiki.move_wiki.store_error.app_error",
-    "translation": "Unable to move wiki in store."
-  },
-  {
-    "id": "app.wiki.move_wiki_to_channel.cross_team_not_supported.app_error",
-    "translation": "Cross-team wiki moves are not supported."
-  },
-  {
-    "id": "app.wiki.move_wiki_to_channel.same_channel.app_error",
-    "translation": "Wiki is already in the target channel."
-  },
-  {
-    "id": "app.wiki.save.app_error",
-    "translation": "Unable to save wiki."
-  },
-  {
     "id": "app.wiki.set_wiki_id_props.app_error",
     "translation": "Unable to set wiki ID properties."
   },
@@ -10463,8 +10483,20 @@
     "translation": "Channel not found for wiki update."
   },
   {
+    "id": "app.wiki.update.conflict.app_error",
+    "translation": "Wiki was modified concurrently. Please refresh and try again."
+  },
+  {
     "id": "app.wiki.update.deleted_channel.app_error",
     "translation": "Cannot update wiki in archived channel."
+  },
+  {
+    "id": "app.wiki.update.not_found.app_error",
+    "translation": "Wiki not found."
+  },
+  {
+    "id": "app.wiki.update.team_channel_mismatch.app_error",
+    "translation": "The wiki's team does not match the channel's team."
   },
   {
     "id": "app.wiki_export.get_all_wikis.error",
@@ -10505,6 +10537,70 @@
   {
     "id": "app.wiki_export.writer_nil.error",
     "translation": "Wiki export writer is not initialized."
+  },
+  {
+    "id": "app.wiki_link.already_linked",
+    "translation": "This wiki is already linked to this channel."
+  },
+  {
+    "id": "app.wiki_link.archived_channel",
+    "translation": "Cannot link wiki to an archived channel."
+  },
+  {
+    "id": "app.wiki_link.cross_team_not_allowed",
+    "translation": "Wiki links across different teams are not allowed."
+  },
+  {
+    "id": "app.wiki_link.delete_failed",
+    "translation": "Failed to delete wiki link."
+  },
+  {
+    "id": "app.wiki_link.invalid_channel_id",
+    "translation": "Invalid channel ID."
+  },
+  {
+    "id": "app.wiki_link.invalid_destination_id",
+    "translation": "Invalid destination ID."
+  },
+  {
+    "id": "app.wiki_link.invalid_link",
+    "translation": "Invalid wiki link parameters."
+  },
+  {
+    "id": "app.wiki_link.invalid_source_channel_type",
+    "translation": "Wiki links can only be created from public or private channels."
+  },
+  {
+    "id": "app.wiki_link.invalid_source_id",
+    "translation": "Invalid source ID."
+  },
+  {
+    "id": "app.wiki_link.invalid_user_id",
+    "translation": "Invalid user ID."
+  },
+  {
+    "id": "app.wiki_link.invalid_wiki_id",
+    "translation": "Invalid wiki ID."
+  },
+  {
+    "id": "app.wiki_link.lock_contention",
+    "translation": "A concurrent operation is in progress; please try again."
+  },
+  {
+    "id": "app.wiki_link.max_links_reached",
+    "translation": "Maximum number of wikis linked to this channel has been reached."
+  },
+  {
+    "id": "app.wiki_link.max_sources_reached",
+    "translation": "This wiki already has the maximum number of linked channels."
+  },
+  {
+    "id": "app.wiki_link.not_found",
+    "translation": "Wiki link not found."
+  },
+  {
+    "id": "app.wiki_link.save_failed",
+    "translation": "Failed to save wiki link."
   },
   {
     "id": "basic_security_check.url.too_long_error",
@@ -13795,6 +13891,10 @@
     "translation": "Invalid wiki create time."
   },
   {
+    "id": "model.wiki.is_valid.creator_id.app_error",
+    "translation": "Invalid wiki creator ID."
+  },
+  {
     "id": "model.wiki.is_valid.description_length.app_error",
     "translation": "Wiki description is too long."
   },
@@ -13807,6 +13907,10 @@
     "translation": "Invalid wiki ID."
   },
   {
+    "id": "model.wiki.is_valid.team_id.app_error",
+    "translation": "Invalid wiki team ID."
+  },
+  {
     "id": "model.wiki.is_valid.title.app_error",
     "translation": "Wiki title is required."
   },
@@ -13817,6 +13921,22 @@
   {
     "id": "model.wiki.is_valid.update_at.app_error",
     "translation": "Invalid wiki update time."
+  },
+  {
+    "id": "model.wiki_link.is_valid.creator_id.app_error",
+    "translation": "Invalid creator ID for wiki link."
+  },
+  {
+    "id": "model.wiki_link.is_valid.destination_id.app_error",
+    "translation": "Invalid destination ID for wiki link."
+  },
+  {
+    "id": "model.wiki_link.is_valid.self_link.app_error",
+    "translation": "A wiki link cannot reference itself."
+  },
+  {
+    "id": "model.wiki_link.is_valid.source_id.app_error",
+    "translation": "Invalid source ID for wiki link."
   },
   {
     "id": "oauth.gitlab.tos.error",

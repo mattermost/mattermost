@@ -32,11 +32,12 @@ var (
 
 const (
 	// regularPostsFilter excludes page content posts from regular channel feeds.
-	// Page posts (page, page_mention) are stored as Posts but displayed in the wiki UI, not the channel feed.
-	// Page comments (page_comment) ARE displayed in the channel feed so all channel members can see them.
+	// Page posts (type='page') are stored as Posts but displayed in the wiki UI, not the channel feed.
+	// Page comments (page_comment) and page mention notifications (page_mention) ARE displayed
+	// in the channel feed so all channel members can see inline comments and mention notifications.
 	// System notification posts (system_wiki_added, system_page_added, etc.) ARE
 	// displayed in the channel feed to notify users about wiki/page activity.
-	regularPostsFilter = "(Type NOT IN ('page', 'page_mention') OR Type IS NULL)"
+	regularPostsFilter = "(Type != 'page' OR Type IS NULL)"
 )
 
 type SqlPostStore struct {
@@ -108,11 +109,11 @@ func AddRegularPostsFilter(qb sq.SelectBuilder, tableAlias string) sq.SelectBuil
 	if tableAlias == "" {
 		tableAlias = "Posts"
 	}
-	// Exclude only page and page_mention from channel feeds
-	// page_comment is intentionally NOT excluded so inline comments appear in the channel
-	excludedTypes := []string{model.PostTypePage, model.PostTypePageMention}
+	// Exclude only page (actual page content) from channel feeds.
+	// page_comment and page_mention are intentionally NOT excluded so inline comments
+	// and mention notifications appear in the channel.
 	return qb.Where(sq.Or{
-		sq.NotEq{tableAlias + ".Type": excludedTypes},
+		sq.NotEq{tableAlias + ".Type": model.PostTypePage},
 		sq.Eq{tableAlias + ".Type": nil},
 	})
 }
@@ -1553,11 +1554,11 @@ func (s *SqlPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSin
 	       Posts
 	WHERE
 	       UpdateAt > ? AND ChannelId = ?
-	       AND (Type IS NULL OR Type NOT IN ('page'))
+	       AND ` + regularPostsFilter + `
 	       LIMIT 1000)
 	(SELECT ` + postColumnsCte + replyCountQuery2 + ` FROM cte)
 	UNION
-	(SELECT ` + postColumnsP1 + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte) AND (p1.Type IS NULL OR p1.Type NOT IN ('page')))
+	(SELECT ` + postColumnsP1 + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte) AND ` + regularPostsFilter + `)
 	ORDER BY CreateAt ` + order
 
 	params = []any{options.Time, options.ChannelId}
@@ -1645,6 +1646,8 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 
 	if len(options.ExcludedPostTypes) > 0 {
 		query = query.Where(sq.NotEq{"Posts.Type": options.ExcludedPostTypes})
+	} else {
+		query = query.Where(sq.NotEq{"Posts.Type": []string{model.PostTypePage, model.PostTypePageComment}})
 	}
 
 	posts := []*model.Post{}
@@ -2658,6 +2661,8 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 		Select("COUNT(*) AS Value").
 		From("Posts p")
 
+	query = AddRegularPostsFilter(query, "p")
+
 	if options.TeamId != "" {
 		query = query.
 			Join("Channels c ON (c.Id = p.ChannelId)").
@@ -2823,6 +2828,10 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyB
 }
 
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+	// Pages (Type='page') are excluded from time-based retention here because they
+	// are managed through the wiki deletion flow rather than the generic post
+	// retention pipeline. A dedicated wiki/page retention mechanism is required
+	// to purge pages when a retention policy is active.
 	query := fmt.Sprintf("DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < ? AND %s LIMIT ?))", regularPostsFilter)
 
 	sqlResult, err := s.GetMaster().Exec(query, endTime, limit)

@@ -83,7 +83,8 @@ const (
 
 	PostPageMaxDepth     = 10  // Maximum depth for page hierarchies
 	MaxPageTitleLength   = 255 // Maximum length for page titles
-	PostEditHistoryLimit = 10  // Maximum number of edit history versions to store
+	DefaultPageTitle     = "Untitled page"
+	PostEditHistoryLimit = 10 // Maximum number of edit history versions to store
 
 	// PageSortOrderGap is the gap between page sort order values for sibling pages.
 	// Currently all siblings are recalculated on every reorder.
@@ -128,22 +129,7 @@ const (
 	DefaultExpirySeconds       = 60 * 60 * 24 * 7 // 7 days
 	DefaultReadDurationSeconds = 10 * 60          // 10 minutes
 
-	PostPropsCommentType       = "comment_type"
-	PagePropsPageID            = "page_id"
-	PagePropsWikiID            = "wiki_id"
-	PagePropsParentCommentID   = "parent_comment_id"
-	PagePropsPageStatus        = "page_status"
-	PagePropsCommentResolved   = "comment_resolved"
-	PagePropsResolvedAt        = "resolved_at"
-	PagePropsResolvedBy        = "resolved_by"
-	PagePropsInlineAnchor      = "inline_anchor"
-	PagePropsResolutionReason  = "resolution_reason"
-	PagePropsLastModifiedBy    = "last_modified_by"
-	PageResolutionReasonManual = "manual"
-	PageDuplicateTitlePrefix   = "Copy of "
-	DraftPropsPageParentID     = "page_parent_id"
-
-	PageCommentTypeInline        = "inline"
+	PostPropsCommentType         = "comment_type"
 	PostPropsImportSourceId      = "import_source_id"
 	PostPropsImportFileMappings  = "import_file_mappings"
 	PostPropsExpireAt            = "expire_at"
@@ -244,7 +230,7 @@ type PostPatch struct {
 }
 
 func (o *PostPatch) IsEmpty() bool {
-	return o.IsPinned == nil && o.Message == nil && o.Props == nil && o.FileIds == nil && o.HasReactions == nil
+	return o.IsPinned == nil && o.Message == nil && o.Props == nil && o.FileIds == nil && o.HasReactions == nil && o.PageParentId == nil
 }
 
 type PostReminder struct {
@@ -964,7 +950,9 @@ func (o *Post) Patch(patch *PostPatch) {
 		o.HasReactions = *patch.HasReactions
 	}
 
-	if patch.PageParentId != nil {
+	// PageParentId only applies to pages; ignore patches for other post types so
+	// a `PATCH /posts/{id}` cannot set this field on a regular post.
+	if patch.PageParentId != nil && o.Type == PostTypePage {
 		o.PageParentId = *patch.PageParentId
 	}
 }
@@ -1212,44 +1200,6 @@ func (o *Post) GetPreviewedPostProp() string {
 		return val
 	}
 	return ""
-}
-
-func (o *Post) GetPageTitle() string {
-	if o.Type != PostTypePage {
-		return ""
-	}
-	if title, ok := o.GetProp("title").(string); ok && title != "" {
-		return title
-	}
-	return "Untitled page"
-}
-
-// GetPageSortOrder returns the sort order for a page from Props.
-// Returns 0 if not set, which means sorting by CreateAt as fallback.
-func (o *Post) GetPageSortOrder() int64 {
-	if o.GetProps() == nil {
-		return 0
-	}
-	if v, ok := o.GetProps()["page_sort_order"]; ok {
-		switch val := v.(type) {
-		case float64:
-			return int64(val)
-		case int64:
-			return val
-		case int:
-			return int64(val)
-		case string:
-			if i, err := strconv.ParseInt(val, 10, 64); err == nil {
-				return i
-			}
-		}
-	}
-	return 0
-}
-
-// SetPageSortOrder sets the sort order for a page in Props.
-func (o *Post) SetPageSortOrder(order int64) {
-	o.AddProp("page_sort_order", order)
 }
 
 func (o *Post) GetPriority() *PostPriority {

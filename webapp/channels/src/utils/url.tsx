@@ -29,18 +29,14 @@ export function cleanUpUrlable(input: string): string {
     return cleaned;
 }
 
-export function getWikiUrl(teamName: string, channelId: string, wikiId: string, pageId?: string, isDraft?: boolean): string {
-    const baseUrl = `/${teamName}/wiki/${channelId}/${wikiId}`;
+export function getWikiUrl(teamName: string, wikiId: string, pageId?: string, isDraft?: boolean): string {
+    let url = `/${teamName}/wiki/${wikiId}`;
 
-    if (!pageId) {
-        return baseUrl;
+    if (pageId) {
+        url = isDraft ? `${url}/drafts/${pageId}` : `${url}/${pageId}`;
     }
 
-    if (isDraft) {
-        return `${baseUrl}/drafts/${pageId}`;
-    }
-
-    return `${baseUrl}/${pageId}`;
+    return url;
 }
 
 export function getTeamNameFromPath(pathname: string): string {

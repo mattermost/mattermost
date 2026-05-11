@@ -16,8 +16,7 @@ func TestSavePageDraftWithMetadata(t *testing.T) {
 	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
@@ -55,19 +54,37 @@ func TestSavePageDraftWithMetadata(t *testing.T) {
 		require.JSONEq(t, updatedContent, jsonContent)
 	})
 
-	t.Run("successfully saves draft with custom props", func(t *testing.T) {
+	t.Run("successfully saves draft with allowlisted props", func(t *testing.T) {
 		pageId := model.NewId()
 		validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Draft content"}]}]}`
-		customProps := map[string]any{
-			"custom_field":  "custom_value",
-			"another_field": 123,
+		parentId := model.NewId()
+		anchor := map[string]any{"node": "p", "offset": 5}
+		props := map[string]any{
+			model.DraftPropsPageParentID: parentId,
+			model.PagePropsPageStatus:    "in_progress",
+			model.PagePropsInlineAnchor:  anchor,
 		}
-		draft, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, validContent, "Draft Title", 0, customProps)
+		draft, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, validContent, "Draft Title", 0, props)
 		require.Nil(t, appErr)
 		require.NotNil(t, draft)
 		require.NotNil(t, draft.Props)
-		require.Equal(t, "custom_value", draft.Props["custom_field"])
-		require.Equal(t, 123, draft.Props["another_field"])
+		require.Equal(t, parentId, draft.Props[model.DraftPropsPageParentID])
+		require.Equal(t, "in_progress", draft.Props[model.PagePropsPageStatus])
+		require.Equal(t, anchor, draft.Props[model.PagePropsInlineAnchor])
+	})
+
+	t.Run("drops non-allowlisted props", func(t *testing.T) {
+		pageId := model.NewId()
+		validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Draft content"}]}]}`
+		props := map[string]any{
+			"arbitrary_field": "should_be_dropped",
+			"another_field":   123,
+		}
+		draft, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, pageId, validContent, "Draft Title", 0, props)
+		require.Nil(t, appErr)
+		require.NotNil(t, draft)
+		require.Nil(t, draft.Props["arbitrary_field"])
+		require.Nil(t, draft.Props["another_field"])
 	})
 
 	t.Run("fails with non-existent wiki", func(t *testing.T) {
@@ -80,22 +97,15 @@ func TestSavePageDraftWithMetadata(t *testing.T) {
 	})
 
 	t.Run("fails when channel is archived", func(t *testing.T) {
-		archivedChannel, chanErr := th.App.CreateChannel(th.Context, &model.Channel{
-			TeamId:      th.BasicTeam.Id,
-			Name:        "archived-channel",
-			DisplayName: "Archived Channel",
-			Type:        model.ChannelTypeOpen,
-		}, false)
-		require.Nil(t, chanErr)
-
 		archivedWiki := &model.Wiki{
-			ChannelId: archivedChannel.Id,
-			Title:     "Archived Wiki",
+			Title: "Archived Wiki",
 		}
 		createdArchivedWiki, err := th.App.CreateWiki(th.Context, archivedWiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		err = th.App.DeleteChannel(th.Context, archivedChannel, th.BasicUser.Id)
+		wikiChannel, chanErr := th.App.GetWikiBackingChannel(th.Context, createdArchivedWiki.ChannelId)
+		require.Nil(t, chanErr)
+		err = th.App.DeleteChannel(th.Context, wikiChannel, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		pageId := model.NewId()
@@ -113,8 +123,7 @@ func TestGetPageDraft(t *testing.T) {
 	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
@@ -167,8 +176,7 @@ func TestDeletePageDraft(t *testing.T) {
 	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
@@ -194,7 +202,7 @@ func TestDeletePageDraft(t *testing.T) {
 	t.Run("fails when deleting non-existent draft", func(t *testing.T) {
 		appErr := th.App.DeletePageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, model.NewId())
 		require.NotNil(t, appErr)
-		require.Equal(t, "app.draft.delete_page.app_error", appErr.Id)
+		require.Equal(t, "app.draft.delete_page.not_found.app_error", appErr.Id)
 	})
 
 	t.Run("fails with wrong user id", func(t *testing.T) {
@@ -220,8 +228,7 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 
 	t.Run("successfully retrieves all drafts for wiki", func(t *testing.T) {
 		wiki1 := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki 1",
+			Title: "Test Wiki 1",
 		}
 		createdWiki1, err := th.App.CreateWiki(th.Context, wiki1, th.BasicUser.Id)
 		require.Nil(t, err)
@@ -265,8 +272,7 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 
 	t.Run("returns only default draft for new wiki", func(t *testing.T) {
 		emptyWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Empty Wiki",
+			Title: "Empty Wiki",
 		}
 		createdEmptyWiki, err := th.App.CreateWiki(th.Context, emptyWiki, th.BasicUser.Id)
 		require.Nil(t, err)
@@ -280,8 +286,7 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 
 	t.Run("only returns drafts for specified user", func(t *testing.T) {
 		wiki3 := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki 3",
+			Title: "Test Wiki 3",
 		}
 		createdWiki3, err := th.App.CreateWiki(th.Context, wiki3, th.BasicUser.Id)
 		require.Nil(t, err)
@@ -317,17 +322,8 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 	})
 
 	t.Run("fails when channel is archived", func(t *testing.T) {
-		archivedChannel, chanErr := th.App.CreateChannel(th.Context, &model.Channel{
-			TeamId:      th.BasicTeam.Id,
-			Name:        "archived-channel-2",
-			DisplayName: "Archived Channel 2",
-			Type:        model.ChannelTypeOpen,
-		}, false)
-		require.Nil(t, chanErr)
-
 		archivedWiki := &model.Wiki{
-			ChannelId: archivedChannel.Id,
-			Title:     "Archived Wiki 2",
+			Title: "Archived Wiki 2",
 		}
 		createdArchivedWiki, err := th.App.CreateWiki(th.Context, archivedWiki, th.BasicUser.Id)
 		require.Nil(t, err)
@@ -337,7 +333,9 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdArchivedWiki.Id, pageId, validContent, "Archived Draft", 0, nil)
 		require.Nil(t, appErr)
 
-		err = th.App.DeleteChannel(th.Context, archivedChannel, th.BasicUser.Id)
+		wikiChannel, chanErr := th.App.GetWikiBackingChannel(th.Context, createdArchivedWiki.ChannelId)
+		require.Nil(t, chanErr)
+		err = th.App.DeleteChannel(th.Context, wikiChannel, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		drafts, appErr := th.App.GetPageDraftsForWiki(th.Context, th.BasicUser.Id, createdArchivedWiki.Id, 0, 200, nil, nil)
@@ -353,8 +351,7 @@ func TestCheckPageDraftExists(t *testing.T) {
 	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
@@ -366,7 +363,7 @@ func TestCheckPageDraftExists(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, draft)
 
-		exists, updateAt, appErr := th.App.CheckPageDraftExists(pageId, th.BasicUser.Id, createdWiki.Id)
+		exists, updateAt, appErr := th.App.CheckPageDraftExists(th.Context, pageId, th.BasicUser.Id, createdWiki.Id)
 		require.Nil(t, appErr)
 		require.True(t, exists)
 		require.Greater(t, updateAt, int64(0))
@@ -374,7 +371,7 @@ func TestCheckPageDraftExists(t *testing.T) {
 
 	t.Run("returns false for non-existent draft", func(t *testing.T) {
 		nonExistentPageId := model.NewId()
-		exists, updateAt, appErr := th.App.CheckPageDraftExists(nonExistentPageId, th.BasicUser.Id, createdWiki.Id)
+		exists, updateAt, appErr := th.App.CheckPageDraftExists(th.Context, nonExistentPageId, th.BasicUser.Id, createdWiki.Id)
 		require.Nil(t, appErr)
 		require.False(t, exists)
 		require.Equal(t, int64(0), updateAt)
@@ -388,7 +385,7 @@ func TestCheckPageDraftExists(t *testing.T) {
 		require.NotNil(t, draft)
 
 		otherUser := th.CreateUser(t)
-		exists, _, appErr := th.App.CheckPageDraftExists(pageId, otherUser.Id, createdWiki.Id)
+		exists, _, appErr := th.App.CheckPageDraftExists(th.Context, pageId, otherUser.Id, createdWiki.Id)
 		require.Nil(t, appErr)
 		require.False(t, exists)
 	})
@@ -402,8 +399,7 @@ func TestUpsertPageDraft(t *testing.T) {
 	rctx := th.CreateSessionContext()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
@@ -436,7 +432,7 @@ func TestUpsertPageDraft(t *testing.T) {
 	})
 
 	t.Run("stores parent page ID in props", func(t *testing.T) {
-		parentPage, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent", "", "", th.BasicUser.Id, "", "")
+		parentPage, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Parent", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		pageId := model.NewId()
@@ -499,53 +495,54 @@ func TestUpsertPageDraft(t *testing.T) {
 	})
 
 	t.Run("prop merging preserves existing props on update", func(t *testing.T) {
-		parentPage, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent For Merge", "", "", th.BasicUser.Id, "", "")
+		parentPage, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Parent For Merge", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		pageId := model.NewId()
 		content := `{"type":"doc","content":[]}`
 
-		// First save: set parent ID and a custom prop
+		// First save: set parent ID and a status prop (both allowlisted)
 		initialProps := map[string]any{
 			model.DraftPropsPageParentID: parentPage.Id,
-			"custom_field":               "custom_value",
+			model.PagePropsPageStatus:    "in_progress",
 		}
 		draft1, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Merge Test", 0, initialProps, nil, nil)
 		require.Nil(t, appErr)
 		require.Equal(t, parentPage.Id, draft1.Props[model.DraftPropsPageParentID])
-		require.Equal(t, "custom_value", draft1.Props["custom_field"])
+		require.Equal(t, "in_progress", draft1.Props[model.PagePropsPageStatus])
 
 		// Second save: only change title (no props passed)
-		// Parent ID and custom_field should be preserved via prop merging
+		// Parent ID and status should be preserved via prop merging
 		draft2, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Updated Merge Test", draft1.UpdateAt, nil, nil, nil)
 		require.Nil(t, appErr)
 		require.Equal(t, "Updated Merge Test", draft2.Title)
 		require.Equal(t, parentPage.Id, draft2.Props[model.DraftPropsPageParentID], "parent ID should be preserved")
-		require.Equal(t, "custom_value", draft2.Props["custom_field"], "custom field should be preserved")
+		require.Equal(t, "in_progress", draft2.Props[model.PagePropsPageStatus], "status should be preserved")
 	})
 
 	t.Run("prop merging allows overwriting existing props", func(t *testing.T) {
 		pageId := model.NewId()
 		content := `{"type":"doc","content":[]}`
+		parentId := model.NewId()
 
-		// First save with initial props
+		// First save with two allowlisted props
 		initialProps := map[string]any{
-			"field_a": "value_a",
-			"field_b": "value_b",
+			model.DraftPropsPageParentID: parentId,
+			model.PagePropsPageStatus:    "in_progress",
 		}
 		draft1, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Overwrite Test", 0, initialProps, nil, nil)
 		require.Nil(t, appErr)
-		require.Equal(t, "value_a", draft1.Props["field_a"])
-		require.Equal(t, "value_b", draft1.Props["field_b"])
+		require.Equal(t, parentId, draft1.Props[model.DraftPropsPageParentID])
+		require.Equal(t, "in_progress", draft1.Props[model.PagePropsPageStatus])
 
-		// Second save: overwrite field_a, leave field_b untouched
+		// Second save: overwrite status only, leave parent ID untouched
 		newProps := map[string]any{
-			"field_a": "new_value_a",
+			model.PagePropsPageStatus: "complete",
 		}
 		draft2, appErr := th.App.UpsertPageDraft(rctx, th.BasicUser.Id, createdWiki.Id, pageId, content, "Overwrite Test", draft1.UpdateAt, newProps, nil, nil)
 		require.Nil(t, appErr)
-		require.Equal(t, "new_value_a", draft2.Props["field_a"], "field_a should be overwritten")
-		require.Equal(t, "value_b", draft2.Props["field_b"], "field_b should be preserved")
+		require.Equal(t, "complete", draft2.Props[model.PagePropsPageStatus], "status should be overwritten")
+		require.Equal(t, parentId, draft2.Props[model.DraftPropsPageParentID], "parent ID should be preserved")
 	})
 }
 
@@ -557,14 +554,13 @@ func TestMovePageDraft(t *testing.T) {
 	rctx := th.CreateSessionContext()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	t.Run("moves draft to new parent", func(t *testing.T) {
-		parentPage, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent", "", "", th.BasicUser.Id, "", "")
+		parentPage, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Parent", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		pageId := model.NewId()
@@ -582,7 +578,7 @@ func TestMovePageDraft(t *testing.T) {
 	})
 
 	t.Run("moves draft to root", func(t *testing.T) {
-		parentPage, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent", "", "", th.BasicUser.Id, "", "")
+		parentPage, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Parent", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		pageId := model.NewId()

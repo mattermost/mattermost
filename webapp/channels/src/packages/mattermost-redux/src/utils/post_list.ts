@@ -27,7 +27,7 @@ export const MAX_COMBINED_SYSTEM_POSTS = 100;
 
 // Filter out page content posts from channel feed.
 // Page comments appear in the Threads view, not the channel timeline.
-const PAGE_POST_TYPES = [Posts.POST_TYPES.PAGE];
+const PAGE_POST_TYPES = [Posts.POST_TYPES.PAGE, Posts.POST_TYPES.PAGE_MENTION];
 
 interface PostFilterOptions {
     postIds: string[];

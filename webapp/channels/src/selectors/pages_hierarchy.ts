@@ -3,7 +3,7 @@
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
-import {getPages} from 'selectors/pages';
+import {makeGetPages} from 'selectors/pages';
 
 import {buildTree, getAncestorIds} from 'components/pages_hierarchy_panel/utils/tree_builder';
 
@@ -35,13 +35,18 @@ export function getLastViewedPage(state: GlobalState, wikiId: string): string | 
     return state.views.pagesHierarchy?.lastViewedPage?.[wikiId] || null;
 }
 
+// Dedicated instances so these module-level selectors don't share cache with the
+// exported getPages singleton (which only caches the last wikiId argument).
+const getPagesForTree = makeGetPages();
+const getPagesForAncestors = makeGetPages();
+
 /**
  * Get pages tree for a wiki (memoized with createSelector)
  * Builds hierarchical tree structure from flat pages array
  */
 export const getPagesTree = createSelector(
     'getPagesTree',
-    (state: GlobalState, wikiId: string) => getPages(state, wikiId),
+    (state: GlobalState, wikiId: string) => getPagesForTree(state, wikiId),
     (pages) => buildTree(pages as PageOrDraft[]),
 );
 
@@ -51,7 +56,7 @@ export const getPagesTree = createSelector(
  */
 export const getPageAncestorIds = createSelector(
     'getPageAncestorIds',
-    (state: GlobalState, wikiId: string) => getPages(state, wikiId),
+    (state: GlobalState, wikiId: string) => getPagesForAncestors(state, wikiId),
     (_state: GlobalState, _wikiId: string, pageId: string) => pageId,
     (pages, pageId) => getAncestorIds(pages as PageOrDraft[], pageId),
 );

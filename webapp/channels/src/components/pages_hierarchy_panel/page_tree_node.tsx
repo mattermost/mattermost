@@ -6,9 +6,9 @@ import type {DraggableProvidedDragHandleProps} from 'react-beautiful-dnd';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import WithTooltip from 'components/with_tooltip';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {PageDisplayTypes} from 'utils/constants';
 import {isEditingExistingPage} from 'utils/page_utils';
@@ -37,7 +37,6 @@ type Props = {
     isRenaming?: boolean;
     isDeleting?: boolean;
     wikiId?: string;
-    channelId?: string;
     dragHandleProps?: DraggableProvidedDragHandleProps | null;
 };
 
@@ -57,7 +56,6 @@ const PageTreeNode = ({
     isRenaming,
     isDeleting,
     wikiId,
-    channelId,
     dragHandleProps,
 }: Props) => {
     const {formatMessage} = useIntl();
@@ -72,7 +70,7 @@ const PageTreeNode = ({
     const teamName = currentTeam?.name || 'team';
 
     // Build the link path for the page
-    const pageLink = wikiId && channelId ? getWikiUrl(teamName, channelId, wikiId, node.id) : '#';
+    const pageLink = wikiId ? getWikiUrl(teamName, wikiId, node.id, false) : '#';
 
     // Get appropriate aria label for icon button
     const getIconButtonLabel = () => {
@@ -100,6 +98,15 @@ const PageTreeNode = ({
         };
     }, [node.title]);
 
+    const handleIconClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (node.hasChildren) {
+            onToggleExpand();
+        } else {
+            onSelect();
+        }
+    }, [node.hasChildren, onToggleExpand, onSelect]);
+
     const handleCreateChild = useCallback(() => onCreateChild?.(node.id), [onCreateChild, node.id]);
     const handleRename = useCallback(() => onRename?.(node.id), [onRename, node.id]);
     const handleDuplicate = useCallback(() => onDuplicate?.(node.id), [onDuplicate, node.id]);
@@ -124,8 +131,12 @@ const PageTreeNode = ({
                     className='PageTreeNode__dragHandle'
                     {...dragHandleProps}
                     title={formatMessage({id: 'page_tree_node.drag_to_move', defaultMessage: 'Drag to move'})}
+                    aria-label={formatMessage({id: 'page_tree_node.drag_to_move', defaultMessage: 'Drag to move'})}
                 >
-                    <i className='icon-drag-vertical'/>
+                    <i
+                        className='icon-drag-vertical'
+                        aria-hidden='true'
+                    />
                 </div>
             )}
 
@@ -135,15 +146,9 @@ const PageTreeNode = ({
             ) : (
                 <button
                     className='PageTreeNode__iconButton'
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if (node.hasChildren) {
-                            onToggleExpand();
-                        } else {
-                            onSelect();
-                        }
-                    }}
+                    onClick={handleIconClick}
                     aria-label={getIconButtonLabel()}
+                    aria-expanded={node.hasChildren ? node.isExpanded : undefined}
                     disabled={isLoading}
                     data-testid='page-tree-node-expand-button'
                 >
@@ -171,6 +176,7 @@ const PageTreeNode = ({
                     }}
                     disabled={isLoading}
                     data-testid='page-tree-node-title'
+                    aria-label={formatMessage({id: 'pages_hierarchy.tree_node.go_to_page', defaultMessage: 'Go to {title}'}, {title: node.title || formatMessage({id: 'page_tree_node.untitled', defaultMessage: 'Untitled'})})}
                 >
                     <span className='PageTreeNode__title'>
                         {node.title}
@@ -208,7 +214,7 @@ const PageTreeNode = ({
                     canDuplicate={node.page.type !== PageDisplayTypes.PAGE_DRAFT || isEditingExistingPage(node.page)}
                     pageLink={pageLink}
                     buttonClassName='PageTreeNode__menuButton'
-                    buttonLabel='Page menu'
+                    buttonLabel={formatMessage({id: 'pages_hierarchy.tree_node.page_menu', defaultMessage: 'Page menu'})}
                     buttonTestId='page-tree-node-menu-button'
                 />
             )}

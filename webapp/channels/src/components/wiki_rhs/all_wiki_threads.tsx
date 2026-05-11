@@ -12,14 +12,14 @@ import type {Post} from '@mattermost/types/posts';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {getPageComments} from 'actions/pages';
-import {getPublishedPages} from 'selectors/pages';
+import {makeGetPublishedPages} from 'selectors/pages';
 
 import LoadingScreen from 'components/loading_screen';
 
 import WebSocketClient from 'client/web_websocket_client';
+import {useIsMounted} from 'hooks/useIsMounted';
 import {SocketEvents} from 'utils/constants';
-import {pageInlineCommentHasAnchor} from 'utils/page_utils';
-import {getPageTitle} from 'utils/post_utils';
+import {pageInlineCommentHasAnchor, getPageTitle} from 'utils/page_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -40,8 +40,10 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
     const {formatMessage} = useIntl();
     const [loading, setLoading] = useState(true);
     const [pageThreads, setPageThreads] = useState<PageThread[]>([]);
+    const getPublishedPages = useMemo(() => makeGetPublishedPages(), []);
     const pages = useSelector((state: GlobalState) => getPublishedPages(state, wikiId));
     const didInitialLoad = useRef(false);
+    const isMounted = useIsMounted();
     const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
 
     // Store pages in a ref so fetchAllThreads can access current pages without depending on the array reference
@@ -54,7 +56,9 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
     const fetchAllThreads = useCallback(async () => {
         const currentPages = pagesRef.current;
         if (!currentPages || currentPages.length === 0) {
-            setLoading(false);
+            if (isMounted()) {
+                setLoading(false);
+            }
             return;
         }
 
@@ -88,13 +92,17 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
             }),
         );
 
+        if (!isMounted()) {
+            return;
+        }
+
         // Filter out nulls (pages with no threads or failed fetches)
         const threadsData = results.filter((result): result is PageThread => result !== null);
 
         setPageThreads(threadsData);
         setLoading(false);
         didInitialLoad.current = true;
-    }, [dispatch, wikiId, pageIds, untitledText]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [dispatch, wikiId, pageIds, untitledText, isMounted]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         fetchAllThreads();
@@ -168,7 +176,10 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
                             {pageThread.pageTitle}
                         </span>
                         <span className='WikiRHS__page-thread-count'>
-                            {`${pageThread.threadCount} ${pageThread.threadCount === 1 ? 'thread' : 'threads'}`}
+                            {formatMessage(
+                                {id: 'wiki_rhs.thread_count', defaultMessage: '{count, plural, one {# thread} other {# threads}}'},
+                                {count: pageThread.threadCount},
+                            )}
                         </span>
                     </div>
                     <div className='WikiRHS__page-threads-list'>
@@ -189,7 +200,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
                                     </div>
                                     <div className='WikiRHS__thread-item-content'>
                                         <div className='WikiRHS__thread-item-text'>
-                                            {truncatedText || 'Comment thread'}
+                                            {truncatedText || formatMessage({id: 'wiki_rhs.comment_thread_fallback', defaultMessage: 'Comment thread'})}
                                         </div>
                                         <div className='WikiRHS__thread-item-meta'>
                                             {thread.message && (

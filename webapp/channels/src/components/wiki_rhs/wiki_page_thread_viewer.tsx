@@ -7,11 +7,9 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {WebSocketMessage} from '@mattermost/client';
-import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
-import {receivedPosts} from 'mattermost-redux/actions/posts';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {getPageComments} from 'actions/pages';
@@ -20,7 +18,6 @@ import {isPageCommentResolved} from 'selectors/wiki_posts';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdThreads} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
-import CreateComment from 'components/threading/virtualized_thread_viewer/create_comment';
 import Reply from 'components/threading/virtualized_thread_viewer/reply/index';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -29,12 +26,13 @@ import {pageInlineCommentHasAnchor} from 'utils/page_utils';
 
 import type {FakePost} from 'types/store/rhs';
 
+import WikiReplyComment from './wiki_reply_comment';
+
 import './wiki_page_thread_viewer.scss';
 
 export type Props = {
     isCollapsedThreadsEnabled: boolean;
     userThread?: UserThread | null;
-    channel?: Channel;
     selected?: Post | FakePost;
     currentUserId: string;
     currentTeamId: string;
@@ -87,9 +85,13 @@ const WikiPageThreadViewer = (props: Props) => {
         // Clear previous page's comments when navigating to a new page
         setPageComments([]);
 
+        let cancelled = false;
+
         const fetchData = async () => {
             if (!props.rootPostId || !props.wikiId) {
-                setIsLoading(false);
+                if (!cancelled) {
+                    setIsLoading(false);
+                }
                 return;
             }
 
@@ -98,6 +100,9 @@ const WikiPageThreadViewer = (props: Props) => {
             // For focused inline comment, fetch thread using getPostThread
             if (props.focusedInlineCommentId) {
                 const res = await props.actions.getPostThread(props.focusedInlineCommentId, true, props.lastUpdateAt);
+                if (cancelled) {
+                    return;
+                }
 
                 if (props.selected && res.data) {
                     const {order, posts} = res.data;
@@ -126,6 +131,9 @@ const WikiPageThreadViewer = (props: Props) => {
                             } catch (error) {
                                 // Page fetch failed, but thread is still usable
                             }
+                            if (cancelled) {
+                                return;
+                            }
                         }
                     }
                 }
@@ -133,17 +141,28 @@ const WikiPageThreadViewer = (props: Props) => {
                 // For list view, fetch all page comments
                 try {
                     const result = await dispatch(getPageComments(props.wikiId, props.rootPostId));
+                    if (cancelled) {
+                        return;
+                    }
                     const comments = (result as ActionResult<Post[]>).data || [];
                     setPageComments(comments);
                 } catch (error) {
-                    setPageComments([]);
+                    if (!cancelled) {
+                        setPageComments([]);
+                    }
                 }
             }
 
-            setIsLoading(false);
+            if (!cancelled) {
+                setIsLoading(false);
+            }
         };
 
         fetchData();
+
+        return () => {
+            cancelled = true;
+        };
     }, [props.rootPostId, props.focusedInlineCommentId, props.wikiId, dispatch]);
 
     // Consolidated WebSocket listener for page comment events
@@ -164,15 +183,12 @@ const WikiPageThreadViewer = (props: Props) => {
 
                 const post = JSON.parse(data.comment);
 
-                dispatch(receivedPosts({
-                    posts: {[post.id]: post},
-                    order: [post.id],
-                    next_post_id: '',
-                    prev_post_id: '',
-                    first_inaccessible_post_time: 0,
-                }));
-
-                setPageComments((prev) => [...prev, post]);
+                setPageComments((prev) => {
+                    if (prev.some((c) => c.id === post.id)) {
+                        return prev;
+                    }
+                    return [...prev, post];
+                });
                 return;
             }
 
@@ -244,8 +260,10 @@ const WikiPageThreadViewer = (props: Props) => {
         }
     }, [props.wikiId, props.rootPostId, props.actions]);
 
-    // For focused thread view, we need the posts in Redux
-    if (props.focusedInlineCommentId && (props.postIds == null || props.selected == null || !props.channel)) {
+    // For focused thread view, we need the posts and the page in Redux. The
+    // wiki backing channel is not part of the gate because WikiReplyComment
+    // submits via the page-comment API, not the channel post API.
+    if (props.focusedInlineCommentId && (props.postIds == null || props.selected == null)) {
         return <span/>;
     }
 
@@ -390,11 +408,7 @@ const WikiPageThreadViewer = (props: Props) => {
                     );
                 })}
             </div>
-            <CreateComment
-                isThreadView={props.isThreadView}
-                threadId={props.focusedInlineCommentId || props.selected?.id || ''}
-                channel={props.channel}
-            />
+            <WikiReplyComment pageId={props.rootPostId}/>
         </div>
     );
 };

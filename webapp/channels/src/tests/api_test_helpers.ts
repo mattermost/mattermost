@@ -225,9 +225,10 @@ export async function setupWikiTestContext(): Promise<WikiTestContext> {
 
     try {
         const wiki = await Client4.createWiki({
-            channel_id: context.channel.id,
+            team_id: context.team.id,
             title: `Test Wiki ${Date.now()}`,
         });
+        await Client4.linkWikiToChannel(context.channel.id, wiki.id);
 
         createdResources.wikis.push(wiki.id);
 

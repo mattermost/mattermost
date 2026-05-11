@@ -13,9 +13,9 @@ import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import CreationOutlineIcon from '@mattermost/compass-icons/components/creation-outline';
 import MessageTextOutlineIcon from '@mattermost/compass-icons/components/message-text-outline';
 import PencilOutlineIcon from '@mattermost/compass-icons/components/pencil-outline';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import * as Menu from 'components/menu';
-import WithTooltip from 'components/with_tooltip';
 
 import './image_ai_bubble.scss';
 

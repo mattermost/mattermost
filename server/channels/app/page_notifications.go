@@ -41,7 +41,7 @@ func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, u
 	// Use provided channel or fetch if not provided
 	if channel == nil {
 		var chanErr *model.AppError
-		channel, chanErr = a.GetChannel(rctx, page.ChannelId)
+		channel, chanErr = a.GetWikiBackingChannel(rctx, page.ChannelId)
 		if chanErr != nil {
 			rctx.Logger().Warn("Failed to get channel for page update notification",
 				mlog.String("channel_id", page.ChannelId),
@@ -74,7 +74,7 @@ func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, u
 		rctx.Logger().Warn("Failed to atomically update page notification, creating new one",
 			mlog.String("page_id", page.Id),
 			mlog.Err(updateErr))
-		a.createNewPageUpdateNotification(rctx, page, wiki, channel, userId, 1)
+		a.createNewPageUpdateNotification(rctx, page, wiki, channel, userId, username, 1)
 		return
 	}
 
@@ -83,19 +83,22 @@ func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, u
 			mlog.String("notification_id", updatedPost.Id),
 			mlog.String("page_id", page.Id))
 	} else {
-		a.createNewPageUpdateNotification(rctx, page, wiki, channel, userId, 1)
+		a.createNewPageUpdateNotification(rctx, page, wiki, channel, userId, username, 1)
 	}
 }
 
-func (a *App) createNewPageUpdateNotification(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel, userId string, updateCount int) {
+func (a *App) createNewPageUpdateNotification(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel, userId string, username string, updateCount int) {
 	pageTitle := page.GetPageTitle()
 
-	user, userErr := a.GetUser(userId)
-	if userErr != nil {
-		rctx.Logger().Warn("Failed to get user for page update notification",
-			mlog.String("user_id", userId),
-			mlog.Err(userErr))
-		return
+	if username == "" {
+		user, userErr := a.GetUser(userId)
+		if userErr != nil {
+			rctx.Logger().Warn("Failed to get user for page update notification",
+				mlog.String("user_id", userId),
+				mlog.Err(userErr))
+			return
+		}
+		username = user.Username
 	}
 
 	systemPost := &model.Post{
@@ -112,7 +115,7 @@ func (a *App) createNewPageUpdateNotification(rctx request.CTX, page *model.Post
 			"update_count":        updateCount,
 			"last_update_time":    model.GetMillis(),
 			"updater_ids":         []string{userId},
-			"username_" + userId:  user.Username,
+			"username_" + userId:  username,
 		},
 	}
 

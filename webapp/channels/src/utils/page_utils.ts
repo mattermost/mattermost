@@ -7,13 +7,81 @@ import type {AnyAction} from 'redux';
 import type {Post} from '@mattermost/types/posts';
 
 import {WikiTypes} from 'mattermost-redux/action_types';
-import {PostTypes} from 'mattermost-redux/constants';
+import {Permissions, PostTypes} from 'mattermost-redux/constants';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {haveIChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {Locations, PagePropsKeys} from 'utils/constants';
-import {DEFAULT_PAGE_TITLE, getPageTitle} from 'utils/post_utils';
 import {tiptapToMarkdown} from 'utils/tiptap_to_markdown';
 
+import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+
+export const DEFAULT_PAGE_TITLE = 'Untitled';
+
+export function getPageTitle(
+    page: Pick<Post, 'props'> | null | undefined,
+    defaultTitle: string = DEFAULT_PAGE_TITLE,
+): string {
+    return (page?.props?.title as string | undefined) || defaultTitle;
+}
+
+// Mirrors server-side wiki edit permission: direct channel, system-level, or via any linked source channel.
+export function canEditPageInWiki(state: GlobalState, page: Post | null | undefined): boolean {
+    if (!page) {
+        return false;
+    }
+
+    if (!page.channel_id) {
+        return false;
+    }
+
+    if (haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM})) {
+        return true;
+    }
+
+    const linksByChannel = state.entities.wikis?.linksByChannel;
+    if (!linksByChannel) {
+        return false;
+    }
+
+    const wikiId = page.props?.[PagePropsKeys.WIKI_ID] as string | undefined;
+    if (!wikiId) {
+        return false;
+    }
+
+    for (const sourceChannelId of Object.keys(linksByChannel)) {
+        const links = linksByChannel[sourceChannelId];
+        if (!links?.some((link) => link.wiki_id === wikiId)) {
+            continue;
+        }
+        const sourceChannel = getChannel(state, sourceChannelId);
+        if (!sourceChannel) {
+            continue;
+        }
+        if (haveIChannelPermission(state, sourceChannel.team_id, sourceChannel.id, Permissions.EDIT_PAGE)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+type RouteMatch = {
+    path: string;
+    params: Record<string, any>;
+};
+
+export function getActiveTabFromRoute(match: RouteMatch): string {
+    const wikiMatch = match.path?.match(/\/wiki\/:wikiId\(/);
+    if (wikiMatch) {
+        const wikiId = match.params.wikiId;
+        if (wikiId) {
+            return `wiki-${wikiId}`;
+        }
+    }
+    return 'messages';
+}
 
 export function isDraftPageId(pageId: string): boolean {
     return pageId.startsWith('draft-');
@@ -85,10 +153,6 @@ function truncateText(text: string, maxLength: number): string {
     return text.substring(0, maxLength) + '...';
 }
 
-/**
- * Gets the display message for a page post.
- * Returns formatted markdown with title and content preview.
- */
 export function getPageDisplayMessage(
     post: Post | null | undefined,
     extractContent?: (message: string) => string | null,
@@ -114,41 +178,19 @@ export function getPageDisplayMessage(
     return `**${title}**`;
 }
 
-/**
- * Returns true if the post is a page or page comment (any page-related type).
- */
 export function isPageRelatedPost(post: Post | null | undefined): boolean {
     return isPagePost(post) || isPageComment(post);
 }
 
-/**
- * Returns true if this is a page comment thread root (inline comment with no parent).
- * Used for special threading logic in reducers.
- */
 export function isPageCommentThreadRoot(post: Post | null | undefined): boolean {
     return isPageComment(post) && post?.root_id === '';
 }
 
-/**
- * Returns Redux actions needed when receiving a page post via WebSocket.
- * Centralizes the logic for updating wiki stores when pages are created/updated.
- */
 export function getPageReceiveActions(post: Post): AnyAction[] {
     const actions: AnyAction[] = [];
 
     if (isPagePost(post)) {
         const wikiId = post.props?.[PagePropsKeys.WIKI_ID];
-        if (!wikiId) {
-            // Page-typed post arriving without wiki_id is almost always a server schema
-            // regression. The dispatch still lands the page in byId so UI lookups work,
-            // but byWiki membership is skipped (orphaned from hierarchy queries). Log so
-            // this surfaces instead of going silent.
-            // eslint-disable-next-line no-console
-            console.warn('getPageReceiveActions: page post missing wiki_id prop', post.id);
-        }
-
-        // Dispatch regardless of wiki_id presence: byId always stores the page,
-        // byWiki reducer skips membership update when wikiId is absent.
         actions.push({
             type: WikiTypes.RECEIVED_PAGE,
             data: {
@@ -161,18 +203,10 @@ export function getPageReceiveActions(post: Post): AnyAction[] {
     return actions;
 }
 
-/**
- * Returns true if page comment context should be shown for this post in the given location.
- * Used to determine when to render PageCommentedOn component.
- */
 export function shouldShowPageCommentContext(post: Post | null | undefined, location: string): boolean {
     return isPageInlineComment(post) && location === Locations.RHS_ROOT;
 }
 
-/**
- * Copies text to clipboard with proper promise handling.
- * Similar to useCopyText hook but as a standalone async function.
- */
 async function copyTextToClipboard(text: string): Promise<boolean> {
     const clipboard = navigator.clipboard;
     if (clipboard) {
@@ -184,7 +218,6 @@ async function copyTextToClipboard(text: string): Promise<boolean> {
         }
     }
 
-    // Fallback for older browsers
     const textArea = document.createElement('textarea');
     textArea.value = text;
     textArea.style.position = 'fixed';
@@ -202,13 +235,6 @@ async function copyTextToClipboard(text: string): Promise<boolean> {
     }
 }
 
-/**
- * Copies page content as markdown to the clipboard.
- * Parses TipTap JSON content, converts to markdown, and copies to clipboard.
- * @param content - TipTap JSON content string
- * @param title - Page title (defaults to DEFAULT_PAGE_TITLE if empty)
- * @returns Promise<boolean> - true if copy succeeded, false otherwise
- */
 export async function copyPageAsMarkdown(content: string | undefined, title: string | undefined): Promise<boolean> {
     if (!content || typeof content !== 'string' || !content.trim()) {
         return false;

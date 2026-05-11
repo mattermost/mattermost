@@ -8,6 +8,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
+import {forceLogoutIfNecessary} from './helpers';
 import {getMissingProfilesByIds} from './users';
 
 const STALE_EDITOR_THRESHOLD = 5 * 60 * 1000;
@@ -41,6 +42,7 @@ export function fetchActiveEditors(wikiId: string, pageId: string): ActionFuncAs
 
             return {data: editors};
         } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }

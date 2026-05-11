@@ -11,6 +11,75 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+// bookmarkOp identifies which bookmark operation a permission check is for.
+type bookmarkOp int
+
+const (
+	bookmarkOpCreate bookmarkOp = iota
+	bookmarkOpEdit
+	bookmarkOpOrder
+	bookmarkOpDelete
+)
+
+type bookmarkOpInfo struct {
+	publicPerm  *model.Permission
+	privatePerm *model.Permission
+	// i18nPrefix is the per-op segment in error keys, e.g. "create_channel_bookmark".
+	i18nPrefix string
+}
+
+var bookmarkOps = map[bookmarkOp]bookmarkOpInfo{
+	bookmarkOpCreate: {model.PermissionAddBookmarkPublicChannel, model.PermissionAddBookmarkPrivateChannel, "create_channel_bookmark"},
+	bookmarkOpEdit:   {model.PermissionEditBookmarkPublicChannel, model.PermissionEditBookmarkPrivateChannel, "update_channel_bookmark"},
+	bookmarkOpOrder:  {model.PermissionOrderBookmarkPublicChannel, model.PermissionOrderBookmarkPrivateChannel, "update_channel_bookmark_sort_order"},
+	bookmarkOpDelete: {model.PermissionDeleteBookmarkPublicChannel, model.PermissionDeleteBookmarkPrivateChannel, "delete_channel_bookmark"},
+}
+
+// requireBookmarkPermission enforces the channel-type-specific permission policy
+// for a bookmark op. Returns (isMember, ok). ok=false means c.Err was set.
+func requireBookmarkPermission(c *Context, channel *model.Channel, handlerName string, op bookmarkOp) (isMember, ok bool) {
+	info := bookmarkOps[op]
+	keyPrefix := "api.channel.bookmark." + info.i18nPrefix
+	switch channel.Type {
+	case model.ChannelTypeOpen:
+		hasPerm, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, info.publicPerm)
+		if !hasPerm {
+			c.SetPermissionError(info.publicPerm)
+			return false, false
+		}
+		return member, true
+
+	case model.ChannelTypePrivate:
+		hasPerm, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, info.privatePerm)
+		if !hasPerm {
+			c.SetPermissionError(info.privatePerm)
+			return false, false
+		}
+		return member, true
+
+	case model.ChannelTypeGroup, model.ChannelTypeDirect:
+		// Any member of DM/GMs but guests can manage channel bookmarks.
+		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
+			c.Err = model.NewAppError(handlerName, keyPrefix+".direct_or_group_channels.forbidden.app_error", nil, "", http.StatusForbidden)
+			return false, false
+		}
+		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
+		if gAppErr != nil {
+			c.Err = gAppErr
+			return false, false
+		}
+		if user.IsGuest() {
+			c.Err = model.NewAppError(handlerName, keyPrefix+".direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
+			return false, false
+		}
+		return true, true
+
+	default:
+		c.Err = model.NewAppError(handlerName, keyPrefix+".forbidden.app_error", nil, "", http.StatusForbidden)
+		return false, false
+	}
+}
+
 func (api *API) InitChannelBookmarks() {
 	if api.srv.Config().FeatureFlags.ChannelBookmarks {
 		api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(createChannelBookmark)).Methods(http.MethodPost)
@@ -58,39 +127,7 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channelBookmark", channelBookmark)
 
-	switch channel.Type {
-	case model.ChannelTypeOpen:
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionAddBookmarkPublicChannel); !ok {
-			c.SetPermissionError(model.PermissionAddBookmarkPublicChannel)
-			return
-		}
-
-	case model.ChannelTypePrivate:
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionAddBookmarkPrivateChannel); !ok {
-			c.SetPermissionError(model.PermissionAddBookmarkPrivateChannel)
-			return
-		}
-
-	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// Any member of DM/GMs but guests can manage channel bookmarks
-		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
-			return
-		}
-
-		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
-		if gAppErr != nil {
-			c.Err = gAppErr
-			return
-		}
-
-		if user.IsGuest() {
-			c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-
-	default:
-		c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.forbidden.app_error", nil, "", http.StatusForbidden)
+	if _, ok := requireBookmarkPermission(c, channel, "createChannelBookmark", bookmarkOpCreate); !ok {
 		return
 	}
 
@@ -159,45 +196,8 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isMember := false
-	switch channel.Type {
-	case model.ChannelTypeOpen:
-		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionEditBookmarkPublicChannel)
-		if !ok {
-			c.SetPermissionError(model.PermissionEditBookmarkPublicChannel)
-			return
-		}
-		isMember = member
-
-	case model.ChannelTypePrivate:
-		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionEditBookmarkPrivateChannel)
-		if !ok {
-			c.SetPermissionError(model.PermissionEditBookmarkPrivateChannel)
-			return
-		}
-		isMember = member
-
-	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// Any member of DM/GMs but guests can manage channel bookmarks
-		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
-			return
-		}
-
-		isMember = true
-		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
-		if gAppErr != nil {
-			c.Err = gAppErr
-			return
-		}
-
-		if user.IsGuest() {
-			c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-
-	default:
-		c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.forbidden.app_error", nil, "", http.StatusForbidden)
+	isMember, ok := requireBookmarkPermission(c, channel, "updateChannelBookmark", bookmarkOpEdit)
+	if !ok {
 		return
 	}
 
@@ -261,43 +261,8 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	isMember := false
-	switch channel.Type {
-	case model.ChannelTypeOpen:
-		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionOrderBookmarkPublicChannel)
-		if !ok {
-			c.SetPermissionError(model.PermissionOrderBookmarkPublicChannel)
-			return
-		}
-		isMember = member
-	case model.ChannelTypePrivate:
-		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionOrderBookmarkPrivateChannel)
-		if !ok {
-			c.SetPermissionError(model.PermissionOrderBookmarkPrivateChannel)
-			return
-		}
-		isMember = member
-	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// Any member of DM/GMs but guests can manage channel bookmarks
-		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
-			return
-		}
-
-		isMember = true
-		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
-		if gAppErr != nil {
-			c.Err = gAppErr
-			return
-		}
-
-		if user.IsGuest() {
-			c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-
-	default:
-		c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error", nil, "", http.StatusForbidden)
+	isMember, ok := requireBookmarkPermission(c, channel, "updateChannelBookmarkSortOrder", bookmarkOpOrder)
+	if !ok {
 		return
 	}
 
@@ -354,43 +319,8 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isMember := false
-	switch channel.Type {
-	case model.ChannelTypeOpen:
-		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionDeleteBookmarkPublicChannel)
-		if !ok {
-			c.SetPermissionError(model.PermissionDeleteBookmarkPublicChannel)
-			return
-		}
-		isMember = member
-	case model.ChannelTypePrivate:
-		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionDeleteBookmarkPrivateChannel)
-		if !ok {
-			c.SetPermissionError(model.PermissionDeleteBookmarkPrivateChannel)
-			return
-		}
-		isMember = member
-	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// Any member of DM/GMs but guests can manage channel bookmarks
-		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
-			return
-		}
-
-		isMember = true
-		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
-		if gAppErr != nil {
-			c.Err = gAppErr
-			return
-		}
-
-		if user.IsGuest() {
-			c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-
-	default:
-		c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error", nil, "", http.StatusForbidden)
+	isMember, ok := requireBookmarkPermission(c, channel, "deleteChannelBookmark", bookmarkOpDelete)
+	if !ok {
 		return
 	}
 
@@ -490,7 +420,7 @@ func createBookmarkFromPage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if req.PageId == "" {
+	if req.PageId == "" || !model.IsValidId(req.PageId) {
 		c.SetInvalidParam("page_id")
 		return
 	}
@@ -509,39 +439,25 @@ func createBookmarkFromPage(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateChannelBookmark, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	switch channel.Type {
-	case model.ChannelTypeOpen:
-		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionAddBookmarkPublicChannel); !hasPermission {
-			c.SetPermissionError(model.PermissionAddBookmarkPublicChannel)
-			return
-		}
-	case model.ChannelTypePrivate:
-		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionAddBookmarkPrivateChannel); !hasPermission {
-			c.SetPermissionError(model.PermissionAddBookmarkPrivateChannel)
-			return
-		}
-	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("createBookmarkFromPage", "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
-			return
-		}
-		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
-		if gAppErr != nil {
-			c.Err = gAppErr
-			return
-		}
-		if user.IsGuest() {
-			c.Err = model.NewAppError("createBookmarkFromPage", "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-	default:
-		c.Err = model.NewAppError("createBookmarkFromPage", "api.channel.bookmark.create_channel_bookmark.forbidden.app_error", nil, "", http.StatusForbidden)
+	if _, ok := requireBookmarkPermission(c, channel, "createBookmarkFromPage", bookmarkOpCreate); !ok {
 		return
 	}
 
 	page, appErr := c.App.GetPage(c.AppContext, req.PageId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	// Verify the caller can read the source page before exposing its title in
+	// the bookmark display name.
+	wiki, wErr := c.App.GetWikiByChannelId(c.AppContext, page.ChannelId)
+	if wErr != nil {
+		c.Err = wErr
+		return
+	}
+	if !c.App.SessionHasPagePermission(*c.AppContext.Session(), wiki, page, model.PermissionReadPage) {
+		c.SetPermissionError(model.PermissionReadPage)
 		return
 	}
 

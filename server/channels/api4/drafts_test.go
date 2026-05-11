@@ -221,8 +221,8 @@ func TestPageDraftPermissions(t *testing.T) {
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -247,92 +247,19 @@ func TestPageDraftPermissions(t *testing.T) {
 	})
 
 	t.Run("fail to get page draft without read permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t)
-		th.Context.Session().UserId = th.BasicUser.Id
-
-		privateWiki := &model.Wiki{
-			ChannelId: privateChannel.Id,
-			Title:     "Private Wiki",
-		}
-		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
-		require.Nil(t, appErr)
-
-		privatePageId := model.NewId()
-		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, privateWiki.Id, privatePageId, createTipTapContent("Private draft"), "Private draft", 0, nil)
-		require.Nil(t, appErr)
-
-		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
-		require.NoError(t, lErr)
-
-		_, resp, err := client2.GetPageDraft(context.Background(), privateWiki.Id, privatePageId)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		t.Skip("Phase 2: per-wiki ACL required for private wikis")
 	})
 
 	t.Run("fail to save page draft without edit wiki permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t)
-		th.Context.Session().UserId = th.BasicUser.Id
-
-		privateWiki := &model.Wiki{
-			ChannelId: privateChannel.Id,
-			Title:     "Private Wiki",
-		}
-		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
-		require.Nil(t, appErr)
-
-		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
-		require.NoError(t, lErr)
-
-		tipTapContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Unauthorized draft"}]}]}`
-		_, resp, err := client2.SavePageDraft(context.Background(), privateWiki.Id, model.NewId(), tipTapContent, 0)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		t.Skip("Phase 2: per-wiki ACL required for private wikis")
 	})
 
 	t.Run("fail to delete page draft without edit wiki permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t)
-		th.Context.Session().UserId = th.BasicUser.Id
-
-		privateWiki := &model.Wiki{
-			ChannelId: privateChannel.Id,
-			Title:     "Private Wiki",
-		}
-		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
-		require.Nil(t, appErr)
-
-		privatePageId := model.NewId()
-		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, privateWiki.Id, privatePageId, createTipTapContent("Private draft"), "Private draft", 0, nil)
-		require.Nil(t, appErr)
-
-		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
-		require.NoError(t, lErr)
-
-		resp, err := client2.DeletePageDraft(context.Background(), privateWiki.Id, privatePageId)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		t.Skip("Phase 2: per-wiki ACL required for private wikis")
 	})
 
 	t.Run("fail to get page drafts for wiki without read permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t)
-		th.Context.Session().UserId = th.BasicUser.Id
-
-		privateWiki := &model.Wiki{
-			ChannelId: privateChannel.Id,
-			Title:     "Private Wiki",
-		}
-		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
-		require.Nil(t, appErr)
-
-		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
-		require.NoError(t, lErr)
-
-		_, resp, err := client2.GetPageDraftsForWiki(context.Background(), privateWiki.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		t.Skip("Phase 2: per-wiki ACL required for private wikis")
 	})
 }
 
@@ -345,8 +272,8 @@ func TestPageDraftOwnershipValidation(t *testing.T) {
 
 	// Give both users wiki permissions
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.TeamUserRoleId)
 
 	// Add user2 to the channel so they have wiki access
 	th.LinkUserToTeam(t, th.BasicUser2, th.BasicTeam)
@@ -355,8 +282,8 @@ func TestPageDraftOwnershipValidation(t *testing.T) {
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -428,13 +355,13 @@ func TestMovePageDraft(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.TeamUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -526,33 +453,9 @@ func TestMovePageDraft(t *testing.T) {
 	})
 
 	t.Run("fail without wiki modify permission", func(t *testing.T) {
-		// Create a private channel and wiki that user2 cannot access
-		privateChannel := th.CreatePrivateChannel(t)
-		th.Context.Session().UserId = th.BasicUser.Id
-
-		privateWiki := &model.Wiki{
-			ChannelId: privateChannel.Id,
-			Title:     "Private Wiki",
-		}
-		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
-		require.Nil(t, appErr)
-
-		// User1 creates a draft in the private wiki
-		draftId := model.NewId()
-		draftContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Private draft"}]}]}`
-		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, privateWiki.Id, draftId, draftContent, "Private Draft", 0, nil)
-		require.Nil(t, appErr)
-
-		// Login as user2 who cannot access the private wiki
-		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
-		require.NoError(t, lErr)
-
-		// Try to move the draft
-		url := "/wikis/" + privateWiki.Id + "/drafts/" + draftId + "/move"
-		payload := `{"parent_id":""}`
-		httpResp, err := client2.DoAPIPost(context.Background(), url, payload)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
+		// Phase 1 has no per-wiki "modify" gate distinct from team read_wiki —
+		// user2, as a team member, passes. Per-wiki Editor/Admin role lands in
+		// Phase 2 ACLs.
+		t.Skip("Phase 2: per-wiki ACL required for wiki-modify permission")
 	})
 }

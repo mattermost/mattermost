@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -15,11 +16,6 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *model.Post, channel
 	pageId := page.Id
 	post := page
 
-	// Cross-channel permission check: user must have read access to page's channel
-	if hasPermission, _ := a.SessionHasPermissionToChannel(rctx, *rctx.Session(), page.ChannelId, model.PermissionReadChannel); !hasPermission {
-		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.no_permission_to_page_channel.app_error", nil, "", http.StatusForbidden)
-	}
-
 	// Get wikiId from PropertyValues (not from Props)
 	wikiId, wikiErr := a.GetWikiIdForPage(rctx, pageId)
 	if wikiErr != nil {
@@ -29,8 +25,8 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *model.Post, channel
 		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.page_missing_wiki_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Get team name from page's channel
-	pageChannel, channelErr := a.GetChannel(rctx, page.ChannelId)
+	// Get team name from page's backing channel
+	pageChannel, channelErr := a.GetWikiBackingChannel(rctx, page.ChannelId)
 	if channelErr != nil {
 		return nil, channelErr
 	}
@@ -43,13 +39,12 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, page *model.Post, channel
 	// Use page title as display name if not provided
 	if displayName == "" {
 		displayName = post.GetPageTitle()
-		if len(displayName) > model.DisplayNameMaxRunes {
-			displayName = displayName[:model.DisplayNameMaxRunes]
+		if utf8.RuneCountInString(displayName) > model.DisplayNameMaxRunes {
+			displayName = string([]rune(displayName)[:model.DisplayNameMaxRunes])
 		}
 	}
 
-	// Build internal page URL (relative path)
-	relativePath := model.BuildPageUrl(team.Name, page.ChannelId, wikiId, pageId)
+	relativePath := model.BuildPageUrl(team.Name, wikiId, pageId)
 
 	// Convert to absolute URL using site URL
 	if a.Config().ServiceSettings.SiteURL == nil || *a.Config().ServiceSettings.SiteURL == "" {

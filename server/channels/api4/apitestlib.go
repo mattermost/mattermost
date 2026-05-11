@@ -1357,39 +1357,64 @@ func (th *TestHelper) RestoreDefaultRolePermissions(tb testing.TB, data map[stri
 	}
 }
 
+// RemovePermissionFromRole removes a permission from the named role and registers
+// a cleanup that re-adds it when the test ends. This makes the change scoped to
+// the calling test for pollution-between-tests purposes.
+//
+// Concurrency caveat: tests running in parallel that touch the *same* global role
+// can still observe each other's mid-flight modifications. Use
+// SetupTeamSchemeWithPermissions / SetupChannelSchemeWithPermissions for
+// per-scheme isolation when parallel safety matters.
 func (th *TestHelper) RemovePermissionFromRole(tb testing.TB, permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(th.Context, roleName)
-	require.Nil(tb, err1)
-
-	var newPermissions []string
-	for _, p := range role.Permissions {
-		if p != permission {
-			newPermissions = append(newPermissions, p)
-		}
+	if changed := th.removePermissionFromRoleNoCleanup(tb, permission, roleName); changed {
+		tb.Cleanup(func() { th.addPermissionToRoleNoCleanup(tb, permission, roleName) })
 	}
-
-	if strings.Join(role.Permissions, " ") == strings.Join(newPermissions, " ") {
-		return
-	}
-
-	role.Permissions = newPermissions
-
-	_, err2 := th.App.UpdateRole(role)
-	require.Nil(tb, err2)
 }
 
+// AddPermissionToRole adds a permission to the named role and registers a cleanup
+// that removes it when the test ends. See RemovePermissionFromRole for the
+// concurrency caveat.
 func (th *TestHelper) AddPermissionToRole(tb testing.TB, permission string, roleName string) {
+	if changed := th.addPermissionToRoleNoCleanup(tb, permission, roleName); changed {
+		tb.Cleanup(func() { th.removePermissionFromRoleNoCleanup(tb, permission, roleName) })
+	}
+}
+
+// addPermissionToRoleNoCleanup performs the mutation without registering a
+// cleanup. Returns true if the role was actually modified.
+func (th *TestHelper) addPermissionToRoleNoCleanup(tb testing.TB, permission, roleName string) bool {
 	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, err1)
 
 	if slices.Contains(role.Permissions, permission) {
-		return
+		return false
 	}
 
 	role.Permissions = append(role.Permissions, permission)
 
 	_, err2 := th.App.UpdateRole(role)
 	require.Nil(tb, err2)
+	return true
+}
+
+// removePermissionFromRoleNoCleanup performs the mutation without registering a
+// cleanup. Returns true if the role was actually modified.
+func (th *TestHelper) removePermissionFromRoleNoCleanup(tb testing.TB, permission, roleName string) bool {
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
+	require.Nil(tb, err1)
+
+	originalLen := len(role.Permissions)
+	role.Permissions = slices.DeleteFunc(role.Permissions, func(p string) bool {
+		return p == permission
+	})
+
+	if len(role.Permissions) == originalLen {
+		return false
+	}
+
+	_, err2 := th.App.UpdateRole(role)
+	require.Nil(tb, err2)
+	return true
 }
 
 func (th *TestHelper) SetupTeamScheme(tb testing.TB) *model.Scheme {
@@ -1427,6 +1452,51 @@ func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *m
 	user, appErr := th.App.GetUser(userID)
 	require.Nil(tb, appErr)
 	return user
+}
+
+func (th *TestHelper) enableSchemesPrereqs(tb testing.TB) {
+	tb.Helper()
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	require.NoError(tb, th.App.SetPhase2PermissionsMigrationStatus(true))
+}
+
+// SetupChannelSchemeWithPermissions creates a channel-scoped scheme, assigns it
+// to the given channel, and grants the listed permissions to both the user and
+// admin roles in the scheme. It also enables the license and Phase-2 migration
+// that schemes require. Returns the scheme so callers can Remove/Add individual
+// permissions in subtests without touching global roles.
+func (th *TestHelper) SetupChannelSchemeWithPermissions(tb testing.TB, channel *model.Channel, permissions ...*model.Permission) *model.Scheme {
+	tb.Helper()
+	th.enableSchemesPrereqs(tb)
+
+	scheme := th.SetupChannelScheme(tb)
+	channel.SchemeId = &scheme.Id
+	_, appErr := th.App.UpdateChannelScheme(th.Context, channel)
+	require.Nil(tb, appErr)
+
+	for _, p := range permissions {
+		th.AddPermissionToRole(tb, p.Id, scheme.DefaultChannelUserRole)
+		th.AddPermissionToRole(tb, p.Id, scheme.DefaultChannelAdminRole)
+	}
+	return scheme
+}
+
+// SetupTeamSchemeWithPermissions creates a team-scoped scheme, assigns it to
+// the given team, and grants the listed permissions to the user role. Returns
+// the scheme so callers can Remove/Add permissions without touching global roles.
+func (th *TestHelper) SetupTeamSchemeWithPermissions(tb testing.TB, team *model.Team, permissions ...*model.Permission) *model.Scheme {
+	tb.Helper()
+	th.enableSchemesPrereqs(tb)
+
+	scheme := th.SetupTeamScheme(tb)
+	team.SchemeId = &scheme.Id
+	_, appErr := th.App.UpdateTeamScheme(team)
+	require.Nil(tb, appErr)
+
+	for _, p := range permissions {
+		th.AddPermissionToRole(tb, p.Id, scheme.DefaultTeamUserRole)
+	}
+	return scheme
 }
 
 func (th *TestHelper) Parallel(t *testing.T) {

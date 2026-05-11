@@ -108,9 +108,12 @@ export function savePageDraft(
                 const currentState = getState();
                 const currentDraft = getGlobalItem<Partial<PostDraft>>(currentState, key, {});
 
-                // Only apply server response if the draft hasn't been modified
-                // by another save while our server call was in flight
-                if (!currentDraft.updateAt || currentDraft.updateAt <= localUpdateAt) {
+                // Only apply server response if the draft still exists (wasn't deleted by a
+                // concurrent publish) AND hasn't been modified by another save while in flight.
+                // If the draft was deleted, getGlobalItem returns {} with no rootId — applying
+                // the server response here would resurrect a stale draft (race condition fix).
+                const draftStillExists = currentDraft.rootId !== undefined;
+                if (draftStillExists && (!currentDraft.updateAt || currentDraft.updateAt <= localUpdateAt)) {
                     const serverDraft = result.data as ServerPageDraft;
                     const transformedDraft = transformPageServerDraft(serverDraft, wikiId, pageId, currentUserId);
 

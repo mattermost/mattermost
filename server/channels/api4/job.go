@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -130,7 +131,11 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		defer fileReader.Close()
 
-		web.WriteFileResponse(exportFile, jsonlMime, 0, time.UnixMilli(job.LastActivityAt), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
+		mime := jsonlMime
+		if strings.HasSuffix(exportFile, ".zip") {
+			mime = zipMime
+		}
+		web.WriteFileResponse(exportFile, mime, 0, time.UnixMilli(job.LastActivityAt), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 		return
 	}
 

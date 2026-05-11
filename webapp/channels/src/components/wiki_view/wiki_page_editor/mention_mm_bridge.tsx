@@ -13,7 +13,7 @@ import AtMentionProvider from 'components/suggestion/at_mention_provider';
 import AtMentionSuggestion from 'components/suggestion/at_mention_provider/at_mention_suggestion';
 import type {Item} from 'components/suggestion/at_mention_provider/at_mention_suggestion';
 
-import {wrapProviderCallback} from './provider_bridge_utils';
+import {createProviderItemsFn} from './provider_bridge_utils';
 import {createSuggestionRenderer} from './suggestion_renderer';
 
 import './mention_suggestion_list.scss';
@@ -37,6 +37,7 @@ const MentionSuggestionList: React.FC<{
     <ul
         className='tiptap-mention-suggestions'
         role='listbox'
+        aria-label='User mentions'
     >
         {items.map((item, index) => (
             <AtMentionSuggestion
@@ -65,9 +66,7 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
     });
 
     return {
-        items: ({query}: {query: string}): Promise<Item[]> => {
-            return wrapProviderCallback<Item>(provider, `@${query}`);
-        },
+        items: createProviderItemsFn<Item>(provider, (query) => `@${query}`),
 
         ...createSuggestionRenderer<Item>({
             popupClassName: 'tiptap-mention-popup',

@@ -32,7 +32,7 @@ func (s *MmctlUnitTestSuite) TestWikiVerifyCmdF() {
 
 		mockTeam := &model.Team{Id: wikiTeamID, Name: wikiTeamName}
 		mockChannel := &model.Channel{Id: wikiChannelID, Name: wikiChannelName}
-		mockWiki := &model.Wiki{Id: wikiID, ChannelId: wikiChannelID, Title: "Test Wiki"}
+		mockWiki := &model.Wiki{Id: wikiID, SourceChannelId: wikiChannelID, Title: "Test Wiki"}
 
 		// Create pages without orphans (page2 has no parent reference, page1 has valid parent)
 		page1 := &model.Post{
@@ -100,7 +100,7 @@ func (s *MmctlUnitTestSuite) TestWikiVerifyCmdF() {
 
 		mockTeam := &model.Team{Id: wikiTeamID, Name: wikiTeamName}
 		mockChannel := &model.Channel{Id: wikiChannelID, Name: wikiChannelName}
-		mockWiki := &model.Wiki{Id: wikiID, ChannelId: wikiChannelID, Title: "Test Wiki"}
+		mockWiki := &model.Wiki{Id: wikiID, SourceChannelId: wikiChannelID, Title: "Test Wiki"}
 
 		// Only 1 page but manifest expects 2
 		page1 := &model.Post{
@@ -151,7 +151,7 @@ func (s *MmctlUnitTestSuite) TestWikiVerifyCmdF() {
 
 		mockTeam := &model.Team{Id: wikiTeamID, Name: wikiTeamName}
 		mockChannel := &model.Channel{Id: wikiChannelID, Name: wikiChannelName}
-		mockWiki := &model.Wiki{Id: wikiID, ChannelId: wikiChannelID, Title: "Test Wiki"}
+		mockWiki := &model.Wiki{Id: wikiID, SourceChannelId: wikiChannelID, Title: "Test Wiki"}
 
 		// page2 has PageParentId pointing to non-existent page
 		page1 := &model.Post{
@@ -213,7 +213,7 @@ func (s *MmctlUnitTestSuite) TestWikiVerifyCmdF() {
 
 		mockTeam := &model.Team{Id: wikiTeamID, Name: wikiTeamName}
 		mockChannel := &model.Channel{Id: wikiChannelID, Name: wikiChannelName}
-		mockWiki := &model.Wiki{Id: wikiID, ChannelId: wikiChannelID, Title: "Test Wiki"}
+		mockWiki := &model.Wiki{Id: wikiID, SourceChannelId: wikiChannelID, Title: "Test Wiki"}
 
 		// Page with unresolved placeholder
 		page1 := &model.Post{
@@ -267,7 +267,7 @@ func (s *MmctlUnitTestSuite) TestWikiVerifyCmdF() {
 
 		mockTeam := &model.Team{Id: wikiTeamID, Name: wikiTeamName}
 		mockChannel := &model.Channel{Id: wikiChannelID, Name: wikiChannelName}
-		mockWiki := &model.Wiki{Id: wikiID, ChannelId: wikiChannelID, Title: "Test Wiki"}
+		mockWiki := &model.Wiki{Id: wikiID, SourceChannelId: wikiChannelID, Title: "Test Wiki"}
 
 		// Page with 2 attachments
 		page1 := &model.Post{
@@ -333,7 +333,7 @@ func (s *MmctlUnitTestSuite) TestWikiVerifyCmdF() {
 
 		mockTeam := &model.Team{Id: wikiTeamID, Name: wikiTeamName}
 		mockChannel := &model.Channel{Id: wikiChannelID, Name: wikiChannelName}
-		mockWiki := &model.Wiki{Id: wikiID, ChannelId: wikiChannelID, Title: "Test Wiki"}
+		mockWiki := &model.Wiki{Id: wikiID, SourceChannelId: wikiChannelID, Title: "Test Wiki"}
 
 		// Page with 1 attachment but manifest expects 5
 		page1 := &model.Post{
@@ -389,7 +389,7 @@ func (s *MmctlUnitTestSuite) TestWikiResolveLinksCmdF() {
 
 		mockTeam := &model.Team{Id: wikiTeamID, Name: wikiTeamName}
 		mockChannel := &model.Channel{Id: wikiChannelID, Name: wikiChannelName}
-		mockWiki := &model.Wiki{Id: wikiID, ChannelId: wikiChannelID, Title: "Test Wiki"}
+		mockWiki := &model.Wiki{Id: wikiID, SourceChannelId: wikiChannelID, Title: "Test Wiki"}
 
 		// Target page that link should resolve to
 		targetPage := &model.Post{
@@ -460,7 +460,7 @@ func (s *MmctlUnitTestSuite) TestWikiResolveLinksCmdF() {
 
 		mockTeam := &model.Team{Id: wikiTeamID, Name: wikiTeamName}
 		mockChannel := &model.Channel{Id: wikiChannelID, Name: wikiChannelName}
-		mockWiki := &model.Wiki{Id: wikiID, ChannelId: wikiChannelID, Title: "Test Wiki"}
+		mockWiki := &model.Wiki{Id: wikiID, SourceChannelId: wikiChannelID, Title: "Test Wiki"}
 
 		targetPage := &model.Post{
 			Id:        wikiPageID2,

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect} from 'react';
+import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {fetchPageStatusField, updatePageStatus} from 'actions/pages';
@@ -25,6 +26,7 @@ type Props = {
 
 const PageStatusSelector = ({pageId, isDraft, draftStatus, onDraftStatusChange}: Props) => {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
 
     const statusField = useSelector((state: GlobalState) => getPageStatusField(state));
     const publishedPageStatus = useSelector((state: GlobalState) => getPageStatus(state, pageId));
@@ -63,7 +65,7 @@ const PageStatusSelector = ({pageId, isDraft, draftStatus, onDraftStatusChange}:
 
     return (
         <div className='page-status-selector'>
-            <span className='page-status-label'>{'Status'}</span>
+            <span className='page-status-label'>{formatMessage({id: 'page_status_selector.label', defaultMessage: 'Status'})}</span>
             <SelectableSelectPropertyRenderer
                 field={statusField}
                 metadata={metadata}

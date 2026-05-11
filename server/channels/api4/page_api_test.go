@@ -15,16 +15,21 @@ func TestGetChannelPages(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.SetupTeamSchemeWithPermissions(t, th.BasicTeam,
+		model.PermissionCreatePage, model.PermissionReadPage,
+	)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	// Link wiki to BasicChannel so GetChannelPages(BasicChannel) returns its pages.
+	_, appErr = th.App.LinkWikiToChannel(th.Context, wiki.Id, th.BasicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	// Create pages
@@ -61,7 +66,7 @@ func TestGetChannelPages(t *testing.T) {
 
 	t.Run("include_content=true returns page content in Message", func(t *testing.T) {
 		content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content for include"}]}]}`
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Content Page", "", content, th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Content Page", content, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		postList, resp, err := th.Client.GetChannelPagesWithContent(context.Background(), th.BasicChannel.Id, true)
@@ -87,14 +92,15 @@ func TestCreatePage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	scheme := th.SetupTeamSchemeWithPermissions(t, th.BasicTeam,
+		model.PermissionCreatePage, model.PermissionReadPage,
+	)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -119,8 +125,10 @@ func TestCreatePage(t *testing.T) {
 	})
 
 	t.Run("fail without create permission", func(t *testing.T) {
-		th.RemovePermissionFromRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreatePage.Id, scheme.DefaultTeamUserRole)
+		th.RemovePermissionFromRole(t, model.PermissionCreatePage.Id, scheme.DefaultTeamAdminRole)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, scheme.DefaultTeamUserRole)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, scheme.DefaultTeamAdminRole)
 
 		_, resp, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Should Fail")
 		require.Error(t, err)
@@ -133,22 +141,11 @@ func TestCreatePage(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("fail for user not in channel", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t)
-		privateWiki := &model.Wiki{
-			ChannelId: privateChannel.Id,
-			Title:     "Private Wiki",
-		}
-		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
-		require.Nil(t, appErr)
-
-		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
-		require.NoError(t, lErr)
-
-		_, resp, err := client2.CreatePage(context.Background(), privateWiki.Id, "", "Should Fail")
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+	t.Run("fail for user not in wiki ACL", func(t *testing.T) {
+		// Phase 1: page perms are team-scope, so any team member can create pages
+		// in any wiki on the team. "Private wiki" semantics return in Phase 2 once
+		// per-wiki ACL is in place — see plans/wiki-page-permissions-confluence.md.
+		t.Skip("Phase 2: per-wiki ACL required for private wikis")
 	})
 }
 
@@ -156,15 +153,15 @@ func TestUpdatePage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	scheme := th.SetupTeamSchemeWithPermissions(t, th.BasicTeam,
+		model.PermissionCreatePage, model.PermissionReadPage, model.PermissionEditPage,
+	)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -194,8 +191,15 @@ func TestUpdatePage(t *testing.T) {
 		page, _, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Test Page")
 		require.NoError(t, err)
 
-		th.RemovePermissionFromRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+		// Remove both edit_page (any) and edit_own_page (author) since the user authored this page.
+		th.RemovePermissionFromRole(t, model.PermissionEditPage.Id, scheme.DefaultTeamUserRole)
+		th.RemovePermissionFromRole(t, model.PermissionEditPage.Id, scheme.DefaultTeamAdminRole)
+		th.RemovePermissionFromRole(t, model.PermissionEditOwnPage.Id, scheme.DefaultTeamUserRole)
+		th.RemovePermissionFromRole(t, model.PermissionEditOwnPage.Id, scheme.DefaultTeamAdminRole)
+		defer th.AddPermissionToRole(t, model.PermissionEditPage.Id, scheme.DefaultTeamUserRole)
+		defer th.AddPermissionToRole(t, model.PermissionEditPage.Id, scheme.DefaultTeamAdminRole)
+		defer th.AddPermissionToRole(t, model.PermissionEditOwnPage.Id, scheme.DefaultTeamUserRole)
+		defer th.AddPermissionToRole(t, model.PermissionEditOwnPage.Id, scheme.DefaultTeamAdminRole)
 
 		_, resp, err := th.Client.UpdatePage(context.Background(), wiki.Id, page.Id, "Should Fail", "", "", 0)
 		require.Error(t, err)
@@ -212,7 +216,7 @@ func TestUpdatePage(t *testing.T) {
 		page, _, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Page to Delete")
 		require.NoError(t, err)
 
-		th.AddPermissionToRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionDeletePage.Id, scheme.DefaultTeamUserRole)
 		_, err = th.Client.DeletePage(context.Background(), wiki.Id, page.Id)
 		require.NoError(t, err)
 
@@ -226,15 +230,15 @@ func TestDeletePage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
+	scheme := th.SetupTeamSchemeWithPermissions(t, th.BasicTeam,
+		model.PermissionCreatePage, model.PermissionReadPage, model.PermissionDeletePage,
+	)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -279,11 +283,14 @@ func TestDeletePage(t *testing.T) {
 		page, _, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Test Page")
 		require.NoError(t, err)
 
-		// Remove both delete permissions - user can't delete any page, including their own
-		th.RemovePermissionFromRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(t, model.PermissionDeleteOwnPage.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionDeleteOwnPage.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionDeletePage.Id, scheme.DefaultTeamUserRole)
+		th.RemovePermissionFromRole(t, model.PermissionDeleteOwnPage.Id, scheme.DefaultTeamUserRole)
+		th.RemovePermissionFromRole(t, model.PermissionDeletePage.Id, scheme.DefaultTeamAdminRole)
+		th.RemovePermissionFromRole(t, model.PermissionDeleteOwnPage.Id, scheme.DefaultTeamAdminRole)
+		defer th.AddPermissionToRole(t, model.PermissionDeletePage.Id, scheme.DefaultTeamUserRole)
+		defer th.AddPermissionToRole(t, model.PermissionDeleteOwnPage.Id, scheme.DefaultTeamUserRole)
+		defer th.AddPermissionToRole(t, model.PermissionDeletePage.Id, scheme.DefaultTeamAdminRole)
+		defer th.AddPermissionToRole(t, model.PermissionDeleteOwnPage.Id, scheme.DefaultTeamAdminRole)
 
 		resp, err := th.Client.DeletePage(context.Background(), wiki.Id, page.Id)
 		require.Error(t, err)
@@ -313,17 +320,25 @@ func TestRestorePage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
+	// Single scheme with all perms team_user needs (create/read pages, delete-own).
+	scheme := th.SetupTeamSchemeWithPermissions(t, th.BasicTeam,
+		model.PermissionCreatePage, model.PermissionReadPage,
+		model.PermissionDeleteOwnPage,
+	)
+	// delete_page (any) is admin-only; restore requires it.
+	th.AddPermissionToRole(t, model.PermissionDeletePage.Id, scheme.DefaultTeamAdminRole)
+
+	// Promote BasicUser to team_admin so they can perform restore. BasicUser2 stays team_user.
+	_, appErr := th.App.UpdateTeamMemberSchemeRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id, false, true, true)
+	require.Nil(t, appErr)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
 	}
-	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	wiki, appErr = th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	t.Run("restore deleted page successfully", func(t *testing.T) {
@@ -352,21 +367,19 @@ func TestRestorePage(t *testing.T) {
 	})
 
 	t.Run("fail without delete permission", func(t *testing.T) {
-		page, _, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Test Page")
+		// BasicUser2 is a regular channel member: has delete_own_page (from global channel_user)
+		// but not delete_page (only channel admins have that). Restore requires delete_page.
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
+		require.NoError(t, lErr)
+
+		page, _, err := client2.CreatePage(context.Background(), wiki.Id, "", "Test Page")
 		require.NoError(t, err)
 
-		// Delete the page
-		_, err = th.Client.DeletePage(context.Background(), wiki.Id, page.Id)
+		_, err = client2.DeletePage(context.Background(), wiki.Id, page.Id)
 		require.NoError(t, err)
 
-		// Remove delete permission
-		th.RemovePermissionFromRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(t, model.PermissionDeleteOwnPage.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionDeleteOwnPage.Id, model.ChannelUserRoleId)
-
-		// Try to restore without permission
-		resp, err := th.Client.RestorePage(context.Background(), wiki.Id, page.Id)
+		resp, err := client2.RestorePage(context.Background(), wiki.Id, page.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -375,6 +388,24 @@ func TestRestorePage(t *testing.T) {
 		resp, err := th.Client.RestorePage(context.Background(), wiki.Id, model.NewId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("fail with only delete-own permission", func(t *testing.T) {
+		// BasicUser2 has delete_own_page (channel_user) but not delete_page (channel_admin only).
+		// Verify that delete_own_page alone is insufficient for restore.
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
+		require.NoError(t, lErr)
+
+		page, _, err := client2.CreatePage(context.Background(), wiki.Id, "", "Test Page Own")
+		require.NoError(t, err)
+
+		_, err = client2.DeletePage(context.Background(), wiki.Id, page.Id)
+		require.NoError(t, err)
+
+		resp, err := client2.RestorePage(context.Background(), wiki.Id, page.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("fail for non-deleted page", func(t *testing.T) {
@@ -392,14 +423,15 @@ func TestGetWikiPage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.SetupTeamSchemeWithPermissions(t, th.BasicTeam,
+		model.PermissionCreatePage, model.PermissionReadPage,
+	)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -421,36 +453,15 @@ func TestGetWikiPage(t *testing.T) {
 	})
 
 	t.Run("fail without read permission", func(t *testing.T) {
-		page, _, err := th.Client.CreatePage(context.Background(), wiki.Id, "", "Test Page")
-		require.NoError(t, err)
-
-		th.RemovePermissionFromRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
-
-		_, resp, err := th.Client.GetPage(context.Background(), wiki.Id, page.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		// Phase 1 grants read_wiki to team_user_role; any team member passes.
+		// Per-wiki read denial returns in Phase 2 via per-wiki ACL.
+		t.Skip("Phase 2: per-wiki ACL required for private wikis")
 	})
 
 	t.Run("fail for user not in channel", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t)
-		privateWiki := &model.Wiki{
-			ChannelId: privateChannel.Id,
-			Title:     "Private Wiki",
-		}
-		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
-		require.Nil(t, appErr)
-
-		privatePage, appErr := th.App.CreateWikiPage(th.Context, privateWiki.Id, "", "Private Page", "", th.BasicUser.Id, "", "")
-		require.Nil(t, appErr)
-
-		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
-		require.NoError(t, lErr)
-
-		_, resp, err := client2.GetPage(context.Background(), privateWiki.Id, privatePage.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		// Wikis are decoupled from channels — wiki access is gated by team-role
+		// read_wiki, not by source-channel membership. Skip until Phase 2 ACLs.
+		t.Skip("obsolete after wiki/channel decoupling; revisit with Phase 2 wiki ACLs")
 	})
 }
 
@@ -458,14 +469,15 @@ func TestGetPageComments(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.SetupTeamSchemeWithPermissions(t, th.BasicTeam,
+		model.PermissionCreatePage, model.PermissionReadPage,
+	)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -494,26 +506,9 @@ func TestGetPageComments(t *testing.T) {
 	})
 
 	t.Run("fail without read permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t)
-		th.Context.Session().UserId = th.BasicUser.Id
-
-		privateWiki := &model.Wiki{
-			ChannelId: privateChannel.Id,
-			Title:     "Private Wiki",
-		}
-		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
-		require.Nil(t, appErr)
-
-		privatePage, appErr := th.App.CreateWikiPage(th.Context, privateWiki.Id, "", "Private Page", "", th.BasicUser.Id, "", "")
-		require.Nil(t, appErr)
-
-		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
-		require.NoError(t, lErr)
-
-		_, resp, err := client2.GetPageComments(context.Background(), privateWiki.Id, privatePage.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		// Phase 1 grants read_wiki to team_user_role; any team member passes.
+		// Per-wiki read denial returns in Phase 2 via per-wiki ACL.
+		t.Skip("Phase 2: per-wiki ACL required for private wikis")
 	})
 
 	t.Run("fail for non-existent page", func(t *testing.T) {

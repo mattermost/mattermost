@@ -100,7 +100,7 @@ type EntityCounts struct {
 // BrokenLink represents a link that couldn't be resolved.
 type BrokenLink struct {
 	PageTitle string `json:"page_title"`
-	SourceID  string `json:"source_id"`
+	SourceId  string `json:"source_id"`
 	TargetURL string `json:"target_url"`
 	Reason    string `json:"reason"`
 }
@@ -296,7 +296,7 @@ func wikiVerifyCmdF(c client.Client, command *cobra.Command, args []string) erro
 			}
 
 			unresolved := extractUnresolvedPlaceholders(content)
-			importSourceID, _ := post.GetProp("import_source_id").(string)
+			importSourceId, _ := post.GetProp("import_source_id").(string)
 			title, _ := post.GetProp("title").(string)
 			if title == "" {
 				title = post.Id
@@ -305,7 +305,7 @@ func wikiVerifyCmdF(c client.Client, command *cobra.Command, args []string) erro
 			for _, placeholder := range unresolved {
 				brokenLinks = append(brokenLinks, BrokenLink{
 					PageTitle: title,
-					SourceID:  importSourceID,
+					SourceId:  importSourceId,
 					TargetURL: placeholder,
 					Reason:    "unresolved placeholder",
 				})
@@ -515,8 +515,8 @@ func buildPageMappings(ctx context.Context, c client.Client, channelID string) (
 
 	for _, post := range postList.Posts {
 		// Extract import_source_id from Props
-		if importSourceID, ok := post.GetProp("import_source_id").(string); ok && importSourceID != "" {
-			pageIDMapping[importSourceID] = post.Id
+		if importSourceId, ok := post.GetProp("import_source_id").(string); ok && importSourceId != "" {
+			pageIDMapping[importSourceId] = post.Id
 		}
 	}
 

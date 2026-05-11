@@ -7,6 +7,11 @@ import Suggestion from '@tiptap/suggestion';
 import type {SuggestionOptions, SuggestionProps, SuggestionKeyDownProps} from '@tiptap/suggestion';
 import React from 'react';
 import {createRoot, type Root} from 'react-dom/client';
+import {IntlProvider} from 'react-intl';
+import {Provider} from 'react-redux';
+
+import {getCurrentLocale, getTranslations} from 'selectors/i18n';
+import store from 'stores/redux_store';
 
 import {filterFormattingActions, type FormattingAction} from './formatting_actions';
 import SlashCommandMenu from './slash_command_menu';
@@ -14,11 +19,6 @@ import type {SlashCommandMenuRef} from './slash_command_menu';
 
 const SLASH_MENU_Z_INDEX = 1000;
 const SLASH_MENU_HEIGHT = 400;
-
-// Global state for slash command menu to prevent conflicts between multiple editor instances
-let globalExitTimeout: ReturnType<typeof setTimeout> | null = null;
-let globalLastValidRange: {from: number; to: number} | null = null;
-let globalExtensionOptions: {onOpenLinkModal: () => void; onOpenImageModal: () => void; onOpenEmojiPicker: () => void} | null = null;
 
 type SlashCommandOptions = {
     onOpenLinkModal: () => void;
@@ -43,42 +43,66 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
                 items: ({query}: {query: string}): FormattingAction[] => {
                     return filterFormattingActions(query);
                 },
-                render: () => {
-                    const POPUP_ID = 'tiptap-slash-command-popup-singleton';
-                    let popup: HTMLElement | null = null;
-                    let root: Root | null = null;
-                    let componentRef: SlashCommandMenuRef | null = null;
-                    let currentItems: FormattingAction[] = [];
-                    let commandFunction: ((item: FormattingAction) => void) | null = null;
+            } as Partial<SuggestionOptions>,
+        };
+    },
 
-                    const closePopup = () => {
-                        const existingPopup = document.getElementById(POPUP_ID);
-                        if (root) {
-                            root.unmount();
-                            root = null;
-                        }
-                        if (existingPopup && existingPopup.parentNode) {
-                            existingPopup.parentNode.removeChild(existingPopup);
-                        }
-                        popup = null;
-                        componentRef = null;
+    addProseMirrorPlugins() {
+        // Per-extension-instance state. Each editor gets its own SlashCommandExtension
+        // and therefore its own state — this avoids the cross-editor interference that
+        // module-scoped state would cause when two editors are mounted simultaneously.
+        let lastValidRange: {from: number; to: number} | null = null;
+        const extensionOptions = {
+            onOpenLinkModal: this.options.onOpenLinkModal,
+            onOpenImageModal: this.options.onOpenImageModal,
+            onOpenEmojiPicker: this.options.onOpenEmojiPicker,
+        };
 
-                        document.removeEventListener('mousedown', handleClickAway);
-                    };
+        const render = () => {
+            const POPUP_ID = 'tiptap-slash-command-popup-singleton';
+            let popup: HTMLElement | null = null;
+            let root: Root | null = null;
+            let componentRef: SlashCommandMenuRef | null = null;
+            let currentItems: FormattingAction[] = [];
+            let commandFunction: ((item: FormattingAction) => void) | null = null;
+            let locale = '';
+            let messages: Record<string, string> = {};
 
-                    const handleClickAway = (event: MouseEvent) => {
-                        const popupElement = document.getElementById(POPUP_ID);
-                        if (popupElement && !popupElement.contains(event.target as Node)) {
-                            closePopup();
-                        }
-                    };
+            const closePopup = () => {
+                const existingPopup = document.getElementById(POPUP_ID);
+                try {
+                    if (root) {
+                        root.unmount();
+                    }
+                } finally {
+                    root = null;
+                    if (existingPopup && existingPopup.parentNode) {
+                        existingPopup.parentNode.removeChild(existingPopup);
+                    }
+                    popup = null;
+                    componentRef = null;
+                    document.removeEventListener('mousedown', handleClickAway);
+                }
+            };
 
-                    const renderComponent = (items: FormattingAction[]) => {
-                        if (popup && commandFunction) {
-                            if (!root) {
-                                root = createRoot(popup);
-                            }
-                            root.render(
+            const handleClickAway = (event: MouseEvent) => {
+                const popupElement = document.getElementById(POPUP_ID);
+                if (popupElement && !popupElement.contains(event.target as Node)) {
+                    closePopup();
+                }
+            };
+
+            const renderComponent = (items: FormattingAction[]) => {
+                if (popup && commandFunction) {
+                    if (!root) {
+                        root = createRoot(popup);
+                    }
+                    root.render(
+                        <Provider store={store}>
+                            <IntlProvider
+                                locale={locale}
+                                messages={messages}
+                            >
                                 <SlashCommandMenu
                                     ref={(ref) => {
                                         componentRef = ref;
@@ -90,143 +114,131 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
                                         }
                                         closePopup();
                                     }}
-                                />,
-                            );
+                                />
+                            </IntlProvider>
+                        </Provider>,
+                    );
+                }
+            };
+
+            return {
+                onStart: (props: SuggestionProps<FormattingAction>) => {
+                    const {items, command, clientRect, range} = props;
+                    currentItems = items || [];
+                    commandFunction = command;
+
+                    lastValidRange = range;
+
+                    const state = store.getState();
+                    locale = getCurrentLocale(state);
+                    messages = getTranslations(state, locale);
+
+                    closePopup();
+
+                    popup = document.createElement('div');
+                    popup.id = POPUP_ID;
+                    popup.className = 'tiptap-slash-command-popup';
+                    document.body.appendChild(popup);
+
+                    if (clientRect) {
+                        const rect = clientRect();
+                        if (rect) {
+                            popup.style.position = 'absolute';
+                            popup.style.left = `${rect.left + window.scrollX}px`;
+                            popup.style.zIndex = String(SLASH_MENU_Z_INDEX);
+
+                            const menuHeight = SLASH_MENU_HEIGHT;
+                            const spaceBelow = window.innerHeight - rect.bottom;
+                            const spaceAbove = rect.top;
+
+                            if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
+                                popup.style.bottom = `${window.innerHeight - rect.top - window.scrollY}px`;
+                                popup.style.top = 'auto';
+                            } else {
+                                popup.style.top = `${rect.bottom + window.scrollY}px`;
+                                popup.style.bottom = 'auto';
+                            }
                         }
-                    };
+                    }
 
-                    return {
-                        onStart: (props: SuggestionProps<FormattingAction>) => {
-                            const {items, command, clientRect, range} = props;
-                            currentItems = items || [];
-                            commandFunction = command;
+                    renderComponent(items);
 
-                            globalLastValidRange = range;
-
-                            if (globalExitTimeout) {
-                                clearTimeout(globalExitTimeout);
-                                globalExitTimeout = null;
-                            }
-
-                            closePopup();
-
-                            popup = document.createElement('div');
-                            popup.id = POPUP_ID;
-                            popup.className = 'tiptap-slash-command-popup';
-                            document.body.appendChild(popup);
-
-                            if (clientRect) {
-                                const rect = clientRect();
-                                if (rect) {
-                                    popup.style.position = 'absolute';
-                                    popup.style.left = `${rect.left + window.scrollX}px`;
-                                    popup.style.zIndex = String(SLASH_MENU_Z_INDEX);
-
-                                    const menuHeight = SLASH_MENU_HEIGHT;
-                                    const spaceBelow = window.innerHeight - rect.bottom;
-                                    const spaceAbove = rect.top;
-
-                                    if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
-                                        popup.style.bottom = `${window.innerHeight - rect.top - window.scrollY}px`;
-                                        popup.style.top = 'auto';
-                                    } else {
-                                        popup.style.top = `${rect.bottom + window.scrollY}px`;
-                                        popup.style.bottom = 'auto';
-                                    }
-                                }
-                            }
-
-                            renderComponent(items);
-
-                            setTimeout(() => {
-                                document.addEventListener('mousedown', handleClickAway);
-                            }, 0);
-                        },
-
-                        onUpdate: (props: SuggestionProps<FormattingAction>) => {
-                            const {items, clientRect, range} = props;
-                            currentItems = items || [];
-
-                            globalLastValidRange = range;
-
-                            if (globalExitTimeout) {
-                                clearTimeout(globalExitTimeout);
-                                globalExitTimeout = null;
-                            }
-
-                            if (popup && clientRect) {
-                                const rect = clientRect();
-                                if (rect) {
-                                    popup.style.left = `${rect.left + window.scrollX}px`;
-
-                                    const menuHeight = 400;
-                                    const spaceBelow = window.innerHeight - rect.bottom;
-                                    const spaceAbove = rect.top;
-
-                                    if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
-                                        popup.style.bottom = `${window.innerHeight - rect.top - window.scrollY}px`;
-                                        popup.style.top = 'auto';
-                                    } else {
-                                        popup.style.top = `${rect.bottom + window.scrollY}px`;
-                                        popup.style.bottom = 'auto';
-                                    }
-                                }
-                            }
-
-                            renderComponent(currentItems);
-                        },
-
-                        onKeyDown: (props: SuggestionKeyDownProps) => {
-                            if (props.event.key === 'Escape') {
-                                closePopup();
-                                return true;
-                            }
-
-                            if (!componentRef) {
-                                return false;
-                            }
-
-                            return componentRef.onKeyDown(props.event);
-                        },
-
-                        onExit: () => {
-                            // No cleanup needed
-                        },
-                    };
+                    setTimeout(() => {
+                        document.addEventListener('mousedown', handleClickAway);
+                    }, 0);
                 },
-                command: ({editor, range, props}: {editor: Editor; range: Range; props: FormattingAction}) => {
-                    const rangeToUse = globalLastValidRange || range;
 
-                    editor.chain().focus().deleteRange(rangeToUse).run();
+                onUpdate: (props: SuggestionProps<FormattingAction>) => {
+                    const {items, clientRect, range} = props;
+                    currentItems = items || [];
 
-                    globalLastValidRange = null;
+                    lastValidRange = range;
 
-                    if (props.requiresModal && props.modalType === 'link') {
-                        globalExtensionOptions?.onOpenLinkModal();
-                        return;
+                    if (popup && clientRect) {
+                        const rect = clientRect();
+                        if (rect) {
+                            popup.style.left = `${rect.left + window.scrollX}px`;
+
+                            const menuHeight = SLASH_MENU_HEIGHT;
+                            const spaceBelow = window.innerHeight - rect.bottom;
+                            const spaceAbove = rect.top;
+
+                            if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
+                                popup.style.bottom = `${window.innerHeight - rect.top - window.scrollY}px`;
+                                popup.style.top = 'auto';
+                            } else {
+                                popup.style.top = `${rect.bottom + window.scrollY}px`;
+                                popup.style.bottom = 'auto';
+                            }
+                        }
                     }
 
-                    if (props.requiresModal && props.modalType === 'image') {
-                        globalExtensionOptions?.onOpenImageModal();
-                        return;
-                    }
-
-                    if (props.requiresModal && props.modalType === 'emoji') {
-                        globalExtensionOptions?.onOpenEmojiPicker();
-                        return;
-                    }
-
-                    props.command(editor);
+                    renderComponent(currentItems);
                 },
-            } as Partial<SuggestionOptions>,
+
+                onKeyDown: (props: SuggestionKeyDownProps) => {
+                    // Escape: return false so TipTap's Suggestion plugin transitions to
+                    // exited state and fires onExit (which performs the cleanup).
+                    if (props.event.key === 'Escape') {
+                        return false;
+                    }
+
+                    if (!componentRef) {
+                        return false;
+                    }
+
+                    return componentRef.onKeyDown(props.event);
+                },
+
+                onExit: () => {
+                    closePopup();
+                },
+            };
         };
-    },
 
-    addProseMirrorPlugins() {
-        globalExtensionOptions = {
-            onOpenLinkModal: this.options.onOpenLinkModal,
-            onOpenImageModal: this.options.onOpenImageModal,
-            onOpenEmojiPicker: this.options.onOpenEmojiPicker,
+        const command = ({editor, range, props}: {editor: Editor; range: Range; props: FormattingAction}) => {
+            const rangeToUse = lastValidRange || range;
+
+            editor.chain().focus().deleteRange(rangeToUse).run();
+
+            lastValidRange = null;
+
+            if (props.requiresModal && props.modalType === 'link') {
+                extensionOptions.onOpenLinkModal();
+                return;
+            }
+
+            if (props.requiresModal && props.modalType === 'image') {
+                extensionOptions.onOpenImageModal();
+                return;
+            }
+
+            if (props.requiresModal && props.modalType === 'emoji') {
+                extensionOptions.onOpenEmojiPicker();
+                return;
+            }
+
+            props.command(editor);
         };
 
         return [
@@ -234,6 +246,8 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
             Suggestion({
                 editor: this.editor,
                 ...(this.options.suggestion || {}),
+                render,
+                command,
             }),
         ];
     },

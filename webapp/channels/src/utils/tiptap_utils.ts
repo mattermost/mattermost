@@ -8,8 +8,9 @@ import StarterKit from '@tiptap/starter-kit';
 /**
  * Extract plaintext from TipTap JSON for search indexing.
  * Only called when publishing a page (not on draft saves).
+ * Returns null on failure so callers can distinguish "no content" from "extraction failed".
  */
-export function extractPlaintextFromTipTapJSON(jsonString: string): string {
+export function extractPlaintextFromTipTapJSON(jsonString: string): string | null {
     if (!jsonString || jsonString.trim() === '') {
         return '';
     }
@@ -36,6 +37,8 @@ export function extractPlaintextFromTipTapJSON(jsonString: string): string {
 
         return plaintext;
     } catch (error) {
-        return '';
+        // eslint-disable-next-line no-console
+        console.error('extractPlaintextFromTipTapJSON: failed to extract text', error);
+        return null;
     }
 }

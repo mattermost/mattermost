@@ -5,10 +5,12 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"maps"
 	"slices"
 	"sort"
+	"strings"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -106,78 +108,6 @@ func (s *SqlPageStore) GetPage(rctx request.CTX, pageID string, includeDeleted b
 	return &post, nil
 }
 
-// SoftDeletePageComments soft-deletes all comments for a page.
-// This is a pure data access method - the App layer decides when to call it.
-func (s *SqlPageStore) SoftDeletePageComments(pageID, deleteByID string) error {
-	if pageID == "" {
-		return store.NewErrInvalidInput("Post", "pageID", pageID)
-	}
-
-	now := model.GetMillis()
-
-	deleteCommentsQuery := s.getQueryBuilder().
-		Update("Posts").
-		Set("DeleteAt", now).
-		Set("UpdateAt", now).
-		Set("Props", sq.Expr("jsonb_set(Props, ?, ?)", jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID))).
-		Where(sq.And{
-			sq.Expr("Props->>'page_id' = ?", pageID),
-			sq.Eq{"Type": model.PostTypePageComment},
-			sq.Eq{"DeleteAt": 0},
-		})
-
-	commentsSQL, commentsArgs, buildErr := deleteCommentsQuery.ToSql()
-	if buildErr != nil {
-		return errors.Wrap(buildErr, "failed to build delete comments query")
-	}
-
-	if _, execErr := s.GetMaster().Exec(commentsSQL, commentsArgs...); execErr != nil {
-		return errors.Wrap(execErr, "failed to delete page comments")
-	}
-
-	return nil
-}
-
-// SoftDeletePagePost soft-deletes the page post itself.
-// This is a pure data access method - the App layer decides when to call it.
-func (s *SqlPageStore) SoftDeletePagePost(pageID, deleteByID string) error {
-	if pageID == "" {
-		return store.NewErrInvalidInput("Post", "pageID", pageID)
-	}
-
-	now := model.GetMillis()
-
-	deletePostQuery := s.getQueryBuilder().
-		Update("Posts").
-		Set("DeleteAt", now).
-		Set("UpdateAt", now).
-		Set("Props", sq.Expr("jsonb_set(Props, ?, ?)", jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID))).
-		Where(sq.And{
-			sq.Eq{"Id": pageID},
-			sq.Eq{"Type": model.PostTypePage},
-		})
-
-	postSQL, postArgs, buildErr := deletePostQuery.ToSql()
-	if buildErr != nil {
-		return errors.Wrap(buildErr, "failed to build delete post query")
-	}
-
-	result, execErr := s.GetMaster().Exec(postSQL, postArgs...)
-	if execErr != nil {
-		return errors.Wrap(execErr, "failed to delete Post")
-	}
-
-	rowsAffected, rowsErr := result.RowsAffected()
-	if rowsErr != nil {
-		return errors.Wrap(rowsErr, "failed to get rows affected")
-	}
-	if rowsAffected == 0 {
-		return store.NewErrNotFound("Post", pageID)
-	}
-
-	return nil
-}
-
 // DeletePage soft-deletes a page and all its associated data (comments and drafts).
 // It also atomically reparents any child pages to newParentID (or makes them root pages if empty).
 // All operations are performed in a single transaction to ensure data consistency and prevent
@@ -227,14 +157,18 @@ func (s *SqlPageStore) DeletePage(pageID string, deleteByID string, newParentID 
 		}
 
 		// Delete ThreadMemberships for page comments (must happen before Thread deletion)
-		deleteThreadMembershipsSQL := "DELETE FROM ThreadMemberships WHERE PostId IN (" + subquerySQL + ")"
-		if _, err = transaction.Exec(deleteThreadMembershipsSQL, subqueryArgs...); err != nil {
+		deleteThreadMembershipsQuery := s.getQueryBuilder().
+			Delete("ThreadMemberships").
+			Where(sq.Expr("PostId IN ("+subquerySQL+")", subqueryArgs...))
+		if _, err = transaction.ExecBuilder(deleteThreadMembershipsQuery); err != nil {
 			return errors.Wrap(err, "failed to delete ThreadMemberships for page comments")
 		}
 
 		// Delete Threads for page comments
-		deleteThreadsSQL := "DELETE FROM Threads WHERE PostId IN (" + subquerySQL + ")"
-		if _, err = transaction.Exec(deleteThreadsSQL, subqueryArgs...); err != nil {
+		deleteThreadsQuery := s.getQueryBuilder().
+			Delete("Threads").
+			Where(sq.Expr("PostId IN ("+subquerySQL+")", subqueryArgs...))
+		if _, err = transaction.ExecBuilder(deleteThreadsQuery); err != nil {
 			return errors.Wrap(err, "failed to delete Threads for page comments")
 		}
 
@@ -430,6 +364,13 @@ func (s *SqlPageStore) GetPageChildren(postID string, options model.GetPostsOpti
 		}).
 		OrderBy("p.CreateAt DESC")
 
+	if options.PerPage > 0 {
+		query = query.Limit(uint64(options.PerPage))
+		if options.Page > 0 {
+			query = query.Offset(uint64(options.Page * options.PerPage))
+		}
+	}
+
 	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find children for post_id=%s", postID)
@@ -526,10 +467,11 @@ func (s *SqlPageStore) GetSiblingPages(parentID, channelID string) ([]*model.Pos
 			"p.PageParentId": parentID,
 			"p.Type":         model.PostTypePage,
 			"p.DeleteAt":     0,
-		})
+		}).
+		Limit(uint64(MaxChannelPagesLimit + 1))
 
 	posts := []*model.Post{}
-	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
+	if err := s.GetMaster().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to get sibling pages for parent_id=%s channel_id=%s", parentID, channelID)
 	}
 
@@ -547,6 +489,21 @@ func (s *SqlPageStore) GetSiblingPages(parentID, channelID string) ([]*model.Pos
 	})
 
 	return posts, nil
+}
+
+// haveCanonicalSortOrders reports whether all siblings already have distinct,
+// non-zero sort orders in strictly increasing order. Used to skip reorder writes
+// when no actual change is needed.
+func haveCanonicalSortOrders(siblings []*model.Post) bool {
+	prev := int64(0)
+	for _, p := range siblings {
+		order := p.GetPageSortOrder()
+		if order <= prev {
+			return false
+		}
+		prev = order
+	}
+	return true
 }
 
 // UpdatePageSortOrder reorders a page among its siblings.
@@ -626,8 +583,11 @@ func (s *SqlPageStore) updatePageSortOrderInTx(tx *sqlxTxWrapper, pageID, parent
 		newIndex = int64(len(siblings) - 1)
 	}
 
-	// 5. If already at the target position, no-op (return current state)
-	if int64(currentIndex) == newIndex {
+	// 5. If already at the target position AND existing sort orders are canonical
+	// (all distinct, non-zero, in increasing order), no-op. Otherwise fall through to
+	// recalculation — newly-created pages have sort_order=0, so position-based sorting
+	// is ambiguous and we must assign real orders.
+	if int64(currentIndex) == newIndex && haveCanonicalSortOrders(siblings) {
 		return siblings, nil
 	}
 
@@ -677,6 +637,35 @@ func (s *SqlPageStore) MovePage(pageID, channelID string, newParentID *string, n
 	var result []*model.Post
 	err := s.ExecuteInTransaction(func(tx *sqlxTxWrapper) error {
 		now := model.GetMillis()
+
+		// If a new parent is specified, lock pages in consistent order to prevent deadlocks.
+		// Without ordering, two concurrent moves (A→B and B→A) could deadlock by acquiring
+		// locks in opposite orders (AB vs BA). Lock the lower ID first unconditionally.
+		if newParentID != nil && *newParentID != "" && *newParentID != pageID {
+			firstID, secondID := pageID, *newParentID
+			if firstID > secondID {
+				firstID = secondID
+			}
+			// Lock the lower-ID page first (bare lock, no UpdateAt check)
+			if firstID != pageID {
+				prelockQuery := s.getQueryBuilder().
+					Select("Id").
+					From("Posts").
+					Where(sq.And{
+						sq.Eq{"Id": firstID},
+						sq.Eq{"Type": model.PostTypePage},
+						sq.Eq{"DeleteAt": 0},
+					}).
+					Suffix("FOR UPDATE")
+				var prelockID string
+				if err := tx.GetBuilder(&prelockID, prelockQuery); err != nil {
+					if err == sql.ErrNoRows {
+						return store.NewErrNotFound("Post", firstID)
+					}
+					return errors.Wrap(err, "failed to acquire preliminary lock")
+				}
+			}
+		}
 
 		// Fetch current parent and lock the row to prevent concurrent modifications.
 		// FOR UPDATE ensures no other transaction can modify this page until we commit.
@@ -814,6 +803,35 @@ func (s *SqlPageStore) MovePage(pageID, channelID string, newParentID *string, n
 // move operations could create cycles (e.g., moving P1 under P2 while P2 is moved under P1).
 func (s *SqlPageStore) ChangePageParent(postID string, newParentID string, expectedUpdateAt int64) error {
 	return s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
+		// Lock pages in consistent order to prevent deadlocks.
+		// Without ordering, two concurrent moves (A→B and B→A) could deadlock by acquiring
+		// locks in opposite orders (AB vs BA). Lock the lower ID first unconditionally.
+		if newParentID != "" && newParentID != postID {
+			firstID, secondID := postID, newParentID
+			if firstID > secondID {
+				firstID = secondID
+			}
+			// Lock the lower-ID page first (bare lock, no UpdateAt check)
+			if firstID != postID {
+				prelockQuery := s.getQueryBuilder().
+					Select("Id").
+					From("Posts").
+					Where(sq.And{
+						sq.Eq{"Id": firstID},
+						sq.Eq{"Type": model.PostTypePage},
+						sq.Eq{"DeleteAt": 0},
+					}).
+					Suffix("FOR UPDATE")
+				var prelockID string
+				if err := transaction.GetBuilder(&prelockID, prelockQuery); err != nil {
+					if err == sql.ErrNoRows {
+						return store.NewErrNotFound("Post", firstID)
+					}
+					return errors.Wrap(err, "failed to acquire preliminary lock")
+				}
+			}
+		}
+
 		// Lock the page being moved to prevent concurrent modifications
 		lockPageQuery := s.getQueryBuilder().
 			Select("Id").
@@ -918,32 +936,6 @@ func (s *SqlPageStore) ChangePageParent(postID string, newParentID string, expec
 	})
 }
 
-// ReparentChildren updates all direct children of a page to a new parent.
-// Used when deleting a page to avoid orphaning its children.
-// If newParentID is empty, children become root pages.
-func (s *SqlPageStore) ReparentChildren(pageID string, newParentID string) error {
-	if pageID == "" {
-		return store.NewErrInvalidInput("Post", "pageID", pageID)
-	}
-
-	updateQuery := s.getQueryBuilder().
-		Update("Posts").
-		Set("PageParentId", newParentID).
-		Set("UpdateAt", model.GetMillis()).
-		Where(sq.And{
-			sq.Eq{"PageParentId": pageID},
-			sq.Eq{"DeleteAt": 0},
-			sq.Eq{"Type": model.PostTypePage},
-		})
-
-	_, err := s.GetMaster().ExecBuilder(updateQuery)
-	if err != nil {
-		return errors.Wrapf(err, "failed to reparent children for page_id=%s", pageID)
-	}
-
-	return nil
-}
-
 func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, content string) (post *model.Post, err error) {
 	if pageID == "" {
 		return nil, store.NewErrInvalidInput("Post", "pageID", pageID)
@@ -958,6 +950,7 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 			Where(sq.And{
 				sq.Eq{"Id": pageID},
 				sq.Eq{"Type": model.PostTypePage},
+				sq.Eq{"DeleteAt": 0},
 			}).
 			Suffix("FOR UPDATE")
 
@@ -990,8 +983,8 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 		}
 
 		if content != "" {
-			if vErr := model.ValidateTipTapDocument(content); vErr != nil {
-				return store.NewErrInvalidInput("Page", "content", "invalid TipTap document").Wrap(vErr)
+			if !json.Valid([]byte(content)) {
+				return store.NewErrInvalidInput("Post", "content", "invalid JSON")
 			}
 			currentPost.Message = content
 			needsHistory = true
@@ -999,6 +992,11 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 
 		if needsHistory {
 			now := model.GetMillis()
+			// Ensure UpdateAt strictly increases even if the previous write
+			// happened within the same millisecond.
+			if now <= currentPost.UpdateAt {
+				now = currentPost.UpdateAt + 1
+			}
 			currentPost.EditAt = now
 			currentPost.UpdateAt = now
 
@@ -1010,6 +1008,7 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 				Set("Props", model.StringInterfaceToJSON(currentPost.Props)).
 				Where(sq.And{
 					sq.Eq{"Id": currentPost.Id},
+					sq.Eq{"Type": model.PostTypePage},
 					sq.Eq{"DeleteAt": 0},
 				})
 
@@ -1109,6 +1108,7 @@ func (s *SqlPageStore) GetPageVersionHistory(pageId string, offset, limit int) (
 		Where(sq.And{
 			sq.Eq{"Posts.OriginalId": pageId},
 			sq.Gt{"Posts.DeleteAt": 0},
+			sq.Eq{"Posts.Type": model.PostTypePage},
 		}).
 		OrderBy("Posts.EditAt DESC")
 
@@ -1163,10 +1163,10 @@ func (s *SqlPageStore) GetCommentsForPage(pageID string, includeDeleted bool, of
 		query = query.Where(sq.Eq{"DeleteAt": 0})
 	}
 
-	// Apply pagination if limit > 0
-	if limit > 0 {
-		query = query.Offset(uint64(offset)).Limit(uint64(limit))
+	if limit <= 0 {
+		limit = 1000
 	}
+	query = query.Offset(uint64(offset)).Limit(uint64(limit))
 
 	// Execute query
 	queryString, args, err := query.ToSql()
@@ -1189,10 +1189,154 @@ func (s *SqlPageStore) GetCommentsForPage(pageID string, includeDeleted bool, of
 	return pl, nil
 }
 
-// AtomicUpdatePageNotification atomically finds and updates an existing page update notification.
-// Uses SELECT FOR UPDATE within a transaction to prevent lost updates from concurrent modifications.
-// Returns the updated post, or nil if no matching notification was found.
+// UpdateCommentProps sets the Props field on a page comment and returns the refreshed post.
+// Restricted to Type='page_comment' so callers cannot bypass post edit history on regular posts.
+// Returns ErrNotFound if the post does not exist, is deleted, or is not a page type.
+func (s *SqlPageStore) UpdateCommentProps(commentID string, props model.StringInterface) (*model.Post, error) {
+	if commentID == "" {
+		return nil, store.NewErrInvalidInput("Post", "Id", commentID)
+	}
+
+	now := model.GetMillis()
+	updateQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("Props", model.StringInterfaceToJSON(props)).
+		Set("UpdateAt", now).
+		Where(sq.And{
+			sq.Eq{"Id": commentID},
+			sq.Eq{"Type": model.PostTypePageComment},
+			sq.Eq{"DeleteAt": 0},
+		})
+
+	selectQuery := s.getQueryBuilder().
+		Select(postSliceColumns()...).
+		From("Posts").
+		Where(sq.And{
+			sq.Eq{"Id": commentID},
+			sq.Eq{"Type": model.PostTypePageComment},
+		})
+
+	var post model.Post
+	err := s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
+		result, txErr := transaction.ExecBuilder(updateQuery)
+		if txErr != nil {
+			return txErr
+		}
+		rowsAffected, txErr := result.RowsAffected()
+		if txErr != nil || rowsAffected == 0 {
+			if txErr != nil {
+				return txErr
+			}
+			return store.NewErrNotFound("Post", commentID)
+		}
+		return transaction.GetBuilder(&post, selectQuery)
+	})
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, store.NewErrNotFound("Post", commentID)
+		}
+		return nil, errors.Wrapf(err, "failed to update comment props id=%s", commentID)
+	}
+	return &post, nil
+}
+
+func (s *SqlPageStore) UpdatePageFileIds(pageID string, fileIds model.StringArray) (*model.Post, error) {
+	if pageID == "" {
+		return nil, store.NewErrInvalidInput("Post", "Id", pageID)
+	}
+
+	now := model.GetMillis()
+	updateQuery := s.getQueryBuilder().
+		Update("Posts").
+		Set("FileIds", model.ArrayToJSON(fileIds)).
+		Set("UpdateAt", now).
+		Where(sq.And{
+			sq.Eq{"Id": pageID},
+			sq.Eq{"Type": model.PostTypePage},
+			sq.Eq{"DeleteAt": 0},
+		})
+
+	selectQuery := s.getQueryBuilder().
+		Select(postSliceColumns()...).
+		From("Posts").
+		Where(sq.And{
+			sq.Eq{"Id": pageID},
+			sq.Eq{"Type": model.PostTypePage},
+		})
+
+	var post model.Post
+	err := s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
+		result, txErr := transaction.ExecBuilder(updateQuery)
+		if txErr != nil {
+			return txErr
+		}
+		rowsAffected, txErr := result.RowsAffected()
+		if txErr != nil || rowsAffected == 0 {
+			if txErr != nil {
+				return txErr
+			}
+			return store.NewErrNotFound("Post", pageID)
+		}
+		return transaction.GetBuilder(&post, selectQuery)
+	})
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, store.NewErrNotFound("Post", pageID)
+		}
+		return nil, errors.Wrapf(err, "failed to update FileIds for page id=%s", pageID)
+	}
+	return &post, nil
+}
+
+func (s *SqlPageStore) PermanentDeletePage(pageID string) error {
+	if pageID == "" {
+		return store.NewErrInvalidInput("Post", "Id", pageID)
+	}
+
+	return s.ExecuteInTransaction(func(tx *sqlxTxWrapper) error {
+		// Delete FileInfo records associated with the page post
+		deleteFileInfo := s.getQueryBuilder().
+			Delete("FileInfo").
+			Where(sq.Eq{"PostId": pageID})
+		if _, err := tx.ExecBuilder(deleteFileInfo); err != nil {
+			return errors.Wrapf(err, "failed to delete FileInfo for page id=%s", pageID)
+		}
+
+		// Delete ThreadMemberships and Threads for the page itself (if it was used as a thread root)
+		deleteThreadMemberships := s.getQueryBuilder().
+			Delete("ThreadMemberships").
+			Where(sq.Eq{"PostId": pageID})
+		if _, err := tx.ExecBuilder(deleteThreadMemberships); err != nil {
+			return errors.Wrapf(err, "failed to delete ThreadMemberships for page id=%s", pageID)
+		}
+
+		deleteThread := s.getQueryBuilder().
+			Delete("Threads").
+			Where(sq.Eq{"PostId": pageID})
+		if _, err := tx.ExecBuilder(deleteThread); err != nil {
+			return errors.Wrapf(err, "failed to delete Thread for page id=%s", pageID)
+		}
+
+		// Hard-delete the post
+		deletePost := s.getQueryBuilder().
+			Delete("Posts").
+			Where(sq.And{
+				sq.Eq{"Id": pageID},
+				sq.Eq{"Type": model.PostTypePage},
+			})
+		if _, err := tx.ExecBuilder(deletePost); err != nil {
+			return errors.Wrapf(err, "failed to hard-delete page post id=%s", pageID)
+		}
+
+		return nil
+	})
+}
+
 func (s *SqlPageStore) AtomicUpdatePageNotification(channelID, pageID, userID, username, pageTitle string, sinceTime int64) (*model.Post, error) {
+	// TODO: The props aggregation logic below (counter increment, updater-ID deduplication)
+	// is business logic that belongs in the app layer. Tracked as tech debt.
 	var result *model.Post
 
 	err := s.ExecuteInTransaction(func(tx *sqlxTxWrapper) error {
@@ -1264,7 +1408,7 @@ func (s *SqlPageStore) AtomicUpdatePageNotification(channelID, pageID, userID, u
 
 		updateQuery := s.getQueryBuilder().
 			Update("Posts").
-			Set("Props", notification.Props).
+			Set("Props", model.StringInterfaceToJSON(notification.Props)).
 			Set("UpdateAt", now).
 			Where(sq.Eq{"Id": notification.Id})
 
@@ -1277,4 +1421,48 @@ func (s *SqlPageStore) AtomicUpdatePageNotification(channelID, pageID, userID, u
 	})
 
 	return result, err
+}
+
+// BatchSetPageParent updates PageParentId for multiple pages in a single batch.
+// Intended for bulk import repair — cycle detection is the caller's responsibility.
+// updates maps pageID -> newParentID (empty string = root/no parent).
+func (s *SqlPageStore) BatchSetPageParent(updates map[string]string) error {
+	if len(updates) == 0 {
+		return nil
+	}
+
+	now := model.GetMillis()
+
+	// Build a CASE expression: UPDATE Posts SET PageParentId = CASE Id WHEN '...' THEN '...' ... END
+	// where Id IN (ids...)
+	ids := make([]string, 0, len(updates))
+	var caseBuilder strings.Builder
+	caseBuilder.WriteString("CASE Id")
+	args := []any{}
+	for pageID, parentID := range updates {
+		caseBuilder.WriteString(" WHEN ? THEN ?")
+		args = append(args, pageID, parentID)
+		ids = append(ids, pageID)
+	}
+	caseBuilder.WriteString(" ELSE PageParentId END")
+	caseExpr := caseBuilder.String()
+	args = append(args, now)
+
+	inClause, inArgs, err := sq.Eq{"Id": ids}.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "failed to build IN clause")
+	}
+	args = append(args, inArgs...)
+
+	// Squirrel's Update builder cannot express multi-row CASE...END SET expressions;
+	// using Rebind-compatible ? placeholders built from sq.Eq{}.ToSql() output.
+	query := fmt.Sprintf(
+		"UPDATE Posts SET PageParentId = %s, UpdateAt = ? WHERE %s AND Type = 'page' AND DeleteAt = 0",
+		caseExpr, inClause,
+	)
+
+	if _, err := s.GetMaster().Exec(query, args...); err != nil {
+		return errors.Wrap(err, "failed to batch update page parents")
+	}
+	return nil
 }

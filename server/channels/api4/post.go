@@ -55,10 +55,6 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.Post.Handle("/reveal", api.APISessionRequired(revealPost)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/burn", api.APISessionRequired(burnPost)).Methods(http.MethodDelete)
-
-	api.BaseRoutes.Post.Handle("/status", api.APISessionRequired(updatePageStatus)).Methods(http.MethodPut)
-	api.BaseRoutes.Post.Handle("/status", api.APISessionRequired(getPageStatus)).Methods(http.MethodGet)
-	api.BaseRoutes.Posts.Handle("/status/field", api.APISessionRequired(getPageStatusField)).Methods(http.MethodGet)
 }
 
 func createPostChecks(where string, c *Context, post *model.Post) {
@@ -92,6 +88,13 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 
 	postCardTypeCheckWithContext(where, c, post.Type)
 	if c.Err != nil {
+		return
+	}
+
+	// Pages must be created via the wiki API (POST /wikis/{wiki_id}/pages), not via the
+	// generic posts endpoint.  Reject any attempt to smuggle a page through createPost.
+	if app.IsPagePost(post) {
+		c.Err = model.NewAppError(where, "api.post.not_a_post.app_error", nil, "use POST /wikis/{wiki_id}/pages", http.StatusBadRequest)
 		return
 	}
 
@@ -569,6 +572,12 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if app.IsPagePost(post) {
+		c.Err = model.NewAppError("getPost", "api.post.not_a_post.app_error", nil,
+			"use wiki API for page operations", http.StatusNotFound)
+		return
+	}
+
 	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
 	post, previewIsMember, err := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
@@ -649,6 +658,10 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
+		if app.IsPagePost(post) {
+			continue
+		}
+
 		isMemberForAllPosts = isMemberForAllPosts && isMemberForCurrentPost
 
 		post = c.App.PreparePostForClient(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
@@ -683,30 +696,24 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Pages have relaxed edit history permissions (any channel member can view)
-	// Regular posts require author to be the viewer
-	var isMember bool
-	if app.HasRelaxedEditHistoryPermissions(originalPost) {
-		var ok bool
-		ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionReadChannel)
-		if !ok {
-			c.SetPermissionError(model.PermissionReadChannel)
-			return
-		}
-	} else {
-		var ok bool
-		ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
-		if !ok {
-			c.SetPermissionError(model.PermissionEditPost)
-			return
-		}
+	if app.IsPagePost(originalPost) {
+		c.Err = model.NewAppError("getEditHistoryForPost", "api.post.not_a_post.app_error", nil, "use GET /wikis/{wiki_id}/pages/{page_id}/version_history", http.StatusNotFound)
+		return
+	}
 
-		if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
-			// Cards: collaborative model — any channel member with edit_post can view edit history
-		} else if c.AppContext.Session().UserId != originalPost.UserId {
-			c.SetPermissionError(model.PermissionEditPost)
-			return
-		}
+	var isMember bool
+	var ok bool
+	ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
+	if !ok {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
+		// Cards: collaborative model — any channel member with edit_post can view edit history
+	} else if c.AppContext.Session().UserId != originalPost.UserId {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
 	}
 
 	postsList, err := c.App.GetEditHistoryForPost(c.Params.PostId)
@@ -762,6 +769,20 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.AddEventObjectType("post")
 
 	switch {
+	case app.IsPagePost(post):
+		c.Err = model.NewAppError("deletePost", "api.post.not_a_post.app_error", nil, "use DELETE /wikis/{wiki_id}/pages/{page_id}", http.StatusNotFound)
+		return
+	case app.IsPageComment(post):
+		if !c.CheckPageCommentPermission(post, app.PageCommentOperationDelete) {
+			return
+		}
+		if delErr := c.App.DeletePageComment(c.AppContext, post, nil, nil); delErr != nil {
+			c.Err = delErr
+			return
+		}
+		auditRec.Success()
+		ReturnStatusOK(w)
+		return
 	case c.AppContext.Session().UserId == post.UserId:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
 			c.SetPermissionError(model.PermissionDeletePost)
@@ -900,6 +921,12 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if app.IsPagePost(post) {
+		c.Err = model.NewAppError("getPostThread", "api.post.not_a_post.app_error", nil,
+			"use wiki API for page operations", http.StatusNotFound)
+		return
+	}
+
 	var isMember bool
 	if _, err, isMember = c.App.GetPostIfAuthorized(c.AppContext, post.Id, c.AppContext.Session(), false); err != nil {
 		c.Err = err
@@ -1018,11 +1045,6 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		return
 	}
 
-	// Enrich page posts with wiki_id for navigation
-	if enrichErr := c.App.EnrichPagesWithProperties(c.AppContext, clientPostList); enrichErr != nil {
-		c.Logger.Warn("Failed to enrich page search results", mlog.Err(enrichErr))
-	}
-
 	if !allPostHaveMembership || !isMemberForAllPreviews {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 		if !isMemberForAllPreviews {
@@ -1085,21 +1107,17 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Pages use page-specific permissions; regular posts use generic edit permission
+	if app.IsPagePost(originalPost) {
+		c.Err = model.NewAppError("updatePost", "api.post.not_a_post.app_error", nil, "use PUT /wikis/{wiki_id}/pages/{page_id}", http.StatusNotFound)
+		return
+	}
+
 	var isMember bool
-	if app.RequiresPageModifyPermission(originalPost) {
-		if !c.CheckPagePermission(originalPost, app.PageOperationEdit) {
-			return
-		}
-		// For pages, we consider the user a member if they have permission
-		isMember = true
-	} else {
-		var ok bool
-		ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
-		if !ok {
-			c.SetPermissionError(model.PermissionEditPost)
-			return
-		}
+	var ok bool
+	ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
+	if !ok {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
 	}
 
 	// Users who can't create posts in a channel shouldn't be able to edit them either.
@@ -1193,11 +1211,6 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.Logger.Debug("[patchPost] Received PostPatch",
-		mlog.Any("page_parent_id", post.PageParentId),
-		mlog.Any("message", post.Message),
-		mlog.Any("props", post.Props))
-
 	auditRec := c.MakeAuditRecord(model.AuditEventPatchPost, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &post)
@@ -1260,32 +1273,28 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
-	// Pages use page-specific permissions; regular posts use generic edit permission
-	var isMember bool
-	if app.RequiresPageModifyPermission(originalPost) {
-		if !c.CheckPagePermission(originalPost, app.PageOperationEdit) {
-			return false
-		}
-		// For pages, we consider the user a member if they have permission
-		isMember = true
-	} else {
-		var permission *model.Permission
-		switch {
-		case c.AppContext.Session().UserId == originalPost.UserId:
-			permission = model.PermissionEditPost
-		case originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards:
-			// Cards: collaborative model — any member can edit any card
-			permission = model.PermissionEditPost
-		default:
-			permission = model.PermissionEditOthersPosts
-		}
+	if app.IsPagePost(originalPost) {
+		c.Err = model.NewAppError("patchPost", "api.post.not_a_post.app_error", nil, "use PUT /wikis/{wiki_id}/pages/{page_id}", http.StatusNotFound)
+		return false
+	}
 
-		var ok bool
-		ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
-		if !ok {
-			c.SetPermissionError(permission)
-			return false
-		}
+	var permission *model.Permission
+	switch {
+	case c.AppContext.Session().UserId == originalPost.UserId:
+		permission = model.PermissionEditPost
+	case originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards:
+		// Cards: collaborative model — any member can edit any card
+		permission = model.PermissionEditPost
+	default:
+		permission = model.PermissionEditOthersPosts
+	}
+
+	var isMember bool
+	var ok bool
+	ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
+	if !ok {
+		c.SetPermissionError(permission)
+		return false
 	}
 
 	// Users who can't create posts in a channel shouldn't be able to edit them either.
@@ -1375,6 +1384,12 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
+
+	if app.IsPagePost(post) {
+		c.Err = model.NewAppError("saveIsPinnedPost", "api.post.not_a_post.app_error", nil, "pages cannot be pinned", http.StatusNotFound)
+		return
+	}
+
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
 
@@ -1767,17 +1782,34 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Pages use page-specific permissions; regular posts require ownership
-	if app.RequiresPageModifyPermission(toRestorePost) {
-		if !c.CheckPagePermission(toRestorePost, app.PageOperationEdit) {
+	if app.IsPagePost(toRestorePost) {
+		// Pages enforce edit permission via the page permission system, not
+		// post-author equality (so any channel member with edit can restore).
+		currentPage, getErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+		if getErr != nil {
+			c.Err = getErr
 			return
 		}
-	} else {
-		// user can only restore their own posts
-		if c.AppContext.Session().UserId != toRestorePost.UserId {
-			c.SetPermissionError(model.PermissionEditPost)
+		if !c.CheckPagePermission(currentPage, app.PageOperationEdit) {
 			return
 		}
+		updatedPost, _, restoreErr := c.App.RestorePostVersion(c.AppContext, c.AppContext.Session().UserId, c.Params.PostId, restoreVersionId)
+		if restoreErr != nil {
+			c.Err = restoreErr
+			return
+		}
+		auditRec.Success()
+		auditRec.AddEventResultState(updatedPost)
+		if err := updatedPost.EncodeJSON(w); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	// user can only restore their own posts
+	if c.AppContext.Session().UserId != toRestorePost.UserId {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
 	}
 
 	isMember := postPatchChecks(c, auditRec, &model.PostPatch{Message: &toRestorePost.Message, FileIds: &toRestorePost.FileIds})
@@ -1823,70 +1855,6 @@ func hasPermittedWranglerRole(c *Context, user *model.User, channelMember *model
 	}
 
 	return false
-}
-
-// updatePageStatus updates the status attribute for a page (thin wrapper around App.SetPageStatus)
-func updatePageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePostId()
-	if c.Err != nil {
-		return
-	}
-
-	var req struct {
-		Status string `json:"status"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Status == "" {
-		c.SetInvalidParam("status")
-		return
-	}
-
-	page, err := c.App.GetPage(c.AppContext, c.Params.PostId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if err := c.App.SetPageStatus(c.AppContext, page, req.Status); err != nil {
-		c.Err = err
-		return
-	}
-
-	ReturnStatusOK(w)
-}
-
-// getPageStatus retrieves the status attribute for a page (thin wrapper around App.GetPageStatus)
-func getPageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePostId()
-	if c.Err != nil {
-		return
-	}
-
-	page, err := c.App.GetPage(c.AppContext, c.Params.PostId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	status, err := c.App.GetPageStatus(c.AppContext, page)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	fmt.Fprintf(w, `{"status":"%s"}`, status)
-}
-
-// getPageStatusField retrieves the status field definition (thin wrapper around App.GetPageStatusField)
-func getPageStatusField(c *Context, w http.ResponseWriter, r *http.Request) {
-	field, err := c.App.GetPageStatusField()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(field); err != nil {
-		c.Logger.Warn("Error encoding response", mlog.Err(err))
-	}
 }
 
 // rewriteMessage handles AI-powered message rewriting requests

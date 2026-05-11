@@ -2756,18 +2756,30 @@ func testSearchTypeModifier(t *testing.T, th *SearchTestHelper) {
 
 func testSearchWikiModifier(t *testing.T, th *SearchTestHelper) {
 	// Create two wikis
+	wikiChannel1, err := th.createChannel(th.Team.Id, "wiki-channel-1", "WikiChannel1", "", model.ChannelTypeOpen, nil, false)
+	require.NoError(t, err)
+	defer th.deleteChannel(wikiChannel1)
+
+	wikiChannel2, err := th.createChannel(th.Team.Id, "wiki-channel-2", "WikiChannel2", "", model.ChannelTypeOpen, nil, false)
+	require.NoError(t, err)
+	defer th.deleteChannel(wikiChannel2)
+
 	wiki1 := &model.Wiki{
-		ChannelId: th.ChannelBasic.Id,
+		ChannelId: wikiChannel1.Id,
+		TeamId:    th.Team.Id,
+		CreatorId: th.User.Id,
 		Title:     "ProductDocs",
 	}
-	wiki1, err := th.Store.Wiki().Save(wiki1)
+	wiki1, err = th.Store.Wiki().Save(wiki1)
 	require.NoError(t, err)
 	defer func() {
 		_ = th.Store.Wiki().Delete(wiki1.Id, true)
 	}()
 
 	wiki2 := &model.Wiki{
-		ChannelId: th.ChannelBasic.Id,
+		ChannelId: wikiChannel2.Id,
+		TeamId:    th.Team.Id,
+		CreatorId: th.User.Id,
 		Title:     "EngineeringNotes",
 	}
 	wiki2, err = th.Store.Wiki().Save(wiki2)

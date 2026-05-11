@@ -132,6 +132,10 @@ function byId(state: Record<string, Post> = {}, action: AnyAction): Record<strin
             {id: pageId, state: 'DELETED', type: PostTypes.PAGE} as unknown as Post;
         return {...state, [pageId]: tombstone};
     }
+    case WikiTypes.DELETED_WIKI:
+        // Pages are kept in byId but unreferenced once removed from byWiki (see byWiki reducer).
+        // Selectors filter based on byWiki index, so deletion from byId is unnecessary.
+        return state;
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:

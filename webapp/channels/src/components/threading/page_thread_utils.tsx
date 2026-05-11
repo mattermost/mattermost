@@ -8,8 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
-import {isPageComment, isPagePost, isPageInlineComment} from 'utils/page_utils';
-import {getPageTitle} from 'utils/post_utils';
+import {isPageComment, isPagePost, isPageInlineComment, getPageTitle} from 'utils/page_utils';
 
 import type {GlobalState} from 'types/store';
 

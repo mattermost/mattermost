@@ -12,7 +12,7 @@ import {DropOverlayIdCenterChannel} from 'components/file_upload_overlay/file_up
 import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
-import {getActiveTabFromRoute} from 'utils/channel_utils';
+import {getActiveTabFromRoute} from 'utils/page_utils';
 
 import InputLoading from './input_loading';
 

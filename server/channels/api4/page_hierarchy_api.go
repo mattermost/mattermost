@@ -20,8 +20,12 @@ func movePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventMovePage, model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "page_id", c.Params.PageId)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+
 	// Check wiki modify permission first (includes channel deletion check)
-	if _, _, ok := c.GetWikiForModify("movePage"); !ok {
+	if _, _, ok := c.GetWikiForModify(); !ok {
 		return
 	}
 
@@ -63,11 +67,7 @@ func movePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		// GetPage validates the post exists and is a page type
 		parentPage, err := c.App.GetPage(c.AppContext, *req.ParentId)
 		if err != nil {
-			if err.Id == "app.page.get.not_a_page.app_error" {
-				c.Err = model.NewAppError("movePage", "api.wiki.move_page.parent_not_page.app_error", nil, "", http.StatusBadRequest)
-				return
-			}
-			c.Err = model.NewAppError("movePage", "api.wiki.move_page.parent_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+			c.Err = model.NewAppError("movePage", "api.wiki.move_page.parent_not_found.app_error", nil, "", err.StatusCode).Wrap(err)
 			return
 		}
 
@@ -95,15 +95,12 @@ func movePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := c.MakeAuditRecord("movePage", model.AuditStatusFail)
-	model.AddEventParameterToAuditRec(auditRec, "page_id", c.Params.PageId)
 	if req.ParentId != nil {
 		model.AddEventParameterToAuditRec(auditRec, "parent_id", *req.ParentId)
 	}
 	if req.SiblingIndex != nil {
 		model.AddEventParameterToAuditRec(auditRec, "sibling_index", *req.SiblingIndex)
 	}
-	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	siblings, appErr := c.App.MovePage(c.AppContext, c.Params.PageId, req.ParentId, c.Params.WikiId, req.SiblingIndex)
 	if appErr != nil {
@@ -151,7 +148,7 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("movePageToWiki", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventMovePageToWiki, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "page_id", c.Params.PageId)
 	model.AddEventParameterToAuditRec(auditRec, "source_wiki_id", c.Params.WikiId)
 	model.AddEventParameterToAuditRec(auditRec, "target_wiki_id", req.TargetWikiId)
@@ -160,7 +157,7 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	sourceWiki, _, ok := c.GetWikiForModify("movePageToWiki")
+	sourceWiki, _, ok := c.GetWikiForModify()
 	if !ok {
 		return
 	}
@@ -183,9 +180,24 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	targetChannel, chanErr := c.App.GetChannel(c.AppContext, targetWiki.ChannelId)
+	if sourceWiki.TeamId != targetWiki.TeamId {
+		c.Err = model.NewAppError("movePageToWiki", "api.wiki_link.cross_team_not_allowed", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if targetWiki.ChannelId == "" {
+		c.Err = model.NewAppError("movePageToWiki", "api.wiki.no_channel.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	targetChannel, chanErr := c.App.GetWikiBackingChannel(c.AppContext, targetWiki.ChannelId)
 	if chanErr != nil {
 		c.Err = chanErr
+		return
+	}
+
+	if hasPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), targetChannel); !hasPermission {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -211,7 +223,7 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.Logger.Info("duplicatePage called",
+	c.Logger.Debug("duplicatePage called",
 		mlog.String("wiki_id", c.Params.WikiId),
 		mlog.String("page_id", c.Params.PageId),
 	)
@@ -233,7 +245,12 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("duplicatePage", model.AuditStatusFail)
+	if req.ParentPageId != nil && *req.ParentPageId != "" && !model.IsValidId(*req.ParentPageId) {
+		c.SetInvalidParam("parent_page_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventDuplicatePage, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "page_id", c.Params.PageId)
 	model.AddEventParameterToAuditRec(auditRec, "source_wiki_id", c.Params.WikiId)
 	model.AddEventParameterToAuditRec(auditRec, "target_wiki_id", req.TargetWikiId)
@@ -248,15 +265,37 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get source wiki to enforce team isolation
+	sourceWiki, srcErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if srcErr != nil {
+		c.Err = srcErr
+		return
+	}
+
 	targetWiki, err := c.App.GetWiki(c.AppContext, req.TargetWikiId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	channel, chanErr := c.App.GetChannel(c.AppContext, targetWiki.ChannelId)
+	if sourceWiki.TeamId != targetWiki.TeamId {
+		c.Err = model.NewAppError("duplicatePage", "api.wiki_link.cross_team_not_allowed", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if targetWiki.ChannelId == "" {
+		c.Err = model.NewAppError("duplicatePage", "api.wiki.no_channel.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	channel, chanErr := c.App.GetWikiBackingChannel(c.AppContext, targetWiki.ChannelId)
 	if chanErr != nil {
 		c.Err = chanErr
+		return
+	}
+
+	if hasPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !hasPermission {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -288,24 +327,12 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use GetPageForRead to get page, wiki, and channel in one operation
-	page, wiki, channel, ok := c.GetPageForRead()
+	page, wiki, _, ok := c.GetPageForRead()
 	if !ok {
 		return
 	}
 
-	if !c.CheckPagePermission(page, app.PageOperationRead) {
-		return
-	}
-
-	// Fetch team once here to pass to BuildBreadcrumbPath, avoiding a redundant fetch
-	team, teamErr := c.App.GetTeam(channel.TeamId)
-	if teamErr != nil {
-		c.Err = teamErr
-		return
-	}
-
-	breadcrumbPath, appErr := c.App.BuildBreadcrumbPath(c.AppContext, page, wiki, channel, team)
+	breadcrumbPath, appErr := c.App.BuildBreadcrumbPath(c.AppContext, page, wiki)
 	if appErr != nil {
 		c.Err = appErr
 		return

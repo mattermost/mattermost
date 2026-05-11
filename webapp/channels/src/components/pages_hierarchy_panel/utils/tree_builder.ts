@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {PageDisplayTypes} from 'utils/constants';
-import {getPageTitle} from 'utils/post_utils';
+import {getPageTitle} from 'utils/page_utils';
 
 import type {PostDraft} from 'types/store/draft';
 import type {DraftPage, PageOrDraft, TreeNode} from 'types/store/pages';

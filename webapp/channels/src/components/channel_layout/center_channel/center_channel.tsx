@@ -103,11 +103,11 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                             )}
                         />
                         <Route
-                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/wiki/:channelId(${ID_PATH_PATTERN})/:wikiId(${ID_PATH_PATTERN})/drafts/:draftId`}
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/wiki/:wikiId(${ID_PATH_PATTERN})/drafts/:draftId`}
                             component={WikiRouter}
                         />
                         <Route
-                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/wiki/:channelId(${ID_PATH_PATTERN})/:wikiId(${ID_PATH_PATTERN})/:pageId(${ID_PATH_PATTERN})?`}
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/wiki/:wikiId(${ID_PATH_PATTERN})/:pageId(${ID_PATH_PATTERN})?`}
                             component={WikiRouter}
                         />
                         <Route

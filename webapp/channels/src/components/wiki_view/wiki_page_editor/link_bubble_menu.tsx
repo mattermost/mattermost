@@ -6,7 +6,7 @@ import {BubbleMenu} from '@tiptap/react/menus';
 import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import {isUrlSafe} from 'utils/url';

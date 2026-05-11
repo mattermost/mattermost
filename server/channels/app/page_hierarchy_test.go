@@ -18,27 +18,23 @@ func TestBuildBreadcrumbPath(t *testing.T) {
 	sessionCtx := th.CreateSessionContext()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	wiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
 
-	channel, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
-	require.Nil(t, err)
-
 	// Create hierarchy: grandparent -> parent -> child
-	grandparent, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Grandparent", "", "", th.BasicUser.Id, "", "")
+	grandparent, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Grandparent", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
-	parent, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent", grandparent.Id, "", th.BasicUser.Id, "", "")
+	parent, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Parent", grandparent.Id, "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
-	child, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child", parent.Id, "", th.BasicUser.Id, "", "")
+	child, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child", parent.Id, "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	t.Run("build breadcrumb for deeply nested page", func(t *testing.T) {
-		breadcrumb, appErr := th.App.BuildBreadcrumbPath(sessionCtx, child, wiki, channel, nil)
+		breadcrumb, appErr := th.App.BuildBreadcrumbPath(sessionCtx, child, wiki)
 		require.Nil(t, appErr)
 		require.NotNil(t, breadcrumb)
 		require.NotNil(t, breadcrumb.Items)
@@ -48,7 +44,7 @@ func TestBuildBreadcrumbPath(t *testing.T) {
 	})
 
 	t.Run("build breadcrumb for root page", func(t *testing.T) {
-		breadcrumb, appErr := th.App.BuildBreadcrumbPath(sessionCtx, grandparent, wiki, channel, nil)
+		breadcrumb, appErr := th.App.BuildBreadcrumbPath(sessionCtx, grandparent, wiki)
 		require.Nil(t, appErr)
 		require.NotNil(t, breadcrumb)
 		require.NotNil(t, breadcrumb.Items)
@@ -63,17 +59,17 @@ func TestCalculateMaxDepthFromPostList(t *testing.T) {
 	rctx := th.CreateSessionContext()
 
 	// Create a hierarchy for testing
-	root, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Root", "", "", th.BasicUser.Id, "", "")
+	root, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Root", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
-	child, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child", root.Id, "", th.BasicUser.Id, "", "")
+	child, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child", root.Id, "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
-	_, appErr = th.App.CreatePage(th.Context, th.BasicChannel.Id, "Grandchild", child.Id, "", th.BasicUser.Id, "", "")
+	_, appErr = th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Grandchild", child.Id, "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	t.Run("calculate max depth", func(t *testing.T) {
-		postList, appErr := th.App.GetChannelPages(rctx, th.BasicChannel.Id, 0, 0)
+		postList, appErr := th.App.GetChannelPages(rctx, th.BasicWiki.ChannelId, 0, 0)
 		require.Nil(t, appErr)
 
 		maxDepth := th.App.calculateMaxDepthFromPostList(postList)
@@ -90,13 +86,13 @@ func TestCalculatePageDepth(t *testing.T) {
 	rctx := th.CreateSessionContext()
 
 	// Create hierarchy: root -> child -> grandchild
-	root, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Root Depth", "", "", th.BasicUser.Id, "", "")
+	root, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Root Depth", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
-	child, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child Depth", root.Id, "", th.BasicUser.Id, "", "")
+	child, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child Depth", root.Id, "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
-	grandchild, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Grandchild Depth", child.Id, "", th.BasicUser.Id, "", "")
+	grandchild, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Grandchild Depth", child.Id, "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	t.Run("root page has depth 0", func(t *testing.T) {
@@ -126,13 +122,13 @@ func TestCalculateSubtreeMaxDepth(t *testing.T) {
 	rctx := th.CreateSessionContext()
 
 	// Create hierarchy: root -> child -> grandchild
-	root, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Root Subtree", "", "", th.BasicUser.Id, "", "")
+	root, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Root Subtree", "", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
-	child, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Child Subtree", root.Id, "", th.BasicUser.Id, "", "")
+	child, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child Subtree", root.Id, "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
-	_, appErr = th.App.CreatePage(th.Context, th.BasicChannel.Id, "Grandchild Subtree", child.Id, "", th.BasicUser.Id, "", "")
+	_, appErr = th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Grandchild Subtree", child.Id, "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	t.Run("root subtree has max depth 2", func(t *testing.T) {
@@ -148,7 +144,7 @@ func TestCalculateSubtreeMaxDepth(t *testing.T) {
 	})
 
 	t.Run("leaf page has subtree depth 0", func(t *testing.T) {
-		leaf, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Leaf", "", "", th.BasicUser.Id, "", "")
+		leaf, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Leaf", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		depth, appErr := th.App.calculateSubtreeMaxDepth(rctx, leaf.Id)

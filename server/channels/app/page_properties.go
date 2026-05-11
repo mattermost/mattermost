@@ -92,6 +92,7 @@ func (a *App) SetPageStatus(rctx request.CTX, page *model.Post, status string) *
 }
 
 // GetPageStatus gets the status property for a page.
+// TODO: remove once getPageStatus API handler is migrated to use EnrichPageWithProperties
 func (a *App) GetPageStatus(rctx request.CTX, page *model.Post) (string, *model.AppError) {
 	pageId := page.Id
 
@@ -126,10 +127,8 @@ func (a *App) GetPageStatus(rctx request.CTX, page *model.Post) (string, *model.
 
 	values, err := a.Srv().PropertyService().PropertyAccessService().SearchPropertyValues(anonymousCallerID, group.ID, searchOpts)
 	if err != nil {
-		rctx.Logger().Warn("GetPageStatus: search returned error, using default",
-			mlog.Err(err),
-			mlog.String("default", model.PageStatusInProgress))
-		return model.PageStatusInProgress, nil
+		rctx.Logger().Error("GetPageStatus: search returned error", mlog.Err(err))
+		return "", model.NewAppError("GetPageStatus", "app.page.search_status_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if len(values) == 0 {
@@ -211,11 +210,11 @@ func (a *App) validatePageStatus(field *model.PropertyField, status string) *mod
 }
 
 // EnrichPageWithProperties adds property values to page props before returning to client.
-// This method reuses the batch enrichment logic to avoid redundant DB queries.
+// This is best-effort: errors are logged as warnings and do not fail the call.
 // Set useMaster to true when calling after a write operation to ensure read-after-write consistency in HA.
-func (a *App) EnrichPageWithProperties(rctx request.CTX, page *model.Post, useMaster ...bool) *model.AppError {
+func (a *App) EnrichPageWithProperties(rctx request.CTX, page *model.Post, useMaster ...bool) {
 	if !IsPagePost(page) {
-		return nil
+		return
 	}
 
 	// Wrap single page in a PostList and use the batch method
@@ -225,28 +224,29 @@ func (a *App) EnrichPageWithProperties(rctx request.CTX, page *model.Post, useMa
 		Order: []string{page.Id},
 	}
 
-	return a.EnrichPagesWithProperties(rctx, postList, useMaster...)
+	a.EnrichPagesWithProperties(rctx, postList, useMaster...)
 }
 
 // EnrichPagesWithProperties enriches multiple pages with their property values
 // (page_status and wiki_id) in batched queries to minimize DB trips.
+// This is best-effort: errors are logged as warnings and do not fail the call.
 // Set useMaster to true when calling after a write operation to ensure read-after-write consistency in HA.
-func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostList, useMaster ...bool) *model.AppError {
+func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostList, useMaster ...bool) {
 	if postList == nil || len(postList.Posts) == 0 {
-		return nil
+		return
 	}
 
 	// Fetch metadata once (not per page)
 	group, err := a.GetPagePropertyGroup()
 	if err != nil {
 		rctx.Logger().Warn("EnrichPagesWithProperties: failed to get property group, skipping enrichment", mlog.Err(err))
-		return nil
+		return
 	}
 
 	statusField, err := a.Srv().PropertyService().PropertyAccessService().GetPropertyFieldByName(anonymousCallerID, group.ID, "", pagePropertyNameStatus)
 	if err != nil {
 		rctx.Logger().Warn("EnrichPagesWithProperties: failed to get status field, skipping enrichment", mlog.Err(err))
-		return nil
+		return
 	}
 
 	wikiField, err := a.Srv().PropertyService().PropertyAccessService().GetPropertyFieldByName(anonymousCallerID, group.ID, "", pagePropertyNameWiki)
@@ -264,7 +264,7 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 	}
 
 	if len(pageIds) == 0 {
-		return nil
+		return
 	}
 
 	// Determine if we should use master DB for read-after-write consistency
@@ -286,7 +286,7 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 	statusValues, err := a.Srv().PropertyService().PropertyAccessService().SearchPropertyValues(anonymousCallerID, group.ID, statusSearchOpts)
 	if err != nil {
 		rctx.Logger().Warn("EnrichPagesWithProperties: status search returned error, skipping enrichment", mlog.Err(err))
-		return nil
+		return
 	}
 
 	// Build a map of pageId -> status value
@@ -344,6 +344,4 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 
 		page.SetProps(props)
 	}
-
-	return nil
 }

@@ -8,8 +8,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {getUser as getUserAction} from 'mattermost-redux/actions/users';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {fetchChannelPages} from 'actions/pages';
-import {getChannelPages} from 'selectors/pages';
+import {makeGetPages} from 'selectors/pages';
 
 import ActiveEditorsIndicator from 'components/active_editors_indicator';
 import ProfilePicture from 'components/profile_picture';
@@ -81,7 +80,8 @@ const WikiPageEditor = ({
         }
     }, []);
 
-    const pages = useSelector((state: GlobalState) => getChannelPages(state, channelId || ''));
+    const getPages = React.useMemo(() => makeGetPages(), []);
+    const pages = useSelector((state: GlobalState) => getPages(state, wikiId || ''));
 
     // Fetch author user data for ProfilePicture component
     const authorUser = useSelector((state: GlobalState) =>
@@ -94,13 +94,6 @@ const WikiPageEditor = ({
             dispatch(getUserAction(authorId));
         }
     }, [authorId, authorUser, dispatch]);
-
-    // Fetch all pages in the channel for cross-wiki linking
-    useEffect(() => {
-        if (channelId) {
-            dispatch(fetchChannelPages(channelId));
-        }
-    }, [dispatch, channelId]);
 
     // Use shared inline comments hook - only for existing pages (not new drafts)
     const hookPageId = isExistingPage ? pageId : undefined;
@@ -242,4 +235,4 @@ const WikiPageEditor = ({
     );
 };
 
-export default withWikiErrorBoundary(WikiPageEditor);
+export default withWikiErrorBoundary(React.memo(WikiPageEditor));

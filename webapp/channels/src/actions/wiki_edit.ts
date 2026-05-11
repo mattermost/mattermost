@@ -6,7 +6,7 @@ import type {Post} from '@mattermost/types/posts';
 import {savePageDraft} from 'actions/page_drafts';
 import {hasUnsavedChanges, getPageDraft} from 'selectors/page_drafts';
 
-import {getPageTitle} from 'utils/post_utils';
+import {getPageTitle} from 'utils/page_utils';
 
 import type {ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';

@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {scrollToHeading} from 'utils/page_outline';
 import type {Heading} from 'utils/page_outline';
@@ -19,10 +19,9 @@ interface HeadingNodeProps {
     currentPageId?: string;
     teamName: string;
     wikiId?: string;
-    channelId?: string;
 }
 
-const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId, teamName, wikiId, channelId}) => {
+const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId, teamName, wikiId}) => {
     const {formatMessage} = useIntl();
     const history = useHistory();
 
@@ -55,10 +54,10 @@ const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId
             scrollToHeading(heading.id);
         } else {
             // Use getWikiUrl for wiki pages, fallback to permalink format for non-wiki pages
-            const url = wikiId && channelId ? getWikiUrl(teamName, channelId, wikiId, pageId) : `/${teamName}/pl/${pageId}`;
+            const url = wikiId ? getWikiUrl(teamName, wikiId, pageId, false) : `/${teamName}/pl/${pageId}`;
             history.push(`${url}#${heading.id}`);
         }
-    }, [currentPageId, pageId, teamName, wikiId, channelId, heading.id, history]);
+    }, [currentPageId, pageId, teamName, wikiId, heading.id, history]);
 
     return (
         <div
@@ -71,7 +70,7 @@ const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId
                 }}
                 onClick={handleClick}
                 role='treeitem'
-                aria-selected={false}
+                aria-selected={currentPageId === pageId}
                 aria-level={heading.level}
                 aria-label={formatMessage(
                     {id: 'heading_node.aria_label', defaultMessage: 'Heading level {level}: {text}'},

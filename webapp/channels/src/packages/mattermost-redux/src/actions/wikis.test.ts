@@ -162,13 +162,15 @@ describe('mattermost-redux/actions/wikis', () => {
             const dispatch = createMockDispatch();
             const getState = createMockGetState();
 
-            const result = await createWiki('channel123', 'Test Wiki')(dispatch, getState, undefined);
+            mockClient.linkWikiToChannel = jest.fn().mockResolvedValue({});
+            const result = await createWiki('team123', 'channel123', 'Test Wiki')(dispatch, getState, undefined);
 
             expect(result.data).toEqual(mockWiki);
             expect(mockClient.createWiki).toHaveBeenCalledWith({
-                channel_id: 'channel123',
+                team_id: 'team123',
                 title: 'Test Wiki',
             });
+            expect(mockClient.linkWikiToChannel).toHaveBeenCalledWith('channel123', mockWiki.id);
         });
     });
 
@@ -198,7 +200,7 @@ describe('mattermost-redux/actions/wikis', () => {
             expect(result.data).toBe(true);
             expect(dispatch.getActions()).toContainEqual({
                 type: WikiTypes.DELETED_WIKI,
-                data: {wikiId: 'wiki123', channelId: 'channel123'},
+                data: {wikiId: 'wiki123'},
             });
         });
     });
@@ -222,7 +224,7 @@ describe('mattermost-redux/actions/wikis', () => {
                 data: {wikiId: 'wiki123'},
             });
             expect(dispatch.getActions()).toContainEqual({
-                type: WikiTypes.GET_PAGES_SUCCESS,
+                type: WikiTypes.RECEIVED_PAGES,
                 data: {wikiId: 'wiki123', pages},
             });
         });

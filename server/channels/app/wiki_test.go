@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
@@ -15,13 +16,13 @@ func TestGetWikisForChannel_SoftDelete(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	wiki1 := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicTeam.Id,
 		Title:       "Test Wiki 1",
 		Description: "Test description 1",
 	}
 
 	wiki2 := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicTeam.Id,
 		Title:       "Test Wiki 2",
 		Description: "Test description 2",
 	}
@@ -34,7 +35,12 @@ func TestGetWikisForChannel_SoftDelete(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, createdWiki2)
 
-	t.Run("includeDeleted=false hides soft-deleted wikis", func(t *testing.T) {
+	_, err = th.App.LinkWikiToChannel(th.Context, createdWiki1.Id, th.BasicChannel.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	_, err = th.App.LinkWikiToChannel(th.Context, createdWiki2.Id, th.BasicChannel.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	t.Run("deleting a wiki removes it from channel wikis", func(t *testing.T) {
 		wikis, err := th.App.GetWikisForChannel(th.Context, th.BasicChannel.Id, false)
 		require.Nil(t, err)
 		require.Len(t, wikis, 2)
@@ -48,20 +54,11 @@ func TestGetWikisForChannel_SoftDelete(t *testing.T) {
 		require.Equal(t, createdWiki2.Id, wikis[0].Id)
 	})
 
-	t.Run("includeDeleted=true shows soft-deleted wikis", func(t *testing.T) {
+	t.Run("deleted wiki is no longer accessible via channel even with includeDeleted", func(t *testing.T) {
 		wikis, err := th.App.GetWikisForChannel(th.Context, th.BasicChannel.Id, true)
 		require.Nil(t, err)
-		require.Len(t, wikis, 2)
-
-		var deletedWiki *model.Wiki
-		for _, w := range wikis {
-			if w.Id == createdWiki1.Id {
-				deletedWiki = w
-				break
-			}
-		}
-		require.NotNil(t, deletedWiki)
-		require.NotEqual(t, int64(0), deletedWiki.DeleteAt)
+		require.Len(t, wikis, 1, "DeleteWiki removes links and backing channel, so deleted wiki is not accessible via channel")
+		require.Equal(t, createdWiki2.Id, wikis[0].Id)
 	})
 }
 
@@ -69,7 +66,6 @@ func TestUpdateWiki(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
 		Title:       "Test Wiki",
 		Description: "Test description",
 		Icon:        ":book:",
@@ -98,7 +94,6 @@ func TestCreateWikiWithDefaultPage(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
 		Title:       "Test Wiki",
 		Description: "Test Description",
 	}
@@ -133,7 +128,7 @@ func TestCreatePage(t *testing.T) {
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
-			ChannelId:   th.BasicChannel.Id,
+
 			Title:       "Test Wiki",
 			Description: "Test Description",
 		}
@@ -146,7 +141,7 @@ func TestCreatePage(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, page)
 		require.Equal(t, model.PostTypePage, page.Type)
-		require.Equal(t, th.BasicChannel.Id, page.ChannelId)
+		require.Equal(t, createdWiki.ChannelId, page.ChannelId)
 		require.Empty(t, page.PageParentId)
 		require.Equal(t, "New Page", page.Props["title"])
 
@@ -160,7 +155,7 @@ func TestCreatePage(t *testing.T) {
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
-			ChannelId:   th.BasicChannel.Id,
+
 			Title:       "Test Wiki",
 			Description: "Test Description",
 		}
@@ -185,7 +180,7 @@ func TestCreatePage(t *testing.T) {
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
-			ChannelId:   th.BasicChannel.Id,
+
 			Title:       "Test Wiki",
 			Description: "Test Description",
 		}
@@ -211,7 +206,7 @@ func TestCreatePage(t *testing.T) {
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
-			ChannelId:   th.BasicChannel.Id,
+
 			Title:       "Test Wiki",
 			Description: "Test Description",
 		}
@@ -232,8 +227,8 @@ func TestCreatePage(t *testing.T) {
 		require.Nil(t, memberErr)
 
 		otherWiki := &model.Wiki{
-			ChannelId: otherChannel.Id,
-			Title:     "Other Wiki",
+
+			Title: "Other Wiki",
 		}
 		createdOtherWiki, wikiErr := th.App.CreateWiki(th.Context, otherWiki, th.BasicUser.Id)
 		require.Nil(t, wikiErr)
@@ -254,13 +249,13 @@ func TestMovePageToWiki(t *testing.T) {
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
-			ChannelId:   th.BasicChannel.Id,
+
 			Title:       "Source Wiki",
 			Description: "Source",
 		}
 
 		targetWiki := &model.Wiki{
-			ChannelId:   th.BasicChannel.Id,
+
 			Title:       "Target Wiki",
 			Description: "Target",
 		}
@@ -296,13 +291,13 @@ func TestMovePageToWiki(t *testing.T) {
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Source Wiki",
+
+			Title: "Source Wiki",
 		}
 
 		targetWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Target Wiki",
+
+			Title: "Target Wiki",
 		}
 
 		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
@@ -379,8 +374,8 @@ func TestMovePageToWiki(t *testing.T) {
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Source Wiki",
+
+			Title: "Source Wiki",
 		}
 
 		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
@@ -402,8 +397,8 @@ func TestMovePageToWiki(t *testing.T) {
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki",
+
+			Title: "Test Wiki",
 		}
 
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
@@ -419,60 +414,18 @@ func TestMovePageToWiki(t *testing.T) {
 		require.Nil(t, appErr, "Moving to same wiki should succeed (idempotent)")
 	})
 
-	t.Run("fails when wikis are in different channels (Phase 1 constraint)", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		th.SetupPagePermissions()
-
-		sourceWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Source Wiki",
-		}
-
-		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		otherChannel, chanErr := th.App.CreateChannel(th.Context, &model.Channel{
-			TeamId:      th.BasicTeam.Id,
-			Name:        "other-channel",
-			DisplayName: "Other Channel",
-			Type:        model.ChannelTypeOpen,
-		}, false)
-		require.Nil(t, chanErr)
-
-		_, memberErr := th.App.AddUserToChannel(th.Context, th.BasicUser, otherChannel, false)
-		require.Nil(t, memberErr)
-
-		targetWiki := &model.Wiki{
-			ChannelId: otherChannel.Id,
-			Title:     "Target Wiki",
-		}
-
-		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		createdPage, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "", "")
-		require.Nil(t, err)
-
-		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
-		require.Nil(t, appErr)
-
-		appErr = th.App.MovePageToWiki(th.Context, page, createdTargetWiki.Id, nil, "", nil, nil)
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.page.move.cross_channel_not_supported", appErr.Id)
-	})
-
 	t.Run("updates comment wiki_id when page is moved to different wiki", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Source Wiki",
+
+			Title: "Source Wiki",
 		}
 
 		targetWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Target Wiki",
+
+			Title: "Target Wiki",
 		}
 
 		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
@@ -529,13 +482,13 @@ func TestDuplicatePage(t *testing.T) {
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
-			ChannelId:   th.BasicChannel.Id,
+
 			Title:       "Source Wiki",
 			Description: "Source",
 		}
 
 		targetWiki := &model.Wiki{
-			ChannelId:   th.BasicChannel.Id,
+
 			Title:       "Target Wiki",
 			Description: "Target",
 		}
@@ -562,7 +515,7 @@ func TestDuplicatePage(t *testing.T) {
 
 		require.NotEqual(t, page.Id, duplicatedPage.Id, "Duplicated page should have new ID")
 		require.Equal(t, "Copy of Original Page", duplicatedPage.Props["title"], "Should have default duplicate title")
-		require.Equal(t, th.BasicChannel.Id, duplicatedPage.ChannelId, "Should be in same channel")
+		require.Equal(t, createdTargetWiki.ChannelId, duplicatedPage.ChannelId, "Should be in target wiki's channel")
 		require.Empty(t, duplicatedPage.PageParentId, "Should be root level")
 
 		duplicatedPagePost, contentErr := th.App.Srv().Store().Page().GetPage(th.Context, duplicatedPage.Id, false)
@@ -581,8 +534,8 @@ func TestDuplicatePage(t *testing.T) {
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki",
+
+			Title: "Test Wiki",
 		}
 
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
@@ -613,8 +566,8 @@ func TestDuplicatePage(t *testing.T) {
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki",
+
+			Title: "Test Wiki",
 		}
 
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
@@ -639,8 +592,8 @@ func TestDuplicatePage(t *testing.T) {
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki",
+
+			Title: "Test Wiki",
 		}
 
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
@@ -662,43 +615,6 @@ func TestDuplicatePage(t *testing.T) {
 		require.Equal(t, parentPage.Id, duplicatedPage.PageParentId, "Should preserve parent from source page")
 	})
 
-	t.Run("fails when duplicating across channels", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		th.SetupPagePermissions()
-
-		channel1 := th.BasicChannel
-		channel2 := th.CreateChannel(t, th.BasicTeam)
-
-		sourceWiki := &model.Wiki{
-			ChannelId: channel1.Id,
-			Title:     "Source Wiki",
-		}
-
-		targetWiki := &model.Wiki{
-			ChannelId: channel2.Id,
-			Title:     "Target Wiki",
-		}
-
-		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		createdPage, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page", "", th.BasicUser.Id, "", "")
-		require.Nil(t, err)
-
-		th.Context.Session().UserId = th.BasicUser.Id
-
-		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
-		require.Nil(t, appErr)
-
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page, createdTargetWiki.Id, nil, nil, th.BasicUser.Id, nil, nil)
-		require.NotNil(t, appErr)
-		require.Nil(t, duplicatedPage)
-		require.Contains(t, appErr.Id, "cross_channel_not_supported")
-	})
-
 	t.Run("fails when source page not found", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
@@ -714,8 +630,8 @@ func TestDuplicatePage(t *testing.T) {
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Source Wiki",
+
+			Title: "Source Wiki",
 		}
 
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
@@ -740,8 +656,8 @@ func TestDuplicatePage(t *testing.T) {
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki",
+
+			Title: "Test Wiki",
 		}
 
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
@@ -774,7 +690,7 @@ func TestSystemMessages_WikiAdded(t *testing.T) {
 
 	t.Run("creates system message when wiki is added to channel", func(t *testing.T) {
 		wiki := &model.Wiki{
-			ChannelId:   th.BasicChannel.Id,
+			TeamId:      th.BasicTeam.Id,
 			Title:       "New Wiki",
 			Description: "Test wiki",
 		}
@@ -782,6 +698,9 @@ func TestSystemMessages_WikiAdded(t *testing.T) {
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, createdWiki)
+
+		_, err = th.App.LinkWikiToChannel(th.Context, createdWiki.Id, th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
 
 		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
 			ChannelId: th.BasicChannel.Id,
@@ -811,7 +730,7 @@ func TestSystemMessages_WikiAdded(t *testing.T) {
 
 	t.Run("creates system message when wiki is deleted", func(t *testing.T) {
 		wiki := &model.Wiki{
-			ChannelId:   th.BasicChannel.Id,
+			TeamId:      th.BasicTeam.Id,
 			Title:       "Wiki to Delete",
 			Description: "Test wiki deletion",
 		}
@@ -819,6 +738,9 @@ func TestSystemMessages_WikiAdded(t *testing.T) {
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, createdWiki)
+
+		_, err = th.App.LinkWikiToChannel(th.Context, createdWiki.Id, th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
 
 		err = th.App.DeleteWiki(th.Context, createdWiki.Id, th.BasicUser.Id, nil)
 		require.Nil(t, err)
@@ -854,11 +776,14 @@ func TestSystemMessages_PageAdded(t *testing.T) {
 	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicTeam.Id,
 		Title:       "Test Wiki",
 		Description: "Test description",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	_, err = th.App.LinkWikiToChannel(th.Context, createdWiki.Id, th.BasicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	t.Run("creates system message when page is added to wiki", func(t *testing.T) {
@@ -866,6 +791,7 @@ func TestSystemMessages_PageAdded(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, page)
 
+		// The page_added notification goes to the source channel (not the backing channel)
 		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
 			ChannelId: th.BasicChannel.Id,
 			Page:      0,
@@ -899,11 +825,14 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicTeam.Id,
 		Title:       "Test Wiki",
 		Description: "Test description",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	_, err = th.App.LinkWikiToChannel(th.Context, createdWiki.Id, th.BasicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	createdPage, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original"}]}]}`, th.BasicUser.Id, "Original", "")
@@ -919,7 +848,7 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 		require.Nil(t, appErr)
 
 		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: th.BasicChannel.Id,
+			ChannelId: createdWiki.ChannelId,
 			Page:      0,
 			PerPage:   20,
 		})
@@ -935,7 +864,7 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 		}
 
 		require.NotNil(t, systemPost, "Should have created a system_page_updated post")
-		require.Equal(t, th.BasicChannel.Id, systemPost.ChannelId)
+		require.Equal(t, createdWiki.ChannelId, systemPost.ChannelId)
 		require.Equal(t, th.BasicUser.Id, systemPost.UserId)
 		require.Equal(t, page.Id, systemPost.Props["page_id"])
 		require.Equal(t, "Updated Title", systemPost.Props["page_title"])
@@ -960,7 +889,7 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 		require.Nil(t, appErr)
 
 		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: th.BasicChannel.Id,
+			ChannelId: createdWiki.ChannelId,
 			Page:      0,
 			PerPage:   20,
 		})
@@ -985,7 +914,7 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 		require.Nil(t, appErr)
 
 		postList, appErr = th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: th.BasicChannel.Id,
+			ChannelId: createdWiki.ChannelId,
 			Page:      0,
 			PerPage:   20,
 		})
@@ -1008,13 +937,9 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 	})
 
 	t.Run("tracks multiple updaters in consolidated notification", func(t *testing.T) {
-		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
-		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser2.Id, model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
-		require.Nil(t, appErr)
-
 		session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id})
 		require.Nil(t, err)
-		_, appErr = th.App.UpdatePage(th.Context.WithSession(session1), page, "Update by User1", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User1 update"}]}]}`, "User1 update", nil)
+		_, appErr := th.App.UpdatePage(th.Context.WithSession(session1), page, "Update by User1", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User1 update"}]}]}`, "User1 update", nil)
 		require.Nil(t, appErr)
 
 		session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id})
@@ -1023,7 +948,7 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 		require.Nil(t, appErr)
 
 		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: th.BasicChannel.Id,
+			ChannelId: createdWiki.ChannelId,
 			Page:      0,
 			PerPage:   20,
 		})
@@ -1058,62 +983,6 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 	})
 }
 
-func TestMoveWikiToChannel(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	sourceChannel := th.CreateChannel(t, th.BasicTeam)
-	targetChannel := th.CreateChannel(t, th.BasicTeam)
-
-	wiki := &model.Wiki{
-		ChannelId:   sourceChannel.Id,
-		Title:       "Test Wiki",
-		Description: "Test wiki to move",
-	}
-
-	originalWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
-	require.Nil(t, err)
-	require.NotNil(t, originalWiki)
-	require.Equal(t, sourceChannel.Id, originalWiki.ChannelId)
-
-	var movedWiki *model.Wiki
-
-	t.Run("successfully moves wiki to target channel", func(t *testing.T) {
-		var appErr *model.AppError
-		movedWiki, appErr = th.App.MoveWikiToChannel(th.Context, originalWiki, targetChannel, th.BasicUser.Id)
-		require.Nil(t, appErr)
-		require.NotNil(t, movedWiki)
-		require.Equal(t, targetChannel.Id, movedWiki.ChannelId)
-
-		retrievedWiki, getErr := th.App.GetWiki(th.Context, originalWiki.Id)
-		require.Nil(t, getErr)
-		require.Equal(t, targetChannel.Id, retrievedWiki.ChannelId)
-
-		sourceWikis, appErr := th.App.GetWikisForChannel(th.Context, sourceChannel.Id, false)
-		require.Nil(t, appErr)
-		require.Empty(t, sourceWikis, "Wiki should be removed from source channel")
-
-		targetWikis, appErr := th.App.GetWikisForChannel(th.Context, targetChannel.Id, false)
-		require.Nil(t, appErr)
-		require.Len(t, targetWikis, 1, "Wiki should appear in target channel")
-		require.Equal(t, originalWiki.Id, targetWikis[0].Id)
-	})
-
-	t.Run("fails when moving to same channel", func(t *testing.T) {
-		_, appErr := th.App.MoveWikiToChannel(th.Context, movedWiki, targetChannel, th.BasicUser.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.wiki.move_wiki_to_channel.same_channel.app_error", appErr.Id)
-	})
-
-	t.Run("fails when moving to different team", func(t *testing.T) {
-		differentTeam := th.CreateTeam(t)
-		differentChannel := th.CreateChannel(t, differentTeam)
-
-		_, appErr := th.App.MoveWikiToChannel(th.Context, movedWiki, differentChannel, th.BasicUser.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.wiki.move_wiki_to_channel.cross_team_not_supported.app_error", appErr.Id)
-	})
-}
-
 func TestGetWiki(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1122,7 +991,7 @@ func TestGetWiki(t *testing.T) {
 	rctx := th.CreateSessionContext()
 
 	wiki := &model.Wiki{
-		ChannelId:   th.BasicChannel.Id,
+
 		Title:       "Test Wiki",
 		Description: "Test wiki description",
 	}
@@ -1135,7 +1004,7 @@ func TestGetWiki(t *testing.T) {
 		require.NotNil(t, retrievedWiki)
 		require.Equal(t, createdWiki.Id, retrievedWiki.Id)
 		require.Equal(t, "Test Wiki", retrievedWiki.Title)
-		require.Equal(t, th.BasicChannel.Id, retrievedWiki.ChannelId)
+		require.Equal(t, createdWiki.ChannelId, retrievedWiki.ChannelId)
 	})
 
 	t.Run("returns error for non-existent wiki", func(t *testing.T) {
@@ -1159,8 +1028,8 @@ func TestGetWikiPages(t *testing.T) {
 	rctx := th.CreateSessionContext()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+
+		Title: "Test Wiki",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
@@ -1211,35 +1080,33 @@ func TestDeleteWiki(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	t.Run("soft deletes wiki", func(t *testing.T) {
+	t.Run("deletes wiki and its backing channel", func(t *testing.T) {
 		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Wiki to Delete",
+
+			Title: "Wiki to Delete",
 		}
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
+		backingChannelId := createdWiki.ChannelId
+
 		appErr := th.App.DeleteWiki(rctx, createdWiki.Id, th.BasicUser.Id, nil)
 		require.Nil(t, appErr)
 
-		// Wiki should not be retrievable with default query
-		wikis, appErr := th.App.GetWikisForChannel(rctx, th.BasicChannel.Id, false)
+		// Wiki should no longer be retrievable
+		_, appErr = th.App.GetWiki(rctx, createdWiki.Id)
+		require.NotNil(t, appErr)
+
+		// Backing channel should be deleted
+		_, appErr = th.App.GetChannel(rctx, backingChannelId)
+		require.NotNil(t, appErr)
+
+		// Links should be removed - wiki should not appear in linked wikis for the original channel
+		wikis, appErr := th.App.GetWikisLinkedToChannel(rctx, th.BasicChannel.Id)
 		require.Nil(t, appErr)
 		for _, w := range wikis {
-			require.NotEqual(t, createdWiki.Id, w.Id, "Deleted wiki should not appear in active list")
+			require.NotEqual(t, createdWiki.Id, w.Id, "Deleted wiki should not appear in linked list")
 		}
-
-		// Wiki should be retrievable with includeDeleted=true
-		wikisWithDeleted, appErr := th.App.GetWikisForChannel(rctx, th.BasicChannel.Id, true)
-		require.Nil(t, appErr)
-		found := false
-		for _, w := range wikisWithDeleted {
-			if w.Id == createdWiki.Id {
-				found = true
-				require.Greater(t, w.DeleteAt, int64(0))
-			}
-		}
-		require.True(t, found, "Deleted wiki should be in list with includeDeleted=true")
 	})
 
 	t.Run("returns error for non-existent wiki", func(t *testing.T) {
@@ -1256,8 +1123,8 @@ func TestGetWikiIdForPage(t *testing.T) {
 	rctx := th.CreateSessionContext()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+
+		Title: "Test Wiki",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
@@ -1278,6 +1145,56 @@ func TestGetWikiIdForPage(t *testing.T) {
 	})
 }
 
+func TestGetWikiIdForPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	rctx := th.CreateSessionContext()
+
+	wiki := &model.Wiki{Title: "Post Wiki"}
+	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	t.Run("nil post returns BadRequest", func(t *testing.T) {
+		wikiId, appErr := th.App.GetWikiIdForPost(rctx, nil)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Empty(t, wikiId)
+	})
+
+	t.Run("uses Props fast path when wiki id is cached", func(t *testing.T) {
+		// Synthetic post with wiki id pre-stamped in Props — no DB lookup required.
+		post := &model.Post{
+			Id:    model.NewId(),
+			Props: model.StringInterface{model.PagePropsWikiID: createdWiki.Id},
+		}
+		wikiId, appErr := th.App.GetWikiIdForPost(rctx, post)
+		require.Nil(t, appErr)
+		require.Equal(t, createdWiki.Id, wikiId)
+	})
+
+	t.Run("falls back to PropertyValues when Props missing", func(t *testing.T) {
+		// Real page → Props will be hydrated, but we strip them to force the fallback path.
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Fallback Page", "", th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		stripped := &model.Post{Id: page.Id, Props: model.StringInterface{}}
+		wikiId, appErr := th.App.GetWikiIdForPost(rctx, stripped)
+		require.Nil(t, appErr)
+		require.Equal(t, createdWiki.Id, wikiId)
+	})
+
+	t.Run("post with no wiki property returns NotFound", func(t *testing.T) {
+		// Random non-page post id → no PropertyValues row.
+		post := &model.Post{Id: model.NewId(), Props: model.StringInterface{}}
+		wikiId, appErr := th.App.GetWikiIdForPost(rctx, post)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		require.Empty(t, wikiId)
+	})
+}
+
 func TestAddPageToWiki(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1286,15 +1203,14 @@ func TestAddPageToWiki(t *testing.T) {
 	rctx := th.CreateSessionContext()
 
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	t.Run("adds page to wiki", func(t *testing.T) {
-		// Create a page not initially in the wiki
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Standalone Page", "", "", th.BasicUser.Id, "", "")
+		// Create a page in the wiki's backing channel (not the user-facing channel)
+		page, appErr := th.App.CreatePage(th.Context, createdWiki.ChannelId, "Standalone Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		appErr = th.App.AddPageToWiki(rctx, page.Id, createdWiki.Id, nil)
@@ -1307,7 +1223,7 @@ func TestAddPageToWiki(t *testing.T) {
 	})
 
 	t.Run("returns error for non-existent wiki", func(t *testing.T) {
-		page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Another Page", "", "", th.BasicUser.Id, "", "")
+		page, appErr := th.App.CreatePage(th.Context, createdWiki.ChannelId, "Another Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		appErr = th.App.AddPageToWiki(rctx, page.Id, model.NewId(), nil)

@@ -56,15 +56,19 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     // Build breadcrumb from Redux for published pages (when pages are loaded)
     const reduxBreadcrumb = useSelector((state: GlobalState) => {
         if (!isDraft && pageId && pagesLoaded) {
-            return breadcrumbSelector(state, wikiId, pageId, channelId, teamName);
+            return breadcrumbSelector(state, wikiId, pageId, teamName);
         }
         return null;
     });
 
-    // Helper to fix breadcrumb item paths - use /wiki/ route not /channels/
+    // Single helper that builds all wiki paths.
+    const wikiPath = (pathPageId?: string, pathIsDraft?: boolean) =>
+        getWikiUrl(teamName, wikiId, pathPageId, pathIsDraft);
+
+    // Rewrites any path from the API/selector to use the /wiki/ route.
     const fixBreadcrumbPath = (item: BreadcrumbPath['items'][0]): BreadcrumbPath['items'][0] => ({
         ...item,
-        path: item.type === 'wiki' ? getWikiUrl(teamName, channelId, wikiId) : getWikiUrl(teamName, channelId, wikiId, item.id),
+        path: item.type === 'wiki' ? wikiPath() : wikiPath(item.id),
     });
 
     useEffect(() => {
@@ -110,8 +114,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                         id: grandparentId,
                                         title: grandparentPath.current_page.title,
                                         type: 'page',
-                                        path: getWikiUrl(teamName, channelId, wikiId, grandparentId),
-                                        channel_id: channelId,
+                                        path: wikiPath(grandparentId),
                                     },
                                 ];
                             } else if (!grandparentId && loadedWiki) {
@@ -120,8 +123,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                     id: wikiId,
                                     title: loadedWiki.title,
                                     type: 'wiki',
-                                    path: getWikiUrl(teamName, channelId, wikiId),
-                                    channel_id: channelId,
+                                    path: wikiPath(),
                                 }];
                             }
 
@@ -130,8 +132,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                 id: parentPageId,
                                 title: parentTitle,
                                 type: 'page',
-                                path: getWikiUrl(teamName, channelId, wikiId, parentPageId, true),
-                                channel_id: channelId,
+                                path: wikiPath(parentPageId, true),
                             });
 
                             const fixedPath: BreadcrumbPath = {
@@ -140,8 +141,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                     id: 'draft',
                                     title: draftTitle || untitledPageText,
                                     type: 'page',
-                                    path: getWikiUrl(teamName, channelId, wikiId),
-                                    channel_id: channelId,
+                                    path: wikiPath(),
                                 },
                             };
                             setBreadcrumbPath(fixedPath);
@@ -161,16 +161,14 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                         id: parentPageId,
                                         title: parentPath.current_page.title,
                                         type: 'page',
-                                        path: getWikiUrl(teamName, channelId, wikiId, parentPageId),
-                                        channel_id: channelId,
+                                        path: wikiPath(parentPageId),
                                     },
                                 ],
                                 current_page: {
                                     id: 'draft',
                                     title: draftTitle || untitledPageText,
                                     type: 'page',
-                                    path: getWikiUrl(teamName, channelId, wikiId),
-                                    channel_id: channelId,
+                                    path: wikiPath(),
                                 },
                             };
                             setBreadcrumbPath(fixedPath);
@@ -182,15 +180,13 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                 id: wikiId,
                                 title: loadedWiki.title,
                                 type: 'wiki',
-                                path: getWikiUrl(teamName, channelId, wikiId),
-                                channel_id: channelId,
+                                path: wikiPath(),
                             }],
                             current_page: {
                                 id: 'draft',
                                 title: draftTitle || untitledPageText,
                                 type: 'page',
-                                path: getWikiUrl(teamName, channelId, wikiId),
-                                channel_id: channelId,
+                                path: wikiPath(),
                             },
                         };
                         setBreadcrumbPath(simplePath);
@@ -215,7 +211,10 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                         return;
                     }
 
-                    setBreadcrumbPath(reduxBreadcrumb);
+                    setBreadcrumbPath({
+                        ...reduxBreadcrumb,
+                        items: reduxBreadcrumb.items.map(fixBreadcrumbPath),
+                    });
                 } else if (loadedWiki) {
                     // No page selected - show wiki name only
                     setBreadcrumbPath({
@@ -224,8 +223,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                             id: wikiId,
                             title: loadedWiki.title,
                             type: 'wiki',
-                            path: getWikiUrl(teamName, channelId, wikiId),
-                            channel_id: channelId,
+                            path: wikiPath(),
                         },
                     });
                 }

@@ -53,16 +53,16 @@ func TestWikiIsValid(t *testing.T) {
 		{
 			"wiki with missing channel id",
 			&Wiki{
-				Id:          NewId(),
-				ChannelId:   "",
-				Title:       "Test Wiki",
-				Description: "Test description",
-				Icon:        ":book:",
-				CreateAt:    2,
-				UpdateAt:    3,
-				DeleteAt:    0,
+				Id:        NewId(),
+				ChannelId: "",
+				TeamId:    NewId(),
+				CreatorId: NewId(),
+				Title:     "Test Wiki",
+				CreateAt:  2,
+				UpdateAt:  3,
+				DeleteAt:  0,
 			},
-			false,
+			true,
 		},
 		{
 			"wiki with invalid channel id",
@@ -111,6 +111,8 @@ func TestWikiIsValid(t *testing.T) {
 			&Wiki{
 				Id:          NewId(),
 				ChannelId:   NewId(),
+				TeamId:      NewId(),
+				CreatorId:   NewId(),
 				Title:       strings.Repeat("a", 128),
 				Description: "Test description",
 				Icon:        ":book:",
@@ -139,6 +141,8 @@ func TestWikiIsValid(t *testing.T) {
 			&Wiki{
 				Id:          NewId(),
 				ChannelId:   NewId(),
+				TeamId:      NewId(),
+				CreatorId:   NewId(),
 				Title:       "Test Wiki",
 				Description: strings.Repeat("a", 1024),
 				Icon:        ":book:",
@@ -167,6 +171,8 @@ func TestWikiIsValid(t *testing.T) {
 			&Wiki{
 				Id:          NewId(),
 				ChannelId:   NewId(),
+				TeamId:      NewId(),
+				CreatorId:   NewId(),
 				Title:       "Test Wiki",
 				Description: "Test description",
 				Icon:        strings.Repeat("a", 256),
@@ -181,6 +187,8 @@ func TestWikiIsValid(t *testing.T) {
 			&Wiki{
 				Id:          NewId(),
 				ChannelId:   NewId(),
+				TeamId:      NewId(),
+				CreatorId:   NewId(),
 				Title:       "Test Wiki",
 				Description: "Test description",
 				Icon:        ":book:",
@@ -195,6 +203,8 @@ func TestWikiIsValid(t *testing.T) {
 			&Wiki{
 				Id:        NewId(),
 				ChannelId: NewId(),
+				TeamId:    NewId(),
+				CreatorId: NewId(),
 				Title:     "Test Wiki",
 				CreateAt:  2,
 				UpdateAt:  3,
@@ -207,6 +217,8 @@ func TestWikiIsValid(t *testing.T) {
 			&Wiki{
 				Id:          NewId(),
 				ChannelId:   NewId(),
+				TeamId:      NewId(),
+				CreatorId:   NewId(),
 				Title:       "Test Wiki",
 				Description: "",
 				Icon:        "",
@@ -232,6 +244,8 @@ func TestWikiIsValid(t *testing.T) {
 func TestWikiPreSave(t *testing.T) {
 	wiki := &Wiki{
 		ChannelId:   NewId(),
+		TeamId:      NewId(),
+		CreatorId:   NewId(),
 		Title:       "Test Wiki",
 		Description: "Test description",
 		Icon:        ":book:",
@@ -240,6 +254,8 @@ func TestWikiPreSave(t *testing.T) {
 
 	originalWiki := &Wiki{
 		ChannelId:   wiki.ChannelId,
+		TeamId:      wiki.TeamId,
+		CreatorId:   wiki.CreatorId,
 		Title:       wiki.Title,
 		Description: wiki.Description,
 		Icon:        wiki.Icon,
@@ -298,7 +314,11 @@ func TestWikiJSON(t *testing.T) {
 
 		decoded, err := WikiFromJSON(jsonBytes)
 		require.Nil(t, err)
-		require.Equal(t, wiki, decoded)
+
+		// ChannelId is server-internal (json:"-") and is not transmitted on the wire.
+		expected := *wiki
+		expected.ChannelId = ""
+		require.Equal(t, &expected, decoded)
 	})
 
 	t.Run("WikiFromJSON with invalid JSON", func(t *testing.T) {

@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -14,7 +15,18 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+)
+
+const (
+	maxLinkedWikisPerChannel = model.MaxLinkedWikisPerChannel
+
+	// maxCommentsPerPageExport caps the number of comments exported per page.
+	maxCommentsPerPageExport = 10000
+
+	// maxWikisAllChannels caps GetForChannel when no channelId filter is applied.
+	maxWikisAllChannels = 10000
 )
 
 type SqlWikiStore struct {
@@ -26,7 +38,7 @@ func newSqlWikiStore(sqlStore *SqlStore) store.WikiStore {
 	s := &SqlWikiStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("Id", "ChannelId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt", "SortOrder").
+		Select("Id", "ChannelId", "TeamId", "CreatorId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt", "SortOrder").
 		From("Wikis")
 
 	return s
@@ -40,7 +52,7 @@ func (s *SqlWikiStore) getPagePropertyGroupID() (string, error) {
 		Where(sq.Eq{"Name": "pages"}).
 		Limit(1)
 
-	if err := s.GetReplica().GetBuilder(&groupID, query); err != nil {
+	if err := s.GetMaster().GetBuilder(&groupID, query); err != nil {
 		return "", errors.Wrap(err, "failed to get pages property group")
 	}
 	return groupID, nil
@@ -58,24 +70,29 @@ func (s *SqlWikiStore) getWikiPropertyFieldID(groupID string) (string, error) {
 		}).
 		Limit(1)
 
-	if err := s.GetReplica().GetBuilder(&fieldID, query); err != nil {
+	if err := s.GetMaster().GetBuilder(&fieldID, query); err != nil {
 		return "", errors.Wrap(err, "failed to get wiki property field")
 	}
 	return fieldID, nil
 }
 
-func (s *SqlWikiStore) getWikiPropertyIDs() (groupID string, fieldID string, err error) {
-	groupID, err = s.getPagePropertyGroupID()
+// getWikiPropertyIDs resolves the "pages" PropertyGroup and its "wiki" field
+// IDs by direct PK lookup. Both rows are unique-indexed — the cost is two
+// trivial DB hits, the same pattern other stores follow when they need to
+// reach into property tables. We intentionally do not cache here: the
+// PropertyService layer above already caches groups/fields with a proper
+// invalidation hook on registration; replicating that with an unsynchronised
+// store-local cache produced stale-ID bugs across test resets.
+func (s *SqlWikiStore) getWikiPropertyIDs() (string, string, error) {
+	gID, err := s.getPagePropertyGroupID()
 	if err != nil {
 		return "", "", err
 	}
-
-	fieldID, err = s.getWikiPropertyFieldID(groupID)
+	fID, err := s.getWikiPropertyFieldID(gID)
 	if err != nil {
 		return "", "", err
 	}
-
-	return groupID, fieldID, nil
+	return gID, fID, nil
 }
 
 func (s *SqlWikiStore) Save(wiki *model.Wiki) (*model.Wiki, error) {
@@ -88,8 +105,8 @@ func (s *SqlWikiStore) Save(wiki *model.Wiki) (*model.Wiki, error) {
 
 	builder := s.getQueryBuilder().
 		Insert("Wikis").
-		Columns("Id", "ChannelId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt", "SortOrder").
-		Values(wiki.Id, wiki.ChannelId, wiki.Title, wiki.Description, wiki.Icon, propsJSON, wiki.CreateAt, wiki.UpdateAt, wiki.DeleteAt, wiki.SortOrder)
+		Columns("Id", "ChannelId", "TeamId", "CreatorId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt", "SortOrder").
+		Values(wiki.Id, wiki.ChannelId, wiki.TeamId, wiki.CreatorId, wiki.Title, wiki.Description, wiki.Icon, propsJSON, wiki.CreateAt, wiki.UpdateAt, wiki.DeleteAt, wiki.SortOrder)
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "unable_to_save_wiki")
@@ -98,34 +115,75 @@ func (s *SqlWikiStore) Save(wiki *model.Wiki) (*model.Wiki, error) {
 	return wiki, nil
 }
 
-// CreateWikiWithDefaultPage creates a wiki and its default draft page in a single transaction
-func (s *SqlWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string) (*model.Wiki, error) {
-	wiki.PreSave()
-	if err := wiki.IsValid(); err != nil {
-		return nil, err
-	}
+// Create atomically inserts the wiki row, its backing channel, the creator's
+// channel membership, a join history entry, and (if defaultDraft != nil) a
+// default page draft — all within a single database transaction. The caller is
+// responsible for constructing and pre-validating the inputs (see app.CreateWiki
+// which does PreSave/IsValid for channel, wiki, and member). Wiki backing
+// channels are internal-only (ChannelTypeWiki) and bypass a.CreateChannel() to
+// avoid firing the ChannelHasBeenCreated plugin hook.
+func (s *SqlWikiStore) Create(rctx request.CTX, wiki *model.Wiki, backingChannel *model.Channel, creatorMember *model.ChannelMember, defaultDraft *model.Draft) (*model.Wiki, error) {
+	wikiPropsJSON := model.StringInterfaceToJSON(wiki.GetProps())
 
 	var savedWiki *model.Wiki
 	err := s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
-		var saveErr error
-		savedWiki, saveErr = s.SaveWikiT(transaction, wiki)
-		if saveErr != nil {
-			return errors.Wrap(saveErr, "save_wiki")
+		// Step 1: insert backing channel.
+		channelInsert := s.getQueryBuilder().
+			Insert("Channels").
+			Columns(channelSliceColumns(false)...).
+			Values(channelToSlice(backingChannel)...)
+		if _, execErr := transaction.ExecBuilder(channelInsert); execErr != nil {
+			return errors.Wrap(execErr, "save_backing_channel")
 		}
 
-		pageId := model.NewId()
-		now := model.GetMillis()
+		// Step 2: insert wiki row.
+		wikiInsert := s.getQueryBuilder().
+			Insert("Wikis").
+			Columns("Id", "ChannelId", "TeamId", "CreatorId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt", "SortOrder").
+			Values(wiki.Id, wiki.ChannelId, wiki.TeamId, wiki.CreatorId, wiki.Title, wiki.Description, wiki.Icon, wikiPropsJSON, wiki.CreateAt, wiki.UpdateAt, wiki.DeleteAt, wiki.SortOrder)
+		if _, execErr := transaction.ExecBuilder(wikiInsert); execErr != nil {
+			return errors.Wrap(execErr, "save_wiki")
+		}
+		savedWiki = wiki
 
-		contentJSON := model.EmptyTipTapJSON
+		if creatorMember == nil {
+			return nil
+		}
 
-		// Create draft with content stored in Draft.Message
-		draftBuilder := s.getQueryBuilder().
+		// Step 3: insert creator as channel admin member.
+		memberInsert := s.getQueryBuilder().
+			Insert("ChannelMembers").
+			Columns(channelMemberSliceColumns()...).
+			Values(channelMemberToSlice(creatorMember)...)
+		if _, execErr := transaction.ExecBuilder(memberInsert); execErr != nil {
+			if IsUniqueConstraintError(execErr, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
+				return store.NewErrConflict("ChannelMembers", execErr, "")
+			}
+			return errors.Wrap(execErr, "save_channel_member")
+		}
+
+		// Step 4: log join history entry.
+		historyInsert := s.getQueryBuilder().
+			Insert("ChannelMemberHistory").
+			Columns("UserId", "ChannelId", "JoinTime").
+			Values(creatorMember.UserId, backingChannel.Id, model.GetMillis())
+		if _, execErr := transaction.ExecBuilder(historyInsert); execErr != nil {
+			return errors.Wrap(execErr, "log_join_event")
+		}
+
+		if defaultDraft == nil {
+			return nil
+		}
+
+		// Step 5: insert default page draft. Reuse draftSliceColumns/draftToSlice
+		// so the JSON-serializable fields (Props, FileIds, Priority) are encoded
+		// the same way as DraftStore writes them.
+		draftInsert := s.getQueryBuilder().
 			Insert("Drafts").
-			Columns("CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "ChannelId", "UserId", "FileIds", "Props", "Priority", "Type").
-			Values(now, now, 0, contentJSON, pageId, savedWiki.Id, userId, "[]", `{"title":"Untitled page","page_id":"`+pageId+`"}`, "{}", "")
-
-		if _, execErr := transaction.ExecBuilder(draftBuilder); execErr != nil {
-			return errors.Wrap(execErr, "create_default_draft_metadata")
+			Columns(draftSliceColumns()...).
+			Values(draftToSlice(defaultDraft)...)
+		if _, execErr := transaction.ExecBuilder(draftInsert); execErr != nil {
+			return errors.Wrap(execErr, "create_default_draft")
 		}
 
 		return nil
@@ -156,6 +214,8 @@ func (s *SqlWikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*
 	// Only filter by channelId if it's provided (empty string means "all channels")
 	if channelId != "" {
 		builder = builder.Where(sq.Eq{"ChannelId": channelId})
+	} else {
+		builder = builder.Limit(maxWikisAllChannels)
 	}
 
 	if !includeDeleted {
@@ -171,11 +231,43 @@ func (s *SqlWikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*
 	return wikis, nil
 }
 
-func (s *SqlWikiStore) Update(wiki *model.Wiki) (*model.Wiki, error) {
-	existing, err := s.Get(wiki.Id)
-	if err != nil {
-		return nil, err
+func (s *SqlWikiStore) GetForChannels(channelIds []string, includeDeleted bool) ([]*model.Wiki, error) {
+	if len(channelIds) == 0 {
+		return []*model.Wiki{}, nil
 	}
+
+	for _, id := range channelIds {
+		if !model.IsValidId(id) {
+			return nil, store.NewErrInvalidInput("Wiki", "channelId", id)
+		}
+	}
+
+	builder := s.tableSelectQuery.Where(sq.Eq{"ChannelId": channelIds})
+
+	if !includeDeleted {
+		builder = builder.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	builder = builder.OrderBy("SortOrder ASC", "CreateAt DESC")
+
+	wikis := []*model.Wiki{}
+	if err := s.GetReplica().SelectBuilder(&wikis, builder); err != nil {
+		return nil, errors.Wrap(err, "unable_to_get_wikis_for_channels")
+	}
+	return wikis, nil
+}
+
+func (s *SqlWikiStore) Update(wiki *model.Wiki) (*model.Wiki, error) {
+	var existing model.Wiki
+	builder := s.tableSelectQuery.Where(sq.Eq{"Id": wiki.Id, "DeleteAt": 0})
+	if err := s.GetMaster().GetBuilder(&existing, builder); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Wiki", wiki.Id)
+		}
+		return nil, errors.Wrap(err, "failed to get wiki for update")
+	}
+
+	oldUpdateAt := existing.UpdateAt
 
 	existing.Title = wiki.Title
 	existing.Description = wiki.Description
@@ -189,25 +281,29 @@ func (s *SqlWikiStore) Update(wiki *model.Wiki) (*model.Wiki, error) {
 
 	propsJSON := model.StringInterfaceToJSON(existing.GetProps())
 
-	builder := s.getQueryBuilder().
+	updateBuilder := s.getQueryBuilder().
 		Update("Wikis").
 		Set("Title", existing.Title).
 		Set("Description", existing.Description).
 		Set("Icon", existing.Icon).
 		Set("Props", propsJSON).
 		Set("UpdateAt", existing.UpdateAt).
-		Where(sq.Eq{"Id": existing.Id, "DeleteAt": 0})
+		Where(sq.Eq{"Id": existing.Id, "DeleteAt": 0, "UpdateAt": oldUpdateAt})
 
-	result, err := s.GetMaster().ExecBuilder(builder)
+	result, err := s.GetMaster().ExecBuilder(updateBuilder)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable_to_update_wiki")
 	}
 
-	if err := s.checkRowsAffected(result, "Wiki", existing.Id); err != nil {
-		return nil, err
+	rowsAffected, raErr := result.RowsAffected()
+	if raErr != nil {
+		return nil, errors.Wrap(raErr, "failed to get rows affected")
+	}
+	if rowsAffected == 0 {
+		return nil, store.NewErrConflict("Wiki", nil, "id="+existing.Id)
 	}
 
-	return existing, nil
+	return &existing, nil
 }
 
 func (s *SqlWikiStore) Delete(id string, hard bool) error {
@@ -235,6 +331,10 @@ func (s *SqlWikiStore) Delete(id string, hard bool) error {
 }
 
 func (s *SqlWikiStore) GetPages(wikiId string, offset, limit int) ([]*model.Post, error) {
+	if !model.IsValidId(wikiId) {
+		return nil, store.NewErrInvalidInput("Wiki", "wikiId", wikiId)
+	}
+
 	groupID, fieldID, err := s.getWikiPropertyIDs()
 	if err != nil {
 		return nil, err
@@ -272,6 +372,10 @@ func (s *SqlWikiStore) GetPages(wikiId string, offset, limit int) ([]*model.Post
 }
 
 func (s *SqlWikiStore) GetPageByTitleInWiki(wikiId, title string) (*model.Post, error) {
+	if !model.IsValidId(wikiId) {
+		return nil, store.NewErrInvalidInput("Wiki", "wikiId", wikiId)
+	}
+
 	groupID, fieldID, err := s.getWikiPropertyIDs()
 	if err != nil {
 		return nil, err
@@ -308,71 +412,6 @@ func (s *SqlWikiStore) GetPageByTitleInWiki(wikiId, title string) (*model.Post, 
 	return &post, nil
 }
 
-// SaveWikiT saves a wiki within an existing transaction
-func (s *SqlWikiStore) SaveWikiT(transaction *sqlxTxWrapper, wiki *model.Wiki) (*model.Wiki, error) {
-	wiki.PreSave()
-	if err := wiki.IsValid(); err != nil {
-		return nil, err
-	}
-
-	propsJSON := model.StringInterfaceToJSON(wiki.GetProps())
-
-	builder := s.getQueryBuilder().
-		Insert("Wikis").
-		Columns("Id", "ChannelId", "Title", "Description", "Icon", "Props", "CreateAt", "UpdateAt", "DeleteAt", "SortOrder").
-		Values(wiki.Id, wiki.ChannelId, wiki.Title, wiki.Description, wiki.Icon, propsJSON, wiki.CreateAt, wiki.UpdateAt, wiki.DeleteAt, wiki.SortOrder)
-
-	if _, err := transaction.ExecBuilder(builder); err != nil {
-		return nil, errors.Wrap(err, "unable_to_save_wiki")
-	}
-
-	return wiki, nil
-}
-
-// SavePostT saves a post within an existing transaction
-func (s *SqlWikiStore) SavePostT(transaction *sqlxTxWrapper, post *model.Post) (*model.Post, error) {
-	post.PreSave()
-	maxPostSize := s.Post().GetMaxPostSize()
-
-	if err := post.IsValid(maxPostSize); err != nil {
-		return nil, err
-	}
-
-	builder := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
-	builder = builder.Values(postToSlice(post)...)
-
-	if _, err := transaction.ExecBuilder(builder); err != nil {
-		return nil, errors.Wrap(err, "failed to save Post")
-	}
-
-	return post, nil
-}
-
-// SavePropertyValueT saves a PropertyValue within an existing transaction
-func (s *SqlWikiStore) SavePropertyValueT(transaction *sqlxTxWrapper, pv *model.PropertyValue) (*model.PropertyValue, error) {
-	pv.PreSave()
-
-	if err := pv.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "property_value_create_isvalid")
-	}
-
-	valueJSON := pv.Value
-	if s.IsBinaryParamEnabled() {
-		valueJSON = AppendBinaryFlag(valueJSON)
-	}
-
-	builder := s.getQueryBuilder().
-		Insert("PropertyValues").
-		Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
-		Values(pv.ID, pv.TargetID, pv.TargetType, pv.GroupID, pv.FieldID, valueJSON, pv.CreateAt, pv.UpdateAt, pv.DeleteAt)
-
-	if _, err := transaction.ExecBuilder(builder); err != nil {
-		return nil, errors.Wrap(err, "unable_to_save_property_value")
-	}
-
-	return pv, nil
-}
-
 // GetAbandonedPages retrieves empty pages older than cutoff (for cleanup)
 func (s *SqlWikiStore) GetAbandonedPages(cutoffTime int64) ([]*model.Post, error) {
 	query := s.getQueryBuilder().
@@ -402,6 +441,19 @@ func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
 	}
 
 	return s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
+		var count int
+		countQuery := s.getQueryBuilder().
+			Select("COUNT(*)").
+			From("Wikis").
+			Where(sq.Eq{"Id": wikiId})
+
+		if err := transaction.GetBuilder(&count, countQuery); err != nil {
+			return errors.Wrap(err, "failed to check wiki existence")
+		}
+		if count == 0 {
+			return store.NewErrNotFound("Wiki", wikiId)
+		}
+
 		deleteAt := model.GetMillis()
 
 		// Find all post IDs linked to this wiki
@@ -421,13 +473,17 @@ func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
 			return errors.Wrap(selectErr, "failed to find posts for wiki")
 		}
 
-		// Soft delete posts if any exist
-		if len(postIDs) > 0 {
+		// Soft delete posts if any exist, processing in chunks to avoid unbounded IN clauses
+		const chunkSize = 1000
+		for i := 0; i < len(postIDs); i += chunkSize {
+			end := min(i+chunkSize, len(postIDs))
+			chunk := postIDs[i:end]
+
 			postsUpdateQuery := s.getQueryBuilder().
 				Update("Posts").
 				Set("DeleteAt", deleteAt).
 				Where(sq.Eq{
-					"Id":       postIDs,
+					"Id":       chunk,
 					"DeleteAt": 0,
 				})
 
@@ -435,13 +491,12 @@ func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
 				return errors.Wrap(execErr, "failed to soft delete posts for wiki")
 			}
 
-			// Soft delete property values
 			propertyValuesUpdateQuery := s.getQueryBuilder().
 				Update("PropertyValues").
 				Set("DeleteAt", deleteAt).
 				Where(sq.Eq{
 					"TargetType": "post",
-					"TargetID":   postIDs,
+					"TargetID":   chunk,
 					"FieldID":    fieldID,
 					"GroupID":    groupID,
 					"DeleteAt":   0,
@@ -461,30 +516,11 @@ func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
 			return errors.Wrap(execErr, "failed to delete page drafts for wiki")
 		}
 
-		// Soft delete the wiki itself within the same transaction
-		wikiDeleteQuery := s.getQueryBuilder().
-			Update("Wikis").
-			Set("DeleteAt", deleteAt).
-			Where(sq.Eq{"Id": wikiId, "DeleteAt": 0})
-
-		result, execErr := transaction.ExecBuilder(wikiDeleteQuery)
-		if execErr != nil {
-			return errors.Wrap(execErr, "failed to soft delete wiki")
-		}
-
-		rowsAffected, execErr := result.RowsAffected()
-		if execErr != nil {
-			return errors.Wrap(execErr, "failed to get rows affected for wiki delete")
-		}
-		if rowsAffected == 0 {
-			return store.NewErrNotFound("Wiki", wikiId)
-		}
-
 		return nil
 	})
 }
 
-func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error {
+func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId, targetChannelId string, parentPageId *string) error {
 	groupID, fieldID, err := s.getWikiPropertyIDs()
 	if err != nil {
 		return err
@@ -493,16 +529,20 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId 
 	return s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
 		updateAt := model.GetMillis()
 
-		recursiveCTE := `
+		// Squirrel does not support recursive CTEs; this is the documented escape
+		// hatch. MaxPageHierarchyDepth is a compile-time constant interpolated via
+		// fmt.Sprintf, never user input. Page IDs and post type pass through
+		// parameterized placeholders.
+		recursiveCTE := fmt.Sprintf(`
 			WITH RECURSIVE page_subtree AS (
-				SELECT Id FROM Posts WHERE Id = ? AND Type = ? AND DeleteAt = 0
+				SELECT Id, 1 AS depth FROM Posts WHERE Id = ? AND Type = ? AND DeleteAt = 0
 				UNION ALL
-				SELECT p.Id FROM Posts p
+				SELECT p.Id, ps.depth + 1 FROM Posts p
 				INNER JOIN page_subtree ps ON p.PageParentId = ps.Id
-				WHERE p.Type = ? AND p.DeleteAt = 0
+				WHERE p.Type = ? AND p.DeleteAt = 0 AND ps.depth < %d
 			)
 			SELECT Id FROM page_subtree
-		`
+		`, MaxPageHierarchyDepth)
 
 		var pageIDs []string
 		if selectErr := transaction.Select(&pageIDs, recursiveCTE, pageId, model.PostTypePage, model.PostTypePage); selectErr != nil {
@@ -538,228 +578,134 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId 
 			valueJSON = AppendBinaryFlag(valueJSON)
 		}
 
-		updateQuery := s.getQueryBuilder().
-			Update("PropertyValues").
-			Set("Value", valueJSON).
-			Set("UpdateAt", updateAt).
-			Where(sq.Eq{
-				"TargetID":   pageIDs,
-				"TargetType": "post",
-				"FieldID":    fieldID,
-				"GroupID":    groupID,
-				"DeleteAt":   0,
-			})
+		// Process pageIDs in chunks to avoid unbounded IN clauses
+		const chunkSize = 1000
+		var totalRowsAffected int64
+		for i := 0; i < len(pageIDs); i += chunkSize {
+			end := min(i+chunkSize, len(pageIDs))
+			chunk := pageIDs[i:end]
 
-		result, execErr := transaction.ExecBuilder(updateQuery)
-		if execErr != nil {
-			return errors.Wrap(execErr, "failed to update property values for page subtree")
+			updateQuery := s.getQueryBuilder().
+				Update("PropertyValues").
+				Set("Value", valueJSON).
+				Set("UpdateAt", updateAt).
+				Where(sq.Eq{
+					"TargetID":   chunk,
+					"TargetType": "post",
+					"FieldID":    fieldID,
+					"GroupID":    groupID,
+					"DeleteAt":   0,
+				})
+
+			result, execErr := transaction.ExecBuilder(updateQuery)
+			if execErr != nil {
+				return errors.Wrap(execErr, "failed to update property values for page subtree")
+			}
+
+			rows, rowsErr := result.RowsAffected()
+			if rowsErr != nil {
+				return errors.Wrap(rowsErr, "failed to get rows affected")
+			}
+			totalRowsAffected += rows
 		}
 
-		rowsAffected, rowsErr := result.RowsAffected()
-		if rowsErr != nil {
-			return errors.Wrap(rowsErr, "failed to get rows affected")
-		}
-
-		if int(rowsAffected) < len(pageIDs) {
-			missingCount := len(pageIDs) - int(rowsAffected)
+		if int(totalRowsAffected) < len(pageIDs) {
+			missingCount := len(pageIDs) - int(totalRowsAffected)
 			mlog.Warn("Some pages in subtree missing wiki PropertyValues, creating them",
 				mlog.Int("missing_count", missingCount),
 				mlog.String("page_id", pageId))
 
-			// Use batch insert with ON CONFLICT DO NOTHING to insert PropertyValues only for pages that don't have them
-			insertBuilder := s.getQueryBuilder().
-				Insert("PropertyValues").
-				Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt")
+			for i := 0; i < len(pageIDs); i += chunkSize {
+				end := min(i+chunkSize, len(pageIDs))
+				chunk := pageIDs[i:end]
 
-			for _, pid := range pageIDs {
-				insertBuilder = insertBuilder.Values(model.NewId(), pid, "post", groupID, fieldID, valueJSON, updateAt, updateAt, 0)
-			}
+				insertBuilder := s.getQueryBuilder().
+					Insert("PropertyValues").
+					Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt")
 
-			// ON CONFLICT uses the unique partial index: idx_propertyvalues_unique (GroupID, TargetID, FieldID) WHERE DeleteAt = 0
-			insertBuilder = insertBuilder.SuffixExpr(sq.Expr("ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO NOTHING"))
+				for _, pid := range chunk {
+					insertBuilder = insertBuilder.Values(model.NewId(), pid, "post", groupID, fieldID, valueJSON, updateAt, updateAt, 0)
+				}
 
-			if _, insertErr := transaction.ExecBuilder(insertBuilder); insertErr != nil {
-				return errors.Wrap(insertErr, "failed to create property values for orphaned pages")
+				insertBuilder = insertBuilder.SuffixExpr(sq.Expr("ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO NOTHING"))
+
+				if _, insertErr := transaction.ExecBuilder(insertBuilder); insertErr != nil {
+					return errors.Wrap(insertErr, "failed to create property values for orphaned pages")
+				}
 			}
 		}
 
 		// Update wiki_id in Post.Props for all pages in subtree (optimization for fast lookup)
-		updatePostPropsQuery := s.getQueryBuilder().
-			Update("Posts").
-			Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?::jsonb)", jsonKeyPath("wiki_id"), valueJSON)).
-			Set("UpdateAt", updateAt).
-			Where(sq.Eq{"Id": pageIDs, "DeleteAt": 0})
+		for i := 0; i < len(pageIDs); i += chunkSize {
+			end := min(i+chunkSize, len(pageIDs))
+			chunk := pageIDs[i:end]
 
-		if _, propsErr := transaction.ExecBuilder(updatePostPropsQuery); propsErr != nil {
-			return errors.Wrap(propsErr, "failed to update wiki_id in Post.Props for page subtree")
+			updatePostPropsQuery := s.getQueryBuilder().
+				Update("Posts").
+				Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?)", jsonKeyPath("wiki_id"), jsonStringVal(targetWikiId))).
+				Set("UpdateAt", updateAt).
+				Where(sq.Eq{"Id": chunk, "DeleteAt": 0})
+
+			if targetChannelId != "" {
+				updatePostPropsQuery = updatePostPropsQuery.Set("ChannelId", targetChannelId)
+			}
+
+			if _, propsErr := transaction.ExecBuilder(updatePostPropsQuery); propsErr != nil {
+				return errors.Wrap(propsErr, "failed to update wiki_id in Post.Props for page subtree")
+			}
 		}
 
 		// Update wiki_id in Props for top-level comments (comments where RootId is a page in the subtree)
-		updateTopLevelCommentsQuery := s.getQueryBuilder().
-			Update("Posts").
-			Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?::jsonb)", jsonKeyPath("wiki_id"), valueJSON)).
-			Set("UpdateAt", updateAt).
-			Where(sq.Eq{
-				"Type":     model.PostTypePageComment,
-				"RootId":   pageIDs,
-				"DeleteAt": 0,
-			})
+		for i := 0; i < len(pageIDs); i += chunkSize {
+			end := min(i+chunkSize, len(pageIDs))
+			chunk := pageIDs[i:end]
 
-		if _, commentsErr := transaction.ExecBuilder(updateTopLevelCommentsQuery); commentsErr != nil {
-			return errors.Wrap(commentsErr, "failed to update wiki_id in Props for top-level comments")
+			updateTopLevelCommentsQuery := s.getQueryBuilder().
+				Update("Posts").
+				Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?)", jsonKeyPath("wiki_id"), jsonStringVal(targetWikiId))).
+				Set("UpdateAt", updateAt).
+				Where(sq.Eq{
+					"Type":     model.PostTypePageComment,
+					"RootId":   chunk,
+					"DeleteAt": 0,
+				})
+
+			if targetChannelId != "" {
+				updateTopLevelCommentsQuery = updateTopLevelCommentsQuery.Set("ChannelId", targetChannelId)
+			}
+
+			if _, commentsErr := transaction.ExecBuilder(updateTopLevelCommentsQuery); commentsErr != nil {
+				return errors.Wrap(commentsErr, "failed to update wiki_id in Props for top-level comments")
+			}
 		}
 
 		// Update wiki_id in Props for inline comments (RootId is empty, page_id is in Props)
-		updateInlineCommentsQuery := s.getQueryBuilder().
-			Update("Posts").
-			Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?::jsonb)", jsonKeyPath("wiki_id"), valueJSON)).
-			Set("UpdateAt", updateAt).
-			Where(sq.Eq{
-				"Type":     model.PostTypePageComment,
-				"RootId":   "",
-				"DeleteAt": 0,
-			}).
-			Where(sq.Expr("Props->>'page_id' = ANY(?)", pq.Array(pageIDs)))
+		for i := 0; i < len(pageIDs); i += chunkSize {
+			end := min(i+chunkSize, len(pageIDs))
+			chunk := pageIDs[i:end]
 
-		if _, inlineErr := transaction.ExecBuilder(updateInlineCommentsQuery); inlineErr != nil {
-			return errors.Wrap(inlineErr, "failed to update wiki_id in Props for inline comments")
-		}
-
-		return nil
-	})
-}
-
-func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error) {
-	groupID, fieldID, err := s.getWikiPropertyIDs()
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.ExecuteInTransaction(func(transaction *sqlxTxWrapper) error {
-		recursiveCTE := `
-			WITH RECURSIVE wiki_pages AS (
-				SELECT DISTINCT pv.TargetID as page_id
-				FROM PropertyValues pv
-				WHERE pv.FieldID = ?
-				  AND pv.GroupID = ?
-				  AND pv.Value = to_jsonb(?::text)
-				  AND pv.TargetType = 'post'
-				  AND pv.DeleteAt = 0
-			),
-			page_subtree AS (
-				SELECT p.Id, p.PageParentId, p.ChannelId
-				FROM Posts p
-				INNER JOIN wiki_pages wp ON p.Id = wp.page_id
-				WHERE p.Type = ?
-				  AND p.DeleteAt = 0
-
-				UNION ALL
-
-				SELECT p.Id, p.PageParentId, p.ChannelId
-				FROM Posts p
-				INNER JOIN page_subtree ps ON p.PageParentId = ps.Id
-				WHERE p.Type = ?
-				  AND p.DeleteAt = 0
-			)
-			SELECT Id FROM page_subtree
-		`
-
-		var pageIDs []string
-		if selectErr := transaction.Select(&pageIDs, recursiveCTE, fieldID, groupID, wikiId, model.PostTypePage, model.PostTypePage); selectErr != nil {
-			return errors.Wrap(selectErr, "failed to find wiki pages")
-		}
-
-		updateWikiQuery := s.getQueryBuilder().
-			Update("Wikis").
-			Set("ChannelId", targetChannelId).
-			Set("UpdateAt", timestamp).
-			Where(sq.Eq{
-				"Id":       wikiId,
-				"DeleteAt": 0,
-			})
-
-		result, execErr := transaction.ExecBuilder(updateWikiQuery)
-		if execErr != nil {
-			return errors.Wrap(execErr, "failed to update wiki channel")
-		}
-
-		rowsAffected, rowsErr := result.RowsAffected()
-		if rowsErr != nil {
-			return errors.Wrap(rowsErr, "failed to get rows affected")
-		}
-
-		if rowsAffected == 0 {
-			return store.NewErrNotFound("Wiki", wikiId)
-		}
-
-		if len(pageIDs) > 0 {
-			updatePagesQuery := s.getQueryBuilder().
-				Update("Posts").
-				Set("ChannelId", targetChannelId).
-				Set("UpdateAt", timestamp).
-				Where(sq.Eq{
-					"Id":       pageIDs,
-					"Type":     model.PostTypePage,
-					"DeleteAt": 0,
-				})
-
-			if _, pagesErr := transaction.ExecBuilder(updatePagesQuery); pagesErr != nil {
-				return errors.Wrap(pagesErr, "failed to update pages channel")
-			}
-
-			updateCommentsQuery := s.getQueryBuilder().
-				Update("Posts").
-				Set("ChannelId", targetChannelId).
-				Set("UpdateAt", timestamp).
-				Where(sq.Eq{
-					"Type":     model.PostTypePageComment,
-					"RootId":   pageIDs,
-					"DeleteAt": 0,
-				})
-
-			if _, commentsErr := transaction.ExecBuilder(updateCommentsQuery); commentsErr != nil {
-				return errors.Wrap(commentsErr, "failed to update comments channel")
-			}
-
-			// Update inline comments (comments with page_id in Props but empty RootId)
 			updateInlineCommentsQuery := s.getQueryBuilder().
 				Update("Posts").
-				Set("ChannelId", targetChannelId).
-				Set("UpdateAt", timestamp).
+				Set("Props", sq.Expr("jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?)", jsonKeyPath("wiki_id"), jsonStringVal(targetWikiId))).
+				Set("UpdateAt", updateAt).
 				Where(sq.Eq{
 					"Type":     model.PostTypePageComment,
 					"RootId":   "",
 					"DeleteAt": 0,
 				}).
-				Where(sq.Expr("Props->>'page_id' = ANY(?)", pq.Array(pageIDs)))
+				Where(sq.Expr("Props->>'page_id' = ANY(?)", pq.Array(chunk)))
+
+			if targetChannelId != "" {
+				updateInlineCommentsQuery = updateInlineCommentsQuery.Set("ChannelId", targetChannelId)
+			}
 
 			if _, inlineErr := transaction.ExecBuilder(updateInlineCommentsQuery); inlineErr != nil {
-				return errors.Wrap(inlineErr, "failed to update inline comments")
+				return errors.Wrap(inlineErr, "failed to update wiki_id in Props for inline comments")
 			}
 		}
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	var updatedWiki model.Wiki
-	getQuery := s.tableSelectQuery.
-		Where(sq.Eq{
-			"Id":       wikiId,
-			"DeleteAt": 0,
-		})
-
-	// Use GetMaster() to read the data we just wrote - replicas may have lag in HA setups
-	if getErr := s.GetMaster().GetBuilder(&updatedWiki, getQuery); getErr != nil {
-		if getErr == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Wiki", wikiId)
-		}
-		return nil, errors.Wrap(getErr, "failed to fetch updated wiki")
-	}
-
-	return &updatedWiki, nil
 }
 
 func (s *SqlWikiStore) SetWikiIdInPostProps(pageId, wikiId string) error {
@@ -845,6 +791,104 @@ func stringSliceToInterface(s []string) []any {
 	return result
 }
 
+func (s *SqlWikiStore) GetLinkedToChannel(channelId string) ([]*model.Wiki, error) {
+	if !model.IsValidId(channelId) {
+		return nil, store.NewErrInvalidInput("Wiki", "channelId", channelId)
+	}
+
+	builder := s.getQueryBuilder().
+		Select("w.Id", "w.ChannelId", "w.TeamId", "w.CreatorId", "w.Title", "w.Description", "w.Icon", "w.Props", "w.CreateAt", "w.UpdateAt", "w.DeleteAt", "w.SortOrder").
+		From("Wikis w").
+		Join("WikiLinks cml ON cml.DestinationId = w.ChannelId").
+		Where(sq.Eq{
+			"cml.SourceId": channelId,
+			"w.DeleteAt":   0,
+		}).
+		OrderBy("w.SortOrder ASC").
+		Limit(maxLinkedWikisPerChannel)
+
+	wikis := []*model.Wiki{}
+	if err := s.GetReplica().SelectBuilder(&wikis, builder); err != nil {
+		return nil, errors.Wrap(err, "failed to get wikis linked to channel")
+	}
+	return wikis, nil
+}
+
+func (s *SqlWikiStore) GetByChannelId(channelId string) (*model.Wiki, error) {
+	if !model.IsValidId(channelId) {
+		return nil, store.NewErrInvalidInput("Wiki", "channelId", channelId)
+	}
+
+	var wiki model.Wiki
+	builder := s.tableSelectQuery.Where(sq.Eq{"ChannelId": channelId, "DeleteAt": 0})
+
+	if err := s.GetMaster().GetBuilder(&wiki, builder); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Wiki", "channelId="+channelId)
+		}
+		return nil, errors.Wrap(err, "failed to get wiki by channel id")
+	}
+	return &wiki, nil
+}
+
+func (s *SqlWikiStore) GetForTeam(teamId string, page, perPage int) ([]*model.Wiki, error) {
+	if !model.IsValidId(teamId) {
+		return nil, store.NewErrInvalidInput("Wiki", "teamId", teamId)
+	}
+	if page < 0 || perPage <= 0 {
+		return nil, store.NewErrInvalidInput("Wiki", "pagination", "page must be >= 0 and perPage must be > 0")
+	}
+
+	builder := s.tableSelectQuery.
+		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0}).
+		OrderBy("Title ASC").
+		Limit(uint64(perPage)).
+		Offset(uint64(page * perPage))
+
+	wikis := []*model.Wiki{}
+	if err := s.GetReplica().SelectBuilder(&wikis, builder); err != nil {
+		return nil, errors.Wrap(err, "failed to get wikis for team")
+	}
+	return wikis, nil
+}
+
+func (s *SqlWikiStore) GetForUser(userId, teamId string, page, perPage int) ([]*model.Wiki, error) {
+	if !model.IsValidId(userId) {
+		return nil, store.NewErrInvalidInput("Wiki", "userId", userId)
+	}
+	if !model.IsValidId(teamId) {
+		return nil, store.NewErrInvalidInput("Wiki", "teamId", teamId)
+	}
+	if page < 0 || perPage <= 0 {
+		return nil, store.NewErrInvalidInput("Wiki", "pagination", "page must be >= 0 and perPage must be > 0")
+	}
+
+	channelMemberSubq := sq.Expr("EXISTS (SELECT 1 FROM ChannelMembers cm WHERE cm.ChannelId = w.ChannelId AND cm.UserId = ?)", userId)
+
+	query, args, err := s.getQueryBuilder().
+		Select("w.Id", "w.ChannelId", "w.TeamId", "w.CreatorId", "w.Title", "w.Description", "w.Icon", "w.Props", "w.CreateAt", "w.UpdateAt", "w.DeleteAt", "w.SortOrder").
+		From("Wikis w").
+		Where(sq.Eq{"w.TeamId": teamId, "w.DeleteAt": 0}).
+		Where(channelMemberSubq).
+		OrderBy("w.Title ASC").
+		Limit(uint64(perPage)).
+		Offset(uint64(page * perPage)).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build query for wikis for user")
+	}
+
+	// Note: Uses replica for read scalability. After link creation (which writes to
+	// ChannelMembers), the replica may not yet reflect the new membership, causing
+	// newly-linked wikis to be temporarily absent. This is an acceptable HA trade-off;
+	// the next fetch will return correct results.
+	wikis := []*model.Wiki{}
+	if err := s.GetReplica().Select(&wikis, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get wikis for user")
+	}
+	return wikis, nil
+}
+
 // GetWikisForExport returns wikis in a channel with team/channel names for export
 func (s *SqlWikiStore) GetWikisForExport(channelId string) ([]*model.WikiForExport, error) {
 	if !model.IsValidId(channelId) {
@@ -885,28 +929,39 @@ func (s *SqlWikiStore) GetPagesForExport(wikiId string, limit int, afterId strin
 		return nil, store.NewErrInvalidInput("Page", "afterId", afterId)
 	}
 
-	// Extract wiki_id, page_parent_id, title, and parent's import_source_id from Props JSON in SQL
+	groupID, fieldID, err := s.getWikiPropertyIDs()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get wiki property IDs for export")
+	}
+
+	// Wiki-page association is stored in PropertyValues, not in Post.Props.
+	// Join on PropertyValues to find pages belonging to the given wiki.
 	// Note: Page title is stored in Props->>'title', not in Message column
 	// Note: Content is stored in Post.Message (TipTap JSON)
 	// Note: pp is the parent post, used to get parent's import_source_id for hierarchy export
 	query := s.getQueryBuilder().
 		Select(
-			"p.Id", `t.Name AS "TeamName"`, `c.Name AS "ChannelName"`, `u.Username AS "Username"`,
-			`COALESCE(p.Props->>'title', '') AS "Title"`, `COALESCE(p.Message, '') AS "Content"`, "p.Props",
-			`p.Props->>'wiki_id' AS "WikiId"`,
+			`p.Id AS "Id"`, `t.Name AS "TeamName"`, `c.Name AS "ChannelName"`, `u.Username AS "Username"`,
+			`COALESCE(p.Props->>'title', '') AS "Title"`, `COALESCE(p.Message, '') AS "Content"`,
 			`COALESCE(p.Props->>'page_parent_id', '') AS "PageParentId"`,
 			// For parent's import_source_id: use the parent's import_source_id if it was imported, otherwise use its page ID
 			`COALESCE(pp.Props->>'import_source_id', pp.Id, '') AS "ParentImportSourceId"`,
-			"p.CreateAt", "p.UpdateAt", "p.FileIds",
+			`p.Props AS "Props"`, `p.CreateAt AS "CreateAt"`, `p.UpdateAt AS "UpdateAt"`, `p.FileIds AS "FileIds"`,
 		).
 		From("Posts p").
+		Join("PropertyValues v ON v.TargetType = 'post' AND v.TargetID = p.Id").
 		Join("Channels c ON p.ChannelId = c.Id").
 		Join("Teams t ON c.TeamId = t.Id").
 		Join("Users u ON p.UserId = u.Id").
 		LeftJoin("Posts pp ON p.Props->>'page_parent_id' = pp.Id").
-		Where(sq.Eq{"p.Type": model.PostTypePage}).
-		Where(sq.Eq{"p.DeleteAt": 0}).
-		Where(sq.Expr("p.Props->>'wiki_id' = ?", wikiId)).
+		Where(sq.Eq{
+			"v.FieldID":  fieldID,
+			"v.GroupID":  groupID,
+			"v.DeleteAt": 0,
+			"p.Type":     model.PostTypePage,
+			"p.DeleteAt": 0,
+		}).
+		Where("v.Value = to_jsonb(?::text)", wikiId).
 		OrderBy("p.Id ASC").
 		Limit(uint64(limit))
 
@@ -922,7 +977,9 @@ func (s *SqlWikiStore) GetPagesForExport(wikiId string, limit int, afterId strin
 	return pages, nil
 }
 
-// GetPageCommentsForExport returns comments for a page with user info for export
+// GetPageCommentsForExport returns comments for a page with user info for export.
+// Hard-capped at maxCommentsPerPageExport; pages with more comments will have their
+// oldest comments silently dropped. Cursor pagination is not yet supported here.
 func (s *SqlWikiStore) GetPageCommentsForExport(pageId string) ([]*model.PageCommentForExport, error) {
 	if !model.IsValidId(pageId) {
 		return nil, store.NewErrInvalidInput("PageComment", "pageId", pageId)
@@ -941,10 +998,11 @@ func (s *SqlWikiStore) GetPageCommentsForExport(pageId string) ([]*model.PageCom
 		Join("Channels c ON p.ChannelId = c.Id").
 		Join("Teams t ON c.TeamId = t.Id").
 		Join("Users u ON p.UserId = u.Id").
-		Where(sq.Eq{"p.RootId": pageId}).
+		Where(sq.Expr("p.Props->>'page_id' = ?", pageId)).
 		Where(sq.Eq{"p.Type": model.PostTypePageComment}).
 		Where(sq.Eq{"p.DeleteAt": 0}).
-		OrderBy("p.CreateAt ASC")
+		OrderBy("p.CreateAt ASC").
+		Limit(maxCommentsPerPageExport)
 
 	var comments []*model.PageCommentForExport
 	if err := s.GetReplica().SelectBuilder(&comments, query); err != nil {
