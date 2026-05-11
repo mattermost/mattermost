@@ -96,7 +96,7 @@ export default function ConflictWarningModal({
             onExited={onExited}
             confirmButtonText={getConfirmButtonText()}
             cancelButtonText={formatMessage({id: 'conflict_warning.back_to_editing', defaultMessage: 'Back to editing'})}
-            isDeleteModal={selectedOption === 'overwrite'}
+            confirmButtonVariant={selectedOption === 'overwrite' ? 'destructive' : undefined}
             autoCloseOnConfirmButton={false}
             autoCloseOnCancelButton={false}
         >

@@ -346,6 +346,7 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var jobs []*model.Job
 
+	policyID := r.URL.Query().Get("policy_id")
 	if hasTeamFilter {
 		// When team_id is provided, return only jobs scoped to that team.
 		// Sorted by CreateAt DESC; limited to the requested page size.
@@ -363,6 +364,28 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			end := min(start+c.Params.PerPage, len(teamJobs))
 			jobs = teamJobs[start:end]
+		}
+	} else if policyID != "" && c.Params.JobType == model.JobTypeAccessControlSync {
+		// Only system admins may filter by policy_id to prevent job enumeration across policies.
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+		policyJobs, appErr := c.App.GetJobsByTypeAndData(c.AppContext, c.Params.JobType,
+			map[string]string{"policy_id": policyID})
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		sort.Slice(policyJobs, func(i, j int) bool {
+			return policyJobs[i].CreateAt > policyJobs[j].CreateAt
+		})
+		start := c.Params.Page * c.Params.PerPage
+		if start >= len(policyJobs) {
+			jobs = []*model.Job{}
+		} else {
+			end := min(start+c.Params.PerPage, len(policyJobs))
+			jobs = policyJobs[start:end]
 		}
 	} else {
 		// Store returns jobs ordered by CreateAt DESC; pagination applied at the store level.

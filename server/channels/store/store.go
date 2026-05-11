@@ -351,6 +351,7 @@ type ChannelStore interface {
 type ChannelMemberHistoryStore interface {
 	LogJoinEvent(userID string, channelID string, joinTime int64) error
 	LogLeaveEvent(userID string, channelID string, leaveTime int64) error
+	GetEverMembersInChannel(channelID string, userIDs []string) ([]string, error)
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelID []string) ([]*model.ChannelMemberHistoryResult, error)
 	GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error)
 	PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
@@ -784,7 +785,7 @@ type FileInfoStore interface {
 	Upsert(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error)
 	Get(id string) (*model.FileInfo, error)
 	GetFromMaster(id string) (*model.FileInfo, error)
-	GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
+	GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error)
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postID string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetForUser(userID string) ([]*model.FileInfo, error)
@@ -1178,6 +1179,7 @@ type ScheduledPostStore interface {
 
 type PropertyGroupStore interface {
 	Register(group *model.PropertyGroup) (*model.PropertyGroup, error)
+	IncrementVersion(name string) error
 	Get(name string) (*model.PropertyGroup, error)
 	GetByID(id string) (*model.PropertyGroup, error)
 }
@@ -1521,6 +1523,7 @@ type RecapStore interface {
 	GetRecapsForUser(userId string, page, perPage int) ([]*model.Recap, error)
 	UpdateRecapStatus(id, status string) error
 	MarkRecapAsRead(id string) error
+	MarkRecapsAsViewed(userId string, statuses []string) ([]string, error)
 	DeleteRecap(id string) error
 	DeleteRecapChannels(recapId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error

@@ -1341,6 +1341,14 @@ type API interface {
 	// The remoteID identifies which of the plugin's registered remotes this attachment is from
 	// (the value returned by RegisterPluginForSharedChannels).
 	//
+	// The post-receive (ReceiveSharedChannelSyncMsg) and file-receive calls for the same
+	// post-and-attachment pair may be issued in either order or concurrently; the framework
+	// binds the file to its post regardless of arrival order. Repeated calls with the same
+	// (fi.Id, channelID, fi.CreatorId) return the existing FileInfo without producing
+	// duplicates, allowing transports with at-least-once delivery semantics to redeliver
+	// safely. Repeats whose fi.Id matches an existing record under a different channel or
+	// creator are rejected.
+	//
 	// @tag SharedChannels
 	// Minimum server version: 11.7
 	ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)

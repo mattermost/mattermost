@@ -21,6 +21,8 @@ export {
     makeClient,
 } from './server';
 
+export {getAdminClient, mergeWithOnPremServerConfig, getOnPremServerConfig} from './server';
+
 export {
     ChannelsPage,
     LandingLoginPage,
@@ -74,6 +76,8 @@ export {
     ProfileModal,
 } from './ui/components';
 
+export {TextInputSetting} from './ui/components/system_console/base_components';
+
 export {TestArgs, ScreenshotOptions} from './types';
 
 export {
@@ -83,6 +87,7 @@ export {
     disableChannelAutotranslation,
     setUserChannelAutotranslation,
     setMockSourceLanguage,
+    ensureAutotranslationPermissions,
 } from './autotranslation_helpers';
 export type {EnableAutotranslationOptions} from './autotranslation_helpers';
 export {
@@ -91,6 +96,7 @@ export {
     hasCustomPermissionsSchemesLicense,
     licenseTier,
 } from './license_helpers';
+
 // ABAC (Attribute-Based Access Control) helpers
 export {
     createUserWithAttributes,

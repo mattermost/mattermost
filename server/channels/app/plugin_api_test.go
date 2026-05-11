@@ -326,17 +326,28 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	require.Len(t, preferences, 3)
 
-	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-	assert.Equal(t, "hide", preferences[0].Name)
-	assert.Equal(t, "false", preferences[0].Value)
-	assert.Equal(t, model.PreferenceCategorySystemNotice, preferences[1].Category)
-	assert.Equal(t, user1.Id, preferences[2].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
-	assert.Equal(t, user1.Id, preferences[2].Name)
-	assert.Equal(t, "0", preferences[2].Value)
+	prefByCategory := make(map[string]model.Preference, len(preferences))
+	for _, p := range preferences {
+		prefByCategory[p.Category] = p
+	}
+	require.Len(t, prefByCategory, 3, "default user preferences should use distinct categories")
+
+	nextSteps, ok := prefByCategory[model.PreferenceRecommendedNextSteps]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceRecommendedNextSteps)
+	assert.Equal(t, user1.Id, nextSteps.UserId)
+	assert.Equal(t, "hide", nextSteps.Name)
+	assert.Equal(t, "false", nextSteps.Value)
+
+	_, ok = prefByCategory[model.PreferenceCategorySystemNotice]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceCategorySystemNotice)
+
+	tutorial, ok := prefByCategory[model.PreferenceCategoryTutorialSteps]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceCategoryTutorialSteps)
+	assert.Equal(t, user1.Id, tutorial.UserId)
+	assert.Equal(t, user1.Id, tutorial.Name)
+	assert.Equal(t, "0", tutorial.Value)
 
 	preference := model.Preference{
 		Name:     user1.Id,
@@ -3706,6 +3717,10 @@ func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
 	api := th.SetupPluginAPI()
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -3713,8 +3728,8 @@ func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
 		appErr := th.App.Srv().RemoveLicense()
 		require.Nil(t, appErr)
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
-	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = false })
 
 	categoryName := "Operations"
 	channel := &model.Channel{

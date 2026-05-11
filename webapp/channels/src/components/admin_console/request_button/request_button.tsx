@@ -7,6 +7,9 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+import type {ButtonEmphasis} from '@mattermost/shared/components/button';
+
 import SuccessIcon from 'components/widgets/icons/fa_success_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
@@ -116,7 +119,7 @@ type Props = {
      * The button type/variant to apply. Determines the button's visual style.
      * Defaults to 'tertiary'.
      */
-    buttonType?: 'primary' | 'secondary' | 'tertiary';
+    buttonEmphasis?: ButtonEmphasis;
 };
 
 type State = {
@@ -241,9 +244,9 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                 {label}
                 <div className={widgetClassNames}>
                     <div>
-                        <button
+                        <Button
                             type='button'
-                            className={`btn btn-${this.props.buttonType || 'tertiary'}`}
+                            emphasis={this.props.buttonEmphasis || 'tertiary'}
                             onClick={this.handleRequest}
                             disabled={this.props.disabled}
                         >
@@ -261,7 +264,7 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                             >
                                 {this.props.buttonText}
                             </LoadingWrapper>
-                        </button>
+                        </Button>
                         {this.props.alternativeActionElement}
                         {message}
                     </div>

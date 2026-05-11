@@ -64,7 +64,7 @@ const ImageExtractionDialog = ({
             handleCancel={onCancel}
             handleConfirm={onCancel}
             confirmButtonText={formatMessage({id: 'image_extraction.cancel', defaultMessage: 'Cancel'})}
-            confirmButtonClassName='btn-tertiary'
+
             autoCloseOnConfirmButton={false}
         >
             <div className='image-extraction-dialog-content'>

@@ -69,7 +69,7 @@ function WikiDeleteModal({
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
-            isDeleteModal={true}
+            confirmButtonVariant='destructive'
             isConfirmDisabled={isDeleting}
             autoCloseOnConfirmButton={false}
         >

@@ -62,11 +62,7 @@ export class TestBrowser {
      */
     async switchUser(context: BrowserContext, user: UserProfile) {
         const storagePath = await loginByAPI(user.username, user.password);
-        const storageState = JSON.parse(fs.readFileSync(storagePath, 'utf8'));
-        await context.clearCookies();
-        if (storageState.cookies?.length) {
-            await context.addCookies(storageState.cookies);
-        }
+        await (context as any).setStorageState(storagePath);
     }
 
     async close() {

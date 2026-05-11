@@ -87,7 +87,7 @@ function WikiUnlinkModal({
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
-            isDeleteModal={true}
+            confirmButtonVariant='destructive'
             isConfirmDisabled={isUnlinking}
             autoCloseOnConfirmButton={false}
         >

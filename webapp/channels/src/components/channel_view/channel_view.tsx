@@ -5,6 +5,8 @@ import React, {lazy} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {makeAsyncComponent} from 'components/async_load';
 import ChannelTabPanel from 'components/channel_tabs/channel_tab_panel';
 import deferComponentRender from 'components/deferComponentRender';
@@ -133,15 +135,16 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                                 b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
-                        <button
-                            className='btn btn-primary channel-archived__close-btn'
+                        <Button
+                            emphasis='primary'
+                            className='channel-archived__close-btn'
                             onClick={this.onClickCloseChannel}
                         >
                             <FormattedMessage
                                 id='center_panel.archived.closeChannel'
                                 defaultMessage='Close Channel'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             );
@@ -162,15 +165,16 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                                 b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
-                        <button
-                            className='btn btn-primary channel-archived__close-btn'
+                        <Button
+                            emphasis='primary'
+                            className='channel-archived__close-btn'
                             onClick={this.onClickCloseChannel}
                         >
                             <FormattedMessage
                                 id='center_panel.archived.closeChannel'
                                 defaultMessage='Close Channel'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             );
@@ -188,15 +192,16 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                             id='channelView.noSharedTeam'
                             defaultMessage='You no longer have any teams in common with this user. New messages cannot be posted.'
                         />
-                        <button
-                            className='btn btn-primary channel-archived__close-btn'
+                        <Button
+                            emphasis='primary'
+                            className='channel-archived__close-btn'
                             onClick={this.onClickCloseChannel}
                         >
                             <FormattedMessage
                                 id='center_panel.noSharedTeam.closeChannel'
                                 defaultMessage='Close Channel'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             );

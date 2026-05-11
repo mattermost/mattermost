@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
@@ -248,7 +249,7 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
                 button={
                     <ToggleModalButton
                         id='addRoleMembers'
-                        className='btn btn-primary'
+                        className={buttonClassNames({emphasis: 'primary'})}
                         modalId={ModalIdentifiers.ADD_USER_TO_ROLE}
                         dialogType={AddUsersToRoleModal}
                         disabled={readOnly}
