@@ -24,7 +24,9 @@ test('Verify reviewer from another team can receive a review request for a flagg
 
     const secondUser = await pw.random.user('mentioned');
     const {id: secondUserID} = await adminClient.createUser(secondUser, '', '');
+    await adminClient.addToTeam(team.id, secondUserID);
     await adminClient.addToTeam(secondTeam.id, secondUserID);
+    await adminClient.updateUserRoles(secondUserID, 'system_user system_admin');
 
     // Configure content flagging
     await adminClient.saveContentFlaggingConfig({

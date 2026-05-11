@@ -712,6 +712,55 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "changedtext", resultBuf.String())
 	})
+
+	t.Run("connection id propagated to plugin context", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		const connectionID = "test-connection-id-xyz"
+
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
+		mockAPI.On("LogDebug", "inputfile").Return(nil)
+		mockAPI.On("LogDebug", "connection_id="+connectionID).Return(nil)
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"io"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
+				p.API.LogDebug("connection_id=" + c.ConnectionId)
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
+
+		rctx := th.Context.WithConnectionId(connectionID)
+
+		_, appErr := th.App.UploadFile(rctx,
+			[]byte("inputfile"),
+			th.BasicChannel.Id,
+			"testhook.txt",
+		)
+		require.Nil(t, appErr)
+
+		mockAPI.AssertCalled(t, "LogDebug", "connection_id="+connectionID)
+	})
 }
 
 func TestUserWillLogIn_Blocked(t *testing.T) {

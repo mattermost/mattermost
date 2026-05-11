@@ -1,6 +1,6 @@
-$managed_category_index: 999999;
+$category_selector_index: 999999;
 
-.ManagedCategorySelector {
+.CategorySelector {
     &.Input_container {
         margin-top: 24px;
     }
@@ -19,13 +19,13 @@ $managed_category_index: 999999;
     }
 }
 
-.ManagedCategorySelector__controlContainer {
-    .ManagedCategory__control {
+.CategorySelector__controlContainer {
+    .CategorySelector__control {
         border: none;
         background-color: var(--center-channel-bg);
         box-shadow: none;
 
-        .ManagedCategory__input {
+        .CategorySelector__input {
             box-shadow: none;
             color: var(--center-channel-color);
         }
@@ -36,19 +36,19 @@ $managed_category_index: 999999;
     }
 }
 
-.ManagedCategory__menu {
+.CategorySelector__menu {
     background-color: var(--center-channel-bg) !important;
 }
 
-.ManagedCategorySelector__createLabelPrefix {
+.CategorySelector__createLabelPrefix {
     opacity: 0.75;
 }
 
-.ManagedCategory__indicator-separator {
+.CategorySelector__indicator-separator {
     display: none;
 }
 
-.ManagedCategorySelector__valueContainerInner {
+.CategorySelector__valueContainerInner {
     display: flex;
     overflow: hidden;
     flex: 1;
@@ -56,21 +56,21 @@ $managed_category_index: 999999;
     gap: 6px;
 }
 
-.ManagedCategorySelector__folderIcon {
+.CategorySelector__folderIcon {
     flex-shrink: 0;
     color: rgba(var(--center-channel-color-rgb), 0.64);
 }
 
-.ManagedCategory__placeholder, .ManagedCategory__single-value {
+.CategorySelector__placeholder, .CategorySelector__single-value {
     position: absolute;
     left: 22px;
 }
 
-.ManagedCategory__single-value {
+.CategorySelector__single-value {
     color: var(--center-channel-color) !important;
 }
 
-.ManagedCategorySelector__indicatorsContainer {
+.CategorySelector__indicatorsContainer {
     margin-right: 8px;
 
     i {
@@ -83,28 +83,28 @@ $managed_category_index: 999999;
     }
 }
 
-.ManagedCategorySelector__option > div {
-    z-index: $managed_category_index;
+.CategorySelector__option > div {
+    z-index: $category_selector_index;
     padding: 8px 16px;
     cursor: pointer;
     line-height: 20px;
 }
 
-.ManagedCategorySelector__option.selected > div {
+.CategorySelector__option.selected > div {
     background-color: rgba(var(--button-bg-rgb), 0.08);
     color: var(--center-channel-color);
 }
 
-.ManagedCategorySelector__option.focused > div {
+.CategorySelector__option.focused > div {
     background-color: rgba(var(--center-channel-color-rgb), 0.08);
 }
 
-.ManagedCategorySelector__option .ManagedCategory__option {
+.CategorySelector__option .CategorySelector__option {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.ManagedCategorySelector__option svg {
+.CategorySelector__option svg {
     color: rgba(var(--center-channel-color-rgb), 0.64);
 }
