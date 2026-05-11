@@ -2,20 +2,24 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
 import PostComponent from 'components/post';
 import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
 import DateSeparator from 'components/post_view/date_separator';
 import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
+import RhsPostPropertiesPanel from 'components/rhs_post_properties_panel';
 import RootPostDivider from 'components/root_post_divider/root_post_divider';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 import {Locations} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
 import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
 
 import Reply from './reply';
@@ -35,6 +39,43 @@ type Props = {
 };
 
 function noop() {}
+
+function RootPostRow({
+    listId,
+    isLastPost,
+    isDeletedPost,
+    onCardClick,
+    timestampProps,
+    isChannelAutotranslated,
+}: {
+    listId: string;
+    isLastPost: boolean;
+    isDeletedPost: boolean;
+    onCardClick: (post: Post) => void;
+    timestampProps?: Partial<TimestampProps>;
+    isChannelAutotranslated: boolean;
+}) {
+    const channelId = useSelector((state: GlobalState) => getPost(state, listId)?.channel_id ?? '');
+
+    return (
+        <>
+            <PostComponent
+                postId={listId}
+                isLastPost={isLastPost}
+                handleCardClick={onCardClick}
+                timestampProps={timestampProps}
+                location={Locations.RHS_ROOT}
+                isChannelAutotranslated={isChannelAutotranslated}
+            />
+            <RhsPostPropertiesPanel
+                postId={listId}
+                channelId={channelId}
+            />
+            {!isDeletedPost && <RootPostDivider postId={listId}/>}
+        </>
+    );
+}
+
 function ThreadViewerRow({
     a11yIndex,
     isRootPost,
@@ -70,17 +111,14 @@ function ThreadViewerRow({
 
     case isRootPost:
         return (
-            <>
-                <PostComponent
-                    postId={listId}
-                    isLastPost={isLastPost}
-                    handleCardClick={onCardClick}
-                    timestampProps={timestampProps}
-                    location={Locations.RHS_ROOT}
-                    isChannelAutotranslated={isChannelAutotranslated}
-                />
-                {!isDeletedPost && <RootPostDivider postId={listId}/>}
-            </>
+            <RootPostRow
+                listId={listId}
+                isLastPost={isLastPost}
+                isDeletedPost={isDeletedPost}
+                onCardClick={onCardClick}
+                timestampProps={timestampProps}
+                isChannelAutotranslated={isChannelAutotranslated}
+            />
         );
     case PostListUtils.isCombinedUserActivityPost(listId): {
         return (

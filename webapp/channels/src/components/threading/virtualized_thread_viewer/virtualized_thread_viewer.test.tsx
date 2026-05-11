@@ -34,6 +34,29 @@ jest.mock('./thread_viewer_row', () => () => <div data-testid='thread-viewer-row
 jest.mock('components/new_replies_banner', () => () => null);
 jest.mock('components/post_view/floating_timestamp', () => () => null);
 
+// Mocks below are used only by the ThreadViewerRow describe at the bottom. They
+// are declared module-level so jest hoists them ahead of imports inside
+// jest.isolateModules.
+jest.mock('components/post', () => (props: any) => (
+    <div
+        data-testid='post-component'
+        data-post-id={props.postId}
+    />
+));
+jest.mock('components/root_post_divider/root_post_divider', () => (props: any) => (
+    <div
+        data-testid='root-post-divider'
+        data-post-id={props.postId}
+    />
+));
+jest.mock('components/rhs_post_properties_panel', () => (props: any) => (
+    <div
+        data-testid='rhs-post-properties-panel'
+        data-post-id={props.postId}
+        data-channel-id={props.channelId}
+    />
+));
+
 type Props = ComponentProps<typeof VirtualizedThreadViewer>;
 function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
     const channel = TestHelper.getChannelMock();
@@ -163,5 +186,80 @@ describe('components/threading/VirtualizedThreadViewer', () => {
         );
 
         expect(mockScrollToItem).not.toHaveBeenCalledWith(0, 'end', undefined);
+    });
+});
+
+describe('components/threading/ThreadViewerRow', () => {
+    // Use the real module instead of the hoisted mock for VTV's renderRow.
+    const ThreadViewerRow = jest.requireActual('./thread_viewer_row').default;
+
+    const post = TestHelper.getPostMock({
+        id: 'root_post_id',
+        channel_id: 'channel_id_xyz',
+    });
+
+    const state: DeepPartial<GlobalState> = {
+        entities: {
+            posts: {
+                posts: {
+                    [post.id]: post,
+                },
+            },
+        },
+    };
+
+    const baseProps = {
+        a11yIndex: 0,
+        isRootPost: true,
+        isDeletedPost: false,
+        isLastPost: false,
+        listId: post.id,
+        onCardClick: jest.fn(),
+        previousPostId: '',
+        threadId: post.id,
+        newMessagesSeparatorActions: [],
+        isChannelAutotranslated: false,
+    };
+
+    test('mounts the rhs post properties panel between the post component and the root divider on the root post', () => {
+        const {container, queryByTestId} = renderWithContext(
+            <ThreadViewerRow {...baseProps}/>,
+            state,
+        );
+
+        const postEl = queryByTestId('post-component');
+        const panel = queryByTestId('rhs-post-properties-panel');
+        const divider = queryByTestId('root-post-divider');
+
+        expect(postEl).toBeInTheDocument();
+        expect(panel).toBeInTheDocument();
+        expect(divider).toBeInTheDocument();
+
+        // Panel receives the post's channel_id
+        expect(panel).toHaveAttribute('data-post-id', post.id);
+        expect(panel).toHaveAttribute('data-channel-id', post.channel_id);
+
+        // Order in the DOM: post -> panel -> divider
+        const order = Array.from(container.querySelectorAll('[data-testid]')).
+            map((el) => el.getAttribute('data-testid'));
+        const iPost = order.indexOf('post-component');
+        const iPanel = order.indexOf('rhs-post-properties-panel');
+        const iDivider = order.indexOf('root-post-divider');
+        expect(iPost).toBeLessThan(iPanel);
+        expect(iPanel).toBeLessThan(iDivider);
+    });
+
+    test('does not render the root divider on a deleted root post but still renders the panel', () => {
+        const {queryByTestId} = renderWithContext(
+            <ThreadViewerRow
+                {...baseProps}
+                isDeletedPost={true}
+            />,
+            state,
+        );
+
+        expect(queryByTestId('post-component')).toBeInTheDocument();
+        expect(queryByTestId('rhs-post-properties-panel')).toBeInTheDocument();
+        expect(queryByTestId('root-post-divider')).not.toBeInTheDocument();
     });
 });

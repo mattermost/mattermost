@@ -77,7 +77,7 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
         expect(load).toHaveBeenCalledWith('post-1');
     });
 
-    test('header reads "Task"', () => {
+    test('does not render a "Task" heading', () => {
         renderWithContext(
             <RhsPostPropertiesPanel
                 postId='post-1'
@@ -89,7 +89,7 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
             />,
         );
 
-        expect(screen.getByText('Task')).toBeInTheDocument();
+        expect(screen.queryByText('Task')).not.toBeInTheDocument();
     });
 
     test('collapsed view shows only fields with values', () => {
@@ -294,6 +294,102 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
         expect(screen.getByRole('menuitem', {name: /priority/i})).toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: /due date/i})).toBeInTheDocument();
         expect(screen.queryByRole('menuitem', {name: /^status$/i})).not.toBeInTheDocument();
+    });
+
+    test('clicking the row clear button calls onChangeValue with (fieldId, null)', () => {
+        const status = makeField({id: 'f1', name: 'Status', type: 'text'});
+        const onChangeValue = jest.fn();
+
+        renderWithContext(
+            <RhsPostPropertiesPanel
+                postId='post-1'
+                channelId='channel-1'
+                fields={[status]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: 'open'}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+                onChangeValue={onChangeValue}
+            />,
+        );
+
+        const clear = screen.getByRole('button', {name: /clear status/i});
+        fireEvent.click(clear);
+
+        expect(onChangeValue).toHaveBeenCalledWith('f1', null);
+    });
+
+    test('clicking the row clear button does not open the editor popover', () => {
+        const status = makeField({id: 'f1', name: 'Status', type: 'text'});
+
+        renderWithContext(
+            <RhsPostPropertiesPanel
+                postId='post-1'
+                channelId='channel-1'
+                fields={[status]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: 'open'}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+                onChangeValue={jest.fn()}
+            />,
+        );
+
+        // Editor isn't mounted before
+        expect(screen.queryByDisplayValue('open')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', {name: /clear status/i}));
+
+        // Editor still not mounted after — clear should not open the popover
+        expect(screen.queryByDisplayValue('open')).not.toBeInTheDocument();
+    });
+
+    test('row clear button is a focusable <button>', () => {
+        const status = makeField({id: 'f1', name: 'Status', type: 'text'});
+
+        renderWithContext(
+            <RhsPostPropertiesPanel
+                postId='post-1'
+                channelId='channel-1'
+                fields={[status]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: 'open'}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+                onChangeValue={jest.fn()}
+            />,
+        );
+
+        const clear = screen.getByRole('button', {name: /clear status/i});
+        expect(clear.tagName).toBe('BUTTON');
+        clear.focus();
+        expect(clear).toHaveFocus();
+    });
+
+    test('does not render a clear button on an empty row in expanded view', () => {
+        const status = makeField({id: 'f1', name: 'Status'});
+        const priority = makeField({id: 'f2', name: 'Priority'});
+
+        renderWithContext(
+            <RhsPostPropertiesPanel
+                postId='post-1'
+                channelId='channel-1'
+                fields={[status, priority]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: 'open'}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+                onChangeValue={jest.fn()}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', {name: /show all/i}));
+
+        // Priority is unfilled in expanded view — no clear button
+        expect(screen.queryByRole('button', {name: /clear priority/i})).not.toBeInTheDocument();
+
+        // Status is filled — clear button present
+        expect(screen.getByRole('button', {name: /clear status/i})).toBeInTheDocument();
     });
 
     test('selecting a field from the picker attaches it locally so it appears in the panel', () => {

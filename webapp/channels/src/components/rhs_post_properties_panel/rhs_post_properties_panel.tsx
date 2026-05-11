@@ -4,6 +4,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {CloseIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import type {NewPropertyData} from 'components/advanced_text_editor/post_property_picker/new_property_form';
@@ -63,6 +64,17 @@ function FieldRow({
         {id: 'rhs_post_properties_panel.edit', defaultMessage: 'Edit {name}'},
         {name: field.name},
     );
+    const clearLabel = formatMessage(
+        {id: 'rhs_post_properties_panel.clear', defaultMessage: 'Clear {name}'},
+        {name: field.name},
+    );
+
+    const filled = isFilled(value);
+
+    const handleClear = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        onChangeValue(field.id, null);
+    }, [field.id, onChangeValue]);
 
     const trigger = (
         <button
@@ -105,6 +117,16 @@ function FieldRow({
                     )}
                 </PropertyChipPopover>
             </div>
+            {filled && (
+                <button
+                    type='button'
+                    className='rhs-post-properties-panel__row-clear'
+                    aria-label={clearLabel}
+                    onClick={handleClear}
+                >
+                    <CloseIcon size={14}/>
+                </button>
+            )}
         </div>
     );
 }
@@ -168,12 +190,6 @@ export default function RhsPostPropertiesPanel({
 
     return (
         <div className='rhs-post-properties-panel'>
-            <div className='rhs-post-properties-panel__header'>
-                <FormattedMessage
-                    id='rhs_post_properties_panel.title'
-                    defaultMessage='Task'
-                />
-            </div>
             <div className='rhs-post-properties-panel__rows'>
                 {visibleFields.map((field) => (
                     <FieldRow
