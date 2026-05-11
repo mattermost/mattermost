@@ -610,4 +610,34 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox.selectionEnd).toEqual(textbox.selectionEnd);
         });
     });
+
+    describe('post property picker placement', () => {
+        const integratedBoardsState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagIntegratedBoards: 'true',
+                    },
+                },
+            },
+        });
+
+        it('renders the +Add property trigger inside the dedicated chip row, not inside the formatting bar', () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                integratedBoardsState,
+            );
+
+            const trigger = screen.getByRole('button', {name: /add property/i});
+            expect(trigger).toBeInTheDocument();
+
+            // The trigger lives inside the dedicated chip row.
+            const chipRow = screen.getByTestId('postPropertyChipRow');
+            expect(chipRow).toContainElement(trigger);
+
+            // And is NOT inside the formatting bar container.
+            const formattingBar = screen.getByTestId('formattingBarContainer');
+            expect(formattingBar).not.toContainElement(trigger);
+        });
+    });
 });

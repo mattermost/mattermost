@@ -241,6 +241,14 @@
     }
 }
 
+.AdvancedTextEditor__property-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 6px 0;
+    gap: 6px;
+}
+
 .msg-typing {
     display: block;
     overflow: hidden;

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useMemo} from 'react';
+import React, {forwardRef, memo, useMemo} from 'react';
 import type {MouseEventHandler} from 'react';
 import styled, {css} from 'styled-components';
 
@@ -33,7 +33,7 @@ const getContrastingTextColor = (color: string): string => {
     if (hex.length === 3) {
         hex = hex.split('').map((c) => c + c).join('');
     }
-    if (hex.length !== 6 || !/^[0-9a-fA-F]{6}$/.test(hex)) {
+    if (hex.length !== 6 || !(/^[0-9a-fA-F]{6}$/).test(hex)) {
         return '#000000';
     }
     const r = parseInt(hex.slice(0, 2), 16);
@@ -147,7 +147,7 @@ const TagText = styled.span`
     text-overflow: ellipsis;
 `;
 
-const Tag = ({
+const Tag = forwardRef<HTMLElement, Props>(({
     variant,
     onClick,
     className,
@@ -157,7 +157,7 @@ const Tag = ({
     uppercase = false,
     color,
     ...rest
-}: Props) => {
+}, ref) => {
     const Icon = iconName ? glyphMap[iconName] : null;
     const element = onClick ? 'button' : 'div';
 
@@ -188,6 +188,7 @@ const Tag = ({
     return (
         <TagWrapper
             {...rest}
+            ref={ref as React.Ref<HTMLDivElement & HTMLButtonElement>}
             as={element}
             uppercase={uppercase}
             onClick={onClick}
@@ -198,6 +199,8 @@ const Tag = ({
             <TagText>{text}</TagText>
         </TagWrapper>
     );
-};
+});
+
+Tag.displayName = 'Tag';
 
 export default memo(Tag);

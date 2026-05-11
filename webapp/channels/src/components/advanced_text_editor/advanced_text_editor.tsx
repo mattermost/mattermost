@@ -698,9 +698,26 @@ const AdvancedTextEditor = ({
     const additionalControls = useMemo(() => [
         !isInEditMode && priorityAdditionalControl,
         !isInEditMode && burnOnReadAdditionalControl,
-        !isInEditMode && postPropertiesControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl, postPropertiesControl]);
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
+
+    const propertyChipRow = useMemo(() => {
+        if (isInEditMode) {
+            return null;
+        }
+        if (!postPropertiesStagedChips && !postPropertiesControl) {
+            return null;
+        }
+        return (
+            <div
+                className='AdvancedTextEditor__property-chip-row'
+                data-testid='postPropertyChipRow'
+            >
+                {postPropertiesStagedChips}
+                {postPropertiesControl}
+            </div>
+        );
+    }, [isInEditMode, postPropertiesStagedChips, postPropertiesControl]);
 
     const getSelectedText = useCallback(() => {
         const input = textboxRef.current?.getInputBox();
@@ -836,7 +853,6 @@ const AdvancedTextEditor = ({
                                 />
                             </div>
                         )}
-                        {!isInEditMode && postPropertiesStagedChips}
                         <Textbox
                             hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
                             suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
@@ -871,6 +887,7 @@ const AdvancedTextEditor = ({
                                 {showFormatJSX}
                             </TexteditorActions>
                         )}
+                        {propertyChipRow}
                         {showFormattingSpacer ? (
                             <FormattingBarSpacer>
                                 {formattingBar}

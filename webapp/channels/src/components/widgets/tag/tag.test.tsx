@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {createRef} from 'react';
 
 import {render, screen, userEvent} from 'tests/react_testing_utils';
 
@@ -171,6 +171,23 @@ describe('components/widgets/tag/Tag', () => {
         const tag = tagText.parentElement as HTMLElement;
         expect(tag).toBeInTheDocument();
         expect(tag).toHaveStyle({backgroundColor: '#000000', color: '#ffffff'});
+    });
+
+    test('forwards a ref to the rendered tag element', () => {
+        const ref = createRef<HTMLElement>();
+        render(
+            <Tag
+                ref={ref}
+                text={'Test text'}
+            />,
+        );
+
+        expect(ref.current).not.toBeNull();
+        expect(ref.current).toBeInstanceOf(HTMLElement);
+
+        // Sanity-check that the ref lands on the tag wrapper (parent of the text span).
+        const tagText = screen.getByText('Test text');
+        expect(tagText.parentElement).toBe(ref.current);
     });
 
     test('should use dark text on a light color background', () => {

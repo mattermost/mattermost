@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {forwardRef, useCallback} from 'react';
-import {useIntl} from 'react-intl';
+import React, {useCallback} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
@@ -10,7 +10,8 @@ import type {PropertyField} from '@mattermost/types/properties';
 import PropertyValueEditor from 'components/property_value_editor';
 import PropertyChipPopover from 'components/property_value_editor/property_chip_popover';
 import {renderPropertyValue} from 'components/property_value_editor/render_property_value';
-import PropertyTypeIcon from 'components/property_value_editor/type_icon';
+import {GLYPH_BY_TYPE} from 'components/property_value_editor/type_icon';
+import Tag from 'components/widgets/tag/tag';
 
 import type {StagedPropertyItem} from './types';
 
@@ -22,44 +23,6 @@ export type Props = {
     onRemove: (fieldId: string) => void;
     onChangeValue?: (fieldId: string, value: unknown) => void;
 };
-
-type TriggerProps = {
-    field: PropertyField;
-    value: unknown;
-    editLabel: string;
-};
-
-const ChipTrigger = forwardRef<HTMLButtonElement, TriggerProps>(({field, value, editLabel, ...rest}, ref) => {
-    const {formatMessage} = useIntl();
-
-    const summary = renderPropertyValue(field, value);
-    const placeholder = formatMessage(
-        {id: 'staged_property_chip.placeholder', defaultMessage: 'Set {name}'},
-        {name: field.name},
-    );
-
-    return (
-        <button
-            ref={ref}
-            type='button'
-            className='staged-property-chip__trigger'
-            aria-label={editLabel}
-            {...rest}
-        >
-            <span className='staged-property-chip__icon'>
-                <PropertyTypeIcon type={field.type}/>
-            </span>
-            <span className='staged-property-chip__name'>{field.name}</span>
-            {summary ? (
-                <span className='staged-property-chip__value'>{summary}</span>
-            ) : (
-                <span className='staged-property-chip__placeholder'>{placeholder}</span>
-            )}
-        </button>
-    );
-});
-
-ChipTrigger.displayName = 'ChipTrigger';
 
 function StagedChip({field, value, onRemove, onChangeValue}: {
     field: PropertyField;
@@ -85,19 +48,37 @@ function StagedChip({field, value, onRemove, onChangeValue}: {
         {name: field.name},
     );
 
+    const summary = renderPropertyValue(field, value);
+    const glyph = GLYPH_BY_TYPE[field.type] ?? GLYPH_BY_TYPE.text;
+
+    const tagText = (
+        <>
+            <span className='staged-property-chip__name'>{field.name}</span>
+            {': '}
+            {summary ?? (
+                <span className='staged-property-chip__empty'>
+                    <FormattedMessage
+                        id='rhs_post_properties_panel.empty_value'
+                        defaultMessage='Empty'
+                    />
+                </span>
+            )}
+        </>
+    );
+
     const triggerEl = (
-        <ChipTrigger
-            field={field}
-            value={value}
-            editLabel={editLabel}
+        <Tag
+            size='sm'
+            icon={glyph}
+            text={tagText}
+            data-property-field-id={field.id}
+            aria-label={editLabel}
+            onClick={onChangeValue ? () => undefined : undefined}
         />
     );
 
     return (
-        <span
-            className='staged-property-chip'
-            data-property-field-id={field.id}
-        >
+        <span className='staged-property-chip-wrapper'>
             {onChangeValue ? (
                 <PropertyChipPopover trigger={triggerEl}>
                     {() => (
