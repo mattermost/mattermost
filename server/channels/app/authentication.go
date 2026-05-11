@@ -137,6 +137,15 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
+		// Only keep the claimed slot when the failure is an actual
+		// credential mismatch; backend errors (hasher failures, migration
+		// failures, malformed stored hash) must not consume a slot or a
+		// transient infra issue could lock out a user with valid creds.
+		if err.Id != "api.user.check_user_password.invalid.app_error" {
+			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
+				return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+			}
+		}
 		return err
 	}
 
@@ -146,7 +155,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 		// is treated as a pre-flight MFA-state probe rather than a real
 		// attempt — refund the slot so the probe is not counted.
 		if mfaToken == "" {
-			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts); passErr != nil {
+			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
 				return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 			}
 		}
@@ -177,6 +186,11 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
+		if err.Id != "api.user.check_user_password.invalid.app_error" {
+			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
+				return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+			}
+		}
 		return err
 	}
 
@@ -257,6 +271,13 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 					return nil, model.NewAppError("checkLdapUserPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 				}
 			}
+		} else if user.Id != "" {
+			// Non-credential failure (LDAP unreachable, transient error,
+			// etc.) on an existing user must not consume the slot we
+			// pre-claimed, or an LDAP outage could lock out everyone.
+			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
+				return nil, model.NewAppError("checkLdapUserPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+			}
 		}
 
 		err.StatusCode = http.StatusUnauthorized
@@ -269,7 +290,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		// is treated as a pre-flight MFA-state probe rather than a real
 		// attempt — refund the slot so the probe is not counted.
 		if mfaToken == "" && user.Id != "" {
-			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts); passErr != nil {
+			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(ldapUser.Id); passErr != nil {
 				return nil, model.NewAppError("checkLdapUserPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 			}
 		}
