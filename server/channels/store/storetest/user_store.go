@@ -2184,6 +2184,13 @@ func testUserStoreGetByAuth(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.True(t, errors.As(err, &invErr))
 	})
 
+	t.Run("get by nil auth, u1 service", func(t *testing.T) {
+		_, err := ss.User().GetByAuth(nil, u1.AuthService)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+	})
+
 	t.Run("get by unknown non-empty auth, unknown service", func(t *testing.T) {
 		unknownAuth := model.NewId()
 		_, err := ss.User().GetByAuth(&unknownAuth, "unknown")
