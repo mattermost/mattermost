@@ -11786,10 +11786,6 @@
     "translation": "您没有向此频道上传文件所需的访问权限。"
   },
   {
-    "id": "api.managed_category.feature_not_available.app_error",
-    "translation": "托管频道分类不可用。"
-  },
-  {
     "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
     "translation": "invalid_grant：令牌授权并非发放给此客户端。"
   },

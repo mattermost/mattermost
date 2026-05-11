@@ -12536,10 +12536,6 @@
     "translation": "Nie masz wymaganego dostępu do przesyłania plików na ten kanał."
   },
   {
-    "id": "api.managed_category.feature_not_available.app_error",
-    "translation": "Zarządzane kategorie kanałów nie są dostępne."
-  },
-  {
     "id": "api.shared_channel.attachment.creator_id_required.app_error",
     "translation": "FileInfo.CreatorId jest wymagany."
   },

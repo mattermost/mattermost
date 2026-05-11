@@ -12544,10 +12544,6 @@
     "translation": "Je hebt niet de vereiste toegang om bestanden te uploaden naar dit kanaal."
   },
   {
-    "id": "api.managed_category.feature_not_available.app_error",
-    "translation": "Beheerde kanaalcategorieën zijn niet beschikbaar."
-  },
-  {
     "id": "api.shared_channel.attachment.creator_id_required.app_error",
     "translation": "FileInfo.CreatorId is vereist."
   },
