@@ -40,7 +40,7 @@ func (api *API) InitUserLocal() {
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APILocal(localGetUserByUsername)).Methods(http.MethodGet)
 	api.BaseRoutes.UserByEmail.Handle("", api.APILocal(localGetUserByEmail)).Methods(http.MethodGet)
-	api.BaseRoutes.UserByAuthData.Handle("", api.APILocal(localGetUserByAuth)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/auth_data", api.APILocal(localGetUserByAuth)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APILocal(revokeUserAccessToken)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/tokens", api.APILocal(getUserAccessTokensForUser)).Methods(http.MethodGet)
@@ -429,15 +429,15 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.Params.AuthData == "" {
-		c.SetInvalidURLParam("auth_data")
+	authData := r.URL.Query().Get("value")
+	if authData == "" {
+		c.SetInvalidParam("value")
 		return
 	}
-	if len(c.Params.AuthData) > model.UserAuthDataMaxLength {
-		c.SetInvalidParam("auth_data")
+	if len(authData) > model.UserAuthDataMaxLength {
+		c.SetInvalidParam("value")
 		return
 	}
-	authData := c.Params.AuthData
 	user, err := c.App.GetUserByAuthData(&authData)
 	if err != nil {
 		c.Err = err

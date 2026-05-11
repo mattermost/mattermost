@@ -1583,6 +1583,50 @@ func TestGetUserByAuthData(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("returns user when auth_data is an LDAP objectGUID hex-escape form", func(t *testing.T) {
+		// AD objectGUID stored under auth_service=ldap uses the LDAP filter
+		// hex-escape form (`\xx` per byte). Backslashes are special in URL paths
+		// (WHATWG rewrites them to `/`), which is why this endpoint uses a query
+		// parameter; this test guards the query-string round-trip for the exact
+		// shape the customer reported.
+		ldapUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, ldapUser, team)
+		ldapAuth := `\61\14\e1\d1\c5\35\18\4a\b6\60\d6\78\50\fd\0d\5d`
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), ldapUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(ldapAuth),
+			AuthService: model.UserAuthServiceLdap,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), ldapAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, ldapUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, ldapAuth, *ruser.AuthData)
+	})
+
+	t.Run("returns user when auth_data is SAML base64 with reserved chars", func(t *testing.T) {
+		// AD objectGUID stored under auth_service=saml uses standard Base64,
+		// which can contain `+`, `/`, and `=` padding -- all reserved in
+		// application/x-www-form-urlencoded. url.Values.Set escapes them
+		// correctly; this test guards against a future regression where someone
+		// rewrites the client to skip that escaping.
+		samlUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, samlUser, team)
+		samlAuth := "YRTh0cU1GEq2YNZ4UP0NXQ=="
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), samlUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(samlAuth),
+			AuthService: model.UserAuthServiceSaml,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), samlAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, samlUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, samlAuth, *ruser.AuthData)
+	})
+
 	t.Run("rejects non-system admin", func(t *testing.T) {
 		// `user` is converted to SAML below and can no longer use password login; use
 		// a separate team member to assert the endpoint requires a system admin.

@@ -76,7 +76,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername)).Methods(http.MethodGet)
 	api.BaseRoutes.UserByEmail.Handle("", api.APISessionRequired(getUserByEmail)).Methods(http.MethodGet)
-	api.BaseRoutes.UserByAuthData.Handle("", api.APISessionRequired(getUserByAuth)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/auth_data", api.APISessionRequired(getUserByAuth)).Methods(http.MethodGet)
 
 	api.BaseRoutes.User.Handle("/sessions", api.APISessionRequired(getSessions)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/sessions/revoke", api.APISessionRequired(revokeSession)).Methods(http.MethodPost)
@@ -467,15 +467,15 @@ func getUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
-	if c.Params.AuthData == "" {
-		c.SetInvalidURLParam("auth_data")
+	authData := r.URL.Query().Get("value")
+	if authData == "" {
+		c.SetInvalidParam("value")
 		return
 	}
-	if len(c.Params.AuthData) > model.UserAuthDataMaxLength {
-		c.SetInvalidParam("auth_data")
+	if len(authData) > model.UserAuthDataMaxLength {
+		c.SetInvalidParam("value")
 		return
 	}
-	authData := c.Params.AuthData
 	user, err := c.App.GetUserByAuthData(&authData)
 	if err != nil {
 		restrictions, err2 := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
