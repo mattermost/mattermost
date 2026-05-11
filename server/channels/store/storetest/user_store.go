@@ -2168,17 +2168,33 @@ func testUserStoreGetByAuth(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.True(t, errors.As(err, &nfErr))
 	})
 
-	t.Run("get by unknown auth, u1 service", func(t *testing.T) {
-		unknownAuth := ""
+	t.Run("get by unknown non-empty auth, u1 service", func(t *testing.T) {
+		unknownAuth := model.NewId()
 		_, err := ss.User().GetByAuth(&unknownAuth, u1.AuthService)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+
+	t.Run("get by empty auth, u1 service", func(t *testing.T) {
+		emptyAuth := ""
+		_, err := ss.User().GetByAuth(&emptyAuth, u1.AuthService)
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
 	})
 
-	t.Run("get by unknown auth, unknown service", func(t *testing.T) {
-		unknownAuth := ""
+	t.Run("get by unknown non-empty auth, unknown service", func(t *testing.T) {
+		unknownAuth := model.NewId()
 		_, err := ss.User().GetByAuth(&unknownAuth, "unknown")
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+
+	t.Run("get by empty auth, unknown service", func(t *testing.T) {
+		emptyAuth := ""
+		_, err := ss.User().GetByAuth(&emptyAuth, "unknown")
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))

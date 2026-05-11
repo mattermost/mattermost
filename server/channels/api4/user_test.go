@@ -1613,7 +1613,12 @@ func TestGetUserByAuthData(t *testing.T) {
 		// rewrites the client to skip that escaping.
 		samlUser := th.CreateUser(t)
 		th.LinkUserToTeam(t, samlUser, team)
-		samlAuth := "YRTh0cU1GEq2YNZ4UP0NXQ=="
+		// Bytes chosen to produce all three reserved characters in the Base64
+		// output: 0xfb,0xef,0xff,0x00 -> "++//AA==".
+		samlAuth := base64.StdEncoding.EncodeToString([]byte{0xfb, 0xef, 0xff, 0x00})
+		require.Contains(t, samlAuth, "+")
+		require.Contains(t, samlAuth, "/")
+		require.Contains(t, samlAuth, "=")
 		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), samlUser.Id, &model.UserAuth{
 			AuthData:    model.NewPointer(samlAuth),
 			AuthService: model.UserAuthServiceSaml,
