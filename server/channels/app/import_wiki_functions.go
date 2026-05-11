@@ -16,6 +16,41 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 )
 
+// importPageBatchSize is the number of pages fetched per batch during wiki import resolution.
+const importPageBatchSize = 500
+
+// importWikiLookupBatchSize is the page size used when scanning team wikis to resolve an import_source_id.
+const importWikiLookupBatchSize = 200
+
+// getWikiByImportSourceId returns the wiki in the given team whose Props["import_source_id"]
+// matches sourceId. As a fallback, a wiki whose Id equals sourceId is also returned —
+// this matches how the exporter falls back to wiki.Id when the wiki has no recorded
+// import_source_id (see wiki_export.go).
+func (a *App) getWikiByImportSourceId(rctx request.CTX, teamId, sourceId string) (*model.Wiki, *model.AppError) {
+	page := 0
+	for {
+		wikis, err := a.Srv().Store().Wiki().GetForTeam(teamId, page, importWikiLookupBatchSize)
+		if err != nil {
+			return nil, model.NewAppError("getWikiByImportSourceId", "app.wiki.get_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if len(wikis) == 0 {
+			return nil, nil
+		}
+		for _, w := range wikis {
+			if existing, ok := w.Props[model.PostPropsImportSourceId].(string); ok && existing == sourceId {
+				return w, nil
+			}
+			if w.Id == sourceId {
+				return w, nil
+			}
+		}
+		if len(wikis) < importWikiLookupBatchSize {
+			return nil, nil
+		}
+		page++
+	}
+}
+
 // Regex patterns for CONF placeholders in page content.
 // Uses ((?:[^{}\\]|\\[{}])*) to handle escaped braces in titles/IDs.
 // This allows titles like "Function() { return true; }" to work correctly
@@ -120,7 +155,7 @@ func (a *App) importWiki(rctx request.CTX, data *imports.WikiImportData, dryRun 
 	}
 
 	wiki := &model.Wiki{
-		ChannelId:   channel.Id,
+		TeamId:      channel.TeamId,
 		Title:       title,
 		Description: description,
 		Props: model.StringInterface{
@@ -128,8 +163,12 @@ func (a *App) importWiki(rctx request.CTX, data *imports.WikiImportData, dryRun 
 		},
 	}
 
-	// Use system user for wiki creation during import
-	_, appErr = a.CreateWiki(rctx, wiki, "")
+	// Use channel creator for wiki creation during import
+	savedWiki, appErr := a.CreateWiki(rctx, wiki, channel.CreatorId)
+	if appErr != nil {
+		return appErr
+	}
+	_, appErr = a.LinkWikiToChannel(rctx, savedWiki.Id, channel.Id, channel.CreatorId)
 	return appErr
 }
 
@@ -142,7 +181,7 @@ func (a *App) importResolveWikiPlaceholders(rctx request.CTX, data *imports.Reso
 
 	rctx.Logger().Info("Resolving wiki placeholders",
 		mlog.String("team", *data.Team),
-		mlog.String("channel", *data.Channel),
+		mlog.String("wiki_import_source_id", *data.WikiImportSourceId),
 	)
 
 	if dryRun {
@@ -155,38 +194,41 @@ func (a *App) importResolveWikiPlaceholders(rctx request.CTX, data *imports.Reso
 			map[string]any{"TeamName": *data.Team}, "", http.StatusNotFound).Wrap(err)
 	}
 
-	channel, err := a.Srv().Store().Channel().GetByName(team.Id, strings.ToLower(*data.Channel), false)
-	if err != nil {
-		return model.NewAppError("importResolveWikiPlaceholders", "app.import.resolve_wiki_placeholders.channel_not_found.error",
-			map[string]any{"ChannelName": *data.Channel}, "", http.StatusNotFound).Wrap(err)
+	wiki, appErr := a.getWikiByImportSourceId(rctx, team.Id, *data.WikiImportSourceId)
+	if appErr != nil {
+		return appErr
+	}
+	if wiki == nil {
+		return model.NewAppError("importResolveWikiPlaceholders", "app.import.resolve_wiki_placeholders.wiki_not_found.error",
+			map[string]any{"WikiImportSourceId": *data.WikiImportSourceId}, "", http.StatusNotFound)
 	}
 
 	// Repair orphaned page hierarchies first (pages imported before their parents)
-	repaired, repairErr := a.RepairOrphanedPageHierarchy(rctx, channel.Id)
+	repaired, repairErr := a.RepairOrphanedPageHierarchy(rctx, wiki)
 	if repairErr != nil {
 		rctx.Logger().Warn("Failed to repair orphaned page hierarchies",
-			mlog.String("channel_id", channel.Id),
+			mlog.String("wiki_id", wiki.Id),
 			mlog.Err(repairErr),
 		)
 	} else if repaired > 0 {
 		rctx.Logger().Info("Repaired orphaned page hierarchies before placeholder resolution",
-			mlog.String("channel_id", channel.Id),
+			mlog.String("wiki_id", wiki.Id),
 			mlog.Int("repaired_count", repaired),
 		)
 	}
 
 	// Resolve CONF_PAGE_TITLE placeholders (links by page title)
-	if appErr := a.ResolvePageTitlePlaceholders(rctx, channel.Id); appErr != nil {
+	if appErr := a.ResolvePageTitlePlaceholders(rctx, team, wiki); appErr != nil {
 		return appErr
 	}
 
 	// Resolve CONF_PAGE_ID placeholders (links by Confluence page ID)
-	if appErr := a.ResolvePageIDPlaceholders(rctx, channel.Id); appErr != nil {
+	if appErr := a.ResolvePageIDPlaceholders(rctx, team, wiki); appErr != nil {
 		return appErr
 	}
 
 	// Cleanup any remaining unresolved placeholders by converting them to broken link indicators
-	if appErr := a.CleanupUnresolvedPlaceholders(rctx, channel.Id); appErr != nil {
+	if appErr := a.CleanupUnresolvedPlaceholders(rctx, wiki); appErr != nil {
 		return appErr
 	}
 
@@ -212,34 +254,29 @@ func (a *App) importPage(rctx request.CTX, data *imports.PageImportData, dryRun 
 			map[string]any{"TeamName": *data.Team}, "", http.StatusNotFound).Wrap(err)
 	}
 
-	channel, err := a.Srv().Store().Channel().GetByName(team.Id, strings.ToLower(*data.Channel), false)
-	if err != nil {
-		return model.NewAppError("importPage", "app.import.import_page.channel_not_found.error",
-			map[string]any{"ChannelName": *data.Channel}, "", http.StatusNotFound).Wrap(err)
-	}
-
 	user, err := a.Srv().Store().User().GetByUsername(*data.User)
 	if err != nil {
 		return model.NewAppError("importPage", "app.import.import_page.user_not_found.error",
 			map[string]any{"Username": *data.User}, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	// Get wiki for channel (must exist before pages)
-	wikis, appErr := a.GetWikisForChannel(rctx, channel.Id, false)
+	wiki, appErr := a.getWikiByImportSourceId(rctx, team.Id, *data.WikiImportSourceId)
 	if appErr != nil {
 		return appErr
 	}
-	if len(wikis) == 0 {
+	if wiki == nil {
 		return model.NewAppError("importPage", "app.import.import_page.wiki_not_found.error",
-			map[string]any{"ChannelName": *data.Channel}, "", http.StatusNotFound)
+			map[string]any{"WikiImportSourceId": *data.WikiImportSourceId}, "", http.StatusNotFound)
 	}
-	wiki := wikis[0]
+
+	// Pages live in the wiki's backing channel
+	backingChannelId := wiki.ChannelId
 
 	// Check for existing page by import_source_id (idempotency)
 	var existingPage *model.Post
 	if importSourceId != "" {
 		var lookupErr error
-		existingPage, lookupErr = a.getPageByImportSourceId(rctx, channel.Id, importSourceId)
+		existingPage, lookupErr = a.getPageByImportSourceId(rctx, backingChannelId, importSourceId)
 		if lookupErr != nil {
 			return model.NewAppError("importPage", "app.import.import_page.lookup_error", nil, "", http.StatusInternalServerError).Wrap(lookupErr)
 		}
@@ -249,12 +286,12 @@ func (a *App) importPage(rctx request.CTX, data *imports.PageImportData, dryRun 
 	var parentId string
 	var deferredParentSourceId string
 	if data.ParentImportSourceId != nil && *data.ParentImportSourceId != "" {
-		parentPage, perr := a.getPageByImportSourceId(rctx, channel.Id, *data.ParentImportSourceId)
+		parentPage, perr := a.getPageByImportSourceId(rctx, backingChannelId, *data.ParentImportSourceId)
 		if perr != nil {
 			return model.NewAppError("importPage", "app.import.import_page.parent_lookup_error", nil, "", http.StatusInternalServerError).Wrap(perr)
 		}
 		if parentPage != nil {
-			if parentPage.ChannelId != channel.Id {
+			if parentPage.ChannelId != backingChannelId {
 				return model.NewAppError("importPage", "app.import.import_page.parent_wrong_channel.app_error",
 					nil, "parent page is in different channel", http.StatusBadRequest)
 			}
@@ -375,9 +412,23 @@ func (a *App) importPage(rctx request.CTX, data *imports.PageImportData, dryRun 
 // importPageComment imports a comment on a page.
 // Uses Props["import_source_id"] for idempotency.
 // If page is provided, skips the page lookup (used when called from importPage to avoid N+1 queries).
+// Nested comments (page != nil) inherit Team and WikiImportSourceId scope from their parent page,
+// so they bypass the standalone validator (User+Content were already validated by ValidatePageImportData).
 func (a *App) importPageComment(rctx request.CTX, data *imports.PageCommentImportData, dryRun bool, page *model.Post) *model.AppError {
-	if err := imports.ValidatePageCommentImportData(data); err != nil {
-		return err
+	if page == nil {
+		if err := imports.ValidatePageCommentImportData(data); err != nil {
+			return err
+		}
+	} else {
+		if data == nil {
+			return model.NewAppError("importPageComment", "app.import.validate_page_comment_import_data.null_data.error", nil, "", http.StatusBadRequest)
+		}
+		if data.User == nil || strings.TrimSpace(*data.User) == "" {
+			return model.NewAppError("importPageComment", "app.import.validate_page_comment_import_data.user_missing.error", nil, "", http.StatusBadRequest)
+		}
+		if data.Content == nil || strings.TrimSpace(*data.Content) == "" {
+			return model.NewAppError("importPageComment", "app.import.validate_page_comment_import_data.content_missing.error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	importSourceId := getImportSourceId(data.Props)
@@ -398,8 +449,26 @@ func (a *App) importPageComment(rctx request.CTX, data *imports.PageCommentImpor
 			map[string]any{"Username": *data.User}, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	// Use provided page or look it up (standalone comment import)
+	// Use provided page or look it up (standalone comment import).
+	// Standalone comments must include Team and WikiImportSourceId so the page lookup
+	// is scoped to one wiki's backing channel — without this scoping, a crafted JSONL
+	// can attach a comment to any page server-wide via import_source_id collision.
 	if page == nil {
+		team, terr := a.Srv().Store().Team().GetByName(*data.Team)
+		if terr != nil {
+			return model.NewAppError("importPageComment", "app.import.import_page_comment.team_not_found.error",
+				map[string]any{"Team": *data.Team}, "", http.StatusNotFound).Wrap(terr)
+		}
+
+		wiki, wikiErr := a.getWikiByImportSourceId(rctx, team.Id, *data.WikiImportSourceId)
+		if wikiErr != nil {
+			return wikiErr
+		}
+		if wiki == nil {
+			return model.NewAppError("importPageComment", "app.import.import_page_comment.wiki_not_found.error",
+				map[string]any{"WikiImportSourceId": *data.WikiImportSourceId}, "", http.StatusNotFound)
+		}
+
 		var appErr *model.AppError
 		page, appErr = a.findPageByImportSourceId(rctx, *data.PageImportSourceId)
 		if appErr != nil {
@@ -408,6 +477,16 @@ func (a *App) importPageComment(rctx request.CTX, data *imports.PageCommentImpor
 		if page == nil {
 			return model.NewAppError("importPageComment", "app.import.import_page_comment.page_not_found.error",
 				map[string]any{"PageImportSourceId": *data.PageImportSourceId}, "", http.StatusNotFound)
+		}
+
+		// Defense against cross-wiki / cross-team comment injection: the resolved page
+		// must live in the wiki's backing channel.
+		if page.ChannelId != wiki.ChannelId {
+			return model.NewAppError("importPageComment", "app.import.import_page_comment.page_wiki_mismatch.error",
+				map[string]any{
+					"PageImportSourceId": *data.PageImportSourceId,
+					"WikiImportSourceId": *data.WikiImportSourceId,
+				}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -561,6 +640,8 @@ func (a *App) findPageByImportSourceId(rctx request.CTX, importSourceId string) 
 
 // getCommentByImportSourceId finds a comment by its import_source_id for a specific page.
 // It searches both regular comments (using RootId) and inline comments (using props.page_id).
+// Also checks if the comment's post ID directly matches importSourceId (for locally created comments
+// that were exported with their ID as the import_source_id).
 func (a *App) getCommentByImportSourceId(rctx request.CTX, pageId, importSourceId string) (*model.Post, error) {
 	// First, try to find by RootId (regular page comments)
 	posts, err := a.Srv().Store().Post().GetPostRepliesByTypeAndProps(pageId, model.PostTypePageComment, model.PostPropsImportSourceId, importSourceId)
@@ -578,6 +659,18 @@ func (a *App) getCommentByImportSourceId(rctx request.CTX, pageId, importSourceI
 	}
 	if len(posts) > 0 {
 		return posts[0], nil
+	}
+
+	// Also check if a comment exists with ID matching importSourceId (for locally created comments
+	// that were exported with their post ID used as the import_source_id).
+	if model.IsValidId(importSourceId) {
+		post, getErr := a.Srv().Store().Post().GetSingle(rctx, importSourceId, false)
+		if getErr == nil && post != nil && post.Type == model.PostTypePageComment && post.DeleteAt == 0 {
+			propPageId, _ := post.Props[model.PagePropsPageID].(string)
+			if post.RootId == pageId || propPageId == pageId {
+				return post, nil
+			}
+		}
 	}
 
 	return nil, nil
@@ -801,62 +894,33 @@ func (a *App) resolveFilePlaceholders(rctx request.CTX, pageId string, sourceIDM
 // ResolvePageTitlePlaceholders resolves {{CONF_PAGE_TITLE:title}} placeholders
 // in page content by looking up page IDs by title.
 // This should be called after all pages are imported so the title -> ID mapping is complete.
-func (a *App) ResolvePageTitlePlaceholders(rctx request.CTX, channelId string) *model.AppError {
-	// Get channel to find team
-	channel, err := a.Srv().Store().Channel().Get(channelId, false)
-	if err != nil {
-		return model.NewAppError("ResolvePageTitlePlaceholders", "app.import.resolve_page_placeholders.channel_not_found.error",
-			map[string]any{"ChannelId": channelId}, "", http.StatusNotFound).Wrap(err)
-	}
+func (a *App) ResolvePageTitlePlaceholders(rctx request.CTX, team *model.Team, wiki *model.Wiki) *model.AppError {
+	wikiId := wiki.Id
+	backingChannelId := wiki.ChannelId
 
-	// Get team for URL generation
-	team, err := a.Srv().Store().Team().Get(channel.TeamId)
-	if err != nil {
-		return model.NewAppError("ResolvePageTitlePlaceholders", "app.import.resolve_page_placeholders.team_not_found.error",
-			map[string]any{"TeamId": channel.TeamId}, "", http.StatusNotFound).Wrap(err)
-	}
-
-	// Get wiki for channel (use first wiki for URL generation)
-	wikis, appErr := a.GetWikisForChannel(rctx, channelId, false)
-	if appErr != nil {
-		return model.NewAppError("ResolvePageTitlePlaceholders", "app.import.resolve_page_placeholders.get_wikis.error",
-			map[string]any{"ChannelId": channelId}, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-	if len(wikis) == 0 {
-		return model.NewAppError("ResolvePageTitlePlaceholders", "app.import.resolve_page_placeholders.no_wiki.error",
-			map[string]any{"ChannelId": channelId}, "", http.StatusNotFound)
-	}
-	wikiId := wikis[0].Id
-
-	// Get all pages in the channel
-	postList, appErr := a.GetChannelPages(rctx, channelId, 0, 0)
+	// Fetch all pages once (store loads all anyway).
+	postList, appErr := a.GetChannelPages(rctx, backingChannelId, 0, 0)
 	if appErr != nil {
 		return model.NewAppError("ResolvePageTitlePlaceholders", "app.import.resolve_page_placeholders.get_pages.error",
-			map[string]any{"ChannelId": channelId}, "", http.StatusInternalServerError).Wrap(appErr)
+			map[string]any{"WikiId": wikiId}, "", http.StatusInternalServerError).Wrap(appErr)
 	}
-
-	pages := postList.ToSlice()
-	if len(pages) == 0 {
+	if postList == nil || len(postList.Posts) == 0 {
 		return nil
 	}
 
-	// Build title -> page ID mapping (case-insensitive)
-	titleToPageID := make(map[string]string)
-	for _, page := range pages {
-		title := page.GetProp("title")
-		if titleStr, ok := title.(string); ok && titleStr != "" {
+	// Pass 1: build complete title -> page ID map.
+	titleToPageID := make(map[string]string, len(postList.Posts))
+	for _, pageID := range postList.Order {
+		page := postList.Posts[pageID]
+		if titleStr, ok := page.GetProp("title").(string); ok && titleStr != "" {
 			titleToPageID[strings.ToLower(titleStr)] = page.Id
 		}
 	}
 
-	rctx.Logger().Info("Built page title mapping for placeholder resolution",
-		mlog.String("channel_id", channelId),
-		mlog.Int("page_count", len(titleToPageID)),
-	)
-
-	// Process each page - content is in Post.Message
+	// Pass 2: resolve placeholders in every page.
 	totalResolved := 0
-	for _, page := range pages {
+	for _, pageID := range postList.Order {
+		page := postList.Posts[pageID]
 		if page.Message == "" {
 			continue
 		}
@@ -880,7 +944,7 @@ func (a *App) ResolvePageTitlePlaceholders(rctx request.CTX, channelId string) *
 			title = strings.ReplaceAll(title, "\\}", "}")
 			title = strings.ReplaceAll(title, "\\{", "{")
 
-			pageID, ok := titleToPageID[strings.ToLower(title)]
+			resolvedPageID, ok := titleToPageID[strings.ToLower(title)]
 			if !ok {
 				rctx.Logger().Warn("Page title not found for placeholder resolution",
 					mlog.String("page_id", page.Id),
@@ -890,16 +954,15 @@ func (a *App) ResolvePageTitlePlaceholders(rctx request.CTX, channelId string) *
 			}
 
 			// Replace placeholder with full wiki page URL
-			// Format: /{teamName}/wiki/{channelId}/{wikiId}/{pageId}
-			// Use url.PathEscape for team name to handle special characters
-			pageURL := "/" + url.PathEscape(team.Name) + "/wiki/" + channelId + "/" + wikiId + "/" + pageID
+			// Format: /{teamName}/wiki/{wikiId}/{pageId}
+			pageURL := "/" + url.PathEscape(team.Name) + "/wiki/" + wikiId + "/" + resolvedPageID
 			resolvedContentStr = strings.Replace(resolvedContentStr, placeholder, pageURL, 1)
 			replacementsCount++
 
 			rctx.Logger().Debug("Resolved page title placeholder",
 				mlog.String("page_id", page.Id),
 				mlog.String("target_title", title),
-				mlog.String("target_page_id", pageID),
+				mlog.String("target_page_id", resolvedPageID),
 				mlog.String("page_url", pageURL),
 			)
 		}
@@ -922,7 +985,7 @@ func (a *App) ResolvePageTitlePlaceholders(rctx request.CTX, channelId string) *
 
 	if totalResolved > 0 {
 		rctx.Logger().Info("Resolved page title placeholders",
-			mlog.String("channel_id", channelId),
+			mlog.String("wiki_id", wikiId),
 			mlog.Int("total_resolved", totalResolved),
 		)
 	}
@@ -933,57 +996,41 @@ func (a *App) ResolvePageTitlePlaceholders(rctx request.CTX, channelId string) *
 // ResolvePageIDPlaceholders resolves {{CONF_PAGE_ID:confId}} placeholders
 // in page content by looking up pages by their import_source_id.
 // This should be called after all pages are imported.
-func (a *App) ResolvePageIDPlaceholders(rctx request.CTX, channelId string) *model.AppError {
-	// Get channel, team, and wiki for URL generation
-	channel, err := a.Srv().Store().Channel().Get(channelId, false)
-	if err != nil {
-		return model.NewAppError("ResolvePageIDPlaceholders", "app.import.resolve_page_id_placeholders.channel_not_found.error",
-			map[string]any{"ChannelId": channelId}, "", http.StatusNotFound).Wrap(err)
-	}
+func (a *App) ResolvePageIDPlaceholders(rctx request.CTX, team *model.Team, wiki *model.Wiki) *model.AppError {
+	wikiId := wiki.Id
+	backingChannelId := wiki.ChannelId
 
-	team, err := a.Srv().Store().Team().Get(channel.TeamId)
-	if err != nil {
-		return model.NewAppError("ResolvePageIDPlaceholders", "app.import.resolve_page_id_placeholders.team_not_found.error",
-			map[string]any{"TeamId": channel.TeamId}, "", http.StatusNotFound).Wrap(err)
-	}
-
-	wikis, appErr := a.GetWikisForChannel(rctx, channelId, false)
+	// Fetch all pages once (store loads all anyway).
+	postList, appErr := a.GetChannelPages(rctx, backingChannelId, 0, 0)
 	if appErr != nil {
 		return appErr
 	}
-	if len(wikis) == 0 {
-		return model.NewAppError("ResolvePageIDPlaceholders", "app.import.resolve_page_id_placeholders.no_wiki.error",
-			map[string]any{"ChannelId": channelId}, "", http.StatusNotFound)
-	}
-	wikiId := wikis[0].Id
-
-	// Get all pages in the channel to build import_source_id -> page ID mapping
-	postList, appErr := a.GetChannelPages(rctx, channelId, 0, 0)
-	if appErr != nil {
-		return appErr
-	}
-
-	pages := postList.ToSlice()
-	if len(pages) == 0 {
+	if postList == nil || len(postList.Posts) == 0 {
 		return nil
 	}
 
-	// Build import_source_id (Confluence ID) -> Mattermost page ID mapping
-	sourceIDToPageID := make(map[string]string)
-	for _, page := range pages {
+	// Pass 1: build complete import_source_id -> Mattermost page ID map.
+	sourceIDToPageID := make(map[string]string, len(postList.Posts))
+	for _, pageID := range postList.Order {
+		page := postList.Posts[pageID]
 		if sourceID, ok := page.GetProp(model.PostPropsImportSourceId).(string); ok && sourceID != "" {
 			sourceIDToPageID[sourceID] = page.Id
 		}
 	}
 
+	if len(sourceIDToPageID) == 0 {
+		return nil
+	}
+
 	rctx.Logger().Info("Built page source ID mapping for CONF_PAGE_ID resolution",
-		mlog.String("channel_id", channelId),
+		mlog.String("wiki_id", wikiId),
 		mlog.Int("mapping_count", len(sourceIDToPageID)),
 	)
 
-	// Process each page - content is in Post.Message
+	// Pass 2: resolve placeholders in every page.
 	totalResolved := 0
-	for _, page := range pages {
+	for _, pageID := range postList.Order {
+		page := postList.Posts[pageID]
 		if page.Message == "" {
 			continue
 		}
@@ -1000,27 +1047,26 @@ func (a *App) ResolvePageIDPlaceholders(rctx request.CTX, channelId string) *mod
 			}
 
 			placeholder := match[0]  // {{CONF_PAGE_ID:confId}}
-			confSourceID := match[1] // Confluence page ID (stored as import_source_id)
+			confSourceId := match[1] // Confluence page ID (stored as import_source_id)
 
-			pageID, ok := sourceIDToPageID[confSourceID]
+			resolvedPageID, ok := sourceIDToPageID[confSourceId]
 			if !ok {
 				rctx.Logger().Warn("Page not found for CONF_PAGE_ID placeholder",
 					mlog.String("page_id", page.Id),
-					mlog.String("conf_source_id", confSourceID),
+					mlog.String("conf_source_id", confSourceId),
 				)
 				continue
 			}
 
-			// Generate proper wiki URL: /{teamName}/wiki/{channelId}/{wikiId}/{pageId}
-			// Use url.PathEscape for team name to handle special characters
-			pageURL := "/" + url.PathEscape(team.Name) + "/wiki/" + channelId + "/" + wikiId + "/" + pageID
+			// Generate proper wiki URL: /{teamName}/wiki/{wikiId}/{pageId}
+			pageURL := "/" + url.PathEscape(team.Name) + "/wiki/" + wikiId + "/" + resolvedPageID
 			resolvedContentStr = strings.Replace(resolvedContentStr, placeholder, pageURL, 1)
 			replacementsCount++
 
 			rctx.Logger().Debug("Resolved CONF_PAGE_ID placeholder",
 				mlog.String("page_id", page.Id),
-				mlog.String("conf_source_id", confSourceID),
-				mlog.String("target_page_id", pageID),
+				mlog.String("conf_source_id", confSourceId),
+				mlog.String("target_page_id", resolvedPageID),
 				mlog.String("page_url", pageURL),
 			)
 		}
@@ -1043,7 +1089,7 @@ func (a *App) ResolvePageIDPlaceholders(rctx request.CTX, channelId string) *mod
 
 	if totalResolved > 0 {
 		rctx.Logger().Info("Resolved CONF_PAGE_ID placeholders",
-			mlog.String("channel_id", channelId),
+			mlog.String("wiki_id", wikiId),
 			mlog.Int("total_resolved", totalResolved),
 		)
 	}
@@ -1062,96 +1108,105 @@ var (
 // CleanupUnresolvedPlaceholders converts any remaining unresolved placeholders
 // to broken link indicators like [Missing: Page Title] or [Missing Image].
 // This should be called after all resolution attempts are complete.
-func (a *App) CleanupUnresolvedPlaceholders(rctx request.CTX, channelId string) *model.AppError {
-	// Get all pages in the channel
-	postList, appErr := a.GetChannelPages(rctx, channelId, 0, 0)
-	if appErr != nil {
-		return appErr
-	}
+func (a *App) CleanupUnresolvedPlaceholders(rctx request.CTX, wiki *model.Wiki) *model.AppError {
+	backingChannelId := wiki.ChannelId
 
-	pages := postList.ToSlice()
-	if len(pages) == 0 {
-		return nil
-	}
-
-	// Process each page - content is in Post.Message
+	// Process each page in batches - content is in Post.Message
 	totalCleaned := 0
-	for _, page := range pages {
-		if page.Message == "" {
-			continue
+	offset := 0
+	for {
+		postList, appErr := a.GetChannelPages(rctx, backingChannelId, offset, importPageBatchSize)
+		if appErr != nil {
+			return appErr
+		}
+		if postList == nil || len(postList.Posts) == 0 {
+			break
+		}
+		batchSize := len(postList.Posts)
+
+		for _, pageID := range postList.Order {
+			page := postList.Posts[pageID]
+			if page.Message == "" {
+				continue
+			}
+
+			originalContentStr := page.Message
+			cleanedContentStr := originalContentStr
+			replacementsCount := 0
+
+			// Convert CONF_PAGE_TITLE placeholders to [Missing: Title]
+			cleanedContentStr = unresolvedPageTitleRegex.ReplaceAllStringFunc(cleanedContentStr, func(match string) string {
+				submatch := unresolvedPageTitleRegex.FindStringSubmatch(match)
+				if len(submatch) < 2 {
+					return match
+				}
+				title := submatch[1]
+				// Unescape the title
+				title = strings.ReplaceAll(title, "\\}", "}")
+				title = strings.ReplaceAll(title, "\\{", "{")
+				replacementsCount++
+				rctx.Logger().Debug("Converting unresolved page title placeholder",
+					mlog.String("page_id", page.Id),
+					mlog.String("title", title),
+				)
+				return "[Missing: " + title + "]"
+			})
+
+			// Convert CONF_PAGE_ID placeholders to [Missing Page]
+			cleanedContentStr = unresolvedPageIDRegex.ReplaceAllStringFunc(cleanedContentStr, func(match string) string {
+				submatch := unresolvedPageIDRegex.FindStringSubmatch(match)
+				if len(submatch) < 2 {
+					return match
+				}
+				confID := submatch[1]
+				replacementsCount++
+				rctx.Logger().Debug("Converting unresolved page ID placeholder",
+					mlog.String("page_id", page.Id),
+					mlog.String("conf_id", confID),
+				)
+				return "[Missing Page]"
+			})
+
+			// Convert CONF_FILE placeholders to [Missing Image]
+			cleanedContentStr = unresolvedFileRegex.ReplaceAllStringFunc(cleanedContentStr, func(match string) string {
+				submatch := unresolvedFileRegex.FindStringSubmatch(match)
+				if len(submatch) < 2 {
+					return match
+				}
+				fileID := submatch[1]
+				replacementsCount++
+				rctx.Logger().Debug("Converting unresolved file placeholder",
+					mlog.String("page_id", page.Id),
+					mlog.String("file_id", fileID),
+				)
+				return "[Missing Image]"
+			})
+
+			if replacementsCount == 0 || cleanedContentStr == originalContentStr {
+				continue
+			}
+
+			// Update page content via UpdatePageWithContent
+			if _, storeErr := a.Srv().Store().Page().UpdatePageWithContent(rctx, page.Id, "", cleanedContentStr); storeErr != nil {
+				rctx.Logger().Warn("Failed to update page content after cleanup",
+					mlog.String("page_id", page.Id),
+					mlog.Err(storeErr),
+				)
+				continue
+			}
+
+			totalCleaned += replacementsCount
 		}
 
-		originalContentStr := page.Message
-		cleanedContentStr := originalContentStr
-		replacementsCount := 0
-
-		// Convert CONF_PAGE_TITLE placeholders to [Missing: Title]
-		cleanedContentStr = unresolvedPageTitleRegex.ReplaceAllStringFunc(cleanedContentStr, func(match string) string {
-			submatch := unresolvedPageTitleRegex.FindStringSubmatch(match)
-			if len(submatch) < 2 {
-				return match
-			}
-			title := submatch[1]
-			// Unescape the title
-			title = strings.ReplaceAll(title, "\\}", "}")
-			title = strings.ReplaceAll(title, "\\{", "{")
-			replacementsCount++
-			rctx.Logger().Debug("Converting unresolved page title placeholder",
-				mlog.String("page_id", page.Id),
-				mlog.String("title", title),
-			)
-			return "[Missing: " + title + "]"
-		})
-
-		// Convert CONF_PAGE_ID placeholders to [Missing Page]
-		cleanedContentStr = unresolvedPageIDRegex.ReplaceAllStringFunc(cleanedContentStr, func(match string) string {
-			submatch := unresolvedPageIDRegex.FindStringSubmatch(match)
-			if len(submatch) < 2 {
-				return match
-			}
-			confID := submatch[1]
-			replacementsCount++
-			rctx.Logger().Debug("Converting unresolved page ID placeholder",
-				mlog.String("page_id", page.Id),
-				mlog.String("conf_id", confID),
-			)
-			return "[Missing Page]"
-		})
-
-		// Convert CONF_FILE placeholders to [Missing Image]
-		cleanedContentStr = unresolvedFileRegex.ReplaceAllStringFunc(cleanedContentStr, func(match string) string {
-			submatch := unresolvedFileRegex.FindStringSubmatch(match)
-			if len(submatch) < 2 {
-				return match
-			}
-			fileID := submatch[1]
-			replacementsCount++
-			rctx.Logger().Debug("Converting unresolved file placeholder",
-				mlog.String("page_id", page.Id),
-				mlog.String("file_id", fileID),
-			)
-			return "[Missing Image]"
-		})
-
-		if replacementsCount == 0 || cleanedContentStr == originalContentStr {
-			continue
+		if batchSize < importPageBatchSize {
+			break
 		}
-
-		// Update page content via UpdatePageWithContent
-		if _, storeErr := a.Srv().Store().Page().UpdatePageWithContent(rctx, page.Id, "", cleanedContentStr); storeErr != nil {
-			rctx.Logger().Warn("Failed to update page content after cleanup",
-				mlog.String("page_id", page.Id),
-				mlog.Err(storeErr),
-			)
-			continue
-		}
-
-		totalCleaned += replacementsCount
+		offset += importPageBatchSize
 	}
 
 	if totalCleaned > 0 {
 		rctx.Logger().Info("Cleaned up unresolved placeholders",
-			mlog.String("channel_id", channelId),
+			mlog.String("wiki_id", wiki.Id),
 			mlog.Int("total_cleaned", totalCleaned),
 		)
 	}
@@ -1162,8 +1217,10 @@ func (a *App) CleanupUnresolvedPlaceholders(rctx request.CTX, channelId string) 
 // RepairOrphanedPageHierarchy fixes page parent relationships that were broken during import
 // because child pages were imported before their parents.
 // This should be called after all pages are imported.
-func (a *App) RepairOrphanedPageHierarchy(rctx request.CTX, channelId string) (int, *model.AppError) {
-	postList, appErr := a.GetChannelPages(rctx, channelId, 0, 0)
+func (a *App) RepairOrphanedPageHierarchy(rctx request.CTX, wiki *model.Wiki) (int, *model.AppError) {
+	backingChannelId := wiki.ChannelId
+
+	postList, appErr := a.GetChannelPages(rctx, backingChannelId, 0, 0)
 	if appErr != nil {
 		return 0, appErr
 	}
@@ -1173,28 +1230,49 @@ func (a *App) RepairOrphanedPageHierarchy(rctx request.CTX, channelId string) (i
 		return 0, nil
 	}
 
-	// Build import_source_id -> page mapping
-	sourceIdToPage := make(map[string]*model.Post)
+	// Build in-memory lookup maps from already-fetched data.
+	sourceIdToPage := make(map[string]*model.Post, len(pages))
+	pageById := make(map[string]*model.Post, len(pages))
 	for _, page := range pages {
+		pageById[page.Id] = page
 		if sourceId, ok := page.GetProp(model.PostPropsImportSourceId).(string); ok && sourceId != "" {
 			sourceIdToPage[sourceId] = page
 		}
 	}
 
-	// Find orphaned pages that have parent_import_source_id but no PageParentId
-	repaired := 0
+	// hasAncestorCycle walks the proposed parent chain entirely in memory to detect cycles.
+	// Returns true if assigning parentId as the parent of pageId would create a cycle.
+	hasAncestorCycle := func(pageId, parentId string) bool {
+		visited := make(map[string]bool)
+		current := parentId
+		for current != "" {
+			if current == pageId {
+				return true
+			}
+			if visited[current] {
+				return true
+			}
+			visited[current] = true
+			p, ok := pageById[current]
+			if !ok {
+				break
+			}
+			current = p.PageParentId
+		}
+		return false
+	}
+
+	// Collect valid reparentings without any DB calls.
+	updates := make(map[string]string)
 	for _, page := range pages {
 		parentSourceId, ok := page.GetProp("parent_import_source_id").(string)
 		if !ok || parentSourceId == "" {
 			continue
 		}
-
-		// Page has a parent_import_source_id but check if PageParentId is set
 		if page.PageParentId != "" {
 			continue
 		}
 
-		// Find parent by import_source_id
 		parentPage, exists := sourceIdToPage[parentSourceId]
 		if !exists {
 			rctx.Logger().Warn("Parent page not found for orphan repair",
@@ -1204,33 +1282,32 @@ func (a *App) RepairOrphanedPageHierarchy(rctx request.CTX, channelId string) (i
 			continue
 		}
 
-		// Update page parent using MovePage (includes cycle detection)
-		// Pass empty wikiId - MovePage will fetch it from page props
-		// Pass nil for newIndex - no reordering needed during hierarchy repair
-		parentId := parentPage.Id
-		if _, changeErr := a.MovePage(rctx, page.Id, &parentId, "", nil); changeErr != nil {
-			rctx.Logger().Warn("Failed to repair orphaned page hierarchy",
+		if hasAncestorCycle(page.Id, parentPage.Id) {
+			rctx.Logger().Warn("Skipping cyclic parent assignment during hierarchy repair",
 				mlog.String("page_id", page.Id),
-				mlog.String("parent_id", parentPage.Id),
-				mlog.Err(changeErr),
+				mlog.String("proposed_parent_id", parentPage.Id),
 			)
 			continue
 		}
 
-		repaired++
-		rctx.Logger().Info("Repaired orphaned page hierarchy",
-			mlog.String("page_id", page.Id),
-			mlog.String("parent_id", parentPage.Id),
-			mlog.String("parent_import_source_id", parentSourceId),
-		)
+		updates[page.Id] = parentPage.Id
 	}
 
-	if repaired > 0 {
-		rctx.Logger().Info("Repaired orphaned page hierarchies",
-			mlog.String("channel_id", channelId),
-			mlog.Int("repaired_count", repaired),
-		)
+	if len(updates) == 0 {
+		return 0, nil
 	}
 
-	return repaired, nil
+	// Single batch UPDATE — eliminates the N+1 query pattern.
+	if err := a.Srv().Store().Page().BatchSetPageParent(updates); err != nil {
+		return 0, model.NewAppError("RepairOrphanedPageHierarchy",
+			"app.page.repair_hierarchy.batch_update.app_error", nil, "",
+			http.StatusInternalServerError).Wrap(err)
+	}
+
+	rctx.Logger().Info("Repaired orphaned page hierarchies",
+		mlog.String("wiki_id", wiki.Id),
+		mlog.Int("repaired_count", len(updates)),
+	)
+
+	return len(updates), nil
 }

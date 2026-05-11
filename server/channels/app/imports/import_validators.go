@@ -910,8 +910,8 @@ func ValidatePageImportData(data *PageImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.team_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Channel == nil || strings.TrimSpace(*data.Channel) == "" {
-		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.channel_missing.error", nil, "", http.StatusBadRequest)
+	if data.WikiImportSourceId == nil || strings.TrimSpace(*data.WikiImportSourceId) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_page_import_data.wiki_import_source_id_missing.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.User == nil || strings.TrimSpace(*data.User) == "" {
@@ -957,10 +957,20 @@ func ValidatePageImportData(data *PageImportData) *model.AppError {
 	return nil
 }
 
-// ValidatePageCommentImportData validates page comment import data.
+// ValidatePageCommentImportData validates standalone page comment import data.
+// Nested comments (inside a Page's Comments slice) are validated inline by ValidatePageImportData
+// and inherit team/wiki scope from their parent page, so they do NOT pass through this function.
 func ValidatePageCommentImportData(data *PageCommentImportData) *model.AppError {
 	if data == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.null_data.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Team == nil || strings.TrimSpace(*data.Team) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.team_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.WikiImportSourceId == nil || strings.TrimSpace(*data.WikiImportSourceId) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_page_comment_import_data.wiki_import_source_id_missing.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.PageImportSourceId == nil || strings.TrimSpace(*data.PageImportSourceId) == "" {
@@ -1021,8 +1031,8 @@ func ValidateResolveWikiPlaceholdersImportData(data *ResolveWikiPlaceholdersImpo
 		return model.NewAppError("BulkImport", "app.import.validate_resolve_wiki_placeholders.team_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Channel == nil || strings.TrimSpace(*data.Channel) == "" {
-		return model.NewAppError("BulkImport", "app.import.validate_resolve_wiki_placeholders.channel_missing.error", nil, "", http.StatusBadRequest)
+	if data.WikiImportSourceId == nil || strings.TrimSpace(*data.WikiImportSourceId) == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_resolve_wiki_placeholders.wiki_import_source_id_missing.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

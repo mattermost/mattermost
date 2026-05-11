@@ -184,16 +184,12 @@ func TestImportImportPage(t *testing.T) {
 	th.SetupPagePermissions()
 
 	teamName := th.BasicTeam.Name
-	channelName := th.BasicChannel.Name
 	username := th.BasicUser.Username
 
-	// Create wiki first
-	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
-	}
-	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
-	require.Nil(t, appErr)
+	// Use the wiki created by SetupPagePermissions()
+	wiki := th.BasicWiki
+	wikiSourceId := th.BasicWiki.Props[model.PostPropsImportSourceId].(string)
+	_ = wikiSourceId
 
 	t.Run("null data returns error", func(t *testing.T) {
 		appErr := th.App.importPage(th.Context, nil, false)
@@ -203,17 +199,17 @@ func TestImportImportPage(t *testing.T) {
 
 	t.Run("missing team returns error", func(t *testing.T) {
 		data := &imports.PageImportData{
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Test"),
-			Content: model.NewPointer("{}"),
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Test"),
+			Content:            model.NewPointer("{}"),
 		}
 		appErr := th.App.importPage(th.Context, data, false)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.import.validate_page_import_data.team_missing.error", appErr.Id)
 	})
 
-	t.Run("missing channel returns error", func(t *testing.T) {
+	t.Run("missing wiki_import_source_id returns error", func(t *testing.T) {
 		data := &imports.PageImportData{
 			Team:    &teamName,
 			User:    &username,
@@ -222,15 +218,15 @@ func TestImportImportPage(t *testing.T) {
 		}
 		appErr := th.App.importPage(th.Context, data, false)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.import.validate_page_import_data.channel_missing.error", appErr.Id)
+		assert.Equal(t, "app.import.validate_page_import_data.wiki_import_source_id_missing.error", appErr.Id)
 	})
 
 	t.Run("missing user returns error", func(t *testing.T) {
 		data := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			Title:   model.NewPointer("Test"),
-			Content: model.NewPointer("{}"),
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			Title:              model.NewPointer("Test"),
+			Content:            model.NewPointer("{}"),
 		}
 		appErr := th.App.importPage(th.Context, data, false)
 		require.NotNil(t, appErr)
@@ -239,10 +235,10 @@ func TestImportImportPage(t *testing.T) {
 
 	t.Run("missing title returns error", func(t *testing.T) {
 		data := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &username,
-			Content: model.NewPointer("{}"),
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Content:            model.NewPointer("{}"),
 		}
 		appErr := th.App.importPage(th.Context, data, false)
 		require.NotNil(t, appErr)
@@ -251,10 +247,10 @@ func TestImportImportPage(t *testing.T) {
 
 	t.Run("missing content returns error", func(t *testing.T) {
 		data := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Test"),
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Test"),
 		}
 		appErr := th.App.importPage(th.Context, data, false)
 		require.NotNil(t, appErr)
@@ -265,12 +261,12 @@ func TestImportImportPage(t *testing.T) {
 		nonexistent := "nonexistent-team"
 		props := model.StringInterface{"import_source_id": "test-nonexistent-team"}
 		data := &imports.PageImportData{
-			Team:    &nonexistent,
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Test"),
-			Content: model.NewPointer("{}"),
-			Props:   &props,
+			Team:               &nonexistent,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Test"),
+			Content:            model.NewPointer("{}"),
+			Props:              &props,
 		}
 		appErr := th.App.importPage(th.Context, data, false)
 		require.NotNil(t, appErr)
@@ -281,12 +277,12 @@ func TestImportImportPage(t *testing.T) {
 		nonexistent := "nonexistent-user"
 		props := model.StringInterface{"import_source_id": "test-nonexistent-user"}
 		data := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &nonexistent,
-			Title:   model.NewPointer("Test"),
-			Content: model.NewPointer("{}"),
-			Props:   &props,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &nonexistent,
+			Title:              model.NewPointer("Test"),
+			Content:            model.NewPointer("{}"),
+			Props:              &props,
 		}
 		appErr := th.App.importPage(th.Context, data, false)
 		require.NotNil(t, appErr)
@@ -297,12 +293,12 @@ func TestImportImportPage(t *testing.T) {
 		importSourceId := "test-dry-run-page"
 		props := model.StringInterface{"import_source_id": importSourceId}
 		data := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Dry Run Page"),
-			Content: model.NewPointer(`{"type":"doc","content":[]}`),
-			Props:   &props,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Dry Run Page"),
+			Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+			Props:              &props,
 		}
 		appErr := th.App.importPage(th.Context, data, true)
 		require.Nil(t, appErr)
@@ -317,19 +313,19 @@ func TestImportImportPage(t *testing.T) {
 		importSourceId := "confluence-page-12345"
 		props := model.StringInterface{"import_source_id": importSourceId}
 		data := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Imported Page"),
-			Content: model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hello"}]}]}`),
-			Props:   &props,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Imported Page"),
+			Content:            model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hello"}]}]}`),
+			Props:              &props,
 		}
 		appErr := th.App.importPage(th.Context, data, false)
 		require.Nil(t, appErr)
 
-		// Verify page was created by looking it up via import_source_id
+		// Verify page was created by looking it up via import_source_id (pages live in wiki's backing channel)
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", importSourceId)
+			wiki.ChannelId, model.PostTypePage, "import_source_id", importSourceId)
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 		assert.Equal(t, "Imported Page", pages[0].GetProps()["title"])
@@ -339,19 +335,19 @@ func TestImportImportPage(t *testing.T) {
 		importSourceId := "confluence-page-12345"
 		props := model.StringInterface{"import_source_id": importSourceId}
 		data := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Updated Title Should Not Apply"),
-			Content: model.NewPointer(`{"type":"doc","content":[]}`),
-			Props:   &props,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Updated Title Should Not Apply"),
+			Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+			Props:              &props,
 		}
 		appErr := th.App.importPage(th.Context, data, false)
 		require.Nil(t, appErr)
 
 		// Should still have original title (idempotent skip)
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", importSourceId)
+			wiki.ChannelId, model.PostTypePage, "import_source_id", importSourceId)
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 		assert.Equal(t, "Imported Page", pages[0].GetProps()["title"])
@@ -361,12 +357,12 @@ func TestImportImportPage(t *testing.T) {
 		parentImportSourceId := "confluence-parent-page-unique"
 		parentProps := model.StringInterface{"import_source_id": parentImportSourceId}
 		parentData := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Parent Page"),
-			Content: model.NewPointer(`{"type":"doc","content":[]}`),
-			Props:   &parentProps,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Parent Page"),
+			Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+			Props:              &parentProps,
 		}
 		appErr := th.App.importPage(th.Context, parentData, false)
 		require.Nil(t, appErr)
@@ -375,7 +371,7 @@ func TestImportImportPage(t *testing.T) {
 		childProps := model.StringInterface{"import_source_id": childImportSourceId}
 		childData := &imports.PageImportData{
 			Team:                 &teamName,
-			Channel:              &channelName,
+			WikiImportSourceId:   &wikiSourceId,
 			User:                 &username,
 			Title:                model.NewPointer("Child Page With Parent"),
 			Content:              model.NewPointer(`{"type":"doc","content":[]}`),
@@ -385,9 +381,9 @@ func TestImportImportPage(t *testing.T) {
 		appErr = th.App.importPage(th.Context, childData, false)
 		require.Nil(t, appErr)
 
-		// Find child page via import_source_id
+		// Find child page via import_source_id (pages live in wiki's backing channel)
 		childPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", childImportSourceId)
+			wiki.ChannelId, model.PostTypePage, "import_source_id", childImportSourceId)
 		require.NoError(t, err)
 		require.Len(t, childPages, 1)
 
@@ -403,29 +399,21 @@ func TestImportImportPageComment(t *testing.T) {
 	th.SetupPagePermissions()
 
 	teamName := th.BasicTeam.Name
-	channelName := th.BasicChannel.Name
+	wikiSourceId := th.BasicWiki.Props[model.PostPropsImportSourceId].(string)
 	username := th.BasicUser.Username
-
-	// Create wiki and page first
-	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
-	}
-	_, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
-	require.Nil(t, appErr)
 
 	// Import a page with import_source_id
 	pageImportSourceId := "test-page-for-comments"
 	pageProps := model.StringInterface{"import_source_id": pageImportSourceId}
 	pageData := &imports.PageImportData{
-		Team:    &teamName,
-		Channel: &channelName,
-		User:    &username,
-		Title:   model.NewPointer("Page With Comments"),
-		Content: model.NewPointer(`{"type":"doc","content":[]}`),
-		Props:   &pageProps,
+		Team:               &teamName,
+		WikiImportSourceId: &wikiSourceId,
+		User:               &username,
+		Title:              model.NewPointer("Page With Comments"),
+		Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+		Props:              &pageProps,
 	}
-	appErr = th.App.importPage(th.Context, pageData, false)
+	appErr := th.App.importPage(th.Context, pageData, false)
 	require.Nil(t, appErr)
 
 	t.Run("null data returns error", func(t *testing.T) {
@@ -434,10 +422,36 @@ func TestImportImportPageComment(t *testing.T) {
 		assert.Equal(t, "app.import.validate_page_comment_import_data.null_data.error", appErr.Id)
 	})
 
+	t.Run("missing team returns error", func(t *testing.T) {
+		data := &imports.PageCommentImportData{
+			WikiImportSourceId: &wikiSourceId,
+			PageImportSourceId: &pageImportSourceId,
+			User:               &username,
+			Content:            model.NewPointer("Test comment"),
+		}
+		appErr := th.App.importPageComment(th.Context, data, false, nil)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.import.validate_page_comment_import_data.team_missing.error", appErr.Id)
+	})
+
+	t.Run("missing wiki_import_source_id returns error", func(t *testing.T) {
+		data := &imports.PageCommentImportData{
+			Team:               &teamName,
+			PageImportSourceId: &pageImportSourceId,
+			User:               &username,
+			Content:            model.NewPointer("Test comment"),
+		}
+		appErr := th.App.importPageComment(th.Context, data, false, nil)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.import.validate_page_comment_import_data.wiki_import_source_id_missing.error", appErr.Id)
+	})
+
 	t.Run("missing page_import_source_id returns error", func(t *testing.T) {
 		data := &imports.PageCommentImportData{
-			User:    &username,
-			Content: model.NewPointer("Test comment"),
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Content:            model.NewPointer("Test comment"),
 		}
 		appErr := th.App.importPageComment(th.Context, data, false, nil)
 		require.NotNil(t, appErr)
@@ -446,6 +460,8 @@ func TestImportImportPageComment(t *testing.T) {
 
 	t.Run("missing user returns error", func(t *testing.T) {
 		data := &imports.PageCommentImportData{
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
 			PageImportSourceId: &pageImportSourceId,
 			Content:            model.NewPointer("Test comment"),
 		}
@@ -456,6 +472,8 @@ func TestImportImportPageComment(t *testing.T) {
 
 	t.Run("missing content returns error", func(t *testing.T) {
 		data := &imports.PageCommentImportData{
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
 			PageImportSourceId: &pageImportSourceId,
 			User:               &username,
 		}
@@ -468,6 +486,8 @@ func TestImportImportPageComment(t *testing.T) {
 		nonexistent := "nonexistent-user"
 		props := model.StringInterface{"import_source_id": "test-comment-nonexistent-user"}
 		data := &imports.PageCommentImportData{
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
 			PageImportSourceId: &pageImportSourceId,
 			User:               &nonexistent,
 			Content:            model.NewPointer("Test comment"),
@@ -482,6 +502,8 @@ func TestImportImportPageComment(t *testing.T) {
 		nonexistent := "nonexistent-page-id"
 		props := model.StringInterface{"import_source_id": "test-comment-nonexistent-page"}
 		data := &imports.PageCommentImportData{
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
 			PageImportSourceId: &nonexistent,
 			User:               &username,
 			Content:            model.NewPointer("Test comment"),
@@ -496,6 +518,8 @@ func TestImportImportPageComment(t *testing.T) {
 		commentImportSourceId := "test-dry-run-comment"
 		props := model.StringInterface{"import_source_id": commentImportSourceId}
 		data := &imports.PageCommentImportData{
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
 			PageImportSourceId: &pageImportSourceId,
 			User:               &username,
 			Content:            model.NewPointer("Dry run comment"),
@@ -509,6 +533,8 @@ func TestImportImportPageComment(t *testing.T) {
 		commentImportSourceId := "confluence-comment-12345"
 		props := model.StringInterface{"import_source_id": commentImportSourceId}
 		data := &imports.PageCommentImportData{
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
 			PageImportSourceId: &pageImportSourceId,
 			User:               &username,
 			Content:            model.NewPointer("Imported comment content"),
@@ -522,6 +548,8 @@ func TestImportImportPageComment(t *testing.T) {
 		commentImportSourceId := "confluence-comment-12345"
 		props := model.StringInterface{"import_source_id": commentImportSourceId}
 		data := &imports.PageCommentImportData{
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
 			PageImportSourceId: &pageImportSourceId,
 			User:               &username,
 			Content:            model.NewPointer("Updated content should not apply"),
@@ -540,8 +568,7 @@ func TestImportUpdatePostPropsFromImport(t *testing.T) {
 
 	// Create wiki and page for testing
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -639,16 +666,10 @@ func TestImportPageWithMissingParent(t *testing.T) {
 	th.SetupPagePermissions()
 
 	teamName := th.BasicTeam.Name
-	channelName := th.BasicChannel.Name
+	wikiSourceId := th.BasicWiki.Props[model.PostPropsImportSourceId].(string)
 	username := th.BasicUser.Username
 
-	// Create wiki first
-	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
-	}
-	_, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
-	require.Nil(t, appErr)
+	createdWiki := th.BasicWiki
 
 	t.Run("creates page as root when parent not found", func(t *testing.T) {
 		childImportSourceId := "orphan-child-page"
@@ -656,7 +677,7 @@ func TestImportPageWithMissingParent(t *testing.T) {
 		childProps := model.StringInterface{"import_source_id": childImportSourceId}
 		childData := &imports.PageImportData{
 			Team:                 &teamName,
-			Channel:              &channelName,
+			WikiImportSourceId:   &wikiSourceId,
 			User:                 &username,
 			Title:                model.NewPointer("Orphan Child Page"),
 			Content:              model.NewPointer(`{"type":"doc","content":[]}`),
@@ -668,7 +689,7 @@ func TestImportPageWithMissingParent(t *testing.T) {
 
 		// Verify page was created as root (no PageParentId)
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", childImportSourceId)
+			createdWiki.ChannelId, model.PostTypePage, "import_source_id", childImportSourceId)
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 		assert.Empty(t, pages[0].PageParentId) // Created as root
@@ -682,8 +703,7 @@ func TestGetPostsByTypeAndProps(t *testing.T) {
 
 	// Create a page with import_source_id prop
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		Title: "Test Wiki",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -700,7 +720,7 @@ func TestGetPostsByTypeAndProps(t *testing.T) {
 
 	t.Run("finds page by import_source_id", func(t *testing.T) {
 		posts, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id,
+			wiki.ChannelId,
 			model.PostTypePage,
 			"import_source_id",
 			importSourceId,
@@ -712,7 +732,7 @@ func TestGetPostsByTypeAndProps(t *testing.T) {
 
 	t.Run("returns empty for non-matching import_source_id", func(t *testing.T) {
 		posts, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id,
+			wiki.ChannelId,
 			model.PostTypePage,
 			"import_source_id",
 			"nonexistent-id",
@@ -739,16 +759,10 @@ func TestImportPageWithNestedComments(t *testing.T) {
 	th.SetupPagePermissions()
 
 	teamName := th.BasicTeam.Name
-	channelName := th.BasicChannel.Name
+	wikiSourceId := th.BasicWiki.Props[model.PostPropsImportSourceId].(string)
 	username := th.BasicUser.Username
 
-	// Create wiki first
-	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
-	}
-	_, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
-	require.Nil(t, appErr)
+	createdWiki := th.BasicWiki
 
 	t.Run("imports page with nested comments", func(t *testing.T) {
 		pageImportSourceId := "page-with-nested-comments"
@@ -773,21 +787,21 @@ func TestImportPageWithNestedComments(t *testing.T) {
 
 		pageProps := model.StringInterface{"import_source_id": pageImportSourceId}
 		data := &imports.PageImportData{
-			Team:     &teamName,
-			Channel:  &channelName,
-			User:     &username,
-			Title:    model.NewPointer("Page With Nested Comments"),
-			Content:  model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Page content"}]}]}`),
-			Props:    &pageProps,
-			Comments: &comments,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Page With Nested Comments"),
+			Content:            model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Page content"}]}]}`),
+			Props:              &pageProps,
+			Comments:           &comments,
 		}
 
 		appErr := th.App.importPage(th.Context, data, false)
 		require.Nil(t, appErr)
 
-		// Verify page was created
+		// Verify page was created (pages live in wiki's backing channel)
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", pageImportSourceId)
+			createdWiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 		page := pages[0]
@@ -821,13 +835,13 @@ func TestImportPageWithNestedComments(t *testing.T) {
 
 		pageProps := model.StringInterface{"import_source_id": pageImportSourceId}
 		data := &imports.PageImportData{
-			Team:     &teamName,
-			Channel:  &channelName,
-			User:     &username,
-			Title:    model.NewPointer("Page With Failing Comment"),
-			Content:  model.NewPointer(`{"type":"doc","content":[]}`),
-			Props:    &pageProps,
-			Comments: &comments,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Page With Failing Comment"),
+			Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+			Props:              &pageProps,
+			Comments:           &comments,
 		}
 
 		appErr := th.App.importPage(th.Context, data, false)
@@ -842,27 +856,30 @@ func TestImportThreadedCommentReplies(t *testing.T) {
 	th.SetupPagePermissions()
 
 	teamName := th.BasicTeam.Name
-	channelName := th.BasicChannel.Name
 	username := th.BasicUser.Username
 
 	// Create wiki first
+	wikiSourceId := "test-threaded-comments-wiki"
 	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
+		TeamId: th.BasicTeam.Id,
+		Title:  "Test Wiki",
+		Props: model.StringInterface{
+			model.PostPropsImportSourceId: wikiSourceId,
+		},
 	}
-	_, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	// Create a page to add comments to
 	pageImportSourceId := "page-for-threaded-comments"
 	pageProps := model.StringInterface{"import_source_id": pageImportSourceId}
 	pageData := &imports.PageImportData{
-		Team:    &teamName,
-		Channel: &channelName,
-		User:    &username,
-		Title:   model.NewPointer("Page For Threaded Comments"),
-		Content: model.NewPointer(`{"type":"doc","content":[]}`),
-		Props:   &pageProps,
+		Team:               &teamName,
+		WikiImportSourceId: &wikiSourceId,
+		User:               &username,
+		Title:              model.NewPointer("Page For Threaded Comments"),
+		Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+		Props:              &pageProps,
 	}
 	appErr = th.App.importPage(th.Context, pageData, false)
 	require.Nil(t, appErr)
@@ -872,6 +889,8 @@ func TestImportThreadedCommentReplies(t *testing.T) {
 		rootCommentSourceId := "root-comment-for-thread"
 		rootProps := model.StringInterface{"import_source_id": rootCommentSourceId}
 		rootData := &imports.PageCommentImportData{
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
 			PageImportSourceId: &pageImportSourceId,
 			User:               &username,
 			Content:            model.NewPointer("This is the root comment"),
@@ -884,6 +903,8 @@ func TestImportThreadedCommentReplies(t *testing.T) {
 		replyCommentSourceId := "reply-comment-in-thread"
 		replyProps := model.StringInterface{"import_source_id": replyCommentSourceId}
 		replyData := &imports.PageCommentImportData{
+			Team:                        &teamName,
+			WikiImportSourceId:          &wikiSourceId,
 			PageImportSourceId:          &pageImportSourceId,
 			ParentCommentImportSourceId: &rootCommentSourceId,
 			User:                        &username,
@@ -893,9 +914,9 @@ func TestImportThreadedCommentReplies(t *testing.T) {
 		appErr = th.App.importPageComment(th.Context, replyData, false, nil)
 		require.Nil(t, appErr)
 
-		// Verify the page exists
+		// Verify the page exists (pages live in wiki's backing channel)
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", pageImportSourceId)
+			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 		page := pages[0]
@@ -924,6 +945,8 @@ func TestImportThreadedCommentReplies(t *testing.T) {
 		commentSourceId := "orphan-reply-comment"
 		commentProps := model.StringInterface{"import_source_id": commentSourceId}
 		data := &imports.PageCommentImportData{
+			Team:                        &teamName,
+			WikiImportSourceId:          &wikiSourceId,
 			PageImportSourceId:          &pageImportSourceId,
 			ParentCommentImportSourceId: &nonexistentParent,
 			User:                        &username,
@@ -933,9 +956,9 @@ func TestImportThreadedCommentReplies(t *testing.T) {
 		appErr := th.App.importPageComment(th.Context, data, false, nil)
 		require.Nil(t, appErr) // Should succeed even with missing parent
 
-		// Verify the page
+		// Verify the page (pages live in wiki's backing channel)
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", pageImportSourceId)
+			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 		page := pages[0]
@@ -955,16 +978,10 @@ func TestImportPageWithAttachments(t *testing.T) {
 	th.SetupPagePermissions()
 
 	teamName := th.BasicTeam.Name
-	channelName := th.BasicChannel.Name
+	wikiSourceId := th.BasicWiki.Props[model.PostPropsImportSourceId].(string)
 	username := th.BasicUser.Username
 
-	// Create wiki first
-	wiki := &model.Wiki{
-		ChannelId: th.BasicChannel.Id,
-		Title:     "Test Wiki",
-	}
-	_, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
-	require.Nil(t, appErr)
+	wiki := th.BasicWiki
 
 	t.Run("imports page with attachments from file path", func(t *testing.T) {
 		// Create a temporary test file
@@ -987,13 +1004,13 @@ func TestImportPageWithAttachments(t *testing.T) {
 
 		pageProps := model.StringInterface{"import_source_id": pageImportSourceId}
 		data := &imports.PageImportData{
-			Team:        &teamName,
-			Channel:     &channelName,
-			User:        &username,
-			Title:       model.NewPointer("Page With Attachment"),
-			Content:     model.NewPointer(`{"type":"doc","content":[]}`),
-			Props:       &pageProps,
-			Attachments: &attachments,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Page With Attachment"),
+			Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+			Props:              &pageProps,
+			Attachments:        &attachments,
 		}
 
 		appErr := th.App.importPage(th.Context, data, false)
@@ -1001,7 +1018,7 @@ func TestImportPageWithAttachments(t *testing.T) {
 
 		// Verify page was created
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", pageImportSourceId)
+			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 		page := pages[0]
@@ -1035,13 +1052,13 @@ func TestImportPageWithAttachments(t *testing.T) {
 
 		pageProps := model.StringInterface{"import_source_id": pageImportSourceId}
 		data := &imports.PageImportData{
-			Team:        &teamName,
-			Channel:     &channelName,
-			User:        &username,
-			Title:       model.NewPointer("Page With Bad Attachment"),
-			Content:     model.NewPointer(`{"type":"doc","content":[]}`),
-			Props:       &pageProps,
-			Attachments: &attachments,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Page With Bad Attachment"),
+			Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+			Props:              &pageProps,
+			Attachments:        &attachments,
 		}
 
 		// Import should succeed even if attachment fails
@@ -1050,7 +1067,7 @@ func TestImportPageWithAttachments(t *testing.T) {
 
 		// Verify page was created
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", pageImportSourceId)
+			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 		// Page should have no attachments since the file didn't exist
@@ -1081,13 +1098,13 @@ func TestImportPageWithAttachments(t *testing.T) {
 
 		pageProps := model.StringInterface{"import_source_id": pageImportSourceId}
 		data := &imports.PageImportData{
-			Team:        &teamName,
-			Channel:     &channelName,
-			User:        &username,
-			Title:       model.NewPointer("Page With File Placeholder"),
-			Content:     &pageContent,
-			Props:       &pageProps,
-			Attachments: &attachments,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Page With File Placeholder"),
+			Content:            &pageContent,
+			Props:              &pageProps,
+			Attachments:        &attachments,
 		}
 
 		appErr := th.App.importPage(th.Context, data, false)
@@ -1095,7 +1112,7 @@ func TestImportPageWithAttachments(t *testing.T) {
 
 		// Verify page was created
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", pageImportSourceId)
+			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 		page := pages[0]
@@ -1159,13 +1176,13 @@ func TestImportPageWithAttachments(t *testing.T) {
 
 		pageProps := model.StringInterface{"import_source_id": pageImportSourceId}
 		data := &imports.PageImportData{
-			Team:        &teamName,
-			Channel:     &channelName,
-			User:        &username,
-			Title:       model.NewPointer("Page With Multiple File Placeholders"),
-			Content:     &pageContent,
-			Props:       &pageProps,
-			Attachments: &attachments,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Page With Multiple File Placeholders"),
+			Content:            &pageContent,
+			Props:              &pageProps,
+			Attachments:        &attachments,
 		}
 
 		appErr := th.App.importPage(th.Context, data, false)
@@ -1173,7 +1190,7 @@ func TestImportPageWithAttachments(t *testing.T) {
 
 		// Verify page was created
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", pageImportSourceId)
+			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 		page := pages[0]
@@ -1220,13 +1237,13 @@ func TestImportPageWithAttachments(t *testing.T) {
 
 		pageProps := model.StringInterface{"import_source_id": pageImportSourceId}
 		data := &imports.PageImportData{
-			Team:        &teamName,
-			Channel:     &channelName,
-			User:        &username,
-			Title:       model.NewPointer("Page With Unmatched File Placeholder"),
-			Content:     &pageContent,
-			Props:       &pageProps,
-			Attachments: &attachments,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Page With Unmatched File Placeholder"),
+			Content:            &pageContent,
+			Props:              &pageProps,
+			Attachments:        &attachments,
 		}
 
 		appErr := th.App.importPage(th.Context, data, false)
@@ -1234,7 +1251,7 @@ func TestImportPageWithAttachments(t *testing.T) {
 
 		// Verify page was created
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", pageImportSourceId)
+			wiki.ChannelId, model.PostTypePage, "import_source_id", pageImportSourceId)
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 		page := pages[0]
@@ -1287,12 +1304,12 @@ func TestImportWikiEndToEnd(t *testing.T) {
 		rootPageSourceId := "e2e-root-page"
 		rootPageProps := model.StringInterface{"import_source_id": rootPageSourceId}
 		rootPageData := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Root Page"),
-			Content: model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Root page content"}]}]}`),
-			Props:   &rootPageProps,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Root Page"),
+			Content:            model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Root page content"}]}]}`),
+			Props:              &rootPageProps,
 		}
 		appErr = th.App.importPage(th.Context, rootPageData, false)
 		require.Nil(t, appErr)
@@ -1302,7 +1319,7 @@ func TestImportWikiEndToEnd(t *testing.T) {
 		childPageProps := model.StringInterface{"import_source_id": childPageSourceId}
 		childPageData := &imports.PageImportData{
 			Team:                 &teamName,
-			Channel:              &channelName,
+			WikiImportSourceId:   &wikiSourceId,
 			User:                 &username,
 			Title:                model.NewPointer("Child Page"),
 			Content:              model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Child page content"}]}]}`),
@@ -1317,7 +1334,7 @@ func TestImportWikiEndToEnd(t *testing.T) {
 		grandchildPageProps := model.StringInterface{"import_source_id": grandchildPageSourceId}
 		grandchildPageData := &imports.PageImportData{
 			Team:                 &teamName,
-			Channel:              &channelName,
+			WikiImportSourceId:   &wikiSourceId,
 			User:                 &username,
 			Title:                model.NewPointer("Grandchild Page"),
 			Content:              model.NewPointer(`{"type":"doc","content":[]}`),
@@ -1331,6 +1348,8 @@ func TestImportWikiEndToEnd(t *testing.T) {
 		commentSourceId := "e2e-comment"
 		commentProps := model.StringInterface{"import_source_id": commentSourceId}
 		commentData := &imports.PageCommentImportData{
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
 			PageImportSourceId: &rootPageSourceId,
 			User:               &username,
 			Content:            model.NewPointer("Comment on root page"),
@@ -1345,10 +1364,11 @@ func TestImportWikiEndToEnd(t *testing.T) {
 		require.Len(t, wikis, 1)
 		assert.Equal(t, "End-to-End Test Wiki", wikis[0].Title)
 		assert.Equal(t, wikiSourceId, wikis[0].Props["import_source_id"])
+		backingChannelId := wikis[0].ChannelId
 
-		// Verify root page
+		// Verify root page (pages live in wiki's backing channel)
 		rootPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", rootPageSourceId)
+			backingChannelId, model.PostTypePage, "import_source_id", rootPageSourceId)
 		require.NoError(t, err)
 		require.Len(t, rootPages, 1)
 		rootPage := rootPages[0]
@@ -1357,7 +1377,7 @@ func TestImportWikiEndToEnd(t *testing.T) {
 
 		// Verify child page hierarchy
 		childPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", childPageSourceId)
+			backingChannelId, model.PostTypePage, "import_source_id", childPageSourceId)
 		require.NoError(t, err)
 		require.Len(t, childPages, 1)
 		childPage := childPages[0]
@@ -1366,7 +1386,7 @@ func TestImportWikiEndToEnd(t *testing.T) {
 
 		// Verify grandchild page hierarchy
 		grandchildPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", grandchildPageSourceId)
+			backingChannelId, model.PostTypePage, "import_source_id", grandchildPageSourceId)
 		require.NoError(t, err)
 		require.Len(t, grandchildPages, 1)
 		grandchildPage := grandchildPages[0]
@@ -1400,24 +1420,25 @@ func TestImportWikiEndToEnd(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, wikis, 1)
 		assert.Equal(t, "Updated Wiki Title", wikis[0].Title)
+		backingChannelId := wikis[0].ChannelId
 
 		// Import same pages again
 		rootPageSourceId := "e2e-root-page"
 		rootPageProps := model.StringInterface{"import_source_id": rootPageSourceId}
 		rootPageData := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Different Title Should Not Apply"),
-			Content: model.NewPointer(`{"type":"doc","content":[]}`),
-			Props:   &rootPageProps,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Different Title Should Not Apply"),
+			Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+			Props:              &rootPageProps,
 		}
 		appErr = th.App.importPage(th.Context, rootPageData, false)
 		require.Nil(t, appErr)
 
 		// Verify still only one page with original title
 		rootPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", rootPageSourceId)
+			backingChannelId, model.PostTypePage, "import_source_id", rootPageSourceId)
 		require.NoError(t, err)
 		require.Len(t, rootPages, 1)
 		assert.Equal(t, "Root Page", rootPages[0].GetProps()["title"]) // Original title preserved
@@ -1445,15 +1466,21 @@ func TestResolvePageTitlePlaceholders(t *testing.T) {
 	appErr := th.App.importWiki(th.Context, wikiData, false)
 	require.Nil(t, appErr)
 
+	// Get the created wiki to access backing channel
+	wikis, appErr := th.App.GetWikisForChannel(th.Context, th.BasicChannel.Id, false)
+	require.Nil(t, appErr)
+	require.Len(t, wikis, 1)
+	wiki := wikis[0]
+
 	// Create target page that will be linked to
 	targetPageProps := model.StringInterface{"import_source_id": "target-page-1"}
 	targetPageData := &imports.PageImportData{
-		Team:    &teamName,
-		Channel: &channelName,
-		User:    &username,
-		Title:   model.NewPointer("Target Page Title"),
-		Content: model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Target content"}]}]}`),
-		Props:   &targetPageProps,
+		Team:               &teamName,
+		WikiImportSourceId: &wikiSourceId,
+		User:               &username,
+		Title:              model.NewPointer("Target Page Title"),
+		Content:            model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Target content"}]}]}`),
+		Props:              &targetPageProps,
 	}
 	appErr = th.App.importPage(th.Context, targetPageData, false)
 	require.Nil(t, appErr)
@@ -1461,23 +1488,23 @@ func TestResolvePageTitlePlaceholders(t *testing.T) {
 	// Create page with placeholder link to target
 	sourcePageProps := model.StringInterface{"import_source_id": "source-page-1"}
 	sourcePageData := &imports.PageImportData{
-		Team:    &teamName,
-		Channel: &channelName,
-		User:    &username,
-		Title:   model.NewPointer("Source Page"),
-		Content: model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Link to {{CONF_PAGE_TITLE:Target Page Title}}"}]}]}`),
-		Props:   &sourcePageProps,
+		Team:               &teamName,
+		WikiImportSourceId: &wikiSourceId,
+		User:               &username,
+		Title:              model.NewPointer("Source Page"),
+		Content:            model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Link to {{CONF_PAGE_TITLE:Target Page Title}}"}]}]}`),
+		Props:              &sourcePageProps,
 	}
 	appErr = th.App.importPage(th.Context, sourcePageData, false)
 	require.Nil(t, appErr)
 
 	t.Run("resolves page title placeholders", func(t *testing.T) {
-		resolveErr := th.App.ResolvePageTitlePlaceholders(th.Context, th.BasicChannel.Id)
+		resolveErr := th.App.ResolvePageTitlePlaceholders(th.Context, th.BasicTeam, wiki)
 		require.Nil(t, resolveErr)
 
 		// Get the source page and verify placeholder was resolved
 		sourcePages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", "source-page-1")
+			wiki.ChannelId, model.PostTypePage, "import_source_id", "source-page-1")
 		require.NoError(t, err)
 		require.Len(t, sourcePages, 1)
 
@@ -1495,12 +1522,12 @@ func TestResolvePageTitlePlaceholders(t *testing.T) {
 		// Create page with braces in title
 		bracesPageProps := model.StringInterface{"import_source_id": "braces-page"}
 		bracesPageData := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Function() { return true; }"),
-			Content: model.NewPointer(`{"type":"doc","content":[]}`),
-			Props:   &bracesPageProps,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Function() { return true; }"),
+			Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+			Props:              &bracesPageProps,
 		}
 		appErr = th.App.importPage(th.Context, bracesPageData, false)
 		require.Nil(t, appErr)
@@ -1509,24 +1536,18 @@ func TestResolvePageTitlePlaceholders(t *testing.T) {
 		// The placeholder uses \\{ and \\} which in the Go string becomes \{ and \}
 		linkPageProps := model.StringInterface{"import_source_id": "link-braces-page"}
 		linkPageData := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Link Page"),
-			Content: model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"See {{CONF_PAGE_TITLE:Function() \\{ return true; \\}}}"}]}]}`),
-			Props:   &linkPageProps,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Link Page"),
+			Content:            model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"See {{CONF_PAGE_TITLE:Function() \\{ return true; \\}}}"}]}]}`),
+			Props:              &linkPageProps,
 		}
 		appErr = th.App.importPage(th.Context, linkPageData, false)
 		require.Nil(t, appErr)
 
-		appErr = th.App.ResolvePageTitlePlaceholders(th.Context, th.BasicChannel.Id)
+		appErr = th.App.ResolvePageTitlePlaceholders(th.Context, th.BasicTeam, wiki)
 		require.Nil(t, appErr)
-	})
-
-	t.Run("channel not found returns error", func(t *testing.T) {
-		appErr := th.App.ResolvePageTitlePlaceholders(th.Context, "nonexistent-channel-id")
-		require.NotNil(t, appErr)
-		assert.Contains(t, appErr.Id, "channel_not_found")
 	})
 }
 
@@ -1551,15 +1572,21 @@ func TestResolvePageIDPlaceholders(t *testing.T) {
 	appErr := th.App.importWiki(th.Context, wikiData, false)
 	require.Nil(t, appErr)
 
+	// Get the created wiki to access backing channel
+	wikis, appErr := th.App.GetWikisForChannel(th.Context, th.BasicChannel.Id, false)
+	require.Nil(t, appErr)
+	require.Len(t, wikis, 1)
+	wiki := wikis[0]
+
 	// Create target page with specific import_source_id
 	targetPageProps := model.StringInterface{"import_source_id": "conf-page-12345"}
 	targetPageData := &imports.PageImportData{
-		Team:    &teamName,
-		Channel: &channelName,
-		User:    &username,
-		Title:   model.NewPointer("Target Page"),
-		Content: model.NewPointer(`{"type":"doc","content":[]}`),
-		Props:   &targetPageProps,
+		Team:               &teamName,
+		WikiImportSourceId: &wikiSourceId,
+		User:               &username,
+		Title:              model.NewPointer("Target Page"),
+		Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+		Props:              &targetPageProps,
 	}
 	appErr = th.App.importPage(th.Context, targetPageData, false)
 	require.Nil(t, appErr)
@@ -1567,23 +1594,23 @@ func TestResolvePageIDPlaceholders(t *testing.T) {
 	// Create page with CONF_PAGE_ID placeholder
 	sourcePageProps := model.StringInterface{"import_source_id": "source-page-id"}
 	sourcePageData := &imports.PageImportData{
-		Team:    &teamName,
-		Channel: &channelName,
-		User:    &username,
-		Title:   model.NewPointer("Source Page ID"),
-		Content: model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Link to {{CONF_PAGE_ID:conf-page-12345}}"}]}]}`),
-		Props:   &sourcePageProps,
+		Team:               &teamName,
+		WikiImportSourceId: &wikiSourceId,
+		User:               &username,
+		Title:              model.NewPointer("Source Page ID"),
+		Content:            model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Link to {{CONF_PAGE_ID:conf-page-12345}}"}]}]}`),
+		Props:              &sourcePageProps,
 	}
 	appErr = th.App.importPage(th.Context, sourcePageData, false)
 	require.Nil(t, appErr)
 
 	t.Run("resolves page ID placeholders", func(t *testing.T) {
-		appErr := th.App.ResolvePageIDPlaceholders(th.Context, th.BasicChannel.Id)
+		appErr := th.App.ResolvePageIDPlaceholders(th.Context, th.BasicTeam, wiki)
 		require.Nil(t, appErr)
 
 		// Get the source page and verify placeholder was resolved
 		sourcePages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", "source-page-id")
+			wiki.ChannelId, model.PostTypePage, "import_source_id", "source-page-id")
 		require.NoError(t, err)
 		require.Len(t, sourcePages, 1)
 
@@ -1618,26 +1645,32 @@ func TestCleanupUnresolvedPlaceholders(t *testing.T) {
 	appErr := th.App.importWiki(th.Context, wikiData, false)
 	require.Nil(t, appErr)
 
+	// Get the created wiki to access backing channel
+	wikis, appErr := th.App.GetWikisForChannel(th.Context, th.BasicChannel.Id, false)
+	require.Nil(t, appErr)
+	require.Len(t, wikis, 1)
+	wiki := wikis[0]
+
 	// Create page with unresolvable placeholders
 	pageProps := model.StringInterface{"import_source_id": "cleanup-page"}
 	pageData := &imports.PageImportData{
-		Team:    &teamName,
-		Channel: &channelName,
-		User:    &username,
-		Title:   model.NewPointer("Cleanup Test Page"),
-		Content: model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Missing: {{CONF_PAGE_TITLE:Nonexistent Page}} and {{CONF_PAGE_ID:missing-id}} and {{CONF_FILE:missing-file}}"}]}]}`),
-		Props:   &pageProps,
+		Team:               &teamName,
+		WikiImportSourceId: &wikiSourceId,
+		User:               &username,
+		Title:              model.NewPointer("Cleanup Test Page"),
+		Content:            model.NewPointer(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Missing: {{CONF_PAGE_TITLE:Nonexistent Page}} and {{CONF_PAGE_ID:missing-id}} and {{CONF_FILE:missing-file}}"}]}]}`),
+		Props:              &pageProps,
 	}
 	appErr = th.App.importPage(th.Context, pageData, false)
 	require.Nil(t, appErr)
 
 	t.Run("converts unresolved placeholders to broken link indicators", func(t *testing.T) {
-		appErr := th.App.CleanupUnresolvedPlaceholders(th.Context, th.BasicChannel.Id)
+		appErr := th.App.CleanupUnresolvedPlaceholders(th.Context, wiki)
 		require.Nil(t, appErr)
 
 		// Get the page and verify placeholders were cleaned up
 		pages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", "cleanup-page")
+			wiki.ChannelId, model.PostTypePage, "import_source_id", "cleanup-page")
 		require.NoError(t, err)
 		require.Len(t, pages, 1)
 
@@ -1677,13 +1710,19 @@ func TestRepairOrphanedPageHierarchy(t *testing.T) {
 	appErr := th.App.importWiki(th.Context, wikiData, false)
 	require.Nil(t, appErr)
 
+	// Get the created wiki to access backing channel
+	wikis, appErr := th.App.GetWikisForChannel(th.Context, th.BasicChannel.Id, false)
+	require.Nil(t, appErr)
+	require.Len(t, wikis, 1)
+	wiki := wikis[0]
+
 	t.Run("repairs orphaned page when parent imported later", func(t *testing.T) {
 		// Import child page BEFORE parent (simulating out-of-order import)
 		childParentSourceId := "parent-page-later"
 		childPageProps := model.StringInterface{"import_source_id": "child-orphan"}
 		childPageData := &imports.PageImportData{
 			Team:                 &teamName,
-			Channel:              &channelName,
+			WikiImportSourceId:   &wikiSourceId,
 			User:                 &username,
 			Title:                model.NewPointer("Child Page"),
 			Content:              model.NewPointer(`{"type":"doc","content":[]}`),
@@ -1695,7 +1734,7 @@ func TestRepairOrphanedPageHierarchy(t *testing.T) {
 
 		// Verify child was created as root (orphaned)
 		childPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", "child-orphan")
+			wiki.ChannelId, model.PostTypePage, "import_source_id", "child-orphan")
 		require.NoError(t, err)
 		require.Len(t, childPages, 1)
 		assert.Empty(t, childPages[0].PageParentId, "Child should be orphaned (no parent)")
@@ -1703,29 +1742,29 @@ func TestRepairOrphanedPageHierarchy(t *testing.T) {
 		// Now import the parent page
 		parentPageProps := model.StringInterface{"import_source_id": "parent-page-later"}
 		parentPageData := &imports.PageImportData{
-			Team:    &teamName,
-			Channel: &channelName,
-			User:    &username,
-			Title:   model.NewPointer("Parent Page"),
-			Content: model.NewPointer(`{"type":"doc","content":[]}`),
-			Props:   &parentPageProps,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiSourceId,
+			User:               &username,
+			Title:              model.NewPointer("Parent Page"),
+			Content:            model.NewPointer(`{"type":"doc","content":[]}`),
+			Props:              &parentPageProps,
 		}
 		appErr = th.App.importPage(th.Context, parentPageData, false)
 		require.Nil(t, appErr)
 
 		// Run hierarchy repair
-		repaired, appErr := th.App.RepairOrphanedPageHierarchy(th.Context, th.BasicChannel.Id)
+		repaired, appErr := th.App.RepairOrphanedPageHierarchy(th.Context, wiki)
 		require.Nil(t, appErr)
 		assert.Equal(t, 1, repaired)
 
 		// Verify child now has parent
 		childPages, err = th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", "child-orphan")
+			wiki.ChannelId, model.PostTypePage, "import_source_id", "child-orphan")
 		require.NoError(t, err)
 		require.Len(t, childPages, 1)
 
 		parentPages, err := th.App.Srv().Store().Post().GetPostsByTypeAndProps(
-			th.BasicChannel.Id, model.PostTypePage, "import_source_id", "parent-page-later")
+			wiki.ChannelId, model.PostTypePage, "import_source_id", "parent-page-later")
 		require.NoError(t, err)
 		require.Len(t, parentPages, 1)
 

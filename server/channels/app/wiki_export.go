@@ -49,9 +49,6 @@ func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job,
 		return nil, model.NewAppError("WikiBulkExport", "app.wiki_export.write_version.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Track channels we're exporting for resolve_wiki_placeholders
-	exportedChannels := make(map[string]bool)
-
 	// Track failed channels for reporting
 	var failedChannels []string
 
@@ -66,11 +63,16 @@ func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job,
 		}
 	}
 
+	// Resolve source channel IDs to wiki backing channel IDs.
+	// The caller typically provides source channel IDs, but wikis live in
+	// independent backing channels linked via WikiLinks.
+	channelIds = a.resolveToBackingChannelIds(rctx, channelIds)
+
 	totalWikis := 0
 	totalPages := 0
 
 	for _, channelId := range channelIds {
-		// Get wikis for this channel
+		// Get wikis for this channel (by backing channel ID)
 		wikis, err := a.Srv().Store().Wiki().GetWikisForExport(channelId)
 		if err != nil {
 			rctx.Logger().Error("Failed to get wikis for channel", mlog.String("channel_id", channelId), mlog.Err(err))
@@ -100,10 +102,9 @@ func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job,
 				return nil, model.NewAppError("WikiBulkExport", "app.wiki_export.write_wiki.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			totalWikis++
-			exportedChannels[channelId] = true
 
 			// Export pages for this wiki
-			pagesExported, pageAttachments, appErr := a.exportWikiPages(rctx, writer, wiki, opts, job)
+			pagesExported, pageAttachments, appErr := a.exportWikiPages(rctx, writer, wiki, importSourceId, opts, job)
 			if appErr != nil {
 				return nil, appErr
 			}
@@ -114,30 +115,15 @@ func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job,
 					result.Attachments = append(result.Attachments, model.WikiExportAttachment{Path: *att.Path})
 				}
 			}
-		}
-	}
 
-	// Emit resolve_wiki_placeholders for each channel
-	for channelId := range exportedChannels {
-		channel, err := a.Srv().Store().Channel().Get(channelId, false)
-		if err != nil {
-			rctx.Logger().Error("Failed to get channel for resolve_wiki_placeholders",
-				mlog.String("channel_id", channelId), mlog.Err(err))
-			continue
-		}
-		team, err := a.Srv().Store().Team().Get(channel.TeamId)
-		if err != nil {
-			rctx.Logger().Error("Failed to get team for resolve_wiki_placeholders",
-				mlog.String("team_id", channel.TeamId), mlog.Err(err))
-			continue
-		}
-
-		resolveData := &imports.ResolveWikiPlaceholdersImportData{
-			Team:    &team.Name,
-			Channel: &channel.Name,
-		}
-		if err := writeExportLine(writer, "resolve_wiki_placeholders", resolveData); err != nil {
-			return nil, model.NewAppError("WikiBulkExport", "app.wiki_export.write_resolve.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			// Emit one resolve_wiki_placeholders per wiki (post-import cross-page link resolution)
+			resolveData := &imports.ResolveWikiPlaceholdersImportData{
+				Team:               &wiki.TeamName,
+				WikiImportSourceId: &importSourceId,
+			}
+			if err := writeExportLine(writer, "resolve_wiki_placeholders", resolveData); err != nil {
+				return nil, model.NewAppError("WikiBulkExport", "app.wiki_export.write_resolve.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
 		}
 	}
 
@@ -161,8 +147,9 @@ func (a *App) WikiBulkExport(rctx request.CTX, writer io.Writer, job *model.Job,
 }
 
 // exportWikiPages exports all pages for a wiki
+// wikiImportSourceId is the wiki's import_source_id (used so each page line references its wiki).
 // Returns the number of pages exported and list of attachments to write
-func (a *App) exportWikiPages(rctx request.CTX, writer io.Writer, wiki *model.WikiForExport, opts model.WikiBulkExportOpts, job *model.Job) (int, []imports.AttachmentImportData, *model.AppError) {
+func (a *App) exportWikiPages(rctx request.CTX, writer io.Writer, wiki *model.WikiForExport, wikiImportSourceId string, opts model.WikiBulkExportOpts, job *model.Job) (int, []imports.AttachmentImportData, *model.AppError) {
 	pagesExported := 0
 	afterId := ""
 	var allAttachments []imports.AttachmentImportData
@@ -182,11 +169,11 @@ func (a *App) exportWikiPages(rctx request.CTX, writer io.Writer, wiki *model.Wi
 
 		for _, page := range pages {
 			pageData := &imports.PageImportData{
-				Team:    &page.TeamName,
-				Channel: &page.ChannelName,
-				User:    &page.Username,
-				Title:   &page.Title,
-				Content: &page.Content,
+				Team:               &page.TeamName,
+				WikiImportSourceId: &wikiImportSourceId,
+				User:               &page.Username,
+				Title:              &page.Title,
+				Content:            &page.Content,
 			}
 
 			// Set create_at
@@ -237,7 +224,7 @@ func (a *App) exportWikiPages(rctx request.CTX, writer io.Writer, wiki *model.Wi
 
 			// Export comments if requested
 			if opts.IncludeComments {
-				if appErr := a.exportPageComments(rctx, writer, page); appErr != nil {
+				if appErr := a.exportPageComments(rctx, writer, page, wiki.TeamName, wikiImportSourceId); appErr != nil {
 					rctx.Logger().Error("Failed to export comments for page",
 						mlog.String("page_id", page.Id),
 						mlog.Err(appErr),
@@ -278,7 +265,9 @@ func (a *App) buildPageAttachments(pageID string) ([]imports.AttachmentImportDat
 }
 
 // exportPageComments exports comments for a page (Phase 2)
-func (a *App) exportPageComments(rctx request.CTX, writer io.Writer, page *model.PageForExport) *model.AppError {
+// teamName and wikiImportSourceId are required so each emitted standalone comment carries
+// the team+wiki scope needed to defend re-import against cross-team comment injection.
+func (a *App) exportPageComments(rctx request.CTX, writer io.Writer, page *model.PageForExport, teamName, wikiImportSourceId string) *model.AppError {
 	comments, err := a.Srv().Store().Wiki().GetPageCommentsForExport(page.Id)
 	if err != nil {
 		return model.NewAppError("exportPageComments", "app.wiki_export.get_comments.error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -286,8 +275,10 @@ func (a *App) exportPageComments(rctx request.CTX, writer io.Writer, page *model
 
 	for _, comment := range comments {
 		commentData := &imports.PageCommentImportData{
-			User:    &comment.Username,
-			Content: &comment.Content,
+			Team:               &teamName,
+			WikiImportSourceId: &wikiImportSourceId,
+			User:               &comment.Username,
+			Content:            &comment.Content,
 		}
 
 		// Set page reference

@@ -164,8 +164,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		}
 
 		// Only mark export as downloadable if pages were actually exported
-		pagesExported, _ := strconv.Atoi(job.Data[model.WikiJobDataKeyPagesExported])
-		if pagesExported > 0 {
+		if pagesExported, err := strconv.Atoi(job.Data[model.WikiJobDataKeyPagesExported]); err == nil && pagesExported > 0 {
 			job.Data[model.WikiJobDataKeyIsDownloadable] = "true"
 			job.Data[model.WikiJobDataKeyExportDir] = exportDir
 			job.Data[model.WikiJobDataKeyExportFile] = exportFilename

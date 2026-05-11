@@ -20,9 +20,9 @@ type WikiImportData struct {
 // PageImportData represents a page to be imported.
 // Pages are stored as Posts with Type="page" and content in Post.Message.
 type PageImportData struct {
-	Team    *string `json:"team"`    // Team name (required)
-	Channel *string `json:"channel"` // Channel name (required)
-	User    *string `json:"user"`    // Username of page creator (required)
+	Team               *string `json:"team"`                  // Team name (required)
+	WikiImportSourceId *string `json:"wiki_import_source_id"` // import_source_id of the target wiki (required); matches WikiImportData.Props["import_source_id"]
+	User               *string `json:"user"`                  // Username of page creator (required)
 
 	// Page metadata
 	Title    *string `json:"title"`               // Page title (required)
@@ -47,6 +47,13 @@ type PageImportData struct {
 // PageCommentImportData represents a comment on a page.
 // Comments are stored as Posts with Type="page_comment" and RootId pointing to the page.
 type PageCommentImportData struct {
+	// Team and wiki scoping (required for standalone page_comment lines so the page lookup
+	// is bounded to one wiki's backing channel — without this, a crafted import file could
+	// attach comments to any page server-wide via import_source_id collision).
+	// Nested comments inside a page entry inherit scope from the parent page.
+	Team               *string `json:"team,omitempty"`                  // Team name (required for standalone)
+	WikiImportSourceId *string `json:"wiki_import_source_id,omitempty"` // Wiki's import_source_id (required for standalone)
+
 	// For standalone comments, reference the page by import_source_id
 	PageImportSourceId *string `json:"page_import_source_id,omitempty"` // Page's import_source_id (required for standalone)
 
@@ -66,8 +73,8 @@ type PageCommentImportData struct {
 }
 
 // ResolveWikiPlaceholdersImportData triggers post-import placeholder resolution
-// for a channel's wiki pages. This should be output after all pages are imported.
+// for a wiki's pages. This should be output after all pages in the wiki are imported.
 type ResolveWikiPlaceholdersImportData struct {
-	Team    *string `json:"team"`    // Team name (required)
-	Channel *string `json:"channel"` // Channel name (required)
+	Team               *string `json:"team"`                  // Team name (required)
+	WikiImportSourceId *string `json:"wiki_import_source_id"` // import_source_id of the target wiki (required)
 }
