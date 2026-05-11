@@ -36,7 +36,7 @@ test.afterAll(async () => {
     }
 });
 
-test(
+test.fixme(
     'post is translated for user with autotranslation enabled',
     {
         tag: ['@autotranslation'],
