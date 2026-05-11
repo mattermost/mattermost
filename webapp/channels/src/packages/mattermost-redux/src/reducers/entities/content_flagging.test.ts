@@ -109,4 +109,58 @@ describe('Reducers.ContentFlagging', () => {
         });
         expect(state.postValues['post-2']).toEqual([otherPostValue]);
     });
+
+    test('CONTENT_FLAGGING_REPORT_VALUE_UPDATED ignores malformed property values', () => {
+        const stateWithValues = contentFlaggingReducer(undefined, {
+            type: ContentFlaggingTypes.RECEIVED_POST_CONTENT_FLAGGING_VALUES,
+            data: {
+                postId: 'post-1',
+                values: [makeValue({field_id: 'review_status', value: 'pending'})],
+            },
+        });
+
+        expect(() => contentFlaggingReducer(stateWithValues, {
+            type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
+            data: {
+                target_id: 'post-1',
+                property_values: '{',
+            },
+        })).not.toThrow();
+
+        const state = contentFlaggingReducer(stateWithValues, {
+            type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
+            data: {
+                target_id: 'post-1',
+                property_values: '{',
+            },
+        });
+
+        expect(state).toBe(stateWithValues);
+    });
+
+    test('CONTENT_FLAGGING_REPORT_VALUE_UPDATED tolerates non-array cached values', () => {
+        const updatedValue = makeValue({field_id: 'review_status', value: 'removed'});
+        const invalidState = {
+            settings: {},
+            fields: {},
+            postValues: {
+                'post-1': {
+                    invalid: true,
+                },
+            },
+            flaggedPosts: {},
+            channels: {},
+            teams: {},
+        };
+
+        const state = contentFlaggingReducer(invalidState as unknown as Parameters<typeof contentFlaggingReducer>[0], {
+            type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
+            data: {
+                target_id: 'post-1',
+                property_values: JSON.stringify([updatedValue]),
+            },
+        });
+
+        expect(state.postValues['post-1']).toEqual([updatedValue]);
+    });
 });
