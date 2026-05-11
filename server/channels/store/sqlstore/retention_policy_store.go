@@ -839,7 +839,7 @@ func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string,
 		return nil, errors.Wrap(err, "get_ids_for_deletion_tosql")
 	}
 
-	rows, err := s.GetReplica().DB.Query(queryString, args...)
+	rows, err := s.GetReplica().Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get ids for deletion")
 	}
