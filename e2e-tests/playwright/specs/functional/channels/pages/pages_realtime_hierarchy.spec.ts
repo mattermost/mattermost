@@ -797,6 +797,7 @@ test(
  * team_user role has edit_page and/or edit_own_page (default after wiki perm migration)
  */
 test('server rejects page update after edit permission is revoked', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    // # Set up channel, wiki, and page authored by user2
     const {team, user: user1, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
 
@@ -840,6 +841,7 @@ test('server rejects page update after edit permission is revoked', {tag: '@page
         } catch (err: any) {
             serverStatus = err?.status_code ?? err?.statusCode;
         }
+        // * Server should reject the update with 403 after permission is revoked
         expect(serverStatus).toBe(403);
     } finally {
         const roleAfter = await adminClient.getRoleByName('team_user');
