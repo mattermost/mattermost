@@ -283,14 +283,6 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 		"second run must not re-write the field row")
 }
 
-// TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField is the regression
-// test for the access-control issue surfaced in PR review: a CPA field with
-// attrs["protected"]=true and access_mode="source_only" (e.g. owned by a UAS
-// plugin) must still be backfilled by the system migration. The migration
-// runs without a caller ID in the context, so any path that goes through
-// the normal access-control layer would reject the write because the system
-// is not the source plugin. We assert here that the backfill succeeds and
-// the field's display_name is updated in the database.
 func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) {
 	th := Setup(t)
 
