@@ -18,18 +18,18 @@ import {
     processClassificationField,
     fetchClassificationField,
     fetchChannelClassificationField,
-    CHANNEL_LINKED_FIELD_NAME,
-    CHANNEL_LINKED_OBJECT_TYPE,
-    GROUP_NAME,
-    OBJECT_TYPE,
-    LINKED_OBJECT_TYPE,
-    SYSTEM_FIELD_TARGET_ID,
-    SYSTEM_VALUE_TARGET_ID,
-    TARGET_TYPE,
-    FIELD_NAME,
-    LINKED_FIELD_NAME,
-    DISPLAY_BANNER_TOP,
+    CLASSIFICATIONS_CHANNEL_FIELD_NAME,
+    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_ID,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_GROUP_NAME,
+    CLASSIFICATIONS_SYSTEM_FIELD_NAME,
+    CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+    CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
+    CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     DISPLAY_BANNER_BOTTOM,
+    DISPLAY_BANNER_TOP,
 } from './utils';
 import type {ClassificationLevel} from './utils/presets';
 import {PRESET_CUSTOM, presets} from './utils/presets';
@@ -42,13 +42,13 @@ jest.mock('mattermost-redux/client');
 function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'field1',
-        group_id: GROUP_NAME,
-        name: FIELD_NAME,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
         type: 'select',
         attrs: {options: []},
         target_id: '',
-        target_type: TARGET_TYPE,
-        object_type: OBJECT_TYPE,
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
         create_at: 1000,
         update_at: 1000,
         delete_at: 0,
@@ -61,13 +61,13 @@ function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyFiel
 function makeLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'linked_field1',
-        group_id: GROUP_NAME,
-        name: LINKED_FIELD_NAME,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLASSIFICATIONS_SYSTEM_FIELD_NAME,
         type: 'select',
         attrs: {actions: []},
-        target_id: SYSTEM_FIELD_TARGET_ID,
-        target_type: TARGET_TYPE,
-        object_type: LINKED_OBJECT_TYPE,
+        target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
         linked_field_id: 'field1',
         create_at: 2000,
         update_at: 2000,
@@ -81,13 +81,13 @@ function makeLinkedField(overrides: Partial<PropertyField> = {}): PropertyField 
 function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'channel_field1',
-        group_id: GROUP_NAME,
-        name: CHANNEL_LINKED_FIELD_NAME,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
         type: 'select',
         attrs: {},
         target_id: '',
-        target_type: TARGET_TYPE,
-        object_type: CHANNEL_LINKED_OBJECT_TYPE,
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
         linked_field_id: 'field1',
         create_at: 4000,
         update_at: 4000,
@@ -101,9 +101,9 @@ function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): Propert
 function makeSystemValue(fieldId: string, optionId: string): PropertyValue<string> {
     return {
         id: 'value1',
-        target_id: SYSTEM_VALUE_TARGET_ID,
-        target_type: LINKED_OBJECT_TYPE,
-        group_id: GROUP_NAME,
+        target_id: CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
+        target_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
         field_id: fieldId,
         value: optionId,
         create_at: 3000,
@@ -354,9 +354,9 @@ describe('fetchChannelClassificationField', () => {
         expect(result).toEqual(expected);
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(1);
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
-            GROUP_NAME,
-            CHANNEL_LINKED_OBJECT_TYPE,
-            TARGET_TYPE,
+            CLASSIFICATIONS_GROUP_NAME,
+            CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_TYPE,
             '',
             expect.any(Object),
         );
@@ -644,8 +644,8 @@ describe('ClassificationMarkings component', () => {
 
         await waitFor(() => {
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                GROUP_NAME,
-                OBJECT_TYPE,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.objectContaining({
                     attrs: expect.objectContaining({
@@ -896,8 +896,8 @@ describe('GlobalClassificationIndicators section', () => {
         await waitFor(() => {
             // Template field patched without global_banner in attrs.
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                GROUP_NAME,
-                OBJECT_TYPE,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.objectContaining({
                     attrs: expect.objectContaining({options: expect.any(Array)}),
@@ -905,7 +905,7 @@ describe('GlobalClassificationIndicators section', () => {
             );
             expect(Client4.patchPropertyField).not.toHaveBeenCalledWith(
                 expect.anything(),
-                OBJECT_TYPE,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 expect.anything(),
                 expect.objectContaining({
                     attrs: expect.objectContaining({global_banner: expect.anything()}),
@@ -914,8 +914,8 @@ describe('GlobalClassificationIndicators section', () => {
 
             // Linked field patched with updated actions (top_and_bottom).
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                GROUP_NAME,
-                LINKED_OBJECT_TYPE,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
                 'linked_field1',
                 expect.objectContaining({
                     attrs: expect.objectContaining({
@@ -965,8 +965,8 @@ describe('GlobalClassificationIndicators section', () => {
         await waitFor(() => {
             // Template field saved without global_banner.
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                GROUP_NAME,
-                OBJECT_TYPE,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.not.objectContaining({
                     attrs: expect.objectContaining({global_banner: expect.anything()}),
@@ -975,8 +975,8 @@ describe('GlobalClassificationIndicators section', () => {
 
             // Linked field patched with empty actions (banner disabled).
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                GROUP_NAME,
-                LINKED_OBJECT_TYPE,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
                 'linked_field1',
                 expect.objectContaining({
                     attrs: expect.objectContaining({actions: []}),
@@ -1000,7 +1000,7 @@ describe('GlobalClassificationIndicators section', () => {
         const deleteOrder: string[] = [];
         const deleteFieldSpy = jest.spyOn(Client4, 'deletePropertyField');
         deleteFieldSpy.mockImplementation(async (_group, objectType, _id) => {
-            deleteOrder.push(objectType === LINKED_OBJECT_TYPE ? `linked:${_id}` : `template:${_id}`);
+            deleteOrder.push(objectType === CLASSIFICATIONS_SYSTEM_OBJECT_TYPE ? `linked:${_id}` : `template:${_id}`);
             return {status: 'OK'};
         });
 
@@ -1083,10 +1083,10 @@ describe('Channel classification linked field branches', () => {
 
         await waitFor(() => {
             expect(createSpy).toHaveBeenCalledWith(
-                GROUP_NAME,
-                CHANNEL_LINKED_OBJECT_TYPE,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                 expect.objectContaining({
-                    name: CHANNEL_LINKED_FIELD_NAME,
+                    name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
                     linked_field_id: 'field1',
                 }),
             );
@@ -1135,7 +1135,7 @@ describe('Channel classification linked field branches', () => {
         // Channel field must not be created since one already exists.
         expect(createSpy).not.toHaveBeenCalledWith(
             expect.anything(),
-            CHANNEL_LINKED_OBJECT_TYPE,
+            CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
             expect.anything(),
         );
 
@@ -1159,9 +1159,9 @@ describe('Channel classification linked field branches', () => {
 
         const deleteOrder: string[] = [];
         jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, objectType, id) => {
-            if (objectType === CHANNEL_LINKED_OBJECT_TYPE) {
+            if (objectType === CLASSIFICATIONS_CHANNEL_OBJECT_TYPE) {
                 deleteOrder.push(`channel:${id}`);
-            } else if (objectType === LINKED_OBJECT_TYPE) {
+            } else if (objectType === CLASSIFICATIONS_SYSTEM_OBJECT_TYPE) {
                 deleteOrder.push(`linked:${id}`);
             } else {
                 deleteOrder.push(`template:${id}`);
@@ -1244,7 +1244,7 @@ describe('Channel classification linked field branches', () => {
             });
 
             await waitFor(() => {
-                expect(deletedTypes).toEqual([LINKED_OBJECT_TYPE, OBJECT_TYPE]);
+                expect(deletedTypes).toEqual([CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]);
             });
         } finally {
             console.error = origError;

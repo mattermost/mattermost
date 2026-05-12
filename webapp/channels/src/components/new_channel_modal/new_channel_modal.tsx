@@ -27,8 +27,8 @@ import {closeModal} from 'actions/views/modals';
 
 import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import {
-    CHANNEL_LINKED_OBJECT_TYPE,
-    GROUP_NAME,
+    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+    CLASSIFICATIONS_GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import CategorySelector from 'components/category_selector/category_selector';
@@ -184,8 +184,8 @@ const NewChannelModal = () => {
             if (classificationEnabled && selectedClassificationId && classification.channelField && bannerText) {
                 try {
                     await Client4.patchPropertyValues(
-                        GROUP_NAME,
-                        CHANNEL_LINKED_OBJECT_TYPE,
+                        CLASSIFICATIONS_GROUP_NAME,
+                        CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                         newChannel!.id,
                         [{field_id: classification.channelField.id, value: {classification_id: selectedClassificationId, banner_text: bannerText}}],
                     );

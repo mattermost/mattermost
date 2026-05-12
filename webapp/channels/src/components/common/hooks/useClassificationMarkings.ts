@@ -11,13 +11,13 @@ import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {
-    CHANNEL_LINKED_FIELD_NAME,
-    CHANNEL_LINKED_OBJECT_TYPE,
-    FIELD_NAME,
-    GROUP_NAME,
-    OBJECT_TYPE,
-    TARGET_ID,
-    TARGET_TYPE,
+    CLASSIFICATIONS_CHANNEL_FIELD_NAME,
+    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_ID,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_GROUP_NAME,
+    CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     optionsToLevels,
 } from 'components/admin_console/classification_markings/utils';
 import type {ClassificationLevel} from 'components/admin_console/classification_markings/utils/presets';
@@ -30,7 +30,7 @@ export function selectClassificationTemplateField(state: GlobalState): PropertyF
         return undefined;
     }
     return Object.values(byId).find(
-        (f) => f.object_type === OBJECT_TYPE && f.name === FIELD_NAME && f.delete_at === 0,
+        (f) => f.object_type === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE && f.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME && f.delete_at === 0,
     );
 }
 
@@ -40,7 +40,7 @@ function selectChannelClassificationField(state: GlobalState): PropertyField | u
         return undefined;
     }
     return Object.values(byId).find(
-        (f) => f.object_type === CHANNEL_LINKED_OBJECT_TYPE && f.name === CHANNEL_LINKED_FIELD_NAME && f.linked_field_id && f.delete_at === 0,
+        (f) => f.object_type === CLASSIFICATIONS_CHANNEL_OBJECT_TYPE && f.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME && f.linked_field_id && f.delete_at === 0,
     );
 }
 
@@ -77,10 +77,20 @@ export default function useClassificationMarkings(): ClassificationMarkingsState
             return;
         }
         if (!templateField) {
-            dispatch(fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID));
+            dispatch(fetchPropertyFields(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
+            ));
         }
         if (!channelField) {
-            dispatch(fetchPropertyFields(GROUP_NAME, CHANNEL_LINKED_OBJECT_TYPE, TARGET_TYPE, ''));
+            dispatch(fetchPropertyFields(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
+            ));
         }
     }, [featureEnabled, hasEnterpriseLicense, templateField, channelField, dispatch]);
 

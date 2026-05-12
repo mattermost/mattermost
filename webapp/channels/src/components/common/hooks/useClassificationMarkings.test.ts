@@ -7,12 +7,12 @@ import type {PropertyField} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {
-    CHANNEL_LINKED_FIELD_NAME,
-    CHANNEL_LINKED_OBJECT_TYPE,
-    FIELD_NAME,
-    GROUP_NAME,
-    OBJECT_TYPE,
-    TARGET_TYPE,
+    CLASSIFICATIONS_CHANNEL_FIELD_NAME,
+    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_GROUP_NAME,
+    CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
@@ -29,13 +29,13 @@ jest.mock('react-redux', () => ({
 function makeTemplateField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'template1',
-        group_id: GROUP_NAME,
-        name: FIELD_NAME,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
         type: 'select',
         attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         target_id: '',
-        target_type: TARGET_TYPE,
-        object_type: OBJECT_TYPE,
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
         create_at: 1000,
         update_at: 1000,
         delete_at: 0,
@@ -48,13 +48,13 @@ function makeTemplateField(overrides: Partial<PropertyField> = {}): PropertyFiel
 function makeChannelField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'channel1',
-        group_id: GROUP_NAME,
-        name: CHANNEL_LINKED_FIELD_NAME,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
         type: 'select',
         attrs: {},
         target_id: '',
-        target_type: TARGET_TYPE,
-        object_type: CHANNEL_LINKED_OBJECT_TYPE,
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
         linked_field_id: 'template1',
         create_at: 2000,
         update_at: 2000,

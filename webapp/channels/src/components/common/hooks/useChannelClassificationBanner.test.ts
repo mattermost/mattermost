@@ -8,10 +8,10 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import {Client4} from 'mattermost-redux/client';
 
 import {
-    CHANNEL_LINKED_FIELD_NAME,
-    CHANNEL_LINKED_OBJECT_TYPE,
-    GROUP_NAME,
-    TARGET_TYPE,
+    CLASSIFICATIONS_CHANNEL_FIELD_NAME,
+    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
 import type {ClassificationLevel} from 'components/admin_console/classification_markings/utils/presets';
 
@@ -31,13 +31,13 @@ const FIELD_ID = 'channel_field_1';
 function makeChannelField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: FIELD_ID,
-        group_id: GROUP_NAME,
-        name: CHANNEL_LINKED_FIELD_NAME,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
         type: 'select',
         attrs: {},
         target_id: '',
-        target_type: TARGET_TYPE,
-        object_type: CHANNEL_LINKED_OBJECT_TYPE,
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
         linked_field_id: 'template1',
         create_at: 1000,
         update_at: 1000,
@@ -52,8 +52,8 @@ function makePropertyValue(value: ChannelClassificationValue | null): PropertyVa
     return {
         id: 'value1',
         target_id: CHANNEL_ID,
-        target_type: CHANNEL_LINKED_OBJECT_TYPE,
-        group_id: GROUP_NAME,
+        target_type: CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
         field_id: FIELD_ID,
         value: value as ChannelClassificationValue,
         create_at: 2000,
@@ -225,7 +225,7 @@ describe('useChannelClassificationBanner', () => {
         );
 
         await Promise.resolve();
-        expect(fetchSpy).toHaveBeenCalledWith(GROUP_NAME, CHANNEL_LINKED_OBJECT_TYPE, CHANNEL_ID);
+        expect(fetchSpy).toHaveBeenCalledWith(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, CHANNEL_ID);
     });
 
     test('silently ignores fetch errors (channel may not have classification set)', async () => {

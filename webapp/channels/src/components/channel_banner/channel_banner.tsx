@@ -85,6 +85,10 @@ export default function ChannelBanner({channelId}: Props) {
 
         const color = getContrastingSimpleColor(effectiveBanner.background_color);
 
+        // The CSS variable is declared here, and is being used in the stylesheet being imported in this component.
+        // This is needed because if the user sets background color a share of blue similar to the default link color,
+        // the markdown link will become almost invisible. So, the CSS variable declared here is used
+        // to set the color of the text in anchor tag in the stylesheet.
         return {
             color,
             '--channel-banner-text-color': color,
