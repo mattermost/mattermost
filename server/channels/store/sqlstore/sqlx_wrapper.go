@@ -84,8 +84,8 @@ type sqlxExecutor interface {
 	ExecBuilder(builder Builder) (sql.Result, error)
 	ExecRaw(query string, args ...any) (sql.Result, error)
 	NamedQuery(query string, arg any) (*sqlx.Rows, error)
-	QueryRowX(query string, args ...any) *sqlxRow
-	QueryX(query string, args ...any) (*sqlxRows, error)
+	QueryRow(query string, args ...any) *sqlxRow
+	Query(query string, args ...any) (*sqlxRows, error)
 	Select(dest any, query string, args ...any) error
 	SelectBuilder(dest any, builder Builder) error
 }
@@ -253,10 +253,6 @@ func (w *sqlxDBWrapper) QueryRowxContext(ctx context.Context, query string, args
 }
 
 func (w *sqlxDBWrapper) QueryRow(query string, args ...any) *sqlxRow {
-	return w.QueryRowX(query, args...)
-}
-
-func (w *sqlxDBWrapper) QueryRowX(query string, args ...any) *sqlxRow {
 	query = w.db.Rebind(query)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 
@@ -269,7 +265,7 @@ func (w *sqlxDBWrapper) QueryRowX(query string, args ...any) *sqlxRow {
 	return &sqlxRow{row: w.db.QueryRowxContext(ctx, query, args...), cancel: cancel}
 }
 
-func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlxRows, error) {
+func (w *sqlxDBWrapper) Query(query string, args ...any) (*sqlxRows, error) {
 	query = w.db.Rebind(query)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 
@@ -285,10 +281,6 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlxRows, error) {
 		return nil, w.checkErr(err)
 	}
 	return &sqlxRows{Rows: rows, cancel: cancel}, nil
-}
-
-func (w *sqlxDBWrapper) Query(query string, args ...any) (*sqlxRows, error) {
-	return w.QueryX(query, args...)
 }
 
 // ExecContext forwards to the underlying DB with the caller-supplied context.
@@ -486,7 +478,7 @@ func (w *sqlxTxWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
 	return res.rows, w.dbw.checkErr(res.err)
 }
 
-func (w *sqlxTxWrapper) QueryRowX(query string, args ...any) *sqlxRow {
+func (w *sqlxTxWrapper) QueryRow(query string, args ...any) *sqlxRow {
 	query = w.tx.Rebind(query)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 
@@ -499,7 +491,7 @@ func (w *sqlxTxWrapper) QueryRowX(query string, args ...any) *sqlxRow {
 	return &sqlxRow{row: w.tx.QueryRowxContext(ctx, query, args...), cancel: cancel}
 }
 
-func (w *sqlxTxWrapper) QueryX(query string, args ...any) (*sqlxRows, error) {
+func (w *sqlxTxWrapper) Query(query string, args ...any) (*sqlxRows, error) {
 	query = w.tx.Rebind(query)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 
@@ -531,9 +523,6 @@ func (w *sqlxTxWrapper) Select(dest any, query string, args ...any) error {
 	return w.dbw.checkErr(w.tx.SelectContext(ctx, dest, query, args...))
 }
 
-func (w *sqlxTxWrapper) Query(query string, args ...any) (*sqlxRows, error) {
-	return w.QueryX(query, args...)
-}
 
 func (w *sqlxTxWrapper) SelectBuilder(dest any, builder Builder) error {
 	query, args, err := builder.ToSql()
