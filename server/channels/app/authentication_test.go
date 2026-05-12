@@ -96,6 +96,62 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 
 		appErr = th.App.CheckPasswordAndAllCriteria(th.Context, th.BasicUser.Id, password, token)
 		require.Nil(t, appErr)
+
+		updatedUser, appErr := th.App.GetUser(th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, updatedUser.FailedAttempts, "successful login must reset FailedAttempts")
+	})
+
+	t.Run("MFA pre-flight probe does not consume a slot", func(t *testing.T) {
+		// An empty mfaToken on an MFA-enabled user is a pre-flight probe
+		// (the client is checking whether MFA is required) and must not
+		// count as a failed attempt.
+		err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(th.BasicUser.Id, 0)
+		require.NoError(t, err)
+
+		appErr := th.App.CheckPasswordAndAllCriteria(th.Context, th.BasicUser.Id, password, "")
+		require.NotNil(t, appErr)
+
+		updatedUser, appErr := th.App.GetUser(th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, updatedUser.FailedAttempts, "MFA probe must not consume a slot")
+	})
+
+	t.Run("MFA real attempt with a wrong token consumes a slot", func(t *testing.T) {
+		// A non-empty bad mfaToken is a real attempt, not a probe; the
+		// slot the pre-claim consumed stays consumed.
+		err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(th.BasicUser.Id, 0)
+		require.NoError(t, err)
+
+		appErr := th.App.CheckPasswordAndAllCriteria(th.Context, th.BasicUser.Id, password, "123456")
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.user.check_user_mfa.bad_code.app_error", appErr.Id)
+
+		updatedUser, appErr := th.App.GetUser(th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, updatedUser.FailedAttempts, "real MFA failure must consume a slot")
+	})
+
+	t.Run("backend error refunds the slot", func(t *testing.T) {
+		// Backend errors during the password check (malformed stored hash,
+		// hasher misc failure, migration failure) must not consume a slot
+		// or a transient infra issue could lock out a user with valid
+		// credentials. We trigger this via an unparseable PHC string,
+		// which surfaces as invalid_hash.app_error.
+		badHashUser := th.CreateUser(t)
+		err := th.Server.Store().User().UpdatePassword(badHashUser.Id, "$pbkdf2$bogus")
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(badHashUser.Id)
+		err = th.App.Srv().Store().User().UpdateFailedPasswordAttempts(badHashUser.Id, 0)
+		require.NoError(t, err)
+
+		appErr := th.App.CheckPasswordAndAllCriteria(th.Context, badHashUser.Id, "any-password", "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.user.check_user_password.invalid_hash.app_error", appErr.Id)
+
+		updatedUser, appErr := th.App.GetUser(badHashUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, updatedUser.FailedAttempts, "backend error must not consume a slot")
 	})
 
 	t.Run("validate concurrent failed attempts to bypass checks", func(t *testing.T) {
@@ -156,6 +212,66 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 				require.Equal(t, maxFailedLoginAttempts, expectedErrsCount)
 			})
 		}
+	})
+}
+
+func TestDoubleCheckPassword(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	const maxFailedLoginAttempts = 3
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.MaximumLoginAttempts = maxFailedLoginAttempts
+	})
+
+	password := model.NewTestPassword()
+	appErr := th.App.UpdatePassword(th.Context, th.BasicUser, password)
+	require.Nil(t, appErr)
+
+	// DoubleCheckPassword does not re-fetch the user; it inspects user.Password
+	// directly. Pull a fresh struct that reflects the hash we just wrote.
+	user, appErr := th.App.GetUser(th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	t.Run("correct password succeeds and resets the counter", func(t *testing.T) {
+		err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, maxFailedLoginAttempts-1)
+		require.NoError(t, err)
+
+		appErr := th.App.DoubleCheckPassword(th.Context, user, password)
+		require.Nil(t, appErr)
+
+		updatedUser, appErr := th.App.GetUser(user.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, updatedUser.FailedAttempts)
+	})
+
+	t.Run("rate limit is enforced once max attempts is reached", func(t *testing.T) {
+		err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, maxFailedLoginAttempts)
+		require.NoError(t, err)
+
+		appErr := th.App.DoubleCheckPassword(th.Context, user, password)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.user.check_user_login_attempts.too_many.app_error", appErr.Id)
+	})
+
+	t.Run("backend error refunds the slot", func(t *testing.T) {
+		badHashUser := th.CreateUser(t)
+		err := th.Server.Store().User().UpdatePassword(badHashUser.Id, "$pbkdf2$bogus")
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(badHashUser.Id)
+		err = th.App.Srv().Store().User().UpdateFailedPasswordAttempts(badHashUser.Id, 0)
+		require.NoError(t, err)
+
+		user, appErr := th.App.GetUser(badHashUser.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.DoubleCheckPassword(th.Context, user, "any-password")
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.user.check_user_password.invalid_hash.app_error", appErr.Id)
+
+		updatedUser, appErr := th.App.GetUser(badHashUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, updatedUser.FailedAttempts, "backend error must not consume a slot")
 	})
 }
 
@@ -256,6 +372,123 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 			}
 		})
 	}
+
+	// The cases below cover paths the table loop above does not exercise:
+	// first-time LDAP users (user.Id == ""), LDAP backend errors that are
+	// not credential failures, and the MFA pre-flight probe refund. Each
+	// subtest builds its own mockLdap so expectations from previous
+	// subtests cannot match the wrong call.
+
+	createLdapUserWithMFA := func(t *testing.T, emailLocal string) (*model.User, *string) {
+		t.Helper()
+		userAuthData := model.NewRandomString(32)
+		created, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:         emailLocal + "@mattermost-customer.com",
+			Username:      emailLocal,
+			AuthService:   model.UserAuthServiceLdap,
+			AuthData:      &userAuthData,
+			EmailVerified: true,
+		})
+		require.Nil(t, appErr)
+		secret, appErr := th.App.GenerateMfaSecret(created.Id)
+		require.Nil(t, appErr)
+		require.NoError(t, th.Server.Store().User().UpdateMfaActive(created.Id, true))
+		require.NoError(t, th.Server.Store().User().UpdateMfaSecret(created.Id, secret.Secret))
+		require.NoError(t, th.App.Srv().Store().User().UpdateFailedPasswordAttempts(created.Id, 0))
+		created, appErr = th.App.GetUser(created.Id)
+		require.Nil(t, appErr)
+		created.AuthData = &userAuthData
+		return created, &userAuthData
+	}
+
+	t.Run("first-time LDAP user with wrong password increments counter", func(t *testing.T) {
+		// DoLogin in production creates the row before reporting a bad
+		// password; we pre-create it here so GetUserByAuth can resolve it.
+		firstAuthData := model.NewRandomString(32)
+		preCreated, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:         "ldapuser-first-bad-pwd@mattermost-customer.com",
+			Username:      "ldapuser-first-bad-pwd",
+			AuthService:   model.UserAuthServiceLdap,
+			AuthData:      &firstAuthData,
+			EmailVerified: true,
+		})
+		require.Nil(t, appErr)
+		require.NoError(t, th.App.Srv().Store().User().UpdateFailedPasswordAttempts(preCreated.Id, 0))
+
+		freshMock := &mocks.LdapInterface{}
+		th.App.Channels().Ldap = freshMock
+		t.Cleanup(func() { th.App.Channels().Ldap = mockLdap })
+		freshMock.Mock.On("DoLogin", th.Context, firstAuthData, wrongPassword).Return(nil, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"})
+
+		_, appErr = th.App.checkLdapUserPasswordAndAllCriteria(th.Context, &model.User{
+			AuthService: model.UserAuthServiceLdap,
+			AuthData:    &firstAuthData,
+		}, wrongPassword, "")
+		require.NotNil(t, appErr)
+
+		updatedUser, appErr := th.App.GetUser(preCreated.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, updatedUser.FailedAttempts, "first-time LDAP wrong password must be counted")
+	})
+
+	t.Run("first-time LDAP user with wrong MFA token increments counter", func(t *testing.T) {
+		// DoLogin returns the freshly created user struct; the function
+		// then calls CheckUserMfa, which fails on a wrong non-empty token.
+		preCreated, authDataPtr := createLdapUserWithMFA(t, "ldapuser-first-bad-mfa")
+
+		freshMock := &mocks.LdapInterface{}
+		th.App.Channels().Ldap = freshMock
+		t.Cleanup(func() { th.App.Channels().Ldap = mockLdap })
+		freshMock.Mock.On("DoLogin", th.Context, *authDataPtr, validPassword).Return(preCreated, nil)
+
+		_, appErr := th.App.checkLdapUserPasswordAndAllCriteria(th.Context, &model.User{
+			AuthService: model.UserAuthServiceLdap,
+			AuthData:    authDataPtr,
+		}, validPassword, "123456")
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.user.check_user_mfa.bad_code.app_error", appErr.Id)
+
+		updatedUser, appErr := th.App.GetUser(preCreated.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, updatedUser.FailedAttempts, "first-time LDAP wrong MFA must be counted")
+	})
+
+	t.Run("existing LDAP user with LDAP backend error refunds the slot", func(t *testing.T) {
+		// A non-credential LDAP error (server unreachable, transient
+		// failure) on an existing user must not consume the pre-claimed
+		// slot, or an LDAP outage could lock out everyone.
+		require.NoError(t, th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0))
+
+		freshMock := &mocks.LdapInterface{}
+		th.App.Channels().Ldap = freshMock
+		t.Cleanup(func() { th.App.Channels().Ldap = mockLdap })
+		freshMock.Mock.On("DoLogin", th.Context, authData, wrongPassword).Return(nil, &model.AppError{Id: "ent.ldap.do_login.unable_to_connect.app_error"})
+
+		_, appErr := th.App.checkLdapUserPasswordAndAllCriteria(th.Context, user, wrongPassword, "")
+		require.NotNil(t, appErr)
+
+		updatedUser, appErr := th.App.GetUser(user.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, updatedUser.FailedAttempts, "LDAP backend error must refund the slot")
+	})
+
+	t.Run("existing LDAP user MFA pre-flight probe refunds the slot", func(t *testing.T) {
+		// Empty mfaToken on an MFA-enabled LDAP user is a probe; the slot
+		// the pre-claim consumed is refunded.
+		preCreated, authDataPtr := createLdapUserWithMFA(t, "ldapuser-existing-mfa-probe")
+
+		freshMock := &mocks.LdapInterface{}
+		th.App.Channels().Ldap = freshMock
+		t.Cleanup(func() { th.App.Channels().Ldap = mockLdap })
+		freshMock.Mock.On("DoLogin", th.Context, *authDataPtr, validPassword).Return(preCreated, nil)
+
+		_, appErr := th.App.checkLdapUserPasswordAndAllCriteria(th.Context, preCreated, validPassword, "")
+		require.NotNil(t, appErr)
+
+		updatedUser, appErr := th.App.GetUser(preCreated.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, updatedUser.FailedAttempts, "MFA probe on existing LDAP user must not consume a slot")
+	})
 }
 
 func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
