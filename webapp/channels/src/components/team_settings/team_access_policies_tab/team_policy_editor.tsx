@@ -25,8 +25,6 @@ import type {CustomMessageInputType} from 'components/widgets/inputs/input/input
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
-import SectionNotice from 'components/section_notice';
-
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import Constants from 'utils/constants';
 
