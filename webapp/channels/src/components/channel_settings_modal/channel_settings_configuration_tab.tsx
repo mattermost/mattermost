@@ -611,24 +611,18 @@ function ChannelSettingsConfigurationTab({
                 <>
                     <div className='channel_banner_header'>
                         <div className='channel_banner_header__text'>
-                            <label
-                                className='Input_legend'
-                                aria-label={formatMessage({id: 'channel_settings.classification.title', defaultMessage: 'Classification'})}
-                            >
+                            <span className='Input_legend'>
                                 <FormattedMessage
                                     id='channel_settings.classification.title'
                                     defaultMessage='Classification'
                                 />
-                            </label>
-                            <label
-                                className='Input_subheading'
-                                aria-label={formatMessage({id: 'channel_settings.classification.title', defaultMessage: 'Classification'})}
-                            >
+                            </span>
+                            <span className='Input_subheading'>
                                 <FormattedMessage
                                     id='channel_settings.classification.description'
                                     defaultMessage='When enabled, a classification level can be set for the channel with configurable indicators.'
                                 />
-                            </label>
+                            </span>
                         </div>
 
                         <div className='channel_banner_header__toggle'>
