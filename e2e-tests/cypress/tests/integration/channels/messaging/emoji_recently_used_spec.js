@@ -237,7 +237,7 @@ describe('Messaging', () => {
         } else if (location === 'RHS_ROOT' || location === 'RHS_COMMENT') {
             idPrefix = 'rhsPost';
             numReactions = 1;
-        } else if (location === 'RHS_EXPANDED' || location === 'GLOBAL_THREADS') {
+        } else if (location === 'GLOBAL_THREADS') {
             idPrefix = 'rhsPost';
         }
 
