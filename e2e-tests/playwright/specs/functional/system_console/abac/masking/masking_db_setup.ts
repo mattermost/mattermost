@@ -44,10 +44,5 @@ export function setFieldAsSharedOnly(fieldId: string): void {
         `WHERE id = :'field_id';`,
     ].join(' ');
 
-    execFileSync('psql', [
-        dbUrl,
-        '-v', 'ON_ERROR_STOP=1',
-        '-v', `field_id=${fieldId}`,
-        '-c', sql,
-    ], {stdio: 'pipe'});
+    execFileSync('psql', [dbUrl, '-v', 'ON_ERROR_STOP=1', '-v', `field_id=${fieldId}`, '-c', sql], {stdio: 'pipe'});
 }

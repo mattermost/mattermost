@@ -466,8 +466,7 @@ export default function PolicyList(props: Props): JSX.Element {
                             defaultMessage='Delete Policy'
                         />
                     }
-                    confirmButtonClassName='btn btn-danger'
-                    isDeleteModal={true}
+                    confirmButtonVariant='destructive'
                     compassDesign={true}
                 >
                     <>
