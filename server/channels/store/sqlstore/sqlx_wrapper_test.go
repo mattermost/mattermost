@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"strings"
 	"sync"
@@ -20,16 +21,23 @@ import (
 )
 
 // requireQueryTimeout asserts that err represents a query-timeout cancellation.
-// The error is either context.DeadlineExceeded (context fires before the query
-// reaches the server) or a pq query_canceled error (PostgreSQL error 57014,
-// fired when the driver cancels an in-flight query).
+// Three error shapes are possible depending on timing in the pq driver:
+//   - context.DeadlineExceeded — context fires before the query reaches the server.
+//   - pq.Error{Code:"57014"} — PostgreSQL cancels the in-flight query and returns
+//     "canceling statement due to user request" on the original connection.
+//   - driver.ErrBadConn — pq's watchCancel goroutine sets cn.err on the client side
+//     before the query loop reads the server's 57014 response; pq short-circuits and
+//     returns this sentinel rather than the server error.
 func requireQueryTimeout(t *testing.T, err error) {
 	t.Helper()
 	require.Error(t, err)
 	var pqErr *pq.Error
-	if errors.As(err, &pqErr) {
+	switch {
+	case errors.As(err, &pqErr):
 		require.Equal(t, pq.ErrorCode("57014"), pqErr.Code)
-	} else {
+	case errors.Is(err, driver.ErrBadConn):
+		// client-side short-circuit; see comment above
+	default:
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 	}
 }
@@ -120,8 +128,8 @@ func TestSqlxQuery(t *testing.T) {
 	t.Run("tx/timeout", func(t *testing.T) {
 		tx, err := store.GetMaster().Begin()
 		require.NoError(t, err)
-		defer func() { assert.NoError(t, tx.Rollback()) }()
 		_, err = tx.Query("SELECT pg_sleep(2)")
+		_ = tx.Rollback() // connection is dead after timeout; rollback will fail
 		requireQueryTimeout(t, err)
 	})
 }
@@ -153,9 +161,9 @@ func TestSqlxQueryRow(t *testing.T) {
 	t.Run("tx/timeout", func(t *testing.T) {
 		tx, err := store.GetMaster().Begin()
 		require.NoError(t, err)
-		defer func() { assert.NoError(t, tx.Rollback()) }()
 		var v int
 		err = tx.QueryRow("SELECT 1 FROM (SELECT pg_sleep(2)) s").Scan(&v)
+		_ = tx.Rollback() // connection is dead after timeout; rollback will fail
 		requireQueryTimeout(t, err)
 	})
 }
