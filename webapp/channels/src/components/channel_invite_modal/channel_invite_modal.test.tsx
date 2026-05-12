@@ -378,6 +378,7 @@ describe('components/channel_invite_modal', () => {
         } as UserProfileValue;
         const props = {
             ...baseProps,
+            teammateNameDisplaySetting: General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
             profilesNotInCurrentChannel: [userWithNickname],
             includeUsers: {'user-1': userWithNickname},
             membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
