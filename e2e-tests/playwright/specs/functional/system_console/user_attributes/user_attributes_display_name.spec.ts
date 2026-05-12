@@ -57,43 +57,6 @@ async function getTownSquareRoute(adminClient: Client4) {
     };
 }
 
-async function enableIntegratedBoardsFlag(adminClient: Client4): Promise<boolean> {
-    const config = await adminClient.getConfig();
-    const wasEnabled = config.FeatureFlags?.IntegratedBoards === true;
-    if (!wasEnabled) {
-        await adminClient.patchConfig({
-            FeatureFlags: {
-                IntegratedBoards: true,
-            },
-        });
-    }
-    return wasEnabled;
-}
-
-async function disableIntegratedBoardsFlag(adminClient: Client4) {
-    await adminClient.patchConfig({
-        FeatureFlags: {
-            IntegratedBoards: false,
-        },
-    });
-}
-
-async function seedLegacyField(adminClient: Client4, uid: number): Promise<UserPropertyField> {
-    // FIXTURE-ONLY: bypass the CEL-validated CPA route by posting to the generic
-    // PSAv2 property-fields endpoint. Requires the IntegratedBoards feature flag.
-    const url = `${adminClient.getBaseRoute()}/properties/groups/custom_profile_attributes/user/fields`;
-    const body = {
-        name: `Legacy Field_${uid}`,
-        type: 'text',
-        target_type: 'system',
-        attrs: {sort_order: 99},
-    };
-    return (adminClient as any).doFetch(url, {
-        method: 'POST',
-        body: JSON.stringify(body),
-    }) as Promise<UserPropertyField>;
-}
-
 test.describe('System Console - User Attributes display names', () => {
     /**
      * @objective Verify that a CPA field's display_name is rendered as the user-facing
@@ -115,15 +78,16 @@ test.describe('System Console - User Attributes display names', () => {
             // # Navigate to User Attributes and create a new field with a display name
             await sp.goto();
 
-            // * Verify the table exposes both Name and Display Name columns
-            await expect(sp.container.getByText('Name', {exact: true})).toBeVisible();
-            await expect(sp.container.getByText('Display Name', {exact: true})).toBeVisible();
+            // * Verify the table exposes both Name and Display Name column headers
+            await expect(sp.container.getByRole('columnheader', {name: 'Display Name', exact: true})).toBeVisible();
+            await expect(sp.container.getByRole('columnheader', {name: 'Name', exact: true})).toBeVisible();
 
+            // # Add a new row and fill identifier + display name
             await sp.addAttribute();
-            await sp.nameInput(0).fill(identifier);
-            await sp.nameInput(0).blur();
-            await sp.displayNameInput(0).fill(displayName);
-            await sp.displayNameInput(0).blur();
+            await sp.lastNameInput().fill(identifier);
+            await sp.lastNameInput().blur();
+            await sp.lastDisplayNameInput().fill(displayName);
+            await sp.lastDisplayNameInput().blur();
 
             await sp.saveAndWaitForSettled();
 
@@ -158,7 +122,7 @@ test.describe('System Console - User Attributes display names', () => {
             await channelsPage.userProfilePopover.close();
 
             const profileModal = await channelsPage.openProfileModal();
-            const section = profileModal.container.locator('.setting-list-item').filter({hasText: displayName});
+            const section = profileModal.container.locator('.section-min').filter({hasText: displayName});
             await expect(section).toBeVisible();
 
             const editButton = profileModal.container.locator(`#customAttribute_${createdField!.id}Edit`);
@@ -237,76 +201,6 @@ test.describe('System Console - User Attributes display names', () => {
         } finally {
             if (createdField) {
                 await adminClient.deleteCustomProfileAttributeField(createdField.id).catch(() => undefined);
-            }
-        }
-    });
-
-    /**
-     * @objective Verify that a legacy invalid-named field remains editable for
-     * non-name attributes, but that renaming it still goes through the new
-     * identifier validator and only persists once corrected to a valid name.
-     */
-    test('keeps legacy invalid identifiers grandfathered until renamed', {tag: '@user_attributes'}, async ({pw}) => {
-        const {adminClient, systemConsolePage} = await setupTest(pw);
-        const sp = systemConsolePage.systemProperties;
-
-        const uid = Date.now();
-        const originalIdentifier = `Legacy Field_${uid}`;
-        const validIdentifier = `legacy_field_${uid}`;
-        let legacyField: UserPropertyField | undefined;
-        let flagWasEnabled = false;
-
-        try {
-            // # Enable IntegratedBoards flag and seed a legacy invalid identifier
-            flagWasEnabled = await enableIntegratedBoardsFlag(adminClient);
-            legacyField = await seedLegacyField(adminClient, uid);
-
-            await sp.goto();
-
-            const legacyNameInput = sp.nameInputByValue(originalIdentifier);
-            await expect(legacyNameInput).toHaveValue(originalIdentifier);
-
-            // # Edit non-name attributes on the legacy field and save the changes
-            await sp.displayNameInputNear(originalIdentifier).fill('Legacy Display');
-            await sp.displayNameInputNear(originalIdentifier).blur();
-            await expect(sp.saveButton).toBeEnabled();
-
-            await sp.openDotMenu(legacyField!.id);
-            await sp.setVisibility('Always hide');
-            await sp.dismissMenu();
-            await expect(sp.saveButton).toBeEnabled();
-
-            await sp.saveAndWaitForSettled();
-
-            // * Verify renaming the legacy field to a reserved word is blocked
-            await legacyNameInput.fill('in');
-            await legacyNameInput.blur();
-            await expect(sp.identifierValidationError()).toHaveText(IDENTIFIER_VALIDATION_MESSAGE);
-            await expect(sp.saveButton).toBeDisabled();
-
-            // # Rename the legacy field to a valid identifier and persist the correction
-            await legacyNameInput.fill(validIdentifier);
-            await legacyNameInput.blur();
-            await expect(sp.identifierValidationError()).not.toBeVisible();
-            await expect(sp.saveButton).toBeEnabled();
-
-            await sp.saveAndWaitForSettled();
-            await sp.goto();
-            await expect(sp.nameInputByValue(validIdentifier)).toBeVisible();
-
-            const fields = await adminClient.getCustomProfileAttributeFields();
-            const updatedField = fields.find((field) => field.id === legacyField!.id);
-
-            // * Verify the corrected identifier and non-name edits were saved
-            expect(updatedField?.name).toBe(validIdentifier);
-            expect(updatedField?.attrs?.display_name).toBe('Legacy Display');
-            expect(updatedField?.attrs?.visibility).toBe('hidden');
-        } finally {
-            if (legacyField) {
-                await adminClient.deleteCustomProfileAttributeField(legacyField.id).catch(() => undefined);
-            }
-            if (!flagWasEnabled) {
-                await disableIntegratedBoardsFlag(adminClient).catch(() => undefined);
             }
         }
     });

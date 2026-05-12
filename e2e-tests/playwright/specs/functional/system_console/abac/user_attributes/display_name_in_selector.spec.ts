@@ -1,13 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/**
- * E2E tests for the ABAC table-editor attribute selector with CPA `display_name`.
- *
- * Asserts that the selector renders display_name when set, falls back to `name`,
- * filters by both, and persists the canonical CEL identifier (not display_name).
- */
-
 import type {Client4} from '@mattermost/client';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -22,8 +15,6 @@ import {getPolicyIdByName} from '../support';
 
 type FieldsMap = Record<string, UserPropertyField>;
 
-// Start from a clean slate; setupCustomProfileAttributeFields short-circuits
-// when any fields already exist.
 async function clearExistingFields(client: Client4): Promise<void> {
     try {
         const existing = await client.getCustomProfileAttributeFields();
@@ -42,13 +33,12 @@ async function clearExistingFields(client: Client4): Promise<void> {
 test.describe('ABAC Attribute Selector - display_name rendering and filtering', () => {
     /**
      * @objective Verify the attribute selector renders display_name when set,
-     * falls back to `name` otherwise, filters on both, and persists the canonical
-     * CEL identifier in saved policy expressions.
+     * falls back to `name`, filters on both, and persists the CEL identifier
+     * in saved policy expressions.
      *
      * @precondition
-     * Two admin-managed CPA fields are seeded via REST:
-     *   - `dept_head` with display_name 'Department Head'
-     *   - `office` with no display_name
+     * Two admin-managed CPA fields seeded via REST: `dept_head` with
+     * display_name 'Department Head', and `office` with no display_name.
      */
     test(
         'renders and filters by display_name while persisting CEL identifier',
@@ -70,8 +60,6 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                     attrs: {
                         display_name: 'Department Head',
                         visibility: 'when_set',
-
-                        // managed: 'admin' avoids the user-managed selector guard
                         managed: 'admin',
                     },
                 },
@@ -127,7 +115,7 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                 await expect(deptHeadItem).toBeVisible();
                 await expect(officeItem).toBeVisible();
 
-                const filterInput = attributeMenu.locator('input.attribute-selector-search');
+                const filterInput = attributeMenu.locator('.attribute-selector-search input');
                 await filterInput.waitFor({state: 'visible', timeout: 5000});
 
                 // * Filter by display_name keeps only 'Department Head'
@@ -154,14 +142,17 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                 // * The trigger button shows display_name, not the CEL identifier
                 await expect(attributeButton).toContainText('Department Head', {timeout: 5000});
 
-                // # Complete and save the rule
+                // # Wait for the attribute-selector popover to close before opening the next menu
+                const attributeMenuPopover = page.locator('[id^="attribute-selector-menu"]');
+                await attributeMenuPopover.waitFor({state: 'hidden', timeout: 5000});
+
                 const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
                 await operatorButton.waitFor({state: 'visible', timeout: 5000});
-                await operatorButton.click({force: true});
+                await operatorButton.click();
 
                 const operatorMenu = page.locator('[id^="operator-selector-menu"]');
                 await operatorMenu.waitFor({state: 'visible', timeout: 5000});
-                await operatorMenu.locator('li:has-text("is")').first().click({force: true});
+                await operatorMenu.locator('li:has-text("is")').first().click();
 
                 const valueInput = page.locator('.values-editor__simple-input').first();
                 await valueInput.waitFor({state: 'visible', timeout: 10000});
@@ -170,10 +161,17 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
 
                 const saveButton = page.getByRole('button', {name: 'Save'});
                 await expect(saveButton).toBeEnabled({timeout: 10000});
-                await saveButton.click();
 
-                // Wait for the save to complete by checking the save button is disabled again
-                await expect(saveButton).toBeDisabled({timeout: 10000});
+                // # Click Save and wait on the create-policy PUT (button unmounts on navigate)
+                const createPolicyResponse = page.waitForResponse(
+                    (r) => /\/access_control_policies(?:\?|$)/.test(r.url()) && r.request().method() === 'PUT',
+                    {timeout: 15000},
+                );
+                await saveButton.click();
+                const createResponse = await createPolicyResponse;
+                expect(createResponse.ok()).toBe(true);
+
+                await page.waitForURL(/\/admin_console\/system_attributes\/membership_policies/, {timeout: 10000});
 
                 // * The persisted CEL uses the canonical identifier, not display_name
                 policyId = await getPolicyIdByName(adminClient, policyName);

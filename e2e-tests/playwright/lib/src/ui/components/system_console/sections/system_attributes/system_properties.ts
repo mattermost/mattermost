@@ -84,6 +84,10 @@ export default class SystemProperties {
         return this.container.getByTestId('property-field-input').last();
     }
 
+    lastDisplayNameInput(): Locator {
+        return this.container.getByTestId('property-display-name-input').last();
+    }
+
     lastTypeSelector(): Locator {
         return this.container.getByTestId('fieldTypeSelectorMenuButton').last();
     }

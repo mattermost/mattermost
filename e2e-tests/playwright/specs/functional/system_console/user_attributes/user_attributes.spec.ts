@@ -164,7 +164,7 @@ test.describe('System Console - User Attributes Management', () => {
         const nameInput = sp.lastNameInput();
         await expect(nameInput).toBeVisible();
 
-        // # Type attribute name
+        // # Type attribute name (must be a valid CEL identifier — no spaces)
         await nameInput.fill('test_department');
         await nameInput.blur();
 
@@ -193,7 +193,7 @@ test.describe('System Console - User Attributes Management', () => {
         // # Click "Add attribute"
         await sp.addAttribute();
 
-        // # Type attribute name
+        // # Type attribute name (must be a valid CEL identifier — no spaces)
         const nameInput = sp.lastNameInput();
         await nameInput.fill('office_location');
         await nameInput.blur();
@@ -324,10 +324,7 @@ test.describe('System Console - User Attributes Management', () => {
         // * Verify a copy row appeared with "_copy" suffix in the name
         await expect(sp.nameInputByValue('Original_copy')).toBeVisible();
 
-        // # Rename the copy to a valid CEL identifier.
-        // "Original (copy)" contains spaces and parentheses which the server rejects with 422.
-        // Use lastNameInput() for the fill/blur — it's position-based (.last()) so it stays
-        // valid after the value changes, unlike the value-based nameInputByValue locator.
+        // # Rename the copy to a valid CEL identifier (server rejects spaces/parens with 422)
         const copyInput = sp.lastNameInput();
         await copyInput.fill('Original_copy');
         await copyInput.blur();
@@ -428,8 +425,9 @@ test.describe('System Console - User Attributes Management', () => {
     });
 
     /**
-     * @objective Verify that leaving an attribute name empty shows a validation
-     * warning and disables the Save button.
+     * @objective Verify that clearing the auto-derived CEL identifier (Name)
+     * after entering a Display Name shows the empty-name validation warning
+     * and disables the Save button.
      */
     test('shows validation warning for empty attribute name', {tag: '@user_attributes'}, async ({pw}) => {
         const {systemConsolePage} = await setupTest(pw);
@@ -441,9 +439,16 @@ test.describe('System Console - User Attributes Management', () => {
         // # Add a new attribute
         await sp.addAttribute();
 
-        // # Clear the auto-focused name input (leave it empty).
-        // Use lastNameInput() so concurrent UAAE/ABAC rows don't shift the index.
+        // # Fill Display Name so the Name field auto-derives as snake_case
+        const displayNameInput = sp.lastDisplayNameInput();
+        await displayNameInput.fill('Job Title');
+        await displayNameInput.blur();
+
+        // * Verify the Name field auto-populated with the snake_case identifier
         const nameInput = sp.lastNameInput();
+        await expect(nameInput).toHaveValue('job_title');
+
+        // # Clear the auto-derived identifier and blur to trigger the empty-name warning
         await nameInput.clear();
         await nameInput.blur();
 
@@ -465,7 +470,7 @@ test.describe('System Console - User Attributes Management', () => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
-        // # Create an attribute via API
+        // # Create an attribute via API (name must be a valid CEL identifier — no spaces)
         const uniqueDupName = `unique_name_${Date.now()}`;
         const attributes: CustomProfileAttribute[] = [{name: uniqueDupName, type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
