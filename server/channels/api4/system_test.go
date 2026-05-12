@@ -417,28 +417,44 @@ func TestGetLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
+	testID := model.NewId()
 	for i := range 20 {
-		th.TestLogger.Info(strconv.Itoa(i))
+		th.TestLogger.Info(fmt.Sprintf("getlogs_verify_%s_%d", testID, i))
 	}
 
 	err := th.TestLogger.Flush()
 	require.NoError(t, err, "failed to flush log")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		// Other goroutines may append log lines after flush; wait until the newest page
+		// is our sequential batch again (unique marker avoids collisions with other tests).
+		require.Eventually(t, func() bool {
+			logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
+			if err2 != nil || len(logs) != 10 {
+				return false
+			}
+			for i := 10; i < 20; i++ {
+				if !strings.Contains(logs[i-10], fmt.Sprintf("getlogs_verify_%s_%d", testID, i)) {
+					return false
+				}
+			}
+			return true
+		}, 15*time.Second, 25*time.Millisecond, "newest log page should contain sequential getlogs_verify lines")
+
 		logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
 		require.NoError(t, err2)
 		require.Len(t, logs, 10)
 
 		for i := 10; i < 20; i++ {
-			assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
+			assert.Containsf(t, logs[i-10], fmt.Sprintf("getlogs_verify_%s_%d", testID, i), "Log line doesn't contain correct message")
 		}
 
-		logs, _, err = c.GetLogs(context.Background(), 1, 10)
-		require.NoError(t, err)
+		logs, _, err2 = c.GetLogs(context.Background(), 1, 10)
+		require.NoError(t, err2)
 		require.Len(t, logs, 10)
 
-		logs, _, err = c.GetLogs(context.Background(), -1, -1)
-		require.NoError(t, err)
+		logs, _, err2 = c.GetLogs(context.Background(), -1, -1)
+		require.NoError(t, err2)
 		require.NotEmpty(t, logs, "should not be empty")
 	})
 
