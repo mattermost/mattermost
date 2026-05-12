@@ -54,12 +54,12 @@ export default function BoardAttributes(props: Props) {
                         <hgroup>
                             <FormattedMessage
                                 tagName={SectionHeading}
-                                id='admin.board_attributes.user_properties.title'
-                                defaultMessage='Configure board attributes'
+                                id='admin.board_attributes.section_title'
+                                defaultMessage='Board Attributes'
                             />
                             <FormattedMessage
-                                id='admin.board_attributes.user_properties.subtitle'
-                                defaultMessage='Attributes will be applied to all boards as default card properties.'
+                                id='admin.board_attributes.section_subtitle'
+                                defaultMessage='Customize the attribute available by default in cards across every board on the system.'
                             />
                         </hgroup>
                     </SectionHeader>

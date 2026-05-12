@@ -6,40 +6,55 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import {CheckIcon, LockOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, CloseCircleIcon, LockOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import {supportsOptions, type BoardPropertyField, type PropertyFieldOption} from '@mattermost/types/properties';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import * as Menu from 'components/menu';
 
-// Color tokens for select-option swatches. Stored as a token name on the option;
-// rendered via this map. Falls back to neutral for unknown tokens.
-const COLOR_TOKEN_NAMES = ['neutral', 'blue', 'green', 'yellow', 'red', 'purple', 'cyan', 'pink'] as const;
+// Color tokens for select-option chips. Each token is a stable string stored
+// on `PropertyFieldOption.color`. The map below renders the token as a light
+// pastel background. Order matches the picker's display order.
+const COLOR_TOKEN_NAMES = ['default', 'brown', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'red'] as const;
 type ColorToken = typeof COLOR_TOKEN_NAMES[number];
 
 const colorTokenMap: Record<ColorToken, string> = {
-    neutral: 'rgba(var(--center-channel-color-rgb), 0.48)',
-    blue: '#1c58d9',
-    green: '#3db887',
-    yellow: '#f5ab00',
-    red: '#d24b4e',
-    purple: '#9b51e0',
-    cyan: '#22a0d5',
-    pink: '#ef5e7e',
+    default: 'rgba(var(--center-channel-color-rgb), 0.08)',
+    brown: '#e9e5e3',
+    orange: '#fadec9',
+    yellow: '#fdecc8',
+    green: '#dbeddb',
+    blue: '#d3e5ef',
+    purple: '#e8deee',
+    pink: '#f5e0e9',
+    red: '#ffe2dd',
 };
 
-const resolveColor = (token: string | undefined): string => colorTokenMap[(token ?? 'neutral') as ColorToken] ?? colorTokenMap.neutral;
+// Backward-compat: prior seeds and earlier dev installs stored "neutral".
+// Treat it as `default` so existing data renders correctly.
+const COLOR_ALIASES: Record<string, ColorToken> = {
+    neutral: 'default',
+};
+
+const normalizeColor = (token: string | undefined): ColorToken => {
+    const t = token ?? 'default';
+    const aliased = COLOR_ALIASES[t] ?? (t as ColorToken);
+    return COLOR_TOKEN_NAMES.includes(aliased) ? aliased : 'default';
+};
+
+const resolveColor = (token: string | undefined): string => colorTokenMap[normalizeColor(token)];
 
 const colorTokenLabels: Record<ColorToken, MessageDescriptor> = defineMessages({
-    neutral: {id: 'admin.board_attributes.values.color.neutral', defaultMessage: 'Neutral'},
-    blue: {id: 'admin.board_attributes.values.color.blue', defaultMessage: 'Blue'},
-    green: {id: 'admin.board_attributes.values.color.green', defaultMessage: 'Green'},
+    default: {id: 'admin.board_attributes.values.color.default', defaultMessage: 'Default'},
+    brown: {id: 'admin.board_attributes.values.color.brown', defaultMessage: 'Brown'},
+    orange: {id: 'admin.board_attributes.values.color.orange', defaultMessage: 'Orange'},
     yellow: {id: 'admin.board_attributes.values.color.yellow', defaultMessage: 'Yellow'},
-    red: {id: 'admin.board_attributes.values.color.red', defaultMessage: 'Red'},
+    green: {id: 'admin.board_attributes.values.color.green', defaultMessage: 'Green'},
+    blue: {id: 'admin.board_attributes.values.color.blue', defaultMessage: 'Blue'},
     purple: {id: 'admin.board_attributes.values.color.purple', defaultMessage: 'Purple'},
-    cyan: {id: 'admin.board_attributes.values.color.cyan', defaultMessage: 'Cyan'},
     pink: {id: 'admin.board_attributes.values.color.pink', defaultMessage: 'Pink'},
+    red: {id: 'admin.board_attributes.values.color.red', defaultMessage: 'Red'},
 });
 
 const MAX_OPTION_NAME_LENGTH = 64;
@@ -74,8 +89,10 @@ const BoardAttributesValues = ({field, updateField}: Props) => {
             >
                 <ProtectedValues data-testid='property-values-readonly'>
                     {options.map((option) => (
-                        <ReadonlyChip key={option.id}>
-                            <ColorSwatch style={{backgroundColor: resolveColor(option.color)}}/>
+                        <ReadonlyChip
+                            key={option.id}
+                            style={{backgroundColor: resolveColor(option.color)}}
+                        >
                             <ChipLabel>{option.name}</ChipLabel>
                         </ReadonlyChip>
                     ))}
@@ -149,7 +166,7 @@ const EditableChip = ({option, options, setOptions}: ChipProps) => {
     const [editValue, setEditValue] = useState(option.name);
     const inputRef = useRef<HTMLInputElement>(null);
     const canDelete = options.length > 1;
-    const currentColor = (option.color ?? 'neutral') as ColorToken;
+    const currentColor = normalizeColor(option.color);
 
     useEffect(() => {
         setEditValue(option.name);
@@ -195,88 +212,107 @@ const EditableChip = ({option, options, setOptions}: ChipProps) => {
 
     const menuId = `board-option-${option.id || option.name}`;
 
+    const handleDeleteClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        handleDelete();
+    };
+
     return (
-        <Menu.Container
-            menuButton={{
-                id: `${menuId}-button`,
-                class: 'property-option-chip-button',
-                children: (
-                    <Chip>
-                        <ColorSwatch style={{backgroundColor: resolveColor(option.color)}}/>
-                        <ChipLabel>{option.name}</ChipLabel>
-                    </Chip>
-                ),
-                dataTestId: `property-option-chip-${option.id || option.name}`,
-            }}
-            menu={{
-                id: `${menuId}-menu`,
-                'aria-label': formatMessage({
-                    id: 'admin.board_attributes.values.option_menu_label',
-                    defaultMessage: 'Edit option',
-                }),
-                className: 'property-option-menu',
-                onToggle: (open: boolean) => {
-                    if (!open) {
-                        commitRename();
-                    }
-                },
-            }}
-        >
-            <RenameInputWrapper>
-                <RenameInput
-                    ref={inputRef}
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    onFocus={(e) => e.target.select()}
-                    onKeyDown={handleKeyDown}
-                    onBlur={commitRename}
-                    maxLength={MAX_OPTION_NAME_LENGTH}
-                    placeholder={formatMessage({
-                        id: 'admin.board_attributes.values.rename_placeholder',
-                        defaultMessage: 'Option name',
-                    })}
-                    autoFocus={true}
-                />
-            </RenameInputWrapper>
-            <Menu.Separator/>
-            {COLOR_TOKEN_NAMES.map((token) => (
-                <Menu.Item
-                    key={token}
-                    id={`${menuId}-color-${token}`}
-                    role='menuitemradio'
-                    aria-checked={currentColor === token}
-                    forceCloseOnSelect={false}
-                    onClick={() => setColor(token)}
-                    leadingElement={(
-                        <SwatchIcon>
-                            <ColorSwatch style={{backgroundColor: colorTokenMap[token]}}/>
-                        </SwatchIcon>
-                    )}
-                    labels={<FormattedMessage {...colorTokenLabels[token]}/>}
-                    trailingElements={currentColor === token ? (
-                        <CheckIcon
-                            size={16}
-                            color='var(--button-bg, #1c58d9)'
-                        />
-                    ) : undefined}
-                />
-            ))}
-            {canDelete && <Menu.Separator/>}
+        <ChipShell style={{backgroundColor: resolveColor(option.color)}}>
+            <Menu.Container
+                menuButton={{
+                    id: `${menuId}-button`,
+                    class: 'property-option-chip-trigger',
+                    children: <ChipLabel>{option.name}</ChipLabel>,
+                    dataTestId: `property-option-chip-${option.id || option.name}`,
+                }}
+                menu={{
+                    id: `${menuId}-menu`,
+                    'aria-label': formatMessage({
+                        id: 'admin.board_attributes.values.option_menu_label',
+                        defaultMessage: 'Edit option',
+                    }),
+                    className: 'property-option-menu',
+                    onToggle: (open: boolean) => {
+                        if (!open) {
+                            commitRename();
+                        }
+                    },
+                }}
+            >
+                <RenameInputWrapper>
+                    <RenameInput
+                        ref={inputRef}
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onFocus={(e) => e.target.select()}
+                        onKeyDown={handleKeyDown}
+                        onBlur={commitRename}
+                        maxLength={MAX_OPTION_NAME_LENGTH}
+                        placeholder={formatMessage({
+                            id: 'admin.board_attributes.values.rename_placeholder',
+                            defaultMessage: 'Option name',
+                        })}
+                        autoFocus={true}
+                    />
+                </RenameInputWrapper>
+                {canDelete && (
+                    <Menu.Item
+                        id={`${menuId}-delete`}
+                        onClick={handleDelete}
+                        isDestructive={true}
+                        leadingElement={<TrashCanOutlineIcon size={16}/>}
+                        labels={(
+                            <FormattedMessage
+                                id='admin.board_attributes.values.delete'
+                                defaultMessage='Delete'
+                            />
+                        )}
+                    />
+                )}
+                <Menu.Separator/>
+                <ColorsLabel>
+                    <FormattedMessage
+                        id='admin.board_attributes.values.colors_header'
+                        defaultMessage='Colors'
+                    />
+                </ColorsLabel>
+                {COLOR_TOKEN_NAMES.map((token) => (
+                    <Menu.Item
+                        key={token}
+                        id={`${menuId}-color-${token}`}
+                        role='menuitemradio'
+                        aria-checked={currentColor === token}
+                        forceCloseOnSelect={false}
+                        onClick={() => setColor(token)}
+                        leadingElement={<ColorPreview style={{backgroundColor: colorTokenMap[token]}}/>}
+                        labels={<FormattedMessage {...colorTokenLabels[token]}/>}
+                        trailingElements={currentColor === token ? (
+                            <CheckIcon
+                                size={16}
+                                color='var(--button-bg, #1c58d9)'
+                            />
+                        ) : undefined}
+                    />
+                ))}
+            </Menu.Container>
             {canDelete && (
-                <Menu.Item
-                    id={`${menuId}-delete`}
-                    onClick={handleDelete}
-                    isDestructive={true}
-                    leadingElement={<TrashCanOutlineIcon size={16}/>}
-                    labels={(
-                        <FormattedMessage
-                            id='admin.board_attributes.values.delete'
-                            defaultMessage='Delete'
-                        />
-                    )}
-                />
+                <ChipDeleteButton
+                    type='button'
+                    onClick={handleDeleteClick}
+                    aria-label={formatMessage({
+                        id: 'admin.board_attributes.values.delete_option',
+                        defaultMessage: 'Delete option',
+                    }, {name: option.name})}
+                    data-testid={`property-option-delete-${option.id || option.name}`}
+                >
+                    <CloseCircleIcon
+                        size={14}
+                        color='rgba(var(--center-channel-color-rgb), 0.56)'
+                    />
+                </ChipDeleteButton>
             )}
-        </Menu.Container>
+        </ChipShell>
     );
 };
 
@@ -296,19 +332,25 @@ const ValuesContainer = styled.div`
     min-height: 40px;
 
     /*
-     * Menu.Container wraps each chip in a <button>. Reset the button's default
-     * box model so chip spacing matches the read-only protected variant above.
+     * Menu.Container wraps the chip label in a <button>. Reset its box model
+     * so it can sit transparently inside <ChipShell> and pick up the chip's
+     * coloured background, padding, and rounded corners.
      */
-    .property-option-chip-button,
-    & .property-option-chip-button:focus,
-    & .property-option-chip-button:hover {
-        padding: 0;
+    .property-option-chip-trigger,
+    & .property-option-chip-trigger:focus,
+    & .property-option-chip-trigger:hover {
+        padding: 2px 4px 2px 8px;
         margin: 0;
         border: 0;
         background: transparent;
         min-height: 0;
         line-height: normal;
         box-shadow: none;
+        color: var(--center-channel-color);
+        font-family: 'Open Sans';
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
     }
 `;
 
@@ -321,57 +363,83 @@ const ProtectedValues = styled.div`
     min-height: 40px;
 `;
 
-const Chip = styled.span`
+/* Outer pill: takes the option's colour as background, holds the menu-trigger
+   button and the inline X delete button as siblings so they render as one
+   visual chip but remain individually focusable. */
+const ChipShell = styled.span`
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 12px;
-    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    user-select: none;
+    transition: filter 0.15s ease;
+
+    &:hover {
+        filter: brightness(0.97);
+    }
+`;
+
+const ReadonlyChip = styled.span`
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 4px;
     color: var(--center-channel-color);
     font-family: 'Open Sans';
     font-size: 12px;
     font-weight: 600;
-    line-height: 16px;
-    cursor: pointer;
-    user-select: none;
-
-    &:hover {
-        background-color: rgba(var(--center-channel-color-rgb), 0.12);
-    }
-`;
-
-const ReadonlyChip = styled(Chip)`
+    line-height: 18px;
     cursor: default;
-    background-color: rgba(var(--center-channel-color-rgb), 0.06);
-
-    &:hover {
-        background-color: rgba(var(--center-channel-color-rgb), 0.06);
-    }
 `;
 
 const ChipLabel = styled.span`
     white-space: nowrap;
+    line-height: 18px;
 `;
 
-const ColorSwatch = styled.span`
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-`;
-
-/* Wraps a small ColorSwatch into the 18px slot menu items reserve for icons,
-   so it is optically centred next to the menu item label and the trailing
-   check icon (16px). */
-const SwatchIcon = styled.span`
+const ChipDeleteButton = styled.button`
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    padding: 0 6px 0 2px;
+    margin: 0;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+
+    &:hover {
+        color: var(--center-channel-color);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: -2px;
+        border-radius: 2px;
+    }
+`;
+
+/* Rounded-square colour preview shown inside menu items, matching the look
+   of a paint chip (~18px square, light border for low-saturation colours). */
+const ColorPreview = styled.span`
+    display: inline-block;
     width: 18px;
     height: 18px;
+    border-radius: 3px;
     flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.08);
+`;
+
+const ColorsLabel = styled.div`
+    padding: 8px 16px 4px;
+    font-family: 'Open Sans';
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
 `;
 
 const AddButton = styled.button`

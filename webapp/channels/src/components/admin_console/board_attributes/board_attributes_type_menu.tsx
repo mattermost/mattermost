@@ -76,7 +76,7 @@ const SelectType = (props: Props) => {
                     key='filter_types'
                     id='filter_types'
                     type='text'
-                    placeholder={formatMessage({id: 'admin.board_attributes.user_properties.table.filter_type', defaultMessage: 'Attribute type'})}
+                    placeholder={formatMessage({id: 'admin.board_attributes.table.filter_type', defaultMessage: 'Attribute type'})}
                     className='search-teams-selector-search'
                     value={filter}
                     onChange={onFilterChange}
@@ -136,7 +136,7 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
         fieldType: 'text',
         icon: MenuVariantIcon,
         label: defineMessage({
-            id: 'admin.board_attributes.user_properties.table.select_type.text',
+            id: 'admin.board_attributes.table.select_type.text',
             defaultMessage: 'Text',
         }),
     },
@@ -145,7 +145,7 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
         fieldType: 'select',
         icon: ChevronDownCircleOutlineIcon,
         label: defineMessage({
-            id: 'admin.board_attributes.user_properties.table.select_type.select',
+            id: 'admin.board_attributes.table.select_type.select',
             defaultMessage: 'Select',
         }),
     },
@@ -154,7 +154,7 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
         fieldType: 'multiselect',
         icon: FormatListBulletedIcon,
         label: defineMessage({
-            id: 'admin.board_attributes.user_properties.table.select_type.multi_select',
+            id: 'admin.board_attributes.table.select_type.multi_select',
             defaultMessage: 'Multi-select',
         }),
     },
@@ -163,7 +163,7 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
         fieldType: 'date',
         icon: CalendarOutlineIcon,
         label: defineMessage({
-            id: 'admin.board_attributes.user_properties.table.select_type.date',
+            id: 'admin.board_attributes.table.select_type.date',
             defaultMessage: 'Date',
         }),
     },
@@ -172,7 +172,7 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
         fieldType: 'user',
         icon: AccountOutlineIcon,
         label: defineMessage({
-            id: 'admin.board_attributes.user_properties.table.select_type.user',
+            id: 'admin.board_attributes.table.select_type.user',
             defaultMessage: 'User',
         }),
     },

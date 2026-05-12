@@ -68,7 +68,7 @@ export const useBoardAttributesTable = (): SectionHook => {
                 <LinkButton onClick={create}>
                     <PlusIcon size={16}/>
                     <FormattedMessage
-                        id='admin.board_attributes.user_properties.add_property'
+                        id='admin.board_attributes.add_property'
                         defaultMessage='Add attribute'
                     />
                 </LinkButton>
@@ -112,7 +112,7 @@ export function BoardAttributesTable({
                     return (
                         <ColHeaderLeft>
                             <FormattedMessage
-                                id='admin.board_attributes.user_properties.table.property'
+                                id='admin.board_attributes.table.property'
                                 defaultMessage='Attribute'
                             />
                         </ColHeaderLeft>
@@ -129,7 +129,7 @@ export function BoardAttributesTable({
                         warning = (
                             <FormattedMessage
                                 tagName={DangerText}
-                                id='admin.board_attributes.user_properties.table.validation.name_required'
+                                id='admin.board_attributes.table.validation.name_required'
                                 defaultMessage='Please enter an attribute name.'
                             />
                         );
@@ -137,7 +137,7 @@ export function BoardAttributesTable({
                         warning = (
                             <FormattedMessage
                                 tagName={DangerText}
-                                id='admin.board_attributes.user_properties.table.validation.name_unique'
+                                id='admin.board_attributes.table.validation.name_unique'
                                 defaultMessage='Attribute names must be unique.'
                             />
                         );
@@ -145,7 +145,7 @@ export function BoardAttributesTable({
                         warning = (
                             <FormattedMessage
                                 tagName={DangerText}
-                                id='admin.board_attributes.user_properties.table.validation.name_taken'
+                                id='admin.board_attributes.table.validation.name_taken'
                                 defaultMessage='Attribute name already taken.'
                             />
                         );
@@ -156,7 +156,7 @@ export function BoardAttributesTable({
                             <EditCell
                                 strong={true}
                                 value={getValue()}
-                                label={formatMessage({id: 'admin.board_attributes.user_properties.table.property_name.input.name', defaultMessage: 'Attribute Name'})}
+                                label={formatMessage({id: 'admin.board_attributes.table.property_name.input.name', defaultMessage: 'Attribute Name'})}
                                 deleted={toDelete}
                                 disabled={isProtected || toDelete}
                                 testid='board-attribute-field-input'
@@ -178,7 +178,7 @@ export function BoardAttributesTable({
                     return (
                         <ColHeaderLeft>
                             <FormattedMessage
-                                id='admin.board_attributes.user_properties.table.type'
+                                id='admin.board_attributes.table.type'
                                 defaultMessage='Type'
                             />
                         </ColHeaderLeft>
@@ -201,7 +201,7 @@ export function BoardAttributesTable({
                 header: () => (
                     <ColHeaderLeft>
                         <FormattedMessage
-                            id='admin.board_attributes.user_properties.table.values'
+                            id='admin.board_attributes.table.values'
                             defaultMessage='Values'
                         />
                     </ColHeaderLeft>
@@ -225,7 +225,7 @@ export function BoardAttributesTable({
                     return (
                         <ColHeaderRight>
                             <FormattedMessage
-                                id='admin.board_attributes.user_properties.table.actions'
+                                id='admin.board_attributes.table.actions'
                                 defaultMessage='Actions'
                             />
                         </ColHeaderRight>

@@ -924,7 +924,7 @@ func (s *Server) doSetupBoardsProperties() error {
 	if err != nil {
 		attrs := model.StringInterface{
 			"options": []map[string]any{
-				{"id": model.BoardsStatusOptionTodoID, "name": "Todo", "color": "neutral"},
+				{"id": model.BoardsStatusOptionTodoID, "name": "Todo", "color": "default"},
 				{"id": model.BoardsStatusOptionInProgressID, "name": "In Progress", "color": "blue"},
 				{"id": model.BoardsStatusOptionCompleteID, "name": "Complete", "color": "green"},
 			},
