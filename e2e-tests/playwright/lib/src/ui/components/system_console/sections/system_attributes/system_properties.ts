@@ -63,6 +63,24 @@ export default class SystemProperties {
         return this.container.locator('input[id^="react-select-"]').nth(nth);
     }
 
+    /**
+     * Variants that always target the most recently added row, regardless of
+     * how many pre-existing fields are already in the table.  Use these after
+     * addAttribute() so that concurrent tests inserting UAAE/ABAC fields do
+     * not shift the nth-index and target the wrong row.
+     */
+    lastNameInput(): Locator {
+        return this.container.getByTestId('property-field-input').last();
+    }
+
+    lastTypeSelector(): Locator {
+        return this.container.getByTestId('fieldTypeSelectorMenuButton').last();
+    }
+
+    lastValuesInput(): Locator {
+        return this.container.locator('input[id^="react-select-"]').last();
+    }
+
     // ── Attribute actions ───────────────────────────────────────────────
 
     async addAttribute() {
@@ -86,6 +104,42 @@ export default class SystemProperties {
         }
     }
 
+    async selectLastType(typeName: string) {
+        await this.lastTypeSelector().click();
+        await this.page.getByRole('menuitemradio', {name: typeName, exact: true}).click();
+    }
+
+    async addOptionToLast(value: string) {
+        const input = this.lastValuesInput();
+        await input.fill(value);
+        await input.press('Enter');
+    }
+
+    async addOptionsToLast(values: string[]) {
+        for (const value of values) {
+            await this.addOptionToLast(value);
+        }
+    }
+
+    /**
+     * Select a type for the field identified by its current displayed name.
+     * Resolves the row index dynamically so it is not affected by concurrent
+     * tests that insert extra rows (e.g. UAAE / ABAC admin_editing tests).
+     */
+    async selectTypeForField(nameValue: string, typeName: string) {
+        const inputs = this.container.getByTestId('property-field-input');
+        const count = await inputs.count();
+        for (let i = 0; i < count; i++) {
+            const value = await inputs.nth(i).inputValue();
+            if (value === nameValue) {
+                await this.typeSelector(i).click();
+                await this.page.getByRole('menuitemradio', {name: typeName, exact: true}).click();
+                return;
+            }
+        }
+        throw new Error(`No field named "${nameValue}" found in the user attributes table`);
+    }
+
     // ── Save ────────────────────────────────────────────────────────────
 
     /**
@@ -99,8 +153,8 @@ export default class SystemProperties {
         await expect(this.saveButton).toBeEnabled();
 
         const saveResponsePromise = this.page.waitForResponse(
-            (resp: {url: () => string; status: () => number}) =>
-                resp.url().includes('/api/v4/custom_profile_attributes/fields') && resp.status() < 400,
+            (resp) =>
+                resp.url().includes('/api/v4/custom_profile_attributes/fields') && resp.request().method() !== 'GET',
         );
 
         await this.saveButton.click();

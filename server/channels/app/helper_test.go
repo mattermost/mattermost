@@ -77,7 +77,7 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	// Check for environment variable override for console log level (useful for debugging tests)
 	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
 	if consoleLevel == "" {
-		consoleLevel = mlog.LvlStdLog.Name
+		consoleLevel = mlog.LvlDebug.Name
 	}
 	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
 

@@ -40,6 +40,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "PlaybookRolesCreationMigrationComplete").Return(&model.System{Name: "PlaybookRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "PostPriorityConfigDefaultTrueMigrationComplete").Return(&model.System{Name: "PostPriorityConfigDefaultTrueMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "content_flagging_setup_done").Return(&model.System{Name: "content_flagging_setup_done", Value: "true"}, nil)
+	systemStore.On("GetByName", "managed_category_setup_done").Return(&model.System{Name: "managed_category_setup_done", Value: "v2"}, nil)
 	systemStore.On("GetByName", "managed_category_setup_done").Return(&model.System{Name: "managed_category_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", "cpa_display_name_backfill_done").Return(&model.System{Name: "cpa_display_name_backfill_done", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyEmojiPermissionsSplit).Return(&model.System{Name: model.MigrationKeyEmojiPermissionsSplit, Value: "true"}, nil)

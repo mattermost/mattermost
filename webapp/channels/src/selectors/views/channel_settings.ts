@@ -32,7 +32,8 @@ export const canAccessChannelSettings = createSelector(
         const isDM = channel.type === Constants.DM_CHANNEL;
         const isGM = channel.type === Constants.GM_CHANNEL;
 
-        // For DM and GM: allow Channel Settings when "Restrict auto-translation on DM and GM" is not enabled
+        // For DM and GM: allow Channel Settings when auto-translation is enabled
+        // and DM/GM restriction is disabled.
         if (isDM || isGM) {
             return isAutoTranslationEnabled && !isDMAndGMAutotranslationRestricted;
         }

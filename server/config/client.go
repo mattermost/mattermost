@@ -24,6 +24,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["LockTeammateNameDisplay"] = strconv.FormatBool(*c.TeamSettings.LockTeammateNameDisplay)
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
 	props["EnableJoinLeaveMessageByDefault"] = strconv.FormatBool(*c.TeamSettings.EnableJoinLeaveMessageByDefault)
+	props["EnableChannelCategorySorting"] = strconv.FormatBool(*c.TeamSettings.EnableChannelCategorySorting)
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
 	props["EnableDesktopLandingPage"] = strconv.FormatBool(*c.ServiceSettings.EnableDesktopLandingPage)
@@ -103,8 +104,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DisableRefetchingOnBrowserFocus"] = strconv.FormatBool(*c.ExperimentalSettings.DisableRefetchingOnBrowserFocus)
 	props["DisableWakeUpReconnectHandler"] = strconv.FormatBool(*c.ExperimentalSettings.DisableWakeUpReconnectHandler)
 	props["UsersStatusAndProfileFetchingPollIntervalMilliseconds"] = strconv.FormatInt(*c.ExperimentalSettings.UsersStatusAndProfileFetchingPollIntervalMilliseconds, 10)
-	props["ExperimentalChannelCategorySorting"] = strconv.FormatBool(*c.ExperimentalSettings.ExperimentalChannelCategorySorting)
-
 	// Here we set the new option, but we also send the old FeatureFlag property for backwards compatibility on mobile < 2.27
 	props["EnableCrossTeamSearch"] = strconv.FormatBool(*c.ServiceSettings.EnableCrossTeamSearch)
 	props["FeatureFlagExperimentalCrossTeamSearch"] = strconv.FormatBool(*c.ServiceSettings.EnableCrossTeamSearch)
@@ -242,7 +241,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
 			props["ExperimentalEnableWatermark"] = strconv.FormatBool(*c.ExperimentalSettings.EnableWatermark)
-			props["EnableManagedChannelCategories"] = strconv.FormatBool(*c.TeamSettings.EnableManagedChannelCategories)
 		}
 
 		if model.MinimumEnterpriseAdvancedLicense(license) {

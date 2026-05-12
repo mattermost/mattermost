@@ -66,6 +66,11 @@ jobs:
   # Enterprise Edition
   e2e-cypress:
     needs: generate-build-variables
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -85,6 +90,11 @@ jobs:
 
   e2e-playwright:
     needs: generate-build-variables
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -104,6 +114,11 @@ jobs:
   e2e-cypress-fips:
     needs: generate-build-variables
     if: needs.generate-build-variables.outputs.fips_supported == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -125,6 +140,11 @@ jobs:
   e2e-playwright-fips:
     needs: generate-build-variables
     if: needs.generate-build-variables.outputs.fips_supported == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}

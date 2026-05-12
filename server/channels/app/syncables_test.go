@@ -674,3 +674,147 @@ func TestSyncSyncableRoles(t *testing.T) {
 		require.True(t, cm.SchemeAdmin)
 	}
 }
+
+func TestSyncRolesAndMembership_RoleSyncGate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	setup := func(t *testing.T) (*model.Team, *model.Channel, *model.Group, *model.User) {
+		t.Helper()
+
+		team := th.CreateTeam(t)
+		channel := th.CreateChannel(t, team)
+		group := th.CreateGroup(t)
+
+		_, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+			SyncableId: team.Id,
+			Type:       model.GroupSyncableTypeTeam,
+			GroupId:    group.Id,
+			AutoAdd:    true,
+		})
+		require.Nil(t, err)
+
+		_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+			SyncableId: channel.Id,
+			Type:       model.GroupSyncableTypeChannel,
+			GroupId:    group.Id,
+			AutoAdd:    true,
+		})
+		require.Nil(t, err)
+
+		directAdmin := th.CreateUser(t)
+		_, appErr := th.App.AddTeamMember(th.Context, team.Id, directAdmin.Id)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, directAdmin, channel, false)
+		require.Nil(t, appErr)
+
+		tm, storeErr := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, directAdmin.Id)
+		require.NoError(t, storeErr)
+		tm.SchemeAdmin = true
+		_, storeErr = th.App.Srv().Store().Team().UpdateMember(th.Context, tm)
+		require.NoError(t, storeErr)
+
+		cm, storeErr := th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, directAdmin.Id)
+		require.NoError(t, storeErr)
+		cm.SchemeAdmin = true
+		_, storeErr = th.App.Srv().Store().Channel().UpdateMember(th.Context, cm)
+		require.NoError(t, storeErr)
+
+		return team, channel, group, directAdmin
+	}
+
+	t.Run("syncRoles=false preserves the existing SchemeAdmin on team members", func(t *testing.T) {
+		team, _, group, directAdmin := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, team.Id, model.GroupSyncableTypeTeam, group.Id, false)
+
+		tm, appErr := th.App.GetTeamMember(th.Context, team.Id, directAdmin.Id)
+		require.Nil(t, appErr)
+		assert.True(t, tm.SchemeAdmin)
+	})
+
+	t.Run("syncRoles=false preserves the existing SchemeAdmin on channel members", func(t *testing.T) {
+		_, channel, group, directAdmin := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, channel.Id, model.GroupSyncableTypeChannel, group.Id, false)
+
+		cm, appErr := th.App.GetChannelMember(th.Context, channel.Id, directAdmin.Id)
+		require.Nil(t, appErr)
+		assert.True(t, cm.SchemeAdmin)
+	})
+
+	t.Run("syncRoles=true reconciles team SchemeAdmin against PermittedSyncableAdmins", func(t *testing.T) {
+		team, _, group, directAdmin := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, team.Id, model.GroupSyncableTypeTeam, group.Id, true)
+
+		tm, appErr := th.App.GetTeamMember(th.Context, team.Id, directAdmin.Id)
+		require.Nil(t, appErr)
+		assert.False(t, tm.SchemeAdmin)
+	})
+
+	t.Run("syncRoles=true reconciles channel SchemeAdmin against PermittedSyncableAdmins", func(t *testing.T) {
+		_, channel, group, directAdmin := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, channel.Id, model.GroupSyncableTypeChannel, group.Id, true)
+
+		cm, appErr := th.App.GetChannelMember(th.Context, channel.Id, directAdmin.Id)
+		require.Nil(t, appErr)
+		assert.False(t, cm.SchemeAdmin)
+	})
+}
+
+func TestSyncRolesAndMembership_AlwaysSyncsMembership(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	setup := func(t *testing.T) (*model.Team, *model.Channel, *model.Group, *model.User) {
+		t.Helper()
+
+		team := th.CreateTeam(t)
+		channel := th.CreateChannel(t, team)
+		group := th.CreateGroup(t)
+
+		_, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+			SyncableId: team.Id,
+			Type:       model.GroupSyncableTypeTeam,
+			GroupId:    group.Id,
+			AutoAdd:    true,
+		})
+		require.Nil(t, err)
+
+		_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+			SyncableId: channel.Id,
+			Type:       model.GroupSyncableTypeChannel,
+			GroupId:    group.Id,
+			AutoAdd:    true,
+		})
+		require.Nil(t, err)
+
+		groupMember := th.CreateUser(t)
+		_, err = th.App.UpsertGroupMember(group.Id, groupMember.Id)
+		require.Nil(t, err)
+
+		return team, channel, group, groupMember
+	}
+
+	t.Run("syncRoles=false still adds group members to the team", func(t *testing.T) {
+		team, _, group, groupMember := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, team.Id, model.GroupSyncableTypeTeam, group.Id, false)
+
+		tm, appErr := th.App.GetTeamMember(th.Context, team.Id, groupMember.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, groupMember.Id, tm.UserId)
+	})
+
+	t.Run("syncRoles=false still adds group members to the channel", func(t *testing.T) {
+		_, channel, group, groupMember := setup(t)
+
+		th.App.SyncRolesAndMembership(th.Context, channel.Id, model.GroupSyncableTypeChannel, group.Id, false)
+
+		cm, appErr := th.App.GetChannelMember(th.Context, channel.Id, groupMember.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, groupMember.Id, cm.UserId)
+	})
+}

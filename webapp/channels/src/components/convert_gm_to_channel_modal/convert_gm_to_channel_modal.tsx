@@ -152,7 +152,7 @@ const ConvertGmToChannelModal = (props: Props) => {
         );
     } else {
         modalProps.handleCancel = showLoader ? undefined : props.onExited;
-        modalProps.isDeleteModal = true;
+        modalProps.confirmButtonVariant = 'destructive';
         modalProps.cancelButtonText = formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'});
         modalProps.confirmButtonText = formatMessage({id: 'sidebar_left.sidebar_channel_modal.confirmation_text', defaultMessage: 'Convert to private channel'});
         modalProps.isConfirmDisabled = !canCreate;

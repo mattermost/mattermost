@@ -6,11 +6,11 @@ import React, {memo, useCallback, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentChannel, isCurrentChannelFavorite} from 'mattermost-redux/selectors/entities/channels';
-
-import WithTooltip from 'components/with_tooltip';
 
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {A11yCustomEventTypes} from 'utils/constants';
