@@ -2234,7 +2234,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 	}
 	defer deferClose(rows, &err)
 
-	scanner := func(rows *sql.Rows) (string, string, error) {
+	scanner := func(rows rowScanner) (string, string, error) {
 		var cm allChannelMember
 		err = rows.Scan(
 			&cm.ChannelId, &cm.Roles, &cm.SchemeGuest, &cm.SchemeUser,
@@ -2276,7 +2276,7 @@ func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[stri
 		defaults[channelID] = 0
 	}
 
-	scanner := func(rows *sql.Rows) (string, int64, error) {
+	scanner := func(rows rowScanner) (string, int64, error) {
 		var channelID string
 		var count int64
 		err := rows.Scan(&channelID, &count)
@@ -2923,7 +2923,7 @@ func (s SqlChannelStore) AnalyticsCountAll(teamId string) (map[model.ChannelType
 	}
 	defer rows.Close()
 
-	scanner := func(rows *sql.Rows) (model.ChannelType, int64, error) {
+	scanner := func(rows rowScanner) (model.ChannelType, int64, error) {
 		var channelType model.ChannelType
 		var count int64
 		err := rows.Scan(&channelType, &count)
