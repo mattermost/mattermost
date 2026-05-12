@@ -77,34 +77,34 @@ func TestConfigIsValid(t *testing.T) {
 		t.Run("email", func(t *testing.T) {
 			c := Config{}
 			c.SetDefaults()
-			c.SupportSettings.ReportAProblemType = NewPointer(string(SupportSettingsReportAProblemTypeMail))
+			c.SupportSettings.ReportAProblemType = new(string(SupportSettingsReportAProblemTypeMail))
 			c.SupportSettings.ReportAProblemMail = nil
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemMail = NewPointer("")
+			c.SupportSettings.ReportAProblemMail = new("")
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemMail = NewPointer("invalid")
+			c.SupportSettings.ReportAProblemMail = new("invalid")
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemMail = NewPointer("valid@email.com")
+			c.SupportSettings.ReportAProblemMail = new("valid@email.com")
 			require.Nil(t, c.IsValid())
 		})
 
 		t.Run("link", func(t *testing.T) {
 			c := Config{}
 			c.SetDefaults()
-			c.SupportSettings.ReportAProblemType = NewPointer(string(SupportSettingsReportAProblemTypeLink))
+			c.SupportSettings.ReportAProblemType = new(string(SupportSettingsReportAProblemTypeLink))
 			c.SupportSettings.ReportAProblemLink = nil
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemLink = NewPointer("")
+			c.SupportSettings.ReportAProblemLink = new("")
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemLink = NewPointer("invalid")
+			c.SupportSettings.ReportAProblemLink = new("invalid")
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemLink = NewPointer("http://valid.com")
+			c.SupportSettings.ReportAProblemLink = new("http://valid.com")
 			require.Nil(t, c.IsValid())
 		})
 	})
@@ -113,7 +113,7 @@ func TestConfigIsValid(t *testing.T) {
 func TestConfigEmptySiteName(t *testing.T) {
 	c1 := Config{
 		TeamSettings: TeamSettings{
-			SiteName: NewPointer(""),
+			SiteName: new(""),
 		},
 	}
 	c1.SetDefaults()
@@ -132,19 +132,19 @@ func TestServiceSettingsIsValid(t *testing.T) {
 		},
 		"OutgoingIntegrationRequestsTimeout is negative": {
 			ServiceSettings: ServiceSettings{
-				OutgoingIntegrationRequestsTimeout: NewPointer(int64(-1)),
+				OutgoingIntegrationRequestsTimeout: new(int64(-1)),
 			},
 			ExpectError: true,
 		},
 		"OutgoingIntegrationRequestsTimeout is zero": {
 			ServiceSettings: ServiceSettings{
-				OutgoingIntegrationRequestsTimeout: NewPointer(int64(0)),
+				OutgoingIntegrationRequestsTimeout: new(int64(0)),
 			},
 			ExpectError: true,
 		},
 		"OutgoingIntegrationRequestsTimeout is positiv": {
 			ServiceSettings: ServiceSettings{
-				OutgoingIntegrationRequestsTimeout: NewPointer(int64(1)),
+				OutgoingIntegrationRequestsTimeout: new(int64(1)),
 			},
 			ExpectError: false,
 		},
@@ -168,8 +168,8 @@ func TestConfigEnableDeveloper(t *testing.T) {
 		EnableDeveloper *bool
 		ExpectedSiteURL string
 	}{
-		{"enable developer is true", NewPointer(true), ServiceSettingsDefaultSiteURL},
-		{"enable developer is false", NewPointer(false), ""},
+		{"enable developer is true", new(true), ServiceSettingsDefaultSiteURL},
+		{"enable developer is false", new(false), ""},
 		{"enable developer is nil", nil, ""},
 	}
 
@@ -253,7 +253,7 @@ func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
 		t.Run(fmt.Sprintf("Valid %s", setting.name), func(t *testing.T) {
 			cfg := &Config{}
 			cfg.SetDefaults()
-			setting.configSetter(cfg, NewPointer(setting.validValue))
+			setting.configSetter(cfg, new(setting.validValue))
 
 			err := cfg.FileSettings.isValid()
 			require.Nil(t, err, "Expected no error but got: %v", err)
@@ -264,7 +264,7 @@ func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
 	t.Run("Directory with space in the middle (valid)", func(t *testing.T) {
 		cfg := &Config{}
 		cfg.SetDefaults()
-		cfg.FileSettings.Directory = NewPointer("/path/to/my directory")
+		cfg.FileSettings.Directory = new("/path/to/my directory")
 
 		err := cfg.FileSettings.isValid()
 		require.Nil(t, err, "Expected no error but got: %v", err)
@@ -285,7 +285,7 @@ func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
 						testValue = setting.validValue + ws.char
 					}
 
-					setting.configSetter(cfg, NewPointer(testValue))
+					setting.configSetter(cfg, new(testValue))
 
 					err := cfg.FileSettings.isValid()
 					require.NotNil(t, err, "Expected an error but got none")
@@ -359,14 +359,14 @@ func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
 func TestConfigServiceProviderDefault(t *testing.T) {
 	c1 := &Config{
 		SamlSettings: SamlSettings{
-			Enable:             NewPointer(true),
-			Verify:             NewPointer(false),
-			Encrypt:            NewPointer(false),
-			IdpURL:             NewPointer("http://test.url.com"),
-			IdpDescriptorURL:   NewPointer("http://test2.url.com"),
-			IdpCertificateFile: NewPointer("certificatefile"),
-			EmailAttribute:     NewPointer("Email"),
-			UsernameAttribute:  NewPointer("Username"),
+			Enable:             new(true),
+			Verify:             new(false),
+			Encrypt:            new(false),
+			IdpURL:             new("http://test.url.com"),
+			IdpDescriptorURL:   new("http://test2.url.com"),
+			IdpCertificateFile: new("certificatefile"),
+			EmailAttribute:     new("Email"),
+			UsernameAttribute:  new("Username"),
 		},
 	}
 
@@ -443,7 +443,7 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	// This setting was briefly a boolean, so ensure that those values still work as expected
 	c1 = Config{
 		ServiceSettings: ServiceSettings{
-			ExperimentalGroupUnreadChannels: NewPointer("1"),
+			ExperimentalGroupUnreadChannels: new("1"),
 		},
 	}
 	c1.SetDefaults()
@@ -452,7 +452,7 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 
 	c1 = Config{
 		ServiceSettings: ServiceSettings{
-			ExperimentalGroupUnreadChannels: NewPointer("0"),
+			ExperimentalGroupUnreadChannels: new("0"),
 		},
 	}
 	c1.SetDefaults()
@@ -471,7 +471,7 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 	t.Run("should enable NPS plugin if diagnostics are enabled", func(t *testing.T) {
 		c1 := Config{
 			LogSettings: LogSettings{
-				EnableDiagnostics: NewPointer(true),
+				EnableDiagnostics: new(true),
 			},
 		}
 
@@ -483,7 +483,7 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 	t.Run("should not enable NPS plugin if diagnostics are disabled", func(t *testing.T) {
 		c1 := Config{
 			LogSettings: LogSettings{
-				EnableDiagnostics: NewPointer(false),
+				EnableDiagnostics: new(false),
 			},
 		}
 
@@ -522,7 +522,7 @@ func TestConfigDefaultChannelExportPluginState(t *testing.T) {
 func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
-	c1.TeamSettings.SiteName = NewPointer("")
+	c1.TeamSettings.SiteName = new("")
 
 	// should not fail if ts.SiteName is not set, defaults are used
 	require.Nil(t, c1.TeamSettings.isValid())
@@ -533,7 +533,7 @@ func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {
 	c1.SetDefaults()
 
 	// should default to true
-	require.Equal(t, NewPointer(true), c1.TeamSettings.EnableJoinLeaveMessageByDefault)
+	require.Equal(t, new(true), c1.TeamSettings.EnableJoinLeaveMessageByDefault)
 }
 
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
@@ -545,7 +545,7 @@ func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
 
 func TestMessageExportSettingsIsValidEnableExportFalse(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport: NewPointer(false),
+		EnableExport: new(false),
 	}
 
 	// should fail fast because message export isn't enabled
@@ -554,18 +554,18 @@ func TestMessageExportSettingsIsValidEnableExportFalse(t *testing.T) {
 
 func TestMessageExportSettingsIsValidExportFromTimestampInvalid(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport: NewPointer(true),
+		EnableExport: new(true),
 	}
 
 	// should fail fast because export from timestamp isn't set
 	require.NotNil(t, mes.isValid())
 
-	mes.ExportFromTimestamp = NewPointer(int64(-1))
+	mes.ExportFromTimestamp = new(int64(-1))
 
 	// should fail fast because export from timestamp isn't valid
 	require.NotNil(t, mes.isValid())
 
-	mes.ExportFromTimestamp = NewPointer(GetMillis() + 10000)
+	mes.ExportFromTimestamp = new(GetMillis() + 10000)
 
 	// should fail fast because export from timestamp is greater than current time
 	require.NotNil(t, mes.isValid())
@@ -573,14 +573,14 @@ func TestMessageExportSettingsIsValidExportFromTimestampInvalid(t *testing.T) {
 
 func TestMessageExportSettingsIsValidDailyRunTimeInvalid(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFromTimestamp: NewPointer(int64(0)),
+		EnableExport:        new(true),
+		ExportFromTimestamp: new(int64(0)),
 	}
 
 	// should fail fast because daily runtime isn't set
 	require.NotNil(t, mes.isValid())
 
-	mes.DailyRunTime = NewPointer("33:33:33")
+	mes.DailyRunTime = new("33:33:33")
 
 	// should fail fast because daily runtime is invalid format
 	require.NotNil(t, mes.isValid())
@@ -588,9 +588,9 @@ func TestMessageExportSettingsIsValidDailyRunTimeInvalid(t *testing.T) {
 
 func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
+		EnableExport:        new(true),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
 	}
 
 	// should fail fast because batch size isn't set
@@ -599,10 +599,10 @@ func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
 
 func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
-		BatchSize:           NewPointer(100),
+		EnableExport:        new(true),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
 	}
 
 	// should fail fast because export format isn't set
@@ -611,11 +611,11 @@ func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
 
 func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFormat:        NewPointer(ComplianceExportTypeGlobalrelay),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
-		BatchSize:           NewPointer(100),
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelay),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
 	}
 
 	// should fail fast because global relay email address isn't set
@@ -624,11 +624,11 @@ func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T
 
 func TestMessageExportSettingsIsValidActiance(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFormat:        NewPointer(ComplianceExportTypeActiance),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
-		BatchSize:           NewPointer(100),
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeActiance),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
 	}
 
 	// should pass because everything is valid
@@ -637,11 +637,11 @@ func TestMessageExportSettingsIsValidActiance(t *testing.T) {
 
 func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFormat:        NewPointer(ComplianceExportTypeGlobalrelay),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
-		BatchSize:           NewPointer(100),
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelay),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
 	}
 
 	// should fail because globalrelay settings are missing
@@ -650,16 +650,16 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
 
 func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFormat:        NewPointer(ComplianceExportTypeGlobalrelay),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
-		BatchSize:           NewPointer(100),
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelay),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
 		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
-			CustomerType: NewPointer("Invalid"),
-			EmailAddress: NewPointer("valid@mattermost.com"),
-			SMTPUsername: NewPointer("SomeUsername"),
-			SMTPPassword: NewPointer("SomePassword"),
+			CustomerType: new("Invalid"),
+			EmailAddress: new("valid@mattermost.com"),
+			SMTPUsername: new("SomeUsername"),
+			SMTPPassword: new("SomePassword"),
 		},
 	}
 
@@ -677,49 +677,49 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 		{
 			"Invalid email address",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewPointer(GlobalrelayCustomerTypeA9),
-				EmailAddress: NewPointer("invalidEmailAddress"),
-				SMTPUsername: NewPointer("SomeUsername"),
-				SMTPPassword: NewPointer("SomePassword"),
+				CustomerType: new(GlobalrelayCustomerTypeA9),
+				EmailAddress: new("invalidEmailAddress"),
+				SMTPUsername: new("SomeUsername"),
+				SMTPPassword: new("SomePassword"),
 			},
 			false,
 		},
 		{
 			"Missing smtp username",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewPointer(GlobalrelayCustomerTypeA10),
-				EmailAddress: NewPointer("valid@mattermost.com"),
-				SMTPPassword: NewPointer("SomePassword"),
+				CustomerType: new(GlobalrelayCustomerTypeA10),
+				EmailAddress: new("valid@mattermost.com"),
+				SMTPPassword: new("SomePassword"),
 			},
 			false,
 		},
 		{
 			"Invalid smtp username",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewPointer(GlobalrelayCustomerTypeA10),
-				EmailAddress: NewPointer("valid@mattermost.com"),
-				SMTPUsername: NewPointer(""),
-				SMTPPassword: NewPointer("SomePassword"),
+				CustomerType: new(GlobalrelayCustomerTypeA10),
+				EmailAddress: new("valid@mattermost.com"),
+				SMTPUsername: new(""),
+				SMTPPassword: new("SomePassword"),
 			},
 			false,
 		},
 		{
 			"Invalid smtp password",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewPointer(GlobalrelayCustomerTypeA10),
-				EmailAddress: NewPointer("valid@mattermost.com"),
-				SMTPUsername: NewPointer("SomeUsername"),
-				SMTPPassword: NewPointer(""),
+				CustomerType: new(GlobalrelayCustomerTypeA10),
+				EmailAddress: new("valid@mattermost.com"),
+				SMTPUsername: new("SomeUsername"),
+				SMTPPassword: new(""),
 			},
 			false,
 		},
 		{
 			"Valid data",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewPointer(GlobalrelayCustomerTypeA9),
-				EmailAddress: NewPointer("valid@mattermost.com"),
-				SMTPUsername: NewPointer("SomeUsername"),
-				SMTPPassword: NewPointer("SomePassword"),
+				CustomerType: new(GlobalrelayCustomerTypeA9),
+				EmailAddress: new("valid@mattermost.com"),
+				SMTPUsername: new("SomeUsername"),
+				SMTPPassword: new("SomePassword"),
 			},
 			true,
 		},
@@ -728,11 +728,11 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mes := &MessageExportSettings{
-				EnableExport:        NewPointer(true),
-				ExportFormat:        NewPointer(ComplianceExportTypeGlobalrelay),
-				ExportFromTimestamp: NewPointer(int64(0)),
-				DailyRunTime:        NewPointer("15:04"),
-				BatchSize:           NewPointer(100),
+				EnableExport:        new(true),
+				ExportFormat:        new(ComplianceExportTypeGlobalrelay),
+				ExportFromTimestamp: new(int64(0)),
+				DailyRunTime:        new("15:04"),
+				BatchSize:           new(100),
 				GlobalRelaySettings: tt.value,
 			}
 
@@ -759,7 +759,7 @@ func TestMessageExportSetDefaults(t *testing.T) {
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {
 	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
-		EnableExport: NewPointer(true),
+		EnableExport: new(true),
 	}
 	mes.SetDefaults()
 
@@ -773,8 +773,8 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing.T) {
 	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFromTimestamp: NewPointer(int64(0)),
+		EnableExport:        new(true),
+		ExportFromTimestamp: new(int64(0)),
 	}
 	mes.SetDefaults()
 
@@ -787,8 +787,8 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNonZero(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFromTimestamp: NewPointer(int64(12345)),
+		EnableExport:        new(true),
+		ExportFromTimestamp: new(int64(12345)),
 	}
 	mes.SetDefaults()
 
@@ -800,7 +800,7 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNonZero(t *test
 
 func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNil(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport: NewPointer(false),
+		EnableExport: new(false),
 	}
 	mes.SetDefaults()
 
@@ -812,8 +812,8 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNil(t *testing
 
 func TestMessageExportSetDefaultsExportDisabledExportFromTimestampZero(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(false),
-		ExportFromTimestamp: NewPointer(int64(0)),
+		EnableExport:        new(false),
+		ExportFromTimestamp: new(int64(0)),
 	}
 	mes.SetDefaults()
 
@@ -826,8 +826,8 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampZero(t *testin
 func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *testing.T) {
 	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(false),
-		ExportFromTimestamp: NewPointer(int64(12345)),
+		EnableExport:        new(false),
+		ExportFromTimestamp: new(int64(12345)),
 	}
 	mes.SetDefaults()
 
@@ -947,7 +947,7 @@ func TestListenAddressIsValidated(t *testing.T) {
 
 	for key, expected := range testValues {
 		ss := &ServiceSettings{
-			ListenAddress: NewPointer(key),
+			ListenAddress: new(key),
 		}
 		ss.SetDefaults(true)
 		if expected {
@@ -1070,133 +1070,133 @@ func TestLdapSettingsIsValid(t *testing.T) {
 		{
 			Name: "disabled",
 			LdapSettings: LdapSettings{
-				Enable: NewPointer(false),
+				Enable: new(false),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "missing server",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer(""),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer(""),
+				Enable:            new(true),
+				LdapServer:        new(""),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new(""),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "empty user filter",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer(""),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new(""),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "valid user filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("(property=value)"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("(property=value)"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid user filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("("),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("("),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid user filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("()"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("()"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "valid user filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("(&(property=value)(otherthing=othervalue))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("(&(property=value)(otherthing=othervalue))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "valid user filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid user filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid user filter #4",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("(&(property=value)((otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: true,
 		},
@@ -1204,98 +1204,98 @@ func TestLdapSettingsIsValid(t *testing.T) {
 		{
 			Name: "valid guest filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("(property=value)"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("(property=value)"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid guest filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("("),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("("),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid guest filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("()"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("()"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "valid guest filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("(&(property=value)(otherthing=othervalue))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("(&(property=value)(otherthing=othervalue))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "valid guest filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid guest filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid guest filter #4",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("(&(property=value)((otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: true,
 		},
@@ -1303,98 +1303,98 @@ func TestLdapSettingsIsValid(t *testing.T) {
 		{
 			Name: "valid Admin filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("(property=value)"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("(property=value)"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid Admin filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("("),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("("),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid Admin filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("()"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("()"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "valid Admin filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("(&(property=value)(otherthing=othervalue))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("(&(property=value)(otherthing=othervalue))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "valid Admin filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid Admin filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid Admin filter #4",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("(&(property=value)((otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: true,
 		},
@@ -1601,9 +1601,9 @@ func TestConfigSanitize(t *testing.T) {
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
 	c.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{{
-		DataSource:       NewPointer("DataSource"),
-		QueryAbsoluteLag: NewPointer("QueryAbsoluteLag"),
-		QueryTimeLag:     NewPointer("QueryTimeLag"),
+		DataSource:       new("DataSource"),
+		QueryAbsoluteLag: new("QueryAbsoluteLag"),
+		QueryTimeLag:     new("QueryTimeLag"),
 	}}
 
 	c.Sanitize(nil, nil)
@@ -2271,7 +2271,7 @@ func TestConfigGetMessageRetentionHours(t *testing.T) {
 			name: "should return MessageRetentionHours config value",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					MessageRetentionHours: NewPointer(48),
+					MessageRetentionHours: new(48),
 				},
 			},
 			value: 48,
@@ -2280,8 +2280,8 @@ func TestConfigGetMessageRetentionHours(t *testing.T) {
 			name: "should return MessageRetentionHours config value",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					MessageRetentionDays:  NewPointer(50),
-					MessageRetentionHours: NewPointer(48),
+					MessageRetentionDays:  new(50),
+					MessageRetentionHours: new(48),
 				},
 			},
 			value: 48,
@@ -2290,8 +2290,8 @@ func TestConfigGetMessageRetentionHours(t *testing.T) {
 			name: "should return MessageRetentionDays config value in hours",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					MessageRetentionDays:  NewPointer(50),
-					MessageRetentionHours: NewPointer(0),
+					MessageRetentionDays:  new(50),
+					MessageRetentionHours: new(0),
 				},
 			},
 			value: 1200,
@@ -2322,7 +2322,7 @@ func TestConfigGetFileRetentionHours(t *testing.T) {
 			name: "should return FileRetentionHours config value",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					FileRetentionHours: NewPointer(48),
+					FileRetentionHours: new(48),
 				},
 			},
 			value: 48,
@@ -2331,8 +2331,8 @@ func TestConfigGetFileRetentionHours(t *testing.T) {
 			name: "should return FileRetentionHours config value",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					FileRetentionDays:  NewPointer(50),
-					FileRetentionHours: NewPointer(48),
+					FileRetentionDays:  new(50),
+					FileRetentionHours: new(48),
 				},
 			},
 			value: 48,
@@ -2341,8 +2341,8 @@ func TestConfigGetFileRetentionHours(t *testing.T) {
 			name: "should return FileRetentionDays config value in hours",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					FileRetentionDays:  NewPointer(50),
-					FileRetentionHours: NewPointer(0),
+					FileRetentionDays:  new(50),
+					FileRetentionHours: new(0),
 				},
 			},
 			value: 1200,
@@ -2370,8 +2370,8 @@ func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
 		c.ConnectedWorkspacesSettings = ConnectedWorkspacesSettings{}
-		c.ExperimentalSettings.EnableSharedChannels = NewPointer(true)
-		c.ExperimentalSettings.EnableRemoteClusterService = NewPointer(false)
+		c.ExperimentalSettings.EnableSharedChannels = new(true)
+		c.ExperimentalSettings.EnableRemoteClusterService = new(false)
 
 		c.SetDefaults()
 		require.True(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
@@ -2381,10 +2381,10 @@ func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 	t.Run("if the config is being updated and server federation settings already have values, they should not change", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
-		c.ConnectedWorkspacesSettings.EnableSharedChannels = NewPointer(false)
-		c.ConnectedWorkspacesSettings.EnableRemoteClusterService = NewPointer(true)
-		c.ExperimentalSettings.EnableSharedChannels = NewPointer(true)
-		c.ExperimentalSettings.EnableRemoteClusterService = NewPointer(false)
+		c.ConnectedWorkspacesSettings.EnableSharedChannels = new(false)
+		c.ConnectedWorkspacesSettings.EnableRemoteClusterService = new(true)
+		c.ExperimentalSettings.EnableSharedChannels = new(true)
+		c.ExperimentalSettings.EnableRemoteClusterService = new(false)
 
 		c.SetDefaults()
 		require.False(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
@@ -2405,15 +2405,15 @@ func TestExperimentalAuditSettingsIsValid(t *testing.T) {
 		},
 		"file enabled with empty filename": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled: NewPointer(true),
-				FileName:    NewPointer(""),
+				FileEnabled: new(true),
+				FileName:    new(""),
 			},
 			ExpectError: true,
 		},
 		"file enabled with valid filename": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled: NewPointer(true),
-				FileName:    NewPointer("audit.log"),
+				FileEnabled: new(true),
+				FileName:    new("audit.log"),
 			},
 			ExpectError: false,
 		},
@@ -2554,7 +2554,7 @@ func TestFilterConfig(t *testing.T) {
 		require.Empty(t, m)
 
 		cfg.ServiceSettings = ServiceSettings{
-			EnableLocalMode: NewPointer(true),
+			EnableLocalMode: new(true),
 		}
 
 		m, err = FilterConfig(cfg, ConfigFilterOptions{
@@ -2572,7 +2572,7 @@ func TestFilterConfig(t *testing.T) {
 		cfg.SetDefaults()
 
 		dsn := "somedb://user:password@localhost:5432/mattermost"
-		cfg.SqlSettings.DataSource = NewPointer(dsn)
+		cfg.SqlSettings.DataSource = new(dsn)
 
 		m, err := FilterConfig(cfg, ConfigFilterOptions{
 			GetConfigOptions: GetConfigOptions{
@@ -2603,7 +2603,7 @@ func TestFilterConfig(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, m)
 
-		cfg.SqlSettings.DriverName = NewPointer("postgresql")
+		cfg.SqlSettings.DriverName = new("postgresql")
 		m, err = FilterConfig(cfg, ConfigFilterOptions{
 			GetConfigOptions: GetConfigOptions{
 				RemoveDefaults: true,
@@ -2745,14 +2745,14 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 		{
 			name: "disabled settings should be valid",
 			settings: AutoTranslationSettings{
-				Enable: NewPointer(false),
+				Enable: new(false),
 			},
 			expectError: false,
 		},
 		{
 			name: "enabled with no provider should fail",
 			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
+				Enable:   new(true),
 				Provider: nil,
 			},
 			expectError: true,
@@ -2761,8 +2761,8 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 		{
 			name: "enabled with unsupported provider should fail",
 			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
-				Provider: NewPointer("unsupported"),
+				Enable:   new(true),
+				Provider: new("unsupported"),
 			},
 			expectError: true,
 			errorId:     "model.config.is_valid.autotranslation.provider.unsupported.app_error",
@@ -2770,10 +2770,10 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 		{
 			name: "libretranslate without URL should fail",
 			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
-				Provider: NewPointer("libretranslate"),
+				Enable:   new(true),
+				Provider: new("libretranslate"),
 				LibreTranslate: &LibreTranslateProviderSettings{
-					URL: NewPointer(""),
+					URL: new(""),
 				},
 			},
 			expectError: true,
@@ -2795,11 +2795,11 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 		{
 			name: "valid libretranslate settings",
 			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
-				Provider: NewPointer("libretranslate"),
+				Enable:   new(true),
+				Provider: new("libretranslate"),
 				LibreTranslate: &LibreTranslateProviderSettings{
-					URL:    NewPointer("https://lt.example.com"),
-					APIKey: NewPointer("optional-key"),
+					URL:    new("https://lt.example.com"),
+					APIKey: new("optional-key"),
 				},
 			},
 			expectError: false,
@@ -2807,12 +2807,12 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 		{
 			name: "valid workers at 48",
 			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
-				Provider: NewPointer("libretranslate"),
-				Workers:  NewPointer(48),
+				Enable:   new(true),
+				Provider: new("libretranslate"),
+				Workers:  new(48),
 				LibreTranslate: &LibreTranslateProviderSettings{
-					URL:    NewPointer("https://lt.example.com"),
-					APIKey: NewPointer("optional-key"),
+					URL:    new("https://lt.example.com"),
+					APIKey: new("optional-key"),
 				},
 			},
 			expectError: false,
@@ -2821,12 +2821,12 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			name:    "invalid workers above 64",
 			errorId: "model.config.is_valid.autotranslation.workers.app_error",
 			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
-				Provider: NewPointer("libretranslate"),
-				Workers:  NewPointer(65),
+				Enable:   new(true),
+				Provider: new("libretranslate"),
+				Workers:  new(65),
 				LibreTranslate: &LibreTranslateProviderSettings{
-					URL:    NewPointer("https://lt.example.com"),
-					APIKey: NewPointer("optional-key"),
+					URL:    new("https://lt.example.com"),
+					APIKey: new("optional-key"),
 				},
 			},
 			expectError: true,
@@ -2880,8 +2880,7 @@ func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
 
 	var checkStruct func(t *testing.T, st reflect.Type, path string)
 	checkStruct = func(t *testing.T, st reflect.Type, path string) {
-		for i := 0; i < st.NumField(); i++ {
-			field := st.Field(i)
+		for field := range st.Fields() {
 			fieldPath := path + "." + field.Name
 
 			elemType := field.Type
@@ -2995,7 +2994,7 @@ func TestExperimentalSettingsEnableWatermarkDefault(t *testing.T) {
 
 	t.Run("SetDefaults does not overwrite explicit true value", func(t *testing.T) {
 		cfg := Config{}
-		cfg.ExperimentalSettings.EnableWatermark = NewPointer(true)
+		cfg.ExperimentalSettings.EnableWatermark = new(true)
 		cfg.SetDefaults()
 		require.NotNil(t, cfg.ExperimentalSettings.EnableWatermark)
 		require.True(t, *cfg.ExperimentalSettings.EnableWatermark)

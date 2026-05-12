@@ -213,7 +213,7 @@ func GetValueByPath(path []string, obj any) (any, bool) {
 					return mapVal.Interface(), true
 				}
 				data := mapVal.Interface()
-				if mapVal.Kind() == reflect.Ptr {
+				if mapVal.Kind() == reflect.Pointer {
 					data = mapVal.Elem().Interface() // if value is a pointer, dereference it
 				}
 				// pass subpath

@@ -593,7 +593,7 @@ func (a *App) createGroupChannel(rctx request.CTX, userIDs []string, creatorID s
 		Name:        model.GetGroupNameFromUserIds(userIDs),
 		DisplayName: model.GetGroupDisplayNameFromUsers(users, true),
 		Type:        model.ChannelTypeGroup,
-		Shared:      model.NewPointer(channelIsShared),
+		Shared:      new(channelIsShared),
 	}
 
 	channel, nErr := a.Srv().Store().Channel().Save(rctx, group, *a.Config().TeamSettings.MaxChannelsPerTeam, channelOptions...)
@@ -4267,8 +4267,8 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 			TeamIds:                     []string{teamID},
 			Public:                      true,
 			AccessControlPolicyEnforced: true,
-			Page:                        model.NewPointer(page),
-			PerPage:                     model.NewPointer(recommendedPublicChannelsScanPageSize),
+			Page:                        new(page),
+			PerPage:                     new(recommendedPublicChannelsScanPageSize),
 		})
 		if searchErr != nil {
 			return nil, searchErr

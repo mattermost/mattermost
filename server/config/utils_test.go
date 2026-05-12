@@ -18,19 +18,19 @@ func TestDesanitize(t *testing.T) {
 	actual.SetDefaults()
 
 	// These setting should be ignored
-	actual.LdapSettings.Enable = model.NewPointer(false)
-	actual.FileSettings.DriverName = model.NewPointer("s3")
+	actual.LdapSettings.Enable = new(false)
+	actual.FileSettings.DriverName = new("s3")
 
 	// These settings should be desanitized into target.
-	actual.LdapSettings.BindPassword = model.NewPointer("bind_password")
-	actual.FileSettings.PublicLinkSalt = model.NewPointer("public_link_salt")
-	actual.FileSettings.AmazonS3SecretAccessKey = model.NewPointer("amazon_s3_secret_access_key")
-	actual.EmailSettings.SMTPPassword = model.NewPointer("smtp_password")
-	actual.GitLabSettings.Secret = model.NewPointer("secret")
-	actual.OpenIdSettings.Secret = model.NewPointer("secret")
-	actual.SqlSettings.DataSource = model.NewPointer("data_source")
-	actual.SqlSettings.AtRestEncryptKey = model.NewPointer("at_rest_encrypt_key")
-	actual.ElasticsearchSettings.Password = model.NewPointer("password")
+	actual.LdapSettings.BindPassword = new("bind_password")
+	actual.FileSettings.PublicLinkSalt = new("public_link_salt")
+	actual.FileSettings.AmazonS3SecretAccessKey = new("amazon_s3_secret_access_key")
+	actual.EmailSettings.SMTPPassword = new("smtp_password")
+	actual.GitLabSettings.Secret = new("secret")
+	actual.OpenIdSettings.Secret = new("secret")
+	actual.SqlSettings.DataSource = new("data_source")
+	actual.SqlSettings.AtRestEncryptKey = new("at_rest_encrypt_key")
+	actual.ElasticsearchSettings.Password = new("password")
 	actual.SqlSettings.DataSourceReplicas = append(actual.SqlSettings.DataSourceReplicas, "replica0")
 	actual.SqlSettings.DataSourceReplicas = append(actual.SqlSettings.DataSourceReplicas, "replica1")
 	actual.SqlSettings.DataSourceSearchReplicas = append(actual.SqlSettings.DataSourceSearchReplicas, "search_replica0")
@@ -46,8 +46,8 @@ func TestDesanitize(t *testing.T) {
 	target.SetDefaults()
 
 	// These setting should be ignored
-	target.LdapSettings.Enable = model.NewPointer(true)
-	target.FileSettings.DriverName = model.NewPointer("file")
+	target.LdapSettings.Enable = new(true)
+	target.FileSettings.DriverName = new("file")
 
 	// These settings should be updated from actual
 	target.LdapSettings.BindPassword = model.NewPointer(model.FakeSetting)

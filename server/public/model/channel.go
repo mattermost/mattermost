@@ -266,7 +266,7 @@ func WithID(ID string) ChannelOption {
 func (o *Channel) DeepCopy() *Channel {
 	cCopy := *o
 	if cCopy.SchemeId != nil {
-		cCopy.SchemeId = NewPointer(*o.SchemeId)
+		cCopy.SchemeId = new(*o.SchemeId)
 	}
 	return &cCopy
 }
