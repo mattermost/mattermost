@@ -33,6 +33,7 @@ import {getBurnOnReadDurationMinutes} from 'selectors/burn_on_read';
 import {isBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
+import {getIsGlobalThreadsView} from 'selectors/lhs';
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -219,7 +220,7 @@ function makeMapStateToProps() {
             recentEmojis: emojis,
             center: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
-            isExpanded: state.views.rhs.isSidebarExpanded || state.views.rhsSuppressed,
+            isExpanded: state.views.rhs.isSidebarExpanded || getIsGlobalThreadsView(state),
             isPostBeingEdited: ownProps.location === Locations.CENTER ? !getIsPostBeingEditedInRHS(state, post.id) && getIsPostBeingEdited(state, post.id) : getIsPostBeingEditedInRHS(state, post.id),
             isMobileView: getIsMobileView(state),
             previewCollapsed,

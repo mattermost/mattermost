@@ -114,7 +114,7 @@ describe('PostOptions - quick reaction count (MM-68681)', () => {
         expect(recentReactions).toHaveAttribute('data-size', '1');
     });
 
-    test('shows 3 quick reaction emojis in RHS_ROOT when isExpanded is true (expanded RHS or suppressed RHS / Global Threads)', () => {
+    test('shows 3 quick reaction emojis in RHS_ROOT when isExpanded is true (expanded RHS or Global Threads view)', () => {
         renderWithContext(
             <PostOptions
                 {...baseProps}
