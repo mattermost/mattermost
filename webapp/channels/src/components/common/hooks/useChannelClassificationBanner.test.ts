@@ -172,7 +172,7 @@ describe('useChannelClassificationBanner', () => {
         });
     });
 
-    test('returns empty bannerText when banner_info.text is missing but classification is set', () => {
+    test('falls back to level name when banner_info.text is missing but classification is set', () => {
         mockClassification();
         const value = makePropertyValue('lvl1');
 
@@ -183,10 +183,10 @@ describe('useChannelClassificationBanner', () => {
 
         expect(result.current.hasClassification).toBe(true);
         expect(result.current.classificationId).toBe('lvl1');
-        expect(result.current.bannerText).toBe('');
+        expect(result.current.bannerText).toBe('**UNCLASSIFIED**');
         expect(result.current.classificationBanner).toEqual({
             enabled: true,
-            text: '',
+            text: '**UNCLASSIFIED**',
             background_color: '#007A33',
         });
     });
