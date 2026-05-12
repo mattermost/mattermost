@@ -4397,6 +4397,10 @@ func TestRevokeSessionBotPermissions(t *testing.T) {
 
 		_, err := th.Client.RevokeSession(context.Background(), bot.UserId, botSession.Id)
 		require.NoError(t, err)
+
+		// Confirm the session row is gone.
+		_, appErr = th.App.GetSessionById(th.Context, botSession.Id)
+		require.NotNil(t, appErr, "session should no longer exist after revocation")
 	})
 }
 
@@ -9789,10 +9793,19 @@ func TestRevokeAllSessionsForUserBotPermissions(t *testing.T) {
 		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 
+		// Seed a real session so RevokeAllSessions is not a no-op.
+		_, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: bot.UserId})
+		require.Nil(t, appErr)
+
 		th.LoginBasic(t)
 
 		_, err := th.Client.RevokeAllSessions(context.Background(), bot.UserId)
 		require.NoError(t, err)
+
+		// Confirm all sessions for the bot are gone.
+		sessions, appErr := th.App.GetSessions(th.Context, bot.UserId)
+		require.Nil(t, appErr)
+		require.Empty(t, sessions, "all bot sessions should be revoked")
 	})
 }
 
