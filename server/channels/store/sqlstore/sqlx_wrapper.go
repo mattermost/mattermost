@@ -218,11 +218,6 @@ func (w *sqlxDBWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
 	return w.checkErrWithRows(w.db.NamedQueryContext(ctx, query, arg))
 }
 
-// QueryRowx forwards to the underlying *sqlx.DB without adding a timeout.
-func (w *sqlxDBWrapper) QueryRowx(query string, args ...any) *sqlx.Row {
-	return w.db.QueryRowxContext(context.Background(), query, args...)
-}
-
 // QueryRowxContext forwards to the underlying *sqlx.DB with the caller-supplied context.
 // The caller is responsible for applying an appropriate timeout.
 func (w *sqlxDBWrapper) QueryRowxContext(ctx context.Context, query string, args ...any) *sqlx.Row {
