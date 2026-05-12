@@ -38,7 +38,7 @@ const makeSystemEmoji = (shortName: string): SystemEmoji => ({
     name: shortName,
     short_name: shortName,
     short_names: [shortName],
-    category: 'people',
+    category: 'people-body',
     unified: shortName.toUpperCase(),
 });
 
