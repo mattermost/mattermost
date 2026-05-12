@@ -224,15 +224,16 @@ func (w *sqlxDBWrapper) QueryRowxContext(ctx context.Context, query string, args
 	return w.db.QueryRowxContext(ctx, query, args...)
 }
 
-// QueryRow forwards to the underlying *sqlx.DB without adding a timeout.
-func (w *sqlxDBWrapper) QueryRow(query string, args ...any) *sql.Row {
-	return w.db.QueryRow(query, args...)
+func (w *sqlxDBWrapper) QueryRow(query string, args ...any) *sqlx.Row {
+	return w.QueryRowX(query, args...)
 }
 
 func (w *sqlxDBWrapper) QueryRowX(query string, args ...any) *sqlx.Row {
 	query = w.db.Rebind(query)
-	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
-	defer cancel()
+	// No defer cancel: the caller must scan the returned row before the context
+	// is cancelled. We rely on the timeout firing naturally; the timer goroutine
+	// is short-lived (bounded by queryTimeout).
+	ctx, _ := context.WithTimeout(context.Background(), w.queryTimeout) //nolint:govet
 
 	if w.trace {
 		defer func(then time.Time) {
@@ -461,8 +462,8 @@ func (w *sqlxTxWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
 
 func (w *sqlxTxWrapper) QueryRowX(query string, args ...any) *sqlx.Row {
 	query = w.tx.Rebind(query)
-	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
-	defer cancel()
+	// No defer cancel: same rationale as sqlxDBWrapper.QueryRowX.
+	ctx, _ := context.WithTimeout(context.Background(), w.queryTimeout) //nolint:govet
 
 	if w.trace {
 		defer func(then time.Time) {
