@@ -81,7 +81,7 @@ export type MmTextBlock = {
  * Block Kit: `image_url` → `url`, `alt_text`, optional `title` (plain text).
  * Adaptive Cards: `url`, `altText` → `alt_text`, `size`, `style`, `horizontalAlignment`, explicit `width`/`height`.
  */
-export type MmImageSize = 'auto' | 'small' | 'medium' | 'large' | 'stretch';
+export type MmImageSize = 'auto' | 'xsmall' | 'small' | 'medium' | 'large' | 'stretch';
 
 export type MmImageBlock = {
     type: 'image';
@@ -130,7 +130,17 @@ export type MmColumnSetBlock = {
 };
 
 /** Spacing between child blocks inside a container (CSS `gap`). Defaults to `none` when omitted. */
-export type MmContainerGap = 'none' | 'small' | 'medium' | 'big';
+export type MmContainerGap = 'none' | 'small' | 'medium' | 'large' | 'xlarge';
+
+export type MmContainerBackground = 'none' | 'gray';
+
+/** Preset left accent bar colors (theme-aligned). */
+export type MmContainerAccentSemantic =
+    | 'default'
+    | 'primary'
+    | 'good'
+    | 'warning'
+    | 'danger';
 
 export type MmContainerBlock = {
     type: 'container';
@@ -140,32 +150,34 @@ export type MmContainerBlock = {
     border?: boolean;
 
     /**
-     * `border-left-color`: hex/rgb/`var(--…)` string for inline style, or named token `good` | `warning` | `danger` for legacy attachment classes.
-     * Attachments translator sets a default when the payload omits `color`.
+     * Left bar color: `MmContainerAccentSemantic`, or a CSS color such as `#RRGGBB` / `rgb()` / `var(--…)`.
+     * Attachments translator passes the webhook `color` string (often hex or `rgba(var(--link-color-rgb), 0.5)`).
      */
-    accent_color?: string;
+    accent_color?: MmContainerAccentSemantic | string;
 
     flow?: 'horizontal' | 'vertical';
 
     /** Space between items in the container flex layout. Defaults to `none`. */
     gap?: MmContainerGap;
+
+    /** Subtle fill when `gray`; omitted or `none` is unchanged. */
+    background?: MmContainerBackground;
+
+    /**
+     * When set, the container grows with its content up to this maximum height, then scrolls vertically.
+     * Preset pixel caps: `small` | `medium` | `large`.
+     */
+    max_height?: MmContainerMaxHeight;
 };
+
+/** Preset maximum heights for `MmContainerBlock.max_height`. */
+export type MmContainerMaxHeight = 'small' | 'medium' | 'large';
 
 export type MmCollapsibleBlock = {
     type: 'collapsible';
     header: MmBlock[];
     content: MmBlock[];
     collapsed?: boolean;
-};
-
-export type MmScrollableHeight = 'small' | 'medium' | 'large';
-
-export type MmScrollableBlock = {
-    type: 'scrollable';
-    content: MmBlock[];
-
-    /** Scroll region maximum height; defaults to `medium` when omitted. */
-    height?: MmScrollableHeight;
 };
 
 export type MmBlock =
@@ -177,8 +189,7 @@ export type MmBlock =
     | MmColumnSetBlock
     | MmColumnBlock
     | MmContainerBlock
-    | MmCollapsibleBlock
-    | MmScrollableBlock;
+    | MmCollapsibleBlock;
 
 // ---------------------------------------------------------------------------
 // Type guards

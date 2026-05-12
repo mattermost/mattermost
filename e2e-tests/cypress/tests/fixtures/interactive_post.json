@@ -459,6 +459,538 @@
                 ]
             }
         },
+        "nested_container_backgrounds": {
+            "message": "Fixture: nested containers — mixed `background` (`gray` vs omitted / `none`).",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "**Nested container backgrounds** — outer has no fill; inner blocks use `gray`, default, or explicit `none`."
+                    },
+                    {
+                        "type": "container",
+                        "border": true,
+                        "gap": "small",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Outer container (no `background` property)."
+                            },
+                            {
+                                "type": "container",
+                                "background": "gray",
+                                "gap": "small",
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": "Level 2 — `background: gray`."
+                                    },
+                                    {
+                                        "type": "container",
+                                        "gap": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Level 3 — inside gray parent; this container has no background (transparent over gray)."
+                                            },
+                                            {
+                                                "type": "container",
+                                                "background": "gray",
+                                                "content": [
+                                                    {
+                                                        "type": "text",
+                                                        "text": "Level 4 — `gray` again (nested tint)."
+                                                    },
+                                                    {
+                                                        "type": "container",
+                                                        "background": "none",
+                                                        "content": [
+                                                            {
+                                                                "type": "text",
+                                                                "text": "Level 5 — explicit `background: none` (shows parent gray through)."
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "container",
+                                "gap": "small",
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": "Sibling branch — no background, next to the gray subtree."
+                                    },
+                                    {
+                                        "type": "container",
+                                        "background": "gray",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Leaf — `gray` only in this subtree."
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "nested_scrollable_three_levels_small": {
+            "message": "Fixture: nested scrollable containers - root, 3 mids, 3 leaves each (9 leaves); all max_height small; 10 text lines per leaf.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "**Nested scroll regions** - root to 3 mids to 3 leaves each; every container uses max_height small (160px cap)."
+                    },
+                    {
+                        "type": "container",
+                        "max_height": "small",
+                        "content": [
+                            {
+                                "type": "container",
+                                "max_height": "small",
+                                "content": [
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 10"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "container",
+                                "max_height": "small",
+                                "content": [
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 10"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "container",
+                                "max_height": "small",
+                                "content": [
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 10"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
         "container_vertical_big_gap": {
             "message": "Fixture: bordered container with vertical flow and large gap.",
             "props": {

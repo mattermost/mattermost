@@ -14,6 +14,7 @@ import React, {createContext, useCallback, useContext, useMemo, useState} from '
 import type {CSSProperties, KeyboardEvent, MouseEvent} from 'react';
 import {useDispatch} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
@@ -24,10 +25,10 @@ import type {
     MmCollapsibleBlock,
     MmColumnBlock,
     MmColumnSetBlock,
+    MmContainerAccentSemantic,
     MmContainerBlock,
     MmImageBlock,
     MmImageSize,
-    MmScrollableBlock,
     MmStaticSelectBlock,
     MmTextBlock,
 } from '@mattermost/types/mm_blocks';
@@ -50,7 +51,6 @@ import SizeAwareImage from 'components/size_aware_image';
 import GenericChannelProvider from 'components/suggestion/generic_channel_provider';
 import GenericUserProvider from 'components/suggestion/generic_user_provider';
 import MenuActionProvider from 'components/suggestion/menu_action_provider';
-import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -65,13 +65,17 @@ export type ActionHandler = (actionId: string, selectedOption?: string, query?: 
 
 const MmBlocksImagesMetadataContext = createContext<Record<string, PostImage> | undefined>(undefined);
 
+/** How the *immediate* mm_blocks parent lays out direct children (`column` = vertical stack, `row` = horizontal flow). */
+const MmBlocksChildLayoutContext = createContext<'column' | 'row'>('column');
+
 /** Preset caps loosely aligned with Adaptive Cards `Image` sizes; `stretch` matches legacy attachment `image_url`. */
 const MM_IMAGE_SIZE_CAPS: Record<MmImageSize, {maxWidth: number; maxHeight: number} | null> = {
     auto: null,
-    small: {maxWidth: 80, maxHeight: 80},
-    medium: {maxWidth: 200, maxHeight: 200},
-    large: {maxWidth: 400, maxHeight: 400},
-    stretch: {maxWidth: 500, maxHeight: 300},
+    xsmall: {maxWidth: 64, maxHeight: 64},
+    small: {maxWidth: 120, maxHeight: 120},
+    medium: {maxWidth: 184, maxHeight: 184},
+    large: {maxWidth: 240, maxHeight: 240},
+    stretch: {maxWidth: 500, maxHeight: 350},
 };
 
 function resolveMmImageCaps(block: MmImageBlock): {maxWidth?: number; maxHeight?: number} {
@@ -130,16 +134,15 @@ export const BlockRenderer = ({blocks, postId, onAction, imagesMetadata}: BlockR
             <div
                 className='mm-blocks'
                 role='group'
-                aria-label='Interactive message'
             >
-                {blocks.map((block, i) => (
-                    <BlockSwitch
-                        key={i}
-                        block={block}
-                        postId={postId}
-                        onAction={onAction}
-                    />
-                ))}
+                <ContainerBlock
+                    block={{
+                        type: 'container',
+                        content: blocks,
+                    }}
+                    postId={postId}
+                    onAction={onAction}
+                />
             </div>
         </MmBlocksImagesMetadataContext.Provider>
     );
@@ -173,11 +176,7 @@ const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
             />
         );
     case 'divider':
-        return (
-            <hr
-                className='mm-blocks-divider'
-            />
-        );
+        return <DividerBlock/>;
     case 'column_set':
         return (
             <ColumnSetBlock
@@ -202,14 +201,6 @@ const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
                 onAction={onAction}
             />
         );
-    case 'scrollable':
-        return (
-            <ScrollableBlock
-                block={block}
-                postId={postId}
-                onAction={onAction}
-            />
-        );
     case 'button':
         return (
             <ButtonElement
@@ -228,6 +219,20 @@ const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
         // Unknown block type – silently skip per spec
         return null;
     }
+};
+
+const DividerBlock = () => {
+    const childLayout = useContext(MmBlocksChildLayoutContext);
+    if (childLayout === 'row') {
+        return (
+            <div
+                className='mm-blocks-divider mm-blocks-divider--vertical'
+                role='separator'
+                aria-orientation='vertical'
+            />
+        );
+    }
+    return <hr className='mm-blocks-divider'/>;
 };
 
 // ---------------------------------------------------------------------------
@@ -568,14 +573,14 @@ const ColumnBlock = ({block, postId, onAction}: ColumnBlockProps) => {
     const widthClass = block.width === 'stretch' ? 'mm-blocks-column--stretch' : 'mm-blocks-column--auto';
     return (
         <div className={`mm-blocks-column ${widthClass}`}>
-            {block.items.map((item, i) => (
-                <BlockSwitch
-                    key={i}
-                    block={item}
-                    postId={postId}
-                    onAction={onAction}
-                />
-            ))}
+            <ContainerBlock
+                block={{
+                    type: 'container',
+                    content: block.items,
+                }}
+                postId={postId}
+                onAction={onAction}
+            />
         </div>
     );
 };
@@ -590,21 +595,44 @@ type ContainerBlockProps = {
     onAction: ActionHandler;
 };
 
-const NAMED_ATTACHMENT_ACCENT_SET = new Set(['good', 'warning', 'danger']);
+const MM_CONTAINER_ACCENT_SEMANTIC = new Set<MmContainerAccentSemantic>([
+    'default',
+    'primary',
+    'good',
+    'warning',
+    'danger',
+]);
+
+function isMmContainerSemanticAccent(accent: string): accent is MmContainerAccentSemantic {
+    return MM_CONTAINER_ACCENT_SEMANTIC.has(accent as MmContainerAccentSemantic);
+}
 
 /** Pixels for CSS `gap` between container children. `none` uses 0. */
-const MM_CONTAINER_GAP_PX: Record<'small' | 'medium' | 'big', number> = {
-    small: 4,
-    medium: 8,
-    big: 16,
+const MM_CONTAINER_GAP_PX: Record<'small' | 'medium' | 'large' | 'xlarge', number> = {
+    small: 8,
+    medium: 12,
+    large: 16,
+    xlarge: 20,
 };
 
 function mmContainerGapStyle(gap: MmContainerBlock['gap'] | undefined): CSSProperties {
-    const g = gap ?? 'none';
-    if (g === 'none') {
+    const key = gap === 'none' || gap === 'small' || gap === 'medium' || gap === 'large' || gap === 'xlarge' ? gap : 'medium';
+    if (key === 'none') {
         return {gap: 0};
     }
-    return {gap: MM_CONTAINER_GAP_PX[g]};
+    return {gap: MM_CONTAINER_GAP_PX[key]};
+}
+
+/** Fixed max-height viewport caps (px) for `MmContainerBlock.max_height` presets. */
+const MM_CONTAINER_MAX_HEIGHT_PX: Record<'small' | 'medium' | 'large', number> = {
+    small: 160,
+    medium: 280,
+    large: 420,
+};
+
+function mmContainerMaxHeightPx(maxHeight: MmContainerBlock['max_height'] | undefined): number {
+    const key = maxHeight === 'small' || maxHeight === 'medium' || maxHeight === 'large' ? maxHeight : 'medium';
+    return MM_CONTAINER_MAX_HEIGHT_PX[key];
 }
 
 const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) => {
@@ -612,6 +640,7 @@ const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) => {
         return null;
     }
     let flowClass = '';
+    const containerChildLayout: 'column' | 'row' = block.flow === 'horizontal' ? 'row' : 'column';
     if (block.flow === 'horizontal') {
         flowClass = 'mm-blocks-container--flow-horizontal';
     } else {
@@ -619,18 +648,69 @@ const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) => {
     }
     const accent = block.accent_color;
     const gapStyle = mmContainerGapStyle(block.gap);
+    const maxHeightPreset = block.max_height;
+    let boundedStyle: CSSProperties = {};
+    if (maxHeightPreset) {
+        boundedStyle = {
+            maxHeight: mmContainerMaxHeightPx(maxHeightPreset),
+            overflowY: 'auto',
+            minHeight: 0,
+        };
+    }
+    const maxHeightClass = maxHeightPreset ? 'mm-blocks-container--max-height' : '';
+    const bgClass = block.background === 'gray' ? 'mm-blocks-container--bg-gray' : '';
+    const regionProps = maxHeightPreset ? {role: 'region' as const, 'aria-label': 'Scrollable content'} : {};
+
     if (!accent) {
         const className = [
             'mm-blocks-container',
             block.border ? 'mm-blocks-container--border' : '',
             flowClass,
+            maxHeightClass,
+            bgClass,
         ].filter(Boolean).join(' ');
 
         return (
             <div
                 className={className}
-                style={gapStyle}
+                style={{...gapStyle, ...boundedStyle}}
+                {...regionProps}
             >
+                <MmBlocksChildLayoutContext.Provider value={containerChildLayout}>
+                    {block.content.map((item, i) => (
+                        <BlockSwitch
+                            key={i}
+                            block={item}
+                            postId={postId}
+                            onAction={onAction}
+                        />
+                    ))}
+                </MmBlocksChildLayoutContext.Provider>
+            </div>
+        );
+    }
+
+    const isSemanticAccent = isMmContainerSemanticAccent(accent);
+    const accentInlineStyle = isSemanticAccent ? undefined : {borderLeftColor: accent} as React.CSSProperties;
+    const semanticAccentClass = isSemanticAccent ? `mm-blocks-container--accent-${accent}` : '';
+    const innerClasses = [
+        'mm-blocks-container',
+        'attachment__container',
+        semanticAccentClass,
+        flowClass,
+        maxHeightClass,
+        bgClass,
+    ].filter(Boolean).join(' ');
+
+    const innerStyle: CSSProperties = {...gapStyle, ...accentInlineStyle, ...boundedStyle};
+
+    const inner = (
+        <div
+            className={innerClasses}
+            style={innerStyle}
+            {...regionProps}
+        >
+            <MmBlocksChildLayoutContext.Provider value={containerChildLayout}>
                 {block.content.map((item, i) => (
                     <BlockSwitch
                         key={i}
@@ -639,35 +719,7 @@ const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) => {
                         onAction={onAction}
                     />
                 ))}
-            </div>
-        );
-    }
-
-    const isNamedAttachmentAccent = NAMED_ATTACHMENT_ACCENT_SET.has(accent);
-    const accentInlineStyle = isNamedAttachmentAccent ? undefined : {borderLeftColor: accent} as React.CSSProperties;
-    const namedAccentModifier = isNamedAttachmentAccent ? `attachment__container--${accent}` : '';
-    const innerClasses = [
-        'mm-blocks-container',
-        'attachment__container',
-        namedAccentModifier,
-        flowClass,
-    ].filter(Boolean).join(' ');
-
-    const innerStyle: CSSProperties = {...gapStyle, ...accentInlineStyle};
-
-    const inner = (
-        <div
-            className={innerClasses}
-            style={innerStyle}
-        >
-            {block.content.map((item, i) => (
-                <BlockSwitch
-                    key={i}
-                    block={item}
-                    postId={postId}
-                    onAction={onAction}
-                />
-            ))}
+            </MmBlocksChildLayoutContext.Provider>
         </div>
     );
 
@@ -712,79 +764,40 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
                 onClick={toggleCollapsed}
                 aria-expanded={!collapsed}
                 aria-controls={contentId}
+                type='button'
             >
-                {block.header.map((item, i) => (
-                    <BlockSwitch
-                        key={i}
-                        block={item}
+                <span
+                    className='mm-blocks-collapsible-header__chevron'
+                    aria-hidden='true'
+                >
+                    <i className={collapsed ? 'icon icon-chevron-right' : 'icon icon-chevron-down'}/>
+                </span>
+                <span className='mm-blocks-collapsible-header__body'>
+                    <ContainerBlock
+                        block={{
+                            type: 'container',
+                            content: block.header,
+                        }}
                         postId={postId}
                         onAction={onAction}
                     />
-                ))}
+                </span>
             </button>
             {!collapsed && (
                 <div
                     id={contentId}
                     className='mm-blocks-collapsible-content'
                 >
-                    {block.content.map((item, i) => (
-                        <BlockSwitch
-                            key={i}
-                            block={item}
-                            postId={postId}
-                            onAction={onAction}
-                        />
-                    ))}
+                    <ContainerBlock
+                        block={{
+                            type: 'container',
+                            content: block.content,
+                        }}
+                        postId={postId}
+                        onAction={onAction}
+                    />
                 </div>
             )}
-        </div>
-    );
-};
-
-// ---------------------------------------------------------------------------
-// Scrollable block
-// ---------------------------------------------------------------------------
-
-/** Fixed scroll viewport heights (px) for MmScrollableBlock.height presets. */
-const MM_SCROLLABLE_HEIGHT_PX: Record<'small' | 'medium' | 'large', number> = {
-    small: 160,
-    medium: 280,
-    large: 420,
-};
-
-function mmScrollableHeightPx(height: MmScrollableBlock['height'] | undefined): number {
-    const key = height === 'small' || height === 'medium' || height === 'large' ? height : 'medium';
-    return MM_SCROLLABLE_HEIGHT_PX[key];
-}
-
-type ScrollableBlockProps = {
-    block: MmScrollableBlock;
-    postId: string;
-    onAction: ActionHandler;
-};
-
-const ScrollableBlock = ({block, postId, onAction}: ScrollableBlockProps) => {
-    if (!block.content || block.content.length === 0) {
-        return null;
-    }
-
-    const h = mmScrollableHeightPx(block.height);
-
-    return (
-        <div
-            role='region'
-            aria-label='Scrollable content'
-            className='mm-blocks-scrollable'
-            style={{maxHeight: h, overflowY: 'auto'}}
-        >
-            {block.content.map((item, i) => (
-                <BlockSwitch
-                    key={i}
-                    block={item}
-                    postId={postId}
-                    onAction={onAction}
-                />
-            ))}
         </div>
     );
 };

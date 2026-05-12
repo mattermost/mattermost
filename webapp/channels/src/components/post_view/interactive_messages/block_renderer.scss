@@ -3,6 +3,11 @@
 // Legacy webhook attachment chrome (see layout/_webhooks.scss under `.post .attachment`); mm_blocks is not
 // inside `.attachment`, so we mirror `.attachment__content` + `.attachment__container` here for parity.
 .mm-blocks__attachment-content {
+    box-sizing: border-box;
+    max-width: 700px;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
     border-width: 1px;
     border-style: solid;
     border-color: rgba(var(--center-channel-color-rgb), 0.16);
@@ -15,6 +20,8 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    min-width: 0;
+    min-height: 0;
 
     p {
         margin: 0;
@@ -29,8 +36,18 @@
         cursor: pointer;
     }
 
+    // Same width/min-width behavior as `--border` / `attachment__container` for flex + nested scroll.
+    .mm-blocks-container {
+        box-sizing: border-box;
+        min-width: 0;
+        width: 100%;
+    }
+
+    // 700px cap only when the container shows a border (full border or attachment accent bar).
     .mm-blocks-container.attachment__container {
         box-sizing: border-box;
+        max-width: 700px;
+        width: 100%;
         padding: 12px;
         border-left-width: 4px;
         border-left-style: solid;
@@ -40,16 +57,24 @@
         border-bottom: none;
     }
 
-    .mm-blocks-container.attachment__container.attachment__container--good {
-        border-left-color: #00c100;
+    .mm-blocks-container.attachment__container.mm-blocks-container--accent-default {
+        border-left-color: rgba(var(--button-bg-rgb), 0.32);
     }
 
-    .mm-blocks-container.attachment__container.attachment__container--warning {
-        border-left-color: #dede01;
+    .mm-blocks-container.attachment__container.mm-blocks-container--accent-primary {
+        border-left-color: var(--button-bg);
     }
 
-    .mm-blocks-container.attachment__container.attachment__container--danger {
-        border-left-color: #e40303;
+    .mm-blocks-container.attachment__container.mm-blocks-container--accent-good {
+        border-left-color: var(--online-indicator);
+    }
+
+    .mm-blocks-container.attachment__container.mm-blocks-container--accent-warning {
+        border-left-color: var(--away-indicator);
+    }
+
+    .mm-blocks-container.attachment__container.mm-blocks-container--accent-danger {
+        border-left-color: var(--dnd-indicator);
     }
 
     .attachment-actions {
@@ -124,7 +149,6 @@
             max-width: 100%;
             height: auto;
             border: 1px solid transparent;
-            vertical-align: middle;
         }
 
         &__img--person {
@@ -151,6 +175,17 @@
         border: 0;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         margin: 8px 0;
+        width: 100%;
+        align-self: stretch;
+    }
+
+    .mm-blocks-divider--vertical {
+        border-top: 0;
+        border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        margin: 0 8px;
+        width: 0;
+        align-self: stretch;
+        flex-shrink: 0;
     }
 
     .mm-blocks-column-set {
@@ -173,10 +208,17 @@
         }
     }
 
+    // `border: true` on the block (no accent_color).
     .mm-blocks-container--border {
+        max-width: 700px;
+        width: 100%;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         padding: 8px;
+    }
+
+    .mm-blocks-container--bg-gray {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
     }
 
     .mm-blocks-container--flow-horizontal {
@@ -186,9 +228,15 @@
         align-items: flex-start;
     }
 
+    // Nested scroll + flex: override min-height:auto on items (same idea as .mm-blocks-column min-width).
     .mm-blocks-container--flow-vertical {
         display: flex;
         flex-direction: column;
+        min-height: 0;
+
+        > * {
+            min-height: 0;
+        }
     }
 
     .mm-blocks-collapsible {
@@ -198,16 +246,52 @@
     }
 
     .mm-blocks-collapsible-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         width: 100%;
         text-align: left;
         padding: 8px 10px;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    .mm-blocks-collapsible-header__body {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .mm-blocks-collapsible-header__chevron {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        .icon {
+            font-size: 18px;
+            line-height: 1;
+        }
     }
 
     .mm-blocks-collapsible-content {
         padding: 0 10px 10px;
     }
 
-    .mm-blocks-scrollable {
+    // `max-height` + column flex: default flex-shrink:1 splits one viewport across siblings;
+    // keep each child's main size from content (up to max-height) so the scrollport scrolls instead.
+    .mm-blocks-container--max-height {
         margin: 4px 0;
+        flex-shrink: 0;
+    }
+
+    .mm-blocks-container--flow-vertical.mm-blocks-container--max-height > * {
+        flex-shrink: 0;
+    }
+
+    .mm-blocks-container--flow-horizontal.mm-blocks-container--max-height > * {
+        flex-shrink: 0;
     }
 }
