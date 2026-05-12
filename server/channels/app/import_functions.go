@@ -84,8 +84,8 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 
 		if data.DefaultTeamGuestRole == nil {
 			data.DefaultTeamGuestRole = &imports.RoleImportData{
-				DisplayName:   model.NewPointer("Team Guest Role for Scheme"),
-				SchemeManaged: model.NewPointer(true),
+				DisplayName:   new("Team Guest Role for Scheme"),
+				SchemeManaged: new(true),
 			}
 		}
 		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
@@ -107,8 +107,8 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 
 		if data.DefaultChannelGuestRole == nil {
 			data.DefaultChannelGuestRole = &imports.RoleImportData{
-				DisplayName:   model.NewPointer("Channel Guest Role for Scheme"),
-				SchemeManaged: model.NewPointer(true),
+				DisplayName:   new("Channel Guest Role for Scheme"),
+				SchemeManaged: new(true),
 			}
 		}
 		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole

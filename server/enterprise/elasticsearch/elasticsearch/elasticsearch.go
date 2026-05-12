@@ -344,8 +344,8 @@ func (es *ElasticsearchInterfaceImpl) IndexPost(post *model.Post, teamId string,
 
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchPost.Id),
+			Index_: new(indexName),
+			Id_:    new(searchPost.Id),
 		}, searchPost)
 		if err != nil {
 			return model.NewAppError("Elasticsearch.IndexPost", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -476,8 +476,8 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 				filters = append(filters, types.Query{
 					Range: map[string]types.RangeQuery{
 						"create_at": types.NumberRangeQuery{
-							Gte: model.NewPointer(types.Float64(before)),
-							Lte: model.NewPointer(types.Float64(after)),
+							Gte: new(types.Float64(before)),
+							Lte: new(types.Float64(after)),
 						},
 					},
 				})
@@ -485,11 +485,11 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 				if params.AfterDate != "" || params.BeforeDate != "" {
 					nrQuery := types.NumberRangeQuery{}
 					if params.AfterDate != "" {
-						nrQuery.Gte = model.NewPointer(types.Float64(params.GetAfterDateMillis()))
+						nrQuery.Gte = new(types.Float64(params.GetAfterDateMillis()))
 					}
 
 					if params.BeforeDate != "" {
-						nrQuery.Lte = model.NewPointer(types.Float64(params.GetBeforeDateMillis()))
+						nrQuery.Lte = new(types.Float64(params.GetBeforeDateMillis()))
 					}
 
 					query := types.Query{
@@ -506,8 +506,8 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(before)),
-									Lte: model.NewPointer(types.Float64(after)),
+									Gte: new(types.Float64(before)),
+									Lte: new(types.Float64(after)),
 								},
 							},
 						})
@@ -517,7 +517,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(params.GetExcludedAfterDateMillis())),
+									Gte: new(types.Float64(params.GetExcludedAfterDateMillis())),
 								},
 							},
 						})
@@ -527,7 +527,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Lte: model.NewPointer(types.Float64(params.GetExcludedBeforeDateMillis())),
+									Lte: new(types.Float64(params.GetExcludedBeforeDateMillis())),
 								},
 							},
 						})
@@ -992,8 +992,8 @@ func (es *ElasticsearchInterfaceImpl) deletePost(indexName, postID string) *mode
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(postID),
+			Index_: new(indexName),
+			Id_:    new(postID),
 		})
 		if err != nil {
 			return model.NewAppError("Elasticsearch.DeletePost", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1024,8 +1024,8 @@ func (es *ElasticsearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *mo
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchChannel.Id),
+			Index_: new(indexName),
+			Id_:    new(searchChannel.Id),
 		}, searchChannel)
 		if err != nil {
 			return model.NewAppError("Elasticsearch.IndexChannel", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1074,8 +1074,8 @@ func (es *ElasticsearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, ch
 		searchChannel := common.ESChannelFromChannel(channel, userIDs, teamMemberIDs)
 
 		err = es.syncBulkProcessor.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchChannel.Id),
+			Index_: new(indexName),
+			Id_:    new(searchChannel.Id),
 		}, searchChannel)
 		if err != nil {
 			return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1207,8 +1207,8 @@ func (es *ElasticsearchInterfaceImpl) DeleteChannel(channel *model.Channel) *mod
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
-			Index_: model.NewPointer(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels),
-			Id_:    model.NewPointer(channel.Id),
+			Index_: new(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels),
+			Id_:    new(channel.Id),
 		})
 		if err != nil {
 			return model.NewAppError("Elasticsearch.IndexPost", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1242,8 +1242,8 @@ func (es *ElasticsearchInterfaceImpl) IndexUser(rctx request.CTX, user *model.Us
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchUser.Id),
+			Index_: new(indexName),
+			Id_:    new(searchUser.Id),
 		}, searchUser)
 		if err != nil {
 			return model.NewAppError("Elasticsearch.IndexPost", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1317,7 +1317,7 @@ func (es *ElasticsearchInterfaceImpl) autocompleteUsers(contextCategory string, 
 					{
 						Range: map[string]types.RangeQuery{
 							"delete_at": types.DateRangeQuery{
-								Lte: model.NewPointer("0"),
+								Lte: new("0"),
 							},
 						},
 					}, {
@@ -1440,7 +1440,7 @@ func (es *ElasticsearchInterfaceImpl) autocompleteUsersNotInChannel(teamId, chan
 		deleteRangeQuery := types.Query{
 			Range: map[string]types.RangeQuery{
 				"delete_at": types.DateRangeQuery{
-					Lte: model.NewPointer("0"),
+					Lte: new("0"),
 				},
 			},
 		}
@@ -1556,8 +1556,8 @@ func (es *ElasticsearchInterfaceImpl) DeleteUser(user *model.User) *model.AppErr
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
-			Index_: model.NewPointer(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers),
-			Id_:    model.NewPointer(user.Id),
+			Index_: new(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers),
+			Id_:    new(user.Id),
 		})
 		if err != nil {
 			return model.NewAppError("Elasticsearch.DeleteUser", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1768,8 +1768,8 @@ func (es *ElasticsearchInterfaceImpl) IndexFile(file *model.FileInfo, channelId 
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer(indexName),
-			Id_:    model.NewPointer(searchFile.Id),
+			Index_: new(indexName),
+			Id_:    new(searchFile.Id),
 		}, searchFile)
 		if err != nil {
 			return model.NewAppError("Elasticsearch.IndexFile", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1870,8 +1870,8 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 				filters = append(filters, types.Query{
 					Range: map[string]types.RangeQuery{
 						"create_at": types.NumberRangeQuery{
-							Gte: model.NewPointer(types.Float64(before)),
-							Lte: model.NewPointer(types.Float64(after)),
+							Gte: new(types.Float64(before)),
+							Lte: new(types.Float64(after)),
 						},
 					},
 				})
@@ -1879,11 +1879,11 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 				if params.AfterDate != "" || params.BeforeDate != "" {
 					nrQuery := types.NumberRangeQuery{}
 					if params.AfterDate != "" {
-						nrQuery.Gte = model.NewPointer(types.Float64(params.GetAfterDateMillis()))
+						nrQuery.Gte = new(types.Float64(params.GetAfterDateMillis()))
 					}
 
 					if params.BeforeDate != "" {
-						nrQuery.Lte = model.NewPointer(types.Float64(params.GetBeforeDateMillis()))
+						nrQuery.Lte = new(types.Float64(params.GetBeforeDateMillis()))
 					}
 					query := types.Query{
 						Range: map[string]types.RangeQuery{
@@ -1899,8 +1899,8 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(before)),
-									Lte: model.NewPointer(types.Float64(after)),
+									Gte: new(types.Float64(before)),
+									Lte: new(types.Float64(after)),
 								},
 							},
 						})
@@ -1910,7 +1910,7 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Gte: model.NewPointer(types.Float64(params.GetExcludedAfterDateMillis())),
+									Gte: new(types.Float64(params.GetExcludedAfterDateMillis())),
 								},
 							},
 						})
@@ -1920,7 +1920,7 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 						notFilters = append(notFilters, types.Query{
 							Range: map[string]types.RangeQuery{
 								"create_at": types.NumberRangeQuery{
-									Lte: model.NewPointer(types.Float64(params.GetExcludedBeforeDateMillis())),
+									Lte: new(types.Float64(params.GetExcludedBeforeDateMillis())),
 								},
 							},
 						})
@@ -2046,8 +2046,8 @@ func (es *ElasticsearchInterfaceImpl) DeleteFile(fileID string) *model.AppError 
 	var err error
 	if es.bulkProcessor != nil {
 		err = es.bulkProcessor.DeleteOp(types.DeleteOperation{
-			Index_: model.NewPointer(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles),
-			Id_:    model.NewPointer(fileID),
+			Index_: new(*es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles),
+			Id_:    new(fileID),
 		})
 		if err != nil {
 			return model.NewAppError("Elasticsearch.DeleteFile", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2145,7 +2145,7 @@ func (es *ElasticsearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime
 			Filter: []types.Query{{
 				Range: map[string]types.RangeQuery{
 					"create_at": types.NumberRangeQuery{
-						Lte: model.NewPointer(types.Float64(endTime)),
+						Lte: new(types.Float64(endTime)),
 					},
 				},
 			}},

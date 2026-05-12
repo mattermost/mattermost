@@ -896,8 +896,8 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 func TestCloudRestricted(t *testing.T) {
 	cfg := &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			GoogleDeveloperKey: model.NewPointer("test"),
-			SiteURL:            model.NewPointer("test"),
+			GoogleDeveloperKey: new("test"),
+			SiteURL:            new("test"),
 		},
 	}
 
@@ -937,40 +937,40 @@ func TestSetConfigValue(t *testing.T) {
 			path: "LogSettings.EnableConsole",
 			args: []string{"true"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				EnableConsole: model.NewPointer(false),
+				EnableConsole: new(false),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				EnableConsole: model.NewPointer(true),
+				EnableConsole: new(true),
 			}},
 		},
 		"string": {
 			path: "LogSettings.ConsoleLevel",
 			args: []string{"foo"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				ConsoleLevel: model.NewPointer("ConsoleLevel"),
+				ConsoleLevel: new("ConsoleLevel"),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				ConsoleLevel: model.NewPointer("foo"),
+				ConsoleLevel: new("foo"),
 			}},
 		},
 		"int": {
 			path: "LogSettings.MaxFieldSize",
 			args: []string{"123"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				MaxFieldSize: model.NewPointer(0),
+				MaxFieldSize: new(0),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				MaxFieldSize: model.NewPointer(123),
+				MaxFieldSize: new(123),
 			}},
 		},
 		"int64": {
 			path: "ServiceSettings.TLSStrictTransportMaxAge",
 			config: &model.Config{ServiceSettings: model.ServiceSettings{
-				TLSStrictTransportMaxAge: model.NewPointer(int64(0)),
+				TLSStrictTransportMaxAge: new(int64(0)),
 			}},
 			args: []string{"123"},
 			expectedConfig: &model.Config{ServiceSettings: model.ServiceSettings{
-				TLSStrictTransportMaxAge: model.NewPointer(int64(123)),
+				TLSStrictTransportMaxAge: new(int64(123)),
 			}},
 		},
 		"string slice": {

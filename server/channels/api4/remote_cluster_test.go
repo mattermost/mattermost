@@ -651,7 +651,7 @@ func TestPatchRemoteCluster(t *testing.T) {
 		RemoteToken: model.NewId(),
 	}
 
-	rcp := &model.RemoteClusterPatch{DisplayName: model.NewPointer("different value")}
+	rcp := &model.RemoteClusterPatch{DisplayName: new("different value")}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
@@ -693,8 +693,8 @@ func TestPatchRemoteCluster(t *testing.T) {
 	t.Run("should correctly patch the remote cluster", func(t *testing.T) {
 		newTeamId := model.NewId()
 		rcp := &model.RemoteClusterPatch{
-			DisplayName:   model.NewPointer("patched!"),
-			DefaultTeamId: model.NewPointer(newTeamId),
+			DisplayName:   new("patched!"),
+			DefaultTeamId: new(newTeamId),
 		}
 
 		patchedRC, resp, err := th.SystemAdminClient.PatchRemoteCluster(context.Background(), rc.RemoteId, rcp)
