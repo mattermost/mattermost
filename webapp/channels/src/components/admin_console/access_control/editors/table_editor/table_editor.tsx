@@ -4,14 +4,11 @@
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {GenericModal} from '@mattermost/components';
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import SectionNotice from 'components/section_notice';
 
 import AttributeSelectorMenu from './attribute_selector_menu';
 import OperatorSelectorMenu from './operator_selector_menu';
@@ -207,7 +204,6 @@ function TableEditor({
     const [showTestResults, setShowTestResults] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
     const [autoOpenAttributeMenuForRow, setAutoOpenAttributeMenuForRow] = useState<number | null>(null);
-    const [pendingRemoveIndex, setPendingRemoveIndex] = useState<number | null>(null);
 
     // State for user self-exclusion detection (only applies to non-system-admins)
     const [userWouldBeExcluded, setUserWouldBeExcluded] = useState(false);
@@ -330,19 +326,10 @@ function TableEditor({
     }, [updateExpression]);
 
     const requestRemoveRow = useCallback((index: number) => {
-        if (rows[index]?.hasMaskedValues) {
-            setPendingRemoveIndex(index);
-        } else {
-            removeRow(index);
-        }
-    }, [rows, removeRow]);
-
-    const confirmRemoveRow = useCallback(() => {
-        if (pendingRemoveIndex !== null) {
-            removeRow(pendingRemoveIndex);
-            setPendingRemoveIndex(null);
-        }
-    }, [pendingRemoveIndex, removeRow]);
+        // Masked rows have their remove button disabled — the row is read-only
+        // because the server would 403 on a delete that strips hidden values.
+        removeRow(index);
+    }, [removeRow]);
 
     const updateRowAttribute = useCallback((index: number, attribute: string) => {
         setRows((currentRows) => {
@@ -486,7 +473,7 @@ function TableEditor({
                                 <td className='table-editor__cell'>
                                     <ValueSelectorMenu
                                         row={row}
-                                        disabled={disabled}
+                                        disabled={disabled || row.hasMaskedValues}
                                         updateValues={(values: string[]) => updateRowValues(index, values)}
                                         options={row.attribute ? userAttributes.find((attr) => attr.name === row.attribute)?.attrs?.options || [] : []}
                                     />
@@ -535,50 +522,6 @@ function TableEditor({
                 />
             </div>
 
-            {pendingRemoveIndex !== null && (
-                <GenericModal
-                    onExited={() => setPendingRemoveIndex(null)}
-                    handleConfirm={confirmRemoveRow}
-                    handleCancel={() => setPendingRemoveIndex(null)}
-                    modalHeaderText={
-                        <FormattedMessage
-                            id='admin.access_control.table_editor.remove_masked_row.title'
-                            defaultMessage='Remove Rule with Restricted Values'
-                        />
-                    }
-                    confirmButtonText={
-                        <FormattedMessage
-                            id='admin.access_control.table_editor.remove_masked_row.confirm_button'
-                            defaultMessage='Remove Rule'
-                        />
-                    }
-                    confirmButtonClassName='btn btn-danger'
-                    isDeleteModal={true}
-                    compassDesign={true}
-                >
-                    <>
-                        <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
-                            <SectionNotice
-                                type='warning'
-                                title={
-                                    <FormattedMessage
-                                        id='admin.access_control.policy.edit_policy.masked_values_warning.title'
-                                        defaultMessage='This policy contains restricted values'
-                                    />
-                                }
-                                text={formatMessage({
-                                    id: 'admin.access_control.table_editor.remove_masked_row.warning_text',
-                                    defaultMessage: 'This rule includes attribute values that are hidden from you. Removing it may affect access for users who match those hidden conditions.',
-                                })}
-                            />
-                        </div>
-                        <FormattedMessage
-                            id='admin.access_control.table_editor.remove_masked_row.message'
-                            defaultMessage='Are you sure you want to remove this rule? This action cannot be undone.'
-                        />
-                    </>
-                </GenericModal>
-            )}
             {showTestResults && (
                 <TestResultsModal
                     onExited={() => setShowTestResults(false)}
