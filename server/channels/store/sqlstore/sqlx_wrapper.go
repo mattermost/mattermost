@@ -69,6 +69,17 @@ type sqlxRows struct {
 	cancel context.CancelFunc
 }
 
+// Next advances the cursor and cancels the timeout context on EOF so that
+// resources are released even when the caller exhausts the rows without an
+// explicit Close.
+func (r *sqlxRows) Next() bool {
+	ok := r.Rows.Next()
+	if !ok {
+		r.cancel()
+	}
+	return ok
+}
+
 func (r *sqlxRows) Close() error {
 	defer r.cancel()
 	return r.Rows.Close()
