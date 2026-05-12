@@ -479,6 +479,11 @@ func (ss *SqlStore) analyticsContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), time.Duration(*ss.settings.AnalyticsQueryTimeout)*time.Second)
 }
 
+// noTimeoutContext should only be used with queries that expect no client-side timeout.
+func (ss *SqlStore) noTimeoutContext() context.Context {
+	return context.Background()
+}
+
 func (ss *SqlStore) monitorReplicas() {
 	t := time.NewTicker(time.Duration(*ss.settings.ReplicaMonitorIntervalSeconds) * time.Second)
 	defer func() {
