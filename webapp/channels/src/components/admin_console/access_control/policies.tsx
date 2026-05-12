@@ -19,6 +19,13 @@ import {getHistory} from 'utils/browser_history';
 
 import './policies.scss';
 
+// The server emits the eight-dash masked-token sentinel inside raw CEL expressions
+// when masking values the caller cannot see (e.g. `attr == "--------"`). The full
+// visual AST carries a typed `has_masked_values` flag per condition, but on the
+// policies list page we only have the raw expression strings — so we detect masking
+// by the quoted token substring.
+const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
+
 type Props = {
     onPolicySelected?: (policy: AccessControlPolicy) => void;
     onPoliciesLoaded?: (count: number) => void;
@@ -437,7 +444,7 @@ export default function PolicyList(props: Props): JSX.Element {
                     compassDesign={true}
                 >
                     <>
-                        {pendingDeletePolicy.rules.some((r) => r.expression === '[REDACTED]') && (
+                        {pendingDeletePolicy.rules.some((r) => r.expression.includes(MASKED_VALUE_TOKEN_LITERAL)) && (
                             <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
                                 <SectionNotice
                                     type='warning'
