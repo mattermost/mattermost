@@ -223,7 +223,41 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		policy.Rules[i].Expression = mergedExpr
 	}
 
+	// Any stored rules beyond the submitted set were dropped by the caller. If any of those
+	// contain values the caller cannot see, block the save — otherwise we'd silently widen
+	// access by removing a rule whose hidden conditions the caller could not audit.
+	if len(existingPolicy.Rules) > len(policy.Rules) {
+		for i := len(policy.Rules); i < len(existingPolicy.Rules); i++ {
+			storedExpr := existingPolicy.Rules[i].Expression
+			if storedExpr == "" || storedExpr == "true" {
+				continue
+			}
+			hasMasked, appErr := a.expressionHasMaskedValuesForCaller(rctx, storedExpr, callerID)
+			if appErr != nil {
+				return appErr
+			}
+			if hasMasked {
+				return model.NewAppError("mergeStoredPolicyExpressions", "app.pap.save_policy.masked_rule_deleted", nil,
+					"cannot remove a rule that contains attribute values you do not hold", http.StatusForbidden)
+			}
+		}
+	}
+
 	return nil
+}
+
+// expressionHasMaskedValuesForCaller reports whether storedExpr contains any value the caller cannot see.
+func (a *App) expressionHasMaskedValuesForCaller(rctx request.CTX, storedExpr, callerID string) (bool, *model.AppError) {
+	maskedAST, appErr := a.GetMaskedVisualAST(rctx, storedExpr, callerID)
+	if appErr != nil {
+		return false, appErr
+	}
+	for _, cond := range maskedAST.Conditions {
+		if cond.HasMaskedValues {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // mergeExpressionWithMaskedValues re-injects hidden values from storedExpr into submittedExpr.
@@ -250,23 +284,35 @@ func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, submittedExpr, s
 	// to resolve — proceeding with an incomplete map would silently strip hidden values
 	// from stored conditions and bypass the masked-condition-delete block.
 	fieldsByName := a.fetchConditionFields(rctxWithCaller, storedAST.Conditions, cpaGroupID)
-	if appErr := requireAllFieldsResolved(storedAST.Conditions, fieldsByName); appErr != nil {
+	if appErr := requireAllFieldsResolved(rctxWithCaller, storedAST.Conditions, fieldsByName); appErr != nil {
 		return "", appErr
 	}
 
-	// Build a lookup of submitted conditions by attribute for O(1) membership checks.
-	submittedAttrs := make(map[string]struct{}, len(submittedAST.Conditions))
+	// Count submitted conditions per attribute. A simple set isn't enough because the parser
+	// can produce two conditions on the same attribute (e.g. `attr in [...] && attr == "x"`);
+	// dropping one of them while keeping the other must still trigger the deletion guard if
+	// the dropped condition had hidden values.
+	submittedCounts := make(map[string]int, len(submittedAST.Conditions))
 	for _, cond := range submittedAST.Conditions {
-		submittedAttrs[cond.Attribute] = struct{}{}
+		submittedCounts[cond.Attribute]++
+	}
+
+	storedCounts := make(map[string]int, len(storedAST.Conditions))
+	for _, cond := range storedAST.Conditions {
+		storedCounts[cond.Attribute]++
 	}
 
 	// Block deletion of any stored condition that has hidden values for this caller.
+	// We walk stored conditions and, when one with hidden values appears, require that
+	// the submitted set still has at least as many conditions on the same attribute as
+	// stored had — otherwise some stored condition was dropped.
 	for i := range storedAST.Conditions {
 		hidden := a.getHiddenValues(rctxWithCaller, callerID, &storedAST.Conditions[i], cpaGroupID, fieldsByName)
 		if len(hidden) == 0 {
 			continue
 		}
-		if _, present := submittedAttrs[storedAST.Conditions[i].Attribute]; !present {
+		attr := storedAST.Conditions[i].Attribute
+		if submittedCounts[attr] < storedCounts[attr] {
 			return "", model.NewAppError("mergeExpressionWithMaskedValues", "app.pap.save_policy.masked_condition_deleted", nil,
 				"cannot remove a rule condition that contains attribute values you do not hold", http.StatusForbidden)
 		}
@@ -464,6 +510,7 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 		if appErr != nil {
 			return nil, appErr
 		}
+		a.publishChannelPolicyEnforcedUpdate(rctx, child.ID)
 		policies = append(policies, child)
 	}
 
@@ -509,14 +556,15 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
 				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
-			// invalidate the channel cache
-			a.Srv().Store().Channel().InvalidateChannel(channelID)
+			// invalidate the channel cache and broadcast the policy change
+			a.publishChannelPolicyEnforcedUpdate(rctx, channelID)
 			continue
 		}
 		_, appErr = acs.SavePolicy(rctx, child)
 		if appErr != nil {
 			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
+		a.publishChannelPolicyEnforcedUpdate(rctx, channelID)
 	}
 
 	return nil

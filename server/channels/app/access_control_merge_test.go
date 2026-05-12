@@ -206,6 +206,11 @@ func TestCelStringLiteral(t *testing.T) {
 	assert.Equal(t, `"hello \"world\""`, celStringLiteral(`hello "world"`))
 	assert.Equal(t, `"path\\to\\file"`, celStringLiteral(`path\to\file`))
 	assert.Equal(t, `""`, celStringLiteral(""))
+
+	// Control characters must be escaped or the emitted CEL literal won't parse.
+	assert.Equal(t, `"line1\nline2"`, celStringLiteral("line1\nline2"))
+	assert.Equal(t, `"col1\tcol2"`, celStringLiteral("col1\tcol2"))
+	assert.Equal(t, `"carriage\rreturn"`, celStringLiteral("carriage\rreturn"))
 }
 
 func TestCelValueLiteral(t *testing.T) {
@@ -216,6 +221,20 @@ func TestCelValueLiteral(t *testing.T) {
 	assert.Equal(t, "42", celValueLiteral(int64(42)))
 	assert.Equal(t, "3.14", celValueLiteral(float64(3.14)))
 	assert.Equal(t, "null", celValueLiteral(nil))
+
+	// Float precision must round-trip — %f would round 0.123456789 to 0.123457.
+	assert.Equal(t, "0.123456789", celValueLiteral(float64(0.123456789)))
+}
+
+func TestContainsNonStringLiteral(t *testing.T) {
+	assert.False(t, containsNonStringLiteral(nil))
+	assert.False(t, containsNonStringLiteral("Alpha"))
+	assert.False(t, containsNonStringLiteral([]any{"Alpha", "Bravo"}))
+
+	assert.True(t, containsNonStringLiteral(float64(1)))
+	assert.True(t, containsNonStringLiteral(true))
+	assert.True(t, containsNonStringLiteral(int64(7)))
+	assert.True(t, containsNonStringLiteral([]any{"Alpha", 1.0}))
 }
 
 func TestConditionToCEL_NilValue(t *testing.T) {

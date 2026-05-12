@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -79,10 +80,13 @@ func (a *App) fetchConditionFields(rctx request.CTX, conditions []model.Conditio
 	return fields
 }
 
-// requireAllFieldsResolved returns an error if any condition references a field name
-// missing from fieldsByName. Write-path callers use this to refuse the save rather
-// than silently strip hidden values from conditions whose fields could not be resolved.
-func requireAllFieldsResolved(conditions []model.Condition, fieldsByName map[string]*model.PropertyField) *model.AppError {
+// requireAllFieldsResolved returns the generic invalid-value error if any condition
+// references a field name missing from fieldsByName. Write-path callers use this to refuse
+// the save rather than silently strip hidden values from conditions whose fields could not
+// be resolved. We return the same generic 400 used by the rest of write-path validation so
+// unknown/deleted fields don't leak an enumeration signal distinct from hidden-value
+// rejection — the actual field name is logged for operator diagnostics instead.
+func requireAllFieldsResolved(rctx request.CTX, conditions []model.Condition, fieldsByName map[string]*model.PropertyField) *model.AppError {
 	for _, c := range conditions {
 		if c.ValueType == model.AttrValue {
 			continue
@@ -92,8 +96,10 @@ func requireAllFieldsResolved(conditions []model.Condition, fieldsByName map[str
 			continue
 		}
 		if _, ok := fieldsByName[name]; !ok {
-			return model.NewAppError("requireAllFieldsResolved", "app.pap.merge_expression.app_error", nil,
-				"field referenced by condition could not be resolved", http.StatusInternalServerError)
+			rctx.Logger().Warn("Field referenced by condition could not be resolved during write-path validation",
+				mlog.String("field_name", name),
+			)
+			return invalidValueError()
 		}
 	}
 	return nil
@@ -376,7 +382,31 @@ func mergeConditionValues(submitted model.Condition, hiddenValues []string) mode
 	return merged
 }
 
+// containsNonStringLiteral reports whether the condition value contains any
+// non-string element (numeric, boolean, etc.). Used by the write-path to reject
+// type-mismatched literals on property-backed conditions — without this guard,
+// extractStringValues would silently drop such elements and let invalid CEL
+// bypass the source_only / shared_only checks.
+func containsNonStringLiteral(value any) bool {
+	switch v := value.(type) {
+	case nil, string:
+		return false
+	case []any:
+		for _, item := range v {
+			if _, ok := item.(string); !ok {
+				return true
+			}
+		}
+		return false
+	default:
+		// numeric, boolean, etc.
+		return true
+	}
+}
+
 // extractStringValues converts a condition's Value to a slice of strings.
+// Non-string elements are silently dropped — write-path callers should pair
+// this with containsNonStringLiteral to reject type-mismatched literals first.
 func extractStringValues(value any) []string {
 	switch v := value.(type) {
 	case []any:
@@ -485,11 +515,15 @@ func conditionToCEL(cond model.Condition) string {
 	}
 }
 
-// celStringLiteral wraps s in double quotes with backslash and quote escaping.
+// celStringLiteral wraps s in a CEL-compatible double-quoted string literal.
+// strconv.Quote produces Go syntax that overlaps with CEL's escape grammar
+// (backslash, double quote, \a \b \f \n \r \t \v, \xHH, \uHHHH, \UHHHHHHHH),
+// so it safely round-trips strings containing control characters, embedded
+// quotes, or non-ASCII content — none of which the previous naive ReplaceAll
+// handled. Attribute values that legitimately contain newlines or tabs would
+// have produced broken CEL otherwise.
 func celStringLiteral(s string) string {
-	escaped := strings.ReplaceAll(s, `\`, `\\`)
-	escaped = strings.ReplaceAll(escaped, `"`, `\"`)
-	return `"` + escaped + `"`
+	return strconv.Quote(s)
 }
 
 // celValueLiteral returns the CEL literal for a condition value.
@@ -498,7 +532,10 @@ func celValueLiteral(value any) string {
 	case string:
 		return celStringLiteral(v)
 	case float64:
-		return strings.TrimRight(strings.TrimRight(fmt.Sprintf("%f", v), "0"), ".")
+		// 'g' with precision -1 produces the shortest representation that
+		// round-trips back to v exactly. Avoids the precision loss from
+		// fmt.Sprintf("%f") which rounds to six fractional digits.
+		return strconv.FormatFloat(v, 'g', -1, 64)
 	case int:
 		return fmt.Sprintf("%d", v)
 	case int64:
@@ -545,7 +582,7 @@ func (a *App) validatePolicyExpressionValues(rctx request.CTX, policy *model.Acc
 	}
 
 	fieldsByName := a.fetchConditionFields(rctxWithCaller, allConditions, cpaGroupID)
-	if appErr := requireAllFieldsResolved(allConditions, fieldsByName); appErr != nil {
+	if appErr := requireAllFieldsResolved(rctxWithCaller, allConditions, fieldsByName); appErr != nil {
 		return appErr
 	}
 
@@ -595,6 +632,13 @@ func (a *App) validateConditionValues(rctx request.CTX, cond *model.Condition, c
 	field, ok := fieldsByName[fieldName]
 	if !ok {
 		return invalidValueError() // reject unknown fields to prevent probing
+	}
+
+	// Property-backed conditions must use string literals. Numeric / boolean values
+	// would be silently dropped by extractStringValues above, letting them bypass the
+	// source_only / shared_only checks. Reject them with the same generic error.
+	if containsNonStringLiteral(cond.Value) {
+		return invalidValueError()
 	}
 
 	switch field.GetAccessMode() {
