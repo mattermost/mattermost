@@ -368,6 +368,37 @@ describe('components/channel_invite_modal', () => {
         });
     });
 
+    test('should show the configured display name in the selected user chip', async () => {
+        const userWithNickname = {
+            ...users[0],
+            username: 'user-with-nick',
+            label: 'user-with-nick',
+            value: 'user-with-nick',
+            nickname: 'Unexpected Nickname',
+        } as UserProfileValue;
+        const props = {
+            ...baseProps,
+            profilesNotInCurrentChannel: [userWithNickname],
+            includeUsers: {'user-1': userWithNickname},
+            membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
+        };
+
+        renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, 'user-with-nick');
+
+        const option = await screen.findByText('user-with-nick', {selector: '.more-modal__name > span'});
+        await userEvent.click(option);
+
+        expect(screen.getByText('user-with-nick', {selector: '.react-select__value__name'})).toBeInTheDocument();
+        expect(screen.queryByText('Unexpected Nickname')).not.toBeInTheDocument();
+    });
+
     test('should call onAddCallback on handleSubmit with skipCommit', async () => {
         const onAddCallback = jest.fn();
 
