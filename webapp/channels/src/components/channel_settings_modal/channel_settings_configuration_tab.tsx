@@ -105,15 +105,22 @@ function ChannelSettingsConfigurationTab({
     const classification = useClassificationMarkings();
     const [classificationEnabled, setClassificationEnabled] = useState(classificationBanner.hasClassification);
     const [selectedClassificationId, setSelectedClassificationId] = useState(classificationBanner.classificationId || '');
-    const [classificationBannerText, setClassificationBannerText] = useState(classificationBanner.bannerText || '');
 
     const bannerLockedByClassification = classificationEnabled && Boolean(selectedClassificationId);
 
     useEffect(() => {
         setClassificationEnabled(classificationBanner.hasClassification);
         setSelectedClassificationId(classificationBanner.classificationId || '');
-        setClassificationBannerText(classificationBanner.bannerText || '');
-    }, [classificationBanner.hasClassification, classificationBanner.classificationId, classificationBanner.bannerText]);
+
+        if (classificationBanner.hasClassification && classificationBanner.classificationBanner) {
+            setUpdatedChannelBanner((prev) => ({
+                ...prev,
+                enabled: true,
+                text: classificationBanner.classificationBanner?.text ?? prev.text,
+                background_color: classificationBanner.classificationBanner?.background_color || prev.background_color || DEFAULT_CHANNEL_BANNER.background_color,
+            }));
+        }
+    }, [classificationBanner.hasClassification, classificationBanner.classificationId, classificationBanner.classificationBanner]);
 
     const classificationOptions = useMemo(() => {
         return classification.levels.
@@ -143,28 +150,32 @@ function ChannelSettingsConfigurationTab({
     const initialClassificationState = useMemo(() => ({
         enabled: classificationBanner.hasClassification,
         classificationId: classificationBanner.classificationId || '',
-        bannerText: classificationBanner.bannerText || '',
-    }), [classificationBanner.hasClassification, classificationBanner.classificationId, classificationBanner.bannerText]);
+    }), [classificationBanner.hasClassification, classificationBanner.classificationId]);
 
     const hasClassificationChanges = classificationEnabled !== initialClassificationState.enabled ||
-        selectedClassificationId !== initialClassificationState.classificationId ||
-        classificationBannerText !== initialClassificationState.bannerText;
+        selectedClassificationId !== initialClassificationState.classificationId;
 
     const handleClassificationToggle = useCallback(() => {
-        setClassificationEnabled((prev) => !prev);
+        setClassificationEnabled((prev) => {
+            if (!prev) {
+                setUpdatedChannelBanner((banner) => ({...banner, enabled: true}));
+            }
+            return !prev;
+        });
     }, []);
 
     const handleClassificationLevelChange = useCallback((selected: ValueType) => {
         setSelectedClassificationId(selected.value);
         const level = classification.levels.find((l) => l.id === selected.value);
         if (level) {
-            setClassificationBannerText(`**${level.name}**`);
+            setUpdatedChannelBanner((prev) => ({
+                ...prev,
+                enabled: true,
+                text: `**${level.name}**`,
+                background_color: level.color,
+            }));
         }
     }, [classification.levels]);
-
-    const handleClassificationBannerTextChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
-        setClassificationBannerText(e.target.value);
-    }, []);
 
     const handleBannerToggle = useCallback(() => {
         const newValue = !updatedChannelBanner.enabled;
@@ -376,7 +387,15 @@ function ChannelSettingsConfigurationTab({
             updated.autotranslation = isChannelAutotranslated;
         }
 
-        if (hasAutoTranslationChanges || hasBannerChanges) {
+        if (hasClassificationChanges && classificationEnabled && selectedClassificationId) {
+            updated.banner_info = {
+                text: updatedChannelBanner.text?.trim() || '',
+                background_color: updatedChannelBanner.background_color?.trim() || '',
+                enabled: true,
+            };
+        }
+
+        if (hasAutoTranslationChanges || hasBannerChanges || (hasClassificationChanges && classificationEnabled && selectedClassificationId)) {
             const {error} = await dispatch(patchChannel(channel.id, updated));
             if (error) {
                 handleServerError(error as ServerError);
@@ -385,13 +404,13 @@ function ChannelSettingsConfigurationTab({
         }
 
         if (hasClassificationChanges && classification.channelField) {
-            if (classificationEnabled && selectedClassificationId && classificationBannerText.trim()) {
+            if (classificationEnabled && selectedClassificationId) {
                 try {
                     const values = await Client4.patchPropertyValues(
                         CLASSIFICATIONS_GROUP_NAME,
                         CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                         channel.id,
-                        [{field_id: classification.channelField.id, value: {classification_id: selectedClassificationId, banner_text: classificationBannerText.trim()}}],
+                        [{field_id: classification.channelField.id, value: selectedClassificationId}],
                     );
                     dispatch({type: PropertyTypes.RECEIVED_PROPERTY_VALUES, data: {values}});
                 } catch (err) {
@@ -462,7 +481,6 @@ function ChannelSettingsConfigurationTab({
         canManageSharedChannels,
         channel,
         classification.channelField,
-        classificationBannerText,
         classificationEnabled,
         dispatch,
         formatMessage,
@@ -532,7 +550,6 @@ function ChannelSettingsConfigurationTab({
 
         setClassificationEnabled(initialClassificationState.enabled);
         setSelectedClassificationId(initialClassificationState.classificationId);
-        setClassificationBannerText(initialClassificationState.bannerText);
 
         if (canManageSharedChannels) {
             setSharingEnabled(initialSharingEnabled.current);
@@ -548,7 +565,7 @@ function ChannelSettingsConfigurationTab({
         setRequireConfirm(false);
     }, []);
 
-    const classificationFormInvalid = classificationEnabled && (!selectedClassificationId || !classificationBannerText.trim());
+    const classificationFormInvalid = classificationEnabled && !selectedClassificationId;
     const hasErrors = Boolean(formError) ||
         characterLimitExceeded ||
         classificationFormInvalid ||
@@ -590,22 +607,28 @@ function ChannelSettingsConfigurationTab({
                 <div className='ChannelSettingsModal__configurationTab__configurationDivider'/>
             )}
 
-            {canManageSharedChannels && classification.available && (
+            {classification.available && (
                 <>
                     <div className='channel_banner_header'>
                         <div className='channel_banner_header__text'>
-                            <span className='Input_legend'>
+                            <label
+                                className='Input_legend'
+                                aria-label={formatMessage({id: 'channel_settings.classification.title', defaultMessage: 'Classification'})}
+                            >
                                 <FormattedMessage
                                     id='channel_settings.classification.title'
                                     defaultMessage='Classification'
                                 />
-                            </span>
-                            <span className='Input_subheading'>
+                            </label>
+                            <label
+                                className='Input_subheading'
+                                aria-label={formatMessage({id: 'channel_settings.classification.title', defaultMessage: 'Classification'})}
+                            >
                                 <FormattedMessage
                                     id='channel_settings.classification.description'
                                     defaultMessage='When enabled, a classification level can be set for the channel with configurable indicators.'
                                 />
-                            </span>
+                            </label>
                         </div>
 
                         <div className='channel_banner_header__toggle'>
@@ -716,12 +739,12 @@ function ChannelSettingsConfigurationTab({
                                 <div className='setting_body'>
                                     <AdvancedTextbox
                                         id='channel_banner_banner_text_textbox'
-                                        value={bannerLockedByClassification ? classificationBannerText : updatedChannelBanner.text!}
+                                        value={updatedChannelBanner.text!}
                                         channelId={channel.id}
                                         onKeyPress={() => {}}
                                         showCharacterCount={true}
                                         useChannelMentions={false}
-                                        onChange={bannerLockedByClassification ? handleClassificationBannerTextChange : handleBannerTextChange}
+                                        onChange={handleBannerTextChange}
                                         preview={showBannerTextPreview}
                                         togglePreview={toggleBannerTextPreview}
                                         hasError={characterLimitExceeded}

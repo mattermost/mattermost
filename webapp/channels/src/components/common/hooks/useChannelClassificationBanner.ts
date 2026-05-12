@@ -10,14 +10,15 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {PropertyTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
+import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getPropertyValueForTargetField} from 'mattermost-redux/selectors/entities/properties';
 
-import useClassificationMarkings from './useClassificationMarkings';
+import {
+    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+    CLASSIFICATIONS_GROUP_NAME,
+} from 'components/admin_console/classification_markings/utils';
 
-export type ChannelClassificationValue = {
-    classification_id: string;
-    banner_text: string;
-};
+import useClassificationMarkings from './useClassificationMarkings';
 
 export type ChannelClassificationBannerState = {
     hasClassification: boolean;
@@ -28,14 +29,13 @@ export type ChannelClassificationBannerState = {
 
 /**
  * Resolves the effective banner display for a channel by checking whether a
- * classification property value exists. If one does, its color and text take
- * priority over the channel's native banner_info.
+ * classification property value exists. If one does, its color (from the level
+ * definition) and text (from the channel's banner_info) take priority over
+ * the channel's native banner_info.
  *
- * Returns:
- * - hasClassification: true when a classification property value is stored for this channel
- * - classificationBanner: a ChannelBanner-compatible object derived from the classification
- * - classificationId: the selected classification level ID
- * - bannerText: the banner text from the classification property value
+ * The PropertyValue stores only the classification_id (a plain string).
+ * The banner text lives in channel.banner_info.text so that the property
+ * value stays a single scalar.
  */
 export default function useChannelClassificationBanner(channelId: string): ChannelClassificationBannerState {
     const dispatch = useDispatch();
@@ -47,8 +47,10 @@ export default function useChannelClassificationBanner(channelId: string): Chann
         if (!fieldId || !channelId) {
             return undefined;
         }
-        return getPropertyValueForTargetField(state, channelId, fieldId) as PropertyValue<ChannelClassificationValue> | undefined;
+        return getPropertyValueForTargetField(state, channelId, fieldId) as PropertyValue<string> | undefined;
     });
+
+    const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));
 
     useEffect(() => {
         if (!channelId || !classification.available || !classification.channelField) {
@@ -57,8 +59,8 @@ export default function useChannelClassificationBanner(channelId: string): Chann
 
         if (!propertyValue) {
             Client4.getPropertyValues(
-                'classification_markings',
-                'channel',
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                 channelId,
             ).then((values) => {
                 if (values && values.length > 0) {
@@ -85,14 +87,17 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             return noClassification;
         }
 
-        const val = propertyValue.value as ChannelClassificationValue;
-        const classificationId = val.classification_id;
-        const bannerText = val.banner_text;
+        const classificationId = propertyValue.value;
+        if (typeof classificationId !== 'string') {
+            return noClassification;
+        }
 
         const level = classification.levels.find((l) => l.id === classificationId);
         if (!level) {
             return noClassification;
         }
+
+        const bannerText = channelBannerInfo?.text ?? `**${level.name}**`;
 
         return {
             hasClassification: true,
@@ -104,5 +109,5 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             classificationId,
             bannerText,
         };
-    }, [propertyValue, classification.levels]);
+    }, [propertyValue, classification.levels, channelBannerInfo]);
 }

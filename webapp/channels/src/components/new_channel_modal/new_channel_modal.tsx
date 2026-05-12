@@ -172,6 +172,13 @@ const NewChannelModal = () => {
             update_at: 0,
             default_category_name: defaultCategoryName,
             managed_category_name: managedCategoryName,
+            ...(classificationEnabled && selectedClassificationId && bannerText ? {
+                banner_info: {
+                    enabled: true,
+                    text: bannerText,
+                    background_color: selectedClassificationLevel?.color || '',
+                },
+            } : {}),
         };
 
         try {
@@ -187,7 +194,7 @@ const NewChannelModal = () => {
                         CLASSIFICATIONS_GROUP_NAME,
                         CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                         newChannel!.id,
-                        [{field_id: classification.channelField.id, value: {classification_id: selectedClassificationId, banner_text: bannerText}}],
+                        [{field_id: classification.channelField.id, value: selectedClassificationId}],
                     );
                 } catch {
                     // Classification save failure should not block channel creation

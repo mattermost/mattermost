@@ -17,7 +17,7 @@ import type {ClassificationLevel} from 'components/admin_console/classification_
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
 
-import useChannelClassificationBanner, {type ChannelClassificationValue} from './useChannelClassificationBanner';
+import useChannelClassificationBanner from './useChannelClassificationBanner';
 import * as ClassificationHook from './useClassificationMarkings';
 
 jest.mock('react-redux', () => ({
@@ -48,14 +48,14 @@ function makeChannelField(overrides: Partial<PropertyField> = {}): PropertyField
     };
 }
 
-function makePropertyValue(value: ChannelClassificationValue | null): PropertyValue<ChannelClassificationValue> {
+function makePropertyValue(value: string | null): PropertyValue<string> {
     return {
         id: 'value1',
         target_id: CHANNEL_ID,
         target_type: CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
         group_id: CLASSIFICATIONS_GROUP_NAME,
         field_id: FIELD_ID,
-        value: value as ChannelClassificationValue,
+        value: value as string,
         create_at: 2000,
         update_at: 2000,
         delete_at: 0,
@@ -71,9 +71,20 @@ const SAMPLE_LEVELS: ClassificationLevel[] = [
 
 type PartialState = Parameters<typeof renderHookWithContext>[1];
 
-function stateWithValue(value: PropertyValue<ChannelClassificationValue> | undefined): PartialState {
+function stateWithValue(
+    value: PropertyValue<string> | undefined,
+    bannerInfo?: {enabled?: boolean; text?: string; background_color?: string},
+): PartialState {
     return {
         entities: {
+            channels: {
+                channels: {
+                    [CHANNEL_ID]: {
+                        id: CHANNEL_ID,
+                        banner_info: bannerInfo,
+                    },
+                },
+            },
             properties: {
                 values: {
                     byTargetId: value ? {[CHANNEL_ID]: {[FIELD_ID]: value}} : {},
@@ -142,13 +153,13 @@ describe('useChannelClassificationBanner', () => {
         expect(result.current.classificationBanner).toBeUndefined();
     });
 
-    test('maps a valid property value to the matching level banner shape', () => {
+    test('maps a valid string classification_id to the matching level banner shape with text from banner_info', () => {
         mockClassification();
-        const value = makePropertyValue({classification_id: 'lvl2', banner_text: '**SECRET**'});
+        const value = makePropertyValue('lvl2');
 
         const {result} = renderHookWithContext(
             () => useChannelClassificationBanner(CHANNEL_ID),
-            stateWithValue(value),
+            stateWithValue(value, {enabled: true, text: '**SECRET**', background_color: '#C8102E'}),
         );
 
         expect(result.current.hasClassification).toBe(true);
@@ -161,13 +172,59 @@ describe('useChannelClassificationBanner', () => {
         });
     });
 
-    test('returns hasClassification=false when the referenced level no longer exists', () => {
+    test('returns empty bannerText when banner_info.text is missing but classification is set', () => {
         mockClassification();
-        const value = makePropertyValue({classification_id: 'deleted_lvl', banner_text: 'stale'});
+        const value = makePropertyValue('lvl1');
 
         const {result} = renderHookWithContext(
             () => useChannelClassificationBanner(CHANNEL_ID),
             stateWithValue(value),
+        );
+
+        expect(result.current.hasClassification).toBe(true);
+        expect(result.current.classificationId).toBe('lvl1');
+        expect(result.current.bannerText).toBe('');
+        expect(result.current.classificationBanner).toEqual({
+            enabled: true,
+            text: '',
+            background_color: '#007A33',
+        });
+    });
+
+    test('returns hasClassification=false when the referenced level no longer exists', () => {
+        mockClassification();
+        const value = makePropertyValue('deleted_lvl');
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            stateWithValue(value),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+        expect(result.current.classificationBanner).toBeUndefined();
+    });
+
+    test('returns hasClassification=false for legacy object-shaped property values', () => {
+        mockClassification();
+
+        // Simulate a pre-migration object-shaped value that should be treated as invalid
+        const legacyValue = {
+            id: 'value1',
+            target_id: CHANNEL_ID,
+            target_type: CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+            group_id: CLASSIFICATIONS_GROUP_NAME,
+            field_id: FIELD_ID,
+            value: {classification_id: 'lvl1', banner_text: 'test'} as unknown as string,
+            create_at: 2000,
+            update_at: 2000,
+            delete_at: 0,
+            created_by: 'user1',
+            updated_by: 'user1',
+        };
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            stateWithValue(legacyValue as PropertyValue<string>),
         );
 
         expect(result.current.hasClassification).toBe(false);
