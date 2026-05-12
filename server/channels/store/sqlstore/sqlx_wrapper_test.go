@@ -129,7 +129,7 @@ func TestSqlxQuery(t *testing.T) {
 		tx, err := store.GetMaster().Begin()
 		require.NoError(t, err)
 		_, err = tx.Query("SELECT pg_sleep(2)")
-		_ = tx.Rollback() // connection is dead after timeout; rollback will fail
+		require.Error(t, tx.Rollback()) // connection is dead after timeout
 		requireQueryTimeout(t, err)
 	})
 }
@@ -163,7 +163,7 @@ func TestSqlxQueryRow(t *testing.T) {
 		require.NoError(t, err)
 		var v int
 		err = tx.QueryRow("SELECT 1 FROM (SELECT pg_sleep(2)) s").Scan(&v)
-		_ = tx.Rollback() // connection is dead after timeout; rollback will fail
+		require.Error(t, tx.Rollback()) // connection is dead after timeout
 		requireQueryTimeout(t, err)
 	})
 }
