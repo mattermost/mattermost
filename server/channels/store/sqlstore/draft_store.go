@@ -202,7 +202,7 @@ func (s *SqlDraftStore) UpsertPageDraftT(transaction *sqlxTxWrapper, draft *mode
 
 	// Use QueryRow to get the RETURNING values (actual DB timestamps)
 	var createAt, updateAt int64
-	if err = transaction.QueryRow(query, args...).Scan(&createAt, &updateAt); err != nil {
+	if err = transaction.QueryRowX(query, args...).Scan(&createAt, &updateAt); err != nil {
 		return nil, errors.Wrap(err, "failed to upsert Draft")
 	}
 

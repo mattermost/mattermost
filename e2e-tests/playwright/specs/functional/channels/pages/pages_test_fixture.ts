@@ -11,7 +11,6 @@ import {
     expect,
     getAdminClient,
     createRandomTeam,
-    getOnPremServerConfig,
     createRandomUser,
     getRandomId,
     makeClient,
@@ -67,12 +66,14 @@ export const test: ReturnType<typeof base.extend<PagesTestFixtures, PagesWorkerF
             // Login admin
             const {adminClient, adminUser} = await getAdminClient();
 
-            // Reset server config with explicit TeammateNameDisplay setting
-            // to ensure usernames are displayed in tests
-            const config = getOnPremServerConfig() as any;
-            config.TeamSettings.TeammateNameDisplay = 'username';
-            config.TeamSettings.LockTeammateNameDisplay = false;
-            await adminClient.updateConfig(config);
+            // Patch only the settings needed for tests to avoid disrupting
+            // other concurrent CI jobs that share the same server.
+            await adminClient.patchConfig({
+                TeamSettings: {
+                    TeammateNameDisplay: 'username',
+                    LockTeammateNameDisplay: false,
+                },
+            });
 
             // Snapshot before mutating so teardown can restore exactly.
             // Wiki/page permissions are team-scoped (SessionHasWikiPermission →
@@ -208,12 +209,14 @@ export const testWithRegularUser: ReturnType<typeof base.extend<PermissionsTestF
                 // Login admin
                 const {adminClient} = await getAdminClient();
 
-                // Reset server config with explicit TeammateNameDisplay setting
-                // to ensure usernames are displayed in tests
-                const config = getOnPremServerConfig() as any;
-                config.TeamSettings.TeammateNameDisplay = 'username';
-                config.TeamSettings.LockTeammateNameDisplay = false;
-                await adminClient.updateConfig(config);
+                // Patch only the settings needed for tests to avoid disrupting
+                // other concurrent CI jobs that share the same server.
+                await adminClient.patchConfig({
+                    TeamSettings: {
+                        TeammateNameDisplay: 'username',
+                        LockTeammateNameDisplay: false,
+                    },
+                });
 
                 // Snapshot all roles before mutating so teardown can restore exactly.
                 // This prevents cross-run and cross-worker permission pollution:

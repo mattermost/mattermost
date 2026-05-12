@@ -110,7 +110,7 @@ func (ss *SqlStore) initMorph(dryRun, enableLogging bool) (*morph.Morph, error) 
 		return nil, err
 	}
 
-	driver, err := ps.WithInstance(ss.GetMaster().DB.DB)
+	driver, err := ps.WithInstance(ss.GetMaster().DB().DB)
 	if err != nil {
 		return nil, err
 	}
