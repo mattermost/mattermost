@@ -26,11 +26,6 @@ export function getCurrentStaticPageId(state: GlobalState): string {
     return state.views.lhs.currentStaticPageId;
 }
 
-/**
- * Returns true when the Global Threads page is the active view in the LHS.
- * The Global Threads thread panel renders at full center-channel width, so
- * post hover controls should behave the same as they do in the center channel.
- */
 export function getIsGlobalThreadsView(state: GlobalState): boolean {
     return state.views.lhs.currentStaticPageId === LhsPage.Threads;
 }
