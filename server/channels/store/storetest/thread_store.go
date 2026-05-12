@@ -425,11 +425,15 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		// the replies as read.
 		newPosts := makeSomePosts(false)
 
-		// Ensure replies have later timestamps than the root post.
-		// The root post is newPosts[0], replies are newPosts[1] and newPosts[2].
+		// GetThreadUnreadReplyCount uses Posts.CreateAt > LastViewed (strict). After
+		// MarkAsRead(..., root.CreateAt) every reply in this thread must land strictly
+		// after the root. Batched saves can leave one reply a few ms ahead of the root
+		// while another still equals it; the MM-41797 guard only overwrote when
+		// CreateAt <= root, so that mixed case still yielded 1 unread instead of 2.
+		rootID := newPosts[0].Id
 		baseTime := newPosts[0].CreateAt
 		for i := 1; i < len(newPosts); i++ {
-			if newPosts[i].RootId != "" && newPosts[i].CreateAt <= baseTime {
+			if newPosts[i].RootId == rootID {
 				newPosts[i].CreateAt = baseTime + int64(i)*1000
 				_, sErr := ss.Post().Overwrite(rctx, newPosts[i])
 				require.NoError(t, sErr, "failed to update post timestamp")
