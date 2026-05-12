@@ -144,7 +144,7 @@ func TestCreateUser(t *testing.T) {
 		email := th.GenerateTestEmail()
 		newUser := &model.User{
 			Id:            model.NewId(),
-			RemoteId:      model.NewPointer(model.NewId()),
+			RemoteId:      new(model.NewId()),
 			Email:         email,
 			Password:      model.NewTestPassword(),
 			Username:      GenerateTestUsername(),
@@ -188,99 +188,99 @@ func TestCreateUserPasswordValidation(t *testing.T) {
 			Password: strings.Repeat("x", model.PasswordFIPSMinimumLength),
 			Settings: &model.PasswordSettings{
 				MinimumLength: model.NewPointer(model.PasswordFIPSMinimumLength),
-				Lowercase:     model.NewPointer(false),
-				Uppercase:     model.NewPointer(false),
-				Number:        model.NewPointer(false),
-				Symbol:        model.NewPointer(false),
+				Lowercase:     new(false),
+				Uppercase:     new(false),
+				Number:        new(false),
+				Symbol:        new(false),
 			},
 		},
 		"Long": {
 			Password: strings.Repeat("x", model.PasswordMaximumLength),
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewPointer(false),
-				Uppercase: model.NewPointer(false),
-				Number:    model.NewPointer(false),
-				Symbol:    model.NewPointer(false),
+				Lowercase: new(false),
+				Uppercase: new(false),
+				Number:    new(false),
+				Symbol:    new(false),
 			},
 		},
 		"TooShort": {
 			Password: strings.Repeat("x", 2),
 			Settings: &model.PasswordSettings{
 				MinimumLength: model.NewPointer(model.PasswordFIPSMinimumLength),
-				Lowercase:     model.NewPointer(false),
-				Uppercase:     model.NewPointer(false),
-				Number:        model.NewPointer(false),
-				Symbol:        model.NewPointer(false),
+				Lowercase:     new(false),
+				Uppercase:     new(false),
+				Number:        new(false),
+				Symbol:        new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_min_length.app_error",
 		},
 		"TooLong": {
 			Password: strings.Repeat("x", model.PasswordMaximumLength+1),
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewPointer(false),
-				Uppercase: model.NewPointer(false),
-				Number:    model.NewPointer(false),
-				Symbol:    model.NewPointer(false),
+				Lowercase: new(false),
+				Uppercase: new(false),
+				Number:    new(false),
+				Symbol:    new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_max_length.app_error",
 		},
 		"MissingLower": {
 			Password: "AAAAAAAAAAASD123!@#",
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewPointer(true),
-				Uppercase: model.NewPointer(false),
-				Number:    model.NewPointer(false),
-				Symbol:    model.NewPointer(false),
+				Lowercase: new(true),
+				Uppercase: new(false),
+				Number:    new(false),
+				Symbol:    new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_lowercase.app_error",
 		},
 		"MissingUpper": {
 			Password: "aaaaaaaaaaaaasd123!@#",
 			Settings: &model.PasswordSettings{
-				Uppercase: model.NewPointer(true),
-				Lowercase: model.NewPointer(false),
-				Number:    model.NewPointer(false),
-				Symbol:    model.NewPointer(false),
+				Uppercase: new(true),
+				Lowercase: new(false),
+				Number:    new(false),
+				Symbol:    new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_uppercase.app_error",
 		},
 		"MissingNumber": {
 			Password: "asasdasdsadASD!@#",
 			Settings: &model.PasswordSettings{
-				Number:    model.NewPointer(true),
-				Lowercase: model.NewPointer(false),
-				Uppercase: model.NewPointer(false),
-				Symbol:    model.NewPointer(false),
+				Number:    new(true),
+				Lowercase: new(false),
+				Uppercase: new(false),
+				Symbol:    new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_number.app_error",
 		},
 		"MissingSymbol": {
 			Password: "asdasdasdasdasdASD123",
 			Settings: &model.PasswordSettings{
-				Symbol:    model.NewPointer(true),
-				Lowercase: model.NewPointer(false),
-				Uppercase: model.NewPointer(false),
-				Number:    model.NewPointer(false),
+				Symbol:    new(true),
+				Lowercase: new(false),
+				Uppercase: new(false),
+				Number:    new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_symbol.app_error",
 		},
 		"MissingMultiple": {
 			Password: "asdasdasdasdasdasd",
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewPointer(true),
-				Uppercase: model.NewPointer(true),
-				Number:    model.NewPointer(true),
-				Symbol:    model.NewPointer(true),
+				Lowercase: new(true),
+				Uppercase: new(true),
+				Number:    new(true),
+				Symbol:    new(true),
 			},
 			ExpectedError: "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
 		},
 		"Everything": {
 			Password: "asdASDasd!@#123",
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewPointer(true),
-				Uppercase: model.NewPointer(true),
-				Number:    model.NewPointer(true),
-				Symbol:    model.NewPointer(true),
+				Lowercase: new(true),
+				Uppercase: new(true),
+				Number:    new(true),
+				Symbol:    new(true),
 			},
 		},
 	} {
@@ -306,8 +306,8 @@ func TestCreateUserAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
-		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
 	})
 
 	email := th.GenerateTestEmail()
@@ -341,8 +341,8 @@ func TestUserLoginAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
-		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
 	})
 
 	_, err = th.Client.Logout(context.Background())
@@ -384,8 +384,8 @@ func TestLogoutAuditAuthStatus(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
-		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
 	})
 
 	t.Run("authenticated logout has auth_status=authenticated and user_id", func(t *testing.T) {
@@ -510,7 +510,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 					Email:       "foobar+testdomainrestriction@mattermost.org",
 					Username:    GenerateTestUsername(),
 					AuthService: "ldap",
-					AuthData:    model.NewPointer("999099"),
+					AuthData:    new("999099"),
 				}
 				u, _, err := th.SystemAdminClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
@@ -522,7 +522,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 					Email:       "foobar+testdomainrestrictionlocalclient@mattermost.org",
 					Username:    GenerateTestUsername(),
 					AuthService: "ldap",
-					AuthData:    model.NewPointer("999100"),
+					AuthData:    new("999100"),
 				}
 				u, _, err := th.LocalClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
@@ -939,12 +939,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	t.Run("GroupConstrainedTeam", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: model.NewTestPassword(), Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		th.BasicTeam.GroupConstrained = model.NewPointer(true)
+		th.BasicTeam.GroupConstrained = new(true)
 		team, appErr := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
-			th.BasicTeam.GroupConstrained = model.NewPointer(false)
+			th.BasicTeam.GroupConstrained = new(false)
 			_, appErr = th.App.UpdateTeam(th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
@@ -958,12 +958,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: model.NewTestPassword(), Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		th.BasicTeam.GroupConstrained = model.NewPointer(true)
+		th.BasicTeam.GroupConstrained = new(true)
 		team, appErr := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
-			th.BasicTeam.GroupConstrained = model.NewPointer(false)
+			th.BasicTeam.GroupConstrained = new(false)
 			_, appErr = th.App.UpdateTeam(th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
@@ -1639,10 +1639,10 @@ func TestSearchUsers(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewPointer("name" + id),
+		Name:        new("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1679,10 +1679,10 @@ func TestSearchUsers(t *testing.T) {
 	id = model.NewId()
 	group, appErr = th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewPointer("name" + id),
+		Name:        new("name" + id),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -2334,7 +2334,7 @@ func TestUpdateUserRemoteIdIgnored(t *testing.T) {
 		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
 		require.NoError(t, err)
 
-		user.RemoteId = model.NewPointer("attacker-remote-id")
+		user.RemoteId = new("attacker-remote-id")
 		user.Nickname = "updated-nickname"
 		ruser, _, err := th.Client.UpdateUser(context.Background(), user)
 		require.NoError(t, err)
@@ -2349,7 +2349,7 @@ func TestUpdateUserRemoteIdIgnored(t *testing.T) {
 	t.Run("remote_id in update body is ignored for system admin", func(t *testing.T) {
 		user := th.CreateUser(t)
 
-		user.RemoteId = model.NewPointer("admin-remote-id")
+		user.RemoteId = new("admin-remote-id")
 		user.Nickname = "admin-updated"
 		ruser, _, err := th.SystemAdminClient.UpdateUser(context.Background(), user)
 		require.NoError(t, err)
@@ -2433,10 +2433,10 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	patch := &model.UserPatch{}
-	patch.Password = model.NewPointer(model.NewTestPassword())
-	patch.Nickname = model.NewPointer("Joram Wilander")
-	patch.FirstName = model.NewPointer("Joram")
-	patch.LastName = model.NewPointer("Wilander")
+	patch.Password = new(model.NewTestPassword())
+	patch.Nickname = new("Joram Wilander")
+	patch.FirstName = new("Joram")
+	patch.LastName = new("Wilander")
 	patch.Position = new(string)
 	patch.NotifyProps = model.StringMap{}
 	patch.NotifyProps["comment"] = "somethingrandom"
@@ -2471,19 +2471,19 @@ func TestPatchUser(t *testing.T) {
 	require.Nil(t, appErr, "Password should still match")
 
 	patch = &model.UserPatch{}
-	patch.Email = model.NewPointer(th.GenerateTestEmail())
+	patch.Email = new(th.GenerateTestEmail())
 
 	_, resp, err := th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	patch.Password = model.NewPointer(currentPassword)
+	patch.Password = new(currentPassword)
 	ruser, _, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.NoError(t, err)
 
 	require.Equal(t, *patch.Email, ruser.Email, "Email should update properly")
 
-	patch.Username = model.NewPointer(th.BasicUser2.Username)
+	patch.Username = new(th.BasicUser2.Username)
 	_, resp, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
@@ -2507,7 +2507,7 @@ func TestPatchUser(t *testing.T) {
 	session.IsOAuth = true
 	th.App.AddSessionToCache(session)
 
-	patch.Email = model.NewPointer(th.GenerateTestEmail())
+	patch.Email = new(th.GenerateTestEmail())
 	_, resp, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -2537,8 +2537,8 @@ func TestPatchUserRemoteIdIgnored(t *testing.T) {
 		require.NoError(t, err)
 
 		patch := &model.UserPatch{
-			RemoteId: model.NewPointer("attacker-remote-id"),
-			Nickname: model.NewPointer("new-nickname"),
+			RemoteId: new("attacker-remote-id"),
+			Nickname: new("new-nickname"),
 		}
 		ruser, _, err := th.Client.PatchUser(context.Background(), user.Id, patch)
 		require.NoError(t, err)
@@ -2554,8 +2554,8 @@ func TestPatchUserRemoteIdIgnored(t *testing.T) {
 		user := th.CreateUser(t)
 
 		patch := &model.UserPatch{
-			RemoteId: model.NewPointer("admin-remote-id"),
-			Nickname: model.NewPointer("admin-patched"),
+			RemoteId: new("admin-remote-id"),
+			Nickname: new("admin-patched"),
 		}
 		ruser, _, err := th.SystemAdminClient.PatchUser(context.Background(), user.Id, patch)
 		require.NoError(t, err)
@@ -2572,7 +2572,7 @@ func TestPatchUserRemoteIdIgnored(t *testing.T) {
 		user := th.SetUserRemoteID(t, th.CreateUser(t).Id, remoteId)
 
 		patch := &model.UserPatch{
-			Nickname: model.NewPointer("updated-nickname"),
+			Nickname: new("updated-nickname"),
 		}
 		ruser, _, err := th.SystemAdminClient.PatchUser(context.Background(), user.Id, patch)
 		require.NoError(t, err)
@@ -2591,7 +2591,7 @@ func TestPatchBotUser(t *testing.T) {
 
 	bot := th.CreateBotWithSystemAdminClient(t)
 	patch := &model.UserPatch{}
-	patch.Email = model.NewPointer("newemail@test.com")
+	patch.Email = new("newemail@test.com")
 
 	user, _, err := th.SystemAdminClient.PatchUser(context.Background(), bot.UserId, patch)
 	require.NoError(t, err)
@@ -2611,7 +2611,7 @@ func TestPatchAdminUser(t *testing.T) {
 	require.Nil(t, appErr)
 
 	patch := &model.UserPatch{}
-	patch.Email = model.NewPointer(th.GenerateTestEmail())
+	patch.Email = new(th.GenerateTestEmail())
 
 	th.AddPermissionToRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 	_, appErr = th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
@@ -2677,9 +2677,9 @@ func TestUserUnicodeNames(t *testing.T) {
 		require.NoError(t, err)
 
 		patch := &model.UserPatch{}
-		patch.Nickname = model.NewPointer("\U000E0000Ender\u206d Wiggin\U000E007F")
-		patch.FirstName = model.NewPointer("\U0001d173Andrew\U0001d17a")
-		patch.LastName = model.NewPointer("\u2028Wiggin\u2029")
+		patch.Nickname = new("\U000E0000Ender\u206d Wiggin\U000E007F")
+		patch.FirstName = new("\U0001d173Andrew\U0001d17a")
+		patch.LastName = new("\u2028Wiggin\u2029")
 
 		ruser, _, err := client.PatchUser(context.Background(), user.Id, patch)
 		require.NoError(t, err)
@@ -2712,7 +2712,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, respErr, _ := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr, "Shouldn't have permissions. Only Admins")
 
-	userAuth.AuthData = model.NewPointer("test@test.com")
+	userAuth.AuthData = new("test@test.com")
 	userAuth.AuthService = model.UserAuthServiceSaml
 	ruser, _, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
@@ -3138,6 +3138,84 @@ func TestUpdateUserActive(t *testing.T) {
 			CheckForbiddenStatus(t, resp)
 		})
 	})
+
+	t.Run("user manager without bot permissions cannot deactivate bot accounts", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		bot, botResp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "Test Bot",
+			Description: "bot for permission test",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, botResp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			assert.Nil(t, appErr)
+		}()
+
+		// Give BasicUser the User Manager permission to edit users, but no bot permissions.
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		th.LoginBasic(t)
+
+		// A User Manager without bot permissions must be blocked.
+		// Because the caller has neither PermissionReadOthersBots nor
+		// PermissionManageOthersBots, SessionHasPermissionToManageBot always
+		// returns 404 to avoid leaking the bot's existence.
+		resp, err := th.Client.UpdateUserActive(context.Background(), bot.UserId, false)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+
+		// Confirm the bot is still active.
+		botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
+		require.NoError(t, err)
+		require.Zero(t, botUser.DeleteAt, "bot should still be active")
+	})
+
+	t.Run("user with bot management permissions can deactivate bot accounts via user active endpoint", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		bot, botResp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "Test Bot",
+			Description: "bot for permission test",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, botResp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			assert.Nil(t, appErr)
+		}()
+
+		// Assign both user-management and bot-management permissions to BasicUser.
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+
+		th.LoginBasic(t)
+
+		// A user with ManageOthersBots should be allowed.
+		_, err = th.Client.UpdateUserActive(context.Background(), bot.UserId, false)
+		require.NoError(t, err)
+
+		// Confirm the bot is now inactive.
+		botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
+		require.NoError(t, err)
+		require.True(t, botUser.DeleteAt > 0, "bot should be inactive after deactivation")
+	})
 }
 
 func TestGetUsers(t *testing.T) {
@@ -3187,7 +3265,7 @@ func TestGetUsers(t *testing.T) {
 			Email:       th.GenerateTestEmail(),
 			Username:    GenerateTestUsername(),
 			AuthService: model.UserAuthServiceLdap,
-			AuthData:    model.NewPointer(model.NewId()),
+			AuthData:    new(model.NewId()),
 		}
 		u, resp, err := c.CreateUser(context.Background(), user)
 		require.NoError(t, err)
@@ -3534,6 +3612,126 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TestGetUsersNotInChannelAbacMatchOnly exercises the dispatcher in
+// getUsers that decides whether to apply ABAC filtering based on the
+// channel type and the abac_match_only query parameter. The underlying
+// ABAC store path (GetUsersNotInAbacChannel) has its own coverage in
+// app/user_test.go; here we only assert the dispatch wiring.
+func TestGetUsersNotInChannelAbacMatchOnly(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	teamId := th.BasicTeam.Id
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user1, th.BasicTeam)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+
+	privateChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+	publicChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+
+	// Add BasicUser as a member so th.Client (a regular user) has
+	// PermissionReadChannel on the target — the endpoint isn't sys-admin gated,
+	// it just requires read access on the channel. Membership is added before
+	// the ABAC policy is saved so the AddUserToChannel path doesn't go through
+	// the policy gate (which is unrelated to what we're testing here).
+	th.AddUserToChannel(t, th.BasicUser, privateChannel)
+	th.AddUserToChannel(t, th.BasicUser, publicChannel)
+
+	saveChannelPolicy := func(channelID string) {
+		policy := &model.AccessControlPolicy{
+			ID:       channelID,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Active:   true,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "true"},
+			},
+		}
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		// PolicyEnforced is computed at channel-fetch time and cached. Adding
+		// BasicUser as a member above populated the cache with PolicyEnforced=false;
+		// invalidate so ChannelAccessControlled (the dispatcher's gate) sees the
+		// freshly-saved policy on subsequent reads.
+		th.App.Srv().Store().Channel().InvalidateChannel(channelID)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channelID)
+		})
+	}
+	saveChannelPolicy(privateChannel.Id)
+	saveChannelPolicy(publicChannel.Id)
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	originalACS := th.App.Srv().Channels().AccessControl
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = originalACS })
+
+	// QueryUsersForResource is the ABAC path; whenever it is hit, we return
+	// only user1 — that's the signal the dispatcher routed to the filtered
+	// branch. user2 only ever appears via the unfiltered store path.
+	//
+	// The third argument is pinned to the actual action constant
+	// (`AccessControlPolicyActionMembership`) so the mock matches the real
+	// call site in App.GetUsersNotInAbacChannel — using `"*"` here would
+	// silently never match and the whole test would PASS by accident on the
+	// fall-through path.
+	mockACS.On("QueryUsersForResource",
+		mock.Anything,
+		mock.AnythingOfType("string"),
+		model.AccessControlPolicyActionMembership,
+		mock.Anything,
+	).Return([]*model.User{user1}, int64(1), nil).Maybe()
+
+	listUsers := func(t *testing.T, channelID string, abacMatchOnly bool) []string {
+		t.Helper()
+		query := url.Values{}
+		query.Set("in_team", teamId)
+		query.Set("not_in_channel", channelID)
+		query.Set("page", "0")
+		query.Set("per_page", "200")
+		if abacMatchOnly {
+			query.Set("abac_match_only", "true")
+		}
+		resp, err := th.Client.DoAPIGet(context.Background(), "/users?"+query.Encode(), "")
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		defer resp.Body.Close()
+
+		var users []*model.User
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&users))
+		ids := make([]string, 0, len(users))
+		for _, u := range users {
+			ids = append(ids, u.Id)
+		}
+		return ids
+	}
+
+	t.Run("private policy channel: ABAC filter applied without flag", func(t *testing.T) {
+		ids := listUsers(t, privateChannel.Id, false)
+		require.Contains(t, ids, user1.Id)
+		require.NotContains(t, ids, user2.Id, "private policy channel must hard-gate non-matching users")
+	})
+
+	t.Run("public policy channel: full list returned without flag", func(t *testing.T) {
+		ids := listUsers(t, publicChannel.Id, false)
+		require.Contains(t, ids, user1.Id)
+		require.Contains(t, ids, user2.Id, "public policy channel without abac_match_only must return non-matching users so callers can annotate them")
+	})
+
+	t.Run("public policy channel: ABAC filter applied with abac_match_only=true", func(t *testing.T) {
+		ids := listUsers(t, publicChannel.Id, true)
+		require.Contains(t, ids, user1.Id)
+		require.NotContains(t, ids, user2.Id, "abac_match_only=true on a public policy channel must drop non-matching users")
+	})
+}
+
 func TestGetUsersInGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -3541,20 +3739,20 @@ func TestGetUsersInGroup(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewPointer("name" + id),
+		Name:        new("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
 	cid := model.NewId()
 	customGroup, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + cid,
-		Name:        model.NewPointer("name" + cid),
+		Name:        new("name" + cid),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + cid,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -3623,10 +3821,10 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewPointer("name" + id),
+		Name:        new("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -4587,7 +4785,7 @@ func TestLogin(t *testing.T) {
 	t.Run("remote user login rejected", func(t *testing.T) {
 		email := th.GenerateTestEmail()
 		remoteUserPassword := model.NewTestPassword()
-		user := model.User{Email: email, Nickname: "Darth Vader", Password: remoteUserPassword, Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewPointer("remote-id")}
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: remoteUserPassword, Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: new("remote-id")}
 		ruser, appErr := th.App.CreateUser(th.Context, &user)
 		require.Nil(t, appErr)
 
@@ -5314,7 +5512,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		// make a remote user
 		remoteUser, appErr := th.App.CreateUser(request.TestContext(t), &model.User{
 			Username: "remoteuser",
-			RemoteId: model.NewPointer(model.NewId()),
+			RemoteId: new(model.NewId()),
 			Password: model.NewId(),
 			Email:    "remoteuser@example.com",
 		})
@@ -7051,8 +7249,8 @@ func TestUpdatePasswordAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
-		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
 	})
 
 	password := model.NewTestPassword()
@@ -8449,7 +8647,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			model.ServiceOpenid,
 		} {
 			user := th.CreateUserWithAuth(t, authService)
-			patch := &model.UserPatch{Username: model.NewPointer("something new")}
+			patch := &model.UserPatch{Username: new("something new")}
 			conflictField := th.App.CheckProviderAttributes(th.Context, user, patch)
 			require.NotEqual(t, "", conflictField)
 		}

@@ -432,7 +432,7 @@ func detectSAMLProviderType(idpDescriptorURL string) string {
 		return "Centrify"
 	case strings.Contains(normalizedURL, "/realms/"):
 		return "Keycloak"
-	case strings.Contains(normalizedURL, "/adfs/") || strings.Contains(normalizedURL, "/FederationMetadata/"):
+	case strings.Contains(normalizedURL, "/adfs") || strings.Contains(normalizedURL, "/federationmetadata/"):
 		return "ADFS"
 	case strings.Contains(normalizedURL, "shibboleth.net") || strings.Contains(normalizedURL, "/idp/shibboleth"):
 		return "Shibboleth"

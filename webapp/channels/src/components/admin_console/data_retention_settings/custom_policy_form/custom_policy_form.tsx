@@ -4,6 +4,7 @@
 import React from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import type {
     DataRetentionCustomPolicy,
@@ -535,7 +536,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                         )}
                     />
                     <BlockableLink
-                        className='btn btn-tertiary'
+                        className={buttonClassNames({emphasis: 'tertiary'})}
                         to='/admin_console/compliance/data_retention_settings'
                     >
                         <FormattedMessage

@@ -312,12 +312,13 @@ const (
 
 // Recaps
 const (
-	AuditEventCreateRecap     = "createRecap"     // create recap summarizing channel content
-	AuditEventGetRecap        = "getRecap"        // view a single recap
-	AuditEventGetRecaps       = "getRecaps"       // list user's recaps
-	AuditEventMarkRecapAsRead = "markRecapAsRead" // mark recap as read
-	AuditEventRegenerateRecap = "regenerateRecap" // regenerate recap with updated channel content
-	AuditEventDeleteRecap     = "deleteRecap"     // delete recap
+	AuditEventCreateRecap        = "createRecap"        // create recap summarizing channel content
+	AuditEventGetRecap           = "getRecap"           // view a single recap
+	AuditEventGetRecaps          = "getRecaps"          // list user's recaps
+	AuditEventMarkRecapAsRead    = "markRecapAsRead"    // mark recap as read
+	AuditEventMarkRecapsAsViewed = "markRecapsAsViewed" // bulk mark user's finished recaps as viewed
+	AuditEventRegenerateRecap    = "regenerateRecap"    // regenerate recap with updated channel content
+	AuditEventDeleteRecap        = "deleteRecap"        // delete recap
 )
 
 // Preferences
@@ -505,4 +506,5 @@ const (
 	AuditEventKeepFlaggedPost              = "keepFlaggedPost"              // keep flagged post
 	AuditEventUpdateContentFlaggingConfig  = "updateContentFlaggingConfig"  // update content flagging configuration
 	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
+	AuditEventGenerateFlaggedPostReport    = "generateFlaggedPostReport"    // generate flagged post data report
 )

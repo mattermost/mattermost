@@ -19,6 +19,7 @@ import SearchKeywordMarking from 'components/admin_console/search_keyword_markin
 import AnnouncementBarController from 'components/announcement_bar';
 import BackstageNavbar from 'components/backstage/components/backstage_navbar';
 import DiscardChangesModal from 'components/discard_changes_modal';
+import GlobalClassificationBanner from 'components/global_classification_banner';
 import ModalController from 'components/modal_controller';
 import SystemNotice from 'components/system_notice';
 
@@ -238,6 +239,7 @@ const AdminConsole = (props: Props) => {
 
     return (
         <>
+            <GlobalClassificationBanner position='top'/>
             <AnnouncementBarController/>
             <SystemNotice/>
             <BackstageNavbar team={props.team}/>
@@ -254,6 +256,7 @@ const AdminConsole = (props: Props) => {
                     {renderRoutes(extraProps)}
                 </SearchKeywordMarking>
             </div>
+            <GlobalClassificationBanner position='bottom'/>
             <DiscardChangesModal
                 show={showNavigationPrompt}
                 onConfirm={confirmNavigation}

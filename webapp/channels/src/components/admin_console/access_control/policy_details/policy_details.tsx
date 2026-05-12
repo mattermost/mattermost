@@ -6,6 +6,7 @@ import React, {useState, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
@@ -26,6 +27,7 @@ import TextSetting from 'components/widgets/settings/text_setting';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {getHistory} from 'utils/browser_history';
+import Constants from 'utils/constants';
 
 import ChannelList from './channel_list';
 
@@ -35,8 +37,6 @@ import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
 import './policy_details.scss';
-
-const DEFAULT_PAGE_SIZE = 10;
 
 interface PolicyActions {
     fetchPolicy: (id: string) => Promise<ActionResult>;
@@ -90,6 +90,10 @@ function PolicyDetails({
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [saving, setSaving] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
+
+    // Map of saved channelId → channel type. Lets the confirmation modal show
+    // the right messaging for mixed / public-only / private-only policies.
+    const [savedChannelTypes, setSavedChannelTypes] = useState<Record<string, string>>({});
     const [autocompleteResult, setAutocompleteResult] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
@@ -99,15 +103,15 @@ function PolicyDetails({
     const abacActions = useChannelAccessControlActions();
 
     // Memoize the custom no options message to avoid recreating it on every render
-    const customNoPrivateChannelsMessage = useMemo(() => (
+    const customNoChannelsMessage = useMemo(() => (
         <div
-            key='no-private-channels'
+            key='no-channels-available'
             className='no-channel-message'
         >
             <p className='primary-message'>
                 <FormattedMessage
-                    id='admin.access_control.policy.edit_policy.no_private_channels'
-                    defaultMessage='There are no private channels available to add to this policy.'
+                    id='admin.access_control.policy.edit_policy.no_channels_available'
+                    defaultMessage='There are no channels available to add to this policy.'
                 />
             </p>
         </div>
@@ -140,8 +144,13 @@ function PolicyDetails({
                 setAutoSyncMembership(result.data?.active || false);
             });
 
-            const channelsPromise = actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE}).then((result) => {
+            // Fetch the full assigned-channel list (not just a page) to know
+            // the public/private split for the confirmation modal. The policy
+            // assignment permission limits this to 1000; match that ceiling.
+            const channelsPromise = actions.searchChannels(policyId, '', {per_page: 1000}).then((result) => {
+                const channels: ChannelWithTeamData[] = result.data?.channels || [];
                 setChannelsCount(result.data?.total_count || 0);
+                setSavedChannelTypes(Object.fromEntries(channels.map((ch) => [ch.id, ch.type])));
             });
 
             // Wait for all fetches for an existing policy
@@ -354,6 +363,34 @@ function PolicyDetails({
         );
     };
 
+    // Effective channel mix = (saved - removed) + added. Reused by the
+    // mixed-channel notice below the channel list and by the confirmation
+    // modal so both surfaces stay in sync.
+    const channelTypeCounts = useMemo(() => {
+        let publicCount = 0;
+        let privateCount = 0;
+        for (const [id, type] of Object.entries(savedChannelTypes)) {
+            if (channelChanges.removed[id]) {
+                continue;
+            }
+            if (type === Constants.OPEN_CHANNEL) {
+                publicCount++;
+            } else if (type === Constants.PRIVATE_CHANNEL) {
+                privateCount++;
+            }
+        }
+        for (const ch of Object.values(channelChanges.added)) {
+            if (ch.type === Constants.OPEN_CHANNEL) {
+                publicCount++;
+            } else if (ch.type === Constants.PRIVATE_CHANNEL) {
+                privateCount++;
+            }
+        }
+        return {publicCount, privateCount};
+    }, [savedChannelTypes, channelChanges.removed, channelChanges.added]);
+
+    const hasMixedChannels = channelTypeCounts.publicCount > 0 && channelTypeCounts.privateCount > 0;
+
     return (
         <div className='wrapper--fixed AccessControlPolicySettings'>
             <AdminHeader withBackButton={true}>
@@ -364,7 +401,7 @@ function PolicyDetails({
                     />
                     <FormattedMessage
                         id='admin.access_control.policy.edit_policy.title'
-                        defaultMessage='Edit Access Control Policy'
+                        defaultMessage='Edit Membership Policy'
                     />
                 </div>
             </AdminHeader>
@@ -376,7 +413,7 @@ function PolicyDetails({
                             label={
                                 <FormattedMessage
                                     id='admin.access_control.policy.edit_policy.policyName'
-                                    defaultMessage='Access control policy name:'
+                                    defaultMessage='Membership policy name:'
                                 />
                             }
                             value={policyName}
@@ -427,13 +464,13 @@ function PolicyDetails({
                                 title={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.access_rules.title'
-                                        defaultMessage='Attribute-based access rules'
+                                        defaultMessage='Attribute-based membership rules'
                                     />
                                 }
                                 subtitle={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.access_rules.subtitle'
-                                        defaultMessage='Select user attributes and values as rules to restrict channel membership.'
+                                        defaultMessage='Select user attributes and values that qualifying users must have'
                                     />
                                 }
                                 buttonText={
@@ -530,7 +567,7 @@ function PolicyDetails({
                                 subtitle={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
-                                        defaultMessage='Add channels that this attribute-based access policy will apply to.'
+                                        defaultMessage='Add channels that this membership policy will apply to.'
                                     />
                                 }
                                 buttonText={
@@ -552,6 +589,23 @@ function PolicyDetails({
                                 onPolicyActiveStatusChange={handlePolicyActiveStatusChange}
                                 saving={saving}
                             />
+                            {hasMixedChannels && (
+                                <div className='AccessControlPolicySettings__mixedChannelsNotice'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={
+                                            <FormattedMessage
+                                                id='admin.access_control.policy.edit_policy.mixed_channels.title'
+                                                defaultMessage='Membership policies affect public and private channels differently'
+                                            />
+                                        }
+                                        text={formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.mixed_channels.text',
+                                            defaultMessage: 'On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.',
+                                        })}
+                                    />
+                                </div>
+                            )}
                         </Card.Body>
                     </Card>
                     {policyId && (
@@ -606,9 +660,10 @@ function PolicyDetails({
                     onChannelsSelected={(channels) => addToNewChannels(channels)}
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
-                    excludeTypes={['O', 'D', 'G']}
-                    customNoOptionsMessage={customNoPrivateChannelsMessage}
+                    excludeTypes={['D', 'G']}
+                    customNoOptionsMessage={customNoChannelsMessage}
                     excludeGroupConstrained={true}
+                    excludeDefaultChannels={true}
                 />
             )}
 
@@ -618,6 +673,8 @@ function PolicyDetails({
                     onExited={() => setShowConfirmationModal(false)}
                     onConfirm={handleSubmit}
                     channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
+                    publicChannelsAffected={channelTypeCounts.publicCount}
+                    privateChannelsAffected={channelTypeCounts.privateCount}
                 />
             )}
 
@@ -638,8 +695,7 @@ function PolicyDetails({
                             defaultMessage='Delete Policy'
                         />
                     }
-                    confirmButtonClassName='btn btn-danger'
-                    isDeleteModal={true}
+                    confirmButtonVariant='destructive'
                     compassDesign={true}
                 >
                     <FormattedMessage
@@ -671,7 +727,7 @@ function PolicyDetails({
                     }
                 />
                 <BlockableLink
-                    className='btn btn-quaternary'
+                    className={buttonClassNames({emphasis: 'quaternary'})}
                     to='/admin_console/system_attributes/membership_policies'
                 >
                     <FormattedMessage

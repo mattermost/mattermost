@@ -61,6 +61,9 @@ const (
 	PostTypeReminder              = "reminder"
 	PostTypeBurnOnRead            = "burn_on_read"
 	PostTypeCard                  = "card"
+	// PostTypeSharedChannelState is a system post for share/unshare events; the client translates using props.
+	// Name must fit Posts.Type varchar(26) (see store migrations).
+	PostTypeSharedChannelState = "system_shared_chan_state"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -102,6 +105,9 @@ const (
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
 	PostPropsExpireAt                 = "expire_at"
 	PostPropsReadDurationSeconds      = "read_duration"
+	// Shared-channel state posts (PostTypeSharedChannelState): props for client-side i18n.
+	PostPropsSharedChannelState         = "shared_channel_state"
+	PostPropsSharedChannelWorkspaceName = "workspace_name"
 
 	PostPriorityUrgent = "urgent"
 
@@ -109,6 +115,12 @@ const (
 	DefaultReadDurationSeconds = 10 * 60          // 10 minutes
 
 	PostContextKeyIsScheduledPost PostContextKey = "isScheduledPost"
+)
+
+// Values for PostPropsSharedChannelState on posts with Type PostTypeSharedChannelState.
+const (
+	SharedChannelStatePostValueShared   = "shared"
+	SharedChannelStatePostValueUnshared = "unshared"
 )
 
 type Post struct {
@@ -363,7 +375,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
 	if o.IsFollowing != nil {
-		dst.IsFollowing = NewPointer(*o.IsFollowing)
+		dst.IsFollowing = new(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
 	return nil
@@ -534,7 +546,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeGMConvertedToChannel,
 		PostTypeAutotranslationChange,
 		PostTypeBurnOnRead,
-		PostTypeCard:
+		PostTypeCard,
+		PostTypeSharedChannelState:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -578,7 +591,7 @@ func (o *Post) SanitizeProps() {
 // Remove any input data from the post object that is not user controlled
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
-	o.RemoteId = NewPointer("")
+	o.RemoteId = new("")
 
 	if o.Metadata != nil {
 		o.Metadata.Embeds = nil

@@ -1288,7 +1288,7 @@ func (s *SqlPostStore) prepareThreadedResponse(rctx request.CTX, posts []*postWi
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
 		if p.IsFollowing != nil {
-			p.Post.IsFollowing = model.NewPointer(*p.IsFollowing)
+			p.Post.IsFollowing = new(*p.IsFollowing)
 		}
 		for _, userID := range p.ThreadParticipants {
 			participant, ok := usersMap[userID]
@@ -3233,6 +3233,20 @@ func (s *SqlPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get and delete post reminders")
 	}
+	return reminders, nil
+}
+
+func (s *SqlPostStore) GetPostRemindersForPost(postId string) ([]*model.PostReminder, error) {
+	reminders := []*model.PostReminder{}
+	err := s.GetMaster().Select(&reminders, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId = $1`, postId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("PostUd", postId)
+		}
+
+		return nil, errors.Wrap(err, "failed to get post reminders")
+	}
+
 	return reminders, nil
 }
 

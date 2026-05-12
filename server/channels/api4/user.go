@@ -66,9 +66,9 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods(http.MethodPut)
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Users.Handle("/login", api.RateLimitedHandler(api.APIHandler(login), model.RateLimitSettings{PerSec: model.NewPointer(5), MaxBurst: model.NewPointer(10)})).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login", api.RateLimitedHandler(api.APIHandler(login), model.RateLimitSettings{PerSec: new(5), MaxBurst: new(10)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/sso/code-exchange", api.APIHandler(loginSSOCodeExchange)).Methods(http.MethodPost)
-	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewPointer(2), MaxBurst: model.NewPointer(1)})).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: new(2), MaxBurst: new(1)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/type", api.APIHandler(getLoginType)).Methods(http.MethodPost)
@@ -943,8 +943,33 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if ok, _ := c.App.ChannelAccessControlled(c.AppContext, notInChannelId); ok {
-			// Get cursor_id from query parameters for cursor-based pagination
+		// ABAC filtering is mandatory for private policy-enforced channels (hard gate).
+		// For public policy-enforced channels, ABAC is advisory — only apply the
+		// filter when the caller explicitly asks via abac_match_only=true so callers
+		// like the invite modal can fetch all team members and annotate the matching
+		// subset without the list being narrowed for them.
+		//
+		// Surface ChannelAccessControlled errors instead of silently swallowing
+		// them — a transient store / license read failure here would otherwise
+		// fall through to the unfiltered path and could expose users a hard-gated
+		// private channel was configured to hide.
+		abacMatchOnly, _ := strconv.ParseBool(r.URL.Query().Get("abac_match_only"))
+		useAbacFilter := false
+		enforced, enforcedErr := c.App.ChannelAccessControlled(c.AppContext, notInChannelId)
+		if enforcedErr != nil {
+			c.Err = enforcedErr
+			return
+		}
+		if enforced {
+			ch, chErr := c.App.GetChannel(c.AppContext, notInChannelId)
+			if chErr != nil {
+				c.Err = chErr
+				return
+			}
+			useAbacFilter = ch.Type == model.ChannelTypePrivate || abacMatchOnly
+		}
+
+		if useAbacFilter {
 			cursorId := r.URL.Query().Get("cursor_id")
 			profiles, appErr = c.App.GetUsersNotInAbacChannel(c.AppContext, inTeamId, notInChannelId, groupConstrainedBool, cursorId, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else {
@@ -1677,6 +1702,13 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
+	}
+
+	if user.IsBot {
+		if permErr := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId); permErr != nil {
+			c.Err = permErr
+			return
+		}
 	}
 
 	if active && user.IsGuest() && !*c.App.Config().GuestAccountsSettings.Enable {
