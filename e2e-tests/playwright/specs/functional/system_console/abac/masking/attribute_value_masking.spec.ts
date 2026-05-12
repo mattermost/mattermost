@@ -4,17 +4,9 @@
 import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
-import {
-    ChannelsPage,
-    expect,
-    test,
-    enableABAC,
-    navigateToABACPage,
-} from '@mattermost/playwright-lib';
+import {ChannelsPage, expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
 
-import {
-    enableUserManagedAttributes,
-} from '../support';
+import {enableUserManagedAttributes} from '../support';
 
 // PLUG: import setFieldAsSharedOnly to make test fields trigger masking.
 // UNPLUG: remove this import (and the setFieldAsSharedOnly() calls below).
@@ -86,10 +78,9 @@ async function deleteCPAField(client: Client4, fieldId: string): Promise<void> {
         return;
     }
     try {
-        await (client as any).doFetch(
-            `${client.getBaseRoute()}/custom_profile_attributes/fields/${fieldId}`,
-            {method: 'DELETE'},
-        );
+        await (client as any).doFetch(`${client.getBaseRoute()}/custom_profile_attributes/fields/${fieldId}`, {
+            method: 'DELETE',
+        });
     } catch {
         // best-effort
     }
@@ -103,10 +94,9 @@ async function deletePolicy(client: Client4, policyId: string): Promise<void> {
         return;
     }
     try {
-        await (client as any).doFetch(
-            `${client.getBaseRoute()}/access_control/policies/${policyId}`,
-            {method: 'DELETE'},
-        );
+        await (client as any).doFetch(`${client.getBaseRoute()}/access_control/policies/${policyId}`, {
+            method: 'DELETE',
+        });
     } catch {
         // best-effort
     }
@@ -115,12 +105,7 @@ async function deletePolicy(client: Client4, policyId: string): Promise<void> {
 /**
  * Set an attribute value for a user via the admin client.
  */
-async function setUserAttribute(
-    client: Client4,
-    userId: string,
-    fieldId: string,
-    value: string,
-): Promise<void> {
+async function setUserAttribute(client: Client4, userId: string, fieldId: string, value: string): Promise<void> {
     await client.updateUserCustomProfileAttributesValues(userId, {[fieldId]: value});
 }
 
@@ -304,9 +289,19 @@ test.describe('Attribute-Value Masking', () => {
             const saveBtn = page.getByRole('button', {name: 'Save'});
             await expect(saveBtn).not.toBeDisabled();
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} } // eslint-disable-line no-empty
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
-            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -381,9 +376,19 @@ test.describe('Attribute-Value Masking', () => {
             expect(rawExpression).toContain('Bravo');
             expect(rawExpression).toContain('Charlie');
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} } // eslint-disable-line no-empty
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
-            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -428,15 +433,25 @@ test.describe('Attribute-Value Masking', () => {
             await expect(page.locator('.select__multi-value--masked')).toBeVisible();
 
             // Row-remove (trash) button must be disabled on the masked row
-            const removeRowBtn = page.locator(
-                'button[aria-label="Remove row"], button.table-editor__row-remove',
-            ).first();
+            const removeRowBtn = page
+                .locator('button[aria-label="Remove row"], button.table-editor__row-remove')
+                .first();
             await removeRowBtn.waitFor({state: 'visible', timeout: 5000});
             await expect(removeRowBtn).toBeDisabled();
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} } // eslint-disable-line no-empty
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
-            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -472,11 +487,7 @@ test.describe('Attribute-Value Masking', () => {
 
             // Policy: MaskingProgram in ["Alpha"] — admin holds ALL values, no masking
             const policyName = `MaskingPolicy ${pw.random.id()}`;
-            const policyId = await createPolicyWithCEL(
-                page,
-                policyName,
-                `user.attributes.${fieldName} in ["Alpha"]`,
-            );
+            const policyId = await createPolicyWithCEL(page, policyName, `user.attributes.${fieldName} in ["Alpha"]`);
             policyIds.push(policyId);
 
             await openExistingPolicy(page, policyName);
@@ -508,9 +519,19 @@ test.describe('Attribute-Value Masking', () => {
             await openExistingPolicy(page, policyName);
             await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).toBeVisible();
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} } // eslint-disable-line no-empty
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
-            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -537,46 +558,58 @@ test.describe('Attribute-Value Masking', () => {
             await enableABAC(page);
 
             // Try to create a policy containing a non-held value ("Delta") via direct API
-            const statusWithDelta = await page.evaluate(async ({fieldName: fn}: {fieldName: string}) => {
-                const resp = await fetch('/api/v4/access_control/policies', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                    body: JSON.stringify({
-                        name: `Illegal ${Date.now()}`,
-                        type: 'member',
-                        rules: [{expression: `user.attributes.${fn} in ["Alpha", "Delta"]`}],
-                    }),
-                });
-                return resp.status;
-            }, {fieldName});
+            const statusWithDelta = await page.evaluate(
+                async ({fieldName: fn}: {fieldName: string}) => {
+                    const resp = await fetch('/api/v4/access_control/policies', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: JSON.stringify({
+                            name: `Illegal ${Date.now()}`,
+                            type: 'member',
+                            rules: [{expression: `user.attributes.${fn} in ["Alpha", "Delta"]`}],
+                        }),
+                    });
+                    return resp.status;
+                },
+                {fieldName},
+            );
 
             // Server must reject with 400 — "Delta" is not a held value
             expect(statusWithDelta).toBe(400);
 
             // Also verify that the masked placeholder literal is rejected
-            const statusWithMasked = await page.evaluate(async ({fieldName: fn}: {fieldName: string}) => {
-                const resp = await fetch('/api/v4/access_control/policies', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                    body: JSON.stringify({
-                        name: `Illegal ${Date.now()}`,
-                        type: 'member',
-                        rules: [{expression: `user.attributes.${fn} in ["Alpha", "--------"]`}],
-                    }),
-                });
-                return resp.status;
-            }, {fieldName});
+            const statusWithMasked = await page.evaluate(
+                async ({fieldName: fn}: {fieldName: string}) => {
+                    const resp = await fetch('/api/v4/access_control/policies', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: JSON.stringify({
+                            name: `Illegal ${Date.now()}`,
+                            type: 'member',
+                            rules: [{expression: `user.attributes.${fn} in ["Alpha", "--------"]`}],
+                        }),
+                    });
+                    return resp.status;
+                },
+                {fieldName},
+            );
 
             expect(statusWithMasked).toBe(400);
         } finally {
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
-            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -646,9 +679,19 @@ test.describe('Attribute-Value Masking', () => {
                 await expect(page.locator('.select__multi-value--masked')).toBeVisible();
             }
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} } // eslint-disable-line no-empty
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
-            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -679,11 +722,7 @@ test.describe('Attribute-Value Masking', () => {
             await enableABAC(page);
 
             const policyName = `MaskingPolicy ${pw.random.id()}`;
-            const policyId = await createPolicyWithCEL(
-                page,
-                policyName,
-                `user.attributes.${fieldName} in ["Alpha"]`,
-            );
+            const policyId = await createPolicyWithCEL(page, policyName, `user.attributes.${fieldName} in ["Alpha"]`);
             policyIds.push(policyId);
 
             await openExistingPolicy(page, policyName);
@@ -722,9 +761,19 @@ test.describe('Attribute-Value Masking', () => {
                 }
             }
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -775,9 +824,19 @@ test.describe('Attribute-Value Masking', () => {
             const attributeSelector = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
             await expect(attributeSelector).not.toHaveClass(/disabled/);
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -815,7 +874,7 @@ test.describe('Attribute-Value Masking', () => {
 
             // Add a rule row
             const addAttributeBtn = page.getByRole('button', {name: /add attribute/i});
-            if (await addAttributeBtn.isVisible({timeout: 3000}) && !(await addAttributeBtn.isDisabled())) {
+            if ((await addAttributeBtn.isVisible({timeout: 3000})) && !(await addAttributeBtn.isDisabled())) {
                 await addAttributeBtn.click();
                 await page.waitForTimeout(500);
             }
@@ -827,8 +886,14 @@ test.describe('Attribute-Value Masking', () => {
             const attributeSelector = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
             await expect(attributeSelector).not.toHaveClass(/disabled/);
         } finally {
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -907,9 +972,19 @@ test.describe('Attribute-Value Masking', () => {
             expect(rawExpression).toContain('Bravo');
             expect(rawExpression).toContain('Charlie');
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -956,9 +1031,19 @@ test.describe('Attribute-Value Masking', () => {
             // Attribute selector on the masked row is locked
             await expect(page.locator('[data-testid="attributeSelectorMenuButton"]').first()).toHaveClass(/disabled/);
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -1007,9 +1092,19 @@ test.describe('Attribute-Value Masking', () => {
             );
             await expect(maskedState).toBeVisible({timeout: 5000});
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -1063,9 +1158,19 @@ test.describe('Attribute-Value Masking', () => {
             expect(rawExpression).toContain('Bravo');
             expect(rawExpression).toContain('Charlie');
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -1112,9 +1217,19 @@ test.describe('Attribute-Value Masking', () => {
             expect(rawExpression).toContain('Alpha');
             expect(rawExpression).toContain('Bravo');
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -1159,9 +1274,19 @@ test.describe('Attribute-Value Masking', () => {
             expect(expression).toContain('Bravo');
             expect(expression).toContain('Charlie');
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -1214,9 +1339,19 @@ test.describe('Attribute-Value Masking', () => {
             await openExistingPolicy(page, cleanPolicyName);
             await expect(page.locator('text="This policy contains restricted values"')).not.toBeVisible();
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -1291,9 +1426,19 @@ test.describe('Attribute-Value Masking', () => {
 
             await cleanModal.getByRole('button', {name: /cancel/i}).click();
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -1359,9 +1504,19 @@ test.describe('Attribute-Value Masking', () => {
             await enableMaskingFlag(adminClient);
             expect(expression).toContain('Alpha');
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -1438,29 +1593,44 @@ test.describe('Attribute-Value Masking', () => {
             expect(rawExpression).toContain('TopSecret');
 
             // Server blocks a direct API attempt to remove a masked condition
-            const status = await page.evaluate(async ({policyId: id, fn}: {policyId: string; fn: string}) => {
-                const resp = await fetch(`/api/v4/access_control/policies/${id}`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-                    body: JSON.stringify({
-                        name: 'Modified',
-                        type: 'member',
-                        // Only clearance condition — program condition intentionally omitted (deletion attempt)
-                        rules: [{expression: `user.attributes.${fn} in ["Secret", "TopSecret"]`}],
-                    }),
-                });
-                return resp.status;
-            }, {policyId, fn: clearanceFieldName});
+            const status = await page.evaluate(
+                async ({policyId: id, fn}: {policyId: string; fn: string}) => {
+                    const resp = await fetch(`/api/v4/access_control/policies/${id}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+                        body: JSON.stringify({
+                            name: 'Modified',
+                            type: 'member',
+                            // Only clearance condition — program condition intentionally omitted (deletion attempt)
+                            rules: [{expression: `user.attributes.${fn} in ["Secret", "TopSecret"]`}],
+                        }),
+                    });
+                    return resp.status;
+                },
+                {policyId, fn: clearanceFieldName},
+            );
 
             expect(status).toBe(403);
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 
-    test('E2E-20: Team admin cannot delete a policy with masked values even after removing all channels', async ({pw}) => {
+    test('E2E-20: Team admin cannot delete a policy with masked values even after removing all channels', async ({
+        pw,
+    }) => {
         // Validates that the masked-values block applies to the team settings modal:
         // the Delete button stays disabled even after a team admin removes all assigned
         // channels from the policy, as long as masked values are present.
@@ -1556,9 +1726,19 @@ test.describe('Attribute-Value Masking', () => {
 
             expect(status).toBe(403);
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
         }
     });
 });

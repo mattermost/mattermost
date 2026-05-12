@@ -18,7 +18,7 @@
  *   2. default: postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable
  */
 
-import {execSync} from 'child_process';
+import {execFileSync} from 'child_process';
 
 const DEFAULT_DB_URL = 'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable';
 
@@ -41,8 +41,13 @@ export function setFieldAsSharedOnly(fieldId: string): void {
         `UPDATE propertyfields`,
         `SET attrs = jsonb_set(COALESCE(attrs, '{}'::jsonb), '{access_mode}', to_json('shared_only'::text)::jsonb),`,
         `updateat = EXTRACT(EPOCH FROM NOW())::bigint * 1000`,
-        `WHERE id = '${fieldId}';`,
+        `WHERE id = :'field_id';`,
     ].join(' ');
 
-    execSync(`psql "${dbUrl}" -c "${sql}"`, {stdio: 'pipe'});
+    execFileSync('psql', [
+        dbUrl,
+        '-v', 'ON_ERROR_STOP=1',
+        '-v', `field_id=${fieldId}`,
+        '-c', sql,
+    ], {stdio: 'pipe'});
 }
