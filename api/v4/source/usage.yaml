@@ -50,3 +50,32 @@
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/usage/teams:
+    get:
+      tags:
+        - usage
+      summary: Get current usage of teams
+      description: >
+        Retrieve rounded total number of teams for this instance.
+
+        ##### Permissions
+        Must be authenticated.
+      operationId: GetTeamsUsage
+      responses:
+        "200":
+          description: Total number of teams returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  active:
+                    type: integer
+                  cloud_archived:
+                    type: integer
+                  teams:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

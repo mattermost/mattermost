@@ -195,6 +195,14 @@ class AdminUserCard {
     getFieldError(labelText: string): Locator {
         return this.getFieldColumn(labelText).locator('.field-error');
     }
+
+    /**
+     * Get the container for a multiselect CPA field by its exact label text.
+     * Returns the .field-column wrapper which holds the multiselect component.
+     */
+    getCpaMultiselectContainer(labelText: string): Locator {
+        return this.getFieldColumn(labelText);
+    }
 }
 
 class TeamMembershipPanel {

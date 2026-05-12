@@ -378,7 +378,7 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  "/api/v4/teams/name/{name}":
+  "/api/v4/teams/name/{team_name}":
     get:
       tags:
         - teams
@@ -391,7 +391,7 @@
         Must be authenticated, team type is open and have the `view_team` permission.
       operationId: GetTeamByName
       parameters:
-        - name: name
+        - name: team_name
           in: path
           description: Team Name
           required: true
@@ -499,7 +499,7 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  "/api/v4/teams/name/{name}/exists":
+  "/api/v4/teams/name/{team_name}/exists":
     get:
       tags:
         - teams
@@ -510,7 +510,7 @@
         Must be authenticated.
       operationId: TeamExists
       parameters:
-        - name: name
+        - name: team_name
           in: path
           description: Team Name
           required: true

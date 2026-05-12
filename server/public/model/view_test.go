@@ -222,21 +222,21 @@ func TestViewPatch(t *testing.T) {
 	}{
 		{
 			"patches title",
-			&ViewPatch{Title: NewPointer("New Title")},
+			&ViewPatch{Title: new("New Title")},
 			func(t *testing.T, v *View) {
 				assert.Equal(t, "New Title", v.Title)
 			},
 		},
 		{
 			"patches description",
-			&ViewPatch{Description: NewPointer("A description")},
+			&ViewPatch{Description: new("A description")},
 			func(t *testing.T, v *View) {
 				assert.Equal(t, "A description", v.Description)
 			},
 		},
 		{
 			"patches sort_order",
-			&ViewPatch{SortOrder: NewPointer(5)},
+			&ViewPatch{SortOrder: new(5)},
 			func(t *testing.T, v *View) {
 				assert.Equal(t, 5, v.SortOrder)
 			},
