@@ -704,12 +704,17 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	a.refreshAttributeViewIfStale(rctx)
 
 	if cached, ok := a.lookupCachedAccessControlSubject(rctx, userID); ok {
-		// Apply the request's Role on top of the cached attribute snapshot.
-		// Do not mutate the cached value — return a copy so concurrent
-		// callers with different roles don't race on Subject.Role.
-		out := *cached
+		// Deep-clone the cached snapshot before applying per-call Role.
+		// In today's cache implementations (LRU msgpacks the value, Redis
+		// roundtrips bytes) `cached` is already a fresh struct from the
+		// codec, so a shallow copy would technically be safe — but the
+		// Cache interface contract doesn't promise serialization, and
+		// callers may end up mutating `Subject.Attributes` (a map) in
+		// downstream evaluation. Deep-clone defensively so nothing can
+		// silently corrupt the cached snapshot for later requests.
+		out := cloneAccessControlSubject(cached)
 		out.Role = roles
-		return &out, nil
+		return out, nil
 	}
 
 	groupID, err := a.CpaGroupID()
@@ -727,9 +732,9 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 				Attributes: map[string]any{},
 			}
 			a.storeCachedAccessControlSubject(rctx, userID, emptySubject)
-			out := *emptySubject
+			out := cloneAccessControlSubject(emptySubject)
 			out.Role = roles
-			return &out, nil
+			return out, nil
 		}
 
 		rctx.Logger().Warn("Failed to get subject for access control subject",
@@ -741,13 +746,68 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	}
 
 	// Persist the role-less snapshot so concurrent callers with different
-	// `roles` strings don't see each other's role bleed through.
-	cacheCopy := *subject
+	// `roles` strings don't see each other's role bleed through. Deep-clone
+	// before storing so any caller mutation on the returned `subject`
+	// can't reach into the cached value.
+	cacheCopy := cloneAccessControlSubject(subject)
 	cacheCopy.Role = ""
-	a.storeCachedAccessControlSubject(rctx, userID, &cacheCopy)
+	a.storeCachedAccessControlSubject(rctx, userID, cacheCopy)
 
 	subject.Role = roles
 	return subject, nil
+}
+
+// cloneAccessControlSubject returns a deep copy of the Subject. The
+// `Attributes` map and any nested map/slice values are cloned so callers
+// can mutate the returned subject without leaking changes back into the
+// cache or shared evaluation paths. Returns nil if the input is nil.
+//
+// Today's cache implementations serialize on Set / deserialize on Get,
+// which makes shallow copies safe in practice — this helper is the
+// belt-and-braces guard for that being implementation-specific behavior
+// rather than an interface guarantee.
+func cloneAccessControlSubject(in *model.Subject) *model.Subject {
+	if in == nil {
+		return nil
+	}
+	out := *in
+	if in.Attributes != nil {
+		out.Attributes = make(map[string]any, len(in.Attributes))
+		for k, v := range in.Attributes {
+			out.Attributes[k] = cloneAccessControlSubjectValue(v)
+		}
+	}
+	return &out
+}
+
+// cloneAccessControlSubjectValue copies a single attribute value. Strings,
+// numbers and booleans are scalars and copy by value; maps and slices are
+// recursively cloned so a mutation on the returned subject's attributes
+// never reaches the cached snapshot. Anything outside those known shapes
+// (e.g. a custom struct from a future evaluator) is returned as-is — the
+// Subject is encoded to msgpack/JSON on the cache boundary, so non-clonable
+// types would not have round-tripped through the cache anyway.
+func cloneAccessControlSubjectValue(v any) any {
+	switch t := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(t))
+		for k, vv := range t {
+			out[k] = cloneAccessControlSubjectValue(vv)
+		}
+		return out
+	case []any:
+		out := make([]any, len(t))
+		for i, vv := range t {
+			out[i] = cloneAccessControlSubjectValue(vv)
+		}
+		return out
+	case []string:
+		out := make([]string, len(t))
+		copy(out, t)
+		return out
+	default:
+		return v
+	}
 }
 
 // lookupCachedAccessControlSubject returns a previously cached Subject for
@@ -822,16 +882,34 @@ func (a *App) PurgeAccessControlSubjectCache() {
 	}
 }
 
-// purgeLocalAccessControlSubjectCache drops every cached Subject on THIS node
-// only — no cluster broadcast. Used by refreshAttributeViewIfStale: each node
-// already runs its own 30s refresh independently, so a cluster broadcast
-// would cause redundant cross-node purges (one per node per refresh cycle)
-// that could cluster-wide flatten the cache during steady state. Local-only
-// purge guarantees each node's cache is at most attributeViewRefreshInterval
-// stale relative to its own materialized view read, which is the bound we want.
+// purgeLocalAccessControlSubjectCache drops every cached Subject on THIS
+// node only when the underlying cache is per-node (LRU). Used by
+// refreshAttributeViewIfStale: each node runs its own 30s refresh
+// independently and self-invalidates its local snapshot — a cluster
+// broadcast would cause redundant cross-node purges (one per node per
+// refresh cycle).
+//
+// On Redis-backed deployments the cache is genuinely shared across all
+// nodes (single store, single key namespace), so calling Cache.Purge()
+// would Scan-and-delete cluster-wide and produce N purges every 30s where
+// N = node count, defeating the TTL and thrashing the cache. We
+// deliberately skip the purge for Redis: out-of-band attribute mutations
+// fall back on the standard 5-minute TTL safety net plus the targeted
+// App-layer invalidations at every CPA-value mutation site, which are
+// already correct on Redis (a single Remove/broadcast is visible to
+// every node). Operators trading 30s vs 5min staleness for Redis
+// deployments still get the targeted-invalidation upper bound on every
+// path that goes through the App layer.
 func (a *App) purgeLocalAccessControlSubjectCache() {
-	c := a.Srv().ch.accessControlSubjectCache
+	ch := a.Srv().ch
+	c := ch.accessControlSubjectCache
 	if c == nil {
+		return
+	}
+	if ch.accessControlSubjectCacheType == model.CacheTypeRedis {
+		// Skip: Cache.Purge() on a Redis-backed cache is cluster-wide
+		// because the underlying store is shared. See the function
+		// comment above for the staleness contract on Redis.
 		return
 	}
 	if err := c.Purge(); err != nil {

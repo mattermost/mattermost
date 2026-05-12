@@ -5434,7 +5434,7 @@
   "modal.manual_status.title_dnd": "Your status is set to \"Do not disturb\"",
   "modal.manual_status.title_offline": "Your status is set to \"Offline\"",
   "modal.manual_status.title_ooo": "Your status is set to \"Out of office\"",
-  "more_channels.channel_purpose": "Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}",
+  "more_channels.channel_purpose": "Channel Information: {status, select, joined {Membership Indicator: Joined, } recommended {Recommended for membership, } other {}}Member count {memberCount}, Purpose: {channelPurpose}",
   "more_channels.channel_type_filter": "Channel type filter",
   "more_channels.channel_type_filter.filter_type_set": "Channel type filter set to {filterType}",
   "more_channels.count": "{count} Results",

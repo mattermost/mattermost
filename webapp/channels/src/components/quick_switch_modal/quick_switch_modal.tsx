@@ -104,9 +104,14 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
         // for the same reasons the BrowseChannels modal gates its fetch.
         // Failures are swallowed: the badge is purely additive UX, the
         // switcher must keep working even if the recommendation endpoint
-        // is degraded.
+        // is degraded. Attach an explicit catch so a transport-level
+        // rejection (e.g. network drop) never escapes as an unhandled
+        // promise rejection — the action also returns its error inside a
+        // resolved {error} envelope, but only on the server-error path.
         if (this.props.accessControlEnabled && this.props.currentTeamId) {
-            this.props.actions.getRecommendedChannelsForUser(this.props.currentTeamId);
+            this.props.actions.
+                getRecommendedChannelsForUser(this.props.currentTeamId).
+                catch(() => undefined);
         }
     }
 

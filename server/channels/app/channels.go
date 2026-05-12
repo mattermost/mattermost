@@ -106,6 +106,13 @@ type Channels struct {
 	// achieved via the InvalidateClusterEvent on the underlying cache.
 	accessControlSubjectCache cache.Cache
 
+	// accessControlSubjectCacheType records the cache backend kind
+	// (model.CacheTypeLRU or model.CacheTypeRedis). It is read by
+	// purgeLocalAccessControlSubjectCache so we don't accidentally call
+	// cluster-wide Purge() on a Redis-backed cache (which is shared across
+	// nodes) when the caller wants a node-local invalidation.
+	accessControlSubjectCacheType string
+
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
 	// and data corruption.
@@ -253,6 +260,7 @@ func NewChannels(s *Server) (*Channels, error) {
 	}); cacheErr != nil {
 		return nil, errors.Wrap(cacheErr, "Unable to create access control subject cache")
 	}
+	ch.accessControlSubjectCacheType = s.platform.CacheProvider().Type()
 	if cluster := s.platform.Cluster(); cluster != nil {
 		cluster.RegisterClusterMessageHandler(
 			model.ClusterEventInvalidateCacheForAccessControlSubject,

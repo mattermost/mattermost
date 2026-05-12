@@ -181,9 +181,18 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             );
         }
 
+        // Compute a dynamic status string for the screen-reader label so
+        // rows announce the actual indicator state (Joined / Recommended /
+        // none) instead of always reading "Membership Indicator: Joined".
+        let channelStatus: 'joined' | 'recommended' | 'none' = 'none';
+        if (this.isMemberOfChannel(channel.id)) {
+            channelStatus = 'joined';
+        } else if (isRecommendedRow) {
+            channelStatus = 'recommended';
+        }
         const channelPurposeContainerAriaLabel = this.props.intl.formatMessage(
             messages.channelPurpose,
-            {memberCount, channelPurpose: channel.purpose || ''},
+            {memberCount, channelPurpose: channel.purpose || '', status: channelStatus},
         );
 
         const channelPurposeContainer = (
@@ -708,7 +717,7 @@ const messages = defineMessages({
     },
     channelPurpose: {
         id: 'more_channels.channel_purpose',
-        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}',
+        defaultMessage: 'Channel Information: {status, select, joined {Membership Indicator: Joined, } recommended {Recommended for membership, } other {}}Member count {memberCount}, Purpose: {channelPurpose}',
     },
     joiningButton: {
         id: 'joinChannel.joiningButton',

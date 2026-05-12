@@ -47,6 +47,15 @@ func (a *App) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) 
 	if err != nil {
 		return nil, model.NewAppError("CreatePropertyValue", "app.property_value.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// First-time CPA value writes for a user need the same invalidation
+	// hook as Update/Upsert: a stale empty Subject may already be cached
+	// for this user (BuildAccessControlSubject caches the
+	// no-attributes-found result), and skipping invalidation here would
+	// keep that empty Subject visible to ABAC for the full TTL window.
+	if createdValue != nil && createdValue.TargetType == model.PropertyValueTargetTypeUser {
+		a.InvalidateAccessControlSubjectCacheForUser(createdValue.TargetID)
+	}
 	return createdValue, nil
 }
 
@@ -60,6 +69,8 @@ func (a *App) CreatePropertyValues(rctx request.CTX, values []*model.PropertyVal
 	if err != nil {
 		return nil, model.NewAppError("CreatePropertyValues", "app.property_value.create_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.invalidateAccessControlSubjectCacheForValues(createdValues)
 	return createdValues, nil
 }
 
