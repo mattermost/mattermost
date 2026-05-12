@@ -417,14 +417,16 @@ func TestGetLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	for i := range 20 {
-		th.TestLogger.Info(strconv.Itoa(i))
-	}
-
-	err := th.TestLogger.Flush()
-	require.NoError(t, err, "failed to flush log")
-
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		// Seed per client: a prior client's GetLogs appends HTTP access lines to the same file,
+		// shifting the newest-N window before the next client reads (CI flake on LocalClient).
+		for i := range 20 {
+			th.TestLogger.Info(strconv.Itoa(i))
+		}
+
+		err := th.TestLogger.Flush()
+		require.NoError(t, err, "failed to flush log")
+
 		logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
 		require.NoError(t, err2)
 		require.Len(t, logs, 10)
