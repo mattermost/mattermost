@@ -159,7 +159,7 @@ test.describe('System Console - User Attributes display names', () => {
         const {page} = systemConsolePage;
 
         const apiPosts: string[] = [];
-        let createdField: UserPropertyField | undefined;
+        const validIdentifier = `my_field_${Date.now()}`;
 
         page.on('request', (request) => {
             if (request.method() === 'POST' && request.url().includes('/api/v4/custom_profile_attributes/fields')) {
@@ -168,14 +168,18 @@ test.describe('System Console - User Attributes display names', () => {
         });
 
         try {
-            // # Add an attribute and exercise invalid identifier inputs in the table
+            // # Add an attribute and exercise invalid identifier inputs in the table.
+            // Use lastNameInput() — not positional nameInput(0) — so a leftover row from
+            // a prior test attempt (or a concurrent UAAE/ABAC suite) cannot shift the
+            // index and cause us to rename someone else's field instead of populating
+            // the row we just added.
             await sp.goto();
             await sp.addAttribute();
 
             const invalidIdentifiers = ['in', 'true', 'for'];
             for (const invalidIdentifier of invalidIdentifiers) {
-                await sp.nameInput(0).fill(invalidIdentifier);
-                await sp.nameInput(0).blur();
+                await sp.lastNameInput().fill(invalidIdentifier);
+                await sp.lastNameInput().blur();
 
                 // * Verify the warning appears and Save stays disabled before any POST
                 await expect(sp.identifierValidationError()).toHaveText(IDENTIFIER_VALIDATION_MESSAGE);
@@ -185,9 +189,8 @@ test.describe('System Console - User Attributes display names', () => {
             expect(apiPosts).toHaveLength(0);
 
             // # Correct the identifier to a valid CEL-safe name and save it
-            const validIdentifier = `my_field_${Date.now()}`;
-            await sp.nameInput(0).fill(validIdentifier);
-            await sp.nameInput(0).blur();
+            await sp.lastNameInput().fill(validIdentifier);
+            await sp.lastNameInput().blur();
 
             // * Verify the warning clears and the field can be created successfully
             await expect(sp.identifierValidationError()).not.toBeVisible();
@@ -196,11 +199,16 @@ test.describe('System Console - User Attributes display names', () => {
             await sp.saveAndWaitForSettled();
 
             const fields = await adminClient.getCustomProfileAttributeFields();
-            createdField = fields.find((field) => field.name === validIdentifier);
+            const createdField = fields.find((field) => field.name === validIdentifier);
             expect(createdField).toBeDefined();
         } finally {
-            if (createdField) {
-                await adminClient.deleteCustomProfileAttributeField(createdField.id).catch(() => undefined);
+            // Look up the field by name rather than relying on a captured `createdField`
+            // — the assertions above can throw before that variable is assigned, and we
+            // still want to remove the server-side field so retries start from a clean slate.
+            const fields = await adminClient.getCustomProfileAttributeFields().catch(() => []);
+            const leftover = fields.find((field) => field.name === validIdentifier);
+            if (leftover) {
+                await adminClient.deleteCustomProfileAttributeField(leftover.id).catch(() => undefined);
             }
         }
     });
