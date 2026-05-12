@@ -864,6 +864,34 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
 	}
 
+	threadRootID := ""
+	if rootId := req.RootId; rootId != "" {
+		if !model.IsValidId(rootId) {
+			return model.NewAppError("HandleIncomingWebhook", "api.context.invalid_param.app_error", map[string]any{"Name": "root_id"}, "", http.StatusBadRequest)
+		}
+		rootPost, nErr := a.Srv().Store().Post().GetSingle(rctx, rootId, false)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+			default:
+				return model.NewAppError("HandleIncomingWebhook", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+		}
+		if rootPost == nil {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+		if rootPost.ChannelId != channel.Id {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+		if rootPost.RootId != "" {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		threadRootID = rootPost.Id
+	}
+
 	overrideUsername := hook.Username
 	if req.Username != "" {
 		overrideUsername = req.Username
@@ -874,7 +902,7 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		overrideIconURL = req.IconURL
 	}
 
-	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "", req.Priority)
+	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, threadRootID, req.Priority)
 	return err
 }
 

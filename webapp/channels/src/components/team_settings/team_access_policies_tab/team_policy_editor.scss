@@ -56,6 +56,14 @@
         margin-bottom: 0;
     }
 
+    &__mixed-channels-notice {
+        margin-top: 16px;
+
+        h4 {
+            margin-bottom: 0;
+        }
+    }
+
     &__section-header {
         display: flex;
         align-items: flex-start;

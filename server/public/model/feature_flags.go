@@ -114,6 +114,9 @@ type FeatureFlags struct {
 
 	// Collect plugin metrics and serve them on the /metrics endpoint
 	AggregatePluginMetrics bool
+
+	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
+	ManagedChannelCategories bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -167,6 +170,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CJKSearch = false
 
 	f.AggregatePluginMetrics = false
+
+	f.ManagedChannelCategories = false
 }
 
 // ToMap returns the feature flags as a map[string]string

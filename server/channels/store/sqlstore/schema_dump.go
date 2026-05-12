@@ -88,7 +88,7 @@ func (ss *SqlStore) getDatabaseCollation() (string, error) {
 		return "", errors.Wrap(err, "failed to build database collation query")
 	}
 
-	err = ss.GetMaster().DB.QueryRow(sqlString, args...).Scan(&dbCollation)
+	err = ss.GetMaster().QueryRowContext(ss.noTimeoutContext(), sqlString, args...).Scan(&dbCollation)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get database collation")
 	}
@@ -112,7 +112,7 @@ func (ss *SqlStore) getDatabaseEncoding() (string, error) {
 		return "", errors.Wrap(err, "failed to build database encoding query")
 	}
 
-	err = ss.GetMaster().DB.QueryRow(sqlString, args...).Scan(&dbEncoding)
+	err = ss.GetMaster().QueryRowContext(ss.noTimeoutContext(), sqlString, args...).Scan(&dbEncoding)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get database encoding")
 	}
@@ -142,7 +142,7 @@ func (ss *SqlStore) getTableOptions() (map[string]map[string]string, error) {
 		return nil, errors.Wrap(err, "failed to build table options query")
 	}
 
-	optionsRows, err := ss.GetMaster().DB.Query(optionsSql, optionsArgs...)
+	optionsRows, err := ss.GetMaster().QueryContext(ss.noTimeoutContext(), optionsSql, optionsArgs...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query table options")
 	}
@@ -204,7 +204,7 @@ func (ss *SqlStore) getTableSchemaInformation() (map[string]*model.DatabaseTable
 		return nil, nil, errors.Wrap(err, "failed to build schema information query")
 	}
 
-	rows, err := ss.GetMaster().DB.Query(schemaSql, schemaArgs...)
+	rows, err := ss.GetMaster().QueryContext(ss.noTimeoutContext(), schemaSql, schemaArgs...)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to query schema information")
 	}
@@ -275,7 +275,7 @@ func (ss *SqlStore) getTableIndexes() (map[string][]model.DatabaseIndex, error) 
 		return nil, errors.Wrap(err, "failed to build index query")
 	}
 
-	rows, err := ss.GetMaster().DB.Query(indexSql, indexArgs...)
+	rows, err := ss.GetMaster().QueryContext(ss.noTimeoutContext(), indexSql, indexArgs...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query index information")
 	}

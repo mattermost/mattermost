@@ -159,9 +159,9 @@ TEMPLATES_DIR=templates
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.4
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.7.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.7.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.2
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.6.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.8.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0
@@ -232,6 +232,9 @@ endif
 ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
   ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
     TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
+  endif
+  ifeq (,$(findstring azurite,$(ENABLED_DOCKER_SERVICES)))
+    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) azurite
   endif
   ifeq ($(BUILD_ENTERPRISE_READY),true)
     ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
