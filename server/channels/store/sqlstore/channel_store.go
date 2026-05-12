@@ -608,7 +608,7 @@ func (s SqlChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChann
 	}
 
 	var newChannel *model.Channel
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -672,7 +672,7 @@ func (s SqlChannelStore) SaveDirectChannel(rctx request.CTX, directChannel *mode
 		return nil, store.NewErrInvalidInput("Channel", "Type", directChannel.Type)
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -760,7 +760,7 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 
 // Update writes the updated channel to the database.
 func (s SqlChannelStore) Update(rctx request.CTX, channel *model.Channel) (_ *model.Channel, err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -943,7 +943,7 @@ func (s SqlChannelStore) Restore(channelId string, time int64) error {
 func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64) (err error) {
 	defer s.InvalidateChannel(channelId)
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "SetDeleteAt: begin_transaction")
 	}
@@ -987,7 +987,7 @@ func (s SqlChannelStore) setDeleteAtT(transaction *sqlxTxWrapper, channelId stri
 
 // PermanentDeleteByTeam removes all channels for the given team from the database.
 func (s SqlChannelStore) PermanentDeleteByTeam(teamId string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "PermanentDeleteByTeam: begin_transaction")
 	}
@@ -1024,7 +1024,7 @@ func (s SqlChannelStore) permanentDeleteByTeamtT(transaction *sqlxTxWrapper, tea
 
 // PermanentDelete removes the given channel from the database.
 func (s SqlChannelStore) PermanentDelete(rctx request.CTX, channelId string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "PermanentDelete: begin_transaction")
 	}
@@ -1745,7 +1745,7 @@ func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) (_ 
 		defaultTeamRolesByChannel[defaultRoles.Id] = defaultRoles
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -1813,7 +1813,7 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 
 	var transaction *sqlxTxWrapper
 
-	if transaction, err = s.GetMaster().Beginx(); err != nil {
+	if transaction, err = s.GetMaster().Begin(); err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
@@ -1872,7 +1872,7 @@ func (s SqlChannelStore) UpdateMember(rctx request.CTX, member *model.ChannelMem
 }
 
 func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (_ *model.ChannelMember, err error) {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -1955,7 +1955,7 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 		Set("LastUpdateAt", model.GetMillis()).
 		Where(whereClause)
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -3737,7 +3737,7 @@ func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit 
 func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) (_ map[string]string, err error) {
 	var transaction *sqlxTxWrapper
 
-	if transaction, err = s.GetMaster().Beginx(); err != nil {
+	if transaction, err = s.GetMaster().Begin(); err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
@@ -3831,7 +3831,7 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 }
 
 func (s SqlChannelStore) ResetAllChannelSchemes() (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -3865,7 +3865,7 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() (err error) {
 	for {
 		var transaction *sqlxTxWrapper
 
-		if transaction, err = s.GetMaster().Beginx(); err != nil {
+		if transaction, err = s.GetMaster().Begin(); err != nil {
 			return errors.Wrap(err, "begin_transaction")
 		}
 

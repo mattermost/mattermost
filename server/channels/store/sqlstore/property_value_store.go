@@ -61,7 +61,7 @@ func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*mo
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_create_many_begin_transaction")
 	}
@@ -194,7 +194,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_update_begin_transaction")
 	}
@@ -260,7 +260,7 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_upsert_begin_transaction")
 	}

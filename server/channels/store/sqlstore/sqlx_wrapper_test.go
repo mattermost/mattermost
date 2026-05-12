@@ -41,7 +41,7 @@ func TestSqlX(t *testing.T) {
 
 			defer store.Close()
 
-			tx, err := store.GetMaster().Beginx()
+			tx, err := store.GetMaster().Begin()
 			require.NoError(t, err)
 
 			query := `SELECT pg_sleep(:timeout);`
@@ -110,7 +110,7 @@ func TestSqlxSelect(t *testing.T) {
 
 			t.Run("SelectCtx", func(t *testing.T) {
 				var result []string
-				err := store.GetMaster().SelectCtx(context.Background(), &result, "SELECT 'test' AS col")
+				err := store.GetMaster().SelectContext(context.Background(), &result, "SELECT 'test' AS col")
 				require.NoError(t, err)
 				require.Equal(t, []string{"test"}, result)
 
@@ -118,7 +118,7 @@ func TestSqlxSelect(t *testing.T) {
 				ctx, cancel := context.WithTimeout(context.Background(), 1)
 				defer cancel()
 				query := "SELECT pg_sleep(2)"
-				err = store.GetMaster().SelectCtx(ctx, &result, query)
+				err = store.GetMaster().SelectContext(ctx, &result, query)
 				require.Error(t, err)
 				require.Equal(t, context.DeadlineExceeded, err)
 			})

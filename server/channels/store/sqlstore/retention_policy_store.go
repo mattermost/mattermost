@@ -77,7 +77,7 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 		return nil, err
 	}
 
-	txn, err := s.GetMaster().Beginx()
+	txn, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 		return nil, err
 	}
 
-	txn, err := s.GetMaster().Beginx()
+	txn, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -1014,7 +1014,7 @@ func genericRetentionPoliciesDeletion(
 	}
 
 	if r.StoreDeletedIds {
-		txn, err := s.GetMaster().Beginx()
+		txn, err := s.GetMaster().Begin()
 		if err != nil {
 			return 0, err
 		}
