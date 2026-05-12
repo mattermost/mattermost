@@ -157,22 +157,6 @@ const InlineActionButton: React.FC<Props> = ({href, postId, children, label}) =>
                     );
                 }
             }
-        } catch (err) {
-            // Defensive catch: doPostActionWithQuery is contracted to
-            // never reject (it catches and returns {error}), but a future
-            // refactor or middleware bug could break that. Surface the
-            // error rather than letting it propagate as an unhandled
-            // promise rejection.
-            if (mountedRef.current) {
-                setActionError(
-                    (err as Error)?.message || (
-                        <FormattedMessage
-                            id='post.message_attachment.action_failed'
-                            defaultMessage='Action failed to execute'
-                        />
-                    ),
-                );
-            }
         } finally {
             // The race may have resolved via timeout while the dispatch
             // still runs in the background; clearing the handle here

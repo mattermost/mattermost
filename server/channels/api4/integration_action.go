@@ -161,6 +161,9 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// lookupDialog handles API requests for dynamic dialog element lookups.
+// It validates the request URL for security, checks user permissions, and
+// delegates to the app layer for the actual lookup operation.
 func lookupDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	var lookup model.SubmitDialogRequest
 

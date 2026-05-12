@@ -416,21 +416,4 @@ describe('InlineActionButton', () => {
         }
     });
 
-    test('catches a thrown rejection from the thunk and surfaces it inline', async () => {
-        // doPostActionWithQuery is contracted to never reject, but the
-        // component must still recover if a future refactor breaks that
-        // contract. Make the thunk reject and assert the catch fires.
-        mockedDoPostActionWithQuery.mockImplementation(
-            () => (() => Promise.reject(new Error('unexpected throw'))) as unknown as ReturnType<typeof doPostActionWithQuery>,
-        );
-
-        renderWithContext(<InlineActionButton {...baseProps}/>);
-        const button = screen.getByRole('button');
-
-        await userEvent.click(button);
-
-        expect(screen.getByText('unexpected throw')).toBeVisible();
-        expect(button).not.toBeDisabled();
-        expect(button).not.toHaveAttribute('aria-busy');
-    });
 });
