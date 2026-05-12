@@ -265,10 +265,12 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 			// For existing users we already claimed the slot above, so the
 			// counter has already been bumped. For first-time users (the
 			// row was just created by DoLogin) we still need to count the
-			// failed attempt explicitly.
+			// failed attempt explicitly, using the atomic primitive so
+			// concurrent first-attempt requests cannot overwrite each
+			// other's increments.
 			if user.Id == "" {
-				if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
-					return nil, model.NewAppError("checkLdapUserPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+				if _, passErr := a.Srv().Store().User().TryIncrementFailedPasswordAttempts(ldapUser.Id, maxAttempts); passErr != nil {
+					rctx.Logger().Warn("failed to record failed attempt for first-time LDAP user", mlog.String("user_id", ldapUser.Id), mlog.Err(passErr))
 				}
 			}
 		} else if user.Id != "" {
@@ -297,7 +299,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		// created row.
 		switch {
 		case user.Id == "" && mfaToken != "":
-			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
+			if _, passErr := a.Srv().Store().User().TryIncrementFailedPasswordAttempts(ldapUser.Id, maxAttempts); passErr != nil {
 				rctx.Logger().Warn("failed to record failed MFA attempt for first-time LDAP user", mlog.String("user_id", ldapUser.Id), mlog.Err(passErr))
 			}
 		case user.Id != "" && mfaToken == "":

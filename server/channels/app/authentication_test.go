@@ -493,6 +493,53 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, 0, updatedUser.FailedAttempts, "MFA probe on existing LDAP user must not consume a slot")
 	})
+
+	t.Run("concurrent first-time LDAP wrong password caps at maxAttempts", func(t *testing.T) {
+		// A first-time LDAP user has no local row yet, so the slot is
+		// not pre-claimed. The fallback counter bump must use the atomic
+		// TryIncrement primitive: a previous implementation used an
+		// absolute UPDATE Users SET FailedAttempts = ldapUser.FailedAttempts + 1
+		// based on an in-memory snapshot, which lost increments when
+		// concurrent first-attempt requests all read FailedAttempts = 0
+		// and all wrote 1. Under the atomic primitive the counter caps
+		// at maxFailedLoginAttempts regardless of contention.
+		concurrentAuthData := model.NewRandomString(32)
+		preCreated, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:         "ldapuser-first-bad-pwd-conc@mattermost-customer.com",
+			Username:      "ldapuser-first-bad-pwd-conc",
+			AuthService:   model.UserAuthServiceLdap,
+			AuthData:      &concurrentAuthData,
+			EmailVerified: true,
+		})
+		require.Nil(t, appErr)
+		require.NoError(t, th.App.Srv().Store().User().UpdateFailedPasswordAttempts(preCreated.Id, 0))
+
+		freshMock := &mocks.LdapInterface{}
+		th.App.Channels().Ldap = freshMock
+		t.Cleanup(func() { th.App.Channels().Ldap = mockLdap })
+		freshMock.Mock.On("DoLogin", th.Context, concurrentAuthData, wrongPassword).Return(nil, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"})
+
+		const goroutines = maxFailedLoginAttempts * 3
+		var wg sync.WaitGroup
+		start := make(chan struct{})
+		wg.Add(goroutines)
+		for range goroutines {
+			go func() {
+				defer wg.Done()
+				<-start
+				_, _ = th.App.checkLdapUserPasswordAndAllCriteria(th.Context, &model.User{
+					AuthService: model.UserAuthServiceLdap,
+					AuthData:    &concurrentAuthData,
+				}, wrongPassword, "")
+			}()
+		}
+		close(start)
+		wg.Wait()
+
+		updatedUser, appErr := th.App.GetUser(preCreated.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, maxFailedLoginAttempts, updatedUser.FailedAttempts, "concurrent first-time attempts must not lose increments and must cap at maxAttempts")
+	})
 }
 
 func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
