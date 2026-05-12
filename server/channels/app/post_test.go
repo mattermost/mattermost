@@ -953,7 +953,9 @@ func TestDeletePostInArchivedChannel(t *testing.T) {
 }
 
 func TestCreatePost(t *testing.T) {
-	mainHelper.Parallel(t)
+	// This test is intentionally not parallel: two subtests below call t.Setenv
+	// to pin MM_FEATUREFLAGS_EnableSharedChannelsDMs, which Go disallows under a
+	// parallel ancestor.
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
@@ -1173,7 +1175,10 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Should not allow to create posts on shared DMs", func(t *testing.T) {
-		mainHelper.Parallel(t)
+		// The env override is reapplied on every config Set, so UpdateConfig cannot
+		// pin the flag; t.Setenv is the only safe way (and requires no parallel ancestor).
+		t.Setenv("MM_FEATUREFLAGS_EnableSharedChannelsDMs", "false")
+
 		th := setupSharedChannels(t).InitBasic(t)
 
 		user1 := th.CreateUser(t)
@@ -1212,7 +1217,10 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Should not allow to create posts on shared GMs", func(t *testing.T) {
-		mainHelper.Parallel(t)
+		// The env override is reapplied on every config Set, so UpdateConfig cannot
+		// pin the flag; t.Setenv is the only safe way (and requires no parallel ancestor).
+		t.Setenv("MM_FEATUREFLAGS_EnableSharedChannelsDMs", "false")
+
 		th := setupSharedChannels(t).InitBasic(t)
 
 		user1 := th.CreateUser(t)
