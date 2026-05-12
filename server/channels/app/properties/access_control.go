@@ -19,6 +19,7 @@ package properties
 //                      then Alice querying Bob's values would only see Bananas)
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"maps"
@@ -982,12 +983,16 @@ func (pas *PropertyAccessService) filterSharedOnlyFieldOptions(field *model.Prop
 
 // filterSharedOnlyValue computes the intersection of caller and target values for shared_only fields.
 // Returns the filtered value or nil if there's no intersection.
-// For single-select: returns value only if both have the same value.
-// For multi-select: returns the intersection of arrays.
+//   - select / multiselect: per-value intersection (a multi-value field may return a subset).
+//   - text / date / user / any other primitive type: binary — visible only if the caller's
+//     stored value equals the target's value exactly. Otherwise nil.
+//
+// The binary path is what protects scenarios like LDAP/SAML-synced text codenames whose
+// existence is itself controlled information: a caller who doesn't hold the same value
+// must not see the target's value through any read endpoint.
 func (pas *PropertyAccessService) filterSharedOnlyValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
-	// Only applies to select and multiselect fields
 	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
-		return value
+		return pas.filterSharedOnlyScalarValue(field, value, callerID)
 	}
 
 	// Get caller's option IDs for this field
@@ -1042,6 +1047,29 @@ func (pas *PropertyAccessService) filterSharedOnlyValue(field *model.PropertyFie
 		// Should never reach here due to check at function start
 		return nil
 	}
+}
+
+// filterSharedOnlyScalarValue applies binary masking to a non-option field's value:
+// returns the value as-is if the caller's own stored value for the same field equals
+// the target's value, otherwise nil. Caller and target may legitimately store nothing,
+// in which case the value is hidden.
+func (pas *PropertyAccessService) filterSharedOnlyScalarValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+	if value == nil || len(value.Value) == 0 {
+		return nil
+	}
+
+	callerValues, err := pas.getCallerValuesForField(field.GroupID, field.ID, callerID)
+	if err != nil || len(callerValues) == 0 {
+		return nil
+	}
+
+	for _, cv := range callerValues {
+		if bytes.Equal(cv.Value, value.Value) {
+			filtered := *value
+			return &filtered
+		}
+	}
+	return nil
 }
 
 // applyFieldReadAccessControl applies read access control to a single field.
