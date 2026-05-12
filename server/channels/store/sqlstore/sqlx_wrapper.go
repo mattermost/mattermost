@@ -83,7 +83,6 @@ type sqlxExecutor interface {
 	Exec(query string, args ...any) (sql.Result, error)
 	ExecBuilder(builder Builder) (sql.Result, error)
 	ExecRaw(query string, args ...any) (sql.Result, error)
-	NamedQuery(query string, arg any) (*sqlx.Rows, error)
 	QueryRow(query string, args ...any) *sqlxRow
 	Query(query string, args ...any) (*sqlxRows, error)
 	Select(dest any, query string, args ...any) error
@@ -230,20 +229,6 @@ func (w *sqlxDBWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 	}
 
 	return w.checkErrWithResult(w.db.ExecContext(ctx, query, args...))
-}
-
-func (w *sqlxDBWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
-	query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
-	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
-	defer cancel()
-
-	if w.trace {
-		defer func(then time.Time) {
-			printArgs(query, time.Since(then), arg)
-		}(time.Now())
-	}
-
-	return w.checkErrWithRows(w.db.NamedQueryContext(ctx, query, arg))
 }
 
 // QueryRowContext forwards to the underlying *sqlx.DB with the caller-supplied context.
@@ -430,48 +415,6 @@ func (w *sqlxTxWrapper) NamedExec(query string, arg any) (sql.Result, error) {
 	return w.dbw.checkErrWithResult(w.tx.NamedExecContext(ctx, query, arg))
 }
 
-func (w *sqlxTxWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
-	query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
-	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
-	defer cancel()
-
-	if w.trace {
-		defer func(then time.Time) {
-			printArgs(query, time.Since(then), arg)
-		}(time.Now())
-	}
-
-	// There is no tx.NamedQueryContext support in the sqlx API. (https://github.com/jmoiron/sqlx/issues/447)
-	// So we need to implement this ourselves.
-	type result struct {
-		rows *sqlx.Rows
-		err  error
-	}
-
-	// Need to add a buffer of 1 to prevent goroutine leak.
-	resChan := make(chan *result, 1)
-	go func() {
-		rows, err := w.tx.NamedQuery(query, arg)
-		resChan <- &result{
-			rows: rows,
-			err:  err,
-		}
-	}()
-
-	// staticcheck fails to check that res gets re-assigned later.
-	res := &result{} //nolint:staticcheck
-	select {
-	case res = <-resChan:
-	case <-ctx.Done():
-		res = &result{
-			rows: nil,
-			err:  ctx.Err(),
-		}
-	}
-
-	return res.rows, w.dbw.checkErr(res.err)
-}
-
 func (w *sqlxTxWrapper) QueryRow(query string, args ...any) *sqlxRow {
 	query = w.tx.Rebind(query)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
@@ -547,10 +490,6 @@ func printArgs(query string, dur time.Duration, args ...any) {
 }
 
 func (w *sqlxDBWrapper) checkErrWithResult(res sql.Result, err error) (sql.Result, error) {
-	return res, w.checkErr(err)
-}
-
-func (w *sqlxDBWrapper) checkErrWithRows(res *sqlx.Rows, err error) (*sqlx.Rows, error) {
 	return res, w.checkErr(err)
 }
 

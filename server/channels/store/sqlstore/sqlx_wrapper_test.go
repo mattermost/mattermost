@@ -17,41 +17,6 @@ import (
 )
 
 func TestSqlX(t *testing.T) {
-	t.Run("NamedQuery", func(t *testing.T) {
-		testDrivers := []string{
-			model.DatabaseDriverPostgres,
-		}
-
-		for _, driver := range testDrivers {
-			settings, err := makeSqlSettings(driver)
-			if err != nil {
-				continue
-			}
-			*settings.QueryTimeout = 1
-			store := &SqlStore{
-				rrCounter:   0,
-				srCounter:   0,
-				settings:    settings,
-				logger:      mlog.CreateConsoleTestLogger(t),
-				quitMonitor: make(chan struct{}),
-				wgMonitor:   &sync.WaitGroup{},
-			}
-
-			require.NoError(t, store.initConnection())
-
-			defer store.Close()
-
-			tx, err := store.GetMaster().Begin()
-			require.NoError(t, err)
-
-			query := `SELECT pg_sleep(:timeout);`
-			arg := struct{ Timeout int }{Timeout: 2}
-			_, err = tx.NamedQuery(query, arg)
-			require.Equal(t, context.DeadlineExceeded, err)
-			require.NoError(t, tx.Commit())
-		}
-	})
-
 	t.Run("NamedParse", func(t *testing.T) {
 		queries := []struct {
 			in  string
