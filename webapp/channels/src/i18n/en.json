@@ -6977,7 +6977,7 @@
   "user.settings.notifications.autoResponderEnabled": "Enabled",
   "user.settings.notifications.autoResponderHint": "Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications.",
   "user.settings.notifications.autoResponderPlaceholder": "Message",
-  "user.settings.notifications.channelMentionAutoFollow.description": "When enabled, @channel, @all, and @here mentions auto-follow the thread. Disabling stops the auto-follow only — notifications may still trigger based on your keyword settings.",
+  "user.settings.notifications.channelMentionAutoFollow.description": "When enabled, @channel, @all, and @here mentions auto-follow the thread. Disabling stops the auto-follow. Notifications may still trigger based on your keyword settings.",
   "user.settings.notifications.channelMentionAutoFollow.off": "Off",
   "user.settings.notifications.channelMentionAutoFollow.on": "On",
   "user.settings.notifications.channelMentionAutoFollow.title": "Auto-follow threads on channel-wide mentions",

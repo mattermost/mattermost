@@ -550,7 +550,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         <span>
                             <FormattedMessage
                                 id='user.settings.notifications.channelMentionAutoFollow.description'
-                                defaultMessage='When enabled, @channel, @all, and @here mentions auto-follow the thread. Disabling stops the auto-follow only — notifications may still trigger based on your keyword settings.'
+                                defaultMessage='When enabled, @channel, @all, and @here mentions auto-follow the thread. Disabling stops the auto-follow. Notifications may still trigger based on your keyword settings.'
                             />
                         </span>
                     }
