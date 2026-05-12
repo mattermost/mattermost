@@ -90,6 +90,7 @@ export interface PermissionPolicyDetailsProps {
     policy?: AccessControlPolicy;
     policyId?: string;
     accessControlSettings: AccessControlSettings;
+    sessionAttributesEnabled: boolean;
     actions: PolicyActions;
 }
 
@@ -110,6 +111,7 @@ function PermissionPolicyDetails({
     policyId,
     actions,
     accessControlSettings,
+    sessionAttributesEnabled,
 }: PermissionPolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
     const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
@@ -129,7 +131,9 @@ function PermissionPolicyDetails({
     const {formatMessage} = useIntl();
     const abacActions = useChannelAccessControlActions();
 
-    const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
+    // Permission policies can reference session attributes (e.g. user.session.ip_address),
+    // so the editor stays usable even without any configured user attributes when SessionAttributes is on.
+    const noUsableAttributes = attributesLoaded && !sessionAttributesEnabled && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
     useEffect(() => {
         loadPage().finally(() => setPageLoaded(true));
