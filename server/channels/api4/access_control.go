@@ -389,7 +389,7 @@ func evaluateExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventEvaluateExpression, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "expression", req.Expression)
-	model.AddEventParameterToAuditRec(auditRec, "user_ids", strings.Join(req.UserIDs, ","))
+	model.AddEventParameterToAuditRec(auditRec, "user_ids_count", len(req.UserIDs))
 
 	if req.Expression == "" {
 		c.SetInvalidParam("expression")
@@ -405,6 +405,8 @@ func evaluateExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("user_ids")
 		return
 	}
+
+	model.AddEventParameterToAuditRec(auditRec, "user_ids", strings.Join(req.UserIDs, ","))
 
 	resp, appErr := c.App.EvaluateExpression(c.AppContext, req)
 	if appErr != nil {
