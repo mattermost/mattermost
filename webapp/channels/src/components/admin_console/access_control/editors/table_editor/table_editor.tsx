@@ -5,19 +5,18 @@ import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import SectionNotice from 'components/section_notice';
+
 import AttributeSelectorMenu from './attribute_selector_menu';
 import OperatorSelectorMenu from './operator_selector_menu';
 import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
-
-import SectionNotice from 'components/section_notice';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
@@ -161,6 +160,26 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
 
     return tableRows;
 };
+
+function getTestButtonTooltip(
+    hasMaskedRows: boolean,
+    userWouldBeExcluded: boolean,
+    formatMessage: ReturnType<typeof useIntl>['formatMessage'],
+): string | undefined {
+    if (hasMaskedRows) {
+        return formatMessage({
+            id: 'admin.access_control.table_editor.masked_values_tooltip',
+            defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
+        });
+    }
+    if (userWouldBeExcluded) {
+        return formatMessage({
+            id: 'admin.access_control.table_editor.user_excluded_tooltip',
+            defaultMessage: 'You cannot test access rules that would exclude you from the channel',
+        });
+    }
+    return undefined;
+}
 
 // TableEditor provides a user-friendly table interface for constructing and editing
 // CEL (Common Expression Language) expressions based on user attributes.
@@ -512,19 +531,7 @@ function TableEditor({
                 <TestButton
                     onClick={() => setShowTestResults(true)}
                     disabled={disabled || !value || userWouldBeExcluded || hasMaskedRows}
-                    disabledTooltip={
-                        hasMaskedRows ?
-                            formatMessage({
-                                id: 'admin.access_control.table_editor.masked_values_tooltip',
-                                defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
-                            }) :
-                            userWouldBeExcluded ?
-                                formatMessage({
-                                    id: 'admin.access_control.table_editor.user_excluded_tooltip',
-                                    defaultMessage: 'You cannot test access rules that would exclude you from the channel',
-                                }) :
-                                undefined
-                    }
+                    disabledTooltip={getTestButtonTooltip(hasMaskedRows, userWouldBeExcluded, formatMessage)}
                 />
             </div>
 

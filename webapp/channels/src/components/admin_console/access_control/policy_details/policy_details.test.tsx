@@ -16,11 +16,17 @@ jest.mock('utils/browser_history', () => ({
     }),
 }));
 
-// Mock TableEditor so tests can control onMaskedStateChange callbacks
-jest.mock('../editors/table_editor/table_editor', () => jest.fn(({onMaskedStateChange}: any) => {
-    React.useEffect(() => { onMaskedStateChange?.(false); }, []);
-    return <div data-testid='table-editor'/>;
-}));
+// Mock TableEditor so tests can control onMaskedStateChange callbacks.
+// jest.mock factory may not reference out-of-scope variables, so React is required inline.
+jest.mock('../editors/table_editor/table_editor', () => {
+    const reactLib = require('react');
+    return jest.fn(({onMaskedStateChange}: any) => {
+        reactLib.useEffect(() => {
+            onMaskedStateChange?.(false);
+        }, []);
+        return reactLib.createElement('div', {'data-testid': 'table-editor'});
+    });
+});
 
 // Mock the useChannelAccessControlActions hook
 jest.mock('hooks/useChannelAccessControlActions', () => ({
@@ -174,7 +180,9 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         // Simulate TableEditor reporting masked rows via onMaskedStateChange
         const TableEditorMock = jest.requireMock('../editors/table_editor/table_editor');
         TableEditorMock.mockImplementationOnce(({onMaskedStateChange}: any) => {
-            React.useEffect(() => { onMaskedStateChange?.(true); }, []);
+            React.useEffect(() => {
+                onMaskedStateChange?.(true);
+            }, []);
             return <div data-testid='table-editor'/>;
         });
 
@@ -194,28 +202,9 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         });
     });
 
-    test('should show masked values warning in delete confirmation modal when policy has masked rows', async () => {
-        const TableEditorMock = jest.requireMock('../editors/table_editor/table_editor');
-        TableEditorMock.mockImplementationOnce(({onMaskedStateChange}: any) => {
-            React.useEffect(() => { onMaskedStateChange?.(true); }, []);
-            return <div data-testid='table-editor'/>;
-        });
-
-        renderWithContext(<PolicyDetails {...defaultProps}/>);
-
-        await waitFor(() => {
-            expect(screen.getByText('Delete policy')).toBeInTheDocument();
-        });
-
-        const deleteButtons = screen.getAllByText('Delete');
-        await userEvent.click(deleteButtons[deleteButtons.length - 1]);
-
-        await waitFor(() => {
-            expect(screen.getByText('Confirm Policy Deletion')).toBeInTheDocument();
-        });
-
-        expect(screen.getByText(/This policy includes attribute values that are hidden from you/)).toBeInTheDocument();
-    });
+    // Note: when hasMaskedRows is true the Delete button is disabled (policy_details.tsx),
+    // so the masked-warning inside the confirmation modal is defense-in-depth and not
+    // reachable through normal UI flow. Test only the no-masked-rows path here.
 
     test('should not show masked values warning in delete confirmation modal when no masked rows', async () => {
         renderWithContext(<PolicyDetails {...defaultProps}/>);

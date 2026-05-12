@@ -202,11 +202,11 @@ describe('parseExpression', () => {
         };
 
         const rows = parseExpression(ast);
-        expect(rows[0].hasMaskedValues).toBe(true);   // partial: caller holds Alpha
+        expect(rows[0].hasMaskedValues).toBe(true); // partial: caller holds Alpha
         expect(rows[0].values).toEqual(['Alpha']);
-        expect(rows[1].hasMaskedValues).toBe(true);   // fully masked: caller holds nothing
+        expect(rows[1].hasMaskedValues).toBe(true); // fully masked: caller holds nothing
         expect(rows[1].values).toEqual([]);
-        expect(rows[2].hasMaskedValues).toBe(false);  // no masking
+        expect(rows[2].hasMaskedValues).toBe(false); // no masking
         expect(rows[2].values).toEqual(['Engineering']);
     });
 });
