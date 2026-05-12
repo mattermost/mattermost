@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -410,31 +410,24 @@ func testUserStoreTryIncrementFailedPasswordAttempts(t *testing.T, rctx request.
 		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, 0))
 
 		const goroutines = 50
-		var wg sync.WaitGroup
+		var g errgroup.Group
 		var claimed atomic.Int64
 		start := make(chan struct{})
-		errCh := make(chan error, goroutines)
-		wg.Add(goroutines)
 		for range goroutines {
-			go func() {
-				defer wg.Done()
+			g.Go(func() error {
 				<-start
 				ok, err := ss.User().TryIncrementFailedPasswordAttempts(u1.Id, maxAttempts)
 				if err != nil {
-					errCh <- err
-					return
+					return err
 				}
 				if ok {
 					claimed.Add(1)
 				}
-			}()
+				return nil
+			})
 		}
 		close(start)
-		wg.Wait()
-		close(errCh)
-		for err := range errCh {
-			require.NoError(t, err)
-		}
+		require.NoError(t, g.Wait())
 
 		require.Equal(t, int64(maxAttempts), claimed.Load(), "exactly maxAttempts goroutines must have claimed a slot")
 
@@ -482,25 +475,16 @@ func testUserStoreDecrementFailedPasswordAttempts(t *testing.T, rctx request.CTX
 		const goroutines = 50
 		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, initial))
 
-		var wg sync.WaitGroup
+		var g errgroup.Group
 		start := make(chan struct{})
-		errCh := make(chan error, goroutines)
-		wg.Add(goroutines)
 		for range goroutines {
-			go func() {
-				defer wg.Done()
+			g.Go(func() error {
 				<-start
-				if err := ss.User().DecrementFailedPasswordAttempts(u1.Id); err != nil {
-					errCh <- err
-				}
-			}()
+				return ss.User().DecrementFailedPasswordAttempts(u1.Id)
+			})
 		}
 		close(start)
-		wg.Wait()
-		close(errCh)
-		for err := range errCh {
-			require.NoError(t, err)
-		}
+		require.NoError(t, g.Wait())
 
 		user, err := ss.User().Get(context.Background(), u1.Id)
 		require.NoError(t, err)

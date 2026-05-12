@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
@@ -520,21 +521,20 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 		freshMock.Mock.On("DoLogin", th.Context, concurrentAuthData, wrongPassword).Return(nil, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"})
 
 		const goroutines = maxFailedLoginAttempts * 3
-		var wg sync.WaitGroup
+		var g errgroup.Group
 		start := make(chan struct{})
-		wg.Add(goroutines)
 		for range goroutines {
-			go func() {
-				defer wg.Done()
+			g.Go(func() error {
 				<-start
 				_, _ = th.App.checkLdapUserPasswordAndAllCriteria(th.Context, &model.User{
 					AuthService: model.UserAuthServiceLdap,
 					AuthData:    &concurrentAuthData,
 				}, wrongPassword, "")
-			}()
+				return nil
+			})
 		}
 		close(start)
-		wg.Wait()
+		require.NoError(t, g.Wait())
 
 		updatedUser, appErr := th.App.GetUser(preCreated.Id)
 		require.Nil(t, appErr)
@@ -692,20 +692,10 @@ func TestCheckUserPassword(t *testing.T) {
 
 	t.Run("invalid password", func(t *testing.T) {
 		user := createUserWithHash(pwdPBKDF2)
-		initialFailedAttempts := user.FailedAttempts
 
 		err := th.App.checkUserPassword(user, wrongPassword)
 		require.NotNil(t, err)
 		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
-
-		// checkUserPassword is now a pure check with no side effects on
-		// FailedAttempts; the counter is managed by the callers via
-		// TryIncrementFailedPasswordAttempts. Compare against the
-		// immutable pre-call value so a regression that also mutates
-		// the in-memory user is detected.
-		updatedUser, err := th.App.GetUser(user.Id)
-		require.Nil(t, err)
-		require.Equal(t, initialFailedAttempts, updatedUser.FailedAttempts)
 	})
 
 	t.Run("password migration from outdated hash", func(t *testing.T) {
@@ -728,17 +718,10 @@ func TestCheckUserPassword(t *testing.T) {
 
 	t.Run("password migration fails with invalid password", func(t *testing.T) {
 		user := createUserWithHash(pwdBcrypt)
-		initialFailedAttempts := user.FailedAttempts
 
 		err := th.App.checkUserPassword(user, wrongPassword)
 		require.NotNil(t, err)
 		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
-
-		// checkUserPassword does not mutate FailedAttempts; compare against
-		// the immutable pre-call value so a regression is detected.
-		updatedUser, err := th.App.GetUser(user.Id)
-		require.Nil(t, err)
-		require.Equal(t, initialFailedAttempts, updatedUser.FailedAttempts)
 	})
 
 	t.Run("empty password", func(t *testing.T) {

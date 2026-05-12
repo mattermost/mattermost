@@ -122,11 +122,6 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 		return err
 	}
 
-	// MM-37585: atomically claim a failed-attempt slot before doing the
-	// expensive password hash comparison. The conditional UPDATE caps
-	// concurrent in-flight authentications to MaximumLoginAttempts per user
-	// without any application-level locking; further attempts for the same
-	// user are rejected here while other users authenticate unhindered.
 	maxAttempts := *a.Config().ServiceSettings.MaximumLoginAttempts
 	claimed, claimErr := a.Srv().Store().User().TryIncrementFailedPasswordAttempts(user.Id, maxAttempts)
 	if claimErr != nil {
@@ -227,14 +222,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 
 	maxAttempts := *a.Config().LdapSettings.MaximumLoginAttempts
 
-	// MM-37585: for existing LDAP users, atomically claim a failed-attempt
-	// slot before contacting the LDAP server. This caps concurrent in-flight
-	// authentications to MaximumLoginAttempts per user without serializing
-	// requests across users. First-time LDAP users have no local row yet, so
-	// we cannot pre-claim — they fall through to DoLogin which creates the
-	// row, and any failure is tracked unconditionally on that fresh row
-	// (preserving the prior behavior that first-time LDAP attempts are not
-	// rate-limited locally).
+	// First-time LDAP users have no local row yet to pre-claim against.
 	if user.Id != "" {
 		claimed, claimErr := a.Srv().Store().User().TryIncrementFailedPasswordAttempts(user.Id, maxAttempts)
 		if claimErr != nil {
