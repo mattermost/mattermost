@@ -3,140 +3,124 @@
 
 import React from 'react';
 
+import {Permissions} from 'mattermost-redux/constants';
+import type {SystemEmoji} from '@mattermost/types/emojis';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import PostOptions from './post_options';
 
-// Mock connected/complex child components so the test doesn't need a full Redux setup
-jest.mock('components/post_view/post_recent_reactions', () => {
-    return {
-        __esModule: true,
-        default: ({size}: {size: number}) => (
-            <div data-testid='post-recent-reactions' data-size={size}/>
-        ),
-    };
+// Minimal Redux state: grant ADD_REACTION to the current user so that
+// ChannelPermissionGate lets the quick-reaction emoji buttons render.
+const currentUserId = 'currentUser';
+const channel = TestHelper.getChannelMock({team_id: 'team1'});
+const baseState = {
+    entities: {
+        roles: {
+            roles: {
+                system_user: TestHelper.getRoleMock({permissions: [Permissions.ADD_REACTION]}),
+            },
+        },
+        users: {
+            currentUserId,
+            profiles: {
+                [currentUserId]: TestHelper.getUserMock({id: currentUserId, roles: 'system_user'}),
+            },
+        },
+    },
+};
+
+// Proper SystemEmoji shapes — getEmojiName() reads `short_name` for system emojis.
+const makeSystemEmoji = (shortName: string): SystemEmoji => ({
+    name: shortName,
+    short_name: shortName,
+    short_names: [shortName],
+    category: 'people',
+    unified: shortName.toUpperCase(),
 });
 
-jest.mock('components/dot_menu', () => {
-    return {
-        __esModule: true,
-        default: () => <div data-testid='dot-menu'/>,
-    };
-});
+const post = TestHelper.getPostMock({type: '', channel_id: channel.id});
 
-jest.mock('components/actions_menu', () => {
-    return {
-        __esModule: true,
-        default: () => <div data-testid='actions-menu'/>,
-    };
-});
-
-jest.mock('components/post_view/post_reaction', () => {
-    return {
-        __esModule: true,
-        default: () => <div data-testid='post-reaction'/>,
-    };
-});
-
-jest.mock('components/post_view/post_flag_icon', () => {
-    return {
-        __esModule: true,
-        default: () => <div data-testid='post-flag-icon'/>,
-    };
-});
-
-jest.mock('components/common/comment_icon', () => {
-    return {
-        __esModule: true,
-        default: () => <div data-testid='comment-icon'/>,
-    };
-});
-
-jest.mock('components/common/hooks/usePluginVisibilityInSharedChannel', () => ({
-    usePluginVisibilityInSharedChannel: () => true,
-}));
+const baseProps = {
+    post,
+    teamId: channel.team_id,
+    isFlagged: false,
+    removePost: jest.fn(),
+    enableEmojiPicker: true,
+    isReadOnly: false,
+    channelIsArchived: false,
+    handleDropdownOpened: jest.fn(),
+    oneClickReactionsEnabled: true,
+    recentEmojis: [
+        makeSystemEmoji('thumbsup'),
+        makeSystemEmoji('grinning'),
+        makeSystemEmoji('white_check_mark'),
+    ],
+    isMobileView: false,
+    location: Locations.RHS_ROOT as keyof typeof Locations,
+    pluginActions: [],
+    isChannelAutotranslated: false,
+    actions: {
+        emitShortcutReactToLastPostFrom: jest.fn(),
+    },
+};
 
 describe('PostOptions - quick reaction count (MM-68681)', () => {
-    // Use type: '' for a regular (non-system) post so reactions are enabled
-    const post = TestHelper.getPostMock({type: ''});
-
-    const baseProps = {
-        post,
-        teamId: 'team1',
-        isFlagged: false,
-        removePost: jest.fn(),
-        enableEmojiPicker: true,
-        isReadOnly: false,
-        channelIsArchived: false,
-        handleDropdownOpened: jest.fn(),
-        oneClickReactionsEnabled: true,
-        // Provide 3 emojis so that the slice(0, size) logic has enough to return
-        recentEmojis: [
-            {name: 'thumbsup', category: 'people'} as any,
-            {name: 'grinning', category: 'people'} as any,
-            {name: 'white_check_mark', category: 'symbols'} as any,
-        ],
-        hover: true, // simulate hover so hoverLocal is true
-        isMobileView: false,
-        location: Locations.RHS_ROOT as keyof typeof Locations,
-        pluginActions: [],
-        isChannelAutotranslated: false,
-        actions: {
-            emitShortcutReactToLastPostFrom: jest.fn(),
-        },
-    };
-
-    test('shows 3 quick reaction emojis in CENTER location', () => {
+    test('CENTER location always shows 3 quick reaction emojis', () => {
         renderWithContext(
             <PostOptions
                 {...baseProps}
                 location={Locations.CENTER}
                 isExpanded={false}
+                hover={true}
             />,
+            baseState,
         );
 
-        const recentReactions = screen.getByTestId('post-recent-reactions');
-        expect(recentReactions).toHaveAttribute('data-size', '3');
+        expect(screen.getAllByTestId('post-menu__item_emoji')).toHaveLength(3);
     });
 
-    test('shows 1 quick reaction emoji in RHS_ROOT when isExpanded is false (narrow RHS)', () => {
+    test('RHS_ROOT with isExpanded false (narrow sidebar) shows 1 quick reaction emoji', () => {
         renderWithContext(
             <PostOptions
                 {...baseProps}
                 location={Locations.RHS_ROOT}
                 isExpanded={false}
+                hover={true}
             />,
+            baseState,
         );
 
-        const recentReactions = screen.getByTestId('post-recent-reactions');
-        expect(recentReactions).toHaveAttribute('data-size', '1');
+        expect(screen.getAllByTestId('post-menu__item_emoji')).toHaveLength(1);
     });
 
-    test('shows 3 quick reaction emojis in RHS_ROOT when isExpanded is true (expanded RHS or Global Threads view)', () => {
+    test('RHS_ROOT with isExpanded true (expanded sidebar or Global Threads view) shows 3 quick reaction emojis', () => {
         renderWithContext(
             <PostOptions
                 {...baseProps}
                 location={Locations.RHS_ROOT}
                 isExpanded={true}
+                hover={true}
             />,
+            baseState,
         );
 
-        const recentReactions = screen.getByTestId('post-recent-reactions');
-        expect(recentReactions).toHaveAttribute('data-size', '3');
+        expect(screen.getAllByTestId('post-menu__item_emoji')).toHaveLength(3);
     });
 
-    test('shows 3 quick reaction emojis in RHS_COMMENT when isExpanded is true', () => {
+    test('RHS_COMMENT with isExpanded true shows 3 quick reaction emojis', () => {
         renderWithContext(
             <PostOptions
                 {...baseProps}
                 location={Locations.RHS_COMMENT}
                 isExpanded={true}
+                hover={true}
             />,
+            baseState,
         );
 
-        const recentReactions = screen.getByTestId('post-recent-reactions');
-        expect(recentReactions).toHaveAttribute('data-size', '3');
+        expect(screen.getAllByTestId('post-menu__item_emoji')).toHaveLength(3);
     });
 });
