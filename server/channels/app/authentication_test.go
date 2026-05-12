@@ -111,6 +111,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 
 		appErr := th.App.CheckPasswordAndAllCriteria(th.Context, th.BasicUser.Id, password, "")
 		require.NotNil(t, appErr)
+		require.Equal(t, "mfa.validate_token.authenticate.app_error", appErr.Id)
 
 		updatedUser, appErr := th.App.GetUser(th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -425,6 +426,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 			AuthData:    &firstAuthData,
 		}, wrongPassword, "")
 		require.NotNil(t, appErr)
+		require.Equal(t, "ent.ldap.do_login.invalid_password.app_error", appErr.Id)
 
 		updatedUser, appErr := th.App.GetUser(preCreated.Id)
 		require.Nil(t, appErr)
@@ -466,6 +468,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 
 		_, appErr := th.App.checkLdapUserPasswordAndAllCriteria(th.Context, user, wrongPassword, "")
 		require.NotNil(t, appErr)
+		require.Equal(t, "ent.ldap.do_login.unable_to_connect.app_error", appErr.Id)
 
 		updatedUser, appErr := th.App.GetUser(user.Id)
 		require.Nil(t, appErr)
@@ -484,6 +487,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 
 		_, appErr := th.App.checkLdapUserPasswordAndAllCriteria(th.Context, preCreated, validPassword, "")
 		require.NotNil(t, appErr)
+		require.Equal(t, "mfa.validate_token.authenticate.app_error", appErr.Id)
 
 		updatedUser, appErr := th.App.GetUser(preCreated.Id)
 		require.Nil(t, appErr)
@@ -641,6 +645,7 @@ func TestCheckUserPassword(t *testing.T) {
 
 	t.Run("invalid password", func(t *testing.T) {
 		user := createUserWithHash(pwdPBKDF2)
+		initialFailedAttempts := user.FailedAttempts
 
 		err := th.App.checkUserPassword(user, wrongPassword)
 		require.NotNil(t, err)
@@ -648,10 +653,12 @@ func TestCheckUserPassword(t *testing.T) {
 
 		// checkUserPassword is now a pure check with no side effects on
 		// FailedAttempts; the counter is managed by the callers via
-		// TryIncrementFailedPasswordAttempts.
+		// TryIncrementFailedPasswordAttempts. Compare against the
+		// immutable pre-call value so a regression that also mutates
+		// the in-memory user is detected.
 		updatedUser, err := th.App.GetUser(user.Id)
 		require.Nil(t, err)
-		require.Equal(t, user.FailedAttempts, updatedUser.FailedAttempts)
+		require.Equal(t, initialFailedAttempts, updatedUser.FailedAttempts)
 	})
 
 	t.Run("password migration from outdated hash", func(t *testing.T) {
@@ -674,15 +681,17 @@ func TestCheckUserPassword(t *testing.T) {
 
 	t.Run("password migration fails with invalid password", func(t *testing.T) {
 		user := createUserWithHash(pwdBcrypt)
+		initialFailedAttempts := user.FailedAttempts
 
 		err := th.App.checkUserPassword(user, wrongPassword)
 		require.NotNil(t, err)
 		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
 
-		// checkUserPassword does not mutate FailedAttempts.
+		// checkUserPassword does not mutate FailedAttempts; compare against
+		// the immutable pre-call value so a regression is detected.
 		updatedUser, err := th.App.GetUser(user.Id)
 		require.Nil(t, err)
-		require.Equal(t, user.FailedAttempts, updatedUser.FailedAttempts)
+		require.Equal(t, initialFailedAttempts, updatedUser.FailedAttempts)
 	})
 
 	t.Run("empty password", func(t *testing.T) {

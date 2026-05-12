@@ -309,6 +309,14 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 	}
 
 	if err = checkUserNotDisabled(ldapUser); err != nil {
+		// Existing LDAP users had a slot pre-claimed; a disabled-account
+		// rejection is not a credential failure, so refund the slot so a
+		// reactivated user is not immediately rate-limited.
+		if user.Id != "" {
+			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(ldapUser.Id); passErr != nil {
+				rctx.Logger().Warn("failed to refund disabled LDAP login attempt slot", mlog.String("user_id", ldapUser.Id), mlog.Err(passErr))
+			}
+		}
 		return nil, err
 	}
 
