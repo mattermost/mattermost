@@ -132,8 +132,8 @@ func testWebhookStoreGetIncomingListByUser(t *testing.T, rctx request.CTX, ss st
 	o1.UserId = model.NewId()
 	o1.TeamId = model.NewId()
 
-	o1, err := ss.Webhook().SaveIncoming(o1)
-	require.NoError(t, err)
+	o1, errSave := ss.Webhook().SaveIncoming(o1)
+	require.NoError(t, errSave)
 
 	t.Run("GetIncomingListByUser, known user filtered", func(t *testing.T) {
 		hooks, err := ss.Webhook().GetIncomingListByUser(o1.UserId, 0, 100)
@@ -154,7 +154,7 @@ func testWebhookStoreGetIncomingListByUser(t *testing.T, rctx request.CTX, ss st
 		hookA := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: model.NewId(), DisplayName: "Alpha"}
 		hookB := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: model.NewId(), DisplayName: "Bravo"}
 
-		hookC, err = ss.Webhook().SaveIncoming(hookC)
+		hookC, err := ss.Webhook().SaveIncoming(hookC)
 		require.NoError(t, err)
 		hookA, err = ss.Webhook().SaveIncoming(hookA)
 		require.NoError(t, err)
@@ -187,16 +187,14 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, rctx request.CTX, ss store.
 }
 
 func TestWebhookStoreGetIncomingByTeamByUser(t *testing.T, rctx request.CTX, ss store.Store) {
-	var err error
-
 	o1 := buildIncomingWebhook()
-	o1, err = ss.Webhook().SaveIncoming(o1)
-	require.NoError(t, err)
+	o1, errSave := ss.Webhook().SaveIncoming(o1)
+	require.NoError(t, errSave)
 
 	o2 := buildIncomingWebhook()
 	o2.TeamId = o1.TeamId //Set both to the same team
-	o2, err = ss.Webhook().SaveIncoming(o2)
-	require.NoError(t, err)
+	o2, errSave = ss.Webhook().SaveIncoming(o2)
+	require.NoError(t, errSave)
 
 	t.Run("GetIncomingByTeamByUser, no user filter", func(t *testing.T) {
 		hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100)
@@ -224,7 +222,7 @@ func TestWebhookStoreGetIncomingByTeamByUser(t *testing.T, rctx request.CTX, ss 
 		hookA := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: teamId, DisplayName: "Alpha"}
 		hookB := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: teamId, DisplayName: "Bravo"}
 
-		hookC, err = ss.Webhook().SaveIncoming(hookC)
+		hookC, err := ss.Webhook().SaveIncoming(hookC)
 		require.NoError(t, err)
 		hookA, err = ss.Webhook().SaveIncoming(hookA)
 		require.NoError(t, err)
@@ -515,16 +513,14 @@ func testWebhookStoreGetOutgoingByTeam(t *testing.T, rctx request.CTX, ss store.
 }
 
 func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, rctx request.CTX, ss store.Store) {
-	var err error
-
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o1, err = ss.Webhook().SaveOutgoing(o1)
-	require.NoError(t, err)
+	o1, errSave := ss.Webhook().SaveOutgoing(o1)
+	require.NoError(t, errSave)
 
 	o2 := &model.OutgoingWebhook{}
 	o2.ChannelId = model.NewId()
@@ -532,8 +528,8 @@ func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, rctx request.CTX, ss 
 	o2.TeamId = o1.TeamId
 	o2.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o2, err = ss.Webhook().SaveOutgoing(o2)
-	require.NoError(t, err)
+	o2, errSave = ss.Webhook().SaveOutgoing(o2)
+	require.NoError(t, errSave)
 
 	t.Run("GetOutgoingByTeamByUser, no user filter", func(t *testing.T) {
 		hooks, err := ss.Webhook().GetOutgoingByTeam(o1.TeamId, 0, 100)
@@ -561,7 +557,7 @@ func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, rctx request.CTX, ss 
 		hookA := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: teamId, CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Alpha"}
 		hookB := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: teamId, CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Bravo"}
 
-		hookC, err = ss.Webhook().SaveOutgoing(hookC)
+		hookC, err := ss.Webhook().SaveOutgoing(hookC)
 		require.NoError(t, err)
 		hookA, err = ss.Webhook().SaveOutgoing(hookA)
 		require.NoError(t, err)
@@ -701,4 +697,3 @@ func testWebhookStoreCountOutgoing(t *testing.T, rctx request.CTX, ss store.Stor
 	require.NoError(t, err)
 	require.NotEqual(t, 0, r, "should have at least 1 outgoing hook")
 }
-
