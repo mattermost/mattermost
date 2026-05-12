@@ -77,6 +77,92 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 	})
 }
 
+func TestDoSetupBoardsProperties(t *testing.T) {
+	t.Run("should register the boards property group and seed fields on fresh install", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+		require.NotNil(t, group)
+		require.Equal(t, model.BoardsPropertyGroupName, group.Name)
+		require.Equal(t, model.PropertyGroupVersionV2, group.Version)
+
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 2)
+
+		names := make(map[string]*model.PropertyField, 2)
+		for _, f := range propertyFields {
+			names[f.Name] = f
+		}
+
+		assignee, ok := names[model.BoardsPropertyFieldAssignee]
+		require.True(t, ok, "assignee field missing")
+		require.Equal(t, model.PropertyFieldTypeUser, assignee.Type)
+		require.True(t, assignee.Protected)
+
+		status, ok := names[model.BoardsPropertyFieldStatus]
+		require.True(t, ok, "status field missing")
+		require.Equal(t, model.PropertyFieldTypeSelect, status.Type)
+		require.True(t, status.Protected)
+		// After JSON round-trip StringInterface deserializes array elements as []interface{}
+		opts, _ := status.Attrs["options"].([]interface{})
+		require.Len(t, opts, 3)
+
+		data, sysErr := th.Store.System().GetByName(boardsPropertiesSetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, boardsMigrationVersion, data.Value)
+	})
+
+	t.Run("should be idempotent when the system key is already set", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+		versionBefore := group.Version
+
+		err := th.Server.doSetupBoardsProperties()
+		require.NoError(t, err)
+
+		group, appErr = th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+		require.Equal(t, versionBefore, group.Version)
+
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 2)
+	})
+
+	t.Run("concurrent runs are race-tolerant", func(t *testing.T) {
+		th := Setup(t)
+
+		_, err := th.Store.System().PermanentDeleteByName(boardsPropertiesSetupDoneKey)
+		require.NoError(t, err)
+
+		const runners = 5
+		errs := make([]error, runners)
+		var wg sync.WaitGroup
+		wg.Add(runners)
+		for i := range runners {
+			go func() {
+				defer wg.Done()
+				errs[i] = th.Server.doSetupBoardsProperties()
+			}()
+		}
+		wg.Wait()
+
+		for i, runErr := range errs {
+			require.NoError(t, runErr, "runner %d must not fail on concurrent run", i)
+		}
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 2)
+	})
+}
+
 func TestDoSetupContentFlaggingProperties(t *testing.T) {
 	t.Run("should register property group and fields", func(t *testing.T) {
 		//we need to call the Setup method and run the full setup instead of

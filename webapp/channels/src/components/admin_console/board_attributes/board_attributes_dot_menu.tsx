@@ -1,0 +1,131 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+
+import {ContentCopyIcon, DotsHorizontalIcon, LockOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import type {BoardPropertyField} from '@mattermost/types/properties';
+
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
+import * as Menu from 'components/menu';
+
+import {useBoardAttributeFieldDelete} from './board_attributes_delete_modal';
+import {isCreatePending} from './board_attributes_utils';
+
+import '../system_properties/user_properties_dot_menu.scss';
+
+type Props = {
+    field: BoardPropertyField;
+    canCreate: boolean;
+    createField: (field: BoardPropertyField) => void;
+    updateField: (field: BoardPropertyField) => void;
+    deleteField: (id: string) => void;
+}
+
+const menuId = 'board-attribute-field_dotmenu';
+
+const DotMenu = ({
+    field,
+    canCreate,
+    createField,
+    deleteField,
+}: Props) => {
+    const {formatMessage} = useIntl();
+    const {promptDelete} = useBoardAttributeFieldDelete();
+
+    const isProtected = Boolean(field.protected);
+
+    const handleDuplicate = () => {
+        if (isProtected) {
+            return;
+        }
+        const name = formatMessage({
+            id: 'admin.board_attributes.dot_menu.duplicate.name_copy',
+            defaultMessage: '{fieldName} (copy)',
+        }, {fieldName: field.name});
+
+        createField({...field, attrs: {...field.attrs}, name});
+    };
+
+    const handleDelete = () => {
+        if (isProtected) {
+            return;
+        }
+        if (isCreatePending(field)) {
+            // skip prompt when field is pending creation
+            deleteField(field.id);
+        } else {
+            promptDelete(field).then(() => deleteField(field.id));
+        }
+    };
+
+    const menuButton = (
+        <Menu.Container
+            menuButton={{
+                id: `${menuId}-${field.id}`,
+                class: 'btn btn-transparent user-property-field-dotmenu-menu-button',
+                children: (
+                    <>
+                        {isProtected ? <LockOutlineIcon size={18}/> : <DotsHorizontalIcon size={18}/>}
+                    </>
+                ),
+                dataTestId: `${menuId}-${field.id}`,
+                disabled: field.delete_at !== 0,
+            }}
+            menu={{
+                id: `${menuId}-menu`,
+                'aria-label': 'Select an action',
+                className: 'user-property-field-dotmenu-menu',
+            }}
+        >
+            {canCreate && (
+                <Menu.Item
+                    id={`${menuId}_duplicate`}
+                    onClick={handleDuplicate}
+                    disabled={isProtected}
+                    leadingElement={<ContentCopyIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='admin.board_attributes.dot_menu.duplicate'
+                            defaultMessage='Duplicate'
+                        />
+                    )}
+                />
+            )}
+            <Menu.Item
+                id={`${menuId}_delete`}
+                onClick={handleDelete}
+                isDestructive={!isProtected}
+                disabled={isProtected}
+                leadingElement={<TrashCanOutlineIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='admin.board_attributes.dot_menu.delete'
+                        defaultMessage='Delete attribute'
+                    />
+                )}
+            />
+        </Menu.Container>
+    );
+
+    if (isProtected) {
+        return (
+            <WithTooltip
+                title={formatMessage({
+                    id: 'admin.board_attributes.dot_menu.system_managed_tooltip',
+                    defaultMessage: 'System attributes cannot be modified',
+                })}
+            >
+                <span>
+                    {menuButton}
+                </span>
+            </WithTooltip>
+        );
+    }
+
+    return menuButton;
+};
+
+export default DotMenu;

@@ -33,6 +33,8 @@ const (
 	contentFlaggingMigrationVersion                = "v5"
 	managedCategorySetupDoneKey                    = "managed_category_setup_done"
 	managedCategoryMigrationVersion                = "v2"
+	boardsPropertiesSetupDoneKey                   = "boards_properties_setup_done"
+	boardsMigrationVersion                         = "1"
 	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
@@ -880,6 +882,81 @@ func (s *Server) cacheManagedCategoryIDs() error {
 	return nil
 }
 
+func (s *Server) doSetupBoardsProperties() error {
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(boardsPropertiesSetupDoneKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query boards properties migration: %w", err)
+	}
+
+	if data != nil && data.Value == boardsMigrationVersion {
+		return nil
+	}
+
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2})
+	if err != nil {
+		return fmt.Errorf("failed to register boards property group: %w", err)
+	}
+
+	_, err = s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.BoardsPropertyFieldAssignee)
+	if err != nil {
+		assigneeField := &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              model.BoardsPropertyFieldAssignee,
+			Type:              model.PropertyFieldTypeUser,
+			ObjectType:        model.PropertyValueTargetTypePost,
+			TargetType:        "system",
+			TargetID:          "",
+			Protected:         true,
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}
+
+		if _, createErr := s.propertyService.CreatePropertyField(nil, assigneeField); createErr != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.BoardsPropertyFieldAssignee); retryErr != nil {
+				return fmt.Errorf("failed to create boards assignee field: %w", createErr)
+			}
+		}
+	}
+
+	_, err = s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.BoardsPropertyFieldStatus)
+	if err != nil {
+		attrs := model.StringInterface{
+			"options": []map[string]any{
+				{"id": model.BoardsStatusOptionTodoID, "name": "Todo", "color": "neutral"},
+				{"id": model.BoardsStatusOptionInProgressID, "name": "In Progress", "color": "blue"},
+				{"id": model.BoardsStatusOptionCompleteID, "name": "Complete", "color": "green"},
+			},
+		}
+		statusField := &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              model.BoardsPropertyFieldStatus,
+			Type:              model.PropertyFieldTypeSelect,
+			ObjectType:        model.PropertyValueTargetTypePost,
+			TargetType:        "system",
+			TargetID:          "",
+			Attrs:             attrs,
+			Protected:         true,
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}
+
+		if _, createErr := s.propertyService.CreatePropertyField(nil, statusField); createErr != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.BoardsPropertyFieldStatus); retryErr != nil {
+				return fmt.Errorf("failed to create boards status field: %w", createErr)
+			}
+		}
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: boardsPropertiesSetupDoneKey, Value: boardsMigrationVersion}); err != nil {
+		return fmt.Errorf("failed to save boards properties setup done flag: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) doCloudS3PathMigrations(rctx request.CTX) error {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
@@ -1067,6 +1144,7 @@ func (s *Server) doAppMigrations() {
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
+		{"Boards Properties Setup", s.doSetupBoardsProperties},
 	}
 
 	for i := range m1 {

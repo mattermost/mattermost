@@ -25,6 +25,7 @@ export type PropertyField = {
     target_type: string;
     object_type: string;
     linked_field_id?: string;
+    protected?: boolean;
     create_at: number;
     update_at: number;
     delete_at: number;
@@ -87,6 +88,19 @@ export type UserPropertyField = PropertyField & {
     };
 };
 
+export type BoardPropertyFieldGroupID = 'boards';
+
+export type BoardPropertyField = PropertyField & {
+    group_id: BoardPropertyFieldGroupID;
+    object_type: 'post';
+    attrs: {
+        sort_order: number;
+        options?: PropertyFieldOption[];
+    };
+};
+
+export type BoardPropertyFieldPatch = Partial<Pick<BoardPropertyField, 'name' | 'attrs' | 'type'>>;
+
 export type SelectPropertyField = PropertyField & {
     attrs?: {
         editable?: boolean;
@@ -94,7 +108,7 @@ export type SelectPropertyField = PropertyField & {
     };
 }
 
-export const supportsOptions = (field: UserPropertyField) => {
+export const supportsOptions = (field: PropertyField) => {
     return field.type === 'select' || field.type === 'multiselect';
 };
 

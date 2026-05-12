@@ -1,0 +1,342 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import groupBy from 'lodash/groupBy';
+import isEmpty from 'lodash/isEmpty';
+import {useMemo} from 'react';
+
+import type {ClientError} from '@mattermost/client';
+import type {BoardPropertyField, BoardPropertyFieldGroupID, BoardPropertyFieldPatch, PropertyField} from '@mattermost/types/properties';
+import {collectionAddItem, collectionFromArray, collectionRemoveItem, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
+import type {IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
+
+import {Client4} from 'mattermost-redux/client';
+import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
+
+import {generateId} from 'utils/utils';
+
+import type {CollectionIO} from '../system_properties/section_utils';
+import {useThing, usePendingThing, BatchProcessingError} from '../system_properties/section_utils';
+
+export type BoardPropertyFields = IDMappedCollection<BoardPropertyField>;
+
+type PendingOps<T extends {id: string}> = {[op: string]: T[]};
+
+export const BOARDS_GROUP_NAME = 'boards' satisfies BoardPropertyFieldGroupID;
+export const OBJECT_TYPE_POST = 'post';
+export const TARGET_TYPE_SYSTEM = 'system';
+
+export const useBoardPropertyFields = () => {
+    // current fields
+    const [fieldCollection, readIO] = useThing<BoardPropertyFields>(useMemo(() => ({
+        get: async () => {
+            const data = await Client4.getPropertyFields(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, TARGET_TYPE_SYSTEM);
+            const sorted = (data as BoardPropertyField[]).sort((a, b) => (a.attrs?.sort_order ?? 0) - (b.attrs?.sort_order ?? 0));
+            return collectionFromArray(sorted);
+        },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        select: (state) => {
+            return undefined;
+        },
+        opts: {forceInitialGet: true},
+    }), []), collectionFromArray([]));
+
+    // pending fields to be saved
+    const [pendingCollection, pendingIO] = usePendingThing<BoardPropertyFields, BatchProcessingError<ClientError>>(fieldCollection, useMemo(() => ({
+        commit: async (collection: BoardPropertyFields, prevCollection: BoardPropertyFields) => {
+            // prepare ops
+            const process = collectionToArray(collection).reduce<PendingOps<BoardPropertyField>>((ops, item) => {
+                // don't process unchanged items
+                if (item === prevCollection.data[item.id]) {
+                    return ops;
+                }
+
+                switch (true) {
+                case isCreatePending(item):
+                    ops.create.push(item);
+                    break;
+                case isDeletePending(item):
+                    ops.delete.push(item);
+                    break;
+                case item !== prevCollection.data[item.id]:
+                    ops.edit.push(item);
+                    break;
+                }
+
+                return ops;
+            }, {delete: [], edit: [], create: []});
+
+            const next: BoardPropertyFields = {
+                data: {...collection.data},
+                order: [...collection.order],
+                errors: {}, // start with errors cleared; don't keep stale errors
+            };
+
+            // delete
+            await Promise.all(process.delete.map(async ({id, protected: isProtected}) => {
+                // skip protected fields
+                if (isProtected) {
+                    return;
+                }
+                return Client4.deletePropertyField(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, id).
+                    then(() => {
+                        // data:deleted
+                        Reflect.deleteProperty(next.data, id);
+
+                        // order:deleted
+                        next.order = next.order.filter((orderId) => orderId !== id);
+                    }).
+                    catch((reason: ClientError) => {
+                        next.errors = {...next.errors, [id]: reason};
+                    });
+            }));
+
+            // update
+            await Promise.all(process.edit.map(async (pendingItem) => {
+                const {id, name, type, attrs} = pendingItem;
+                let patch: BoardPropertyFieldPatch = {name, type, attrs};
+
+                // clear options if not select/multiselect
+                if (type !== 'select' && type !== 'multiselect') {
+                    const patchAttrs = {...patch.attrs} as BoardPropertyField['attrs'];
+                    Reflect.deleteProperty(patchAttrs, 'options');
+                    patch = {...patch, attrs: patchAttrs};
+                }
+
+                return Client4.patchPropertyField(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, id, patch as Partial<PropertyField> & Record<string, unknown>).
+                    then((nextItem) => {
+                        // data:updated
+                        next.data[id] = nextItem as BoardPropertyField;
+                    }).
+                    catch((reason: ClientError) => {
+                        next.errors = {...next.errors, [id]: reason};
+                    });
+            }));
+
+            // create
+            await Promise.all(process.create.map(async (pendingItem) => {
+                const {id, name, type, attrs} = pendingItem;
+
+                return Client4.createPropertyField(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, {
+                    name,
+                    type,
+                    attrs,
+                    target_type: TARGET_TYPE_SYSTEM,
+                    target_id: '',
+                }).
+                    then((newItem) => {
+                        // data:created (delete pending data)
+                        Reflect.deleteProperty(next.data, id);
+                        next.data[newItem?.id] = newItem as BoardPropertyField;
+
+                        // order:created (replace pending id with created id)
+                        next.order = next.order.map((orderId) => (orderId === pendingItem?.id ? newItem.id : orderId));
+                    }).
+                    catch((reason: ClientError) => {
+                        next.errors = {...next.errors, [id]: reason};
+                    });
+            }));
+
+            if (isEmpty(next.errors)) {
+                Reflect.deleteProperty(next, 'errors');
+            } else {
+                // set pendingIO master error
+                throw new BatchProcessingError<ClientError>('error processing operations', {cause: next.errors});
+            }
+
+            return next;
+        },
+        beforeUpdate: (pending, current) => {
+            const byNamesLower = (data: IDMappedObjects<BoardPropertyField>) => {
+                return groupBy(data, ({name}) => name.toLowerCase());
+            };
+
+            // Name
+            const pendingByName = byNamesLower(pending.data);
+            const currentByName = byNamesLower(current.data);
+
+            const warnings = Object.values(pending.data).reduce<NonNullable<BoardPropertyFields['warnings']>>((acc, field) => {
+                // Skip validation for protected fields - they can't be edited
+                if (field.protected) {
+                    return acc;
+                }
+
+                if (!field.name) {
+                    // name not provided
+                    acc[field.id] = {name: ValidationWarningNameRequired};
+                } else if (pendingByName[field.name.toLowerCase()]?.filter((x) => x.delete_at === 0)?.length > 1) {
+                    // duplicate pending name
+                    acc[field.id] = {name: ValidationWarningNameUnique};
+                } else if (
+                    currentByName?.[field.name.toLowerCase()]?.length >= 1 &&
+                    field.id !== currentByName?.[field.name.toLowerCase()]?.[0]?.id
+                ) {
+                    // name already in use
+                    const correspondingPending = pending.data[currentByName?.[field.name.toLowerCase()]?.[0]?.id];
+
+                    // except when corresponding field is going to be deleted, then it is no longer in conflict
+                    if (correspondingPending.delete_at === 0) {
+                        // not going to be deleted, so in conflict
+                        acc[field.id] = {name: ValidationWarningNameTaken};
+                    }
+                }
+
+                if (field.type === 'select' || field.type === 'multiselect') {
+                    const options = field.attrs?.options;
+                    if (!options?.length) {
+                        acc[field.id] = {attrs: ValidationWarningOptionsRequired};
+                    }
+                }
+
+                return acc;
+            }, {});
+
+            const next = {...pending, warnings};
+
+            if (isEmpty(warnings)) {
+                Reflect.deleteProperty(next, 'warnings');
+            }
+
+            return next;
+        },
+        isEqual: (a, b) => {
+            if (a.order.length !== b.order.length) {
+                return false;
+            }
+            if (!a.order.every((id, i) => id === b.order[i])) {
+                return false;
+            }
+            const aKeys = Object.keys(a.data);
+            const bKeys = Object.keys(b.data);
+            if (aKeys.length !== bKeys.length) {
+                return false;
+            }
+            return aKeys.every((key) => a.data[key] === b.data[key]);
+        },
+
+    }), []));
+
+    // edit pending fields before saving
+    const itemOps = useMemo(() => ({
+        update: (field) => {
+            pendingIO.apply((pending) => {
+                return collectionReplaceItem(pending, field);
+            });
+        },
+        create: (patch?) => {
+            pendingIO.apply((pending) => {
+                const nextOrder = Object.values(pending.data).filter((x) => !isDeletePending(x)).length;
+
+                const field = newPendingBoardField({
+                    type: 'text',
+                    ...patch,
+                    name: getIncrementedName(patch?.name ?? 'Text', pending),
+                    attrs: {
+                        ...patch?.attrs,
+                        sort_order: nextOrder,
+                    },
+                });
+
+                return collectionAddItem(pending, field);
+            });
+        },
+        reorder: ({id}, nextItemOrder) => {
+            pendingIO.apply((pending) => {
+                const nextOrder = insertWithoutDuplicates(pending.order, id, nextItemOrder);
+
+                if (nextOrder === pending.order) {
+                    return pending;
+                }
+
+                const nextItems = Object.values(pending.data).reduce<BoardPropertyField[]>((changedItems, item) => {
+                    const itemCurrentOrder = item.attrs?.sort_order;
+                    const itemNextOrder = nextOrder.indexOf(item.id);
+
+                    if (itemNextOrder !== itemCurrentOrder) {
+                        changedItems.push({...item, attrs: {...item.attrs, sort_order: itemNextOrder}});
+                    }
+
+                    return changedItems;
+                }, []);
+
+                return collectionReplaceItem({...pending, order: nextOrder}, ...nextItems);
+            });
+        },
+        delete: (id: string) => {
+            pendingIO.apply((pending) => {
+                const field = pending.data[id];
+
+                // skip if protected
+                if (field.protected) {
+                    return pending;
+                }
+
+                if (isCreatePending(field)) {
+                    // immediately remove if deleting a field that is pending creation
+                    return collectionRemoveItem(pending, field);
+                }
+
+                return collectionReplaceItem(pending, {...field, delete_at: Date.now()});
+            });
+        },
+    } satisfies CollectionIO<BoardPropertyField>), [pendingIO.apply]);
+
+    return [pendingCollection, readIO, pendingIO, itemOps] as const;
+};
+
+export const ValidationWarningNameRequired = 'board_attributes.validation.name_required';
+export const ValidationWarningNameUnique = 'board_attributes.validation.name_unique';
+export const ValidationWarningNameTaken = 'board_attributes.validation.name_taken';
+export const ValidationWarningOptionsRequired = 'board_attributes.validation.options_required';
+
+const getIncrementedName = (desiredName: string, collection: BoardPropertyFields) => {
+    const names = new Set(Object.values(collection.data).map(({name}) => name));
+    let newName = desiredName;
+    let n = 1;
+    while (names.has(newName)) {
+        n++;
+        newName = `${desiredName} ${n}`;
+    }
+    return newName;
+};
+
+const PENDING = 'pending_';
+export const isCreatePending = <T extends {id: string; delete_at: number; create_at: number}>(item: T) => {
+    // has not been created and is not deleted
+    return item.create_at === 0 && item.delete_at === 0;
+};
+
+export const isDeletePending = <T extends {delete_at: number; create_at: number}>(item: T) => {
+    // has been created and needs to be deleted
+    return item.create_at !== 0 && item.delete_at !== 0;
+};
+
+export const newPendingId = () => `${PENDING}${generateId()}`;
+
+export const newPendingBoardField = (patch: BoardPropertyFieldPatch & Pick<BoardPropertyField, 'name'>): BoardPropertyField => {
+    const attrs = {...patch.attrs};
+
+    if (attrs.options) {
+        // clear option ids
+        attrs.options = patch.attrs?.options?.map((option) => ({...option, id: ''}));
+    }
+
+    return {
+        type: 'text',
+        ...patch,
+        group_id: BOARDS_GROUP_NAME satisfies BoardPropertyFieldGroupID,
+        object_type: OBJECT_TYPE_POST,
+        id: newPendingId(),
+        create_at: 0,
+        delete_at: 0,
+        update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: TARGET_TYPE_SYSTEM,
+        attrs: {
+            sort_order: 0,
+            ...attrs,
+        },
+    };
+};
