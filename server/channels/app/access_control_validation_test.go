@@ -28,12 +28,7 @@ func TestMaskedTokenConstant(t *testing.T) {
 
 func TestValidateConditionValues_AttrValueSkipped(t *testing.T) {
 	// AttrValue conditions should be skipped — they contain no literal values to validate.
-	cond := model.Condition{
-		Attribute: "user.attributes.Team",
-		Operator:  "==",
-		Value:     "user.attributes.Department",
-		ValueType: model.AttrValue,
-	}
+	cond := model.Condition{ValueType: model.AttrValue}
 
 	// Confirm the condition type is AttrValue — the validator skips these
 	assert.Equal(t, model.AttrValue, cond.ValueType)

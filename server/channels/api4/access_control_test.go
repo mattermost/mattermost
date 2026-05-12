@@ -435,6 +435,22 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+
+		// DeleteAccessControlPolicy resolves the policy first to decide whether
+		// to broadcast a channel access-control update after deletion.
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       samplePolicyID,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.team == 'engineering'",
+					Actions:    []string{"membership"},
+				},
+			},
+		}
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(channelPolicy, nil).Times(1)
 		mockAccessControlService.On("DeletePolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1537,6 +1553,4 @@ func TestCreateAccessControlPolicyTeamAdmin(t *testing.T) {
 		require.Equal(t, 200, r.StatusCode)
 		mockACS.AssertExpectations(t)
 	})
-
-	t.Run("system admin saves with team_id preserves scope even when body omits scope fields", func(t *testing.T) {
-		// Regres
+}

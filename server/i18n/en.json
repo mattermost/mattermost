@@ -7557,6 +7557,10 @@
     "translation": "Unable to delete access control policy."
   },
   {
+    "id": "app.pap.delete_policy.masked_values",
+    "translation": "You cannot delete this policy because it contains attribute values you do not have permission to view."
+  },
+  {
     "id": "app.pap.expression_to_visual_ast.app_error",
     "translation": "Could not genereate visual AST from expression."
   },
@@ -7581,10 +7585,6 @@
     "translation": "Could not generate masked visual AST from expression."
   },
   {
-    "id": "app.pap.validate_expression_values.app_error",
-    "translation": "Could not validate policy expression values."
-  },
-  {
     "id": "app.pap.get_policies_for_field_ids.app_error",
     "translation": "Could not get policies for the given field IDs."
   },
@@ -7603,6 +7603,10 @@
   {
     "id": "app.pap.is_ready.app_error",
     "translation": "Access control service is not ready."
+  },
+  {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": "Could not merge policy expression."
   },
   {
     "id": "app.pap.missing_attribute.app_error",
@@ -7625,8 +7629,16 @@
     "translation": "Invalid value."
   },
   {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "You cannot remove a condition that contains attribute values you do not have permission to view."
+  },
+  {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "A policy with this name already exists. Please choose a different name."
+  },
+  {
+    "id": "app.pap.save_policy.self_exclusion",
+    "translation": "You do not satisfy one or more conditions in this policy."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -7639,6 +7651,10 @@
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
     "translation": "Could not update active status of access control policies."
+  },
+  {
+    "id": "app.pap.validate_expression_values.app_error",
+    "translation": "Could not validate policy expression values."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",

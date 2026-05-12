@@ -164,24 +164,15 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	return policy, nil
 }
 
-// policyHasMaskedValuesForCaller returns true if the stored policy (identified by id)
-// contains any attribute values that are not visible to callerID under the current masking rules.
-// Returns false for new policies (not found) — new policies have no hidden values yet.
-func (a *App) policyHasMaskedValuesForCaller(rctx request.CTX, id, callerID string) (bool, *model.AppError) {
-	acs := a.Srv().ch.AccessControl
-	if acs == nil {
+// policyHasMaskedValuesForCaller returns true if policy contains any attribute values
+// that are not visible to callerID under the current masking rules.
+// A nil policy is treated as "no hidden values" — there's nothing to protect.
+func (a *App) policyHasMaskedValuesForCaller(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) (bool, *model.AppError) {
+	if policy == nil {
 		return false, nil
 	}
 
-	existingPolicy, appErr := acs.GetPolicy(rctx, id)
-	if appErr != nil {
-		if appErr.StatusCode == http.StatusNotFound {
-			return false, nil
-		}
-		return false, appErr
-	}
-
-	for _, rule := range existingPolicy.Rules {
+	for _, rule := range policy.Rules {
 		if rule.Expression == "" || rule.Expression == "true" {
 			continue
 		}
@@ -255,8 +246,13 @@ func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, submittedExpr, s
 
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
 
-	// Pre-fetch fields once for all stored conditions.
+	// Pre-fetch fields once for all stored conditions. We require every referenced field
+	// to resolve — proceeding with an incomplete map would silently strip hidden values
+	// from stored conditions and bypass the masked-condition-delete block.
 	fieldsByName := a.fetchConditionFields(rctxWithCaller, storedAST.Conditions, cpaGroupID)
+	if appErr := requireAllFieldsResolved(storedAST.Conditions, fieldsByName); appErr != nil {
+		return "", appErr
+	}
 
 	// Build a lookup of submitted conditions by attribute for O(1) membership checks.
 	submittedAttrs := make(map[string]struct{}, len(submittedAST.Conditions))
@@ -338,7 +334,7 @@ func (a *App) checkSelfInclusion(rctx request.CTX, policy *model.AccessControlPo
 		if !matches {
 			return model.NewAppError("CreateOrUpdateAccessControlPolicy",
 				"app.pap.save_policy.self_exclusion", nil,
-				"You do not satisfy one or more conditions in this policy.", http.StatusBadRequest)
+				"You do not satisfy one or more conditions in this policy.", http.StatusForbidden)
 		}
 	}
 
@@ -363,7 +359,7 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		session := rctx.Session()
 		if session != nil {
 			callerID := session.UserId
-			if hasMasked, appErr := a.policyHasMaskedValuesForCaller(rctx, id, callerID); appErr != nil {
+			if hasMasked, appErr := a.policyHasMaskedValuesForCaller(rctx, policy, callerID); appErr != nil {
 				return appErr
 			} else if hasMasked {
 				return model.NewAppError("DeleteAccessControlPolicy", "app.pap.delete_policy.masked_values", nil,
@@ -615,7 +611,6 @@ func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model
 
 	return visualAST, nil
 }
-
 
 // publishChannelPolicyEnforcedForChannelPoliciesWithImport broadcasts
 // channel_access_control_updated for every channel-type policy that lists

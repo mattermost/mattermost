@@ -50,7 +50,9 @@ func (a *App) GetMaskedVisualAST(rctx request.CTX, expression string, callerID s
 }
 
 // fetchConditionFields collects unique field names from conditions and fetches each once.
-// Fields that fail lookup are omitted; maskConditionValues treats missing entries as fail-closed.
+// Lookup failures are logged and omitted from the returned map; read-path callers treat
+// missing entries as fail-closed (mask the value). Write-path callers should additionally
+// call requireAllFieldsResolved to refuse to proceed when any referenced field is missing.
 func (a *App) fetchConditionFields(rctx request.CTX, conditions []model.Condition, cpaGroupID string) map[string]*model.PropertyField {
 	seen := make(map[string]bool)
 	for _, c := range conditions {
@@ -75,6 +77,26 @@ func (a *App) fetchConditionFields(rctx request.CTX, conditions []model.Conditio
 		fields[name] = field
 	}
 	return fields
+}
+
+// requireAllFieldsResolved returns an error if any condition references a field name
+// missing from fieldsByName. Write-path callers use this to refuse the save rather
+// than silently strip hidden values from conditions whose fields could not be resolved.
+func requireAllFieldsResolved(conditions []model.Condition, fieldsByName map[string]*model.PropertyField) *model.AppError {
+	for _, c := range conditions {
+		if c.ValueType == model.AttrValue {
+			continue
+		}
+		name := extractFieldName(c.Attribute)
+		if name == "" {
+			continue
+		}
+		if _, ok := fieldsByName[name]; !ok {
+			return model.NewAppError("requireAllFieldsResolved", "app.pap.merge_expression.app_error", nil,
+				"field referenced by condition could not be resolved", http.StatusInternalServerError)
+		}
+	}
+	return nil
 }
 
 // maskConditionValues applies masking to a single condition in place.
@@ -246,6 +268,7 @@ func filterConditionValues(condition *model.Condition, visibleNames map[string]s
 		}
 	}
 }
+
 // getHiddenValues returns the subset of stored condition values not visible to callerID.
 // fieldsByName is pre-fetched by the caller to avoid N+1 lookups; a missing entry is
 // treated as fail-closed (no hidden values injected for that condition).
@@ -505,18 +528,30 @@ func (a *App) validatePolicyExpressionValues(rctx request.CTX, policy *model.Acc
 
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
 
+	// Parse all rule ASTs first and collect every referenced field so we can
+	// pre-fetch in a single pass, avoiding N+1 lookups across conditions.
+	rulesASTs := make([]*model.VisualExpression, 0, len(policy.Rules))
+	var allConditions []model.Condition
 	for _, rule := range policy.Rules {
 		if rule.Expression == "" || rule.Expression == "true" {
 			continue
 		}
-
 		visualAST, appErr := a.ExpressionToVisualAST(rctx, rule.Expression)
 		if appErr != nil {
 			return appErr
 		}
+		rulesASTs = append(rulesASTs, visualAST)
+		allConditions = append(allConditions, visualAST.Conditions...)
+	}
 
+	fieldsByName := a.fetchConditionFields(rctxWithCaller, allConditions, cpaGroupID)
+	if appErr := requireAllFieldsResolved(allConditions, fieldsByName); appErr != nil {
+		return appErr
+	}
+
+	for _, visualAST := range rulesASTs {
 		for _, cond := range visualAST.Conditions {
-			if appErr := a.validateConditionValues(rctxWithCaller, &cond, cpaGroupID); appErr != nil {
+			if appErr := a.validateConditionValues(rctxWithCaller, &cond, cpaGroupID, fieldsByName); appErr != nil {
 				return appErr
 			}
 		}
@@ -531,7 +566,9 @@ func invalidValueError() *model.AppError {
 }
 
 // validateConditionValues checks that all literal values in a single condition are held by the caller.
-func (a *App) validateConditionValues(rctx request.CTX, cond *model.Condition, cpaGroupID string) *model.AppError {
+// fieldsByName is pre-fetched by the caller to avoid N+1 lookups; a missing entry means the field
+// could not be resolved (deleted, or DB error at prefetch time) — rejected with the generic error.
+func (a *App) validateConditionValues(rctx request.CTX, cond *model.Condition, cpaGroupID string, fieldsByName map[string]*model.PropertyField) *model.AppError {
 	if cond.ValueType == model.AttrValue {
 		return nil
 	}
@@ -555,8 +592,8 @@ func (a *App) validateConditionValues(rctx request.CTX, cond *model.Condition, c
 		return nil
 	}
 
-	field, appErr := a.GetPropertyFieldByName(rctx, cpaGroupID, "", fieldName)
-	if appErr != nil {
+	field, ok := fieldsByName[fieldName]
+	if !ok {
 		return invalidValueError() // reject unknown fields to prevent probing
 	}
 
@@ -590,7 +627,6 @@ func (a *App) validateConditionValues(rctx request.CTX, cond *model.Condition, c
 	}
 }
 
-
 func (a *App) GetMaskedExpression(rctx request.CTX, expression string, callerID string) (string, *model.AppError) {
 	if expression == "" || expression == "true" {
 		return expression, nil
@@ -598,18 +634,19 @@ func (a *App) GetMaskedExpression(rctx request.CTX, expression string, callerID 
 
 	visualAST, appErr := a.ExpressionToVisualAST(rctx, expression)
 	if appErr != nil {
-		return "true", nil
+		return "", appErr
 	}
 
 	cpaGroupID, appErr := a.CpaGroupID()
 	if appErr != nil {
-		return "true", nil
+		return "", appErr
 	}
 
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
+	fieldsByName := a.fetchConditionFields(rctxWithCaller, visualAST.Conditions, cpaGroupID)
 
 	for i := range visualAST.Conditions {
-		a.maskConditionValuesWithToken(rctxWithCaller, callerID, &visualAST.Conditions[i], cpaGroupID)
+		a.maskConditionValuesWithToken(rctxWithCaller, callerID, &visualAST.Conditions[i], cpaGroupID, fieldsByName)
 	}
 
 	return buildCELFromConditions(visualAST.Conditions), nil
@@ -617,7 +654,9 @@ func (a *App) GetMaskedExpression(rctx request.CTX, expression string, callerID 
 
 // maskConditionValuesWithToken replaces non-held values with the masked token in place,
 // preserving expression structure so the visual AST endpoint can still parse it.
-func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, condition *model.Condition, cpaGroupID string) {
+// fieldsByName is pre-fetched by the caller to avoid N+1 lookups; a missing entry
+// is treated as fail-closed (whole value masked).
+func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, condition *model.Condition, cpaGroupID string, fieldsByName map[string]*model.PropertyField) {
 	if condition.ValueType == model.AttrValue {
 		return
 	}
@@ -627,8 +666,8 @@ func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, co
 		return
 	}
 
-	field, appErr := a.GetPropertyFieldByName(rctx, cpaGroupID, "", fieldName)
-	if appErr != nil {
+	field, ok := fieldsByName[fieldName]
+	if !ok {
 		condition.Value = maskedTokenValue // fail closed
 		return
 	}
@@ -681,18 +720,50 @@ func replaceHiddenValuesWithToken(condition *model.Condition, visibleNames map[s
 }
 
 // MaskPolicyExpressions masks non-held literal values in all policy rule expressions, in place.
+// Fails closed (sets a rule to "true") if its expression cannot be parsed or masked.
 func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) {
+	cpaGroupID, appErr := a.CpaGroupID()
+	if appErr != nil {
+		rctx.Logger().Warn("MaskPolicyExpressions: failed to resolve CPA group, masking all rules closed",
+			mlog.Err(appErr),
+		)
+		for i, rule := range policy.Rules {
+			if rule.Expression == "" || rule.Expression == "true" {
+				continue
+			}
+			policy.Rules[i].Expression = "true"
+		}
+		return
+	}
+
+	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
+
+	// Parse each rule's AST once and collect all conditions so we can pre-fetch
+	// every referenced field in a single pass, avoiding N+1 lookups across rules.
+	asts := make([]*model.VisualExpression, len(policy.Rules))
+	var allConditions []model.Condition
 	for i, rule := range policy.Rules {
 		if rule.Expression == "" || rule.Expression == "true" {
 			continue
 		}
-		maskedExpr, appErr := a.GetMaskedExpression(rctx, rule.Expression, callerID)
+		ast, appErr := a.ExpressionToVisualAST(rctx, rule.Expression)
 		if appErr != nil {
 			policy.Rules[i].Expression = "true" // fail closed
 			continue
 		}
-		policy.Rules[i].Expression = maskedExpr
+		asts[i] = ast
+		allConditions = append(allConditions, ast.Conditions...)
+	}
+
+	fieldsByName := a.fetchConditionFields(rctxWithCaller, allConditions, cpaGroupID)
+
+	for i, ast := range asts {
+		if ast == nil {
+			continue
+		}
+		for j := range ast.Conditions {
+			a.maskConditionValuesWithToken(rctxWithCaller, callerID, &ast.Conditions[j], cpaGroupID, fieldsByName)
+		}
+		policy.Rules[i].Expression = buildCELFromConditions(ast.Conditions)
 	}
 }
-
-
