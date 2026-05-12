@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
@@ -79,23 +79,16 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
                     </div>
                     {sharedBlock}
                     <div className='AdminChannelDetails_archiveContainer'>
-                        <button
+                        <Button
                             type='button'
-                            className={
-                                classNames(
-                                    'btn',
-                                    'btn-secondary',
-                                    {'btn-danger': !isArchived},
-                                    {disabled: isDisabled},
-                                )
-                            }
+                            emphasis='secondary'
+                            variant={isArchived ? undefined : 'destructive'}
+                            disabled={isDisabled}
                             onClick={props.onToggleArchive}
                         >
-                            {isArchived ?
-                                <i className='icon icon-archive-arrow-up-outline'/> :
-                                <i className='icon icon-archive-outline'/>}
+                            {isArchived ? <i className='icon icon-archive-arrow-up-outline'/> : <i className='icon icon-archive-outline'/>}
                             <FormattedMessage {...archiveBtn}/>
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

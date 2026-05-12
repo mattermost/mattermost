@@ -99,14 +99,19 @@ jobs:
           fi
           echo "server_image_tag=${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
 
-          # Generate branch name
+          # Generate branch name. For master/release runs we pass the real
+          # ref_branch through verbatim (`master`, `release-11.7`) so the
+          # dashboard's /reports/{repo}/{branch} grouping aggregates every
+          # build on that branch instead of treating each image tag as its
+          # own "branch". PR and commit-only fallback paths keep their
+          # synthetic prefix because there's no real branch to use.
           REF_BRANCH="${{ inputs.ref_branch }}"
           if [ -n "$PR_NUMBER" ]; then
-            echo "branch=server-pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
+            echo "branch=pr-${PR_NUMBER}" >> $GITHUB_OUTPUT
           elif [ -n "$REF_BRANCH" ]; then
-            echo "branch=server-${REF_BRANCH}-${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+            echo "branch=${REF_BRANCH}" >> $GITHUB_OUTPUT
           else
-            echo "branch=server-commit-${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+            echo "branch=commit-${COMMIT_SHA::7}" >> $GITHUB_OUTPUT
           fi
 
           # Determine server image name
@@ -166,10 +171,15 @@ jobs:
             -f target_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           echo "Posted success for ${CONTEXT_NAME}"
 
-  cypress-full:
+  # ── Routing fork ─────────────────────────────────────────────────────
+  # vars.E2E_USE_TEST_IO_DISPATCH selects between v1 (legacy) and v2.
+  # vars.E2E_USE_STAGING_TEST_IO_URL toggles v2's staging vs production
+  # endpoint (default: staging).
+
+  cypress-full-v1:
     needs:
       - generate-build-variables
-    if: inputs.should_run != 'false'
+    if: inputs.should_run != 'false' && vars.E2E_USE_TEST_IO_DISPATCH != 'true'
     permissions:
       contents: read
       statuses: write
@@ -196,6 +206,40 @@ jobs:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       AUTOMATION_DASHBOARD_URL: ${{ secrets.AUTOMATION_DASHBOARD_URL }}
       AUTOMATION_DASHBOARD_TOKEN: ${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}
+      PUSH_NOTIFICATION_SERVER: ${{ secrets.PUSH_NOTIFICATION_SERVER }}
+      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+      CWS_URL: ${{ secrets.CWS_URL }}
+      CWS_EXTRA_HTTP_HEADERS: ${{ secrets.CWS_EXTRA_HTTP_HEADERS }}
+
+  cypress-full-v2:
+    needs:
+      - generate-build-variables
+    if: inputs.should_run != 'false' && vars.E2E_USE_TEST_IO_DISPATCH == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
+    uses: ./.github/workflows/e2e-tests-cypress-template-v2.yml
+    with:
+      test_type: full
+      workers: 40
+      enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
+      commit_sha: ${{ inputs.commit_sha }}
+      branch: ${{ needs.generate-build-variables.outputs.branch }}
+      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
+      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
+      server_edition: ${{ inputs.server_edition }}
+      server_image_repo: ${{ inputs.server_image_repo }}
+      server_image_aliases: ${{ inputs.server_image_aliases }}
+      server: ${{ inputs.server }}
+      enable_reporting: ${{ inputs.enable_reporting }}
+      report_type: ${{ inputs.report_type }}
+      ref_branch: ${{ inputs.ref_branch }}
+      pr_number: ${{ inputs.pr_number }}
+      context_name: "e2e-test/cypress-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
+    secrets:
+      MM_LICENSE: ${{ secrets.MM_LICENSE }}
       PUSH_NOTIFICATION_SERVER: ${{ secrets.PUSH_NOTIFICATION_SERVER }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
       CWS_URL: ${{ secrets.CWS_URL }}

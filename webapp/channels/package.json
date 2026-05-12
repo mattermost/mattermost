@@ -3,7 +3,7 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "11.7.0",
+  "version": "11.8.0",
   "private": true,
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "1.7.7",
@@ -13,10 +13,10 @@
     "@giphy/js-fetch-api": "5.7.0",
     "@giphy/react-components": "10.1.0",
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
-    "@mattermost/client": "11.7.0",
+    "@mattermost/client": "11.8.0",
     "@mattermost/desktop-api": "6.2.0-1",
-    "@mattermost/shared": "11.7.0",
-    "@mattermost/types": "11.7.0",
+    "@mattermost/shared": "11.8.0",
+    "@mattermost/types": "11.8.0",
     "@mui/base": "5.0.0-alpha.127",
     "@mui/material": "5.11.16",
     "@mui/styled-engine-sc": "5.11.11",

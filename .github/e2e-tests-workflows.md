@@ -283,10 +283,16 @@ The wrappers (`e2e-tests-cypress.yml`, `e2e-tests-playwright.yml`) accept these 
 | `ref_branch` | _(empty)_ | Source branch name for webhook messages (e.g., `master` or `release-11.4`) |
 
 The automation dashboard branch name is derived from context:
-- PR: `server-pr-<pr_number>` (e.g., `server-pr-35205`)
-- Master merge: `server-master-<image_tag>` (e.g., `server-master-abc1234_def5678`)
-- Release merge: `server-release-<version>-<image_tag>` (e.g., `server-release-11.4-abc1234_def5678`)
-- Fallback: `server-commit-<image_tag>`
+- PR: `pr-<pr_number>` (e.g., `pr-35205`)
+- Master merge: `master`
+- Release merge: `release-<version>` (e.g., `release-11.7`)
+- Fallback: `commit-<short_sha>` (e.g., `commit-abc1234`)
+
+Master and release runs use the real branch verbatim so the
+`/reports/{repo}/{branch}` view aggregates every build on that branch
+into one history. PR runs use a `pr-<n>` token because there's no real
+branch to use; the commit-only fallback uses a `commit-<short_sha>`
+token (defensive — no current caller hits this path).
 
 The test type suffix (`-smoke` or `-full`) is appended by the template.
 

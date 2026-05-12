@@ -335,7 +335,13 @@ func TestCreateChannel(t *testing.T) {
 
 func TestCreateChannelManagedCategory(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ManagedChannelCategories = true
+	}).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
 	client := th.Client
 	team := th.BasicTeam
 
@@ -358,7 +364,7 @@ func TestCreateChannelManagedCategory(t *testing.T) {
 
 	t.Run("should ignore managed category when feature is disabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = false })
 		defer func() {
 			appErr := th.App.Srv().RemoveLicense()
 			require.Nil(t, appErr)
@@ -379,7 +385,7 @@ func TestCreateChannelManagedCategory(t *testing.T) {
 
 	t.Run("should set managed category when feature is enabled with license", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = true })
 		defer func() {
 			appErr := th.App.Srv().RemoveLicense()
 			require.Nil(t, appErr)
@@ -991,6 +997,76 @@ func TestPatchChannel(t *testing.T) {
 		_, resp, err = client.PatchChannel(context.Background(), directChannel.Id, directChannelPatch3)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Should block changes to default_category_name for group messages", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		_, _, err = client.Login(context.Background(), user1.Email, user1.Password)
+		require.NoError(t, err)
+
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{user1.Id, user2.Id, user3.Id})
+		require.NoError(t, err)
+
+		categoryName := "Operations"
+		patch := &model.ChannelPatch{DefaultCategoryName: &categoryName}
+		_, resp, err := client.PatchChannel(context.Background(), groupChannel.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Should block changes to default_category_name for direct messages", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		_, _, err = client.Login(context.Background(), user1.Email, user1.Password)
+		require.NoError(t, err)
+
+		directChannel, _, err := client.CreateDirectChannel(context.Background(), user1.Id, user2.Id)
+		require.NoError(t, err)
+
+		categoryName := "Operations"
+		patch := &model.ChannelPatch{DefaultCategoryName: &categoryName}
+		_, resp, err := client.PatchChannel(context.Background(), directChannel.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Should be able to patch default_category_name on an open channel", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		categoryName := "Operations"
+		patch := &model.ChannelPatch{DefaultCategoryName: &categoryName}
+		patched, _, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+		require.Equal(t, categoryName, patched.DefaultCategoryName)
+
+		fetched, _, err := client.GetChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+		require.Equal(t, categoryName, fetched.DefaultCategoryName)
+
+		emptyName := ""
+		clearPatch := &model.ChannelPatch{DefaultCategoryName: &emptyName}
+		cleared, _, err := client.PatchChannel(context.Background(), channel.Id, clearPatch)
+		require.NoError(t, err)
+		require.Equal(t, "", cleared.DefaultCategoryName)
 	})
 
 	t.Run("Should not be able to configure channel banner without a license", func(t *testing.T) {
@@ -7582,7 +7658,9 @@ func TestSetChannelMembers(t *testing.T) {
 
 func TestGetManagedCategories(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ManagedChannelCategories = true
+	}).InitBasic(t)
 	client := th.Client
 
 	t.Run("should return 501 without enterprise license", func(t *testing.T) {
@@ -7591,26 +7669,12 @@ func TestGetManagedCategories(t *testing.T) {
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
 
-	t.Run("should return 403 when feature is disabled", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-		defer func() {
-			appErr := th.App.Srv().RemoveLicense()
-			require.Nil(t, appErr)
-		}()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
-
-		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
-		require.Error(t, err)
-		require.Equal(t, http.StatusForbidden, resp.StatusCode)
-	})
-
 	t.Run("should return empty map when no managed categories exist", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 		defer func() {
 			appErr := th.App.Srv().RemoveLicense()
 			require.Nil(t, appErr)
 		}()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
 
 		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
 		require.NoError(t, err)
@@ -7627,7 +7691,6 @@ func TestGetManagedCategories(t *testing.T) {
 			appErr := th.App.Srv().RemoveLicense()
 			require.Nil(t, appErr)
 		}()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
 
 		appErr := th.App.SetChannelManagedCategory(th.Context, th.BasicChannel.Id, "Operations")
 		require.Nil(t, appErr)
@@ -7645,17 +7708,40 @@ func TestGetManagedCategories(t *testing.T) {
 	})
 }
 
-func TestPatchChannelManagedCategory(t *testing.T) {
+func TestGetManagedCategoriesFeatureFlagDisabled(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+
+	t.Run("route is not registered when feature flag is off at startup", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		resp, err := th.Client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+}
+
+func TestPatchChannelManagedCategory(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ManagedChannelCategories = true
+	}).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
 	client := th.Client
 
 	enableManagedCategories := func() {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = true })
 	}
 	disableManagedCategories := func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = false })
 	}
 	removeLicense := func() {
 		appErr := th.App.Srv().RemoveLicense()
