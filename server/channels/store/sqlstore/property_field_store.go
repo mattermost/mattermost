@@ -493,7 +493,7 @@ func (s *SqlPropertyFieldStore) checkSystemLevelConflict(field *model.PropertyFi
 	args = append(args, channelArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
-	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
+	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
 		return "", errors.Wrap(err, "property_field_check_conflict_system")
 	}
 
@@ -547,7 +547,7 @@ func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyFiel
 	args = append(args, channelArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
-	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
+	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
 		return "", errors.Wrap(err, "property_field_check_conflict_team")
 	}
 
@@ -591,7 +591,7 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 	args = append(args, teamArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
-	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
+	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
 		return "", errors.Wrap(err, "property_field_check_conflict_channel")
 	}
 

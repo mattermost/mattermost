@@ -77,7 +77,10 @@ function BookmarksBarMenu({
         }
     }, []);
 
-    // Register as drop target for overflow auto-open trigger
+    // Drops are rejected via canDrop when there is no overflow so the trailing
+    // add-bookmark button never auto-opens the menu during a drag.
+    const hasOverflowRef = useRef(hasOverflow);
+    hasOverflowRef.current = hasOverflow;
     useEffect(() => {
         const el = triggerRef.current;
         if (!el) {
@@ -86,7 +89,7 @@ function BookmarksBarMenu({
         return dropTargetForElements({
             element: el,
             getData: () => ({type: 'overflow-trigger'}),
-            canDrop: ({source}) => source.data.type === 'bookmark',
+            canDrop: ({source}) => source.data.type === 'bookmark' && hasOverflowRef.current,
         });
     }, []);
 

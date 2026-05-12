@@ -451,10 +451,10 @@ func TestSlackUploadFile(t *testing.T) {
 
 	t.Run("Should fail when file size exceeded", func(t *testing.T) {
 		defer func() {
-			config.FileSettings.MaxFileSize = model.NewPointer(defaultLimit)
+			config.FileSettings.MaxFileSize = new(defaultLimit)
 		}()
 
-		config.FileSettings.MaxFileSize = model.NewPointer(int64(10))
+		config.FileSettings.MaxFileSize = new(int64(10))
 
 		importer := New(store, Actions{}, config)
 		_, ok := importer.slackUploadFile(rctx, sf, uploads, "team-id", "channel-id", "user-id", time.Now().String())

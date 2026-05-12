@@ -76,9 +76,11 @@ export function useBookmarksDnd({
             onDrop: ({source, location}) => {
                 setActiveId(null);
 
-                // Keep overflow menu open if dropped into overflow; close if dropped into bar
                 const dropTarget = location.current.dropTargets[0];
-                const droppedInOverflow = dropTarget?.data.container === 'overflow' || dropTarget?.data.type === 'overflow-trigger';
+                const hasOverflow = orderRef.current.length > visibleItemsRef.current.length;
+                const droppedInOverflow =
+                    dropTarget?.data.container === 'overflow' ||
+                    (dropTarget?.data.type === 'overflow-trigger' && hasOverflow);
                 setForceOverflowOpen(droppedInOverflow);
 
                 const sourceId = source.data.bookmarkId as string;
@@ -98,6 +100,10 @@ export function useBookmarksDnd({
                 let newIndex: number;
 
                 if (target.data.type === 'overflow-trigger') {
+                    if (!hasOverflow) {
+                        return;
+                    }
+
                     // Dropped on the overflow trigger — place at the beginning of overflow
                     newIndex = visibleItemsRef.current.length;
                 } else if (target.data.type === 'bookmark') {
@@ -121,9 +127,9 @@ export function useBookmarksDnd({
             },
 
             onDropTargetChange: ({location}) => {
-                // Detect when drag enters overflow-trigger zone
                 const target = location.current.dropTargets[0];
-                if (target?.data.type === 'overflow-trigger') {
+                const hasOverflow = orderRef.current.length > visibleItemsRef.current.length;
+                if (target?.data.type === 'overflow-trigger' && hasOverflow) {
                     setForceOverflowOpen(true);
                 }
             },

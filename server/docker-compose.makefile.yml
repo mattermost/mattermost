@@ -18,6 +18,14 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: minio
+  azurite:
+    restart: 'no'
+    container_name: mattermost-azurite
+    ports:
+      - "10000:10000"
+    extends:
+        file: build/docker-compose.common.yml
+        service: azurite
   inbucket:
     restart: 'no'
     container_name: mattermost-inbucket

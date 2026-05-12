@@ -38,8 +38,8 @@ func (a *App) GetAIBridgeTestHelperState() *model.AIBridgeTestHelperState {
 	}
 
 	state.FeatureFlags = &model.AIBridgeTestHelperFeatureFlags{
-		EnableAIPluginBridge: model.NewPointer(a.Config().FeatureFlags.EnableAIPluginBridge),
-		EnableAIRecaps:       model.NewPointer(a.Config().FeatureFlags.EnableAIRecaps),
+		EnableAIPluginBridge: new(a.Config().FeatureFlags.EnableAIPluginBridge),
+		EnableAIRecaps:       new(a.Config().FeatureFlags.EnableAIRecaps),
 	}
 
 	return state

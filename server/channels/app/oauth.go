@@ -778,7 +778,7 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
-	user, appErr := a.GetUserByAuth(model.NewPointer(*authUser.AuthData), service)
+	user, appErr := a.GetUserByAuth(new(*authUser.AuthData), service)
 	if appErr != nil {
 		if appErr.Id == MissingAuthAccountError {
 			user, appErr = a.CreateOAuthUser(rctx, service, bytes.NewReader(buf.Bytes()), inviteToken, inviteId, tokenUser)
