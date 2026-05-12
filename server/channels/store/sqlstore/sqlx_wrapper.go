@@ -60,6 +60,20 @@ func (r *sqlxRow) Scan(dest ...any) error {
 	return r.row.Scan(dest...)
 }
 
+// sqlxRows wraps *sqlx.Rows together with the context cancel function for the
+// query that produced it. Close calls cancel so that timeout resources are
+// released as soon as the caller is done iterating, rather than waiting for
+// the timer to fire.
+type sqlxRows struct {
+	*sqlx.Rows
+	cancel context.CancelFunc
+}
+
+func (r *sqlxRows) Close() error {
+	defer r.cancel()
+	return r.Rows.Close()
+}
+
 // sqlxExecutor exposes sqlx operations. It is used to enable some internal store methods to
 // accept both transactions (*sqlxTxWrapper) and common db handlers (*sqlxDbWrapper).
 type sqlxExecutor interface {
@@ -71,7 +85,7 @@ type sqlxExecutor interface {
 	ExecRaw(query string, args ...any) (sql.Result, error)
 	NamedQuery(query string, arg any) (*sqlx.Rows, error)
 	QueryRowX(query string, args ...any) *sqlxRow
-	QueryX(query string, args ...any) (*sqlx.Rows, error)
+	QueryX(query string, args ...any) (*sqlxRows, error)
 	Select(dest any, query string, args ...any) error
 	SelectBuilder(dest any, builder Builder) error
 }
@@ -255,10 +269,9 @@ func (w *sqlxDBWrapper) QueryRowX(query string, args ...any) *sqlxRow {
 	return &sqlxRow{row: w.db.QueryRowxContext(ctx, query, args...), cancel: cancel}
 }
 
-func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
+func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlxRows, error) {
 	query = w.db.Rebind(query)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
-	defer cancel()
 
 	if w.trace {
 		defer func(then time.Time) {
@@ -266,14 +279,16 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 		}(time.Now())
 	}
 
-	return w.checkErrWithRows(w.db.QueryxContext(ctx, query, args...))
+	rows, err := w.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		cancel()
+		return nil, w.checkErr(err)
+	}
+	return &sqlxRows{Rows: rows, cancel: cancel}, nil
 }
 
-// Query forwards to the underlying *sql.DB without adding a timeout.
-// Callers that need timeout enforcement should use Select or QueryX instead.
-func (w *sqlxDBWrapper) Query(query string, args ...any) (*sql.Rows, error) {
-	rows, err := w.db.Query(query, args...)
-	return rows, w.checkErr(err)
+func (w *sqlxDBWrapper) Query(query string, args ...any) (*sqlxRows, error) {
+	return w.QueryX(query, args...)
 }
 
 // ExecContext forwards to the underlying DB with the caller-supplied context.
@@ -484,10 +499,9 @@ func (w *sqlxTxWrapper) QueryRowX(query string, args ...any) *sqlxRow {
 	return &sqlxRow{row: w.tx.QueryRowxContext(ctx, query, args...), cancel: cancel}
 }
 
-func (w *sqlxTxWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
+func (w *sqlxTxWrapper) QueryX(query string, args ...any) (*sqlxRows, error) {
 	query = w.tx.Rebind(query)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
-	defer cancel()
 
 	if w.trace {
 		defer func(then time.Time) {
@@ -495,7 +509,12 @@ func (w *sqlxTxWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 		}(time.Now())
 	}
 
-	return w.dbw.checkErrWithRows(w.tx.QueryxContext(ctx, query, args...))
+	rows, err := w.tx.QueryxContext(ctx, query, args...)
+	if err != nil {
+		cancel()
+		return nil, w.dbw.checkErr(err)
+	}
+	return &sqlxRows{Rows: rows, cancel: cancel}, nil
 }
 
 func (w *sqlxTxWrapper) Select(dest any, query string, args ...any) error {
@@ -512,11 +531,8 @@ func (w *sqlxTxWrapper) Select(dest any, query string, args ...any) error {
 	return w.dbw.checkErr(w.tx.SelectContext(ctx, dest, query, args...))
 }
 
-// Query forwards to the underlying *sqlx.Tx without adding a timeout.
-// Callers that need timeout enforcement should use Select or QueryX instead.
-func (w *sqlxTxWrapper) Query(query string, args ...any) (*sql.Rows, error) {
-	rows, err := w.tx.Query(query, args...)
-	return rows, w.dbw.checkErr(err)
+func (w *sqlxTxWrapper) Query(query string, args ...any) (*sqlxRows, error) {
+	return w.QueryX(query, args...)
 }
 
 func (w *sqlxTxWrapper) SelectBuilder(dest any, builder Builder) error {
