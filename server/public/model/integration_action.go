@@ -16,6 +16,7 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"net/url"
 	"reflect"
 	"regexp"
 	"slices"
@@ -1009,19 +1010,25 @@ func ValidateActionQuery(q map[string]string) error {
 	return nil
 }
 
-func validateIntegrationURL(url string) error {
-	if url == "" {
+func validateIntegrationURL(rawURL string) error {
+	if rawURL == "" {
 		return fmt.Errorf("must have a non-empty URL")
 	}
-	if !(strings.HasPrefix(url, "/plugins/") || strings.HasPrefix(url, "plugins/") || IsValidHTTPURL(url)) {
+	if !(strings.HasPrefix(rawURL, "/plugins/") || strings.HasPrefix(rawURL, "plugins/") || IsValidHTTPURL(rawURL)) {
 		return fmt.Errorf("must have a valid integration URL")
 	}
 	// Reject path-traversal segments. /plugins/ URLs are routed by the
 	// local server, so a `..` segment can escape the plugin namespace and
-	// hit unrelated server routes. Bot-authored mm_blocks specs are the
-	// origin point, so this is a defense-in-depth check beyond the plugin
-	// router's own resolution.
-	if strings.Contains(url, "/../") || strings.HasSuffix(url, "/..") {
+	// hit unrelated server routes. url.Parse decodes percent-encoded path
+	// bytes into u.Path, which is the same single decode pass that
+	// doPluginRequest performs at dispatch — so encoded forms like
+	// %2e%2e%2f are caught here symmetrically with how the router would
+	// resolve them.
+	u, parseErr := url.Parse(rawURL)
+	if parseErr != nil {
+		return fmt.Errorf("must have a valid integration URL: %w", parseErr)
+	}
+	if strings.Contains(u.Path, "/../") || strings.HasSuffix(u.Path, "/..") {
 		return fmt.Errorf("integration URL must not contain path traversal segments")
 	}
 	return nil

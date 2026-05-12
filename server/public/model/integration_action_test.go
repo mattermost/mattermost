@@ -1952,6 +1952,28 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		assert.Contains(t, err.Error(), "path traversal")
 	})
 
+	t.Run("percent-encoded traversal in /plugins/ URL is rejected", func(t *testing.T) {
+		// doPluginRequest decodes the path via url.Parse before path.Clean,
+		// so an encoded "%2e%2e%2f" would otherwise route to a different
+		// plugin than the validator thinks it's protecting. Validator must
+		// decode symmetrically to catch this at save time.
+		for _, encoded := range []string{
+			"/plugins/innocent/%2e%2e%2f/target/handler",
+			"/plugins/innocent/%2E%2E%2F/target/handler",
+			"/plugins/innocent/..%2f/target/handler",
+			"/plugins/innocent/%2e%2e/",
+			"/plugins/innocent/%2e%2e",
+		} {
+			p := &Post{}
+			p.AddProp(PostPropsMmBlocksActions, map[string]any{
+				"btn1": mmBlocksExternalEntry(encoded, nil),
+			})
+			err := ValidateMmBlocksActions(p)
+			require.Error(t, err, "url=%q must be rejected", encoded)
+			assert.Contains(t, err.Error(), "path traversal", "url=%q", encoded)
+		}
+	})
+
 	t.Run("entry missing type is rejected", func(t *testing.T) {
 		p := &Post{}
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
