@@ -61,6 +61,7 @@ export type TableMeta = {
     emptyDataMessage?: ReactNode;
     onRowClick?: (row: string) => void;
     onReorder?: (prev: number, next: number) => void;
+    isRowDragDisabled?: (rowId: string) => boolean;
     disablePrevPage?: boolean;
     disableNextPage?: boolean;
     disablePaginationControls?: boolean;
@@ -219,7 +220,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                         draggableId={row.original.id}
                                         key={row.original.id}
                                         index={row.index}
-                                        isDragDisabled={!tableMeta.onReorder}
+                                        isDragDisabled={!tableMeta.onReorder || tableMeta.isRowDragDisabled?.(row.original.id) === true}
                                     >
                                         {(provided) => {
                                             return (
@@ -242,12 +243,16 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                                             style={{width: cell.column.getSize()}}
                                                         >
                                                             {tableMeta.onReorder && i === 0 && (
-                                                                <span
-                                                                    className='dragHandle'
-                                                                    {...provided.dragHandleProps}
-                                                                >
-                                                                    <DragVerticalIcon size={18}/>
-                                                                </span>
+                                                                tableMeta.isRowDragDisabled?.(row.original.id) === true ? (
+                                                                    <span className='dragHandle dragHandle--disabled'/>
+                                                                ) : (
+                                                                    <span
+                                                                        className='dragHandle'
+                                                                        {...provided.dragHandleProps}
+                                                                    >
+                                                                        <DragVerticalIcon size={18}/>
+                                                                    </span>
+                                                                )
                                                             )}
                                                             {cell.getIsPlaceholder() ? null : flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                         </td>

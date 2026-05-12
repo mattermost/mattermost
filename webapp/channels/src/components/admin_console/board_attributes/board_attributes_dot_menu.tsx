@@ -41,12 +41,10 @@ const DotMenu = ({
         if (isProtected) {
             return;
         }
-        const name = formatMessage({
-            id: 'admin.board_attributes.dot_menu.duplicate.name_copy',
-            defaultMessage: '{fieldName} (copy)',
-        }, {fieldName: field.name});
-
-        createField({...field, attrs: {...field.attrs}, name});
+        // The create flow rewrites the name with a `(N)` suffix if needed,
+        // so we pass the bare field name here (any existing `(copy)` or
+        // `(N)` suffix is stripped to find the base name).
+        createField({...field, attrs: {...field.attrs}, name: field.name});
     };
 
     const handleDelete = () => {

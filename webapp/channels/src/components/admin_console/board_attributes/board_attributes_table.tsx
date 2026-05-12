@@ -262,6 +262,7 @@ export function BoardAttributesTable({
             onReorder: (prev: number, next: number) => {
                 reorderField(collection.data[collection.order[prev]], next);
             },
+            isRowDragDisabled: (rowId: string) => Boolean(collection.data[rowId]?.protected),
         },
         manualPagination: true,
     });

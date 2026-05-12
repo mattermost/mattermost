@@ -222,6 +222,11 @@ table.adminConsoleListTable {
         svg {
             align-self: center;
         }
+
+        &--disabled {
+            cursor: not-allowed;
+            color: rgba(var(--center-channel-color-rgb), 0.16);
+        }
     }
 }
 

@@ -31,7 +31,13 @@ export const useBoardPropertyFields = () => {
     const [fieldCollection, readIO] = useThing<BoardPropertyFields>(useMemo(() => ({
         get: async () => {
             const data = await Client4.getPropertyFields(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, TARGET_TYPE_SYSTEM);
-            const sorted = (data as BoardPropertyField[]).sort((a, b) => (a.attrs?.sort_order ?? 0) - (b.attrs?.sort_order ?? 0));
+            // Protected (system) fields render first, then custom fields ordered by sort_order.
+            const sorted = (data as BoardPropertyField[]).sort((a, b) => {
+                if (Boolean(a.protected) !== Boolean(b.protected)) {
+                    return a.protected ? -1 : 1;
+                }
+                return (a.attrs?.sort_order ?? 0) - (b.attrs?.sort_order ?? 0);
+            });
             return collectionFromArray(sorted);
         },
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -93,6 +99,21 @@ export const useBoardPropertyFields = () => {
 
             // update
             await Promise.all(process.edit.map(async (pendingItem) => {
+                // Protected fields are immutable via the API — skip patching.
+                //
+                // TODO(MM-67412 follow-up): the UX spec calls for sysadmins to edit
+                // Status options (add/rename/recolor/delete-non-default). The server
+                // blanket-rejects PATCH on Protected fields in api4/properties.go;
+                // we'd need a server-side change to honour the per-field
+                // PermissionOptions level (already set to sysadmin on locked seeds)
+                // for option-list patches, while keeping field-level (name/type)
+                // patches blocked. File a story under MM-67606 or raise on the
+                // Boards epic before doing this.
+                if (pendingItem.protected) {
+                    next.data[pendingItem.id] = prevCollection.data[pendingItem.id];
+                    return;
+                }
+
                 const {id, name, type, attrs} = pendingItem;
                 let patch: BoardPropertyFieldPatch = {name, type, attrs};
 
@@ -242,13 +263,30 @@ export const useBoardPropertyFields = () => {
         },
         reorder: ({id}, nextItemOrder) => {
             pendingIO.apply((pending) => {
-                const nextOrder = insertWithoutDuplicates(pending.order, id, nextItemOrder);
+                const draggedField = pending.data[id];
+
+                // Protected fields cannot be reordered.
+                if (draggedField?.protected) {
+                    return pending;
+                }
+
+                // Protected fields must remain at the top of the list, so a
+                // custom field cannot be dropped above any protected sibling.
+                const protectedCount = pending.order.filter((oid) => pending.data[oid]?.protected).length;
+                const clampedOrder = Math.max(nextItemOrder, protectedCount);
+
+                const nextOrder = insertWithoutDuplicates(pending.order, id, clampedOrder);
 
                 if (nextOrder === pending.order) {
                     return pending;
                 }
 
                 const nextItems = Object.values(pending.data).reduce<BoardPropertyField[]>((changedItems, item) => {
+                    // never patch sort_order on protected fields
+                    if (item.protected) {
+                        return changedItems;
+                    }
+
                     const itemCurrentOrder = item.attrs?.sort_order;
                     const itemNextOrder = nextOrder.indexOf(item.id);
 
@@ -289,15 +327,33 @@ export const ValidationWarningNameUnique = 'board_attributes.validation.name_uni
 export const ValidationWarningNameTaken = 'board_attributes.validation.name_taken';
 export const ValidationWarningOptionsRequired = 'board_attributes.validation.options_required';
 
+// Strip trailing ` (copy)` or ` (N)` suffixes (repeatedly) so that duplicating
+// `Text (copy)` yields `Text (2)` and duplicating `Text (2)` yields `Text (3)`,
+// not `Text (2) (copy)` / `Text (2) (copy) (copy)`.
+const stripDuplicateSuffix = (name: string) => {
+    let base = name;
+    const suffix = / \((copy|\d+)\)$/;
+    while (suffix.test(base)) {
+        base = base.replace(suffix, '');
+    }
+    return base;
+};
+
 const getIncrementedName = (desiredName: string, collection: BoardPropertyFields) => {
     const names = new Set(Object.values(collection.data).map(({name}) => name));
-    let newName = desiredName;
-    let n = 1;
-    while (names.has(newName)) {
-        n++;
-        newName = `${desiredName} ${n}`;
+    const base = stripDuplicateSuffix(desiredName);
+
+    // If the bare base name is free (e.g. first "+ Add" of this type), use it.
+    if (!names.has(base)) {
+        return base;
     }
-    return newName;
+
+    // Otherwise find the next available "(N)" suffix, starting at 2.
+    let n = 2;
+    while (names.has(`${base} (${n})`)) {
+        n++;
+    }
+    return `${base} (${n})`;
 };
 
 const PENDING = 'pending_';

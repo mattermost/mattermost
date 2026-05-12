@@ -34,7 +34,7 @@ const (
 	managedCategorySetupDoneKey                    = "managed_category_setup_done"
 	managedCategoryMigrationVersion                = "v2"
 	boardsPropertiesSetupDoneKey                   = "boards_properties_setup_done"
-	boardsMigrationVersion                         = "1"
+	boardsMigrationVersion                         = "v1"
 	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
