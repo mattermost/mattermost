@@ -415,5 +415,4 @@ describe('InlineActionButton', () => {
             jest.useRealTimers();
         }
     });
-
 });
