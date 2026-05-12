@@ -247,7 +247,9 @@ func (w *sqlxDBWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
 }
 
 // QueryRowxContext forwards to the underlying *sqlx.DB with the caller-supplied context.
-// The caller is responsible for applying an appropriate timeout.
+// Unlike QueryRow, no timeout is added; the caller is responsible for the deadline.
+// The returned *sqlx.Row is safe to Scan after this call returns — the context is not
+// cancelled by this method.
 func (w *sqlxDBWrapper) QueryRowxContext(ctx context.Context, query string, args ...any) *sqlx.Row {
 	return w.db.QueryRowxContext(ctx, query, args...)
 }
