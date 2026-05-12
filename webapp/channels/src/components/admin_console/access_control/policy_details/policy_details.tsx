@@ -204,6 +204,8 @@ function PolicyDetails({
                         setServerError(formatMessage({id: 'admin.access_control.edit_policy.self_exclusion', defaultMessage: 'You do not satisfy one or more conditions in this policy. Contact a System Admin for assistance.'}));
                     } else if (result.error.server_error_id === 'app.pap.save_policy.masked_condition_deleted') {
                         setServerError(formatMessage({id: 'admin.access_control.edit_policy.masked_condition_deleted', defaultMessage: 'You cannot remove a condition that contains attribute values you do not have permission to view.'}));
+                    } else if (result.error.server_error_id === 'app.pap.save_policy.masked_rule_deleted') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.masked_rule_deleted', defaultMessage: 'You cannot remove a rule that contains attribute values you do not have permission to view.'}));
                     } else {
                         setServerError(result.error.message);
                     }
