@@ -3584,6 +3584,7 @@ export async function checkAIPluginAvailability(page: Page): Promise<boolean> {
     await editor.click();
     await page.keyboard.type('test');
     await selectTextInEditor(page);
+    await waitForFormattingBar(page);
     const aiButton = getAIRewriteButton(page);
     const isVisible = await aiButton.isVisible().catch(() => false);
     await page.keyboard.press('Backspace');

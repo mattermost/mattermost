@@ -30,6 +30,7 @@ const usePageRewrite = (
     const [selectedAgentId, setSelectedAgentId] = useState<string>('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [capturedText, setCapturedText] = useState('');
 
     // Undo/redo state
     const [originalText, setOriginalText] = useState('');
@@ -204,16 +205,27 @@ const usePageRewrite = (
     }, [selectedText, isProcessing, resetState]);
 
     const openRewriteMenu = useCallback(() => {
+        // Snapshot selection before opening — the menu's autoFocus will blur the
+        // editor and clear editor.state.selection, so we must capture it now.
+        if (editor) {
+            const {from, to} = editor.state.selection;
+            setCapturedText(editor.state.doc.textBetween(from, to));
+        }
         openMenu('rewrite-button');
-    }, []);
+    }, [editor]);
 
     return {
         additionalControl: useMemo(() => (
             <RewriteMenu
                 isProcessing={isProcessing}
                 isMenuOpen={isMenuOpen}
-                setIsMenuOpen={setIsMenuOpen}
-                draftMessage={selectedText}
+                setIsMenuOpen={(open) => {
+                    setIsMenuOpen(open);
+                    if (!open) {
+                        setCapturedText('');
+                    }
+                }}
+                draftMessage={isMenuOpen ? capturedText : selectedText}
                 prompt={prompt}
                 setPrompt={setPrompt}
                 selectedAgentId={selectedAgentId}
@@ -233,6 +245,7 @@ const usePageRewrite = (
             isProcessing,
             isMenuOpen,
             selectedText,
+            capturedText,
             prompt,
             selectedAgentId,
             agents,

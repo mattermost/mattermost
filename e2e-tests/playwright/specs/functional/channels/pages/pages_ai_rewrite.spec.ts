@@ -603,17 +603,14 @@ test('shows Proofread page option in AI Tools submenu', {tag: '@pages'}, async (
 test('performs full-page proofreading and updates editor content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
 
-    // # Check if AI plugin is running on server (standard server-side check)
+    // # Check if AI plugin is running and API keys are configured
     const aiRunning = await isAIPluginRunning(adminClient);
-    if (!aiRunning) {
-        test.skip(true, 'AI plugin not running on server - skipping AI proofread integration test');
+    if (!aiRunning || shouldSkipAITests()) {
+        test.skip(true, 'AI plugin not running or not configured - skipping AI proofread integration test');
         return;
     }
 
-    // # Configure AI plugin if enabled
-    if (!shouldSkipAITests()) {
-        await configureAIPlugin(adminClient);
-    }
+    await configureAIPlugin(adminClient);
 
     const channel = await createTestChannel(adminClient, team.id, uniqueName('AI Proofread Int Test Channel'));
 

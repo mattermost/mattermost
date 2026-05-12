@@ -1256,7 +1256,7 @@ const TipTapEditor = ({
     }, [editable, placeholder]);
 
     // AI rewrite functionality
-    const isAIAvailable = useGetAgentsBridgeEnabled();
+    const {available: isAIAvailable} = useGetAgentsBridgeEnabled();
     const {additionalControl: rewriteControl, openRewriteMenu} = usePageRewrite(editor, setServerError);
 
     // Full-page proofreading functionality
