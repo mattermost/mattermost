@@ -265,13 +265,14 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 // Query forwards to the underlying *sql.DB without adding a timeout.
 // Callers that need timeout enforcement should use Select or QueryX instead.
 func (w *sqlxDBWrapper) Query(query string, args ...any) (*sql.Rows, error) {
-	return w.db.Query(query, args...)
+	rows, err := w.db.Query(query, args...)
+	return rows, w.checkErr(err)
 }
 
 // ExecContext forwards to the underlying DB with the caller-supplied context.
 // The caller is responsible for applying an appropriate timeout.
 func (w *sqlxDBWrapper) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
-	return w.db.ExecContext(ctx, query, args...)
+	return w.checkErrWithResult(w.db.ExecContext(ctx, query, args...))
 }
 
 func (w *sqlxDBWrapper) Select(dest any, query string, args ...any) error {
@@ -301,7 +302,8 @@ func (w *sqlxDBWrapper) QueryRowContext(ctx context.Context, query string, args 
 // QueryContext forwards to the underlying DB with the caller-supplied context.
 // The caller is responsible for applying an appropriate timeout.
 func (w *sqlxDBWrapper) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
-	return w.db.QueryContext(ctx, query, args...)
+	rows, err := w.db.QueryContext(ctx, query, args...)
+	return rows, w.checkErr(err)
 }
 
 func (w *sqlxDBWrapper) SelectBuilder(dest any, builder Builder) error {
@@ -507,7 +509,8 @@ func (w *sqlxTxWrapper) Select(dest any, query string, args ...any) error {
 // Query forwards to the underlying *sqlx.Tx without adding a timeout.
 // Callers that need timeout enforcement should use Select or QueryX instead.
 func (w *sqlxTxWrapper) Query(query string, args ...any) (*sql.Rows, error) {
-	return w.tx.Query(query, args...)
+	rows, err := w.tx.Query(query, args...)
+	return rows, w.dbw.checkErr(err)
 }
 
 func (w *sqlxTxWrapper) SelectBuilder(dest any, builder Builder) error {
