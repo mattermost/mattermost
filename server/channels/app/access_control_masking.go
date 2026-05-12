@@ -195,7 +195,16 @@ func (a *App) getCallerTextValues(rctx request.CTX, callerID string, field *mode
 
 	for _, pv := range values {
 		var textVal string
-		if err := json.Unmarshal(pv.Value, &textVal); err == nil && textVal != "" {
+		if err := json.Unmarshal(pv.Value, &textVal); err != nil {
+			rctx.Logger().Warn("Failed to unmarshal caller text value for masking, treating as no value",
+				mlog.String("field_id", field.ID),
+				mlog.String("caller_id", callerID),
+				mlog.String("value_id", pv.ID),
+				mlog.Err(err),
+			)
+			continue
+		}
+		if textVal != "" {
 			visible[textVal] = struct{}{}
 		}
 	}
