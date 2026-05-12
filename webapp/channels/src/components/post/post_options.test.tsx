@@ -3,8 +3,9 @@
 
 import React from 'react';
 
-import {Permissions} from 'mattermost-redux/constants';
 import type {SystemEmoji} from '@mattermost/types/emojis';
+
+import {Permissions} from 'mattermost-redux/constants';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
