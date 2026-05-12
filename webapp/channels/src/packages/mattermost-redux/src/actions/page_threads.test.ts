@@ -3,19 +3,18 @@
 
 import type {UserThreadWithPost} from '@mattermost/types/threads';
 
-import {PostTypes} from 'mattermost-redux/action_types';
+import {WikiTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 
 import {fetchMissingPagePosts} from './page_threads';
 
-// Mock Client4.getPost
 jest.mock('mattermost-redux/client', () => ({
     Client4: {
-        getPost: jest.fn(),
+        getPage: jest.fn(),
     },
 }));
 
-const mockGetPost = Client4.getPost as jest.MockedFunction<typeof Client4.getPost>;
+const mockGetPage = Client4.getPage as jest.MockedFunction<typeof Client4.getPage>;
 
 describe('mattermost-redux/actions/page_threads', () => {
     beforeEach(() => {
@@ -23,7 +22,7 @@ describe('mattermost-redux/actions/page_threads', () => {
     });
 
     describe('fetchMissingPagePosts', () => {
-        const createThread = (postId: string, type: string, pageId?: string): UserThreadWithPost => ({
+        const createThread = (postId: string, type: string, pageId?: string, wikiId?: string): UserThreadWithPost => ({
             id: `thread_${postId}`,
             reply_count: 0,
             last_reply_at: 0,
@@ -32,7 +31,7 @@ describe('mattermost-redux/actions/page_threads', () => {
             post: {
                 id: postId,
                 type: type as any,
-                props: pageId ? {page_id: pageId} : {},
+                props: pageId ? {page_id: pageId, ...(wikiId ? {wiki_id: wikiId} : {})} : {},
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
@@ -55,14 +54,14 @@ describe('mattermost-redux/actions/page_threads', () => {
 
         test('should fetch missing page posts for page_comment threads', async () => {
             const threads: UserThreadWithPost[] = [
-                createThread('comment1', 'page_comment', 'page1'),
-                createThread('comment2', 'page_comment', 'page2'),
+                createThread('comment1', 'page_comment', 'page1', 'wiki1'),
+                createThread('comment2', 'page_comment', 'page2', 'wiki1'),
             ];
 
             const page1 = {id: 'page1', type: 'page', message: 'Page 1 content'};
             const page2 = {id: 'page2', type: 'page', message: 'Page 2 content'};
 
-            mockGetPost.mockImplementation((pageId: string) => {
+            mockGetPage.mockImplementation((wikiId: string, pageId: string) => {
                 if (pageId === 'page1') {
                     return Promise.resolve(page1 as any);
                 }
@@ -77,14 +76,14 @@ describe('mattermost-redux/actions/page_threads', () => {
             await fetchMissingPagePosts(threads, dispatch);
 
             expect(dispatch).toHaveBeenCalledWith({
-                type: PostTypes.RECEIVED_POSTS,
-                data: {
-                    posts: [
-                        {...page1, update_at: 0},
-                        {...page2, update_at: 0},
-                    ],
-                },
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: {...page1, update_at: 0}, wikiId: 'wiki1'},
             });
+            expect(dispatch).toHaveBeenCalledWith({
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: {...page2, update_at: 0}, wikiId: 'wiki1'},
+            });
+            expect(dispatch).toHaveBeenCalledTimes(2);
         });
 
         test('should not dispatch when no page_comment threads', async () => {
@@ -98,25 +97,25 @@ describe('mattermost-redux/actions/page_threads', () => {
             await fetchMissingPagePosts(threads, dispatch);
 
             expect(dispatch).not.toHaveBeenCalled();
-            expect(mockGetPost).not.toHaveBeenCalled();
+            expect(mockGetPage).not.toHaveBeenCalled();
         });
 
         test('should deduplicate page IDs', async () => {
             const threads: UserThreadWithPost[] = [
-                createThread('comment1', 'page_comment', 'page1'),
-                createThread('comment2', 'page_comment', 'page1'), // Same page
-                createThread('comment3', 'page_comment', 'page1'), // Same page again
+                createThread('comment1', 'page_comment', 'page1', 'wiki1'),
+                createThread('comment2', 'page_comment', 'page1', 'wiki1'), // Same page
+                createThread('comment3', 'page_comment', 'page1', 'wiki1'), // Same page again
             ];
 
             const page1 = {id: 'page1', type: 'page', message: 'Page content'};
-            mockGetPost.mockResolvedValue(page1 as any);
+            mockGetPage.mockResolvedValue(page1 as any);
 
             const dispatch = jest.fn();
 
             await fetchMissingPagePosts(threads, dispatch);
 
             // Should only fetch once due to deduplication
-            expect(mockGetPost).toHaveBeenCalledTimes(1);
+            expect(mockGetPage).toHaveBeenCalledTimes(1);
             expect(dispatch).toHaveBeenCalledTimes(1);
         });
 
@@ -131,15 +130,15 @@ describe('mattermost-redux/actions/page_threads', () => {
 
             // Should not dispatch since no valid page_ids
             expect(dispatch).not.toHaveBeenCalled();
-            expect(mockGetPost).not.toHaveBeenCalled();
+            expect(mockGetPage).not.toHaveBeenCalled();
         });
 
         test('should handle fetch errors gracefully', async () => {
             const threads: UserThreadWithPost[] = [
-                createThread('comment1', 'page_comment', 'page1'),
+                createThread('comment1', 'page_comment', 'page1', 'wiki1'),
             ];
 
-            mockGetPost.mockRejectedValue(new Error('Not found'));
+            mockGetPage.mockRejectedValue(new Error('Not found'));
 
             const dispatch = jest.fn();
 
@@ -152,7 +151,7 @@ describe('mattermost-redux/actions/page_threads', () => {
 
         test('should set update_at to 0 for fetched posts', async () => {
             const threads: UserThreadWithPost[] = [
-                createThread('comment1', 'page_comment', 'page1'),
+                createThread('comment1', 'page_comment', 'page1', 'wiki1'),
             ];
 
             const page1 = {
@@ -162,17 +161,15 @@ describe('mattermost-redux/actions/page_threads', () => {
                 update_at: 1234567890,
             };
 
-            mockGetPost.mockResolvedValue(page1 as any);
+            mockGetPage.mockResolvedValue(page1 as any);
 
             const dispatch = jest.fn();
 
             await fetchMissingPagePosts(threads, dispatch);
 
             expect(dispatch).toHaveBeenCalledWith({
-                type: PostTypes.RECEIVED_POSTS,
-                data: {
-                    posts: [{...page1, update_at: 0}],
-                },
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: {...page1, update_at: 0}, wikiId: 'wiki1'},
             });
         });
     });

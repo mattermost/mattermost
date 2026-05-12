@@ -249,6 +249,12 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 		return a.SessionHasPermissionTo(session, model.PermissionReadChannelContent), false
 	}
 
+	// Wiki backing channels have their own permission model accessed through wiki APIs;
+	// the generic post permission path must not authorize reads against them.
+	if channel.Type == model.ChannelTypeWiki {
+		return false, false
+	}
+
 	return a.SessionHasPermissionToReadChannel(rctx, session, channel)
 }
 

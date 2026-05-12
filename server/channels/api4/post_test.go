@@ -2409,7 +2409,7 @@ func TestPatchPost(t *testing.T) {
 		patch := &model.PostPatch{}
 		_, resp, err = client.PatchPost(context.Background(), GenerateTestID(), patch)
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("logged out", func(t *testing.T) {
@@ -2964,7 +2964,7 @@ func TestPinPost(t *testing.T) {
 
 	resp, err = client.PinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
@@ -3018,7 +3018,7 @@ func TestUnpinPost(t *testing.T) {
 
 	resp, err = client.UnpinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
@@ -5047,7 +5047,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 
 	_, resp, err = client.GetFileInfosForPost(context.Background(), model.NewId(), "")
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	// Delete post
 	_, err = th.SystemAdminClient.DeletePost(context.Background(), post.Id)
@@ -6262,7 +6262,7 @@ func TestAcknowledgePost(t *testing.T) {
 
 	_, resp, err = client.AcknowledgePost(context.Background(), GenerateTestID(), th.BasicUser.Id)
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, resp, err = client.AcknowledgePost(context.Background(), post.Id, "junk")
 	require.Error(t, err)
@@ -6304,7 +6304,7 @@ func TestUnacknowledgePost(t *testing.T) {
 
 	resp, err = client.UnacknowledgePost(context.Background(), GenerateTestID(), th.BasicUser.Id)
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	resp, err = client.UnacknowledgePost(context.Background(), post.Id, "junk")
 	require.Error(t, err)
@@ -7470,4 +7470,52 @@ func TestRewritePostRequiresReadAccessToRootThread(t *testing.T) {
 	require.Equalf(t, http.StatusForbidden, resp.StatusCode,
 		"rewrite with root_id in an unreadable channel must return forbidden before using thread content; status=%d body=%s", resp.StatusCode, string(bodyBytes))
 	assert.NotContains(t, string(bodyBytes), secretToken, "response must not leak private thread content")
+}
+
+// TestPostsAPIReturns404ForWikiPostTypes verifies that the standard Posts API
+// endpoints return 404 (not 403 or 200) when called with a wiki post ID.
+// This prevents leaking whether a wiki post exists while keeping the Posts API
+// clean. The same isolation applies to all wiki post types (page_comment,
+// page_mention), but PostTypePage is used as the primary representative case.
+func TestPostsAPIReturns404ForWikiPostTypes(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	// Create a page post using the App layer (not the Posts API, which would reject it).
+	pagePost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Type:      model.PostTypePage,
+		Message:   "wiki page",
+	}, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	t.Run("GET /posts/{pageId} returns 404", func(t *testing.T) {
+		_, resp, err := client.GetPost(context.Background(), pagePost.Id, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("PUT /posts/{pageId} returns 404", func(t *testing.T) {
+		update := &model.Post{Id: pagePost.Id, Message: "attempted update"}
+		_, resp, err := client.UpdatePost(context.Background(), pagePost.Id, update)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("PUT /posts/{pageId}/patch returns 404", func(t *testing.T) {
+		msg := "patched"
+		patch := &model.PostPatch{Message: &msg}
+		_, resp, err := client.PatchPost(context.Background(), pagePost.Id, patch)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("DELETE /posts/{pageId} returns 404", func(t *testing.T) {
+		resp, err := client.DeletePost(context.Background(), pagePost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }

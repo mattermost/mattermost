@@ -17,7 +17,7 @@ func TestGetPageComments(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Test Page", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	t.Run("get comments for page with no comments", func(t *testing.T) {
@@ -55,7 +55,7 @@ func TestResolvePageComment(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Test Page", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	comment, appErr := th.App.CreatePageComment(rctx, page.Id, "Comment to resolve", nil, "", nil, nil)
@@ -77,7 +77,7 @@ func TestUnresolvePageComment(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Test Page", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	comment, appErr := th.App.CreatePageComment(rctx, page.Id, "Comment to unresolve", nil, "", nil, nil)
@@ -105,7 +105,7 @@ func TestCanResolvePageComment(t *testing.T) {
 	// Create the page with BasicUser2 as author so BasicUser is neither page author nor
 	// comment author, allowing us to test the wiki-admin (SchemeAdmin) resolve path separately.
 	rctxUser2 := th.CreateSessionContextForUser(th.BasicUser2)
-	page, appErr := th.App.CreatePage(rctxUser2, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser2.Id, "", "")
+	page, appErr := th.App.CreateWikiPage(rctxUser2, th.BasicWiki.Id, "", "Test Page", "", th.BasicUser2.Id, "", "")
 	require.Nil(t, appErr)
 
 	// Create comment by BasicUser2
@@ -170,7 +170,7 @@ func TestTransformPageCommentReply(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, appErr := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Test Page", "", th.BasicUser.Id, "", "")
 	require.Nil(t, appErr)
 
 	parentComment, appErr := th.App.CreatePageComment(rctx, page.Id, "Parent", nil, "", nil, nil)

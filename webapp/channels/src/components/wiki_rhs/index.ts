@@ -7,7 +7,6 @@ import {bindActionCreators} from 'redux';
 
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
-import {publishPage} from 'actions/pages';
 import {closeRightHandSide, openWikiRhs, toggleRhsExpanded} from 'actions/views/rhs';
 import {setWikiRhsActiveTab, setFocusedInlineCommentId, setPendingInlineAnchor} from 'actions/views/wiki_rhs';
 import {getIsRhsExpanded} from 'selectors/rhs';
@@ -45,7 +44,6 @@ function makeMapStateToProps() {
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
-            publishPage,
             closeRightHandSide,
             setWikiRhsActiveTab,
             setFocusedInlineCommentId,

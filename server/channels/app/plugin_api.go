@@ -821,7 +821,11 @@ func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
 }
 
 func (api *PluginAPI) DeletePost(postID string) *model.AppError {
-	_, err := api.app.DeletePost(api.ctx, postID, api.id)
+	post, err := api.app.GetSinglePost(api.ctx, postID, false)
+	if err != nil {
+		return err
+	}
+	_, err = api.app.DeletePost(api.ctx, post.Id, api.id)
 	return err
 }
 

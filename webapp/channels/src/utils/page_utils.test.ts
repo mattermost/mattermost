@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {copyPageAsMarkdown, DEFAULT_PAGE_TITLE, getActiveTabFromRoute} from './page_utils';
+import {copyPageAsMarkdown, DEFAULT_PAGE_TITLE, getActiveTabFromRoute, isHiddenFeedPost} from './page_utils';
 import {tiptapToMarkdown} from './tiptap_to_markdown';
 
 jest.mock('./tiptap_to_markdown', () => ({
@@ -189,5 +189,35 @@ describe('getActiveTabFromRoute', () => {
             params: {},
         };
         expect(getActiveTabFromRoute(match)).toBe('messages');
+    });
+});
+
+describe('isHiddenFeedPost', () => {
+    it('returns true for page post type', () => {
+        expect(isHiddenFeedPost({type: 'page'} as Parameters<typeof isHiddenFeedPost>[0])).toBe(true);
+    });
+
+    it('returns true for page_mention post type', () => {
+        expect(isHiddenFeedPost({type: 'page_mention'} as Parameters<typeof isHiddenFeedPost>[0])).toBe(true);
+    });
+
+    it('returns false for page_comment post type (visible in chat feed)', () => {
+        expect(isHiddenFeedPost({type: 'page_comment'} as Parameters<typeof isHiddenFeedPost>[0])).toBe(false);
+    });
+
+    it('returns false for empty string type (regular message)', () => {
+        expect(isHiddenFeedPost({type: ''} as Parameters<typeof isHiddenFeedPost>[0])).toBe(false);
+    });
+
+    it('returns false for custom post type', () => {
+        expect(isHiddenFeedPost({type: 'custom'} as unknown as Parameters<typeof isHiddenFeedPost>[0])).toBe(false);
+    });
+
+    it('returns false for null', () => {
+        expect(isHiddenFeedPost(null)).toBe(false);
+    });
+
+    it('returns false for undefined', () => {
+        expect(isHiddenFeedPost(undefined)).toBe(false);
     });
 });

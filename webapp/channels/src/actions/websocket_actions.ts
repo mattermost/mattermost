@@ -167,7 +167,7 @@ import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import {isEnterpriseLicense} from 'utils/license_utils';
-import {getPageReceiveActions} from 'utils/page_utils';
+import {getPageReceiveActions, isHiddenFeedPost, isPagePost} from 'utils/page_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 
@@ -988,7 +988,9 @@ export function handleNewPostEvent(msg: WebSocketMessages.Posted | WebSocketMess
             console.log('handleNewPostEvent - new post received', post);
         }
 
-        myDispatch(handleNewPost(post, msg));
+        if (!isHiddenFeedPost(post)) {
+            myDispatch(handleNewPost(post, msg));
+        }
         myDispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
         // Handle page-specific store updates (wiki pages store)
@@ -1032,12 +1034,18 @@ export function handleNewPostEvents(queue: Array<WebSocketMessages.Posted | WebS
 
         // Receive the posts as one continuous block since they were received within a short period
         const crtEnabled = isCollapsedThreadsEnabled(myGetState());
-        const actions = posts.map((post) => receivedNewPost(post, crtEnabled));
+        const regularPosts = posts.filter((post) => !isHiddenFeedPost(post));
+        const actions = regularPosts.map((post) => receivedNewPost(post, crtEnabled));
         myDispatch(batchActions(actions));
 
         // Load the posts' threads
         myDispatch(getPostThreads(posts));
         myDispatch(batchFetchStatusesProfilesGroupsFromPosts(posts));
+
+        posts.filter(isPagePost).forEach((post) => {
+            const pageActions = getPageReceiveActions(post);
+            pageActions.forEach((action) => myDispatch(action));
+        });
     };
 }
 
@@ -1050,10 +1058,12 @@ export function handlePostEditEvent(msg: WebSocketMessages.PostEdited) {
         console.log('handlePostEditEvent - post edit received', post);
     }
 
-    const crtEnabled = isCollapsedThreadsEnabled(getState());
-    dispatch(receivedPost(post, crtEnabled));
-
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
+
+    if (!isHiddenFeedPost(post)) {
+        const crtEnabled = isCollapsedThreadsEnabled(getState());
+        dispatch(receivedPost(post, crtEnabled));
+    }
 
     // Handle page-specific store updates (wiki pages store)
     const pageActions = getPageReceiveActions(post);

@@ -47,7 +47,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 	})
 
 	t.Run("successfully creates thread entry for inline page comment via CreatePageComment", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page 2", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Test Page 2", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		inlineAnchor := map[string]any{
@@ -205,7 +205,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 	})
 
 	t.Run("creates thread for inline comment and verifies reply structure", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Reply Test Page", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Reply Test Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		inlineAnchor := map[string]any{
@@ -269,7 +269,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 	})
 
 	t.Run("thread entry includes correct participants for inline comment", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Participants Test", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Participants Test", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		inlineAnchor := map[string]any{
@@ -289,7 +289,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 	})
 
 	t.Run("thread LastReplyAt matches inline comment CreateAt", func(t *testing.T) {
-		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "LastReplyAt Test", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "LastReplyAt Test", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		inlineAnchor := map[string]any{

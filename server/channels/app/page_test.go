@@ -448,7 +448,7 @@ func TestDeletePage(t *testing.T) {
 
 	t.Run("deleting page cleans up thread entries for inline page comments", func(t *testing.T) {
 		// Create a page
-		page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Page with Comments", "", "", th.BasicUser.Id, "", "")
+		page, err := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Page with Comments", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
 		// Create an INLINE comment on the page (with anchor - this creates a Thread entry)
@@ -1533,7 +1533,7 @@ func TestCreatePageComment(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, err := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Test Page", "", th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 	require.NotNil(t, page)
 
@@ -1619,7 +1619,7 @@ func TestCreatePageCommentReply(t *testing.T) {
 
 	rctx := th.CreateSessionContext()
 
-	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Test Page", "", "", th.BasicUser.Id, "", "")
+	page, err := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Test Page", "", th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 
 	topLevelComment, appErr := th.App.CreatePageComment(rctx, page.Id, "Top-level comment", nil, "", nil, nil)
@@ -1933,7 +1933,8 @@ func TestPageMentionSystemMessages(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
-		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: createdWiki.ChannelId, Time: 0}, true, map[string]bool{})
+		// GetPostsSince excludes page_mention from channel feed; use GetPosts to fetch all types.
+		allPosts, searchErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: createdWiki.ChannelId, PerPage: 100, IncludeDeleted: false}, false, map[string]bool{})
 		require.NoError(t, searchErr)
 
 		var mentionMessage *model.Post
@@ -1995,7 +1996,7 @@ func TestPageMentionSystemMessages(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
-		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: createdWiki.ChannelId, Time: 0}, true, map[string]bool{})
+		allPosts, searchErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: createdWiki.ChannelId, PerPage: 100, IncludeDeleted: false}, false, map[string]bool{})
 		require.NoError(t, searchErr)
 
 		systemMessagesForPage := []*model.Post{}
@@ -2040,7 +2041,7 @@ func TestPageMentionSystemMessages(t *testing.T) {
 		_, updatePageErr := th.App.UpdatePage(rctx, page, "Update Test Page", updatedContent, "", nil)
 		require.Nil(t, updatePageErr)
 
-		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: createdWiki.ChannelId, Time: 0}, true, map[string]bool{})
+		allPosts, searchErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: createdWiki.ChannelId, PerPage: 100, IncludeDeleted: false}, false, map[string]bool{})
 		require.NoError(t, searchErr)
 
 		var mentionMessage *model.Post

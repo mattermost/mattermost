@@ -38,6 +38,7 @@ export type PostType = 'system_add_remove' |
 'page' |
 'page_comment' |
 'page_draft' |
+'page_mention' |
 'system_shared_chan_state' |
 '';
 

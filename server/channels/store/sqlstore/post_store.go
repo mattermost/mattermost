@@ -28,16 +28,17 @@ import (
 var (
 	quotedStringsRegex = regexp.MustCompile(`("[^"]*")`)
 	wildCardRegex      = regexp.MustCompile(`\*($| )`)
-)
 
-const (
-	// regularPostsFilter excludes page content posts from regular channel feeds.
-	// Page posts (type='page') are stored as Posts but displayed in the wiki UI, not the channel feed.
-	// Page comments (page_comment) and page mention notifications (page_mention) ARE displayed
-	// in the channel feed so all channel members can see inline comments and mention notifications.
-	// System notification posts (system_wiki_added, system_page_added, etc.) ARE
-	// displayed in the channel feed to notify users about wiki/page activity.
-	regularPostsFilter = "(Type != 'page' OR Type IS NULL)"
+	// wikiPostTypesHiddenInFeedSQL excludes raw page content posts from channel feeds.
+	// Only type='page' is hidden — it holds raw TipTap JSON, not user-visible messages.
+	// page_mention notifications ARE visible so they appear in the channel feed when
+	// ShowMentionsInChannelFeed is enabled. page_comment is also visible inline.
+	// Built from model.WikiPostTypesHiddenInFeed so it stays in sync automatically.
+	wikiPostTypesHiddenInFeedSQL = "(Type NOT IN ('" + strings.Join(model.WikiPostTypesHiddenInFeed, "', '") + "') OR Type IS NULL)"
+
+	// wikiPostTypesPermanentDeleteSQL is built from model.WikiPostTypes. Chat retention must not
+	// destroy page comments, so this is stricter than wikiPostTypesHiddenInFeedSQL.
+	wikiPostTypesPermanentDeleteSQL = "(Type NOT IN ('" + strings.Join(model.WikiPostTypes, "', '") + "') OR Type IS NULL)"
 )
 
 type SqlPostStore struct {
@@ -97,7 +98,15 @@ func PageSystemPostTypes() []string {
 // PagePostTypes returns the list of post types related to pages/wiki functionality.
 // Use this for filtering or cleanup queries that need to target page-related posts.
 func PagePostTypes() []string {
-	return append(PageContentTypes(), PageSystemPostTypes()[1:]...) // Skip PostTypePageComment since it's in PageContentTypes
+	return []string{
+		model.PostTypePage,
+		model.PostTypePageComment,
+		model.PostTypePageMention,
+		model.PostTypePageAdded,
+		model.PostTypePageUpdated,
+		model.PostTypeWikiAdded,
+		model.PostTypeWikiDeleted,
+	}
 }
 
 // AddRegularPostsFilter adds the page exclusion filter to a query builder.
@@ -116,18 +125,6 @@ func AddRegularPostsFilter(qb sq.SelectBuilder, tableAlias string) sq.SelectBuil
 		sq.NotEq{tableAlias + ".Type": model.PostTypePage},
 		sq.Eq{tableAlias + ".Type": nil},
 	})
-}
-
-// isPageTypeClause returns the SQL clause for checking if a post IS a page type.
-// Use tableAlias to specify the table alias (e.g., "q2", "Posts").
-func isPageTypeClause(tableAlias string) string {
-	return fmt.Sprintf("%s.Type = '%s'", tableAlias, model.PostTypePage)
-}
-
-// isNotPageTypeClause returns the SQL clause for checking if a post is NOT a page type.
-// Use tableAlias to specify the table alias (e.g., "q2", "Posts").
-func isNotPageTypeClause(tableAlias string) string {
-	return fmt.Sprintf("%s.Type != '%s'", tableAlias, model.PostTypePage)
 }
 
 func postSliceColumnsWithTypes() []struct {
@@ -644,7 +641,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 					)
 					CHANNEL_FILTER
 					AND Posts.DeleteAt = 0
-					AND ` + regularPostsFilter + `
+					AND ` + wikiPostTypesHiddenInFeedSQL + `
                 ) as A
             INNER JOIN Channels as B
                 ON B.Id = A.ChannelId
@@ -1554,11 +1551,11 @@ func (s *SqlPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSin
 	       Posts
 	WHERE
 	       UpdateAt > ? AND ChannelId = ?
-	       AND ` + regularPostsFilter + `
+	       AND ` + wikiPostTypesHiddenInFeedSQL + `
 	       LIMIT 1000)
 	(SELECT ` + postColumnsCte + replyCountQuery2 + ` FROM cte)
 	UNION
-	(SELECT ` + postColumnsP1 + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte) AND ` + regularPostsFilter + `)
+	(SELECT ` + postColumnsP1 + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte) AND ` + wikiPostTypesHiddenInFeedSQL + `)
 	ORDER BY CreateAt ` + order
 
 	params = []any{options.Time, options.ChannelId}
@@ -1972,14 +1969,14 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	postColumnsP := strings.Join(postSliceColumnsWithName("p"), ", ")
 	postColumnsPosts := strings.Join(postSliceColumnsWithName("Posts"), ", ")
 	if skipFetchThreads {
-		fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND " + regularPostsFilter + " ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND " + wikiPostTypesHiddenInFeedSQL + " ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
 		if !includeDeleted {
-			fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 AND " + regularPostsFilter + " ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = "SELECT " + postColumnsP + ", (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 AND " + wikiPostTypesHiddenInFeedSQL + " ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
 		}
 	} else {
-		fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ? AND " + regularPostsFilter + " ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ? AND " + wikiPostTypesHiddenInFeedSQL + " ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
 		if !includeDeleted {
-			fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 AND " + regularPostsFilter + " ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = "SELECT " + postColumnsPosts + " FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 AND " + wikiPostTypesHiddenInFeedSQL + " ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
 		}
 	}
 
@@ -2031,7 +2028,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
             ON `+onStatement+`
         WHERE
             q2.ChannelId = ? `+deleteAtQueryCondition+`
-            AND `+regularPostsFilter+`
+            AND `+wikiPostTypesHiddenInFeedSQL+`
         ORDER BY q2.CreateAt`, channelId, limit, offset, channelId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
@@ -2431,7 +2428,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 		if includePosts {
 			// For regular posts: search Message field
-			regularPostsClause := fmt.Sprintf("(%s AND to_tsvector('%s', %s) @@ to_tsquery('%s', ?))", isNotPageTypeClause("q2"), textSearchCfg, searchType, textSearchCfg)
+			regularPostsClause := fmt.Sprintf("(q2.Type != '"+model.PostTypePage+"' AND to_tsvector('%s', %s) @@ to_tsquery('%s', ?))", textSearchCfg, searchType, textSearchCfg)
 			searchClauses = append(searchClauses, regularPostsClause)
 			combinedArgs = append(combinedArgs, tsQueryClause)
 		}
@@ -2440,7 +2437,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			// Page content is stored in Post.Message as TipTap JSON — search it directly
 			var wikiFilterClauses []string
 			var pageSearchArgs []any
-			wikiFilterClauses = append(wikiFilterClauses, isPageTypeClause("q2"))
+			wikiFilterClauses = append(wikiFilterClauses, "q2.Type = '"+model.PostTypePage+"'")
 			wikiFilterClauses = append(wikiFilterClauses, fmt.Sprintf("to_tsvector('%s', COALESCE(q2.Props->>'title', '') || ' ' || q2.Message) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg))
 			pageSearchArgs = append(pageSearchArgs, tsQueryClause)
 
@@ -2717,7 +2714,7 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 
 func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, error) {
 	postColumns := strings.Join(postSliceColumns(), ", ")
-	query := "SELECT " + postColumns + " FROM Posts WHERE CreateAt = ? AND ChannelId = ? AND " + regularPostsFilter
+	query := "SELECT " + postColumns + " FROM Posts WHERE CreateAt = ? AND ChannelId = ? AND " + wikiPostTypesHiddenInFeedSQL
 
 	posts := []*model.Post{}
 	err := s.GetReplica().Select(&posts, query, time, channelId)
@@ -2733,6 +2730,10 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 		Column("(SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
 		From("Posts p").
 		Where(sq.Eq{"p.Id": postIds}).
+		Where(sq.Or{
+			sq.NotEq{"p.Type": model.WikiPostTypesHiddenInFeed},
+			sq.Eq{"p.Type": nil},
+		}).
 		OrderBy("CreateAt DESC")
 
 	posts := []*model.Post{}
@@ -2832,7 +2833,7 @@ func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, 
 	// are managed through the wiki deletion flow rather than the generic post
 	// retention pipeline. A dedicated wiki/page retention mechanism is required
 	// to purge pages when a retention policy is active.
-	query := fmt.Sprintf("DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < ? AND %s LIMIT ?))", regularPostsFilter)
+	query := fmt.Sprintf("DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < ? AND %s LIMIT ?))", wikiPostTypesPermanentDeleteSQL)
 
 	sqlResult, err := s.GetMaster().Exec(query, endTime, limit)
 	if err != nil {

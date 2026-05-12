@@ -5,7 +5,6 @@ import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {Post} from '@mattermost/types/posts';
 
 import Tab from 'components/tabs/tab';
 import Tabs from 'components/tabs/tabs';
@@ -29,7 +28,6 @@ type Props = {
     isExpanded: boolean;
     isSubmittingComment: boolean;
     actions: {
-        publishPage: (wikiId: string, pageId: string) => Promise<{data?: Post; error?: Error}>;
         closeRightHandSide: () => void;
         setWikiRhsActiveTab: (tab: 'page_comments' | 'all_threads') => void;
         setFocusedInlineCommentId: (commentId: string | null) => void;

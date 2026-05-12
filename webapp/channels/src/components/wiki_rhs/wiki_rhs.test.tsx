@@ -56,7 +56,6 @@ describe('components/wiki_rhs/WikiRHS', () => {
         isExpanded: false,
         isSubmittingComment: false,
         actions: {
-            publishPage: jest.fn(),
             closeRightHandSide: jest.fn(),
             setWikiRhsActiveTab: jest.fn(),
             setFocusedInlineCommentId: jest.fn(),

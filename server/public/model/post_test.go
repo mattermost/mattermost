@@ -1464,3 +1464,39 @@ func TestPost_PropsIsValid(t *testing.T) {
 		})
 	}
 }
+
+func TestIsWikiPostType(t *testing.T) {
+	t.Run("returns true for page", func(t *testing.T) {
+		assert.True(t, IsWikiPostType(PostTypePage))
+	})
+
+	t.Run("returns true for page_comment", func(t *testing.T) {
+		assert.True(t, IsWikiPostType(PostTypePageComment))
+	})
+
+	t.Run("returns true for page_mention", func(t *testing.T) {
+		assert.True(t, IsWikiPostType(PostTypePageMention))
+	})
+
+	t.Run("returns false for empty string", func(t *testing.T) {
+		assert.False(t, IsWikiPostType(""))
+	})
+
+	t.Run("returns false for non-wiki custom type", func(t *testing.T) {
+		assert.False(t, IsWikiPostType("custom_type"))
+	})
+
+	t.Run("WikiPostTypes contains exactly three wiki types", func(t *testing.T) {
+		require.Len(t, WikiPostTypes, 3)
+		require.Contains(t, WikiPostTypes, PostTypePage)
+		require.Contains(t, WikiPostTypes, PostTypePageComment)
+		require.Contains(t, WikiPostTypes, PostTypePageMention)
+	})
+
+	t.Run("WikiPostTypesHiddenInFeed contains only page, not page_mention or page_comment", func(t *testing.T) {
+		require.Len(t, WikiPostTypesHiddenInFeed, 1)
+		require.Contains(t, WikiPostTypesHiddenInFeed, PostTypePage)
+		require.NotContains(t, WikiPostTypesHiddenInFeed, PostTypePageMention)
+		require.NotContains(t, WikiPostTypesHiddenInFeed, PostTypePageComment)
+	})
+}

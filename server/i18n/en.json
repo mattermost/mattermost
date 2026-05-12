@@ -3023,6 +3023,10 @@
     "translation": "This endpoint is not available for pages. Use the pages API instead."
   },
   {
+    "id": "api.post.not_found.app_error",
+    "translation": "Post not found."
+  },
+  {
     "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
     "translation": "Burn-on-read posts cannot be updated."
   },
@@ -8407,6 +8411,10 @@
   {
     "id": "app.page.validate_status.no_options",
     "translation": "No status options available."
+  },
+  {
+    "id": "app.page_comment.create.wiki_lookup.app_error",
+    "translation": "Failed to look up wiki for page comment."
   },
   {
     "id": "app.pap.access_control.channel_default",

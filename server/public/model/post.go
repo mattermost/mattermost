@@ -12,6 +12,7 @@ import (
 	"maps"
 	"net/http"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -143,6 +144,21 @@ const (
 	SharedChannelStatePostValueShared   = "shared"
 	SharedChannelStatePostValueUnshared = "unshared"
 )
+
+// WikiPostTypes is the strict set of post types whose content lives in the wiki domain.
+// These types must NEVER be served by /api/v4/posts by-ID lookups.
+var WikiPostTypes = []string{PostTypePage, PostTypePageComment, PostTypePageMention}
+
+// WikiPostTypesHiddenInFeed is the channel-feed exclusion set. Only page (raw page content)
+// is excluded from channel feeds. page_mention notifications are intentionally visible so
+// mention activity appears in the channel when ShowMentionsInChannelFeed is enabled.
+// page_comment is also visible (inline comment activity appears in the chat timeline).
+var WikiPostTypesHiddenInFeed = []string{PostTypePage}
+
+// IsWikiPostType returns true if the given post type is a wiki-domain post.
+func IsWikiPostType(postType string) bool {
+	return slices.Contains(WikiPostTypes, postType)
+}
 
 type Post struct {
 	Id           string `json:"id" xml:"Id"`

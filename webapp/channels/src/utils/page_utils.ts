@@ -95,6 +95,10 @@ export function isPagePost(post: Post | null | undefined): boolean {
     return post?.type === PostTypes.PAGE;
 }
 
+export function isPageMentionPost(post: Post | null | undefined): boolean {
+    return post?.type === PostTypes.PAGE_MENTION;
+}
+
 export function isPageInlineComment(post: Post | null | undefined): boolean {
     return isPageComment(post) && post?.props?.comment_type === 'inline';
 }
@@ -180,6 +184,12 @@ export function getPageDisplayMessage(
 
 export function isPageRelatedPost(post: Post | null | undefined): boolean {
     return isPagePost(post) || isPageComment(post);
+}
+
+// isHiddenFeedPost returns true for post types that must not appear in the regular
+// chat feed Redux state. Mirrors server-side WikiPostTypesHiddenInFeed (model/post.go).
+export function isHiddenFeedPost(post: Post | null | undefined): boolean {
+    return isPagePost(post) || isPageMentionPost(post);
 }
 
 export function isPageCommentThreadRoot(post: Post | null | undefined): boolean {

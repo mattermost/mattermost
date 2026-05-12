@@ -608,16 +608,22 @@ test(
         // * Verify page loads successfully
         await verifyNavigatedToWiki(page);
 
-        // # Fetch the inline comment again to verify it's still accessible
-        const accessibleComment = await adminClient.getPost(inlineComment.id);
+        // # Fetch inline comments for the page to verify the comment is still accessible
+        // Note: page_comment posts are not served by GET /api/v4/posts/{id} (wiki domain exclusion),
+        // so we use the page comments API instead.
+        const pageComments = await adminClient.getPageComments(wikiId!, pageId!);
+        const accessibleComment = pageComments.find((c) => c.id === inlineComment.id);
+
+        // * Verify inline comment still exists
+        expect(accessibleComment).toBeDefined();
 
         // * Verify inline comment still has empty RootId
-        expect(accessibleComment.root_id).toBe('');
+        expect(accessibleComment!.root_id).toBe('');
 
         // * Verify inline comment still has page_id in Props
-        expect(accessibleComment.props.page_id).toBe(pageId);
+        expect(accessibleComment!.props.page_id).toBe(pageId);
 
         // * Verify inline comment message is unchanged
-        expect(accessibleComment.message).toBe(inlineCommentText);
+        expect(accessibleComment!.message).toBe(inlineCommentText);
     },
 );

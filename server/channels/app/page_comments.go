@@ -115,16 +115,16 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 		model.PagePropsPageID: pageID,
 	}
 
-	// Use provided wikiID or fetch if not provided
+	// Use provided wikiID or fetch if not provided; wiki_id is required on all page comments.
 	if wikiID == "" {
 		fetchedWikiID, wikiErr := a.GetWikiIdForPost(rctx, page)
-		if wikiErr == nil && fetchedWikiID != "" {
-			wikiID = fetchedWikiID
+		if wikiErr != nil {
+			return nil, model.NewAppError("CreatePageComment", "app.page_comment.create.wiki_lookup.app_error",
+				nil, "", http.StatusInternalServerError).Wrap(wikiErr)
 		}
+		wikiID = fetchedWikiID
 	}
-	if wikiID != "" {
-		props[model.PagePropsWikiID] = wikiID
-	}
+	props[model.PagePropsWikiID] = wikiID
 
 	rootID := pageID
 	if len(inlineAnchor) > 0 {

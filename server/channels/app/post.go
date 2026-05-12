@@ -327,7 +327,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	var rejectionError *model.AppError
 	pluginContext := pluginContext(rctx)
 
-	if post.Type != model.PostTypeBurnOnRead {
+	if post.Type != model.PostTypeBurnOnRead && !model.IsWikiPostType(post.Type) {
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post.ForPlugin())
 			if rejectionReason != "" {
@@ -409,8 +409,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	// We make a copy of the post for the plugin hook to avoid a race condition,
 	// and to remove the non-GOB-encodable Metadata from it.
-	// Skip plugin hooks for burn-on-read posts
-	if rpost.Type != model.PostTypeBurnOnRead {
+	// Skip plugin hooks for burn-on-read posts and wiki post types
+	if rpost.Type != model.PostTypeBurnOnRead && !model.IsWikiPostType(rpost.Type) {
 		pluginPost := rpost.ForPlugin()
 		a.Srv().Go(func() {
 			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -698,7 +698,7 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 		})
 	}
 
-	if triggerWebhooks && post.Type != model.PostTypeBurnOnRead {
+	if triggerWebhooks && post.Type != model.PostTypeBurnOnRead && !model.IsWikiPostType(post.Type) {
 		a.Srv().Go(func() {
 			if err := a.handleWebhookEvents(rctx, post, team, channel, user); err != nil {
 				rctx.Logger().Error("Failed to handle webhook event", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
@@ -844,7 +844,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	// but reject content mutations (Message / FileIds) to keep the wiki as
 	// the sole author-of-truth for page content.
 	// Exception: RestorePost is an internal wiki operation that needs to update FileIds.
-	if IsPageRelatedPost(oldPost) {
+	if model.IsWikiPostType(oldPost.Type) {
 		if !updatePostOptions.IsRestorePost {
 			if receivedUpdatedPost.Message != oldPost.Message || !slices.Equal(receivedUpdatedPost.FileIds, oldPost.FileIds) {
 				return nil, false, model.NewAppError("UpdatePost", "api.post.update_post.page_type.app_error", nil, "", http.StatusBadRequest)
@@ -913,7 +913,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 	var rejectionReason string
 	pluginContext := pluginContext(rctx)
-	if newPost.Type != model.PostTypeBurnOnRead && newPost.Type != model.PostTypePage {
+	if !model.IsWikiPostType(newPost.Type) {
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
 			return newPost != nil
@@ -946,7 +946,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 
 	pluginOldPost := oldPost.ForPlugin()
 	pluginNewPost := newPost.ForPlugin()
-	if newPost.Type != model.PostTypeBurnOnRead && newPost.Type != model.PostTypePage {
+	if !model.IsWikiPostType(newPost.Type) {
 		a.Srv().Go(func() {
 			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 				hooks.MessageHasBeenUpdated(pluginContext, pluginNewPost, pluginOldPost)
@@ -2183,7 +2183,7 @@ func hasPagePost(postList *model.PostList) bool {
 		return false
 	}
 	for _, post := range postList.Posts {
-		if post.Type == model.PostTypePage || post.Type == model.PostTypePageComment || post.Type == model.PostTypePageMention {
+		if model.IsWikiPostType(post.Type) {
 			return true
 		}
 	}
@@ -3304,12 +3304,14 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 
 	pluginPost := post.ForPlugin()
 	pluginContext := pluginContext(rctx)
-	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
-			return true
-		}, plugin.MessageHasBeenDeletedID)
-	})
+	if !model.IsWikiPostType(post.Type) {
+		a.Srv().Go(func() {
+			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+				hooks.MessageHasBeenDeleted(pluginContext, pluginPost)
+				return true
+			}, plugin.MessageHasBeenDeletedID)
+		})
+	}
 
 	a.Srv().Go(func() {
 		if err = a.RemoveNotifications(rctx, post, channel); err != nil {

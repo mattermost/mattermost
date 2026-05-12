@@ -219,6 +219,12 @@ func (c *Context) SetCommandNotFoundError() {
 	c.Err = model.NewAppError("GetCommand", "store.sql_command.save.get.app_error", nil, "", http.StatusNotFound)
 }
 
+// SetPostNotFoundError sets a 404 that does not distinguish "post does not exist"
+// from "post type is wiki content", to avoid leaking existence via error semantics.
+func (c *Context) SetPostNotFoundError() {
+	c.Err = model.NewAppError("Posts", "api.post.not_found.app_error", nil, "", http.StatusNotFound)
+}
+
 func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {
 	metrics := c.App.Metrics()
 	if et := r.Header.Get(model.HeaderEtagClient); etag != "" {

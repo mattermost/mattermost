@@ -4,6 +4,7 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
+import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
 import type {BreadcrumbPath, Wiki} from '@mattermost/types/wikis';
 
@@ -44,9 +45,7 @@ function handleApiError(
     getState: GetStateFunc,
     options?: {showErrorBar?: boolean},
 ): void {
-    // Cast to any to match existing error handling patterns in the codebase
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const err = error as any;
+    const err = error as ServerError;
     forceLogoutIfNecessary(err, dispatch, getState);
     if (options?.showErrorBar) {
         dispatch(logError(err, {errorBarMode: LogErrorBarMode.Always}));
@@ -808,25 +807,6 @@ export function duplicatePage(pageId: string, wikiId: string): ActionFuncAsync<P
             return {data: duplicatedPage};
         } catch (error) {
             handleApiError(error, dispatch, getState, {showErrorBar: true});
-            return {error};
-        }
-    };
-}
-
-export function publishPage(wikiId: string, pageId: string): ActionFuncAsync<Post> {
-    return async (dispatch, getState) => {
-        try {
-            const data = await Client4.patchPost({
-                id: pageId,
-                type: PostTypes.PAGE,
-            });
-            dispatch({
-                type: WikiTypes.RECEIVED_PAGE,
-                data: {page: data, wikiId},
-            });
-            return {data};
-        } catch (error) {
-            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
