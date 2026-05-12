@@ -504,7 +504,6 @@ func (w *sqlxTxWrapper) Select(dest any, query string, args ...any) error {
 	return w.dbw.checkErr(w.Tx.SelectContext(ctx, dest, query, args...))
 }
 
-// Query runs a query within the transaction using the internal timeout.
 // Query forwards to the underlying *sqlx.Tx without adding a timeout.
 // Callers that need timeout enforcement should use Select or QueryX instead.
 func (w *sqlxTxWrapper) Query(query string, args ...any) (*sql.Rows, error) {
