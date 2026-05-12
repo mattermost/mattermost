@@ -304,9 +304,9 @@ test.describe('Attribute-Value Masking', () => {
             const saveBtn = page.getByRole('button', {name: 'Save'});
             await expect(saveBtn).not.toBeDisabled();
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} } // eslint-disable-line no-empty
+            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
+            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -381,9 +381,9 @@ test.describe('Attribute-Value Masking', () => {
             expect(rawExpression).toContain('Bravo');
             expect(rawExpression).toContain('Charlie');
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} } // eslint-disable-line no-empty
+            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
+            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -434,9 +434,9 @@ test.describe('Attribute-Value Masking', () => {
             await removeRowBtn.waitFor({state: 'visible', timeout: 5000});
             await expect(removeRowBtn).toBeDisabled();
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} } // eslint-disable-line no-empty
+            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
+            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -508,9 +508,9 @@ test.describe('Attribute-Value Masking', () => {
             await openExistingPolicy(page, policyName);
             await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).toBeVisible();
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} } // eslint-disable-line no-empty
+            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
+            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -575,8 +575,8 @@ test.describe('Attribute-Value Masking', () => {
 
             expect(statusWithMasked).toBe(400);
         } finally {
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
+            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
         }
     });
 
@@ -646,9 +646,9 @@ test.describe('Attribute-Value Masking', () => {
                 await expect(page.locator('.select__multi-value--masked')).toBeVisible();
             }
         } finally {
-            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} }
-            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} }
-            try { await disableMaskingFlag(adminClient); } catch {}
+            for (const id of policyIds) { try { await deletePolicy(adminClient, id); } catch {} } // eslint-disable-line no-empty
+            for (const id of fieldIds) { try { await deleteCPAField(adminClient, id); } catch {} } // eslint-disable-line no-empty
+            try { await disableMaskingFlag(adminClient); } catch {} // eslint-disable-line no-empty
         }
     });
 
