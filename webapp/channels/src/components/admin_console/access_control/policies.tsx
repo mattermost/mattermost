@@ -51,6 +51,7 @@ export default function PolicyList(props: Props): JSX.Element {
     const [cursorHistory, setCursorHistory] = useState<string[]>([]);
     const [total, setTotal] = useState(0);
     const [pendingDeletePolicy, setPendingDeletePolicy] = useState<AccessControlPolicy | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
     const intl = useIntl();
 
     const history = useMemo(() => getHistory(), []);
@@ -169,16 +170,36 @@ export default function PolicyList(props: Props): JSX.Element {
 
     const initiateDelete = useCallback((policy: AccessControlPolicy) => {
         setPendingDeletePolicy(policy);
+        setDeleteError(null);
     }, []);
 
     const confirmDelete = useCallback(async () => {
         if (!pendingDeletePolicy) {
             return;
         }
-        await props.actions.deletePolicy(pendingDeletePolicy.id);
+        const result = await props.actions.deletePolicy(pendingDeletePolicy.id);
+        if (result?.error) {
+            // The server enforces masked-policy / permission rejections (403). Surface
+            // the message in the modal so the user sees why deletion failed instead of
+            // a silent close + stale list refresh.
+            const errorId = result.error.server_error_id;
+            if (errorId === 'app.pap.delete_policy.masked_values') {
+                setDeleteError(intl.formatMessage({
+                    id: 'admin.access_control.delete_policy.masked_values',
+                    defaultMessage: 'You cannot delete this policy because it contains attribute values you do not have permission to view.',
+                }));
+            } else {
+                setDeleteError(result.error.message || intl.formatMessage({
+                    id: 'admin.access_control.delete_policy.generic_error',
+                    defaultMessage: 'Failed to delete the policy.',
+                }));
+            }
+            return;
+        }
         setPendingDeletePolicy(null);
+        setDeleteError(null);
         fetchPolicies(search);
-    }, [pendingDeletePolicy, search]);
+    }, [pendingDeletePolicy, search, intl]);
 
     const getRows = (): Row[] => {
         return policies.map((policy: AccessControlPolicy) => {
@@ -424,9 +445,15 @@ export default function PolicyList(props: Props): JSX.Element {
             />
             {pendingDeletePolicy && (
                 <GenericModal
-                    onExited={() => setPendingDeletePolicy(null)}
+                    onExited={() => {
+                        setPendingDeletePolicy(null);
+                        setDeleteError(null);
+                    }}
                     handleConfirm={confirmDelete}
-                    handleCancel={() => setPendingDeletePolicy(null)}
+                    handleCancel={() => {
+                        setPendingDeletePolicy(null);
+                        setDeleteError(null);
+                    }}
                     modalHeaderText={
                         <FormattedMessage
                             id='admin.access_control.policy.edit_policy.delete_confirmation.title'
@@ -465,6 +492,20 @@ export default function PolicyList(props: Props): JSX.Element {
                             id='admin.access_control.policy.edit_policy.delete_confirmation.message'
                             defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
                         />
+                        {deleteError && (
+                            <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
+                                <SectionNotice
+                                    type='danger'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.access_control.delete_policy.error_title'
+                                            defaultMessage='Unable to delete policy'
+                                        />
+                                    }
+                                    text={deleteError}
+                                />
+                            </div>
+                        )}
                     </>
                 </GenericModal>
             )}
