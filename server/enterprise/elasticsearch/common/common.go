@@ -120,82 +120,22 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 		ChannelType: post.ChannelType,
 	}
 
-	var searchAttachments []string
-
-	if attachments := post.GetProp(model.PostPropsAttachments); attachments != nil {
-		attachmentsInterfaceArray, ok := attachments.([]any)
-		if ok {
-			for _, attachment := range attachmentsInterfaceArray {
-				if attachment == nil {
-					continue
-				}
-				m, mOk := attachment.(map[string]any)
-				if !mOk {
-					continue
-				}
-				for _, key := range []string{"text", "title", "pretext", "fallback", "footer", "author_name"} {
-					if s, _ := m[key].(string); s != "" {
-						searchAttachments = append(searchAttachments, s)
-					}
-				}
-				if fields, fOk := m["fields"].([]any); fOk {
-					for _, f := range fields {
-						if fm, fmOk := f.(map[string]any); fmOk {
-							if s, _ := fm["title"].(string); s != "" {
-								searchAttachments = append(searchAttachments, s)
-							}
-							if v := fm["value"]; v != nil {
-								if s, vOk := v.(string); vOk {
-									if s != "" {
-										searchAttachments = append(searchAttachments, s)
-									}
-								} else {
-									searchAttachments = append(searchAttachments, fmt.Sprint(v))
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		attachmentsArray, ok := attachments.([]*model.MessageAttachment)
-		if ok {
-			for _, attachment := range attachmentsArray {
-				if attachment == nil {
-					continue
-				}
-				for _, s := range []string{attachment.Text, attachment.Title, attachment.Pretext, attachment.Fallback, attachment.Footer, attachment.AuthorName} {
-					if s != "" {
-						searchAttachments = append(searchAttachments, s)
-					}
-				}
-				for _, field := range attachment.Fields {
-					if field == nil {
-						continue
-					}
-					if field.Title != "" {
-						searchAttachments = append(searchAttachments, field.Title)
-					}
-					if field.Value != nil {
-						if s, ok := field.Value.(string); ok {
-							if s != "" {
-								searchAttachments = append(searchAttachments, s)
-							}
-						} else {
-							searchAttachments = append(searchAttachments, fmt.Sprint(field.Value))
-						}
-					}
-				}
-			}
-		}
+	// Message stays in its own field; everything else searchable (attachments, mm_blocks, Block Kit blocks,
+	// Adaptive cards) comes from model.Post.AllStrings (attachment Fallback is omitted), omitting the leading message segment when it is
+	// the same bytes as post.Message so it is not duplicated in the ES "attachments" text field.
+	allStrings := post.AllStrings()
+	parts := allStrings
+	if len(parts) > 0 && strings.TrimSpace(post.Message) != "" && parts[0] == post.Message {
+		parts = parts[1:]
 	}
+	searchPost.Attachments = strings.Join(parts, " ")
 
-	searchPost.Attachments = strings.Join(searchAttachments, " ")
-
-	urls := extractURLsFromMessage(post.Message)
-	if len(urls) > 0 {
-		searchPost.URLs = urls
+	var urlAccum []string
+	for _, s := range allStrings {
+		urlAccum = append(urlAccum, extractURLsFromMessage(s)...)
+	}
+	if len(urlAccum) > 0 {
+		searchPost.URLs = model.RemoveDuplicateStrings(urlAccum)
 	}
 
 	if searchPost.Type == "" {

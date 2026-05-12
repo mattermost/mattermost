@@ -1345,7 +1345,7 @@ func TestGetExplicitMentions(t *testing.T) {
 				HereMentioned: true,
 			},
 		},
-		"should include the mentions from attachment field values (but not field titles)": {
+		"should include the mentions from attachment field values and titles": {
 			Message: "this is a message",
 			Attachments: []*model.MessageAttachment{
 				{
@@ -1360,6 +1360,7 @@ func TestGetExplicitMentions(t *testing.T) {
 			Keywords: map[string][]string{"@user1": {id1}, "@user2": {id2}},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
+					id1: KeywordMention,
 					id2: KeywordMention,
 				},
 			},
@@ -2187,7 +2188,7 @@ func TestGetMentionKeywords_Groups(t *testing.T) {
 	}
 }
 
-func TestGetMentionsEnabledFields(t *testing.T) {
+func TestPostAllStrings_attachmentMentionSources(t *testing.T) {
 	mainHelper.Parallel(t)
 	attachmentWithTextAndPreText := model.MessageAttachment{
 		Text:    "@here with mentions",
@@ -2216,15 +2217,14 @@ func TestGetMentionsEnabledFields(t *testing.T) {
 	}
 	expectedFields := []string{
 		"This is the message",
-		"@Channel some comment for the channel",
 		"@here with mentions",
+		"@Channel some comment for the channel",
 		"some text",
+		"field title",
 		"field value",
 	}
 
-	mentionEnabledFields := getMentionsEnabledFields(post)
-
-	assert.EqualValues(t, expectedFields, mentionEnabledFields)
+	assert.Equal(t, expectedFields, post.AllStrings())
 }
 
 func TestPostNotificationGetChannelName(t *testing.T) {

@@ -423,16 +423,16 @@
             }
         },
         "scrollable_content": {
-            "message": "Fixture: scrollable region (`height`) with stacked text blocks.",
+            "message": "Fixture: container with `max_height` preset and stacked text blocks.",
             "props": {
                 "mm_blocks": [
                     {
                         "type": "text",
-                        "text": "**Scrollable** block demo — content overflows vertically."
+                        "text": "**Bounded** container demo — content overflows vertically."
                     },
                     {
-                        "type": "scrollable",
-                        "height": "medium",
+                        "type": "container",
+                        "max_height": "medium",
                         "content": [
                             {
                                 "type": "text",

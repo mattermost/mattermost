@@ -107,7 +107,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 		assert.Equal(t, "text 2", espost.Attachments)
 	})
 
-	t.Run("any form indexes title, pretext, fallback, and fields", func(t *testing.T) {
+	t.Run("any form indexes title, pretext, and fields", func(t *testing.T) {
 		post := model.PostForIndexing{
 			TeamId: model.NewId(),
 			Post: model.Post{
@@ -145,14 +145,14 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 		assert.Contains(t, espost.Attachments, "Details here")
 		assert.Contains(t, espost.Attachments, "Build Failed")
 		assert.Contains(t, espost.Attachments, "CI notification")
-		assert.Contains(t, espost.Attachments, "Build Failed on main")
+		assert.NotContains(t, espost.Attachments, "Build Failed on main")
 		assert.Contains(t, espost.Attachments, "Branch")
 		assert.Contains(t, espost.Attachments, "main")
 		assert.Contains(t, espost.Attachments, "Status")
 		assert.Contains(t, espost.Attachments, "failed")
 	})
 
-	t.Run("MessageAttachment form indexes title, pretext, fallback, and fields", func(t *testing.T) {
+	t.Run("MessageAttachment form indexes title, pretext, and fields", func(t *testing.T) {
 		post := model.PostForIndexing{
 			TeamId: model.NewId(),
 			Post: model.Post{
@@ -184,7 +184,7 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 		assert.Contains(t, espost.Attachments, "Details here")
 		assert.Contains(t, espost.Attachments, "Build Failed")
 		assert.Contains(t, espost.Attachments, "CI notification")
-		assert.Contains(t, espost.Attachments, "Build Failed on main")
+		assert.NotContains(t, espost.Attachments, "Build Failed on main")
 		assert.Contains(t, espost.Attachments, "Branch")
 		assert.Contains(t, espost.Attachments, "main")
 		assert.Contains(t, espost.Attachments, "Status")
@@ -376,6 +376,49 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 		assert.Contains(t, espost.Attachments, "body text")
 		assert.Contains(t, espost.Attachments, "Opportunity #OPP-000035341 • United States")
 		assert.Contains(t, espost.Attachments, "Salesforce")
+	})
+
+	t.Run("interactive mm_blocks blocks and cards are indexed in attachments field", func(t *testing.T) {
+		post := model.PostForIndexing{
+			TeamId: model.NewId(),
+			Post: model.Post{
+				Id:        model.NewId(),
+				ChannelId: model.NewId(),
+				UserId:    model.NewId(),
+				CreateAt:  model.GetMillis(),
+				Message:   "root",
+				Type:      model.PostTypeDefault,
+				Props: map[string]any{
+					model.PostPropsMmBlocks: []any{
+						map[string]any{"type": "text", "text": "mm-line"},
+					},
+					model.PostPropsBlockKitBlocks: []any{
+						map[string]any{
+							"type": "section",
+							"text": map[string]any{
+								"type": "mrkdwn",
+								"text": "block kit-line",
+							},
+						},
+					},
+					model.PostPropsAdaptiveCards: []any{
+						map[string]any{
+							"type": "AdaptiveCard",
+							"body": []any{
+								map[string]any{"type": "TextBlock", "text": "card-line"},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		espost := ESPostFromPostForIndexing(&post)
+
+		assert.Equal(t, "root", espost.Message)
+		assert.Contains(t, espost.Attachments, "mm-line")
+		assert.Contains(t, espost.Attachments, "block kit-line")
+		assert.Contains(t, espost.Attachments, "card-line")
 	})
 
 	t.Run("multiple attachments are combined", func(t *testing.T) {

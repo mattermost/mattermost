@@ -1324,12 +1324,13 @@ func TestGetImagesForPost(t *testing.T) {
 			require.NoError(t, err)
 		}))
 
+		imageURL := server.URL + "/image.png"
 		post := &model.Post{
+			Message:  "![img](" + imageURL + ")",
 			Metadata: &model.PostMetadata{},
 		}
-		imageURL := server.URL + "/image.png"
 
-		images := th.App.getImagesForPost(th.Context, post, []string{imageURL}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
@@ -1351,12 +1352,13 @@ func TestGetImagesForPost(t *testing.T) {
 			w.WriteHeader(http.StatusInternalServerError)
 		}))
 
+		imageURL := server.URL + "/bad_image.png"
 		post := &model.Post{
+			Message:  "![img](" + imageURL + ")",
 			Metadata: &model.PostMetadata{},
 		}
-		imageURL := server.URL + "/bad_image.png"
 
-		images := th.App.getImagesForPost(th.Context, post, []string{imageURL}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 
 		assert.Equal(t, images, map[string]*model.PostImage{})
 	})
@@ -1404,7 +1406,7 @@ func TestGetImagesForPost(t *testing.T) {
 			},
 		}
 
-		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
@@ -1458,7 +1460,7 @@ func TestGetImagesForPost(t *testing.T) {
 			},
 		}
 
-		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
@@ -1512,7 +1514,7 @@ func TestGetImagesForPost(t *testing.T) {
 			},
 		}
 
-		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
@@ -1541,7 +1543,7 @@ func TestGetImagesForPost(t *testing.T) {
 			},
 		}
 
-		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 		assert.Equal(t, images, map[string]*model.PostImage{})
 	})
 
@@ -1582,9 +1584,59 @@ func TestGetImagesForPost(t *testing.T) {
 		mockStore.On("Post").Return(&mockPostStore)
 		mockStore.On("LinkMetadata").Return(&mockLinkMetadataStore)
 
-		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 		assert.Equal(t, 0, len(images))
 		assert.Equal(t, images, map[string]*model.PostImage{})
+	})
+
+	t.Run("skips all when unsafe links including interactive props", func(t *testing.T) {
+		th := Setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		}))
+		t.Cleanup(server.Close)
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{Type: model.PostEmbedImage, URL: server.URL + "/embed.png"},
+				},
+			},
+			Props: model.StringInterface{
+				model.PostPropsUnsafeLinks: "true",
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "image", "url": server.URL + "/mm1.png"},
+					map[string]any{"type": "image", "url": server.URL + "/mm2.png"},
+				},
+				model.PostPropsBlockKitBlocks: []any{
+					map[string]any{"type": "image", "image_url": server.URL + "/bk1.png"},
+					map[string]any{
+						"type": "section",
+						"accessory": map[string]any{
+							"type":      "image",
+							"image_url": server.URL + "/bk2.png",
+						},
+					},
+				},
+				model.PostPropsAdaptiveCards: []any{
+					map[string]any{
+						"type": "AdaptiveCard",
+						"body": []any{
+							map[string]any{"type": "Image", "url": server.URL + "/ac1.png"},
+							map[string]any{"type": "Image", "url": server.URL + "/ac2.png"},
+						},
+					},
+				},
+			},
+		}
+
+		out := th.App.getImagesForPost(th.Context, post, false)
+		assert.Empty(t, out)
 	})
 }
 
@@ -1726,6 +1778,36 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 			},
 			Expected: []string{"emoji1", "emoji2", "emoji3"},
 		},
+		{
+			Description: "in interactive mm_blocks, blocks, and cards",
+			Post: &model.Post{
+				Message: "body :smile:",
+				Props: map[string]any{
+					model.PostPropsMmBlocks: []any{
+						map[string]any{"type": "text", "text": "mm :coffee:"},
+						map[string]any{"type": "button", "text": "btn :thumbsup:", "action_id": "a"},
+					},
+					model.PostPropsBlockKitBlocks: []any{
+						map[string]any{
+							"type": "section",
+							"text": map[string]any{
+								"type": "mrkdwn",
+								"text": "block kit :rocket:",
+							},
+						},
+					},
+					model.PostPropsAdaptiveCards: []any{
+						map[string]any{
+							"type": "AdaptiveCard",
+							"body": []any{
+								map[string]any{"type": "TextBlock", "text": "card :tada:"},
+							},
+						},
+					},
+				},
+			},
+			Expected: []string{"smile", "coffee", "thumbsup", "rocket", "tada"},
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -1815,7 +1897,7 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 	})
 }
 
-func TestGetFirstLinkAndImages(t *testing.T) {
+func TestGetFirstLinkGetImages(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -1890,10 +1972,8 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			firstLink, images := th.App.getFirstLinkAndImages(th.Context, testCase.Input)
-
-			assert.Equal(t, testCase.ExpectedFirstLink, firstLink)
-			assert.Equal(t, testCase.ExpectedImages, images)
+			assert.Equal(t, testCase.ExpectedFirstLink, th.App.getFirstLink(th.Context, testCase.Input))
+			assert.Equal(t, testCase.ExpectedImages, th.App.getImages(th.Context, testCase.Input))
 		})
 	}
 
@@ -1975,225 +2055,8 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		})
 
 		t.Run(name, func(t *testing.T) {
-			firstLink, images := th.App.getFirstLinkAndImages(th.Context, testCase.Input)
-
-			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
-			assert.Equal(t, images, testCase.ExpectedImages)
-		})
-	}
-}
-
-func TestGetImagesInMessageAttachments(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	for _, test := range []struct {
-		Name     string
-		Post     *model.Post
-		Expected []string
-	}{
-		{
-			Name:     "no attachments",
-			Post:     &model.Post{},
-			Expected: []string{},
-		},
-		{
-			Name: "empty attachments",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{},
-				},
-			},
-			Expected: []string{},
-		},
-		{
-			Name: "attachment with no fields that can contain images",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Title: "This is the title",
-						},
-					},
-				},
-			},
-			Expected: []string{},
-		},
-		{
-			Name: "images in text",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Text: "![logo](https://example.com/logo) and ![icon](https://example.com/icon)",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/logo", "https://example.com/icon"},
-		},
-		{
-			Name: "images in pretext",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Pretext: "![logo](https://example.com/logo1) and ![icon](https://example.com/icon1)",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/logo1", "https://example.com/icon1"},
-		},
-		{
-			Name: "images in fields",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Fields: []*model.MessageAttachmentField{
-								{
-									Value: "![logo](https://example.com/logo2) and ![icon](https://example.com/icon2)",
-								},
-							},
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/logo2", "https://example.com/icon2"},
-		},
-		{
-			Name: "image in author_icon",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							AuthorIcon: "https://example.com/icon2",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/icon2"},
-		},
-		{
-			Name: "image in image_url",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							ImageURL: "https://example.com/image",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/image"},
-		},
-		{
-			Name: "image in thumb_url",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							ThumbURL: "https://example.com/image",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/image"},
-		},
-		{
-			Name: "image in footer_icon",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							FooterIcon: "https://example.com/image",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/image"},
-		},
-		{
-			Name: "images in multiple fields",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Fields: []*model.MessageAttachmentField{
-								{
-									Value: "![logo](https://example.com/logo)",
-								},
-								{
-									Value: "![icon](https://example.com/icon)",
-								},
-							},
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/logo", "https://example.com/icon"},
-		},
-		{
-			Name: "non-string field",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Fields: []*model.MessageAttachmentField{
-								{
-									Value: 77,
-								},
-							},
-						},
-					},
-				},
-			},
-			Expected: []string{},
-		},
-		{
-			Name: "images in multiple locations",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Text:    "![text](https://example.com/text)",
-							Pretext: "![pretext](https://example.com/pretext)",
-							Fields: []*model.MessageAttachmentField{
-								{
-									Value: "![field1](https://example.com/field1)",
-								},
-								{
-									Value: "![field2](https://example.com/field2)",
-								},
-							},
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/text", "https://example.com/pretext", "https://example.com/field1", "https://example.com/field2"},
-		},
-		{
-			Name: "multiple attachments",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Text: "![logo](https://example.com/logo)",
-						},
-						{
-							Text: "![icon](https://example.com/icon)",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/logo", "https://example.com/icon"},
-		},
-	} {
-		t.Run(test.Name, func(t *testing.T) {
-			images := th.App.getImagesInMessageAttachments(th.Context, test.Post)
-
-			assert.ElementsMatch(t, images, test.Expected)
+			assert.Equal(t, testCase.ExpectedFirstLink, th.App.getFirstLink(th.Context, testCase.Input))
+			assert.Equal(t, testCase.ExpectedImages, th.App.getImages(th.Context, testCase.Input))
 		})
 	}
 }

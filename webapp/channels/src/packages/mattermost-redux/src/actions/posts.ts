@@ -1132,7 +1132,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
     }
 
     for (const post of posts) {
-        // These correspond to the fields searched by getMentionsEnabledFields on the server
+        // These correspond to the text segments from model.Post.AllStrings on the server (message, attachments, interactive).
         findNeededUsernamesAndGroups(post.message);
 
         if (isMessageAttachmentArray(post.props?.attachments)) {

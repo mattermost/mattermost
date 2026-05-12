@@ -1413,8 +1413,7 @@ func getExplicitMentions(post *model.Post, keywords MentionKeywords) *MentionRes
 	parser := makeStandardMentionParser(keywords)
 
 	buf := ""
-	mentionsEnabledFields := getMentionsEnabledFields(post)
-	for _, message := range mentionsEnabledFields {
+	for _, message := range post.AllStrings() {
 		// Parse the text as Markdown, combining adjacent Text nodes into a single string for processing
 		markdown.Inspect(message, func(node any) bool {
 			text, ok := node.(*markdown.Text)
@@ -1440,29 +1439,6 @@ func getExplicitMentions(post *model.Post, keywords MentionKeywords) *MentionRes
 	}
 
 	return parser.Results()
-}
-
-// Given a post returns the values of the fields in which mentions are possible.
-// post.message, preText and text in the attachment are enabled.
-func getMentionsEnabledFields(post *model.Post) model.StringArray {
-	ret := []string{}
-
-	ret = append(ret, post.Message)
-	for _, attachment := range post.Attachments() {
-		if attachment.Pretext != "" {
-			ret = append(ret, attachment.Pretext)
-		}
-		if attachment.Text != "" {
-			ret = append(ret, attachment.Text)
-		}
-
-		for _, field := range attachment.Fields {
-			if valueString, ok := field.Value.(string); ok && valueString != "" {
-				ret = append(ret, valueString)
-			}
-		}
-	}
-	return ret
 }
 
 // allowChannelMentions returns whether or not the channel mentions are allowed for the given post.

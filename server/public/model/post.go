@@ -92,9 +92,6 @@ const (
 	PostPropsFromBot                  = "from_bot"
 	PostPropsFromOAuthApp             = "from_oauth_app"
 	PostPropsWebhookDisplayName       = "webhook_display_name"
-	PostPropsAttachments              = "attachments"
-	PostPropsMmBlocks                 = "mm_blocks"
-	PostPropsMmBlocksActions          = "mm_blocks_actions"
 	PostPropsFromPlugin               = "from_plugin"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
@@ -110,6 +107,13 @@ const (
 	// Shared-channel state posts (PostTypeSharedChannelState): props for client-side i18n.
 	PostPropsSharedChannelState         = "shared_channel_state"
 	PostPropsSharedChannelWorkspaceName = "workspace_name"
+
+	// Interactive Messages
+	PostPropsAttachments     = "attachments"
+	PostPropsMmBlocks        = "mm_blocks"
+	PostPropsBlockKitBlocks  = "blocks"
+	PostPropsAdaptiveCards   = "cards"
+	PostPropsMmBlocksActions = "mm_blocks_actions"
 
 	PostPriorityUrgent = "urgent"
 
@@ -709,6 +713,111 @@ func (o *Post) GetProp(key string) any {
 	return o.Props[key]
 }
 
+// HasUnsafeLinks reports whether props.unsafe_links is the string "true", meaning integrations
+// have marked the post as carrying untrusted URLs (see PostPropsUnsafeLinks and post metadata handling).
+func (o *Post) HasUnsafeLinks() bool {
+	v := o.GetProp(PostPropsUnsafeLinks)
+	if v == nil {
+		return false
+	}
+	s, ok := v.(string)
+	return ok && s == "true"
+}
+
+// AllStrings returns human-readable text from the post: the post Message as stored when it is not
+// whitespace-only (same bytes as Message so markdown structure is preserved), then message attachment
+// author name, title, text, pretext, footer, each attachment field title, each attachment field
+// value (strings trimmed; non-strings rendered like fmt.Sprint for indexing), plus
+// strings from interactive blocks (mm_blocks, Block Kit blocks, Adaptive cards).
+// It is intended for mention checks, search indexing, and similar uses alongside integration metadata.
+func (o *Post) AllStrings() []string {
+	var out []string
+	appendTrimmedNonEmptyString(&out, o.Message)
+	for _, attachment := range o.Attachments() {
+		if attachment == nil {
+			continue
+		}
+		appendTrimmedNonEmptyString(&out, attachment.AuthorName)
+		appendTrimmedNonEmptyString(&out, attachment.Title)
+		appendTrimmedNonEmptyString(&out, attachment.Text)
+		appendTrimmedNonEmptyString(&out, attachment.Pretext)
+		appendTrimmedNonEmptyString(&out, attachment.Footer)
+		for _, field := range attachment.Fields {
+			if field == nil {
+				continue
+			}
+			appendTrimmedNonEmptyString(&out, field.Title)
+			if field.Value == nil {
+				continue
+			}
+			switch v := field.Value.(type) {
+			case string:
+				appendTrimmedNonEmptyString(&out, v)
+			default:
+				if s := strings.TrimSpace(fmt.Sprint(v)); s != "" {
+					out = append(out, s)
+				}
+			}
+		}
+	}
+	appendHumanReadableInteractiveStrings(o, &out)
+	return out
+}
+
+// InteractiveBlocksImageURLs collects non-markdown image URLs from props.mm_blocks, props.blocks
+// (Block Kit), and props.cards (Adaptive Cards): direct mm_blocks image URLs, Block Kit image blocks,
+// and Adaptive Card Image elements. Markdown ![alt](url) in interactive text is not included; merge
+// with URLs from Post.AllStrings separately. Link preview restrictions (e.g. RestrictLinkPreviews) are
+// not applied here; callers enforce policy when fetching metadata.
+func (o *Post) InteractiveBlocksImageURLs() []string {
+	props := o.GetProps()
+	if props == nil {
+		return nil
+	}
+	var out []string
+	if raw, ok := props[PostPropsMmBlocks]; ok {
+		out = append(out, collectMmBlockImageURLs(raw)...)
+	}
+	if raw, ok := props[PostPropsBlockKitBlocks]; ok {
+		collectBlockKitImageURLs(raw, &out)
+	}
+	if raw, ok := props[PostPropsAdaptiveCards]; ok {
+		for _, card := range adaptiveCardPayloadRoots(raw) {
+			collectAdaptiveCardImageURLs(card, &out)
+		}
+	}
+	return out
+}
+
+func appendTrimmedNonEmptyString(out *[]string, s string) {
+	if t := strings.TrimSpace(s); t != "" {
+		*out = append(*out, t)
+	}
+}
+
+// nonEmptyInteractivePayloadPropKeys lists non-empty interactive payload props (mm_blocks,
+// Block Kit blocks, Adaptive cards, message attachments). The client uses a single priority; more than one is invalid.
+func (o *Post) nonEmptyInteractivePayloadPropKeys() []string {
+	props := o.GetProps()
+	if props == nil {
+		return nil
+	}
+	var keys []string
+	if interactivePropJSONArrayNonEmpty(props[PostPropsMmBlocks]) {
+		keys = append(keys, PostPropsMmBlocks)
+	}
+	if interactivePropJSONArrayNonEmpty(props[PostPropsBlockKitBlocks]) {
+		keys = append(keys, PostPropsBlockKitBlocks)
+	}
+	if adaptiveCardsPropNonEmpty(props[PostPropsAdaptiveCards]) {
+		keys = append(keys, PostPropsAdaptiveCards)
+	}
+	if len(o.Attachments()) > 0 {
+		keys = append(keys, PostPropsAttachments)
+	}
+	return keys
+}
+
 // ValidateProps checks all known props for validity.
 // Currently, it logs warnings for invalid props rather than returning an error.
 // In a future version, this will be updated to return errors for invalid props.
@@ -851,6 +960,12 @@ func (o *Post) propsIsValid() error {
 		}
 	}
 
+	if keys := o.nonEmptyInteractivePayloadPropKeys(); len(keys) > 1 {
+		multiErr = multierror.Append(multiErr, fmt.Errorf(
+			"at most one interactive payload may be set among mm_blocks, blocks, cards, and attachments; found: %s",
+			strings.Join(keys, ", ")))
+	}
+
 	return multiErr.ErrorOrNil()
 }
 
@@ -911,34 +1026,11 @@ func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
 
-// ChannelMentionsAll returns all channel mentions from both the message and attachments.
-// This is used by FillInPostProps to populate channel_mentions for rendering.
+// ChannelMentionsAll returns all ~channel mentions from the same human-readable strings as
+// model.Post.AllStrings (message, attachments, mm_blocks, blocks, cards). This is used by
+// FillInPostProps to populate channel_mentions for rendering.
 func (o *Post) ChannelMentionsAll() []string {
-	// Get mentions from message
-	messageMentions := ChannelMentions(o.Message)
-
-	// Get mentions from attachments
-	attachmentMentions := ChannelMentionsFromAttachments(o.Attachments())
-
-	// Combine and deduplicate
-	alreadyMentioned := make(map[string]bool)
-	var allMentions []string
-
-	for _, mention := range messageMentions {
-		if !alreadyMentioned[mention] {
-			allMentions = append(allMentions, mention)
-			alreadyMentioned[mention] = true
-		}
-	}
-
-	for _, mention := range attachmentMentions {
-		if !alreadyMentioned[mention] {
-			allMentions = append(allMentions, mention)
-			alreadyMentioned[mention] = true
-		}
-	}
-
-	return allMentions
+	return ChannelMentionsFromStrings(o.AllStrings())
 }
 
 // DisableMentionHighlights disables a posts mention highlighting and returns the first channel mention that was present in the message.
@@ -1035,7 +1127,8 @@ var markdownDestinationEscaper = strings.NewReplacer(
 )
 
 // WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
-// rewritten via RewriteImageURLs.
+// rewritten via RewriteImageURLs. Interactive payloads (mm_blocks, Block Kit, Adaptive Cards) are
+// not rewritten here; the client applies the image proxy via ExternalImage and related components.
 func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 	pCopy := o.Clone()
 	pCopy.Message = RewriteImageURLs(o.Message, f)

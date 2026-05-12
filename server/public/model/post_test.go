@@ -1000,6 +1000,120 @@ func TestPostPriority(t *testing.T) {
 	require.True(t, p.IsUrgent())
 }
 
+func TestPost_HasUnsafeLinks(t *testing.T) {
+	t.Run("nil props", func(t *testing.T) {
+		p := &Post{}
+		require.False(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("missing prop", func(t *testing.T) {
+		p := &Post{Props: StringInterface{"other": "x"}}
+		require.False(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("true", func(t *testing.T) {
+		p := &Post{Props: StringInterface{PostPropsUnsafeLinks: "true"}}
+		require.True(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("false string is not unsafe", func(t *testing.T) {
+		p := &Post{Props: StringInterface{PostPropsUnsafeLinks: "false"}}
+		require.False(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("non-string is not unsafe", func(t *testing.T) {
+		p := &Post{Props: StringInterface{PostPropsUnsafeLinks: true}}
+		require.False(t, p.HasUnsafeLinks())
+	})
+}
+
+func TestPost_AllStrings_messageOnly(t *testing.T) {
+	p := &Post{Message: "  hello  "}
+	assert.Equal(t, []string{"  hello  "}, p.AllStrings())
+}
+
+func TestPost_AllStrings_emptyMessage(t *testing.T) {
+	p := &Post{Message: "   "}
+	assert.Empty(t, p.AllStrings())
+}
+
+func TestPost_AllStrings_interactiveProps(t *testing.T) {
+	p := &Post{
+		Message: "root",
+		Props: StringInterface{
+			PostPropsMmBlocks: []any{
+				map[string]any{"type": "text", "text": "mm-line"},
+				map[string]any{"type": "button", "text": "OK", "action_id": "act"},
+			},
+			PostPropsBlockKitBlocks: []any{
+				map[string]any{"type": "image", "image_url": "https://example.com/i.png", "alt_text": "logo"},
+			},
+			PostPropsAdaptiveCards: map[string]any{
+				"type": "AdaptiveCard",
+				"body": []any{
+					map[string]any{"type": "TextBlock", "text": "card-line"},
+				},
+			},
+		},
+	}
+	got := p.AllStrings()
+	require.Contains(t, got, "root")
+	require.Contains(t, got, "mm-line")
+	require.Contains(t, got, "OK")
+	require.NotContains(t, got, "act")
+	require.NotContains(t, got, "https://example.com/i.png")
+	require.Contains(t, got, "logo")
+	require.Contains(t, got, "card-line")
+}
+
+func TestPost_AllStrings_includesMessageAttachments(t *testing.T) {
+	p := &Post{
+		Message: "hi",
+		Props: StringInterface{
+			PostPropsAttachments: []*MessageAttachment{
+				{
+					AuthorName: "author",
+					Fallback:   "fallback",
+					Title:      "T",
+					Text:       "body",
+					Pretext:    "pre",
+					Footer:     "footer line",
+				},
+				{Fields: []*MessageAttachmentField{{Title: "Col", Value: "f1"}, {Title: "N", Value: 7}}},
+			},
+		},
+	}
+	got := p.AllStrings()
+	require.Contains(t, got, "hi")
+	require.Contains(t, got, "author")
+	require.NotContains(t, got, "fallback")
+	require.Contains(t, got, "T")
+	require.Contains(t, got, "body")
+	require.Contains(t, got, "pre")
+	require.Contains(t, got, "footer line")
+	require.Contains(t, got, "Col")
+	require.Contains(t, got, "f1")
+	require.Contains(t, got, "N")
+	require.Contains(t, got, "7")
+}
+
+func TestPost_AllStrings_interactivePropsWithoutMessage(t *testing.T) {
+	p := &Post{
+		Props: StringInterface{
+			PostPropsMmBlocks: []any{
+				map[string]any{"type": "button", "text": "Go", "action_id": "x"},
+			},
+		},
+	}
+	got := p.AllStrings()
+	require.Equal(t, []string{"Go"}, got)
+}
+
+func TestPost_AllStrings_nilProps(t *testing.T) {
+	p := &Post{Message: "x", Props: nil}
+	assert.Equal(t, []string{"x"}, p.AllStrings())
+}
+
 func TestPost_PropsIsValid(t *testing.T) {
 	tests := map[string]struct {
 		props   StringInterface
@@ -1131,6 +1245,40 @@ func TestPost_PropsIsValid(t *testing.T) {
 				},
 			},
 			wantErr: "",
+		},
+		"valid mm_blocks with empty blocks prop": {
+			props: StringInterface{
+				PostPropsMmBlocks:       []any{map[string]any{"type": "text", "text": "a"}},
+				PostPropsBlockKitBlocks: []any{},
+			},
+			wantErr: "",
+		},
+		"valid attachments with empty mm_blocks array": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{},
+				PostPropsAttachments: []*MessageAttachment{
+					{Fallback: "f"},
+				},
+			},
+			wantErr: "",
+		},
+		"invalid multiple interactive payloads mm_blocks and blocks": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{map[string]any{"type": "text", "text": "a"}},
+				PostPropsBlockKitBlocks: []any{
+					map[string]any{"type": "section", "text": map[string]any{"type": "mrkdwn", "text": "b"}},
+				},
+			},
+			wantErr: "at most one interactive payload",
+		},
+		"invalid multiple interactive payloads attachments and cards": {
+			props: StringInterface{
+				PostPropsAdaptiveCards: []any{map[string]any{"type": "AdaptiveCard", "version": "1.0", "body": []any{}}},
+				PostPropsAttachments: []*MessageAttachment{
+					{Fallback: "f"},
+				},
+			},
+			wantErr: "at most one interactive payload",
 		},
 		"invalid added_user_id type": {
 			props: StringInterface{
