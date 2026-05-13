@@ -404,8 +404,14 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                                     this.setState({[key]: filename, [`${key}Error`]: null});
                                 };
                                 const onError = (err: {message: string}) => {
-                                    this.setState({[key]: null, [`${key}Error`]: err.message});
+                                    this.setState({[`${key}Error`]: err.message});
                                 };
+                                if (typeof inputData !== 'string' || inputData.trim() === '') {
+                                    onError({
+                                        message: this.props.intl.formatMessage({id: 'admin.saml.getSamlMetadataFromIDPFail', defaultMessage: 'SAML Metadata URL did not connect and pull data successfully'}),
+                                    });
+                                    return;
+                                }
                                 tsetting.set_action(onSuccess, onError, inputData);
                             }
                         }
