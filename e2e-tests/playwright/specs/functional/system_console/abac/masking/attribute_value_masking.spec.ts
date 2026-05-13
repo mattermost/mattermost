@@ -257,7 +257,7 @@ async function getPolicyIdFromURL(page: Page): Promise<string> {
 // ---------------------------------------------------------------------------
 
 test.describe('Attribute-Value Masking', () => {
-    test('E2E-1: Full masking round-trip in Simple editor', async ({pw}) => {
+    test('MM-68508-1: Full masking round-trip in Simple editor', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -340,7 +340,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-2: Caller with masked values can save; hidden values are preserved by merge', async ({pw}) => {
+    test('MM-68508-2: Caller with masked values can save; hidden values are preserved by merge', async ({pw}) => {
         // Validates that callers with masked values CAN save changes. Merge-on-save
         // re-injects hidden values so Bravo and Charlie survive even though the caller
         // only sees and submits Alpha. Save button is enabled (not gated on masked state).
@@ -423,7 +423,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-3: Row-remove button is disabled on masked rows', async ({pw}) => {
+    test('MM-68508-3: Row-remove button is disabled on masked rows', async ({pw}) => {
         // The trash/remove button on a masked row is disabled — a caller with
         // masked values cannot delete individual rows, matching the Save/Delete
         // buttons which are also disabled when masked values are present.
@@ -489,7 +489,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-4: Self-inclusion failure blocks save (caller has full visibility)', async ({pw}) => {
+    test('MM-68508-4: Self-inclusion failure blocks save (caller has full visibility)', async ({pw}) => {
         // Self-inclusion is only checked when the caller holds ALL values in the policy
         // (no masked values). If masked values are present the 403 block fires first
         // and the Save button is disabled. This test uses a single-value policy so the
@@ -570,7 +570,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-5: Non-held value rejected via direct API', async ({pw}) => {
+    test('MM-68508-5: Non-held value rejected via direct API', async ({pw}) => {
         test.setTimeout(60000);
         await pw.skipIfNoLicense();
 
@@ -647,7 +647,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-6: CEL editor is read-only when policy has masked values', async ({pw}) => {
+    test('MM-68508-6: CEL editor is read-only when policy has masked values', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -743,7 +743,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-7: Caller holding all policy values sees them all unmasked', async ({pw}) => {
+    test('MM-68508-7: Caller holding all policy values sees them all unmasked', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -825,7 +825,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-8: New policy creation has no masking', async ({pw}) => {
+    test('MM-68508-8: New policy creation has no masking', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -881,7 +881,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-9: Masked row is fully read-only; merge-on-save preserves hidden values', async ({pw}) => {
+    test('MM-68508-9: Masked row is fully read-only; merge-on-save preserves hidden values', async ({pw}) => {
         // The masked row's value selector is locked — callers cannot add or remove values
         // through it. This is intentional: any direct modification could silently drop
         // hidden values, and the merge logic gates write-path edits on shared_only fields
@@ -973,7 +973,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-10: Text field masking with "in" operator', async ({pw}) => {
+    test('MM-68508-10: Text field masking with "in" operator', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -1035,7 +1035,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-11: Text field masking with single-value operator (value not held)', async ({pw}) => {
+    test('MM-68508-11: Text field masking with single-value operator (value not held)', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -1099,7 +1099,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-12: GET /policies/{id} does not leak raw CEL when values are masked', async ({pw}) => {
+    test('MM-68508-12: GET /policies/{id} does not leak raw CEL when values are masked', async ({pw}) => {
         test.setTimeout(60000);
         await pw.skipIfNoLicense();
 
@@ -1170,7 +1170,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-13: POST /policies/search does not leak raw CEL when values are masked', async ({pw}) => {
+    test('MM-68508-13: POST /policies/search does not leak raw CEL when values are masked', async ({pw}) => {
         test.setTimeout(60000);
         await pw.skipIfNoLicense();
 
@@ -1233,7 +1233,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-14: Warning banner visible in editor when policy has masked values', async ({pw}) => {
+    test('MM-68508-14: Warning banner visible in editor when policy has masked values', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
 
@@ -1301,7 +1301,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-15: Delete button is disabled on masked policies; clean policies open the standard confirmation modal', async ({
+    test('MM-68508-15: Delete button is disabled on masked policies; clean policies open the standard confirmation modal', async ({
         pw,
     }) => {
         test.setTimeout(120000);
@@ -1386,7 +1386,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-16: Delete Policy is blocked (UI and server) when caller has masked values', async ({pw}) => {
+    test('MM-68508-16: Delete Policy is blocked (UI and server) when caller has masked values', async ({pw}) => {
         // Validates that the read-only-when-masked invariant covers deletion:
         // - Delete Policy button in the UI is disabled when hasMaskedRows is true
         // - Server returns HTTP 403 for direct DELETE requests when caller has masked values
@@ -1471,7 +1471,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-17: Multi-condition save preserves all hidden values; deleting masked row is blocked', async ({pw}) => {
+    test('MM-68508-17: Multi-condition save preserves all hidden values; deleting masked row is blocked', async ({pw}) => {
         // Validates merge-on-save for a multi-condition policy. The caller (holds Alpha
         // in programField, nothing in clearanceField) can save — both conditions survive
         // with their hidden values intact. The server blocks deletion of masked conditions.
@@ -1594,7 +1594,7 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('E2E-18: Team admin cannot delete a policy with masked values even after removing all channels', async ({
+    test('MM-68508-18: Team admin cannot delete a policy with masked values even after removing all channels', async ({
         pw,
     }) => {
         // Validates that the masked-values block applies to the team settings modal:
@@ -1698,6 +1698,96 @@ test.describe('Attribute-Value Masking', () => {
             }, policyId);
 
             expect(status, `DELETE /api/v4/access_control_policies/${policyId} returned ${status}`).toBe(403);
+        } finally {
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
+        }
+    });
+
+    test('MM-68508-19: Mode toggle Simple → Advanced → Simple preserves all masked-row restrictions', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.initSetup();
+        const fieldIds: string[] = [];
+        const policyIds: string[] = [];
+
+        try {
+            await enableUserManagedAttributes(adminClient);
+            await enableMaskingFlag(adminClient);
+
+            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldId = await createMaskingTextField(adminClient, fieldName);
+            fieldIds.push(fieldId);
+            await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const page = systemConsolePage.page;
+            await navigateToABACPage(page);
+            await enableABAC(page);
+
+            const policyName = `MaskingPolicy ${pw.random.id()}`;
+            const policyId = await createPolicyWithCEL(
+                page,
+                policyName,
+                `user.attributes.${fieldName} in ["Alpha", "Bravo", "Charlie"]`,
+            );
+            policyIds.push(policyId);
+            await setFieldAsSharedOnly(fieldId);
+
+            await openExistingPolicy(page, policyName);
+
+            // --- Initial Simple mode: restrictions in place ---
+            const maskedChip = page.locator('.select__multi-value--masked');
+            const banner = page.locator('text="This policy contains restricted values"');
+            const deleteBtn = page.getByRole('button', {name: /^delete$/i}).last();
+
+            await expect(maskedChip.first()).toBeVisible();
+            await expect(banner).toBeVisible();
+            await expect(deleteBtn).toBeDisabled();
+
+            // --- Switch to Advanced mode ---
+            const toAdvanced = page.getByRole('button', {name: /switch to advanced mode/i});
+            await toAdvanced.click();
+            await page.waitForTimeout(500);
+
+            // Banner must persist across the toggle (it lives in policy_details,
+            // not the editor).
+            await expect(banner).toBeVisible();
+            // CEL editor visible
+            await expect(page.locator('.monaco-editor').first()).toBeVisible();
+
+            // --- Switch back to Simple mode ---
+            const toSimple = page.getByRole('button', {name: /switch to simple mode/i});
+            await toSimple.click();
+            // Give TableEditor a beat to remount and re-fetch the AST. The
+            // assertions below must hold *after* the remount completes — that
+            // window is exactly where the pre-fix race lived.
+            await page.waitForTimeout(1500);
+
+            // Banner must STILL be visible.
+            await expect(banner).toBeVisible();
+            // Masked chip must STILL be visible.
+            await expect(maskedChip.first()).toBeVisible();
+            // Delete button must STILL be disabled.
+            await expect(deleteBtn).toBeDisabled();
+            // Value selector on the masked row must be disabled (no edits to
+            // values the caller couldn't see).
+            const valueSelector = page.locator('[data-testid="valueSelectorMenuButton"]').first();
+            if (await valueSelector.isVisible({timeout: 2000})) {
+                await expect(valueSelector).toBeDisabled();
+            }
         } finally {
             for (const id of policyIds) {
                 try {

@@ -177,16 +177,28 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     });
 
     test('should show masked values warning banner when policy has masked rows', async () => {
-        // Simulate TableEditor reporting masked rows via onMaskedStateChange
-        const TableEditorMock = jest.requireMock('../editors/table_editor/table_editor');
-        TableEditorMock.mockImplementationOnce(({onMaskedStateChange}: any) => {
-            React.useEffect(() => {
-                onMaskedStateChange?.(true);
-            }, []);
-            return <div data-testid='table-editor'/>;
-        });
-
-        renderWithContext(<PolicyDetails {...defaultProps}/>);
+        // hasMaskedRows is derived in policy_details from the presence of the
+        // "--------" sentinel in the loaded expression — drive the test via a
+        // fetched policy carrying a masked rule.
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                fetchPolicy: jest.fn().mockResolvedValue({
+                    data: {
+                        policy: {
+                            id: 'policy1',
+                            name: 'Policy 1',
+                            rules: [{
+                                actions: ['*'],
+                                expression: 'user.attributes.program in ["Alpha", "--------"]',
+                            }],
+                        },
+                    },
+                }),
+            },
+        };
+        renderWithContext(<PolicyDetails {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByText('This policy contains restricted values')).toBeInTheDocument();
@@ -200,6 +212,81 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         await waitFor(() => {
             expect(screen.queryByText('This policy contains restricted values')).not.toBeInTheDocument();
         });
+    });
+
+    test('hasMaskedRows derivation survives Simple → Advanced → Simple mode toggles', async () => {
+        // Regression guard: hasMaskedRows must come from the expression itself,
+        // not from a TableEditor lifecycle callback. Toggling editor modes
+        // remounts TableEditor; if the parent reset hasMaskedRows on remount,
+        // the warning banner would flicker off and the CEL/delete gates would
+        // briefly open. Deriving from the "--------" sentinel in the expression
+        // is the only source of truth that's lifecycle-independent.
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                fetchPolicy: jest.fn().mockResolvedValue({
+                    data: {
+                        policy: {
+                            id: 'policy1',
+                            name: 'Policy 1',
+                            rules: [{
+                                actions: ['*'],
+                                expression: 'user.attributes.program in ["Alpha", "--------"]',
+                            }],
+                        },
+                    },
+                }),
+            },
+        };
+        renderWithContext(<PolicyDetails {...props}/>);
+
+        // Banner present after initial load (Simple mode).
+        await waitFor(() => {
+            expect(screen.getByText('This policy contains restricted values')).toBeInTheDocument();
+        });
+
+        // Switch to Advanced mode — banner must remain (it lives outside the
+        // editor swap, gated by hasMaskedRows which is expression-derived).
+        const toAdvanced = screen.getByText('Switch to Advanced Mode');
+        await userEvent.click(toAdvanced);
+        expect(screen.getByText('This policy contains restricted values')).toBeInTheDocument();
+
+        // Switch back to Simple mode — banner must STILL be there. Before the
+        // fix, the TableEditor remount transiently flipped hasMaskedRows to
+        // false and the banner disappeared.
+        const toSimple = screen.getByText('Switch to Simple Mode');
+        await userEvent.click(toSimple);
+        expect(screen.getByText('This policy contains restricted values')).toBeInTheDocument();
+    });
+
+    test('hasMaskedRows stays false for a policy without the masked-token sentinel', async () => {
+        // Negative case: a normal policy expression must not trip the
+        // masked-rows banner.
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                fetchPolicy: jest.fn().mockResolvedValue({
+                    data: {
+                        policy: {
+                            id: 'policy1',
+                            name: 'Policy 1',
+                            rules: [{
+                                actions: ['*'],
+                                expression: 'user.attributes.program in ["Alpha", "Bravo"]',
+                            }],
+                        },
+                    },
+                }),
+            },
+        };
+        renderWithContext(<PolicyDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Delete policy')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('This policy contains restricted values')).not.toBeInTheDocument();
     });
 
     // Note: when hasMaskedRows is true the Delete button is disabled (policy_details.tsx),
