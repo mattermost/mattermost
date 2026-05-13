@@ -56,6 +56,7 @@
 
         .modal-back {
             position: absolute;
+            z-index: 1;
             top: 18px;
             left: 12px;
             display: flex;
@@ -71,7 +72,6 @@
             font-size: 27px;
             font-weight: normal;
             text-align: center;
-            z-index: 1;
         }
 
         .modal-body {
