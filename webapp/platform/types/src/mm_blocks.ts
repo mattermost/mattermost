@@ -190,21 +190,3 @@ export type MmBlock =
     | MmColumnBlock
     | MmContainerBlock
     | MmCollapsibleBlock;
-
-// ---------------------------------------------------------------------------
-// Type guards
-// ---------------------------------------------------------------------------
-
-export function isMmBlockArray(v: unknown): v is MmBlock[] {
-    return Array.isArray(v) && v.every(isMmBlock);
-}
-
-export function isMmBlock(v: unknown): v is MmBlock {
-    if (typeof v !== 'object' || v === null) {
-        return false;
-    }
-    if (!('type' in v) || typeof (v as Record<string, unknown>).type !== 'string') {
-        return false;
-    }
-    return true;
-}

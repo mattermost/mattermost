@@ -384,6 +384,98 @@
                 ]
             }
         },
+        "raw_metrics": {
+            "message": "Fixture: raw metrics — bordered container with accent; three columns of bordered gray metric tiles.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "container",
+                        "border": true,
+                        "accent_color": "primary",
+                        "gap": "small",
+                        "content": [
+                            {
+                                "type": "column_set",
+                                "columns": [
+                                    {
+                                        "type": "column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "container",
+                                                "border": true,
+                                                "background": "gray",
+                                                "gap": "small",
+                                                "content": [
+                                                    {
+                                                        "type": "text",
+                                                        "text": "**2.4k**"
+                                                    },
+                                                    {
+                                                        "type": "text",
+                                                        "text": "Messages today",
+                                                        "is_subtle": true,
+                                                        "size": "small"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "container",
+                                                "border": true,
+                                                "background": "gray",
+                                                "gap": "small",
+                                                "content": [
+                                                    {
+                                                        "type": "text",
+                                                        "text": "**187**"
+                                                    },
+                                                    {
+                                                        "type": "text",
+                                                        "text": "Active members",
+                                                        "is_subtle": true,
+                                                        "size": "small"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "container",
+                                                "border": true,
+                                                "background": "gray",
+                                                "gap": "small",
+                                                "content": [
+                                                    {
+                                                        "type": "text",
+                                                        "text": "**99.2%**"
+                                                    },
+                                                    {
+                                                        "type": "text",
+                                                        "text": "Uptime (30d)",
+                                                        "is_subtle": true,
+                                                        "size": "small"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
         "collapsible_select": {
             "message": "Fixture: collapsible region and static select.",
             "props": {
@@ -1000,7 +1092,7 @@
                         "border": true,
                         "accent_color": "warning",
                         "flow": "vertical",
-                        "gap": "big",
+                        "gap": "large",
                         "content": [
                             {
                                 "type": "text",

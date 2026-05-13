@@ -15,6 +15,7 @@ import type {MmBlock} from '@mattermost/types/mm_blocks';
 import {translateAdaptiveCards} from './adaptive_cards';
 import {translateAttachments} from './attachments';
 import {translateBlockKit} from './block_kit';
+import {translateMMBlocks} from './mm_block';
 
 /**
  * Detects the format present in the post props and returns normalised `MmBlock[]`,
@@ -22,7 +23,7 @@ import {translateBlockKit} from './block_kit';
  */
 export function translatePostProps(props: Record<string, unknown>): MmBlock[] | null {
     if (Array.isArray(props.mm_blocks) && props.mm_blocks.length > 0) {
-        return props.mm_blocks as MmBlock[];
+        return translateMMBlocks(props.mm_blocks);
     }
     if (Array.isArray(props.blocks) && props.blocks.length > 0) {
         return translateBlockKit(props.blocks);

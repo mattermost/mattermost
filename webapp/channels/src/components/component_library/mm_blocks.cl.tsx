@@ -7,12 +7,13 @@
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
 
-import {isMmBlockArray, type MmBlock} from '@mattermost/types/mm_blocks';
+import {type MmBlock} from '@mattermost/types/mm_blocks';
 
 import {BlockRenderer} from 'components/post_view/interactive_messages/block_renderer';
 import {translateAdaptiveCards} from 'components/post_view/interactive_messages/translation/adaptive_cards';
 import {translateAttachments} from 'components/post_view/interactive_messages/translation/attachments';
 import {translateBlockKit} from 'components/post_view/interactive_messages/translation/block_kit';
+import {translateMMBlocks} from 'components/post_view/interactive_messages/translation/mm_block';
 import PostContext from 'components/post_view/post_context';
 
 import './component_library.scss';
@@ -127,10 +128,7 @@ function parsePayload(text: string, mode: InputMode): ParseResult {
         if (!Array.isArray(parsed)) {
             return {ok: false, error: 'Top-level JSON value must be an array of mm blocks.'};
         }
-        if (!isMmBlockArray(parsed)) {
-            return {ok: false, error: 'Each block must be an object with a string "type" property.'};
-        }
-        return {ok: true, blocks: parsed};
+        return {ok: true, blocks: translateMMBlocks(parsed)};
     }
 
     if (mode === 'attachments') {
