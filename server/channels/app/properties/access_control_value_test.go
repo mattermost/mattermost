@@ -582,7 +582,8 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "shared-only-text",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
 				model.PropertyAttrsProtected:  true,
