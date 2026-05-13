@@ -10,11 +10,6 @@ import {suitePluginIds} from 'utils/constants';
 
 describe('components/KeyboardShortcutsModal', () => {
     const initialState = {
-        entities: {
-            general: {
-                config: {},
-            },
-        },
         plugins: {
             plugins: {},
         },

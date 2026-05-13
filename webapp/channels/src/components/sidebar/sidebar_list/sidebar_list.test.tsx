@@ -131,7 +131,6 @@ describe('SidebarList', () => {
             },
         ],
         unreadChannelIds: ['channel_id_2'],
-        currentUserId: 'current_user_id',
         displayedChannels: [currentChannel, unreadChannel],
         newCategoryIds: [],
         multiSelectedChannelIds: [],
@@ -144,8 +143,6 @@ describe('SidebarList', () => {
         showUnreadsCategory: false,
         collapsedThreads: true,
         hasUnreadThreads: false,
-        markAllAsReadWithoutConfirm: false,
-        markAllAsReadShortcutEnabled: false,
         currentStaticPageId: '',
         staticPages: [],
         actions: {
@@ -159,10 +156,6 @@ describe('SidebarList', () => {
             stopDragging: jest.fn(),
             clearChannelSelection: jest.fn(),
             multiSelectChannelAdd: jest.fn(),
-            readAllMessages: jest.fn(),
-            markAllInTeamAsRead: jest.fn(),
-            setMarkAllAsReadWithoutConfirm: jest.fn(),
-            openModal: jest.fn(),
         },
     };
 

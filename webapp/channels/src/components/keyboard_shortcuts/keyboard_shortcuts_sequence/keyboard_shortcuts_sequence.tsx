@@ -4,13 +4,12 @@
 import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
+import {ShortcutKeyVariant, ShortcutKey} from '@mattermost/shared/components/shortcut_key';
 import {isMac} from '@mattermost/shared/utils/user_agent';
-
-import {ShortcutSequence, ShortcutKeyVariant, KEY_SEPARATOR} from 'components/shortcut_sequence';
 
 import {isMessageDescriptor} from 'utils/i18n';
 
-import {type KeyboardShortcutDescriptor} from './keyboard_shortcuts';
+import type {KeyboardShortcutDescriptor} from './keyboard_shortcuts';
 
 import './keyboard_shortcuts_sequence.scss';
 
@@ -29,11 +28,12 @@ function normalizeShortcutDescriptor(shortcut: KeyboardShortcutDescriptor) {
     return isMac() && mac ? mac : standard;
 }
 
+const KEY_SEPARATOR = '|';
+
 function KeyboardShortcutSequence({shortcut, hideDescription, hoistDescription, isInsideTooltip}: Props) {
     const {formatMessage} = useIntl();
     const shortcutText = formatMessage(normalizeShortcutDescriptor(shortcut));
     const splitShortcut = shortcutText.split('\t');
-    const variant = isInsideTooltip ? ShortcutKeyVariant.Tooltip : ShortcutKeyVariant.ShortcutModal;
 
     let description = '';
     let keys = '';
@@ -50,13 +50,19 @@ function KeyboardShortcutSequence({shortcut, hideDescription, hoistDescription, 
     }
 
     const renderAltKeys = () => {
+        const shortcutKeys = altKeys.split(KEY_SEPARATOR).map((key) => (
+            <ShortcutKey
+                key={key}
+                variant={isInsideTooltip ? ShortcutKeyVariant.Tooltip : ShortcutKeyVariant.ShortcutModal}
+            >
+                {key}
+            </ShortcutKey>
+        ));
+
         return (
             <>
                 <span>{'\t|\t'}</span>
-                <ShortcutSequence
-                    keys={altKeys}
-                    variant={variant}
-                />
+                {shortcutKeys}
             </>
         );
     };
@@ -66,12 +72,14 @@ function KeyboardShortcutSequence({shortcut, hideDescription, hoistDescription, 
             {hoistDescription && !hideDescription && description?.replace(/:{1,2}$/, '')}
             <div className='shortcut-line'>
                 {!hoistDescription && !hideDescription && description && <span>{description}</span>}
-                {keys && (
-                    <ShortcutSequence
-                        keys={keys}
-                        variant={variant}
-                    />
-                )}
+                {keys && keys.split(KEY_SEPARATOR).map((key) => (
+                    <ShortcutKey
+                        key={key}
+                        variant={isInsideTooltip ? ShortcutKeyVariant.Tooltip : ShortcutKeyVariant.ShortcutModal}
+                    >
+                        {key}
+                    </ShortcutKey>
+                ))}
 
                 {altKeys && renderAltKeys()}
             </div>

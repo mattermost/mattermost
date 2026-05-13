@@ -11,7 +11,6 @@ export enum ShortcutKeyVariant {
     Tooltip = 'tooltip',
     TutorialTip = 'tutorialTip',
     ShortcutModal = 'shortcut',
-    InlineContent = 'inline-content',
 }
 
 export interface ShortcutKeyProps {
@@ -27,7 +26,6 @@ export function ShortcutKey({children, variant}: ShortcutKeyProps) {
                 'shortcut-key--tooltip': variant === ShortcutKeyVariant.Tooltip,
                 'shortcut-key--tutorial-tip': variant === ShortcutKeyVariant.TutorialTip,
                 'shortcut-key--shortcut-modal': variant === ShortcutKeyVariant.ShortcutModal,
-                'shortcut-key--inline-content': variant === ShortcutKeyVariant.InlineContent,
             })}
         >
             {children}
