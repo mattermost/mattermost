@@ -7,9 +7,11 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import {PlusIcon} from '@mattermost/compass-icons/components';
+import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {supportsOptions, type BoardPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
+
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import LoadingScreen from 'components/loading_screen';
 
@@ -219,7 +221,7 @@ export function BoardAttributesTable({
             }),
             col.display({
                 id: 'actions',
-                size: 40,
+                size: 72,
                 header: () => {
                     return (
                         <ColHeaderRight>
@@ -338,7 +340,17 @@ const ColHeaderRight = styled.div`
 `;
 
 const ActionsRoot = styled.div`
-    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+`;
+
+const ProtectedLock = styled.span`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
 `;
 
 type ActionsCellProps = {
@@ -350,8 +362,21 @@ type ActionsCellProps = {
 };
 
 const ActionsCell = ({field, canCreate, createField, updateField, deleteField}: ActionsCellProps) => {
+    const {formatMessage} = useIntl();
     return (
         <ActionsRoot>
+            {field.protected && (
+                <WithTooltip
+                    title={formatMessage({
+                        id: 'admin.board_attributes.table.actions.protected_tooltip',
+                        defaultMessage: 'System attribute — cannot be modified',
+                    })}
+                >
+                    <ProtectedLock aria-hidden={false}>
+                        <LockOutlineIcon size={18}/>
+                    </ProtectedLock>
+                </WithTooltip>
+            )}
             <BoardAttributesDotMenu
                 field={field}
                 canCreate={canCreate}

@@ -458,13 +458,16 @@ const ChipDeleteButton = styled.button`
 `;
 
 /* Rounded-square colour preview shown inside menu items. 20px square with a
-   1px hairline border, per Figma node 696:91067. */
+   1px hairline border, per Figma node 696:91067. Rendered as a block so it
+   centres on the parent flex row's cross-axis without inheriting an
+   inline-block baseline offset. */
 const ColorPreview = styled.span`
-    display: inline-block;
+    display: block;
     width: 20px;
     height: 20px;
     border-radius: 4px;
     flex-shrink: 0;
+    align-self: center;
     box-shadow: inset 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.08);
 `;
 

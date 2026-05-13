@@ -2,12 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
-import {ContentCopyIcon, DotsHorizontalIcon, LockOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {ContentCopyIcon, DotsHorizontalIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {BoardPropertyField} from '@mattermost/types/properties';
-
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import * as Menu from 'components/menu';
 
@@ -32,7 +30,6 @@ const DotMenu = ({
     createField,
     deleteField,
 }: Props) => {
-    const {formatMessage} = useIntl();
     const {promptDelete} = useBoardAttributeFieldDelete();
 
     const isProtected = Boolean(field.protected);
@@ -68,11 +65,7 @@ const DotMenu = ({
             menuButton={{
                 id: `${menuId}-${field.id}`,
                 class: 'btn btn-transparent user-property-field-dotmenu-menu-button',
-                children: (
-                    <>
-                        {isProtected ? <LockOutlineIcon size={18}/> : <DotsHorizontalIcon size={18}/>}
-                    </>
-                ),
+                children: <DotsHorizontalIcon size={18}/>,
                 dataTestId: `${menuId}-${field.id}`,
                 disabled: field.delete_at !== 0,
             }}
@@ -111,21 +104,6 @@ const DotMenu = ({
             />
         </Menu.Container>
     );
-
-    if (isProtected) {
-        return (
-            <WithTooltip
-                title={formatMessage({
-                    id: 'admin.board_attributes.dot_menu.system_managed_tooltip',
-                    defaultMessage: 'System attributes cannot be modified',
-                })}
-            >
-                <span>
-                    {menuButton}
-                </span>
-            </WithTooltip>
-        );
-    }
 
     return menuButton;
 };
