@@ -271,6 +271,7 @@ const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) 
     const [editValue, setEditValue] = useState(option.name);
     const inputRef = useRef<HTMLInputElement>(null);
     const chipRef = useRef<HTMLSpanElement>(null);
+    const dropZoneRef = useRef<HTMLSpanElement>(null);
     const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
     const canDelete = options.length > 1;
     const currentColor = normalizeColor(option.color);
@@ -283,18 +284,17 @@ const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) 
         setEditValue(option.name);
     }, [option.name]);
 
-    // Wire this chip as both a draggable source and a drop target so the
-    // parent's monitorForElements can handle the reorder commit.
     useEffect(() => {
-        const el = chipRef.current;
-        if (!el) {
+        const chipEl = chipRef.current;
+        const zoneEl = dropZoneRef.current;
+        if (!chipEl || !zoneEl) {
             return undefined;
         }
         const optionKey = option.id || `pending-${index}`;
         const fieldKind = `board-option-chip:${fieldId}`;
         return combine(
             draggable({
-                element: el,
+                element: chipEl,
                 getInitialData: () => ({kind: fieldKind, optionKey}),
                 onGenerateDragPreview: ({nativeSetDragImage}) => {
                     setCustomNativeDragPreview({
@@ -310,7 +310,7 @@ const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) 
                 },
             }),
             dropTargetForElements({
-                element: el,
+                element: zoneEl,
                 canDrop: ({source}) =>
                     source.data.kind === fieldKind &&
                     source.data.optionKey !== optionKey,
@@ -378,110 +378,112 @@ const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) 
     };
 
     return (
-        <ChipShell
-            ref={chipRef}
-            $invalid={isInvalid}
-            style={{backgroundColor: resolveColor(option.color)}}
-        >
-            {closestEdge && <DropIndicator edge={closestEdge}/>}
-            <Menu.Container
-                menuButton={{
-                    id: `${menuId}-button`,
-                    class: 'property-option-chip-trigger',
-                    children: <ChipLabel>{option.name}</ChipLabel>,
-                    dataTestId: `property-option-chip-${option.id || option.name}`,
-                }}
-                menu={{
-                    id: `${menuId}-menu`,
-                    'aria-label': formatMessage({
-                        id: 'admin.board_attributes.values.option_menu_label',
-                        defaultMessage: 'Edit option',
-                    }),
-                    className: 'property-option-menu',
-                }}
+        <ChipDropZone ref={dropZoneRef}>
+            <ChipShell
+                ref={chipRef}
+                $invalid={isInvalid}
+                style={{backgroundColor: resolveColor(option.color)}}
             >
-                <RenameInputWrapper>
-                    <RenameInput
-                        ref={inputRef}
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onFocus={(e) => e.target.select()}
-                        onKeyDown={handleKeyDown}
-                        onBlur={commitRename}
-                        maxLength={MAX_OPTION_NAME_LENGTH}
-                        placeholder={formatMessage({
-                            id: 'admin.board_attributes.values.rename_placeholder',
-                            defaultMessage: 'Option name',
-                        })}
-                        autoFocus={true}
-                        aria-invalid={liveRenameTaken}
-                    />
-                    {liveRenameTaken && (
-                        <RenameError role='alert'>
-                            <FormattedMessage
-                                id='admin.board_attributes.values.rename_duplicate'
-                                defaultMessage='A value with this name already exists.'
-                            />
-                        </RenameError>
-                    )}
-                </RenameInputWrapper>
-                {canDelete && (
-                    <Menu.Item
-                        id={`${menuId}-delete`}
-                        onClick={handleDelete}
-                        isDestructive={true}
-                        leadingElement={<TrashCanOutlineIcon size={16}/>}
-                        labels={(
-                            <FormattedMessage
-                                id='admin.board_attributes.values.delete'
-                                defaultMessage='Delete'
-                            />
-                        )}
-                    />
-                )}
-                <Menu.Separator/>
-                <ColorsLabel>
-                    <FormattedMessage
-                        id='admin.board_attributes.values.colors_header'
-                        defaultMessage='Colors'
-                    />
-                </ColorsLabel>
-                {COLOR_TOKEN_NAMES.map((token) => (
-                    <Menu.Item
-                        key={token}
-                        id={`${menuId}-color-${token}`}
-                        role='menuitemradio'
-                        aria-checked={currentColor === token}
-                        forceCloseOnSelect={false}
-                        onClick={() => setColor(token)}
-                        leadingElement={<ColorPreview style={{backgroundColor: colorTokenMap[token]}}/>}
-                        labels={<FormattedMessage {...colorTokenLabels[token]}/>}
-                        trailingElements={currentColor === token ? (
-                            <CheckIcon
-                                size={16}
-                                color='var(--button-bg)'
-                            />
-                        ) : undefined}
-                    />
-                ))}
-            </Menu.Container>
-            {canDelete && (
-                <ChipDeleteButton
-                    type='button'
-                    onClick={handleDeleteClick}
-                    aria-label={formatMessage({
-                        id: 'admin.board_attributes.values.delete_option',
-                        defaultMessage: 'Delete option {name}',
-                    }, {name: option.name})}
-                    data-testid={`property-option-delete-${option.id || option.name}`}
+                <Menu.Container
+                    menuButton={{
+                        id: `${menuId}-button`,
+                        class: 'property-option-chip-trigger',
+                        children: <ChipLabel>{option.name}</ChipLabel>,
+                        dataTestId: `property-option-chip-${option.id || option.name}`,
+                    }}
+                    menu={{
+                        id: `${menuId}-menu`,
+                        'aria-label': formatMessage({
+                            id: 'admin.board_attributes.values.option_menu_label',
+                            defaultMessage: 'Edit option',
+                        }),
+                        className: 'property-option-menu',
+                    }}
                 >
-                    <CloseCircleIcon
-                        size={14}
-                        color='rgba(var(--center-channel-color-rgb), 0.56)'
-                    />
-                </ChipDeleteButton>
-            )}
-        </ChipShell>
+                    <RenameInputWrapper>
+                        <RenameInput
+                            ref={inputRef}
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onFocus={(e) => e.target.select()}
+                            onKeyDown={handleKeyDown}
+                            onBlur={commitRename}
+                            maxLength={MAX_OPTION_NAME_LENGTH}
+                            placeholder={formatMessage({
+                                id: 'admin.board_attributes.values.rename_placeholder',
+                                defaultMessage: 'Option name',
+                            })}
+                            autoFocus={true}
+                            aria-invalid={liveRenameTaken}
+                        />
+                        {liveRenameTaken && (
+                            <RenameError role='alert'>
+                                <FormattedMessage
+                                    id='admin.board_attributes.values.rename_duplicate'
+                                    defaultMessage='A value with this name already exists.'
+                                />
+                            </RenameError>
+                        )}
+                    </RenameInputWrapper>
+                    {canDelete && (
+                        <Menu.Item
+                            id={`${menuId}-delete`}
+                            onClick={handleDelete}
+                            isDestructive={true}
+                            leadingElement={<TrashCanOutlineIcon size={16}/>}
+                            labels={(
+                                <FormattedMessage
+                                    id='admin.board_attributes.values.delete'
+                                    defaultMessage='Delete'
+                                />
+                            )}
+                        />
+                    )}
+                    <Menu.Separator/>
+                    <ColorsLabel>
+                        <FormattedMessage
+                            id='admin.board_attributes.values.colors_header'
+                            defaultMessage='Colors'
+                        />
+                    </ColorsLabel>
+                    {COLOR_TOKEN_NAMES.map((token) => (
+                        <Menu.Item
+                            key={token}
+                            id={`${menuId}-color-${token}`}
+                            role='menuitemradio'
+                            aria-checked={currentColor === token}
+                            forceCloseOnSelect={false}
+                            onClick={() => setColor(token)}
+                            leadingElement={<ColorPreview style={{backgroundColor: colorTokenMap[token]}}/>}
+                            labels={<FormattedMessage {...colorTokenLabels[token]}/>}
+                            trailingElements={currentColor === token ? (
+                                <CheckIcon
+                                    size={16}
+                                    color='var(--button-bg)'
+                                />
+                            ) : undefined}
+                        />
+                    ))}
+                </Menu.Container>
+                {canDelete && (
+                    <ChipDeleteButton
+                        type='button'
+                        onClick={handleDeleteClick}
+                        aria-label={formatMessage({
+                            id: 'admin.board_attributes.values.delete_option',
+                            defaultMessage: 'Delete option {name}',
+                        }, {name: option.name})}
+                        data-testid={`property-option-delete-${option.id || option.name}`}
+                    >
+                        <CloseCircleIcon
+                            size={14}
+                            color='rgba(var(--center-channel-color-rgb), 0.56)'
+                        />
+                    </ChipDeleteButton>
+                )}
+            </ChipShell>
+            {closestEdge && <DropIndicator edge={closestEdge}/>}
+        </ChipDropZone>
     );
 };
 
@@ -495,7 +497,7 @@ const EmptyValues = styled.span`
 const ValuesContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 0;
     align-items: center;
     padding: 6px 0;
     min-height: 40px;
@@ -521,6 +523,12 @@ const ValuesContainer = styled.div`
         font-weight: 600;
         cursor: pointer;
     }
+`;
+
+const ChipDropZone = styled.span`
+    position: relative;
+    display: inline-flex;
+    padding: 0 3px;
 `;
 
 const ProtectedValues = styled.div`
