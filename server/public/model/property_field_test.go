@@ -798,6 +798,81 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.Error(t, pf.IsValid())
 		})
 	})
+
+	t.Run("permission id levels", func(t *testing.T) {
+		baseChannelField := func() *PropertyField {
+			return &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "test field",
+				Type:       PropertyFieldTypeText,
+				ObjectType: PropertyFieldObjectTypePost,
+				TargetType: string(PropertyFieldTargetLevelChannel),
+				TargetID:   NewId(),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+			}
+		}
+
+		t.Run("channel-scoped permission id on channel-target field is valid", func(t *testing.T) {
+			pf := baseChannelField()
+			pf.PermissionField = new(PermissionLevel(PermissionManageChannelRoles.Id))
+			pf.PermissionValues = new(PermissionLevel(PermissionManageChannelRoles.Id))
+			pf.PermissionOptions = new(PermissionLevel(PermissionManageChannelRoles.Id))
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("team-scoped permission id on team-target field is valid", func(t *testing.T) {
+			pf := baseChannelField()
+			pf.TargetType = string(PropertyFieldTargetLevelTeam)
+			pf.PermissionField = new(PermissionLevel(PermissionManageTeam.Id))
+			pf.PermissionValues = new(PermissionLevel(PermissionManageTeam.Id))
+			pf.PermissionOptions = new(PermissionLevel(PermissionManageTeam.Id))
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("system-scoped permission id on system-target field is valid", func(t *testing.T) {
+			pf := baseChannelField()
+			pf.TargetType = string(PropertyFieldTargetLevelSystem)
+			pf.TargetID = ""
+			pf.PermissionField = new(PermissionLevel(PermissionManageSystem.Id))
+			pf.PermissionValues = new(PermissionLevel(PermissionManageSystem.Id))
+			pf.PermissionOptions = new(PermissionLevel(PermissionManageSystem.Id))
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("channel-scoped permission id on team-target field is rejected", func(t *testing.T) {
+			pf := baseChannelField()
+			pf.TargetType = string(PropertyFieldTargetLevelTeam)
+			pf.PermissionField = new(PermissionLevel(PermissionManageChannelRoles.Id))
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("team-scoped permission id on channel-target field is rejected", func(t *testing.T) {
+			pf := baseChannelField()
+			pf.PermissionField = new(PermissionLevel(PermissionManageTeam.Id))
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("system-scoped permission id on channel-target field is rejected", func(t *testing.T) {
+			pf := baseChannelField()
+			pf.PermissionField = new(PermissionLevel(PermissionManageSystem.Id))
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("unknown permission id is rejected", func(t *testing.T) {
+			pf := baseChannelField()
+			pf.PermissionField = new(PermissionLevel("not_a_real_permission"))
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("PSAv1 field still rejects permission id", func(t *testing.T) {
+			pf := baseChannelField()
+			pf.ObjectType = ""
+			pf.PermissionField = new(PermissionLevel(PermissionManageChannelRoles.Id))
+			require.Error(t, pf.IsValid())
+		})
+	})
 }
 
 func TestPropertyFieldPatch_IsValid(t *testing.T) {

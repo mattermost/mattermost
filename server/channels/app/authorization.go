@@ -575,6 +575,9 @@ func (a *App) HasPermissionToManagePropertyFieldOptions(rctx request.CTX, userID
 }
 
 // hasPropertyFieldPermissionLevel checks if the user has the specified permission level for the field.
+// Reserved levels (none/sysadmin/member) have hard-coded semantics; any other
+// value is treated as a Mattermost permission ID looked up at runtime and
+// evaluated against the field's target via the scope-appropriate helper.
 func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, field *model.PropertyField, level model.PermissionLevel) bool {
 	switch level {
 	case model.PermissionLevelNone:
@@ -583,6 +586,20 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 		return a.HasPermissionTo(userID, model.PermissionManageSystem)
 	case model.PermissionLevelMember:
 		return a.hasPropertyFieldScopeAccess(rctx, userID, field)
+	}
+
+	perm := model.PermissionByID(string(level))
+	if perm == nil {
+		return false
+	}
+	switch perm.Scope {
+	case model.PermissionScopeSystem:
+		return a.HasPermissionTo(userID, perm)
+	case model.PermissionScopeTeam:
+		return a.HasPermissionToTeam(rctx, userID, field.TargetID, perm)
+	case model.PermissionScopeChannel:
+		hasPermission, _ := a.HasPermissionToChannel(rctx, userID, field.TargetID, perm)
+		return hasPermission
 	}
 	return false
 }

@@ -411,6 +411,17 @@ var PermissionRestoreCustomGroup *Permission
 var AllPermissions []*Permission
 var DeprecatedPermissions []*Permission
 
+// permissionsByID indexes AllPermissions by Id for O(1) lookup. Built inside
+// initializePermissions; the slice and map share a lifetime so they cannot
+// drift out of sync.
+var permissionsByID map[string]*Permission
+
+// PermissionByID returns the Permission with the given Id, or nil if no such
+// permission is registered.
+func PermissionByID(id string) *Permission {
+	return permissionsByID[id]
+}
+
 var ChannelModeratedPermissions []string
 var ChannelModeratedPermissionsMap map[string]string
 
@@ -2701,6 +2712,11 @@ func initializePermissions() {
 	AllPermissions = append(AllPermissions, GroupScopedPermissions...)
 	AllPermissions = append(AllPermissions, PlaybookScopedPermissions...)
 	AllPermissions = append(AllPermissions, RunScopedPermissions...)
+
+	permissionsByID = make(map[string]*Permission, len(AllPermissions))
+	for _, p := range AllPermissions {
+		permissionsByID[p.Id] = p
+	}
 
 	ChannelModeratedPermissions = []string{
 		PermissionCreatePost.Id,

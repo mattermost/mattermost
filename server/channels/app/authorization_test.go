@@ -2160,3 +2160,108 @@ func TestSessionHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 		})
 	}
 }
+
+func TestSessionHasPropertyFieldPermissionByID(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID, err := th.App.CpaGroupID()
+	require.Nil(t, err)
+
+	// BasicUser starts as a regular channel member (channel_user). Promote them
+	// to channel_admin in BasicChannel so they hold manage_channel_roles.
+	_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+		model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+	require.Nil(t, appErr)
+
+	// BasicUser2 is in the team but not the channel.
+	require.NotEqual(t, th.BasicUser.Id, th.BasicUser2.Id)
+
+	channelField := func() *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "channel admin only",
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypePost,
+			TargetType:        string(model.PropertyFieldTargetLevelChannel),
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   model.NewPointer(model.PermissionLevel(model.PermissionManageChannelRoles.Id)),
+			PermissionValues:  model.NewPointer(model.PermissionLevel(model.PermissionManageChannelRoles.Id)),
+			PermissionOptions: model.NewPointer(model.PermissionLevel(model.PermissionManageChannelRoles.Id)),
+		}
+	}
+
+	channelAdminSession := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+	memberSession := model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}
+
+	// Make BasicUser2 a channel member with the default channel_user role so
+	// the manage_channel_roles check has a definite "no" answer (member of the
+	// channel, but without the permission).
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	t.Run("channel admin can edit, set values, and manage options", func(t *testing.T) {
+		field := channelField()
+		assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, channelAdminSession, field))
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, channelAdminSession, field))
+		assert.True(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, channelAdminSession, field))
+	})
+
+	t.Run("regular channel member is denied", func(t *testing.T) {
+		field := channelField()
+		assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, memberSession, field))
+		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, memberSession, field))
+		assert.False(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, memberSession, field))
+	})
+
+	t.Run("non-channel member is denied", func(t *testing.T) {
+		// Use a user with no membership in the basic channel at all.
+		stranger := th.CreateUser(t)
+		strangerSession := model.Session{UserId: stranger.Id, Roles: model.SystemUserRoleId}
+		field := channelField()
+		assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, strangerSession, field))
+		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, strangerSession, field))
+		assert.False(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, strangerSession, field))
+	})
+
+	t.Run("unknown permission id denies access", func(t *testing.T) {
+		field := channelField()
+		bogus := model.PermissionLevel("not_a_real_permission_id")
+		field.PermissionField = &bogus
+		field.PermissionValues = &bogus
+		field.PermissionOptions = &bogus
+		assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, channelAdminSession, field))
+		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, channelAdminSession, field))
+		assert.False(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, channelAdminSession, field))
+	})
+
+	t.Run("unrestricted session bypasses permission id check", func(t *testing.T) {
+		field := channelField()
+		local := model.Session{UserId: th.BasicUser2.Id, Local: true}
+		assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, local, field))
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, local, field))
+		assert.True(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, local, field))
+	})
+
+	t.Run("team-scoped permission id resolves against the field's team target", func(t *testing.T) {
+		// BasicUser is a regular team member. Promote them to team_admin in
+		// BasicTeam so they hold manage_team.
+		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id,
+			model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+		require.Nil(t, appErr)
+
+		teamField := &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "team admin only",
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypePost,
+			TargetType:        string(model.PropertyFieldTargetLevelTeam),
+			TargetID:          th.BasicTeam.Id,
+			PermissionField:   model.NewPointer(model.PermissionLevel(model.PermissionManageTeam.Id)),
+			PermissionValues:  model.NewPointer(model.PermissionLevel(model.PermissionManageTeam.Id)),
+			PermissionOptions: model.NewPointer(model.PermissionLevel(model.PermissionManageTeam.Id)),
+		}
+		assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, channelAdminSession, teamField))
+		assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, memberSession, teamField))
+	})
+}

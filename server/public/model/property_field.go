@@ -53,8 +53,46 @@ const (
 	ClassificationMarkingsPropertyGroupName = "classification_markings"
 )
 
-// validPermissionLevels contains all valid PermissionLevel values.
-var validPermissionLevels = []PermissionLevel{PermissionLevelNone, PermissionLevelSysadmin, PermissionLevelMember}
+// reservedPermissionLevels are the legacy PermissionLevel values that have
+// hard-coded semantics in the authorization layer. Any other value is treated
+// as a permission ID (looked up in AllPermissions) at validation and check time.
+var reservedPermissionLevels = []PermissionLevel{PermissionLevelNone, PermissionLevelSysadmin, PermissionLevelMember}
+
+// IsReservedPermissionLevel reports whether the level matches one of the
+// hard-coded reserved values (none/sysadmin/member).
+func IsReservedPermissionLevel(level PermissionLevel) bool {
+	return slices.Contains(reservedPermissionLevels, level)
+}
+
+// permissionScopeMatchesTargetType reports whether a permission with the given
+// scope can be evaluated against a property field with the given TargetType.
+func permissionScopeMatchesTargetType(scope, targetType string) bool {
+	switch scope {
+	case PermissionScopeSystem:
+		return targetType == string(PropertyFieldTargetLevelSystem)
+	case PermissionScopeTeam:
+		return targetType == string(PropertyFieldTargetLevelTeam)
+	case PermissionScopeChannel:
+		return targetType == string(PropertyFieldTargetLevelChannel)
+	}
+	return false
+}
+
+// validatePermissionLevel checks that level is either a reserved value or a
+// known permission ID whose scope is compatible with targetType.
+func validatePermissionLevel(level PermissionLevel, targetType string) error {
+	if IsReservedPermissionLevel(level) {
+		return nil
+	}
+	perm := PermissionByID(string(level))
+	if perm == nil {
+		return errors.New("unknown permission id")
+	}
+	if !permissionScopeMatchesTargetType(perm.Scope, targetType) {
+		return errors.New("permission scope does not match field target type")
+	}
+	return nil
+}
 
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
 var validPSAv2TargetTypes = []string{
@@ -273,16 +311,22 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "update_at", "Reason": "value cannot be zero"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
-	if pf.PermissionField != nil && !slices.Contains(validPermissionLevels, *pf.PermissionField) {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "invalid permission level"}, "id="+pf.ID, http.StatusBadRequest)
+	if pf.PermissionField != nil {
+		if err := validatePermissionLevel(*pf.PermissionField, pf.TargetType); err != nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": err.Error()}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
-	if pf.PermissionValues != nil && !slices.Contains(validPermissionLevels, *pf.PermissionValues) {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_values", "Reason": "invalid permission level"}, "id="+pf.ID, http.StatusBadRequest)
+	if pf.PermissionValues != nil {
+		if err := validatePermissionLevel(*pf.PermissionValues, pf.TargetType); err != nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_values", "Reason": err.Error()}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
-	if pf.PermissionOptions != nil && !slices.Contains(validPermissionLevels, *pf.PermissionOptions) {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_options", "Reason": "invalid permission level"}, "id="+pf.ID, http.StatusBadRequest)
+	if pf.PermissionOptions != nil {
+		if err := validatePermissionLevel(*pf.PermissionOptions, pf.TargetType); err != nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_options", "Reason": err.Error()}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
 	// Cross-validation: protected fields must have field permission set to "none"
