@@ -133,6 +133,29 @@ func TestRead(t *testing.T) {
 		_, err := r.Read(make([]byte, 1))
 		require.ErrorIs(t, err, wantErr)
 	})
+
+	t.Run("surfaces truncation when stream EOFs before the blob ends", func(t *testing.T) {
+		// Promised size is larger than what the fake actually serves,
+		// so the body eventually returns io.EOF while r.offset < r.size.
+		// bytes.Reader returns its content + nil first, then 0 + EOF on
+		// the next call, so we drain the bytes before the truncation
+		// is observable.
+		fake := &fakeDownloader{data: []byte("hello")}
+		r := newTestReader(t, fake, int64(len(fake.data))+10)
+		defer r.Close()
+
+		buf := make([]byte, 16)
+		n, err := r.Read(buf)
+		require.NoError(t, err)
+		require.Equal(t, 5, n)
+
+		// Second call hits EOF from the body before we've reached r.size,
+		// so the reader must surface that as a truncation.
+		n, err = r.Read(buf)
+		require.Equal(t, 0, n)
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+		require.Nil(t, r.body, "body must be released after a truncation error")
+	})
 }
 
 func TestReadAt(t *testing.T) {
@@ -193,6 +216,20 @@ func TestReadAt(t *testing.T) {
 
 		_, err := r.ReadAt(make([]byte, 1), 0)
 		require.ErrorIs(t, err, wantErr)
+	})
+
+	t.Run("surfaces truncation when stream falls short of the requested count", func(t *testing.T) {
+		// Promised size exceeds the fake's actual data so ReadFull
+		// sees the body terminate before count bytes arrived. That
+		// must surface as ErrUnexpectedEOF, not a clean EOF.
+		fake := &fakeDownloader{data: []byte("hello")}
+		r := newTestReader(t, fake, int64(len(fake.data))+5)
+		defer r.Close()
+
+		buf := make([]byte, 10)
+		n, err := r.ReadAt(buf, 0)
+		require.Equal(t, 5, n)
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 	})
 }
 
