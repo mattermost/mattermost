@@ -3,6 +3,7 @@
 
 import React, {useEffect, useMemo, useState} from 'react';
 import {useSelector} from 'react-redux';
+import {useLocation} from 'react-router-dom';
 
 import {Preferences} from 'mattermost-redux/constants';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
@@ -14,6 +15,8 @@ import type {GlobalState} from 'types/store';
 import {ThemeContext} from './theme_context';
 
 export default function ThemeProvider({children}: {children: React.ReactNode}) {
+    const {pathname} = useLocation();
+
     // This keeps track of if we're in a themed part of the app. Realistically, it should only ever be 0 (unthemed) or
     // 1 (themed), but using a counter lets us handle cases where the start/stop functions are called multiple times or
     // in the wrong order.
@@ -29,7 +32,7 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
 
     useEffect(() => {
         applyTheme(theme);
-    }, [theme]);
+    }, [theme, pathname]);
 
     const context = useMemo(() => ({
         startUsingUserTheme: () => setUsingUserTheme((count) => count + 1),
