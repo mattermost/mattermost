@@ -369,6 +369,12 @@ func (b *AzureFileBackend) WriteFileContext(ctx context.Context, fr io.Reader, p
 // re-concatenate, no re-upload of the prior contents. The S3-style contract
 // is preserved: returns an error if the target blob does not yet exist;
 // returns the number of bytes appended (not the resulting total size).
+//
+// Refuses to append to a blob that has content but no committed block list
+// (i.e. was uploaded via Put Blob by another tool - Azure portal, azcopy,
+// a migration script). Committing a new block list against such a blob
+// would replace the existing content with only the appended bytes, so
+// failing loud beats silent data loss.
 func (b *AzureFileBackend) AppendFile(fr io.Reader, p string) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
@@ -386,6 +392,16 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, p string) (int64, error) {
 			if blk.Name != nil {
 				existingIDs = append(existingIDs, *blk.Name)
 			}
+		}
+	}
+
+	if len(existingIDs) == 0 {
+		props, propsErr := bb.GetProperties(ctx, nil)
+		if propsErr != nil {
+			return 0, pkgerr.Wrapf(propsErr, "unable to inspect %q before append", p)
+		}
+		if model.SafeDereference(props.ContentLength) > 0 {
+			return 0, pkgerr.Errorf("refusing to append to %q: blob has content but no committed block list (likely written via Put Blob by another tool)", p)
 		}
 	}
 

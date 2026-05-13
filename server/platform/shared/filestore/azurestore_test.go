@@ -4,6 +4,8 @@
 package filestore
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -44,7 +46,45 @@ const (
 	azuriteWellKnownKey     = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
 )
 
-func TestAzureFileBackendTestSuite(t *testing.T) {
+// TestAzureFileBackendAppendRefusesNonBlockBlob exercises the safety
+// check in AppendFile: when a blob exists with content but no committed
+// block list (i.e. it was uploaded via Put Blob by another tool), the
+// backend must refuse the append rather than silently destroy the
+// existing content.
+func TestAzureFileBackendAppendRefusesNonBlockBlob(t *testing.T) {
+	settings := azuriteSettings(t)
+	be, err := NewAzureFileBackend(settings)
+	require.NoError(t, err)
+	require.NoError(t, be.TestConnection())
+
+	path := "append-refusal-test.bin"
+	t.Cleanup(func() { _ = be.RemoveFile(path) })
+
+	// Write the blob via the high-level Upload helper, which calls the
+	// Put Blob REST endpoint and leaves the committed-block list empty.
+	original := []byte("planted-by-another-tool")
+	bb := be.newBlockBlobClient(path)
+	_, err = bb.Upload(context.Background(), nopReadSeekCloser{bytes.NewReader(original)}, nil)
+	require.NoError(t, err)
+
+	_, err = be.AppendFile(bytes.NewReader([]byte("would-overwrite")), path)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no committed block list")
+
+	// The original content must still be intact.
+	got, err := be.ReadFile(path)
+	require.NoError(t, err)
+	require.Equal(t, original, got)
+}
+
+type nopReadSeekCloser struct {
+	*bytes.Reader
+}
+
+func (nopReadSeekCloser) Close() error { return nil }
+
+func azuriteSettings(t *testing.T) FileBackendSettings {
+	t.Helper()
 	host := os.Getenv("CI_AZURITE_HOST")
 	if host == "" {
 		host = "localhost"
@@ -53,16 +93,17 @@ func TestAzureFileBackendTestSuite(t *testing.T) {
 	if port == "" {
 		port = "10000"
 	}
+	return FileBackendSettings{
+		DriverName:                      driverAzure,
+		AzureStorageAccount:             azuriteWellKnownAccount,
+		AzureAccessKey:                  azuriteWellKnownKey,
+		AzureContainer:                  "mattermost-test",
+		AzureEndpoint:                   fmt.Sprintf("%s:%s", host, port),
+		AzureSSL:                        false,
+		AzureRequestTimeoutMilliseconds: 30000,
+	}
+}
 
-	suite.Run(t, &FileBackendTestSuite{
-		settings: FileBackendSettings{
-			DriverName:                      driverAzure,
-			AzureStorageAccount:             azuriteWellKnownAccount,
-			AzureAccessKey:                  azuriteWellKnownKey,
-			AzureContainer:                  "mattermost-test",
-			AzureEndpoint:                   fmt.Sprintf("%s:%s", host, port),
-			AzureSSL:                        false,
-			AzureRequestTimeoutMilliseconds: 30000,
-		},
-	})
+func TestAzureFileBackendTestSuite(t *testing.T) {
+	suite.Run(t, &FileBackendTestSuite{settings: azuriteSettings(t)})
 }
