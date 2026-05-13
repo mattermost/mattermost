@@ -81,7 +81,16 @@ function PolicyDetails({
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
-    const [hasMaskedRows, setHasMaskedRows] = useState(false);
+
+    // Derive masked-rows state directly from the expression rather than relying
+    // on a callback from TableEditor: TableEditor unmounts on mode switches, and
+    // on remount its rows-derived flag flickers false-then-true while the async
+    // AST round-trip is in flight, briefly opening gates (CEL read-only, delete,
+    // banner) that should stay closed. The "--------" sentinel is what the
+    // server emits in raw CEL for any value the caller can't see, so its
+    // presence in the expression is a stable signal independent of editor
+    // lifecycle.
+    const hasMaskedRows = useMemo(() => expression.includes('"--------"'), [expression]);
     const [channelChanges, setChannelChanges] = useState<ChannelChanges>({
         removed: {},
         added: {},
@@ -574,7 +583,6 @@ function PolicyDetails({
                                     }}
                                     enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                                     actions={abacActions}
-                                    onMaskedStateChange={setHasMaskedRows}
                                 />
                             )}
                         </Card.Body>
