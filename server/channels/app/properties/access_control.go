@@ -19,6 +19,7 @@ package properties
 //                      then Alice querying Bob's values would only see Bananas)
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"maps"
@@ -691,24 +692,11 @@ func (pas *PropertyAccessService) getSourcePluginID(field *model.PropertyField) 
 	return sourcePluginID
 }
 
-// getAccessMode extracts the access_mode from a PropertyField's attrs.
-// Returns empty string (public access mode) if not set (default).
-func (pas *PropertyAccessService) getAccessMode(field *model.PropertyField) string {
-	if field.Attrs == nil {
-		return model.PropertyAccessModePublic
-	}
-	accessMode, ok := field.Attrs[model.PropertyAttrsAccessMode].(string)
-	if !ok {
-		return model.PropertyAccessModePublic
-	}
-	return accessMode
-}
-
 // checkUnrestrictedFieldReadAccess checks if the given caller can read a PropertyField without restrictions.
 // Returns true if the caller has unrestricted read access (public field or source plugin).
 // Returns an error if access requires filtering or should be denied entirely.
 func (pas *PropertyAccessService) hasUnrestrictedFieldReadAccess(field *model.PropertyField, callerID string) bool {
-	accessMode := pas.getAccessMode(field)
+	accessMode := field.GetAccessMode()
 
 	// Public fields are readable by everyone without restrictions
 	if accessMode == model.PropertyAccessModePublic {
@@ -995,12 +983,16 @@ func (pas *PropertyAccessService) filterSharedOnlyFieldOptions(field *model.Prop
 
 // filterSharedOnlyValue computes the intersection of caller and target values for shared_only fields.
 // Returns the filtered value or nil if there's no intersection.
-// For single-select: returns value only if both have the same value.
-// For multi-select: returns the intersection of arrays.
+//   - select / multiselect: per-value intersection (a multi-value field may return a subset).
+//   - text / date / user / any other primitive type: binary — visible only if the caller's
+//     stored value equals the target's value exactly. Otherwise nil.
+//
+// The binary path is what protects scenarios like LDAP/SAML-synced text codenames whose
+// existence is itself controlled information: a caller who doesn't hold the same value
+// must not see the target's value through any read endpoint.
 func (pas *PropertyAccessService) filterSharedOnlyValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
-	// Only applies to select and multiselect fields
 	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
-		return value
+		return pas.filterSharedOnlyScalarValue(field, value, callerID)
 	}
 
 	// Get caller's option IDs for this field
@@ -1057,9 +1049,33 @@ func (pas *PropertyAccessService) filterSharedOnlyValue(field *model.PropertyFie
 	}
 }
 
+// filterSharedOnlyScalarValue applies binary masking to a non-option field's value:
+// returns the value as-is if the caller's own stored value for the same field equals
+// the target's value, otherwise nil. Caller and target may legitimately store nothing,
+// in which case the value is hidden.
+func (pas *PropertyAccessService) filterSharedOnlyScalarValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+	if value == nil || len(value.Value) == 0 {
+		return nil
+	}
+
+	callerValues, err := pas.getCallerValuesForField(field.GroupID, field.ID, callerID)
+	if err != nil || len(callerValues) == 0 {
+		return nil
+	}
+
+	for _, cv := range callerValues {
+		if bytes.Equal(cv.Value, value.Value) {
+			filtered := *value
+			return &filtered
+		}
+	}
+	return nil
+}
+
 // applyFieldReadAccessControl applies read access control to a single field.
 // Returns the field with options filtered based on the caller's access permissions.
 // - Public fields: returned as-is
+// - User-editable fields (PermissionValues=member): returned as-is so users can see all choices
 // - Source-only fields: returned with empty options if caller is not the source plugin
 // - Shared-only fields: returned with options filtered using filterSharedOnlyFieldOptions
 // - Unknown access modes: treated as source-only (secure default)
@@ -1071,7 +1087,7 @@ func (pas *PropertyAccessService) applyFieldReadAccessControl(field *model.Prope
 	}
 
 	// Access requires filtering
-	accessMode := pas.getAccessMode(field)
+	accessMode := field.GetAccessMode()
 
 	// Shared-only fields: use existing helper to filter options
 	if accessMode == model.PropertyAccessModeSharedOnly {
@@ -1163,7 +1179,7 @@ func (pas *PropertyAccessService) applyValueReadAccessControl(values []*model.Pr
 			return nil, fmt.Errorf("applyValueReadAccessControl: field not found for value %s", value.ID)
 		}
 
-		accessMode := pas.getAccessMode(field)
+		accessMode := field.GetAccessMode()
 
 		// Check if caller can read this value
 		if pas.hasUnrestrictedFieldReadAccess(field, callerID) {

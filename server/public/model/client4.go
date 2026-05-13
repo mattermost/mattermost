@@ -2247,10 +2247,10 @@ func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team,
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
 func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*Team, int64, *Response, error) {
 	if search.Page == nil {
-		search.Page = NewPointer(0)
+		search.Page = new(0)
 	}
 	if search.PerPage == nil {
-		search.PerPage = NewPointer(100)
+		search.PerPage = new(100)
 	}
 	r, err := c.doAPIPostJSON(ctx, c.teamsRoute().Join("search"), search)
 	if err != nil {
@@ -3262,6 +3262,25 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 // ReadMultipleChannels performs a view action on several channels at the same time for a user.
 func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.channelsRoute().Join("members", userId, "mark_read"), channelIds)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelViewResponse](r)
+}
+
+// ReadAllMessages performs a view action on all direct and group messages for a user
+func (c *Client4) ReadAllMessages(ctx context.Context, userId string) (*ChannelViewResponse, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.channelsRoute().Join("members", userId, "direct", "read"), nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelViewResponse](r)
+}
+
+func (c *Client4) ReadAllInTeam(ctx context.Context, userId string, teamId string) (*ChannelViewResponse, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.userRoute(userId).Join("teams", teamId, "read"), nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
