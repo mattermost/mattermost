@@ -25,6 +25,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/google/uuid"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	pkgerr "github.com/pkg/errors"
 )
 
@@ -89,8 +90,15 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 		return nil, pkgerr.Wrap(err, "failed to create azure blob client")
 	}
 
+	// Config.IsValid rejects non-positive timeouts before they reach this
+	// constructor, but direct callers (tests, library users that build a
+	// FileBackendSettings by hand) can still slip a zero or negative value
+	// in. Fall back to a sane default in that case, and log loudly enough
+	// for the substitution to show up if it ever happens in production.
 	timeout := time.Duration(settings.AzureRequestTimeoutMilliseconds) * time.Millisecond
 	if timeout <= 0 {
+		mlog.Warn("AzureRequestTimeoutMilliseconds is non-positive; falling back to 30s default",
+			mlog.Int("value", int(settings.AzureRequestTimeoutMilliseconds)))
 		timeout = 30 * time.Second
 	}
 
