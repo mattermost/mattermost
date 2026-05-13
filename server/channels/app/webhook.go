@@ -127,6 +127,14 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 
 		go func() {
 			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					logger.Error("Recovered from panic in outgoing webhook goroutine",
+						mlog.String("url", url),
+						mlog.Any("panic", r),
+					)
+				}
+			}()
 
 			var accessToken *model.OutgoingOAuthConnectionToken
 
@@ -171,7 +179,7 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 				if webhookResp.Text != nil {
 					text = a.ProcessSlackText(rctx, *webhookResp.Text)
 				}
-				webhookResp.Attachments = a.ProcessSlackAttachments(rctx, webhookResp.Attachments)
+				webhookResp.Attachments = a.ProcessMessageAttachments(rctx, webhookResp.Attachments)
 				// attachments is in here for slack compatibility
 				if len(webhookResp.Attachments) > 0 {
 					webhookResp.Props[model.PostPropsAttachments] = webhookResp.Attachments
@@ -261,14 +269,14 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	split.Message = remainingText
 	splits = append(splits, split)
 
-	attachments, _ := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
+	attachments, _ := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	for _, attachment := range attachments {
 		newAttachment := *attachment
 		for {
 			lastSplit := splits[len(splits)-1]
 			newProps := make(map[string]any)
 			maps.Copy(newProps, lastSplit.GetProps())
-			origAttachments, _ := newProps[model.PostPropsAttachments].([]*model.SlackAttachment)
+			origAttachments, _ := newProps[model.PostPropsAttachments].([]*model.MessageAttachment)
 			newProps[model.PostPropsAttachments] = append(origAttachments, &newAttachment)
 			newPropsString := model.StringInterfaceToJSON(newProps)
 			runeCount := utf8.RuneCountInString(newPropsString)
@@ -352,8 +360,8 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 		for key, val := range props {
 			switch key {
 			case model.PostPropsAttachments:
-				if attachments, success := val.([]*model.SlackAttachment); success {
-					model.ParseSlackAttachment(post, attachments)
+				if attachments, success := val.([]*model.MessageAttachment); success {
+					model.ParseMessageAttachment(post, attachments)
 				}
 			case model.PostPropsOverrideIconURL,
 				model.PostPropsOverrideUsername,
@@ -371,7 +379,7 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 	}
 
 	for _, split := range splits {
-		if _, err = a.CreatePost(rctx, split, channel, model.CreatePostFlags{}); err != nil {
+		if _, _, err := a.CreatePost(rctx, split, channel, model.CreatePostFlags{}); err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -773,11 +781,11 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	req.Props[model.PostPropsWebhookDisplayName] = hook.DisplayName
 
 	text = a.ProcessSlackText(rctx, text)
-	req.Attachments = a.ProcessSlackAttachments(rctx, req.Attachments)
+	req.Attachments = a.ProcessMessageAttachments(rctx, req.Attachments)
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {
 		req.Props[model.PostPropsAttachments] = req.Attachments
-		webhookType = model.PostTypeSlackAttachment
+		webhookType = model.PostTypeMessageAttachment
 	}
 
 	var channel *model.Channel
@@ -847,8 +855,41 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", map[string]any{"user": hook.UserId}, "", http.StatusForbidden).Wrap(resultU.NErr)
 	}
 
-	if channel.Type != model.ChannelTypeOpen && !a.HasPermissionToChannel(rctx, hook.UserId, channel.Id, model.PermissionReadChannelContent) {
+	restrictedChannel := false
+	if channel.Type != model.ChannelTypeOpen {
+		hasPermission, _ := a.HasPermissionToChannel(rctx, hook.UserId, channel.Id, model.PermissionReadChannelContent)
+		restrictedChannel = !hasPermission
+	}
+	if restrictedChannel {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
+	}
+
+	threadRootID := ""
+	if rootId := req.RootId; rootId != "" {
+		if !model.IsValidId(rootId) {
+			return model.NewAppError("HandleIncomingWebhook", "api.context.invalid_param.app_error", map[string]any{"Name": "root_id"}, "", http.StatusBadRequest)
+		}
+		rootPost, nErr := a.Srv().Store().Post().GetSingle(rctx, rootId, false)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+			default:
+				return model.NewAppError("HandleIncomingWebhook", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+		}
+		if rootPost == nil {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+		if rootPost.ChannelId != channel.Id {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+		if rootPost.RootId != "" {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		threadRootID = rootPost.Id
 	}
 
 	overrideUsername := hook.Username
@@ -861,7 +902,7 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		overrideIconURL = req.IconURL
 	}
 
-	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "", req.Priority)
+	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, threadRootID, req.Priority)
 	return err
 }
 

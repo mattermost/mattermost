@@ -1,124 +1,190 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/TextDismissableBar should match snapshot 1`] = `
-<Connect(AnnouncementBar)
-  extraProp="test"
-  handleClose={[Function]}
-  message={
-    <React.Fragment>
-      <i
-        className="icon icon-information-outline"
-      />
-      <Memo(Connect(Markdown))
-        message="sample text"
-        options={
-          Object {
-            "mentionHighlight": false,
-            "singleline": true,
-          }
-        }
-      />
-    </React.Fragment>
-  }
-  showCloseButton={true}
-/>
+<div>
+  <div
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <i
+          class="icon icon-information-outline"
+        />
+        <p
+          class="markdown__paragraph-inline"
+        >
+          sample text
+        </p>
+      </span>
+    </div>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
 `;
 
 exports[`components/TextDismissableBar should match snapshot, with an internal and an external link 1`] = `
-<Connect(AnnouncementBar)
-  extraProp="test"
-  handleClose={[Function]}
-  message={
-    <React.Fragment>
-      <i
-        className="icon icon-information-outline"
-      />
-      <Memo(Connect(Markdown))
-        message="A [link](http://testurl.com/admin_console/) with an internal url and a [link](http://other-url.com/admin_console/) with an external url"
-        options={
-          Object {
-            "mentionHighlight": false,
-            "singleline": true,
-          }
-        }
-      />
-    </React.Fragment>
-  }
-  showCloseButton={true}
-  siteURL="http://testurl.com"
-/>
+<div>
+  <div
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <i
+          class="icon icon-information-outline"
+        />
+        <p
+          class="markdown__paragraph-inline"
+        >
+          A 
+          <a
+            class="theme markdown__link"
+            href="http://testurl.com/admin_console/"
+            rel="noreferrer"
+            target="_blank"
+          >
+            link
+          </a>
+           with an internal url and a 
+          <a
+            class="theme markdown__link"
+            href="http://other-url.com/admin_console/"
+            rel="noreferrer"
+            target="_blank"
+          >
+            link
+          </a>
+           with an external url
+        </p>
+      </span>
+    </div>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
 `;
 
 exports[`components/TextDismissableBar should match snapshot, with an internal url 1`] = `
-<Connect(AnnouncementBar)
-  extraProp="test"
-  handleClose={[Function]}
-  message={
-    <React.Fragment>
-      <i
-        className="icon icon-information-outline"
-      />
-      <Memo(Connect(Markdown))
-        message="A [link](http://testurl.com/admin_console/) with an internal url"
-        options={
-          Object {
-            "mentionHighlight": false,
-            "singleline": true,
-          }
-        }
-      />
-    </React.Fragment>
-  }
-  showCloseButton={true}
-  siteURL="http://testurl.com"
-/>
+<div>
+  <div
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <i
+          class="icon icon-information-outline"
+        />
+        <p
+          class="markdown__paragraph-inline"
+        >
+          A 
+          <a
+            class="theme markdown__link"
+            href="http://testurl.com/admin_console/"
+            rel="noreferrer"
+            target="_blank"
+          >
+            link
+          </a>
+           with an internal url
+        </p>
+      </span>
+    </div>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
 `;
 
 exports[`components/TextDismissableBar should match snapshot, with ean external url 1`] = `
-<Connect(AnnouncementBar)
-  extraProp="test"
-  handleClose={[Function]}
-  message={
-    <React.Fragment>
-      <i
-        className="icon icon-information-outline"
-      />
-      <Memo(Connect(Markdown))
-        message="A [link](http://otherurl.com/admin_console/) with an external url"
-        options={
-          Object {
-            "mentionHighlight": false,
-            "singleline": true,
-          }
-        }
-      />
-    </React.Fragment>
-  }
-  showCloseButton={true}
-  siteURL="http://testurl.com"
-/>
+<div>
+  <div
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <i
+          class="icon icon-information-outline"
+        />
+        <p
+          class="markdown__paragraph-inline"
+        >
+          A 
+          <a
+            class="theme markdown__link"
+            href="http://otherurl.com/admin_console/"
+            rel="noreferrer"
+            target="_blank"
+          >
+            link
+          </a>
+           with an external url
+        </p>
+      </span>
+    </div>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
 `;
 
 exports[`components/TextDismissableBar should match snapshot, with link but without siteURL 1`] = `
-<Connect(AnnouncementBar)
-  extraProp="test"
-  handleClose={[Function]}
-  message={
-    <React.Fragment>
-      <i
-        className="icon icon-information-outline"
-      />
-      <Memo(Connect(Markdown))
-        message="A [link](http://testurl.com/admin_console/)"
-        options={
-          Object {
-            "mentionHighlight": false,
-            "singleline": true,
-          }
-        }
-      />
-    </React.Fragment>
-  }
-  showCloseButton={true}
-/>
+<div>
+  <div
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <i
+          class="icon icon-information-outline"
+        />
+        <p
+          class="markdown__paragraph-inline"
+        >
+          A 
+          <a
+            class="theme markdown__link"
+            href="http://testurl.com/admin_console/"
+            rel="noreferrer"
+            target="_blank"
+          >
+            link
+          </a>
+        </p>
+      </span>
+    </div>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
 `;

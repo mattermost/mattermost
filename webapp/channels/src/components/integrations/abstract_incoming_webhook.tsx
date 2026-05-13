@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -335,7 +336,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                     <div className='form__help'>
                                         <FormattedMessage
                                             id='add_incoming_webhook.username.help'
-                                            defaultMessage='Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \"-\", \"_\", and \".\". If left blank, the name specified by the webhook creator is used.'
+                                            defaultMessage='Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols "-", "_", and ".". If left blank, the name specified by the webhook creator is used.'
                                         />
                                     </div>
                                 </div>
@@ -376,7 +377,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Link
-                                className='btn btn-tertiary'
+                                className={buttonClassNames({emphasis: 'tertiary'})}
                                 to={`/${this.props.team.name}/integrations/incoming_webhooks`}
                             >
                                 <FormattedMessage
@@ -385,7 +386,6 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
                                 spinningText={this.props.loading}

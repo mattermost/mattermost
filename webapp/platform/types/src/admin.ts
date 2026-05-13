@@ -97,6 +97,7 @@ export type AnalyticsState = {
     REGISTERED_USERS?: number;
     TOTAL_FILE_COUNT?: number;
     TOTAL_FILE_SIZE?: number;
+    SINGLE_CHANNEL_GUESTS?: number;
 }
 
 export type ClusterInfo = {

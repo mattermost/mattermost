@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @system_console
 
 import {
@@ -15,9 +14,9 @@ import {
     getEmailVerifyEmailTemplate,
     getRandomId,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
-const TIMEOUTS = require('../../../fixtures/timeouts');
+const TIMEOUTS = require('@/fixtures/timeouts');
 
 describe('User Management', () => {
     const newUsername = 'u' + getRandomId();

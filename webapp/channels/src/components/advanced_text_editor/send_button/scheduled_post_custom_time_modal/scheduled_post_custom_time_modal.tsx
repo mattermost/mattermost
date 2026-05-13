@@ -95,7 +95,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
             confirmButtonText={
                 <FormattedMessage
                     id='schedule_post.custom_time_modal.confirm_button_text'
-                    defaultMessage='Confirm'
+                    defaultMessage='Schedule'
                 />
             }
             cancelButtonText={

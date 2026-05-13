@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 
@@ -50,7 +49,7 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
     });
 
     describe('handleChange', () => {
-        test('should enable without show confirmation modal or warning', () => {
+        test('should enable without show confirmation modal or warning', async () => {
             const props = {
                 showConfirm: true,
                 onChange: jest.fn(),
@@ -64,12 +63,12 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
             );
 
             const trueRadio = screen.getByTestId('MySettingtrue');
-            fireEvent.click(trueRadio);
+            await userEvent.click(trueRadio);
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, true, false, false, '');
         });
 
-        test('should show confirmation modal and warning when disabling', () => {
+        test('should show confirmation modal and warning when disabling', async () => {
             const props = {
                 value: true,
                 showConfirm: true,
@@ -84,12 +83,12 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
             );
 
             const falseRadio = screen.getByTestId('MySettingfalse');
-            fireEvent.click(falseRadio);
+            await userEvent.click(falseRadio);
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, false, true, false, warningMessage);
         });
 
-        test('should call onChange with doSubmit = true when confirm is true', () => {
+        test('should call onChange with doSubmit = true when confirm is true', async () => {
             const props = {
                 ...baseProps,
                 onChange: jest.fn(),
@@ -103,10 +102,10 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
             );
 
             const falseRadio = screen.getByTestId('MySettingfalse');
-            fireEvent.click(falseRadio);
+            await userEvent.click(falseRadio);
 
             const confirmButton = screen.getByText('Save and Disable Guest Access');
-            fireEvent.click(confirmButton);
+            await userEvent.click(confirmButton);
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, false, true, true, warningMessage);
         });

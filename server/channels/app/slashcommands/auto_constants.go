@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	UserPassword         = "Usr@MMTest123"
+	UserPassword         = "Usr@MMTest12345"
 	ChannelType          = model.ChannelTypeOpen
 	BTestTeamDisplayName = "TestTeam"
 	BTestTeamName        = "z-z-testdomaina"
@@ -17,7 +17,7 @@ const (
 	BTestTeamType        = model.TeamOpen
 	BTestUserName        = "Mr. Testing Tester"
 	BTestUserEmail       = "success+ttester@simulator.amazonses.com"
-	BTestUserPassword    = "passwd"
+	BTestUserPassword    = "Passwd+Us3r1234"
 )
 
 var (

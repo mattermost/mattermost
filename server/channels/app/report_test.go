@@ -120,6 +120,7 @@ func TestCheckForExistingJobs(t *testing.T) {
 			"team":               "",
 			"hide_active":        "false",
 			"hide_inactive":      "false",
+			"guest_filter":       "",
 		}
 
 		jobType := model.JobTypeExportUsersToCSV
@@ -147,6 +148,7 @@ func TestCheckForExistingJobs(t *testing.T) {
 			"team":               "",
 			"hide_active":        "false",
 			"hide_inactive":      "false",
+			"guest_filter":       "",
 		}
 
 		jobType := model.JobTypeExportUsersToCSV
@@ -178,6 +180,7 @@ func TestCheckForExistingJobs(t *testing.T) {
 			"team":               "",
 			"hide_active":        "false",
 			"hide_inactive":      "false",
+			"guest_filter":       "",
 		}
 
 		jobType := model.JobTypeExportUsersToCSV
@@ -189,6 +192,7 @@ func TestCheckForExistingJobs(t *testing.T) {
 			"team":               "",
 			"hide_active":        "false",
 			"hide_inactive":      "false",
+			"guest_filter":       "",
 		}
 
 		job, err := app.Srv().Jobs.CreateJob(th.Context, jobType, differentOptions)
@@ -196,6 +200,38 @@ func TestCheckForExistingJobs(t *testing.T) {
 		require.NotNil(t, job)
 
 		// Call checkForExistingJobs
+		appErr := app.checkForExistingJobs(th.Context, options, jobType)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("should not return error if existing job has different guest_filter", func(t *testing.T) {
+		app := th.App
+		options := map[string]string{
+			"date_range":         "last_30_days",
+			"requesting_user_id": th.BasicUser.Id,
+			"role":               "",
+			"team":               "",
+			"hide_active":        "false",
+			"hide_inactive":      "false",
+			"guest_filter":       "single_channel",
+		}
+
+		jobType := model.JobTypeExportUsersToCSV
+
+		existingJobOptions := map[string]string{
+			"date_range":         "last_30_days",
+			"requesting_user_id": th.BasicUser.Id,
+			"role":               "",
+			"team":               "",
+			"hide_active":        "false",
+			"hide_inactive":      "false",
+			"guest_filter":       "multi_channel",
+		}
+
+		job, err := app.Srv().Jobs.CreateJob(th.Context, jobType, existingJobOptions)
+		require.Nil(t, err)
+		require.NotNil(t, job)
+
 		appErr := app.checkForExistingJobs(th.Context, options, jobType)
 		require.Nil(t, appErr)
 	})

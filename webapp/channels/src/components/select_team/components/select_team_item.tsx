@@ -4,10 +4,10 @@
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Team} from '@mattermost/types/teams';
 
 import TeamInfoIcon from 'components/widgets/icons/team_info_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import * as Utils from 'utils/utils';
 
@@ -79,7 +79,7 @@ const SelectTeamItem = ({
                 {!team.allow_open_invite &&
                     <i
                         className='fa fa-lock light'
-                        title={intl.formatMessage({id: 'select_team.private.icon', defaultMessage: 'Private team'})}
+                        title={intl.formatMessage({id: 'select_team.private.icon', defaultMessage: 'Private Team'})}
                     />}
                 {canJoin && icon}
             </a>

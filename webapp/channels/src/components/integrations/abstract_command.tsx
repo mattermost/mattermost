@@ -6,6 +6,7 @@ import type {ChangeEvent} from 'react';
 import {defineMessage, FormattedMessage, type MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -609,7 +610,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.username.help'
-                                        defaultMessage='(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \"-\", \"_\", and \".\". If left blank, your Mattermost username is used.'
+                                        defaultMessage='(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols "-", "_", and ".". If left blank, your Mattermost username is used.'
                                     />
                                 </div>
                             </div>
@@ -678,7 +679,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Link
-                                className='btn btn-tertiary'
+                                className={buttonClassNames({emphasis: 'tertiary'})}
                                 to={'/' + this.props.team.name + '/integrations/commands'}
                             >
                                 <FormattedMessage
@@ -687,7 +688,6 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
                                 spinningText={this.props.loading}

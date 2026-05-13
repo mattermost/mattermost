@@ -3,9 +3,11 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
-import {Modal, Button} from 'react-bootstrap';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
+
+import {Button} from '@mattermost/shared/components/button';
 
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
@@ -24,7 +26,7 @@ import CountrySelector from 'components/payment_form/country_selector';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
-import {AboutLinks, LicenseLinks, ModalIdentifiers} from 'utils/constants';
+import {AboutLinks, ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -65,7 +67,7 @@ defineMessages({
     },
     TWO_THOUSAND_FIVE_HUNDRED_AND_UP: {
         id: 'TWO_THOUSAND_FIVE_HUNDRED_AND_UP',
-        defaultMessage: '2501+',
+        defaultMessage: '2501-5000',
     },
 });
 
@@ -159,28 +161,11 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         if (error) {
             setLoadStatus(TrialLoadStatus.Failed);
             let title;
-            let subtitle;
             let buttonText;
             let onTryAgain = handleErrorModalTryAgain;
 
             if ((data as any).status === 422) {
                 title = (<></>);
-                subtitle = (
-                    <FormattedMessage
-                        id='admin.license.trial-request.embargoed'
-                        defaultMessage='We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.'
-                        values={{
-                            link: (text) => (
-                                <ExternalLink
-                                    location='trial_banner'
-                                    href={LicenseLinks.EMBARGOED_COUNTRIES}
-                                >
-                                    {text}
-                                </ExternalLink>
-                            ),
-                        }}
-                    />
-                );
                 buttonText = (
                     <FormattedMessage
                         id='admin.license.trial-request.embargoed.button'
@@ -195,7 +180,6 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                 dialogProps: {
                     onTryAgain,
                     title,
-                    subtitle,
                     buttonText,
                 },
             }));
@@ -357,8 +341,9 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                 <div className='buttons'>
                     <Button
                         disabled={isSubmitDisabled}
-                        className='btn btn-primary'
+                        emphasis='primary'
                         onClick={requestLicense}
+                        type='button'
                     >
                         {btnText(status)}
                     </Button>

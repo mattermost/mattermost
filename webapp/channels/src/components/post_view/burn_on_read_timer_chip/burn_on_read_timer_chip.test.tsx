@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 import BurnOnReadTimerChip from './burn_on_read_timer_chip';
 
@@ -16,7 +15,6 @@ describe('BurnOnReadTimerChip', () => {
 
     beforeEach(() => {
         jest.useFakeTimers();
-        jest.clearAllMocks();
     });
 
     afterEach(() => {
@@ -40,6 +38,8 @@ describe('BurnOnReadTimerChip', () => {
         );
 
         const chip = screen.getByRole('button');
+
+        // Click the timer chip to verify onClick handler is called - fireEvent used because userEvent doesn't work well with fake timers
         fireEvent.click(chip);
 
         expect(onClick).toHaveBeenCalledTimes(1);
@@ -55,6 +55,8 @@ describe('BurnOnReadTimerChip', () => {
         );
 
         const chip = screen.getByRole('button');
+
+        // Press Enter key to verify keyboard accessibility for the timer chip - fireEvent used because userEvent doesn't work well with fake timers
         fireEvent.keyDown(chip, {key: 'Enter', code: 'Enter'});
 
         expect(onClick).toHaveBeenCalled();

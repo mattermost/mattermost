@@ -35,7 +35,7 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 
 	ds := &DatabaseStore{
 		driverName:     *mainHelper.GetSQLSettings().DriverName,
-		db:             mainHelper.GetSQLStore().GetMaster().DB,
+		db:             mainHelper.GetSQLStore().GetMaster().DB(),
 		dataSourceName: *mainHelper.Settings.DataSource,
 	}
 
@@ -209,7 +209,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 		_, err := NewDatabaseStore("")
 		require.Error(t, err)
 
-		_, err = NewDatabaseStore("mysql")
+		_, err = NewDatabaseStore("postgres")
 		require.Error(t, err)
 	})
 
@@ -464,7 +464,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		defer ds.Close()
 
 		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = model.NewPointer("invalid")
+		newCfg.ServiceSettings.SiteURL = new("invalid")
 
 		_, _, err = ds.Set(newCfg)
 		if assert.Error(t, err) {
@@ -503,7 +503,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: model.NewPointer("http://new"),
+				SiteURL: new("http://new"),
 			},
 		}
 
@@ -523,7 +523,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: model.NewPointer("http://new"),
+				SiteURL: new("http://new"),
 			},
 		}
 
@@ -1054,17 +1054,10 @@ func TestDatabaseStoreString(t *testing.T) {
 	require.NotNil(t, ds)
 	defer ds.Close()
 
-	if *mainHelper.GetSQLSettings().DriverName == "postgres" {
-		maskedDSN := ds.String()
-		assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
-		assert.False(t, strings.Contains(maskedDSN, "mmuser"))
-		assert.False(t, strings.Contains(maskedDSN, "mostest"))
-	} else {
-		maskedDSN := ds.String()
-		assert.False(t, strings.HasPrefix(maskedDSN, "mysql://"))
-		assert.False(t, strings.Contains(maskedDSN, "mmuser"))
-		assert.False(t, strings.Contains(maskedDSN, "mostest"))
-	}
+	maskedDSN := ds.String()
+	assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
+	assert.False(t, strings.Contains(maskedDSN, "mmuser"))
+	assert.False(t, strings.Contains(maskedDSN, "mostest"))
 }
 
 func TestCleanUp(t *testing.T) {
@@ -1083,7 +1076,7 @@ func TestCleanUp(t *testing.T) {
 		b, err := marshalConfig(ds.config)
 		require.NoError(t, err)
 
-		ds.config.JobSettings.CleanupConfigThresholdDays = model.NewPointer(30) // we set 30 days as threshold
+		ds.config.JobSettings.CleanupConfigThresholdDays = new(30) // we set 30 days as threshold
 
 		var initialCount int
 		row := dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")

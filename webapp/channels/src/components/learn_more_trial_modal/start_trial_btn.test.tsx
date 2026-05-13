@@ -1,15 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 jest.mock('mattermost-redux/actions/general', () => ({
     ...jest.requireActual('mattermost-redux/actions/general'),
@@ -26,6 +22,11 @@ jest.mock('actions/admin_actions', () => ({
         }
         return {type: 'asdf', data: 'ok'};
     },
+}));
+
+jest.mock('components/common/hooks/useOpenStartTrialFormModal', () => ({
+    __esModule: true,
+    default: () => jest.fn(),
 }));
 
 describe('components/learn_more_trial_modal/start_trial_btn', () => {
@@ -62,38 +63,31 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
         },
     };
 
-    const store = mockStore(state);
-
     const props = {
         onClick: jest.fn(),
         message: 'Start trial',
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <StartTrialBtn {...props}/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <StartTrialBtn {...props}/>,
+            state,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should handle on click', async () => {
         const mockOnClick = jest.fn();
 
-        // Mount the component
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <StartTrialBtn
-                    {...props}
-                    onClick={mockOnClick}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <StartTrialBtn
+                {...props}
+                onClick={mockOnClick}
+            />,
+            state,
         );
 
-        act(() => {
-            wrapper.find('.btn-secondary').simulate('click');
-        });
+        await userEvent.click(container.querySelector('.btn-secondary')!);
 
         expect(mockOnClick).toHaveBeenCalled();
     });
@@ -101,44 +95,17 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
     test('should handle on click when rendered as button', async () => {
         const mockOnClick = jest.fn();
 
-        // Mount the component
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <StartTrialBtn
-                    {...props}
-                    renderAsButton={true}
-                    onClick={mockOnClick}
-                />
-            </Provider>,
+        renderWithContext(
+            <StartTrialBtn
+                {...props}
+                renderAsButton={true}
+                onClick={mockOnClick}
+            />,
+            state,
         );
 
-        act(() => {
-            wrapper.find('button').simulate('click');
-        });
+        await userEvent.click(screen.getByRole('button'));
 
         expect(mockOnClick).toHaveBeenCalled();
     });
-
-    // test('does not show success for embargoed countries', async () => {
-    //     const mockOnClick = jest.fn();
-
-    //     const clonedState = JSON.parse(JSON.stringify(state));
-    //     clonedState.entities.admin.analytics.TOTAL_USERS = 451;
-
-    //     // Mount the component
-    //     const wrapper = mountWithIntl(
-    //         <Provider store={mockStore(clonedState)}>
-    //             <StartTrialBtn
-    //                 {...props}
-    //                 onClick={mockOnClick}
-    //             />
-    //         </Provider>,
-    //     );
-
-    //     act(() => {
-    //         wrapper.find('.start-trial-btn').simulate('click');
-    //     });
-
-    //     expect(mockOnClick).not.toHaveBeenCalled();
-    // });
 });

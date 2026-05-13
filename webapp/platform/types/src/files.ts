@@ -1,6 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/**
+ * FileDownloadType represents the type of file download or access being performed.
+ */
+export type FileDownloadType = 'file' | 'thumbnail' | 'preview' | 'public';
+
+/**
+ * FileDownloadTypes contains constants for the different types of file downloads.
+ */
+export const FileDownloadTypes = {
+
+    /** Full file download request */
+    FILE: 'file' as FileDownloadType,
+
+    /** Thumbnail image request */
+    THUMBNAIL: 'thumbnail' as FileDownloadType,
+
+    /** Preview image request */
+    PREVIEW: 'preview' as FileDownloadType,
+
+    /** Public link access (unauthenticated) */
+    PUBLIC: 'public' as FileDownloadType,
+} as const;
+
 export type FileInfo = {
     id: string;
     user_id: string;
@@ -26,6 +49,7 @@ export type FilesState = {
     filesFromSearch: Record<string, FileSearchResultItem>;
     fileIdsByPostId: Record<string, string[]>;
     filePublicLink?: {link: string};
+    rejectedFiles: Set<string>;
 };
 
 export type FileUploadResponse = {

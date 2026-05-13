@@ -864,9 +864,9 @@ func (a *App) buildFullPushNotificationMessage(rctx request.CTX, contentsConfig 
 	}
 
 	postMessage := post.Message
-	stripped, err := utils.StripMarkdown(postMessage)
+	stripped, err := utils.StripMarkdownAndDecode(postMessage)
 	if err != nil {
-		rctx.Logger().Warn("Failed parse to markdown", mlog.String("post_id", post.Id), mlog.Err(err))
+		rctx.Logger().Warn("Failed to strip markdown from post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		postMessage = stripped
 	}

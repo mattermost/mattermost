@@ -15,9 +15,9 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import {createBotPatch} from '../../../support/api/bots';
-import {generateRandomUser} from '../../../support/api/user';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {createBotPatch} from '@/support/api/bots';
+import {generateRandomUser} from '@/support/api/user';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Bots in lists', () => {
     let team: Team;

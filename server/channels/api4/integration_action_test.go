@@ -118,7 +118,7 @@ func TestPostActionCookies(t *testing.T) {
 				CreateAt:  model.GetMillis(),
 				UpdateAt:  model.GetMillis(),
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Title:     "some-title",
 							TitleLink: "https://some-url.com",
@@ -273,7 +273,7 @@ func TestOpenDialog(t *testing.T) {
 
 	t.Run("Should fail if trigger timeout is extended", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
 		})
 
 		time.Sleep(2 * time.Second)

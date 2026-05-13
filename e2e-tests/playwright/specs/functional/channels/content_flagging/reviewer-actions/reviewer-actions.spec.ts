@@ -20,11 +20,15 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
     const secondUser = await pw.random.user('reviewer');
     const {id: secondUserID} = await adminClient.createUser(secondUser, '', '');
     await adminClient.addToTeam(team.id, secondUserID);
+    // Make system_admin so SystemAdminsAsReviewers: true covers them even if
+    // CommonReviewerIds is reset to [] by a concurrent initSetup() call.
+    await adminClient.updateUserRoles(secondUserID, 'system_user system_admin');
 
     // Create third user and add to team
     const thirdUser = await pw.random.user('reviewer');
     const {id: thirdUserID} = await adminClient.createUser(thirdUser, '', '');
     await adminClient.addToTeam(team.id, thirdUserID);
+    await adminClient.updateUserRoles(thirdUserID, 'system_user system_admin');
 
     // Setup content flagging *after* roles are set
     await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
@@ -32,7 +36,23 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
     const message = `Post by @${user.username}, is flagged once`;
 
     const {post} = await createPost(adminClient, userClient, team, user, message);
-    await adminClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false
+    // between the initial setupContentFlagging call and the flagPost call.
+    // pw.waitUntil confirms the config is actually true before proceeding — this
+    // closes the race window to < 100 ms (time between final poll and flagPost).
+    await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
+    });
+    await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
+
+    // Re-apply guard: concurrent initSetup() may have reset config between flagPost and login
+    await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
+    });
 
     const {channelsPage: secondChannelsPage, contentReviewPage: secondContentReviewPage} =
         await pw.testBrowser.login(secondUser);
@@ -45,9 +65,15 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
     await secondContentReviewPage.waitForRHSVisible();
 
     await secondContentReviewPage.openViewDetails();
+    await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
+    });
     await secondContentReviewPage.clickRemoveMessage();
     await secondContentReviewPage.enterConfirmationComment(commentRemove);
     await secondContentReviewPage.confirmRemove();
+    await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
 
     const {channelsPage: channelsPageThird, contentReviewPage: contentReviewPageThird} =
         await pw.testBrowser.login(thirdUser);

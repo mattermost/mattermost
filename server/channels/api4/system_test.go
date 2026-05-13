@@ -67,9 +67,9 @@ func TestGetPing(t *testing.T) {
 		_, ok := respMap["TestFeatureFlag"]
 		assert.Equal(t, false, ok)
 
-		// Run the environment variable override code to test
-		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
-		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
+		// Feature flags in ping response come from env var overrides, not config.
+		// Must use real env vars + ReloadConfig to test this path.
+		t.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
 		err = th.App.ReloadConfig()
 		require.NoError(t, err)
 
@@ -153,27 +153,27 @@ func TestEmailTest(t *testing.T) {
 	es := model.EmailSettings{}
 	es.SetDefaults(false)
 
-	es.SMTPServer = model.NewPointer("")
-	es.SMTPPort = model.NewPointer("")
-	es.SMTPPassword = model.NewPointer("")
-	es.FeedbackName = model.NewPointer("")
-	es.FeedbackEmail = model.NewPointer("some-addr@test.com")
-	es.ReplyToAddress = model.NewPointer("some-addr@test.com")
-	es.ConnectionSecurity = model.NewPointer("")
-	es.SMTPUsername = model.NewPointer("")
-	es.EnableSMTPAuth = model.NewPointer(false)
-	es.SkipServerCertificateVerification = model.NewPointer(true)
-	es.SendEmailNotifications = model.NewPointer(false)
-	es.SMTPServerTimeout = model.NewPointer(15)
+	es.SMTPServer = new("")
+	es.SMTPPort = new("")
+	es.SMTPPassword = new("")
+	es.FeedbackName = new("")
+	es.FeedbackEmail = new("some-addr@test.com")
+	es.ReplyToAddress = new("some-addr@test.com")
+	es.ConnectionSecurity = new("")
+	es.SMTPUsername = new("")
+	es.EnableSMTPAuth = new(false)
+	es.SkipServerCertificateVerification = new(true)
+	es.SendEmailNotifications = new(false)
+	es.SMTPServerTimeout = new(15)
 
 	config := model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: model.NewPointer(""),
+			SiteURL: new(""),
 		},
 		EmailSettings: es,
 		FileSettings: model.FileSettings{
 			DriverName: model.NewPointer(model.ImageDriverLocal),
-			Directory:  model.NewPointer(dir),
+			Directory:  new(dir),
 		},
 	}
 
@@ -641,11 +641,11 @@ func TestS3TestConnection(t *testing.T) {
 	fs.DriverName = model.NewPointer(model.ImageDriverS3)
 	fs.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
 	fs.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
-	fs.AmazonS3Bucket = model.NewPointer("")
-	fs.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
-	fs.AmazonS3Region = model.NewPointer("")
-	fs.AmazonS3PathPrefix = model.NewPointer("")
-	fs.AmazonS3SSL = model.NewPointer(false)
+	fs.AmazonS3Bucket = new("")
+	fs.AmazonS3Endpoint = new(s3Endpoint)
+	fs.AmazonS3Region = new("")
+	fs.AmazonS3PathPrefix = new("")
+	fs.AmazonS3SSL = new(false)
 
 	config := model.Config{
 		FileSettings: fs,
@@ -664,18 +664,18 @@ func TestS3TestConnection(t *testing.T) {
 		// If this fails, check the test configuration to ensure minio is setup with the
 		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
 		*config.FileSettings.AmazonS3Bucket = model.MinioBucket
-		config.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+		config.FileSettings.AmazonS3PathPrefix = new("")
 		*config.FileSettings.AmazonS3Region = "us-east-1"
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		config.FileSettings.AmazonS3Region = model.NewPointer("")
+		config.FileSettings.AmazonS3Region = new("")
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		config.FileSettings.AmazonS3Bucket = model.NewPointer("Wrong_bucket")
+		config.FileSettings.AmazonS3Bucket = new("Wrong_bucket")
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
 		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")

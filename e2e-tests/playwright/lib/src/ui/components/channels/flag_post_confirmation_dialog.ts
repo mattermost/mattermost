@@ -42,9 +42,13 @@ export default class FlagPostConfirmationDialog {
     async selectFlagReason(reason: string) {
         // Open the dropdown
         await this.flagPostReasonInput.click();
-        // Wait for dropdown options to appear and click the desired one
+        // Wait for dropdown menu list to appear, then wait for the specific option
+        // to be visible before clicking. The second waitFor guards against a race
+        // where the list renders but the individual options are not yet in the DOM.
         await this.flagReasonOption.waitFor({state: 'visible'});
-        await this.flagReasonMenuItems(reason).click();
+        const menuItem = this.flagReasonMenuItems(reason);
+        await menuItem.waitFor({state: 'visible', timeout: 10000});
+        await menuItem.click();
     }
 
     async toBeVisible() {
@@ -60,27 +64,29 @@ export default class FlagPostConfirmationDialog {
     }
 
     async notToBeVisible() {
-        await expect(this.container).not.toBeVisible();
-        await expect(this.cancelButton).not.toBeVisible();
-        await expect(this.submitButton).not.toBeVisible();
+        await expect(this.container).not.toBeVisible({timeout: 10000});
+        await expect(this.cancelButton).not.toBeVisible({timeout: 10000});
+        await expect(this.submitButton).not.toBeVisible({timeout: 10000});
     }
 
     async cannotFlagAlreadyFlaggedPostToBeVisible() {
         await expect(this.cannotFlagPostErrorMessage).toBeVisible();
-        await expect(this.cannotFlagPostErrorMessage).toHaveText('Cannot flag this post as it is already flagged.');
+        await expect(this.cannotFlagPostErrorMessage).toHaveText(
+            'Cannot quarantine this post as it is already quarantined for review.',
+        );
     }
 
     async requireCommentsForFlaggingPost() {
         await expect(this.requireCommentsErrorMessage).toBeVisible();
         await expect(this.requireCommentsErrorMessage).toHaveText(
-            'Please add a comment explaining why you’re flagging this message.',
+            'Please add a comment explaining why you’re quarantining this message.',
         );
     }
 
     async cannotFlagPreviouslyRetainedPostToBeVisible() {
         await expect(this.cannotFlagPostErrorMessage).toBeVisible();
         await expect(this.cannotFlagPostErrorMessage).toHaveText(
-            'Cannot flag this post as it was retained in a previous flagging request.',
+            'Cannot quarantine this post as it was retained in a previous review.',
         );
     }
 }

@@ -164,6 +164,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		IPAddress:      utils.GetIPAddress(r, ch.cfgSvc.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
+		ConnectionId:   r.Header.Get(model.ConnectionId),
 	}
 
 	pluginID := mux.Vars(r)["plugin_id"]
@@ -247,9 +248,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	r.Header.Del(model.HeaderAuth)
 
 	rctx = rctx.
-		WithLogger(rctx.Logger().With(
-			mlog.String("user_id", session.UserId),
-		)).
+		WithLogFields(mlog.String("user_id", session.UserId)).
 		WithSession(session)
 
 	// If MFA is required and user has not activated it, treat it as unauthenticated

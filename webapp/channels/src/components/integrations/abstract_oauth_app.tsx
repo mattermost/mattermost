@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -375,7 +376,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                     <Link to={`/${this.props.team.name}/integrations/oauth2-apps`}>
                         <FormattedMessage
                             id='installed_oauth_apps.header'
-                            defaultMessage='Installed OAuth2 Apps'
+                            defaultMessage='OAuth 2.0 Applications'
                         />
                     </Link>
                     <FormattedMessage
@@ -530,7 +531,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Link
-                                className='btn btn-tertiary'
+                                className={buttonClassNames({emphasis: 'tertiary'})}
                                 to={`/${this.props.team.name}/integrations/oauth2-apps`}
                             >
                                 <FormattedMessage
@@ -539,7 +540,6 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
                                 spinningText={this.props.loading}

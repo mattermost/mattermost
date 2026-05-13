@@ -20,6 +20,7 @@ import ToastWrapper from 'components/toast_wrapper';
 import Pluggable from 'plugins/pluggable';
 import Constants, {PostListRowListIds, EventTypes, PostRequestTypes} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
+import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getPreviousPostId, getLatestPostId} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
@@ -28,7 +29,7 @@ import LatestPostReader from './latest_post_reader';
 const OVERSCAN_COUNT_BACKWARD = 80;
 const OVERSCAN_COUNT_FORWARD = 80;
 const HEIGHT_TRIGGER_FOR_MORE_POSTS = 1000;
-const BUFFER_TO_BE_CONSIDERED_BOTTOM = 10;
+const BUFFER_TO_BE_CONSIDERED_BOTTOM = 100;
 
 const MAXIMUM_POSTS_FOR_SLICING = {
     channel: 50,
@@ -93,6 +94,8 @@ type Props = {
 
     shouldStartFromBottomWhenUnread: boolean;
 
+    isChannelAutotranslated: boolean;
+
     actions: {
 
         /*
@@ -130,9 +133,6 @@ type State = {
     postListIds: string[];
     topPostId: string;
     postMenuOpened: boolean;
-    dynamicListStyle: {
-        willChange: string;
-    };
     initScrollCompleted: boolean;
     initScrollOffsetFromBottom: number;
     showSearchHint: boolean;
@@ -167,9 +167,6 @@ export default class PostList extends React.PureComponent<Props, State> {
             postListIds: [channelIntroMessage],
             topPostId: '',
             postMenuOpened: false,
-            dynamicListStyle: {
-                willChange: 'transform',
-            },
             initScrollCompleted: false,
             initScrollOffsetFromBottom: 0,
             showSearchHint: false,
@@ -233,6 +230,24 @@ export default class PostList extends React.PureComponent<Props, State> {
             this.scrollStopAction = new DelayedAction(this.handleScrollStop);
         }
 
+        if (this.props.focusedPostId) {
+            const postListIds = this.state.postListIds;
+            const index = postListIds.indexOf(this.props.focusedPostId);
+
+            if (index !== -1) {
+                const focusedPostChanged = this.props.focusedPostId !== prevProps.focusedPostId;
+                const postJustLoaded = (prevProps.postListIds || []).indexOf(this.props.focusedPostId) === -1;
+
+                if (focusedPostChanged || postJustLoaded) {
+                    // Scroll to the focused post if it has changed or just been loaded.
+                    // This is necessary for inline permalink navigation where the channel remains the same
+                    // but the focused post changes, as DynamicVirtualizedList doesn't automatically handle
+                    // scrolling on prop updates after the initial mount.
+                    this.listRef.current?.scrollToItem(index, 'center');
+                }
+            }
+        }
+
         if (!this.postListRef.current) {
             return;
         }
@@ -261,7 +276,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         EventEmitter.removeListener(EventTypes.POST_LIST_SCROLL_TO_BOTTOM, this.scrollToLatestMessages);
     }
 
-    static getDerivedStateFromProps(props: Props, state: State) {
+    static getDerivedStateFromProps(props: Props) {
         const postListIds = props.postListIds || [];
         let newPostListIds;
 
@@ -285,25 +300,6 @@ export default class PostList extends React.PureComponent<Props, State> {
             postListIds: newPostListIds,
         };
 
-        if (props.isMobileView !== state.isMobileView) {
-            nextState.isMobileView = props.isMobileView;
-
-            const dynamicListStyle = state.dynamicListStyle;
-            if (state.postMenuOpened) {
-                if (!props.isMobileView && dynamicListStyle.willChange === 'unset') {
-                    nextState.dynamicListStyle = {
-                        ...dynamicListStyle,
-                        willChange: 'transform',
-                    };
-                } else if (props.isMobileView && dynamicListStyle.willChange === 'transform') {
-                    nextState.dynamicListStyle = {
-                        ...dynamicListStyle,
-                        willChange: 'unset',
-                    };
-                }
-            }
-        }
-
         return nextState;
     }
 
@@ -312,17 +308,8 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
 
     togglePostMenu = (opened: boolean) => {
-        let dynamicListStyle = this.state.dynamicListStyle;
-        if (this.props.isMobileView) {
-            dynamicListStyle = {
-                ...dynamicListStyle,
-                willChange: opened ? 'unset' : 'transform',
-            };
-        }
-
         this.setState({
             postMenuOpened: opened,
-            dynamicListStyle,
         });
     };
 
@@ -354,13 +341,9 @@ export default class PostList extends React.PureComponent<Props, State> {
         // Since the first in the list is the latest message
         const isLastPost = itemId === this.state.postListIds[0];
 
-        const isLoader = itemId === PostListRowListIds.OLDER_MESSAGES_LOADER || itemId === PostListRowListIds.NEWER_MESSAGES_LOADER;
-        const shouldHideLoader = isLoader && !this.props.loadingOlderPosts && !this.props.loadingNewerPosts;
-        const rowStyle = shouldHideLoader ? {...style, display: 'none'} : style;
-
         return (
             <div
-                style={rowStyle}
+                style={style}
                 className={className}
             >
                 <PostListRow
@@ -374,6 +357,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                     loadingNewerPosts={this.props.loadingNewerPosts}
                     loadingOlderPosts={this.props.loadingOlderPosts}
                     channelId={this.props.channelId}
+                    isChannelAutotranslated={this.props.isChannelAutotranslated}
                 />
             </div>
         );
@@ -452,7 +436,7 @@ export default class PostList extends React.PureComponent<Props, State> {
             });
         }
 
-        if (!this.props.isMobileView && !this.state.isSearchHintDismissed) {
+        if (!this.props.isMobileView && !this.state.isSearchHintDismissed && !isChannelPopoutWindow()) {
             this.setState({
                 showSearchHint: offsetFromBottom > this.showSearchHintThreshold,
             });
@@ -672,8 +656,6 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {dynamicListStyle} = this.state;
-
         return (
             <div
                 className='a11y__region'
@@ -704,7 +686,10 @@ export default class PostList extends React.PureComponent<Props, State> {
                             id='postListContent'
                             className='post-list__content'
                         >
-                            <LatestPostReader postIds={this.props.postListIds}/>
+                            <LatestPostReader
+                                postIds={this.props.postListIds}
+                                autotranslated={this.props.isChannelAutotranslated}
+                            />
                             <AutoSizer>
                                 {({height, width}) => (
                                     <>
@@ -727,7 +712,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             initScrollToIndex={this.initScrollToIndex}
                                             canLoadMorePosts={this.props.actions.canLoadMorePosts}
                                             innerRef={this.postListRef}
-                                            style={{...virtListStyles, ...dynamicListStyle}}
+                                            style={virtListStyles}
                                             innerListStyle={postListStyle}
                                             initRangeToRender={this.initRangeToRender}
                                             loaderId={PostListRowListIds.OLDER_MESSAGES_LOADER}

@@ -172,7 +172,7 @@ func (te *customTestPdfExtractor) Match(filename string) bool {
 	return strings.HasSuffix(filename, ".pdf")
 }
 
-func (te *customTestPdfExtractor) Extract(filename string, r io.ReadSeeker) (string, error) {
+func (te *customTestPdfExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
 	return "this is a text generated content", nil
 }
 
@@ -186,7 +186,7 @@ func (te *failingExtractor) Match(filename string) bool {
 	return true
 }
 
-func (te *failingExtractor) Extract(filename string, r io.ReadSeeker) (string, error) {
+func (te *failingExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
 	return "", errors.New("this always fail")
 }
 
@@ -211,4 +211,73 @@ func TestExtractWithExtraExtractors(t *testing.T) {
 		assert.Contains(t, text, "document")
 		assert.Contains(t, text, "contains")
 	})
+}
+
+func TestArchiveMaxFileSize(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		file           string
+		recursion      bool
+		limit          int64
+		expectContains []string
+		expectMissing  []string
+	}{
+		{
+			name:           "Zip with recursion and large limit extracts fully",
+			file:           "Fake_Team_Import.zip",
+			recursion:      true,
+			limit:          10 * 1024 * 1024,
+			expectContains: []string{"purpose", "announcements"},
+		},
+		{
+			name:          "Zip with recursion and tiny limit rejects oversized entries",
+			file:          "Fake_Team_Import.zip",
+			recursion:     true,
+			limit:         1,
+			expectMissing: []string{"purpose", "announcements"},
+		},
+		{
+			name:           "Zip with recursion and zero limit means unlimited",
+			file:           "Fake_Team_Import.zip",
+			recursion:      true,
+			limit:          0,
+			expectContains: []string{"purpose", "announcements"},
+		},
+		{
+			name:           "Zip without recursion lists paths regardless of limit",
+			file:           "Fake_Team_Import.zip",
+			recursion:      false,
+			limit:          1,
+			expectContains: []string{"channels"},
+		},
+		{
+			name:          "Tar.gz with recursion and tiny limit rejects oversized entries",
+			file:          "Fake_Team_Import.tar.gz",
+			recursion:     true,
+			limit:         1,
+			expectMissing: []string{"purpose", "announcements"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			data, err := testutils.ReadTestFile(tc.file)
+			require.NoError(t, err)
+
+			settings := ExtractSettings{ArchiveRecursion: tc.recursion, MaxFileSize: tc.limit}
+			text, err := Extract(mlog.CreateConsoleTestLogger(t), tc.file, bytes.NewReader(data), settings)
+			require.NoError(t, err)
+
+			for _, s := range tc.expectContains {
+				assert.Contains(t, text, s)
+			}
+			for _, s := range tc.expectMissing {
+				assert.NotContains(t, text, s)
+			}
+		})
+	}
 }

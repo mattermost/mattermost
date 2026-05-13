@@ -1,23 +1,199 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/GetPublicLinkModal should match snapshot when link is empty 1`] = `
-<GetLinkModal
-  helpText="The link below allows anyone to see this file without being registered on this server."
-  link=""
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  show={true}
-  title="Copy Public Link"
-/>
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="getLinkModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+            id="getLinkModalLabel"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h2
+              class="modal-title"
+            >
+              Copy Public Link
+            </h2>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <p>
+              The link below allows anyone to see this file without being registered on this server.
+              <br />
+              <br />
+            </p>
+            <textarea
+              class="form-control no-resize min-height"
+              dir="auto"
+              id="linkModalTextArea"
+              readonly=""
+            />
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary"
+              id="linkModalCloseButton"
+              type="button"
+            >
+              Close
+            </button>
+            <button
+              class="btn btn-primary pull-left"
+              data-copy-btn="true"
+              id="linkModalCopyLink"
+              type="button"
+            >
+              <i
+                class="icon icon-link-variant"
+              />
+              Copy Link
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;
 
 exports[`components/GetPublicLinkModal should match snapshot when link is not empty 1`] = `
-<GetLinkModal
-  helpText="The link below allows anyone to see this file without being registered on this server."
-  link="http://mattermost.com/files/n5bnoaz3e7g93nyipzo1bixdwr/public?h=atw9qQHI1nUPnxo1e48tPspo1Qvwd3kHtJZjysmI5zs"
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  show={true}
-  title="Copy Public Link"
-/>
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="getLinkModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+            id="getLinkModalLabel"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h2
+              class="modal-title"
+            >
+              Copy Public Link
+            </h2>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <p>
+              The link below allows anyone to see this file without being registered on this server.
+              <br />
+              <br />
+            </p>
+            <textarea
+              class="form-control no-resize min-height"
+              dir="auto"
+              id="linkModalTextArea"
+              readonly=""
+            >
+              http://mattermost.com/files/n5bnoaz3e7g93nyipzo1bixdwr/public?h=atw9qQHI1nUPnxo1e48tPspo1Qvwd3kHtJZjysmI5zs
+            </textarea>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary"
+              id="linkModalCloseButton"
+              type="button"
+            >
+              Close
+            </button>
+            <button
+              class="btn btn-primary pull-left"
+              data-copy-btn="true"
+              id="linkModalCopyLink"
+              type="button"
+            >
+              <i
+                class="icon icon-link-variant"
+              />
+              Copy Link
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

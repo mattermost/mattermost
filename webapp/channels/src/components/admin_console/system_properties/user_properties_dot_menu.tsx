@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
@@ -118,6 +118,8 @@ const DotMenu = ({
     const {promptDelete} = useUserPropertyFieldDelete();
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
+    const isProtected = Boolean(field.attrs?.protected);
+
     const handleDuplicate = () => {
         const name = formatMessage({
             id: 'admin.system_properties.user_properties.dotmenu.duplicate.name_copy',
@@ -184,11 +186,11 @@ const DotMenu = ({
                 class: 'btn btn-transparent user-property-field-dotmenu-menu-button',
                 children: (
                     <>
-                        <DotsHorizontalIcon size={18}/>
+                        {isProtected ? <LockOutlineIcon size={18}/> : <DotsHorizontalIcon size={18}/>}
                     </>
                 ),
                 dataTestId: `${menuId}-${field.id}`,
-                disabled: field.delete_at !== 0,
+                disabled: field.delete_at !== 0 || isProtected,
             }}
             menu={{
                 id: `${menuId}-menu`,

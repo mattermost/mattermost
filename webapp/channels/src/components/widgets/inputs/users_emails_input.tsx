@@ -34,7 +34,6 @@ type Props = {
     ariaLabel: string;
     usersLoader: (search: string, callback: (users: UserProfile[]) => void) => Promise<UserProfile[]> | undefined;
     onUsersLoad?: (users: UserProfile[]) => void;
-    onBlur?: () => void;
     onChange: (change: Array<UserProfile | string>) => void;
     showError?: boolean;
     errorMessage?: MessageDescriptor;
@@ -63,7 +62,43 @@ type State = {
     prevValue: string;
 }
 
-const multipleValuesDelimiter = /[\s,;]+/;
+const typedInputDelimiter = /[,;]+/;
+const pasteDelimiter = /[\n\r,;]+/;
+const spaceSeparatedPasteDelimiter = /\s+/;
+
+type PasteHandling =
+    | {mode: 'draft'}
+    | {mode: 'bulk'; delimiter: RegExp};
+
+const getPasteHandling = (value: string): PasteHandling => {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+        return {mode: 'draft'};
+    }
+
+    if (isEmail(trimmedValue)) {
+        return {mode: 'bulk', delimiter: pasteDelimiter};
+    }
+
+    if ((/[,;\n\r]/).test(trimmedValue)) {
+        return {mode: 'bulk', delimiter: pasteDelimiter};
+    }
+
+    const entries = trimmedValue.split(spaceSeparatedPasteDelimiter).map((entry) => entry.trim()).filter(Boolean);
+    if (entries.length > 1 && entries.every((entry) => isEmail(entry))) {
+        return {mode: 'bulk', delimiter: spaceSeparatedPasteDelimiter};
+    }
+
+    return {mode: 'draft'};
+};
+
+const isLikelyBulkPasteInput = (nextValue: string, previousValue: string): PasteHandling => {
+    if (nextValue.length - previousValue.length <= 1) {
+        return {mode: 'draft'};
+    }
+
+    return getPasteHandling(nextValue);
+};
 
 const messages = defineMessages({
     loadingDefault: {
@@ -83,7 +118,7 @@ const messages = defineMessages({
 export class UsersEmailsInput extends React.PureComponent<Props, State> {
     static defaultProps = {
         noMatchMessage: messages.noMatchDefault,
-        validAddress: messages.validAddressDefault,
+        validAddressMessage: messages.validAddressDefault,
         loadingMessage: messages.loadingDefault,
         showError: false,
     };
@@ -219,9 +254,12 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
 
     Input = (props: InputProps<EmailInvite | UserProfile, true>) => {
         const handlePaste = (e: ClipboardEvent) => {
-            e.preventDefault();
             const clipboardText = e.clipboardData?.getData('Text') || '';
-            this.appendDelimitedValues(clipboardText);
+            const pasteHandling = getPasteHandling(clipboardText);
+            if (pasteHandling.mode === 'bulk') {
+                e.preventDefault();
+                this.appendDelimitedValues(clipboardText, pasteHandling.delimiter).catch(() => undefined);
+            }
 
             if (this.props.onPaste) {
                 this.props.onPaste(e);
@@ -336,10 +374,21 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                     prevValue: action.prevInputValue,
                 }));
             }
-        } else if (action.action === 'input-change' && action.prevInputValue !== '' && action.prevInputValue?.[action.prevInputValue.length - 1].match(multipleValuesDelimiter)) {
-            const newValuesCount = await this.appendDelimitedValues(action.prevInputValue);
-            if (newValuesCount === 0) {
+        } else if (action.action === 'input-change') {
+            const likelyBulkPaste = isLikelyBulkPasteInput(inputValue, action.prevInputValue || '');
+            if (likelyBulkPaste.mode === 'bulk') {
+                const newValuesCount = await this.appendDelimitedValues(inputValue, likelyBulkPaste.delimiter);
+                if (newValuesCount === 0) {
+                    return;
+                }
                 return;
+            }
+
+            if (action.prevInputValue !== '' && action.prevInputValue?.[action.prevInputValue.length - 1].match(typedInputDelimiter)) {
+                const newValuesCount = await this.appendDelimitedValues(action.prevInputValue, typedInputDelimiter);
+                if (newValuesCount === 0) {
+                    return;
+                }
             }
         }
         if (action.action !== 'input-blur' && action.action !== 'menu-close') {
@@ -360,7 +409,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         });
     };
 
-    optionsLoader = (_input: string, callback: (options: UserProfile[]) => void) => {
+    optionsLoader = (inputValue: string, callback: (options: UserProfile[]) => void) => {
         const customCallback = (options: UserProfile[]) => {
             this.setState({options});
             const accessibleProfiles = options.map((user: UserProfile) => ({...user, label: user.username}));
@@ -369,7 +418,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                 this.props.onUsersLoad(options);
             }
         };
-        const result = this.props.usersLoader(this.props.inputValue, customCallback);
+        const result = this.props.usersLoader(inputValue, customCallback);
         if (result && result.then) {
             result.then(customCallback);
         }
@@ -383,16 +432,13 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         this.selectRef.current?.onInputChange(this.props.inputValue, {action: 'set-value', prevInputValue: this.props.inputValue});
     };
 
-    onBlur = () => {
-        this.selectRef.current?.onInputChange(this.props.inputValue, {action: 'input-blur', prevInputValue: this.state.prevValue});
-        if (this.props.onBlur) {
-            this.props.onBlur();
-        }
-    };
-
-    appendDelimitedValues = async (values: string): Promise<number> => {
+    appendDelimitedValues = async (
+        values: string,
+        delimiter: RegExp = pasteDelimiter,
+        inputCleanupDelimiter: RegExp = delimiter,
+    ): Promise<number> => {
         const existingValues = this.formatValuesForCreatable();
-        const entries = [...new Set(values.split(multipleValuesDelimiter))];
+        const entries = [...new Set(values.split(delimiter).map((e) => e.trim()))];
 
         if (entries.length === 0) {
             return 0;
@@ -470,7 +516,26 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         });
 
         this.onChange([...existingValues, ...newValues]);
-        this.props.onInputChange('');
+
+        const unresolvedEntries = entries.filter((entry) => {
+            if (!entry) {
+                return false;
+            }
+
+            const cleanedEntry = entry.replace(inputCleanupDelimiter, ' ').trim();
+            if (!cleanedEntry) {
+                return false;
+            }
+
+            return !newValues.some((value) => {
+                if (this.isEmailInvite(value)) {
+                    return value.value === cleanedEntry;
+                }
+                return value.username === cleanedEntry || value.email === cleanedEntry;
+            });
+        });
+
+        this.props.onInputChange(unresolvedEntries.join(' '));
 
         return newValues.length;
     };
@@ -518,17 +583,15 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
             input: (css) => ({
                 ...css,
 
-                display: 'flex',
-                flex: '1 1 auto',
-
-                '> div': {
-                    width: '100%',
-                },
+                gridTemplateColumns: '0 minmax(0, 1fr)',
 
                 input: {
-                    width: '100% !important',
                     textAlign: 'left',
                 },
+            }),
+            valueContainer: (css) => ({
+                ...css,
+                gridTemplateColumns: 'minmax(0, 1fr)',
             }),
         } satisfies StylesConfig<UserProfile | EmailInvite, true >;
 
@@ -559,8 +622,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                     onInputChange={this.handleInputChange}
                     inputValue={this.props.inputValue}
                     openMenuOnFocus={true}
-                    onFocus={() => this.onFocus}
-                    onBlur={() => this.onBlur}
+                    onFocus={this.onFocus}
                     tabSelectsValue={true}
                     value={values}
                     aria-label={this.props.ariaLabel}

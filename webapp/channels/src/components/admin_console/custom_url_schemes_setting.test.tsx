@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import CustomURLSchemesSetting from './custom_url_schemes_setting';
 
@@ -23,12 +23,13 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 value: [],
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
 
-            expect(wrapper.state('value')).toEqual('');
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            expect(input.value).toEqual('');
         });
 
         test('with one item', () => {
@@ -37,12 +38,13 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 value: ['git'],
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
 
-            expect(wrapper.state('value')).toEqual('git');
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            expect(input.value).toEqual('git');
         });
 
         test('with multiple items', () => {
@@ -51,87 +53,97 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 value: ['git', 'smtp', 'steam'],
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
 
-            expect(wrapper.state('value')).toEqual('git,smtp,steam');
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            expect(input.value).toEqual('git,smtp,steam');
         });
     });
 
     describe('onChange', () => {
-        test('called on change to empty', () => {
+        test('called on change to empty', async () => {
             const props = {
                 ...baseProps,
                 onChange: jest.fn(),
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
-            wrapper.find('input').simulate('change', {target: {value: ''}});
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            await userEvent.clear(input);
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, []);
         });
 
-        test('called on change to one item', () => {
+        test('called on change to one item', async () => {
             const props = {
                 ...baseProps,
                 onChange: jest.fn(),
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
-            wrapper.find('input').simulate('change', {target: {value: '  steam  '}});
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            await userEvent.clear(input);
+            await userEvent.type(input, '  steam  ');
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['steam']);
         });
 
-        test('called on change to two items', () => {
+        test('called on change to two items', async () => {
             const props = {
                 ...baseProps,
                 onChange: jest.fn(),
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
-            wrapper.find('input').simulate('change', {target: {value: 'steam, git'}});
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            await userEvent.clear(input);
+            await userEvent.type(input, 'steam, git');
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['steam', 'git']);
         });
 
-        test('called on change to more items', () => {
+        test('called on change to more items', async () => {
             const props = {
                 ...baseProps,
                 onChange: jest.fn(),
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
-            wrapper.find('input').simulate('change', {target: {value: 'ts3server, smtp, ms-excel'}});
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            await userEvent.clear(input);
+            await userEvent.type(input, 'ts3server, smtp, ms-excel');
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['ts3server', 'smtp', 'ms-excel']);
         });
 
-        test('called on change with extra commas', () => {
+        test('called on change with extra commas', async () => {
             const props = {
                 ...baseProps,
                 onChange: jest.fn(),
             };
 
-            const wrapper = mountWithIntl(
+            const {container} = renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
-            wrapper.find('input').simulate('change', {target: {value: ',,,,,chrome,,,,ms-excel,,'}});
+            const input = container.querySelector('#MySetting') as HTMLInputElement;
+            await userEvent.clear(input);
+            await userEvent.type(input, ',,,,,chrome,,,,ms-excel,,');
 
             expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['chrome', 'ms-excel']);
         });
@@ -143,10 +155,10 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
             disabled: true,
         };
 
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <CustomURLSchemesSetting {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('renders properly when set by environment variable', () => {
@@ -155,9 +167,9 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
             setByEnv: true,
         };
 
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <CustomURLSchemesSetting {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

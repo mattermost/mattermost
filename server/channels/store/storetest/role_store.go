@@ -456,39 +456,45 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, rctx request.CTX, 
 			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelGuestRole)
 			require.NoError(t, err)
 
-			var actualRoleNames []string
+			roleByName := make(map[string]*model.Role, len(actualRoles))
 			for _, role := range actualRoles {
-				actualRoleNames = append(actualRoleNames, role.Name)
+				roleByName[role.Name] = role
 			}
 
-			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelGuestRole)
-			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelGuestRole)
+			require.Contains(t, roleByName, channelScheme1.DefaultChannelGuestRole)
+			require.NotContains(t, roleByName, channelScheme2.DefaultChannelGuestRole)
+			require.NotNil(t, roleByName[channelScheme1.DefaultChannelGuestRole].SchemeId)
+			assert.Equal(t, channelScheme1.Id, *roleByName[channelScheme1.DefaultChannelGuestRole].SchemeId)
 		})
 
 		t.Run("user role for the right team's channels are returned", func(t *testing.T) {
 			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelUserRole)
 			require.NoError(t, err)
 
-			var actualRoleNames []string
+			roleByName := make(map[string]*model.Role, len(actualRoles))
 			for _, role := range actualRoles {
-				actualRoleNames = append(actualRoleNames, role.Name)
+				roleByName[role.Name] = role
 			}
 
-			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelUserRole)
-			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelUserRole)
+			require.Contains(t, roleByName, channelScheme1.DefaultChannelUserRole)
+			require.NotContains(t, roleByName, channelScheme2.DefaultChannelUserRole)
+			require.NotNil(t, roleByName[channelScheme1.DefaultChannelUserRole].SchemeId)
+			assert.Equal(t, channelScheme1.Id, *roleByName[channelScheme1.DefaultChannelUserRole].SchemeId)
 		})
 
 		t.Run("admin role for the right team's channels are returned", func(t *testing.T) {
 			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelAdminRole)
 			require.NoError(t, err)
 
-			var actualRoleNames []string
+			roleByName := make(map[string]*model.Role, len(actualRoles))
 			for _, role := range actualRoles {
-				actualRoleNames = append(actualRoleNames, role.Name)
+				roleByName[role.Name] = role
 			}
 
-			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelAdminRole)
-			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelAdminRole)
+			require.Contains(t, roleByName, channelScheme1.DefaultChannelAdminRole)
+			require.NotContains(t, roleByName, channelScheme2.DefaultChannelAdminRole)
+			require.NotNil(t, roleByName[channelScheme1.DefaultChannelAdminRole].SchemeId)
+			assert.Equal(t, channelScheme1.Id, *roleByName[channelScheme1.DefaultChannelAdminRole].SchemeId)
 		})
 	})
 
@@ -497,9 +503,9 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, rctx request.CTX, 
 			actualRoles, err := ss.Role().AllChannelSchemeRoles()
 			require.NoError(t, err)
 
-			var actualRoleNames []string
+			roleByName := make(map[string]*model.Role, len(actualRoles))
 			for _, role := range actualRoles {
-				actualRoleNames = append(actualRoleNames, role.Name)
+				roleByName[role.Name] = role
 			}
 
 			allRoleNames := []string{
@@ -514,7 +520,27 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, rctx request.CTX, 
 			}
 
 			for _, roleName := range allRoleNames {
-				require.Contains(t, actualRoleNames, roleName)
+				require.Contains(t, roleByName, roleName)
+			}
+
+			// Roles for channelScheme1 must carry channelScheme1's ID.
+			for _, roleName := range []string{
+				channelScheme1.DefaultChannelGuestRole,
+				channelScheme1.DefaultChannelUserRole,
+				channelScheme1.DefaultChannelAdminRole,
+			} {
+				require.NotNil(t, roleByName[roleName].SchemeId)
+				assert.Equal(t, channelScheme1.Id, *roleByName[roleName].SchemeId)
+			}
+
+			// Roles for channelScheme2 must carry channelScheme2's ID.
+			for _, roleName := range []string{
+				channelScheme2.DefaultChannelGuestRole,
+				channelScheme2.DefaultChannelUserRole,
+				channelScheme2.DefaultChannelAdminRole,
+			} {
+				require.NotNil(t, roleByName[roleName].SchemeId)
+				assert.Equal(t, channelScheme2.Id, *roleByName[roleName].SchemeId)
 			}
 		})
 	})

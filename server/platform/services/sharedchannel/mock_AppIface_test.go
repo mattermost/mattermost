@@ -142,7 +142,7 @@ func (_m *MockAppIface) CreateGroupChannel(rctx request.CTX, userIDs []string, c
 }
 
 // CreatePost provides a mock function with given fields: rctx, post, channel, flags
-func (_m *MockAppIface) CreatePost(rctx request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (*model.Post, *model.AppError) {
+func (_m *MockAppIface) CreatePost(rctx request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (*model.Post, bool, *model.AppError) {
 	ret := _m.Called(rctx, post, channel, flags)
 
 	if len(ret) == 0 {
@@ -150,8 +150,9 @@ func (_m *MockAppIface) CreatePost(rctx request.CTX, post *model.Post, channel *
 	}
 
 	var r0 *model.Post
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) (*model.Post, *model.AppError)); ok {
+	var r1 bool
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) (*model.Post, bool, *model.AppError)); ok {
 		return rf(rctx, post, channel, flags)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) *model.Post); ok {
@@ -162,15 +163,21 @@ func (_m *MockAppIface) CreatePost(rctx request.CTX, post *model.Post, channel *
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) bool); ok {
 		r1 = rf(rctx, post, channel, flags)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		r1 = ret.Get(1).(bool)
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) *model.AppError); ok {
+		r2 = rf(rctx, post, channel, flags)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
 		}
 	}
 
-	return r0, r1
+	return r0, r1, r2
 }
 
 // CreateUploadSession provides a mock function with given fields: rctx, us
@@ -417,6 +424,38 @@ func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.
 	}
 
 	return r0, r1, r2
+}
+
+// GetSystemBot provides a mock function with given fields: rctx
+func (_m *MockAppIface) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSystemBot")
+	}
+
+	var r0 *model.Bot
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX) (*model.Bot, *model.AppError)); ok {
+		return rf(rctx)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX) *model.Bot); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Bot)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX) *model.AppError); ok {
+		r1 = rf(rctx)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // MentionsToTeamMembers provides a mock function with given fields: rctx, message, teamID
@@ -707,7 +746,7 @@ func (_m *MockAppIface) SaveReactionForPost(rctx request.CTX, reaction *model.Re
 }
 
 // SendEphemeralPost provides a mock function with given fields: rctx, userId, post
-func (_m *MockAppIface) SendEphemeralPost(rctx request.CTX, userId string, post *model.Post) *model.Post {
+func (_m *MockAppIface) SendEphemeralPost(rctx request.CTX, userId string, post *model.Post) (*model.Post, bool) {
 	ret := _m.Called(rctx, userId, post)
 
 	if len(ret) == 0 {
@@ -715,6 +754,10 @@ func (_m *MockAppIface) SendEphemeralPost(rctx request.CTX, userId string, post 
 	}
 
 	var r0 *model.Post
+	var r1 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.Post) (*model.Post, bool)); ok {
+		return rf(rctx, userId, post)
+	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.Post) *model.Post); ok {
 		r0 = rf(rctx, userId, post)
 	} else {
@@ -723,11 +766,17 @@ func (_m *MockAppIface) SendEphemeralPost(rctx request.CTX, userId string, post 
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(request.CTX, string, *model.Post) bool); ok {
+		r1 = rf(rctx, userId, post)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+
+	return r0, r1
 }
 
 // UpdatePost provides a mock function with given fields: rctx, post, updatePostOptions
-func (_m *MockAppIface) UpdatePost(rctx request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+func (_m *MockAppIface) UpdatePost(rctx request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, bool, *model.AppError) {
 	ret := _m.Called(rctx, post, updatePostOptions)
 
 	if len(ret) == 0 {
@@ -735,8 +784,9 @@ func (_m *MockAppIface) UpdatePost(rctx request.CTX, post *model.Post, updatePos
 	}
 
 	var r0 *model.Post
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.UpdatePostOptions) (*model.Post, *model.AppError)); ok {
+	var r1 bool
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.UpdatePostOptions) (*model.Post, bool, *model.AppError)); ok {
 		return rf(rctx, post, updatePostOptions)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.UpdatePostOptions) *model.Post); ok {
@@ -747,15 +797,21 @@ func (_m *MockAppIface) UpdatePost(rctx request.CTX, post *model.Post, updatePos
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, *model.UpdatePostOptions) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, *model.UpdatePostOptions) bool); ok {
 		r1 = rf(rctx, post, updatePostOptions)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		r1 = ret.Get(1).(bool)
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, *model.Post, *model.UpdatePostOptions) *model.AppError); ok {
+		r2 = rf(rctx, post, updatePostOptions)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
 		}
 	}
 
-	return r0, r1
+	return r0, r1, r2
 }
 
 // UserCanSeeOtherUser provides a mock function with given fields: rctx, userID, otherUserId

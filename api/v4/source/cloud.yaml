@@ -58,71 +58,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  /api/v4/cloud/payment:
-    post:
-      tags:
-        - cloud
-      summary: Create a customer setup payment intent
-      description: |
-        Creates a customer setup payment intent for the given Mattermost cloud installation.
-
-        ##### Permissions
-
-        Must have `manage_system` permission and be licensed for Cloud.
-
-        __Minimum server version__: 5.28
-        __Note:__: This is intended for internal use and is subject to change.
-
-      operationId: CreateCustomerPayment
-      responses:
-        "201":
-          description: Payment setup intented created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PaymentSetupIntent"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  /api/v4/cloud/payment/confirm:
-    post:
-      tags:
-        - cloud
-      summary: Completes the payment setup intent
-      description: >
-        Confirms the payment setup intent initiated when posting to `/cloud/payment`.
-
-        ##### Permissions
-
-        Must have `manage_system` permission and be licensed for Cloud.
-
-        __Minimum server version__: 5.28
-        __Note:__ This is intended for internal use and is subject to change.
-      operationId: ConfirmCustomerPayment
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                stripe_setup_intent_id:
-                  type: string
-      responses:
-        "200":
-          description: Payment setup intent confirmed successfully
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/cloud/customer:
     get:
       tags:
@@ -231,6 +166,73 @@
                 $ref: "#/components/schemas/CloudCustomer"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/validate-business-email:
+    post:
+      tags:
+        - cloud
+      summary: Validate business email
+      description: >
+        Validate whether an email address is considered a business email by the cloud service.
+
+        ##### Permissions
+        Must be authenticated.
+      operationId: ValidateBusinessEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+      responses:
+        "200":
+          description: Email validation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_valid:
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/validate-workspace-business-email:
+    post:
+      tags:
+        - cloud
+      summary: Validate workspace business email
+      description: >
+        Validate the current workspace customer/admin email as a business email.
+
+        ##### Permissions
+        Must have `sysconsole_write_billing` permission and be licensed for Cloud.
+      operationId: ValidateWorkspaceBusinessEmail
+      responses:
+        "200":
+          description: Workspace email validation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_valid:
+                    type: boolean
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -360,6 +362,52 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/hosted_customer/signup_available:
+    get:
+      tags:
+        - cloud
+      summary: Check hosted signup availability
+      description: >
+        Checks whether hosted signup is available for self-hosted workspaces.
+
+        ##### Permissions
+        Must be authenticated.
+      operationId: HostedCustomerSignupAvailable
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/check-cws-connection:
+    get:
+      tags:
+        - cloud
+      summary: Check CWS connection
+      description: >
+        Checks whether the Customer Web Server (CWS) is reachable from this instance.
+        Used to detect if the deployment is air-gapped.
+
+        ##### Permissions
+
+        No permissions required.
+
+        __Minimum server version__: 5.28
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: CheckCWSConnection
+      responses:
+        "200":
+          description: CWS connection status returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Connection status - "available" if CWS is reachable, "unavailable" if not
+                    enum:
+                      - available
+                      - unavailable
   /api/v4/cloud/webhook:
     post:
       tags:

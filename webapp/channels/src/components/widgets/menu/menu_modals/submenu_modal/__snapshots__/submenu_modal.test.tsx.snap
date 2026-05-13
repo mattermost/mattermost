@@ -1,76 +1,158 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/submenu_modal should match snapshot 1`] = `
-<Modal
-  animation={true}
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="SubMenuModal a11y__modal mobile-sub-menu"
-  dialogComponentClass={[Function]}
-  enforceFocus={false}
-  id="submenuModal"
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[MockFunction]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="none"
-  show={true}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-    data-testid="SubMenuModalBody"
-    onClick={[Function]}
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
   >
-    <MenuWrapper
-      animationComponent={[Function]}
-      className=""
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      class="fade in modal"
+      id="submenuModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
-      <Menu
-        ariaLabel="mobile submenu"
-        openLeft={true}
+      <div
+        class="SubMenuModal a11y__modal mobile-sub-menu modal-dialog"
       >
-        <injectIntl(SubMenuItem)
-          action={[MockFunction]}
-          id="A"
-          key="A"
-          root={false}
-          text="Text A"
-        />
-        <injectIntl(SubMenuItem)
-          action={[MockFunction]}
-          id="B"
-          key="B"
-          root={false}
-          subMenu={
-            Array [
-              Object {
-                "action": [MockFunction],
-                "direction": "left",
-                "id": "C",
-                "text": "Text C",
-              },
-            ]
-          }
-          text="Text B"
-        />
-      </Menu>
-      <div />
-    </MenuWrapper>
-  </ModalBody>
-</Modal>
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-body"
+            data-testid="SubMenuModalBody"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div
+                aria-label="mobile submenu"
+                class="a11y__popup Menu"
+              >
+                <ul
+                  class="Menu__content dropdown-menu openLeft"
+                  role="menu"
+                >
+                  <li
+                    class="SubMenuItem MenuItem"
+                    id="A_menuitem"
+                    role="menuitem"
+                  >
+                    <div
+                      class=""
+                      id="A"
+                      role="button"
+                      tabindex="0"
+                    >
+                      <div
+                        class="flex"
+                      >
+                        Text A
+                        <span
+                          class="selected"
+                        />
+                        <span
+                          aria-label="submenu icon"
+                          class="fa fa-angle-right SubMenu__icon-right-empty"
+                          id="channelHeaderDropdownIconRight_A"
+                        />
+                      </div>
+                      <ul
+                        class="a11y__popup Menu dropdown-menu SubMenu"
+                        id="A_submenu"
+                        style="visibility: hidden; top: unset; right: 100%;"
+                      />
+                    </div>
+                  </li>
+                  <li
+                    aria-controls="B_submenu"
+                    aria-expanded="false"
+                    aria-haspopup="menu"
+                    class="SubMenuItem MenuItem"
+                    id="B_menuitem"
+                    role="menuitem"
+                  >
+                    <div
+                      class=""
+                      id="B"
+                      role="button"
+                      tabindex="0"
+                    >
+                      <div
+                        class="flex"
+                      >
+                        Text B
+                        <span
+                          class="selected"
+                        />
+                        <span
+                          aria-label="submenu icon"
+                          class="fa fa-angle-right SubMenu__icon-right"
+                          id="channelHeaderDropdownIconRight_B"
+                        />
+                      </div>
+                      <ul
+                        class="a11y__popup Menu dropdown-menu SubMenu"
+                        id="B_submenu"
+                        style="visibility: hidden; top: unset; right: 100%;"
+                      >
+                        <span
+                          class="SubMenuItemContainer"
+                          tabindex="0"
+                        >
+                          <li
+                            class="SubMenuItem MenuItem"
+                            id="C_menuitem"
+                            role="menuitem"
+                          >
+                            <div
+                              aria-label="Text C not selected"
+                              class=""
+                              id="C"
+                              role="button"
+                              tabindex="1"
+                            >
+                              <div
+                                class="flex"
+                              >
+                                Text C
+                                <span
+                                  class="selected"
+                                />
+                                <span
+                                  aria-label="submenu icon"
+                                  class="fa fa-angle-right SubMenu__icon-right-empty"
+                                  id="channelHeaderDropdownIconRight_C"
+                                />
+                              </div>
+                              <ul
+                                class="a11y__popup Menu dropdown-menu SubMenu"
+                                id="C_submenu"
+                                style="visibility: hidden; top: unset; right: 100%;"
+                              />
+                            </div>
+                          </li>
+                        </span>
+                      </ul>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

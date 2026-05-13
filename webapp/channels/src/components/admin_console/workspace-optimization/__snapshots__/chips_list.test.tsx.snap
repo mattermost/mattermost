@@ -1,51 +1,21 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/workspace-optimization/chips_list should match snapshot 1`] = `
-<Fragment>
-  <Chip
-    additionalMarkup={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Suggestions: {count}"
-        id="admin.reporting.workspace_optimization.chip_suggestions"
-        values={
-          Object {
-            "count": 3,
-          }
-        }
-      />
-    }
-    className="info"
-    key="info"
-  />
-  <Chip
-    additionalMarkup={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Warnings: {count}"
-        id="admin.reporting.workspace_optimization.chip_warnings"
-        values={
-          Object {
-            "count": 2,
-          }
-        }
-      />
-    }
-    className="warning"
-    key="warning"
-  />
-  <Chip
-    additionalMarkup={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Problems: {count}"
-        id="admin.reporting.workspace_optimization.chip_problems"
-        values={
-          Object {
-            "count": 1,
-          }
-        }
-      />
-    }
-    className="error"
-    key="error"
-  />
-</Fragment>
+<div>
+  <button
+    class="StyledChip-cgKRRy kTqman info"
+  >
+    Suggestions: 3
+  </button>
+  <button
+    class="StyledChip-cgKRRy kTqman warning"
+  >
+    Warnings: 2
+  </button>
+  <button
+    class="StyledChip-cgKRRy kTqman error"
+  >
+    Problems: 1
+  </button>
+</div>
 `;

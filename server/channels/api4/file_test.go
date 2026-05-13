@@ -8,7 +8,12 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -57,6 +62,62 @@ func fileBytes(t *testing.T, path string) []byte {
 	bb, err := io.ReadAll(f)
 	require.NoError(t, err)
 	return bb
+}
+
+var updateImageFixtures = flag.Bool("update-fixtures", false, "overwrite image fixture files with actual server output")
+
+// compareImageBytes decodes both byte slices as images and compares them
+// pixel-by-pixel. For JPEG a small per-channel tolerance absorbs encoder
+// drift across Go versions; PNG comparisons are exact.
+// When -update-fixtures is set, actual is written over the fixture file instead.
+func compareImageBytes(t *testing.T, name string, actual []byte) {
+	t.Helper()
+
+	fixturePath := filepath.Join(testDir, name)
+
+	if *updateImageFixtures {
+		require.NoError(t, os.WriteFile(fixturePath, actual, 0600), "updating fixture %s", name)
+		return
+	}
+
+	expected, err := os.ReadFile(fixturePath)
+	require.NoError(t, err, "reading fixture %s", name)
+
+	wantImg, _, err := image.Decode(bytes.NewReader(expected))
+	require.NoError(t, err, "decoding expected %s", name)
+	gotImg, _, err := image.Decode(bytes.NewReader(actual))
+	require.NoError(t, err, "decoding actual %s", name)
+
+	require.Equal(t, wantImg.Bounds(), gotImg.Bounds(), "image bounds mismatch for %s", name)
+
+	ext := strings.ToLower(filepath.Ext(name))
+	var tolerance uint32
+	if ext == ".jpg" || ext == ".jpeg" {
+		tolerance = 514 // ±2 in 8-bit space (16-bit RGBA values: 2*257=514)
+	}
+
+	b := gotImg.Bounds()
+	total := b.Dx() * b.Dy()
+	var diffCount int
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			wr, wg, wb, wa := wantImg.At(x, y).RGBA()
+			gr, gg, gb, ga := gotImg.At(x, y).RGBA()
+			if absDiff32(wr, gr) > tolerance || absDiff32(wg, gg) > tolerance || absDiff32(wb, gb) > tolerance || absDiff32(wa, ga) > tolerance {
+				diffCount++
+			}
+		}
+	}
+	if diffCount > 0 {
+		t.Errorf("image %s: %d/%d pixels (%.2f%%) differ beyond tolerance", name, diffCount, total, 100*float64(diffCount)/float64(total))
+	}
+}
+
+func absDiff32(a, b uint32) uint32 {
+	if a > b {
+		return a - b
+	}
+	return b - a
 }
 
 func testDoUploadFileRequest(tb testing.TB, c *model.Client4, url string, blob []byte, contentType string,
@@ -759,16 +820,21 @@ func TestUploadFiles(t *testing.T) {
 								t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
 							}
 						}
+						compareImage := func(get func(context.Context, string) ([]byte, *model.Response, error), name string) {
+							data, _, getErr := get(context.Background(), ri.Id)
+							require.NoError(t, getErr)
+							compareImageBytes(t, name, data)
+						}
 						if len(tc.expectedPayloadNames) == 0 {
 							tc.expectedPayloadNames = tc.names
 						}
 
 						compare(client.GetFile, tc.expectedPayloadNames[i])
 						if len(tc.expectedImageThumbnailNames) > i {
-							compare(client.GetFileThumbnail, tc.expectedImageThumbnailNames[i])
+							compareImage(client.GetFileThumbnail, tc.expectedImageThumbnailNames[i])
 						}
-						if len(tc.expectedImageThumbnailNames) > i {
-							compare(client.GetFilePreview, tc.expectedImagePreviewNames[i])
+						if len(tc.expectedImagePreviewNames) > i {
+							compareImage(client.GetFilePreview, tc.expectedImagePreviewNames[i])
 						}
 					}
 
@@ -845,11 +911,11 @@ func TestGetFile(t *testing.T) {
 		reviewer := th.CreateUser(t)
 		response, err := th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
-				EnableContentFlagging: model.NewPointer(true),
+				EnableContentFlagging: new(true),
 			},
 			ReviewerSettings: &model.ReviewSettingsRequest{
 				ReviewerSettings: model.ReviewerSettings{
-					CommonReviewers: model.NewPointer(true),
+					CommonReviewers: new(true),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
 					CommonReviewerIds: []string{reviewer.Id},
@@ -860,14 +926,14 @@ func TestGetFile(t *testing.T) {
 		CheckOKStatus(t, response)
 
 		response, err = client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
-			Reason:  "Sensitive data",
+			Reason:  "Classification mismatch",
 			Comment: "This is sensitive content",
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 
 		reviewerClient := th.CreateClient()
-		_, response, err = reviewerClient.Login(context.Background(), reviewer.Email, "Pa$$word11")
+		_, response, err = reviewerClient.Login(context.Background(), reviewer.Email, reviewer.Password)
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 
@@ -878,11 +944,11 @@ func TestGetFile(t *testing.T) {
 		// Try again after removing the user from content reviewers
 		response, err = th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
-				EnableContentFlagging: model.NewPointer(true),
+				EnableContentFlagging: new(true),
 			},
 			ReviewerSettings: &model.ReviewSettingsRequest{
 				ReviewerSettings: model.ReviewerSettings{
-					CommonReviewers: model.NewPointer(true),
+					CommonReviewers: new(true),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
 					CommonReviewerIds: []string{th.BasicUser.Id},
@@ -1613,4 +1679,100 @@ func TestSearchFilesAcrossTeams(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, fileInfos.Order, 1, "wrong search")
 	require.Equal(t, fileInfos.FileInfos[fileInfos.Order[0]].ChannelId, channels[0].Id, "wrong search")
+}
+
+// TestHeadRequestsFileEndpoints tests that HEAD requests work correctly for file endpoints
+func TestHeadRequestsFileEndpoints(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	// Upload a test file
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	fileResp, _, err := client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+	require.NoError(t, err)
+	fileId := fileResp.FileInfos[0].Id
+
+	// Helper function to make HEAD requests
+	makeHeadRequest := func(url string) (*http.Response, error) {
+		req, err := http.NewRequest("HEAD", url, nil)
+		require.NoError(t, err)
+
+		req.Header.Set(model.HeaderAuth, client.AuthType+" "+client.AuthToken)
+
+		return client.HTTPClient.Do(req)
+	}
+
+	t.Run("HEAD request to file endpoint returns 200 OK", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotEmpty(t, resp.Header.Get("Content-Type"))
+	})
+
+	t.Run("HEAD request to thumbnail endpoint returns 200 OK", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s/thumbnail", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("HEAD request to preview endpoint returns 200 OK", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s/preview", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("HEAD request returns no body", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, fileId)
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		require.Empty(t, body, "HEAD response should not contain a body")
+	})
+
+	t.Run("HEAD request requires authentication", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, fileId)
+		req, err := http.NewRequest("HEAD", url, nil)
+		require.NoError(t, err)
+
+		// Don't set auth header
+		resp, err := client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("HEAD request with invalid file ID returns 400", func(t *testing.T) {
+		// Use an ID that matches the route pattern [A-Za-z0-9]+ but is invalid (not 26 characters)
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, "invalidid")
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("HEAD request for non-existent file returns 404", func(t *testing.T) {
+		url := fmt.Sprintf("%s/files/%s", client.APIURL, model.NewId())
+		resp, err := makeHeadRequest(url)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
 }

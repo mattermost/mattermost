@@ -17,7 +17,6 @@ import './team_row.scss';
 
 type Props = {
     team: TeamWithMembership;
-    onRowClick?: () => void;
     doRemoveUserFromTeam: (teamId: string) => Promise<void>;
     doMakeUserTeamAdmin: (teamId: string) => Promise<void>;
     doMakeUserTeamMember: (teamId: string) => Promise<void>;
@@ -30,7 +29,7 @@ export default class TeamRow extends React.PureComponent<Props> {
             return (
                 <FormattedMessage
                     id={'admin.systemUserDetail.teamList.teamType.groupSync'}
-                    defaultMessage={'Group sync'}
+                    defaultMessage={'Group Sync'}
                 />
             );
         }
@@ -38,14 +37,14 @@ export default class TeamRow extends React.PureComponent<Props> {
             return (
                 <FormattedMessage
                     id={'admin.systemUserDetail.teamList.teamType.anyoneCanJoin'}
-                    defaultMessage={'Anyone can join'}
+                    defaultMessage={'Anyone Can Join'}
                 />
             );
         }
         return (
             <FormattedMessage
                 id={'admin.systemUserDetail.teamList.teamType.inviteOnly'}
-                defaultMessage={'Invite only'}
+                defaultMessage={'Invite Only'}
             />
         );
     };

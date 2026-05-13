@@ -216,7 +216,7 @@ const Completed = (props: Props): JSX.Element => {
                         <span>
                             <FormattedMessage
                                 id='onboardingTask.checklist.downloads'
-                                defaultMessage='Now that you’re all set up, <link>download our apps.</link>!'
+                                defaultMessage='Now that you’re all set up, <link>download our apps.</link>'
                                 values={{
                                     link: (msg: React.ReactNode) => (
                                         <ExternalLink
@@ -234,7 +234,7 @@ const Completed = (props: Props): JSX.Element => {
                         <span>
                             <FormattedMessage
                                 id='onboardingTask.checklist.disclaimer'
-                                defaultMessage='By clicking “Start trial”, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>privacy policy</linkPrivacy> and receiving product emails.'
+                                defaultMessage='By clicking “Start trial”, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>privacy policy</linkPrivacy> and receiving product emails.'
                                 values={{
                                     linkEvaluation: (msg: React.ReactNode) => (
                                         <ExternalLink

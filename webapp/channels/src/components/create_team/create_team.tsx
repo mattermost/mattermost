@@ -13,8 +13,7 @@ import type {Team} from '@mattermost/types/teams';
 import AnnouncementBar from 'components/announcement_bar';
 import BackButton from 'components/common/back_button';
 import SiteNameAndDescription from 'components/common/site_name_and_description';
-import DisplayName from 'components/create_team/components/display_name';
-import TeamUrl from 'components/create_team/components/team_url';
+import CreateTeamForm from 'components/create_team/components/create_team_form';
 
 export type Props = {
 
@@ -49,6 +48,7 @@ export type Props = {
     isFreeTrial: boolean;
     usageDeltas: CloudUsage;
     intl: IntlShape;
+    useAnonymousURLs?: boolean;
 };
 
 type State = {
@@ -140,23 +140,29 @@ export class CreateTeam extends React.PureComponent<Props & RouteComponentProps,
                                     <Route
                                         path={`${this.props.match.url}/display_name`}
                                         render={(props) => (
-                                            <DisplayName
+                                            <CreateTeamForm
+                                                step='display_name'
                                                 state={this.state}
                                                 updateParent={this.updateParent}
                                                 {...props}
                                             />
                                         )}
                                     />
-                                    <Route
-                                        path={`${this.props.match.url}/team_url`}
-                                        render={(props) => (
-                                            <TeamUrl
-                                                state={this.state}
-                                                updateParent={this.updateParent}
-                                                {...props}
-                                            />
-                                        )}
-                                    />
+
+                                    {
+                                        !this.props.useAnonymousURLs &&
+                                        <Route
+                                            path={`${this.props.match.url}/team_url`}
+                                            render={(props) => (
+                                                <CreateTeamForm
+                                                    step='team_url'
+                                                    state={this.state}
+                                                    updateParent={this.updateParent}
+                                                    {...props}
+                                                />
+                                            )}
+                                        />
+                                    }
                                     <Redirect to={`${match.url}/display_name`}/>
                                 </Switch>
                             )}

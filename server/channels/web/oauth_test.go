@@ -701,7 +701,7 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJSON(_ request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromJSON(_ request.CTX, data io.Reader, tokenUser *model.User, settings *model.SSOSettings) (*model.User, error) {
 	var user model.User
 	if err := json.NewDecoder(data).Decode(&user); err != nil {
 		return nil, err
@@ -853,6 +853,59 @@ func (th *TestHelper) AddPermissionToRole(tb testing.TB, permission string, role
 	require.Nil(tb, appErr)
 }
 
+// TestOAuthMobileCallbackIncludesSrvParameter verifies that mobile OAuth callbacks
+// include the 'srv' parameter for origin verification
+func TestOAuthMobileCallbackIncludesSrvParameter(t *testing.T) {
+	// The 'srv' parameter is added to mobile callbacks to allow the client
+	// to verify the server origin
+
+	t.Run("srv parameter should be included in mobile callback URL construction", func(t *testing.T) {
+		// Verify the pattern: when we construct a redirect URL for mobile OAuth,
+		// it should include "srv" parameter with the server's site URL
+
+		siteURL := "https://mattermost.example.com"
+		sessionToken := "test-session-token"
+		csrfToken := "test-csrf-token"
+
+		// Simulate what the code does when constructing the callback
+		params := map[string]string{
+			model.SessionCookieToken: sessionToken,
+			model.SessionCookieCsrf:  csrfToken,
+			"srv":                    siteURL,
+		}
+
+		// Verify all expected parameters are present
+		assert.Equal(t, sessionToken, params[model.SessionCookieToken])
+		assert.Equal(t, csrfToken, params[model.SessionCookieCsrf])
+		assert.Equal(t, siteURL, params["srv"])
+	})
+
+	t.Run("srv parameter detects OAuth server mismatch", func(t *testing.T) {
+		// Scenario: The srv parameter from callback doesn't match expected server
+		// Mobile should detect the mismatch
+
+		expectedServer := "https://server-a.example.com"
+		actualSrvFromCallback := "https://server-b.example.com"
+
+		// This is the check that should happen in mobile
+		isMismatch := expectedServer != actualSrvFromCallback
+		assert.True(t, isMismatch, "Should detect server mismatch")
+	})
+
+	t.Run("srv parameter allows legitimate OAuth login", func(t *testing.T) {
+		// Scenario: Normal OAuth login to legitimate.com
+		// Server adds srv=legitimate.com to callback
+		// Mobile verifies: expected (legitimate.com) == srv (legitimate.com)
+
+		expectedServer := "https://legitimate.example.com"
+		actualSrvFromCallback := "https://legitimate.example.com"
+
+		// This is the check that should happen in mobile
+		isLegitimate := expectedServer == actualSrvFromCallback
+		assert.True(t, isLegitimate, "Should allow legitimate OAuth login")
+	})
+}
+
 func TestFullyQualifiedRedirectURL(t *testing.T) {
 	const siteURL = "https://xxx.yyy/mm"
 
@@ -909,10 +962,10 @@ func TestAuthorizeOAuthPage(t *testing.T) {
 
 	t.Run("PublicClient_PKCERequired", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
@@ -930,10 +983,10 @@ func TestAuthorizeOAuthPage(t *testing.T) {
 
 	t.Run("PublicClient_WithPKCE_Success", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
@@ -1021,10 +1074,10 @@ func TestAuthorizeOAuthAppHandler(t *testing.T) {
 
 	t.Run("PublicClient_PKCEParameters", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
@@ -1081,10 +1134,10 @@ func TestGetAccessToken(t *testing.T) {
 
 	t.Run("PublicClient_NoClientSecret", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)

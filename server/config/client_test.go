@@ -29,12 +29,12 @@ func TestGetClientConfig(t *testing.T) {
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
-					AllowCustomThemes: model.NewPointer(false),
+					AllowCustomThemes: new(false),
 				},
 				ServiceSettings: model.ServiceSettings{
-					WebsocketURL:        model.NewPointer("ws://mattermost.example.com:8065"),
-					WebsocketPort:       model.NewPointer(80),
-					WebsocketSecurePort: model.NewPointer(443),
+					WebsocketURL:        new("ws://mattermost.example.com:8065"),
+					WebsocketPort:       new(80),
+					WebsocketSecurePort: new(443),
 				},
 			},
 			"",
@@ -57,13 +57,13 @@ func TestGetClientConfig(t *testing.T) {
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
-					AllowCustomThemes: model.NewPointer(false),
+					AllowCustomThemes: new(false),
 				},
 			},
 			"tag1",
 			&model.License{
 				Features: &model.Features{
-					ThemeManagement: model.NewPointer(false),
+					ThemeManagement: new(false),
 				},
 			},
 			map[string]string{
@@ -79,13 +79,13 @@ func TestGetClientConfig(t *testing.T) {
 					EmailNotificationContentsType: model.NewPointer(model.EmailNotificationContentsFull),
 				},
 				ThemeSettings: model.ThemeSettings{
-					AllowCustomThemes: model.NewPointer(false),
+					AllowCustomThemes: new(false),
 				},
 			},
 			"tag2",
 			&model.License{
 				Features: &model.Features{
-					ThemeManagement: model.NewPointer(true),
+					ThemeManagement: new(true),
 				},
 			},
 			map[string]string{
@@ -98,13 +98,13 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed for enforcement",
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
-					EnforceMultifactorAuthentication: model.NewPointer(true),
+					EnforceMultifactorAuthentication: new(true),
 				},
 			},
 			"tag1",
 			&model.License{
 				Features: &model.Features{
-					MFA: model.NewPointer(true),
+					MFA: new(true),
 				},
 			},
 			map[string]string{
@@ -128,7 +128,7 @@ func TestGetClientConfig(t *testing.T) {
 			"non-default marketplace",
 			&model.Config{
 				PluginSettings: model.PluginSettings{
-					MarketplaceURL: model.NewPointer("http://example.com"),
+					MarketplaceURL: new("http://example.com"),
 				},
 			},
 			"tag1",
@@ -141,13 +141,26 @@ func TestGetClientConfig(t *testing.T) {
 			"enable ShowFullName prop",
 			&model.Config{
 				PrivacySettings: model.PrivacySettings{
-					ShowFullName: model.NewPointer(true),
+					ShowFullName: new(true),
 				},
 			},
 			"tag1",
 			nil,
 			map[string]string{
 				"ShowFullName": "true",
+			},
+		},
+		{
+			"enable UseAnonymousURLs prop",
+			&model.Config{
+				PrivacySettings: model.PrivacySettings{
+					UseAnonymousURLs: new(true),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"UseAnonymousURLs": "true",
 			},
 		},
 		{
@@ -190,13 +203,13 @@ func TestGetClientConfig(t *testing.T) {
 			"Shared channels other license",
 			&model.Config{
 				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
-					EnableSharedChannels: model.NewPointer(true),
+					EnableSharedChannels: new(true),
 				},
 			},
 			"",
 			&model.License{
 				Features: &model.Features{
-					SharedChannels: model.NewPointer(false),
+					SharedChannels: new(false),
 				},
 				SkuShortName: "other",
 			},
@@ -208,13 +221,13 @@ func TestGetClientConfig(t *testing.T) {
 			"licensed for shared channels",
 			&model.Config{
 				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
-					EnableSharedChannels: model.NewPointer(true),
+					EnableSharedChannels: new(true),
 				},
 			},
 			"",
 			&model.License{
 				Features: &model.Features{
-					SharedChannels: model.NewPointer(true),
+					SharedChannels: new(true),
 				},
 				SkuShortName: "other",
 			},
@@ -226,13 +239,13 @@ func TestGetClientConfig(t *testing.T) {
 			"Shared channels professional license",
 			&model.Config{
 				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
-					EnableSharedChannels: model.NewPointer(true),
+					EnableSharedChannels: new(true),
 				},
 			},
 			"",
 			&model.License{
 				Features: &model.Features{
-					SharedChannels: model.NewPointer(false),
+					SharedChannels: new(false),
 				},
 				SkuShortName: model.LicenseShortSkuProfessional,
 			},
@@ -244,7 +257,7 @@ func TestGetClientConfig(t *testing.T) {
 			"disable EnableUserStatuses",
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
-					EnableUserStatuses: model.NewPointer(false),
+					EnableUserStatuses: new(false),
 				},
 			},
 			"",
@@ -257,13 +270,13 @@ func TestGetClientConfig(t *testing.T) {
 			"Shared channels enterprise license",
 			&model.Config{
 				ConnectedWorkspacesSettings: model.ConnectedWorkspacesSettings{
-					EnableSharedChannels: model.NewPointer(true),
+					EnableSharedChannels: new(true),
 				},
 			},
 			"",
 			&model.License{
 				Features: &model.Features{
-					SharedChannels: model.NewPointer(false),
+					SharedChannels: new(false),
 				},
 				SkuShortName: model.LicenseShortSkuEnterprise,
 			},
@@ -275,7 +288,7 @@ func TestGetClientConfig(t *testing.T) {
 			"Disable App Bar",
 			&model.Config{
 				ExperimentalSettings: model.ExperimentalSettings{
-					DisableAppBar: model.NewPointer(true),
+					DisableAppBar: new(true),
 				},
 			},
 			"",
@@ -297,7 +310,7 @@ func TestGetClientConfig(t *testing.T) {
 			"disable EnableJoinLeaveMessage",
 			&model.Config{
 				TeamSettings: model.TeamSettings{
-					EnableJoinLeaveMessageByDefault: model.NewPointer(false),
+					EnableJoinLeaveMessageByDefault: new(false),
 				},
 			},
 			"tag1",
@@ -310,7 +323,7 @@ func TestGetClientConfig(t *testing.T) {
 			"test key for GiphySdkKey",
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
-					GiphySdkKey: model.NewPointer(""),
+					GiphySdkKey: new(""),
 				},
 			},
 			"",
@@ -323,10 +336,10 @@ func TestGetClientConfig(t *testing.T) {
 			"report a problem values",
 			&model.Config{
 				SupportSettings: model.SupportSettings{
-					ReportAProblemType: model.NewPointer("type"),
-					ReportAProblemLink: model.NewPointer("http://example.com"),
-					ReportAProblemMail: model.NewPointer("mail"),
-					AllowDownloadLogs:  model.NewPointer(true),
+					ReportAProblemType: new("type"),
+					ReportAProblemLink: new("http://example.com"),
+					ReportAProblemMail: new("mail"),
+					AllowDownloadLogs:  new(true),
 				},
 			},
 			"",
@@ -342,16 +355,14 @@ func TestGetClientConfig(t *testing.T) {
 			"access control settings enabled",
 			&model.Config{
 				AccessControlSettings: model.AccessControlSettings{
-					EnableAttributeBasedAccessControl: model.NewPointer(true),
-					EnableChannelScopeAccessControl:   model.NewPointer(true),
-					EnableUserManagedAttributes:       model.NewPointer(true),
+					EnableAttributeBasedAccessControl: new(true),
+					EnableUserManagedAttributes:       new(true),
 				},
 			},
 			"",
 			nil,
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "true",
-				"EnableChannelScopeAccessControl":   "true",
 				"EnableUserManagedAttributes":       "true",
 			},
 		},
@@ -359,16 +370,14 @@ func TestGetClientConfig(t *testing.T) {
 			"access control settings disabled",
 			&model.Config{
 				AccessControlSettings: model.AccessControlSettings{
-					EnableAttributeBasedAccessControl: model.NewPointer(false),
-					EnableChannelScopeAccessControl:   model.NewPointer(false),
-					EnableUserManagedAttributes:       model.NewPointer(false),
+					EnableAttributeBasedAccessControl: new(false),
+					EnableUserManagedAttributes:       new(false),
 				},
 			},
 			"",
 			nil,
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
-				"EnableChannelScopeAccessControl":   "false",
 				"EnableUserManagedAttributes":       "false",
 			},
 		},
@@ -379,7 +388,6 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
-				"EnableChannelScopeAccessControl":   "true",
 				"EnableUserManagedAttributes":       "false",
 			},
 		},
@@ -387,8 +395,8 @@ func TestGetClientConfig(t *testing.T) {
 			"burn on read enabled",
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
-					EnableBurnOnRead:          model.NewPointer(true),
-					BurnOnReadDurationSeconds: model.NewPointer(1800), // 30 minutes in seconds
+					EnableBurnOnRead:          new(true),
+					BurnOnReadDurationSeconds: new(1800), // 30 minutes in seconds
 				},
 			},
 			"",
@@ -402,8 +410,8 @@ func TestGetClientConfig(t *testing.T) {
 			"burn on read disabled",
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
-					EnableBurnOnRead:          model.NewPointer(false),
-					BurnOnReadDurationSeconds: model.NewPointer(600), // 10 minutes in seconds
+					EnableBurnOnRead:          new(false),
+					BurnOnReadDurationSeconds: new(600), // 10 minutes in seconds
 				},
 			},
 			"",
@@ -424,12 +432,28 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
+			"mobile watermark uses experimental settings",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableWatermark: new(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"ExperimentalEnableWatermark": "true",
+			},
+		},
+		{
 			"Intune MAM enabled with Enterprise Advanced license and Office365 AuthService",
 			&model.Config{
 				IntuneSettings: model.IntuneSettings{
-					Enable:      model.NewPointer(true),
-					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
-					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					Enable:      new(true),
+					TenantId:    new("12345678-1234-1234-1234-123456789012"),
+					ClientId:    new("87654321-4321-4321-4321-210987654321"),
 					AuthService: model.NewPointer(model.ServiceOffice365),
 				},
 			},
@@ -447,9 +471,9 @@ func TestGetClientConfig(t *testing.T) {
 			"Intune MAM disabled when not enabled",
 			&model.Config{
 				IntuneSettings: model.IntuneSettings{
-					Enable:      model.NewPointer(false),
-					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
-					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					Enable:      new(false),
+					TenantId:    new("12345678-1234-1234-1234-123456789012"),
+					ClientId:    new("87654321-4321-4321-4321-210987654321"),
 					AuthService: model.NewPointer(model.ServiceOffice365),
 				},
 			},
@@ -466,9 +490,9 @@ func TestGetClientConfig(t *testing.T) {
 			"Intune MAM disabled when TenantId is missing",
 			&model.Config{
 				IntuneSettings: model.IntuneSettings{
-					Enable:      model.NewPointer(true),
-					TenantId:    model.NewPointer(""),
-					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					Enable:      new(true),
+					TenantId:    new(""),
+					ClientId:    new("87654321-4321-4321-4321-210987654321"),
 					AuthService: model.NewPointer(model.ServiceOffice365),
 				},
 			},
@@ -485,9 +509,9 @@ func TestGetClientConfig(t *testing.T) {
 			"Intune MAM disabled when ClientId is missing",
 			&model.Config{
 				IntuneSettings: model.IntuneSettings{
-					Enable:      model.NewPointer(true),
-					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
-					ClientId:    model.NewPointer(""),
+					Enable:      new(true),
+					TenantId:    new("12345678-1234-1234-1234-123456789012"),
+					ClientId:    new(""),
 					AuthService: model.NewPointer(model.ServiceOffice365),
 				},
 			},
@@ -504,9 +528,9 @@ func TestGetClientConfig(t *testing.T) {
 			"Intune MAM not exposed with lower license tier",
 			&model.Config{
 				IntuneSettings: model.IntuneSettings{
-					Enable:      model.NewPointer(true),
-					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
-					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					Enable:      new(true),
+					TenantId:    new("12345678-1234-1234-1234-123456789012"),
+					ClientId:    new("87654321-4321-4321-4321-210987654321"),
 					AuthService: model.NewPointer(model.ServiceOffice365),
 				},
 			},
@@ -521,9 +545,9 @@ func TestGetClientConfig(t *testing.T) {
 			"Intune MAM not exposed without license",
 			&model.Config{
 				IntuneSettings: model.IntuneSettings{
-					Enable:      model.NewPointer(true),
-					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
-					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					Enable:      new(true),
+					TenantId:    new("12345678-1234-1234-1234-123456789012"),
+					ClientId:    new("87654321-4321-4321-4321-210987654321"),
 					AuthService: model.NewPointer(model.ServiceOffice365),
 				},
 			},
@@ -535,13 +559,13 @@ func TestGetClientConfig(t *testing.T) {
 			"Intune MAM enabled with Enterprise Advanced license and SAML AuthService",
 			&model.Config{
 				IntuneSettings: model.IntuneSettings{
-					Enable:      model.NewPointer(true),
-					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
-					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					Enable:      new(true),
+					TenantId:    new("12345678-1234-1234-1234-123456789012"),
+					ClientId:    new("87654321-4321-4321-4321-210987654321"),
 					AuthService: model.NewPointer(model.UserAuthServiceSaml),
 				},
 				SamlSettings: model.SamlSettings{
-					Enable: model.NewPointer(true),
+					Enable: new(true),
 				},
 			},
 			"",
@@ -559,10 +583,10 @@ func TestGetClientConfig(t *testing.T) {
 			"Intune MAM disabled when AuthService is missing",
 			&model.Config{
 				IntuneSettings: model.IntuneSettings{
-					Enable:      model.NewPointer(true),
-					TenantId:    model.NewPointer("12345678-1234-1234-1234-123456789012"),
-					ClientId:    model.NewPointer("87654321-4321-4321-4321-210987654321"),
-					AuthService: model.NewPointer(""),
+					Enable:      new(true),
+					TenantId:    new("12345678-1234-1234-1234-123456789012"),
+					ClientId:    new("87654321-4321-4321-4321-210987654321"),
+					AuthService: new(""),
 				},
 			},
 			"",
@@ -613,12 +637,12 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				},
 				ThemeSettings: model.ThemeSettings{
 					// Ignored, since not licensed.
-					AllowCustomThemes: model.NewPointer(false),
+					AllowCustomThemes: new(false),
 				},
 				ServiceSettings: model.ServiceSettings{
-					WebsocketURL:        model.NewPointer("ws://mattermost.example.com:8065"),
-					WebsocketPort:       model.NewPointer(80),
-					WebsocketSecurePort: model.NewPointer(443),
+					WebsocketURL:        new("ws://mattermost.example.com:8065"),
+					WebsocketPort:       new(80),
+					WebsocketSecurePort: new(443),
 				},
 			},
 			"",
@@ -635,11 +659,11 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			"password settings",
 			&model.Config{
 				PasswordSettings: model.PasswordSettings{
-					MinimumLength: model.NewPointer(15),
-					Lowercase:     model.NewPointer(true),
-					Uppercase:     model.NewPointer(true),
-					Number:        model.NewPointer(true),
-					Symbol:        model.NewPointer(false),
+					MinimumLength: new(15),
+					Lowercase:     new(true),
+					Uppercase:     new(true),
+					Number:        new(true),
+					Symbol:        new(false),
 				},
 			},
 			"",
@@ -663,6 +687,22 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"FeatureFlagTestFeature": "myvalue",
+			},
+		},
+		{
+			"limited config mobile watermark uses experimental settings",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableWatermark: new(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"ExperimentalEnableWatermark": "true",
 			},
 		},
 	}

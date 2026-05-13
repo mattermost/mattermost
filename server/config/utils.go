@@ -169,8 +169,7 @@ func Merge(cfg *model.Config, patch *model.Config, mergeConfig *utils.MergeConfi
 }
 
 func IsDatabaseDSN(dsn string) bool {
-	return strings.HasPrefix(dsn, "mysql://") ||
-		strings.HasPrefix(dsn, "postgres://") ||
+	return strings.HasPrefix(dsn, "postgres://") ||
 		strings.HasPrefix(dsn, "postgresql://")
 }
 
@@ -214,7 +213,7 @@ func GetValueByPath(path []string, obj any) (any, bool) {
 					return mapVal.Interface(), true
 				}
 				data := mapVal.Interface()
-				if mapVal.Kind() == reflect.Ptr {
+				if mapVal.Kind() == reflect.Pointer {
 					data = mapVal.Elem().Interface() // if value is a pointer, dereference it
 				}
 				// pass subpath

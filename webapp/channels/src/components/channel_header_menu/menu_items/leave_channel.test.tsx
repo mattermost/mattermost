@@ -10,7 +10,7 @@ import * as modalActions from 'actions/views/modals';
 import LeaveChannelModal from 'components/leave_channel_modal';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -25,11 +25,7 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    test('renders the component correctly, handle click event correctly for Public Channel', () => {
+    test('renders the component correctly, handle click event correctly for Public Channel', async () => {
         const channel = TestHelper.getChannelMock();
 
         renderWithContext(
@@ -41,13 +37,13 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
         const menuItem = screen.getByText('Leave Channel');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.leaveChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.leaveChannel).toHaveBeenCalledWith(channel.id);
     });
 
-    test('renders the component correctly, handle click event for manage groups', () => {
+    test('renders the component correctly, handle click event for manage groups', async () => {
         const channel = TestHelper.getChannelMock({type: 'P'});
 
         renderWithContext(
@@ -59,7 +55,7 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
         const menuItemMG = screen.getByText('Leave Channel');
         expect(menuItemMG).toBeInTheDocument();
 
-        fireEvent.click(menuItemMG); // Simulate click on the menu item
+        await userEvent.click(menuItemMG); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(modalActions.openModal).toHaveBeenCalledTimes(1);
         expect(modalActions.openModal).toHaveBeenCalledWith({

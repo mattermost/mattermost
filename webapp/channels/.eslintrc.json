@@ -8,7 +8,10 @@
     "no-only-tests"
   ],
   "settings": {
-    "import/resolver": "webpack"
+    "import/resolver": "webpack",
+    "formatjs": {
+      "additionalFunctionNames": ["localizeMessage", "defineMessage"]
+    }
   },
   "rules": {
     "react/prop-types": [
@@ -32,7 +35,16 @@
     "react/style-prop-object": [2, {
       "allow": ["Timestamp"]
     }],
+    "formatjs/enforce-default-message": 2,
+    "formatjs/enforce-id": 2,
+    "formatjs/enforce-placeholders": 2,
+    "formatjs/no-invalid-icu": 2,
+    "formatjs/no-multiple-plurals": 1,
     "formatjs/no-multiple-whitespaces": 2,
+    "formatjs/no-literal-string-in-jsx": 1,
+    "formatjs/prefer-formatted-message": 1,
+    "formatjs/no-useless-message": 1,
+    "formatjs/prefer-pound-in-plural": 0,
     "react/jsx-fragments": ["error", "syntax"]
   },
   "overrides": [

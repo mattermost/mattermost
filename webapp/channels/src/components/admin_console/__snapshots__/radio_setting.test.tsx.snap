@@ -1,67 +1,71 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
-<Memo(Settings)
-  inputId="string.id"
-  label="some label"
-  setByEnv={false}
->
-  <label
-    className="RadioSetting__label"
-    key="Engineering"
+<div>
+  <div
+    class="form-group"
+    data-testid="string.id"
   >
-    <input
-      checked={false}
-      className="RadioSetting__input"
-      disabled={false}
-      name="string.id"
-      onChange={[Function]}
-      type="radio"
-      value="Engineering"
-    />
-    <span
-      className="RadioSetting__text"
+    <label
+      class="control-label col-sm-4"
+      for="string.id"
     >
-      this is engineering
-    </span>
-  </label>
-  <label
-    className="RadioSetting__label"
-    key="Sales"
-  >
-    <input
-      checked={true}
-      className="RadioSetting__input"
-      disabled={false}
-      name="string.id"
-      onChange={[Function]}
-      type="radio"
-      value="Sales"
-    />
-    <span
-      className="RadioSetting__text"
+      some label
+    </label>
+    <div
+      class="col-sm-8"
     >
-      this is sales
-    </span>
-  </label>
-  <label
-    className="RadioSetting__label"
-    key="Administration"
-  >
-    <input
-      checked={false}
-      className="RadioSetting__input"
-      disabled={false}
-      name="string.id"
-      onChange={[Function]}
-      type="radio"
-      value="Administration"
-    />
-    <span
-      className="RadioSetting__text"
-    >
-      this is administration
-    </span>
-  </label>
-</Memo(Settings)>
+      <label
+        class="RadioSetting__label"
+      >
+        <input
+          class="RadioSetting__input"
+          name="string.id"
+          type="radio"
+          value="Engineering"
+        />
+        <span
+          class="RadioSetting__text"
+        >
+          this is engineering
+        </span>
+      </label>
+      <label
+        class="RadioSetting__label"
+      >
+        <input
+          checked=""
+          class="RadioSetting__input"
+          name="string.id"
+          type="radio"
+          value="Sales"
+        />
+        <span
+          class="RadioSetting__text"
+        >
+          this is sales
+        </span>
+      </label>
+      <label
+        class="RadioSetting__label"
+      >
+        <input
+          class="RadioSetting__input"
+          name="string.id"
+          type="radio"
+          value="Administration"
+        />
+        <span
+          class="RadioSetting__text"
+        >
+          this is administration
+        </span>
+      </label>
+      <div
+        class="help-text"
+        data-testid="string.idhelp-text"
+      />
+    </div>
+  </div>
+</div>
 `;

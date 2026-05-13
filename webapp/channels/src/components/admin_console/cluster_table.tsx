@@ -5,6 +5,8 @@ import React, {PureComponent} from 'react';
 import type {CSSProperties, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
@@ -166,9 +168,9 @@ export default class ClusterTable extends PureComponent<Props> {
                 style={style.clusterTable}
             >
                 <div className='text-right'>
-                    <button
+                    <Button
                         type='submit'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.props.reload}
                     >
                         <ReloadIcon/>
@@ -176,7 +178,7 @@ export default class ClusterTable extends PureComponent<Props> {
                             id='admin.cluster.status_table.reload'
                             defaultMessage=' Reload Cluster Status'
                         />
-                    </button>
+                    </Button>
                 </div>
                 <table className='table'>
                     <thead>

@@ -63,6 +63,36 @@ func (_m *AccessControlPolicyStore) Get(rctx request.CTX, id string) (*model.Acc
 	return r0, r1
 }
 
+// GetPoliciesByFieldID provides a mock function with given fields: rctx, fieldID
+func (_m *AccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
+	ret := _m.Called(rctx, fieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPoliciesByFieldID")
+	}
+
+	var r0 []*model.AccessControlPolicy
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.AccessControlPolicy, error)); ok {
+		return rf(rctx, fieldID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.AccessControlPolicy); ok {
+		r0 = rf(rctx, fieldID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.AccessControlPolicy)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, fieldID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: rctx, policy
 func (_m *AccessControlPolicyStore) Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
 	ret := _m.Called(rctx, policy)

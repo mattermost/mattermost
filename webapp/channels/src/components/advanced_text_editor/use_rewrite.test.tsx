@@ -11,13 +11,12 @@ import {Client4} from 'mattermost-redux/client';
 
 import type TextboxClass from 'components/textbox/textbox';
 
-import {render, renderHookWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 import {RewriteAction} from './rewrite_action';
-import RewriteMenu from './rewrite_menu';
 import useRewrite from './use_rewrite';
 
 jest.mock('mattermost-redux/actions/agents', () => ({
@@ -29,16 +28,6 @@ jest.mock('mattermost-redux/client', () => ({
         getAIRewrittenMessage: jest.fn(),
     },
 }));
-
-jest.mock('./rewrite_menu', () => {
-    const React = require('react');
-    return {
-        __esModule: true,
-        default: jest.fn(() => React.createElement('div', {'data-testid': 'rewrite-menu'}, 'RewriteMenu')),
-    };
-});
-
-const MockedRewriteMenu = RewriteMenu as jest.MockedFunction<typeof RewriteMenu>;
 
 describe('useRewrite', () => {
     const mockAgents: Agent[] = [
@@ -86,7 +75,6 @@ describe('useRewrite', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        MockedRewriteMenu.mockClear();
         document.body.innerHTML = '';
         try {
             Object.defineProperty(mockTextboxRef, 'current', {
@@ -135,22 +123,9 @@ describe('useRewrite', () => {
             expect(getAgentsAction).toHaveBeenCalledTimes(1);
         });
 
-        it('should return isProcessing state', () => {
-            const {result} = renderHookWithProps();
-            expect(result.current.isProcessing).toBe(false);
-        });
-
-        it('should return additionalControl component', () => {
-            const {result} = renderHookWithProps();
-            expect(result.current.additionalControl).toBeDefined();
-            expect(React.isValidElement(result.current.additionalControl)).toBe(true);
-        });
-
         it('should set default selected agent when agents are available', () => {
             const {result} = renderHookWithProps();
-            render(result.current.additionalControl);
-            expect(MockedRewriteMenu).toHaveBeenCalled();
-            const props = MockedRewriteMenu.mock.calls[0][0];
+            const props = result.current.rewriteMenuProps;
             expect(props.selectedAgentId).toBe('agent1');
         });
     });
@@ -158,8 +133,7 @@ describe('useRewrite', () => {
     describe('handleRewrite', () => {
         it('should successfully rewrite message', async () => {
             const {result} = renderHookWithProps();
-            render(result.current.additionalControl);
-            const props = MockedRewriteMenu.mock.calls[0][0];
+            const props = result.current.rewriteMenuProps;
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
 
@@ -169,6 +143,7 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.SHORTEN,
                     undefined,
+                    '',
                 );
             });
 
@@ -189,16 +164,15 @@ describe('useRewrite', () => {
             const rewritePromise = Client4.getAIRewrittenMessage as jest.Mock;
             rewritePromise.mockResolvedValue('Custom rewritten message');
 
-            render(result.current.additionalControl);
-            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            let props = result.current.rewriteMenuProps;
             props.setPrompt('Custom prompt');
 
             rerender();
 
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props = result.current.rewriteMenuProps;
             const mockEvent = {
                 key: 'Enter',
+                nativeEvent: {isComposing: false},
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
@@ -210,6 +184,7 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.CUSTOM,
                     'Custom prompt',
+                    '',
                 );
             });
         });
@@ -219,8 +194,7 @@ describe('useRewrite', () => {
             const rewritePromise = Client4.getAIRewrittenMessage as jest.Mock;
             rewritePromise.mockImplementation(() => new Promise((resolve) => setTimeout(() => resolve('Response'), 100)));
 
-            render(result.current.additionalControl);
-            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            let props = result.current.rewriteMenuProps;
             const actionHandler1 = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler1();
 
@@ -229,8 +203,7 @@ describe('useRewrite', () => {
             });
 
             rerender();
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props = result.current.rewriteMenuProps;
             const actionHandler2 = props.onMenuAction(RewriteAction.ELABORATE);
             actionHandler2();
 
@@ -242,8 +215,7 @@ describe('useRewrite', () => {
             (Client4.getAIRewrittenMessage as jest.Mock).mockRejectedValue(error);
 
             const {result} = renderHookWithProps();
-            render(result.current.additionalControl);
-            const props = MockedRewriteMenu.mock.calls[0][0];
+            const props = result.current.rewriteMenuProps;
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
 
@@ -257,8 +229,6 @@ describe('useRewrite', () => {
         });
 
         it('should ignore stale promise responses', async () => {
-            mockHandleDraftChange.mockClear();
-
             const {result, rerender} = renderHookWithProps();
 
             let resolveFirst: (value: string) => void;
@@ -267,12 +237,10 @@ describe('useRewrite', () => {
             });
 
             const mockClient = Client4.getAIRewrittenMessage as jest.Mock;
-            mockClient.mockClear();
             mockClient.mockImplementationOnce(() => rewritePromise1);
             mockClient.mockImplementationOnce(() => Promise.resolve('Second response'));
 
-            render(result.current.additionalControl);
-            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            let props = result.current.rewriteMenuProps;
             const actionHandler1 = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler1();
 
@@ -285,8 +253,7 @@ describe('useRewrite', () => {
             });
 
             rerender();
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props = result.current.rewriteMenuProps;
             props.onCancelProcessing();
 
             await waitFor(() => {
@@ -294,8 +261,7 @@ describe('useRewrite', () => {
             });
 
             rerender();
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props = result.current.rewriteMenuProps;
             const actionHandler2 = props.onMenuAction(RewriteAction.ELABORATE);
             actionHandler2();
 
@@ -320,8 +286,7 @@ describe('useRewrite', () => {
     describe('undoMessage', () => {
         it('should restore original message and focus textbox', async () => {
             const {result} = renderHookWithProps();
-            render(result.current.additionalControl);
-            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            let props = result.current.rewriteMenuProps;
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
 
@@ -329,8 +294,7 @@ describe('useRewrite', () => {
                 expect(result.current.isProcessing).toBe(false);
             });
 
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props = result.current.rewriteMenuProps;
             props.onUndoMessage();
 
             expect(mockHandleDraftChange).toHaveBeenCalledWith(
@@ -346,8 +310,7 @@ describe('useRewrite', () => {
     describe('regenerateMessage', () => {
         it('should regenerate message with last action', async () => {
             const {result} = renderHookWithProps();
-            render(result.current.additionalControl);
-            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            let props = result.current.rewriteMenuProps;
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
 
@@ -355,8 +318,7 @@ describe('useRewrite', () => {
                 expect(result.current.isProcessing).toBe(false);
             });
 
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props = result.current.rewriteMenuProps;
             const mockClient = Client4.getAIRewrittenMessage as jest.Mock;
             mockClient.mockResolvedValueOnce('Regenerated message');
             props.onRegenerateMessage();
@@ -367,21 +329,21 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.SHORTEN,
                     undefined,
+                    '',
                 );
             });
         });
 
         it('should regenerate with custom prompt if last action was custom', async () => {
             const {result, rerender} = renderHookWithProps();
-            render(result.current.additionalControl);
-            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            let props = result.current.rewriteMenuProps;
             props.setPrompt('Custom prompt');
 
             rerender();
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props = result.current.rewriteMenuProps;
             const mockEvent = {
                 key: 'Enter',
+                nativeEvent: {isComposing: false},
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
@@ -392,8 +354,7 @@ describe('useRewrite', () => {
             });
 
             rerender();
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props = result.current.rewriteMenuProps;
             const mockClient = Client4.getAIRewrittenMessage as jest.Mock;
             mockClient.mockResolvedValueOnce('Regenerated custom message');
             props.onRegenerateMessage();
@@ -404,6 +365,7 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.CUSTOM,
                     'Custom prompt',
+                    '',
                 );
             });
         });
@@ -411,14 +373,15 @@ describe('useRewrite', () => {
 
     describe('cancelProcessing', () => {
         it('should cancel processing and reset state', async () => {
-            const {result, rerender} = renderHookWithProps();
+            let resolveSlowPromise: (value: string) => void;
             const slowPromise = new Promise<string>((resolve) => {
-                setTimeout(() => resolve('Slow response'), 1000);
+                resolveSlowPromise = resolve;
             });
             (Client4.getAIRewrittenMessage as jest.Mock).mockReturnValue(slowPromise);
 
-            render(result.current.additionalControl);
-            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            const {result, rerender} = renderHookWithProps();
+
+            let props = result.current.rewriteMenuProps;
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
 
@@ -427,8 +390,7 @@ describe('useRewrite', () => {
             });
 
             rerender();
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props = result.current.rewriteMenuProps;
             props.onCancelProcessing();
 
             rerender();
@@ -437,7 +399,9 @@ describe('useRewrite', () => {
                 expect(result.current.isProcessing).toBe(false);
             });
 
-            await new Promise((resolve) => setTimeout(resolve, 1200));
+            // Resolve the stale promise — the hook should ignore it
+            resolveSlowPromise!('Slow response');
+            await slowPromise;
 
             expect(mockHandleDraftChange).not.toHaveBeenCalled();
         });
@@ -446,8 +410,7 @@ describe('useRewrite', () => {
     describe('handleCustomPromptKeyDown', () => {
         it('should stop propagation for space key', () => {
             const {result} = renderHookWithProps();
-            render(result.current.additionalControl);
-            const props = MockedRewriteMenu.mock.calls[0][0];
+            const props = result.current.rewriteMenuProps;
             const mockEvent = {
                 key: ' ',
                 stopPropagation: jest.fn(),
@@ -461,15 +424,14 @@ describe('useRewrite', () => {
 
         it('should trigger rewrite on Enter key', async () => {
             const {result, rerender} = renderHookWithProps();
-            render(result.current.additionalControl);
-            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            let props = result.current.rewriteMenuProps;
             props.setPrompt('Custom prompt');
 
             rerender();
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props = result.current.rewriteMenuProps;
             const mockEvent = {
                 key: 'Enter',
+                nativeEvent: {isComposing: false},
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
@@ -482,16 +444,35 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.CUSTOM,
                     'Custom prompt',
+                    '',
                 );
             });
+        });
+
+        it('should not trigger rewrite on Enter key during IME composition', () => {
+            const {result, rerender} = renderHookWithProps();
+            let props = result.current.rewriteMenuProps;
+            props.setPrompt('Custom prompt');
+
+            rerender();
+            props = result.current.rewriteMenuProps;
+            const mockEvent = {
+                key: 'Enter',
+                nativeEvent: {isComposing: true},
+                stopPropagation: jest.fn(),
+            } as unknown as React.KeyboardEvent<HTMLInputElement>;
+
+            props.onCustomPromptKeyDown(mockEvent);
+
+            expect(mockEvent.stopPropagation).not.toHaveBeenCalled();
+            expect(Client4.getAIRewrittenMessage).not.toHaveBeenCalled();
         });
     });
 
     describe('handleMenuAction', () => {
         it('should return function that calls handleRewrite with action', async () => {
             const {result} = renderHookWithProps();
-            render(result.current.additionalControl);
-            const props = MockedRewriteMenu.mock.calls[0][0];
+            const props = result.current.rewriteMenuProps;
             const actionHandler = props.onMenuAction(RewriteAction.IMPROVE_WRITING);
             actionHandler();
 
@@ -501,6 +482,7 @@ describe('useRewrite', () => {
                     'Test message',
                     RewriteAction.IMPROVE_WRITING,
                     undefined,
+                    '',
                 );
             });
         });
@@ -514,8 +496,7 @@ describe('useRewrite', () => {
             });
             (Client4.getAIRewrittenMessage as jest.Mock).mockReturnValue(slowPromise);
 
-            render(result.current.additionalControl);
-            const props = MockedRewriteMenu.mock.calls[0][0];
+            const props = result.current.rewriteMenuProps;
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
 
@@ -533,8 +514,7 @@ describe('useRewrite', () => {
 
         it('should remove overlay when processing stops', async () => {
             const {result} = renderHookWithProps();
-            render(result.current.additionalControl);
-            const props = MockedRewriteMenu.mock.calls[0][0];
+            const props = result.current.rewriteMenuProps;
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
 
@@ -547,9 +527,19 @@ describe('useRewrite', () => {
         });
 
         it('should reset state when draft message becomes empty', async () => {
-            const {result, rerender} = renderHookWithProps(mockDraft);
-            render(result.current.additionalControl);
-            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            let currentDraft = mockDraft;
+            const {result, rerender} = renderHookWithContext(
+                () => useRewrite(
+                    currentDraft,
+                    mockHandleDraftChange,
+                    mockTextboxRef,
+                    mockFocusTextbox,
+                    mockSetServerError,
+                ),
+                getBaseState(),
+            );
+
+            let props = result.current.rewriteMenuProps;
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
 
@@ -559,13 +549,14 @@ describe('useRewrite', () => {
 
             rerender();
 
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            props = result.current.rewriteMenuProps;
             expect(props.originalMessage).toBe('Test message');
 
-            const {result: result2} = renderHookWithProps({...mockDraft, message: ''});
-            render(result2.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
+            // Change draft to empty message on the same hook instance
+            currentDraft = {...mockDraft, message: ''};
+            rerender();
+
+            props = result.current.rewriteMenuProps;
             expect(props.originalMessage).toBe('');
         });
     });

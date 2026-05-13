@@ -7,12 +7,11 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @integrations
 
-import {getRandomId} from '../../../utils';
-import * as MESSAGES from '../../../fixtures/messages';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {getRandomId} from '@/utils';
+import * as MESSAGES from '@/fixtures/messages';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Integrations page', () => {
     let testTeam;

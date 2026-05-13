@@ -6,6 +6,8 @@ import {FormattedDate, FormattedMessage, FormattedNumber, defineMessages} from '
 import {useDispatch} from 'react-redux';
 
 import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {buttonClassNames} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
 import {Client4} from 'mattermost-redux/client';
@@ -18,7 +20,6 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import ExternalLink from 'components/external_link';
-import WithTooltip from 'components/with_tooltip';
 
 import {BillingSchemes, CloudLinks, TrialPeriodDays, ModalIdentifiers} from 'utils/constants';
 
@@ -54,7 +55,7 @@ export const noBillingHistory = (
         <ExternalLink
             location='billing_summary'
             href={CloudLinks.BILLING_DOCS}
-            className='btn btn-primary BillingSummary__noBillingHistory-link'
+            className={buttonClassNames({emphasis: 'primary'}, 'BillingSummary__noBillingHistory-link')}
         >
             <FormattedMessage
                 id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
@@ -82,7 +83,7 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
                 {daysLeftOnTrial > TrialPeriodDays.TRIAL_1_DAY &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.title'
-                        defaultMessage={'You\'re currently on a free trial'}
+                        defaultMessage="You're currently on a free trial"
                     />
                 }
                 {(daysLeftOnTrial === TrialPeriodDays.TRIAL_1_DAY || daysLeftOnTrial === TrialPeriodDays.TRIAL_0_DAYS) &&
@@ -96,28 +97,28 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
                 {daysLeftOnTrial > TrialPeriodDays.TRIAL_WARNING_THRESHOLD &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.description'
-                        defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Contact sales to continue after the trial ends.'
+                        defaultMessage='Your free trial will expire in {daysLeftOnTrial} days. Contact Sales to continue after the trial ends.'
                         values={{daysLeftOnTrial}}
                     />
                 }
                 {(daysLeftOnTrial > TrialPeriodDays.TRIAL_1_DAY && daysLeftOnTrial <= TrialPeriodDays.TRIAL_WARNING_THRESHOLD) &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.lessThan3Days.description'
-                        defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Contact sales to continue enjoying the benefits of Cloud Professional.'
+                        defaultMessage='Your free trial will end in {daysLeftOnTrial, number} {daysLeftOnTrial, plural, one {day} other {days}}. Contact Sales to continue enjoying the benefits of Cloud Professional.'
                         values={{daysLeftOnTrial}}
                     />
                 }
                 {(daysLeftOnTrial === TrialPeriodDays.TRIAL_1_DAY || daysLeftOnTrial === TrialPeriodDays.TRIAL_0_DAYS) &&
                     <FormattedMessage
                         id='admin.billing.subscription.freeTrial.lastDay.description'
-                        defaultMessage='Your free trial has ended. Add payment information to continue enjoying the benefits of Cloud Professional.'
+                        defaultMessage='Your free trial has ended. Contact Sales to continue enjoying the benefits of Cloud Professional.'
                     />
                 }
             </div>
             <button
                 type='button'
                 onClick={() => openSalesLink()}
-                className='UpgradeMattermostCloud__upgradeButton btn btn-primary'
+                className={buttonClassNames({emphasis: 'primary'}, 'UpgradeMattermostCloud__upgradeButton')}
             >
                 <FormattedMessage
                     id='admin.billing.subscription.privateCloudCard.contactSales'
@@ -338,7 +339,7 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
             <div className='BillingSummary__lastInvoice-download'>
                 <button
                     onClick={openInvoicePreview}
-                    className='BillingSummary__lastInvoice-downloadButton btn btn-primary'
+                    className={buttonClassNames({emphasis: 'primary'}, 'BillingSummary__lastInvoice-downloadButton')}
                 >
                     <i className='icon icon-file-pdf-outline'/>
                     <FormattedMessage

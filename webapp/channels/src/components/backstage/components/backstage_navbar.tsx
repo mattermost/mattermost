@@ -29,7 +29,7 @@ const BackstageNavbar = ({team, siteName}: Props) => {
                         <FormattedMessage
                             id='backstage_navbar.backToMattermost'
                             defaultMessage='Back to {siteName}'
-                            values={{siteName: siteName ?? team?.name}}
+                            values={{siteName: siteName ?? team?.display_name}}
                         />
                     ) : (
                         <FormattedMessage

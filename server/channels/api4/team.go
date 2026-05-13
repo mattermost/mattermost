@@ -83,6 +83,12 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	team.Email = strings.ToLower(team.Email)
 
+	license := c.App.Channels().License()
+
+	if model.SafeDereference(c.App.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(license) {
+		team.Name = model.NewId()
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", &team)
@@ -120,13 +126,22 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Setting AllowOpenInvite or AllowedDomains requires PermissionInviteUser, matching updateTeam/patchTeam.
+	if (team.AllowOpenInvite || team.AllowedDomains != "") && !creatorCanInviteUsersOnTeam(c, &team) {
+		c.SetPermissionError(model.PermissionInviteUser)
+		return
+	}
+
 	rteam, err := c.App.CreateTeamWithUser(c.AppContext, &team, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet
+	// The creator's session doesn't yet reflect their team_admin role, so check the team's default roles directly.
+	if !creatorCanInviteUsersOnTeam(c, rteam) {
+		rteam.InviteId = ""
+	}
 
 	auditRec.Success()
 	auditRec.AddEventResultState(&team)
@@ -136,6 +151,29 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(rteam); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// creatorCanInviteUsersOnTeam checks whether the creator will have PermissionInviteUser on the new team,
+// using the team's scheme (if any) or the built-in team roles as defaults.
+func creatorCanInviteUsersOnTeam(c *Context, team *model.Team) bool {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionInviteUser) {
+		return true
+	}
+
+	if team.SchemeId != nil && *team.SchemeId != "" {
+		scheme, appErr := c.App.GetScheme(*team.SchemeId)
+		if appErr != nil {
+			c.Logger.Warn("Failed to fetch scheme while checking invite permission for new team",
+				mlog.String("scheme_id", *team.SchemeId),
+				mlog.Err(appErr),
+			)
+			return false
+		}
+
+		return c.App.RolesGrantPermission([]string{scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole}, model.PermissionInviteUser.Id)
+	}
+
+	return c.App.RolesGrantPermission([]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionInviteUser.Id)
 }
 
 func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -645,6 +683,10 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		team.SanitizeRoleData(c.AppContext.Session().UserId)
+	}
+
 	if err := json.NewEncoder(w).Encode(team); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -681,6 +723,13 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		for _, m := range members {
+			m.SanitizeRoleData(currentUserId)
+		}
 	}
 
 	js, err := json.Marshal(members)
@@ -720,6 +769,13 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	for _, m := range members {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), m.TeamId, model.PermissionManageTeamRoles) {
+			m.SanitizeRoleData(currentUserId)
+		}
 	}
 
 	js, err := json.Marshal(members)
@@ -763,6 +819,13 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		for _, m := range members {
+			m.SanitizeRoleData(currentUserId)
+		}
 	}
 
 	js, err := json.Marshal(members)
@@ -870,6 +933,10 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(tm)
 	auditRec.AddEventObjectType("team_member") // TODO verify this is the final state. should it be the team instead?
 	auditRec.Success()
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		tm.SanitizeRoleData(c.AppContext.Session().UserId)
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(tm); err != nil {
@@ -1023,6 +1090,15 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		for _, m := range membersWithErrors {
+			if m.Member != nil {
+				m.Member.SanitizeRoleData(currentUserId)
+			}
+		}
 	}
 
 	var (
@@ -1231,10 +1307,10 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionSysconsoleReadComplianceDataRetentionPolicy)
 			return
 		}
-		opts.ExcludePolicyConstrained = model.NewPointer(true)
+		opts.ExcludePolicyConstrained = new(true)
 	}
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
-		opts.IncludePolicyID = model.NewPointer(true)
+		opts.IncludePolicyID = new(true)
 	}
 
 	listPrivate := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPrivateTeams)
@@ -1243,9 +1319,9 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	offset := limit * c.Params.Page
 	if listPrivate && listPublic {
 	} else if listPrivate {
-		opts.AllowOpenInvite = model.NewPointer(false)
+		opts.AllowOpenInvite = new(false)
 	} else if listPublic {
-		opts.AllowOpenInvite = model.NewPointer(true)
+		opts.AllowOpenInvite = new(true)
 	} else {
 		// The user doesn't have permissions to list private as well as public teams.
 		c.Err = model.NewAppError("getAllTeams", "api.team.get_all_teams.insufficient_permissions", nil, "", http.StatusForbidden)
@@ -1297,7 +1373,7 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	// policy ID may only be used through the /data_retention/policies endpoint
 	props.PolicyID = nil
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
-		props.IncludePolicyID = model.NewPointer(true)
+		props.IncludePolicyID = new(true)
 	}
 
 	var (

@@ -38,15 +38,15 @@ test(
         // * Verify emoji picker popup disappears
         await emojiGifPickerPopup.notToBeVisible();
 
-        // * Verify that the emoji was correctly added to the post textbox, followed by a space
-        await expectPostCreateState(postCreate.input, ':slightly_smiling_face: ', '');
+        // * Verify that the emoji was correctly added to the post textbox (as unicode), followed by a space
+        await expectPostCreateState(postCreate.input, '🙂 ', '');
 
         // # Repeat those steps with another emoji
         await postCreate.openEmojiPicker();
         await emojiGifPickerPopup.clickEmoji('upside down face');
 
-        // * Verify that the second emoji was correctly added to the post textbox, also followed by a space
-        await expectPostCreateState(postCreate.input, ':slightly_smiling_face: :upside_down_face: ', '');
+        // * Verify that the second emoji was correctly added to the post textbox (as unicode), also followed by a space
+        await expectPostCreateState(postCreate.input, '🙂 🙃 ', '');
 
         // # Clear the textbox and replace it with some text
         await postCreate.writeMessage('ab');
@@ -61,8 +61,8 @@ test(
         await postCreate.openEmojiPicker();
         await emojiGifPickerPopup.clickEmoji('face with raised eyebrow');
 
-        // * Verify that the emoji was added with surrounding whitespace and that the caret is placed after that
-        await expectPostCreateState(postCreate.input, 'a :face_with_raised_eyebrow: ', 'b');
+        // * Verify that the emoji was added with surrounding whitespace (as unicode) and that the caret is placed after that
+        await expectPostCreateState(postCreate.input, 'a 🤨 ', 'b');
 
         // # Clear the textbox and replace it with some words
         await postCreate.writeMessage('this is a test');
@@ -80,8 +80,8 @@ test(
         await postCreate.openEmojiPicker();
         await emojiGifPickerPopup.clickEmoji('neutral face');
 
-        // * Verify that the emoji was added without an extra space before it
-        await expectPostCreateState(postCreate.input, 'this is a :neutral_face: ', 'test');
+        // * Verify that the emoji was added without an extra space before it (as unicode)
+        await expectPostCreateState(postCreate.input, 'this is a 😐 ', 'test');
     },
 );
 

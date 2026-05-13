@@ -110,11 +110,11 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 		DriverName:              model.NewPointer(model.ImageDriverS3),
 		AmazonS3AccessKeyId:     model.NewPointer(model.MinioAccessKey),
 		AmazonS3SecretAccessKey: model.NewPointer(model.MinioSecretKey),
-		AmazonS3Bucket:          model.NewPointer("nosuchbucket"),
-		AmazonS3Endpoint:        model.NewPointer(s3Endpoint),
-		AmazonS3Region:          model.NewPointer(""),
-		AmazonS3PathPrefix:      model.NewPointer(""),
-		AmazonS3SSL:             model.NewPointer(false),
+		AmazonS3Bucket:          new("nosuchbucket"),
+		AmazonS3Endpoint:        new(s3Endpoint),
+		AmazonS3Region:          new(""),
+		AmazonS3PathPrefix:      new(""),
+		AmazonS3SSL:             new(false),
 	}
 	*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	*cfg.AnnouncementSettings.AdminNoticesEnabled = false
@@ -298,9 +298,9 @@ func TestPanicLog(t *testing.T) {
 	logger, _ := mlog.NewLogger()
 
 	logSettings := model.NewLogSettings()
-	logSettings.EnableConsole = model.NewPointer(true)
-	logSettings.ConsoleJson = model.NewPointer(true)
-	logSettings.EnableFile = model.NewPointer(true)
+	logSettings.EnableConsole = new(true)
+	logSettings.ConsoleJson = new(true)
+	logSettings.EnableFile = new(true)
 	logSettings.FileLocation = &tmpDir
 	logSettings.FileLevel = &mlog.LvlInfo.Name
 
@@ -393,7 +393,8 @@ func TestSentry(t *testing.T) {
 	testDir, _ := fileutils.FindDir("tests")
 
 	setSentryDSN := func(t *testing.T, dsn *sentry.Dsn) {
-		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 
 		// Allow Playbooks to startup
 		oldBuildHash := model.BuildHash
@@ -402,7 +403,6 @@ func TestSentry(t *testing.T) {
 		oldSentryDSN := SentryDSN
 		SentryDSN = dsn.String()
 		t.Cleanup(func() {
-			os.Unsetenv("MM_SERVICEENVIRONMENT")
 			model.BuildHash = oldBuildHash
 			SentryDSN = oldSentryDSN
 		})

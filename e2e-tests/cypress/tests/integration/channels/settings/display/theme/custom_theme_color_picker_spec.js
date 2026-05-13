@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import {hexToRgbArray, rgbArrayToString} from '../../../../../utils';
+import {hexToRgbArray, rgbArrayToString} from '@/utils';
 
 describe('Settings > Display > Theme', () => {
     before(() => {

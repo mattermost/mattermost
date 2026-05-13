@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -121,6 +119,16 @@ const mockChannel = TestHelper.getChannelMock({
     type: 'O',
 });
 
+const mockDirectMessageChannel = TestHelper.getChannelMock({
+    id: 'dm-channel1',
+    team_id: '',
+    display_name: '',
+    name: 'current_user_id__other_user_id',
+    purpose: '',
+    header: 'DM initial header',
+    type: 'D',
+});
+
 const baseProps = {
     channel: mockChannel,
     setAreThereUnsavedChanges: jest.fn(),
@@ -128,7 +136,6 @@ const baseProps = {
 
 describe('ChannelSettingsInfoTab', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
         mockChannelPropertiesPermission = true;
         mockConvertToPublicPermission = true;
         mockConvertToPrivatePermission = true;
@@ -204,12 +211,35 @@ describe('ChannelSettingsInfoTab', () => {
         // Verify patchChannel was called with the updated values (without type change).
         // Note: URL should remain unchanged when editing existing channels
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
-            ...mockChannel,
             display_name: 'Updated Channel Name',
-            name: 'test-channel', // URL should remain unchanged when editing existing channels
             purpose: 'Updated purpose',
             header: 'Updated header',
         });
+    });
+
+    it('should save DM header from channel settings without requiring channel name', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                channel={mockDirectMessageChannel}
+                setAreThereUnsavedChanges={jest.fn()}
+            />,
+        );
+
+        // DMs do not render the channel name field.
+        expect(screen.queryByRole('textbox', {name: 'Channel name'})).not.toBeInTheDocument();
+
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        await userEvent.clear(headerInput);
+        await userEvent.type(headerInput, 'Updated DM header');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(patchChannel).toHaveBeenCalledWith('dm-channel1', {
+            header: 'Updated DM header',
+        });
+        expect(screen.queryByText('Channel name is required')).not.toBeInTheDocument();
     });
 
     it('should trim whitespace from channel fields when saving', async () => {
@@ -244,9 +274,7 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Verify patchChannel was called with the trimmed values
         expect(patchChannel).toHaveBeenCalledWith('channel1', {
-            ...mockChannel,
             display_name: 'Channel Name With Whitespace', // Whitespace should be trimmed
-            name: 'test-channel', // URL should remain unchanged when editing existing channels
             purpose: 'Purpose with whitespace', // Whitespace should be trimmed
             header: 'Header with whitespace', // Whitespace should be trimmed
         });
@@ -505,6 +533,33 @@ describe('ChannelSettingsInfoTab', () => {
         // Private button should be selected
         const privateButton = screen.getByRole('button', {name: /Private Channel/});
         expect(privateButton).toHaveClass('selected');
+    });
+
+    it('should disable public/private selector when channel has membership policy enforced', async () => {
+        mockConvertToPrivatePermission = true;
+        mockConvertToPublicPermission = true;
+
+        const channelWithPolicy = {
+            ...mockChannel,
+            policy_enforced: true,
+        };
+
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+                channel={channelWithPolicy}
+            />,
+        );
+
+        const publicButton = screen.getByRole('button', {name: /Public Channel/});
+        const privateButton = screen.getByRole('button', {name: /Private Channel/});
+        expect(publicButton).toHaveClass('disabled');
+        expect(privateButton).toHaveClass('disabled');
+
+        await userEvent.hover(publicButton);
+        expect(
+            await screen.findByText(/This channel has a membership policy applied/i),
+        ).toBeInTheDocument();
     });
 
     it('should show ConvertConfirmModal when converting from public to private', async () => {

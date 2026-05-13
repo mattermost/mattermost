@@ -9,7 +9,7 @@
 
 // Group: @channels @messaging
 
-const TIMEOUTS = require('../../../fixtures/timeouts');
+const TIMEOUTS = require('@/fixtures/timeouts');
 
 describe('Message Reply', () => {
     let mainChannel;

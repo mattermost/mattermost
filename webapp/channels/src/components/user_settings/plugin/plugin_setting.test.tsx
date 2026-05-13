@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
@@ -78,13 +78,13 @@ describe('plugin setting', () => {
         expect(screen.queryByText(OPTION_1_TEXT)).toBeInTheDocument();
     });
 
-    it('isDisabled is respected', () => {
+    it('isDisabled is respected', async () => {
         const props = getBaseProps();
         props.section.disabled = true;
         renderWithContext(<PluginSetting {...props}/>);
         expect(screen.queryByText('Edit')).not.toBeInTheDocument();
         expect(screen.queryByText(SECTION_TITLE)).toBeInTheDocument();
-        fireEvent.click(screen.getByText(SECTION_TITLE));
+        await userEvent.click(screen.getByText(SECTION_TITLE));
         expect(screen.queryByText(OPTION_1_TEXT)).not.toBeInTheDocument();
     });
 
@@ -149,39 +149,39 @@ describe('plugin setting', () => {
             },
         ]);
     });
-    it('does not update anything if nothing has changed', () => {
+    it('does not update anything if nothing has changed', async () => {
         const mockSavePreferences = jest.spyOn(preferencesActions, 'savePreferences');
         const props = getBaseProps();
         props.activeSection = SECTION_TITLE;
         renderWithContext(<PluginSetting {...props}/>);
-        fireEvent.click(screen.getByText(SAVE_TEXT));
+        await userEvent.click(screen.getByText(SAVE_TEXT));
         expect(props.section.onSubmit).not.toHaveBeenCalled();
         expect(props.updateSection).toHaveBeenCalledWith('');
         expect(mockSavePreferences).not.toHaveBeenCalled();
     });
 
-    it('does not consider anything changed after moving back and forth between sections', () => {
+    it('does not consider anything changed after moving back and forth between sections', async () => {
         const mockSavePreferences = jest.spyOn(preferencesActions, 'savePreferences');
         const props = getBaseProps();
         props.activeSection = SECTION_TITLE;
         const {rerender} = renderWithContext(<PluginSetting {...props}/>);
-        fireEvent.click(screen.getByText(OPTION_1_TEXT));
+        await userEvent.click(screen.getByText(OPTION_1_TEXT));
         props.activeSection = '';
         rerender(<PluginSetting {...props}/>);
         props.activeSection = SECTION_TITLE;
         rerender(<PluginSetting {...props}/>);
 
-        fireEvent.click(screen.getByText(SAVE_TEXT));
+        await userEvent.click(screen.getByText(SAVE_TEXT));
         expect(props.section.onSubmit).not.toHaveBeenCalled();
         expect(props.updateSection).toHaveBeenCalledWith('');
         expect(mockSavePreferences).not.toHaveBeenCalled();
 
-        fireEvent.click(screen.getByText(OPTION_1_TEXT));
+        await userEvent.click(screen.getByText(OPTION_1_TEXT));
         props.activeSection = 'other section';
         rerender(<PluginSetting {...props}/>);
         props.activeSection = SECTION_TITLE;
         rerender(<PluginSetting {...props}/>);
-        fireEvent.click(screen.getByText(SAVE_TEXT));
+        await userEvent.click(screen.getByText(SAVE_TEXT));
         expect(props.section.onSubmit).not.toHaveBeenCalled();
         expect(props.updateSection).toHaveBeenCalledWith('');
         expect(mockSavePreferences).not.toHaveBeenCalled();

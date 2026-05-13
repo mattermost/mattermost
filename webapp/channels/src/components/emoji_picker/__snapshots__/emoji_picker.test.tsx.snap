@@ -136,7 +136,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       role="grid"
     >
       <div
-        style="position: relative; height: 100px; width: 100px; overflow: auto; will-change: transform; direction: ltr;"
+        style="position: relative; height: 100px; width: 100px; overflow: auto; -webkit-overflow-scrolling: touch; will-change: transform; direction: ltr;"
       >
         <div
           style="height: 7740px; width: 100%;"

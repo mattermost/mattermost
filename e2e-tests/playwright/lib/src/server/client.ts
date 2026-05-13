@@ -2,24 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {Client4} from '@mattermost/client';
-import {AdminConfig} from '@mattermost/types/config';
 import {UserProfile} from '@mattermost/types/users';
 
 import {testConfig} from '@/test_config';
-
-// Extend Client4 with methods used for testing
-declare module '@mattermost/client' {
-    interface Client4 {
-        updateConfigX: (config: Partial<AdminConfig>) => Promise<AdminConfig>;
-    }
-}
-
-// updateConfigX merges the given config with the current config and updates it to the server
-Client4.prototype.updateConfigX = async function (this: Client4, config: Partial<AdminConfig>) {
-    const currentConfig = await this.getConfig();
-    const newConfig = {...currentConfig, ...config};
-    return await this.updateConfig(newConfig);
-};
 
 // Variable to hold cache
 const clients: Record<string, ClientCache> = {};

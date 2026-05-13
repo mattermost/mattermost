@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
@@ -11,8 +12,8 @@ import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import PopoutButton from 'components/popout_button';
+import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import FollowButton from 'components/threading/common/follow_button';
-import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import {RHSStates} from 'utils/constants';
@@ -32,10 +33,6 @@ type Props = WrappedComponentProps & {
     currentTeam?: Team;
     currentUserId: string;
     setRhsExpanded: (b: boolean) => void;
-    showMentions: () => void;
-    showSearchResults: () => void;
-    showFlaggedPosts: () => void;
-    showPinnedPosts: () => void;
     goBack: () => void;
     closeRightHandSide: (e?: React.MouseEvent) => void;
     toggleRhsExpanded: (e: React.MouseEvent) => void;
@@ -78,13 +75,18 @@ class RhsHeaderPost extends React.PureComponent<Props> {
     };
 
     popout = async () => {
-        const {currentTeam, intl, rootPostId, focusPost, currentUserId} = this.props;
+        const {currentTeam, intl, rootPostId, focusPost, currentUserId, channel} = this.props;
         if (!currentTeam) {
             return;
         }
-        await popoutThread(intl, rootPostId, currentTeam.name, (postId, returnTo) => {
-            focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true});
-        });
+        await popoutThread(
+            intl.formatMessage(getThreadPopoutTitle(channel)),
+            rootPostId,
+            currentTeam.name,
+            (postId, returnTo) => {
+                focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true});
+            },
+        );
     };
 
     render() {

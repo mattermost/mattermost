@@ -1,17 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
+import type {WebSocketMessages} from '@mattermost/client';
 
 import {PostTypes} from 'mattermost-redux/action_types';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {DispatchFunc, GetStateFunc} from 'types/store';
-
-export interface PostRevealedData {
-    post?: string | Post;
-    recipients?: string[];
-}
 
 /**
  * Handles the post_revealed websocket event for burn-on-read posts.
@@ -19,7 +14,7 @@ export interface PostRevealedData {
  * 1. Post author: Updates recipients list for real-time recipient count tracking
  * 2. Revealing user: Updates post with revealed content for multi-device sync
  */
-export function handleBurnOnReadPostRevealed(data: PostRevealedData) {
+export function handleBurnOnReadPostRevealed(data: WebSocketMessages.BurnOnReadPostRevealed['data']) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -74,16 +69,11 @@ export function handleBurnOnReadPostRevealed(data: PostRevealedData) {
     };
 }
 
-export interface AllRevealedData {
-    post_id: string;
-    sender_expire_at: number;
-}
-
 /**
  * Handles the burn_on_read_all_revealed websocket event.
  * Sent to the post author when all recipients have revealed the message.
  */
-export function handleBurnOnReadAllRevealed(data: AllRevealedData) {
+export function handleBurnOnReadAllRevealed(data: WebSocketMessages.BurnOnReadPostAllRevealed['data']) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const {post_id: postId, sender_expire_at: senderExpireAt} = data;

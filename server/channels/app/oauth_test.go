@@ -131,10 +131,10 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser2.Id)
@@ -847,8 +847,8 @@ func TestRegisterOAuthClient(t *testing.T) {
 	t.Run("Valid DCR request with client_uri", func(t *testing.T) {
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
-			ClientName:   model.NewPointer("Test Client"),
-			ClientURI:    model.NewPointer("https://example.com"),
+			ClientName:   new("Test Client"),
+			ClientURI:    new("https://example.com"),
 		}
 
 		app, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
@@ -866,7 +866,7 @@ func TestRegisterOAuthClient(t *testing.T) {
 	t.Run("Valid DCR request without client_uri", func(t *testing.T) {
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
-			ClientName:   model.NewPointer("Test Client"),
+			ClientName:   new("Test Client"),
 		}
 
 		app, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
@@ -884,8 +884,8 @@ func TestRegisterOAuthClient(t *testing.T) {
 	t.Run("Invalid client_uri", func(t *testing.T) {
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
-			ClientName:   model.NewPointer("Test Client"),
-			ClientURI:    model.NewPointer("invalid-url"),
+			ClientName:   new("Test Client"),
+			ClientURI:    new("invalid-url"),
 		}
 
 		_, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
@@ -896,12 +896,12 @@ func TestRegisterOAuthClient(t *testing.T) {
 
 	t.Run("PublicClient_Success", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+			cfg.ServiceSettings.EnableDynamicClientRegistration = new(true)
 		})
 
 		dcrRequest := &model.ClientRegistrationRequest{
 			RedirectURIs:            []string{"https://example.com/callback"},
-			ClientName:              model.NewPointer("Test Public Client"),
+			ClientName:              new("Test Public Client"),
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
 		}
 
@@ -921,13 +921,13 @@ func TestGetAuthorizationServerMetadata_DCRConfig(t *testing.T) {
 
 	// Enable OAuth service provider and set SiteURL
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
-		cfg.ServiceSettings.SiteURL = model.NewPointer("https://example.com")
+		cfg.ServiceSettings.EnableOAuthServiceProvider = new(true)
+		cfg.ServiceSettings.SiteURL = new("https://example.com")
 	})
 
 	t.Run("DCR disabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(false)
+			cfg.ServiceSettings.EnableDynamicClientRegistration = new(false)
 		})
 
 		metadata, err := th.App.GetAuthorizationServerMetadata(th.Context)
@@ -945,7 +945,7 @@ func TestGetAuthorizationServerMetadata_DCRConfig(t *testing.T) {
 
 	t.Run("DCR enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+			cfg.ServiceSettings.EnableDynamicClientRegistration = new(true)
 		})
 
 		metadata, err := th.App.GetAuthorizationServerMetadata(th.Context)
@@ -1005,10 +1005,10 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 
 	t.Run("PublicClient_WithPKCE_Success", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser2.Id)
@@ -1058,10 +1058,10 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 
 	t.Run("PublicClient_WithoutPKCE_ShouldFail", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser2.Id)
@@ -1235,10 +1235,10 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 
 	t.Run("PublicClient_NoRefreshToken", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser2.Id)
@@ -1400,6 +1400,64 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 			require.Contains(t, appErr.Id, "resource_mismatch")
 		})
 	})
+
+	t.Run("DifferentClient_CannotRedeemCode", func(t *testing.T) {
+		appA := createConfidentialOAuthApp("TestClientA")
+		appB := createConfidentialOAuthApp("TestClientB")
+		code := getAuthorizationCode(appA, "")
+
+		_, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			appB.Id,
+			model.AccessTokenGrantType,
+			appA.CallbackUrls[0],
+			code,
+			appB.ClientSecret,
+			"",
+			"",
+			"",
+		)
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "client_id_mismatch")
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("DifferentClient_CannotUseRefreshToken", func(t *testing.T) {
+		appA := createConfidentialOAuthApp("TestClientA")
+		appB := createConfidentialOAuthApp("TestClientB")
+		code := getAuthorizationCode(appA, "")
+
+		// Get a valid refresh token for appA
+		tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			appA.Id,
+			model.AccessTokenGrantType,
+			appA.CallbackUrls[0],
+			code,
+			appA.ClientSecret,
+			"",
+			"",
+			"",
+		)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, tokenResp.RefreshToken)
+
+		// Try to use appA's refresh token with appB's credentials
+		_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			appB.Id,
+			model.RefreshTokenGrantType,
+			appB.CallbackUrls[0],
+			"",
+			appB.ClientSecret,
+			tokenResp.RefreshToken,
+			"",
+			"",
+		)
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "client_id_mismatch")
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
 }
 func TestParseOAuthStateTokenExtra(t *testing.T) {
 	t.Run("valid token with normal values", func(t *testing.T) {
@@ -1456,16 +1514,16 @@ func TestAuthorizeOAuthUser_InvalidToken(t *testing.T) {
 	service := model.ServiceOpenid
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
-		cfg.OpenIdSettings.Enable = model.NewPointer(true)
-		cfg.OpenIdSettings.Id = model.NewPointer("test-client-id")
-		cfg.OpenIdSettings.Secret = model.NewPointer("test-secret")
-		cfg.OpenIdSettings.Scope = model.NewPointer(OpenIDScope)
+		cfg.OpenIdSettings.Enable = new(true)
+		cfg.OpenIdSettings.Id = new("test-client-id")
+		cfg.OpenIdSettings.Secret = new("test-secret")
+		cfg.OpenIdSettings.Scope = new(OpenIDScope)
 	})
 
 	mockProvider.On("GetSSOSettings", mock.Anything, mock.Anything, service).Return(&model.SSOSettings{
-		Enable: model.NewPointer(true),
-		Id:     model.NewPointer("test-client-id"),
-		Secret: model.NewPointer("test-secret"),
+		Enable: new(true),
+		Id:     new("test-client-id"),
+		Secret: new("test-secret"),
 	}, nil)
 
 	t.Run("rejects token with extra delimiters in email field", func(t *testing.T) {
@@ -1640,7 +1698,7 @@ func TestLoginByIntune_Success_Office365(t *testing.T) {
 		Email:         "office365user@example.com",
 		Username:      "office365user",
 		AuthService:   model.ServiceOffice365,
-		AuthData:      model.NewPointer("test-oid-123"),
+		AuthData:      new("test-oid-123"),
 		EmailVerified: true,
 	})
 	require.Nil(t, appErr)
@@ -1678,7 +1736,7 @@ func TestLoginByIntune_Success_SAML(t *testing.T) {
 		Email:         "samluser@example.com",
 		Username:      "samluser",
 		AuthService:   model.UserAuthServiceSaml,
-		AuthData:      model.NewPointer("test@example.com"),
+		AuthData:      new("test@example.com"),
 		EmailVerified: true,
 	})
 	require.Nil(t, appErr)
@@ -1749,7 +1807,7 @@ func TestLoginByIntune_AccountLocked(t *testing.T) {
 		Email:         "deleteduser@example.com",
 		Username:      "deleteduser",
 		AuthService:   model.ServiceOffice365,
-		AuthData:      model.NewPointer("deleted-oid-123"),
+		AuthData:      new("deleted-oid-123"),
 		EmailVerified: true,
 	})
 	require.Nil(t, appErr)

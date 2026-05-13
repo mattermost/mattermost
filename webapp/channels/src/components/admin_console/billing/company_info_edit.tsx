@@ -7,6 +7,8 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
+
 import {getCloudCustomer, updateCloudCustomer, updateCloudCustomerAddress} from 'mattermost-redux/actions/cloud';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
@@ -284,7 +286,7 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                     )}
                 />
                 <BlockableLink
-                    className='btn btn-tertiary'
+                    className={buttonClassNames({emphasis: 'tertiary'})}
                     to='/admin_console/billing/company_info'
                 >
                     <FormattedMessage

@@ -36,25 +36,31 @@ import {
     TEST_MESSAGE_OTHER,
 } from './helpers';
 
-// Custom attribute definitions
+// Custom attribute definitions.
+// Names are intentionally suffixed with 'US' to avoid sharing server fields with
+// custom_attributes.spec.ts, which defines identically-typed 'Department', 'Phone',
+// and 'Website' attributes.  With greedy-bin-packing shard balancing the two spec
+// files often land in different shards; if they shared fields the owning spec's
+// afterAll would delete the field while the other spec is still using it, causing
+// consistent CI failures (observed as Department absent from the profile popover).
 const customAttributes: CustomProfileAttribute[] = [
     {
-        name: 'Department',
+        name: 'DepartmentUS',
         value: TEST_DEPARTMENT,
         type: 'text',
     },
     {
-        name: 'Location',
+        name: 'LocationUS',
         type: 'select',
         options: TEST_LOCATION_OPTIONS,
     },
     {
-        name: 'Skills',
+        name: 'SkillsUS',
         type: 'multiselect',
         options: TEST_SKILLS_OPTIONS,
     },
     {
-        name: 'Phone',
+        name: 'PhoneUS',
         value: TEST_PHONE,
         type: 'text',
         attrs: {
@@ -62,7 +68,7 @@ const customAttributes: CustomProfileAttribute[] = [
         },
     },
     {
-        name: 'Website',
+        name: 'WebsiteUS',
         value: TEST_URL,
         type: 'text',
         attrs: {
@@ -85,7 +91,7 @@ test.beforeEach(async ({pw}) => {
     await pw.skipIfNoLicense();
 
     // Initialize with admin client
-    ({team, user, adminClient, userClient} = await pw.initSetup({userPrefix: 'cpa-test-'}));
+    ({team, user, adminClient, userClient} = await pw.initSetup({userOptions: {prefix: 'cpa-test-'}}));
     const channel = pw.random.channel({
         teamId: team.id,
         name: `test-channel`,
@@ -94,7 +100,7 @@ test.beforeEach(async ({pw}) => {
     testChannel = await adminClient.createChannel(channel);
 
     // Create another user to test profile popover
-    otherUser = await pw.createNewUserProfile(adminClient, 'cpa-other-');
+    otherUser = await pw.createNewUserProfile(adminClient, {prefix: 'cpa-other-'});
     await adminClient.addToTeam(team.id, otherUser.id);
     await adminClient.addToChannel(otherUser.id, testChannel.id);
 
@@ -150,14 +156,14 @@ test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', as
     // * Verify that custom profile attributes section exists
     await verifyAttributesExistInSettings(page, customAttributes);
 
-    // 3. Edit the Department attribute and change to "Product"
-    await editTextAttribute(page, attributeFieldsMap, 'Department', TEST_UPDATED_DEPARTMENT);
+    // 3. Edit the DepartmentUS attribute and change to "Product"
+    await editTextAttribute(page, attributeFieldsMap, 'DepartmentUS', TEST_UPDATED_DEPARTMENT);
 
-    // 4. Edit the Location attribute (select field) and select "Office"
-    await editSelectAttribute(page, attributeFieldsMap, 'Location', 0); // Office is the first option (index 0)
+    // 4. Edit the LocationUS attribute (select field) and select "Remote" (index 0)
+    await editSelectAttribute(page, attributeFieldsMap, 'LocationUS', 0); // Remote is the first option (index 0)
 
-    // 5. Edit the Skills attribute (multiselect field) and select "Python" and "Node.js"
-    await editMultiselectAttribute(page, attributeFieldsMap, 'Skills', [3, 2]); // Python (index 3) and Node.js (index 2)
+    // 5. Edit the SkillsUS attribute (multiselect field) and select "Python" and "Node.js"
+    await editMultiselectAttribute(page, attributeFieldsMap, 'SkillsUS', [3, 2]); // Python (index 3) and Node.js (index 2)
 
     // 6. Close the profile settings modal
     await profileModal.closeModal();
@@ -174,10 +180,10 @@ test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', as
     await otherChannelsPage.openProfilePopover(lastPost);
 
     // * Profile popover shows updated custom attributes
-    await verifyAttributeInPopover(otherChannelsPage, 'Department', TEST_UPDATED_DEPARTMENT);
-    await verifyAttributeInPopover(otherChannelsPage, 'Location', 'Remote'); // This should be 'Office' but there's a bug in the test
-    await verifyAttributeInPopover(otherChannelsPage, 'Skills', 'Python');
-    await verifyAttributeInPopover(otherChannelsPage, 'Skills', 'Node.js');
+    await verifyAttributeInPopover(otherChannelsPage, 'DepartmentUS', TEST_UPDATED_DEPARTMENT);
+    await verifyAttributeInPopover(otherChannelsPage, 'LocationUS', 'Remote'); // Remote is index 0 in TEST_LOCATION_OPTIONS
+    await verifyAttributeInPopover(otherChannelsPage, 'SkillsUS', 'Python');
+    await verifyAttributeInPopover(otherChannelsPage, 'SkillsUS', 'Node.js');
 });
 
 /**
@@ -206,8 +212,8 @@ test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', a
     const profileModal = await channelsPage.openProfileModal();
     await profileModal.toBeVisible();
 
-    // 3. Edit Department field and delete all text to clear the value
-    await editTextAttribute(page, attributeFieldsMap, 'Department', '');
+    // 3. Edit DepartmentUS field and delete all text to clear the value
+    await editTextAttribute(page, attributeFieldsMap, 'DepartmentUS', '');
 
     // 4. Close the profile settings modal
     await profileModal.closeModal();
@@ -223,8 +229,8 @@ test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', a
     const lastPost = await channelsPage.getLastPost();
     await channelsPage.openProfilePopover(lastPost);
 
-    // * Department attribute is not displayed in the profile popover
-    await verifyAttributeNotInPopover(otherChannelsPage, 'Department');
+    // * DepartmentUS attribute is not displayed in the profile popover
+    await verifyAttributeNotInPopover(otherChannelsPage, 'DepartmentUS');
 });
 
 /**
@@ -245,8 +251,8 @@ test('MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_a
     const profileModal = await channelsPage.openProfileModal();
     await profileModal.toBeVisible();
 
-    // 3. Edit Department field and change to "Changed Value"
-    const department = 'Department';
+    // 3. Edit DepartmentUS field and change to "Changed Value"
+    const department = 'DepartmentUS';
     const fieldId = getFieldIdByName(attributeFieldsMap, department);
     await profileModal.container.locator(`text=${department}`).scrollIntoViewIfNeeded();
     await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
@@ -258,12 +264,12 @@ test('MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_a
     // 4. Click Cancel button
     await profileModal.cancelButton.click();
 
-    // 5. Open Department field for editing again
-    await profileModal.container.locator(`text=Department`).scrollIntoViewIfNeeded();
+    // 5. Open DepartmentUS field for editing again
+    await profileModal.container.locator(`text=${department}`).scrollIntoViewIfNeeded();
     await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).click();
 
-    // * After cancelling, Department field should still show original value "Engineering"
+    // * After cancelling, DepartmentUS field should still show original value "Engineering"
     await expect(profileModal.container.locator(`#customAttribute_${fieldId}`)).toHaveValue(TEST_DEPARTMENT);
 });
 
@@ -295,11 +301,11 @@ test('MM-T5771 Editing Phone and URL Type Custom Profile Attributes @custom_prof
     const profileModal = await channelsPage.openProfileModal();
     await profileModal.toBeVisible();
 
-    // 3. Edit Phone field and change to "555-987-6543"
-    await editTextAttribute(page, attributeFieldsMap, 'Phone', TEST_UPDATED_PHONE);
+    // 3. Edit PhoneUS field and change to "555-987-6543"
+    await editTextAttribute(page, attributeFieldsMap, 'PhoneUS', TEST_UPDATED_PHONE);
 
-    // 4. Edit Website field and change to "https://mattermost.com"
-    await editTextAttribute(page, attributeFieldsMap, 'Website', TEST_UPDATED_URL);
+    // 4. Edit WebsiteUS field and change to "https://mattermost.com"
+    await editTextAttribute(page, attributeFieldsMap, 'WebsiteUS', TEST_UPDATED_URL);
 
     // 5. Close the profile settings modal
     await profileModal.closeModal();
@@ -316,8 +322,8 @@ test('MM-T5771 Editing Phone and URL Type Custom Profile Attributes @custom_prof
     await otherChannelsPage.openProfilePopover(lastPost);
 
     // * Profile popover shows updated attributes
-    await verifyAttributeInPopover(otherChannelsPage, 'Phone', TEST_UPDATED_PHONE);
-    await verifyAttributeInPopover(otherChannelsPage, 'Website', TEST_UPDATED_URL);
+    await verifyAttributeInPopover(otherChannelsPage, 'PhoneUS', TEST_UPDATED_PHONE);
+    await verifyAttributeInPopover(otherChannelsPage, 'WebsiteUS', TEST_UPDATED_URL);
 });
 
 /**
@@ -338,9 +344,9 @@ test('MM-T5772 URL Validation in Custom Profile Attributes @custom_profile_attri
     const profileModal = await channelsPage.openProfileModal();
     await profileModal.toBeVisible();
 
-    // 3. Edit Website field and enter an invalid URL
-    const fieldId = getFieldIdByName(attributeFieldsMap, 'Website');
-    await profileModal.container.locator(`text=Website`).scrollIntoViewIfNeeded();
+    // 3. Edit WebsiteUS field and enter an invalid URL
+    const fieldId = getFieldIdByName(attributeFieldsMap, 'WebsiteUS');
+    await profileModal.container.locator(`text=WebsiteUS`).scrollIntoViewIfNeeded();
     await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).click();
     await profileModal.container.locator(`#customAttribute_${fieldId}`).scrollIntoViewIfNeeded();

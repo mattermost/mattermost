@@ -63,6 +63,18 @@ check-types: node_modules ## Checks TS file for TypeScript confirmity
 
 	npm run check-types
 
+.PHONY: i18n-extract
+i18n-extract: node_modules ## Extracts i18n messages from code to en.json
+	@echo Extracting i18n messages
+
+	npm run i18n-extract
+
+.PHONY: i18n-extract-check
+i18n-extract-check: node_modules ## Checks if en.json is in sync with code
+	@echo Checking i18n message sync
+
+	npm run i18n-extract:check
+
 .PHONY: dist
 dist: node_modules ## Builds all web app packages
 	@echo Packaging Mattermost Web App
@@ -85,8 +97,7 @@ endif
 clean: ## Clears cached; deletes node_modules and dist directories
 	@echo Cleaning Web App
 
-	npm run clean --workspaces --if-present
-	rm -rf node_modules
+	npm run clean
 
 .PHONY: package
 package: node_modules dist ## Generates ./mattermost-webapp.tar.gz for use by someone customizing the web app

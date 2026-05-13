@@ -18,4 +18,12 @@ export default class FindChannelsModal {
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
+
+    getResult(channelName: string) {
+        return this.container.getByTestId(channelName);
+    }
+
+    async selectChannel(channelName: string) {
+        await this.getResult(channelName).click();
+    }
 }

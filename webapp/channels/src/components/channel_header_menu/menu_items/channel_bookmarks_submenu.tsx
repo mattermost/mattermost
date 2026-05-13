@@ -33,17 +33,36 @@ const ChannelBookmarksSubmenu = (props: Props) => {
     const canAdd = useChannelBookmarkPermission(props.channel.id, 'add');
     const canUploadFiles = useCanUploadFiles();
 
-    useSelector((state: GlobalState) => {
+    const limitReached = useSelector((state: GlobalState) => {
         const bookmarks = getChannelBookmarks(state, props.channel.id);
-        return bookmarks && Object.keys(bookmarks).length >= MAX_BOOKMARKS_PER_CHANNEL;
+        return bookmarks != null && Object.keys(bookmarks).length >= MAX_BOOKMARKS_PER_CHANNEL;
     });
 
     if (!canAdd) {
         return null;
     }
+
+    const addItemLabels = (content: React.ReactNode): React.ReactElement => {
+        if (limitReached) {
+            return (
+                <>
+                    {content}
+                    <FormattedMessage
+                        id='channel_bookmarks.addBookmarkLimitReached'
+                        defaultMessage='Cannot add more than {limit} bookmarks'
+                        values={{limit: MAX_BOOKMARKS_PER_CHANNEL}}
+                    />
+                </>
+            );
+        }
+        return (<>{content}</>);
+    };
+
+    const channelId = props.channel.id;
+
     return (
         <Menu.SubMenu
-            id={`channel-menu-${props.channel.id}-bookmarks`}
+            id={`channel-menu-${channelId}-bookmarks`}
             leadingElement={<BookmarkOutlineIcon size={18}/>}
             labels={(
                 <FormattedMessage
@@ -54,31 +73,41 @@ const ChannelBookmarksSubmenu = (props: Props) => {
             trailingElements={(
                 <ChevronRightIcon size={16}/>
             )}
-            menuId={`channel-menu-${props.channel.id}-menu`}
+            menuId={`channel-menu-${channelId}-menu`}
             menuAriaLabel={formatMessage({id: 'channel_menu.bookmarks', defaultMessage: 'Bookmarks Bar'})}
         >
             <Menu.Item
-                id={`channel-menu-${props.channel.id}-bookmarks-link`}
+                id={`channel-menu-${channelId}-bookmarks-link`}
                 leadingElement={<LinkVariantIcon size={18}/>}
-                labels={(
+                aria-disabled={limitReached}
+                labels={addItemLabels(
                     <FormattedMessage
                         id='channel_menu.bookmarks.addLink'
                         defaultMessage='Add a link'
-                    />
+                    />,
                 )}
-                onClick={() => handleCreateLink()}
+                onClick={() => {
+                    if (!limitReached) {
+                        handleCreateLink();
+                    }
+                }}
             />
             {canUploadFiles && (
                 <Menu.Item
-                    id={`channel-menu-${props.channel.id}-bookmarks-file`}
+                    id={`channel-menu-${channelId}-bookmarks-file`}
                     leadingElement={<PaperclipIcon size={18}/>}
-                    labels={(
+                    aria-disabled={limitReached}
+                    labels={addItemLabels(
                         <FormattedMessage
                             id='channel_menu.bookmarks.addFile'
                             defaultMessage='Attach a file'
-                        />
+                        />,
                     )}
-                    onClick={() => handleCreateFile()}
+                    onClick={() => {
+                        if (!limitReached) {
+                            handleCreateFile();
+                        }
+                    }}
                 />
             )}
         </Menu.SubMenu>

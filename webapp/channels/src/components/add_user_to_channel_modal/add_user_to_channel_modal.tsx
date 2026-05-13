@@ -6,6 +6,7 @@ import type {ChangeEvent, FormEvent} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -17,6 +18,7 @@ import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import SearchChannelWithPermissionsProvider from 'components/suggestion/search_channel_with_permissions_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
+import type {SuggestionBoxElement} from 'components/suggestion/suggestion_box/suggestion_box';
 
 import {placeCaretAtEnd} from 'utils/utils';
 
@@ -123,13 +125,13 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
         }
 
         const textbox = this.channelSearchBox.getTextbox();
-        if (document.activeElement !== textbox) {
+        if (textbox && document.activeElement !== textbox) {
             textbox.focus();
             placeCaretAtEnd(textbox);
         }
     };
 
-    onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    onInputChange = (e: ChangeEvent<SuggestionBoxElement>) => {
         this.setState({text: e.target.value, selectedChannelId: null});
     };
 
@@ -270,7 +272,6 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                 providers={this.suggestionProviders}
                 listPosition='bottom'
                 completeOnTab={false}
-                delayInputUpdate={true}
                 openWhenEmpty={false}
             />
         );
@@ -320,20 +321,20 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                         </div>
                     </Modal.Body>
                     <Modal.Footer>
-                        <button
+                        <Button
                             type='button'
-                            className='btn btn-tertiary'
+                            emphasis='tertiary'
                             onClick={this.onHide}
                         >
                             <FormattedMessage
                                 id='add_user_to_channel_modal.cancel'
                                 defaultMessage='Cancel'
                             />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type='button'
                             id='add-user-to-channel-modal__add-button'
-                            className='btn btn-primary'
+                            emphasis='primary'
                             onClick={this.handleSubmit}
                             disabled={shouldDisableAddButton}
                         >
@@ -341,7 +342,7 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                                 id='add_user_to_channel_modal.add'
                                 defaultMessage='Add'
                             />
-                        </button>
+                        </Button>
                     </Modal.Footer>
                 </form>
             </Modal>

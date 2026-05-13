@@ -53,6 +53,7 @@ describe('LatestPostReader', () => {
 
     const baseProps = {
         postIds: [post.id],
+        autotranslated: false,
     };
 
     test('should render aria-label as a child in the given locale', () => {

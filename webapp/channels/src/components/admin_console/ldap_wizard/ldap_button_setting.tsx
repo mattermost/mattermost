@@ -15,7 +15,6 @@ import {descriptorOrStringToString, renderLabel, renderSettingHelpText} from '..
 type Props = {
     setting: LDAPDefinitionSettingButton;
     saveNeeded: boolean;
-    onChange(id: string, value: any): void;
     disabled: boolean;
     ldapSettingsState: LdapSettings;
     onFilterTestResults?: (results: TestLdapFiltersResponse) => void;
@@ -89,7 +88,6 @@ const LDAPButtonSetting = (props: Props) => {
             errorMessage={props.setting.error_message}
             successMessage={props.setting.success_message}
             flushLeft={true}
-            buttonType={'primary'}
         />
     );
 };

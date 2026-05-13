@@ -89,7 +89,7 @@ func (*EchoProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Command
 
 		time.Sleep(time.Duration(delay) * time.Second)
 
-		if _, err := a.CreatePostMissingChannel(rctx, post, true, true); err != nil {
+		if _, _, err := a.CreatePostMissingChannel(rctx, post, true, true); err != nil {
 			rctx.Logger().Error("Unable to create /echo post.", mlog.Err(err))
 		}
 	})

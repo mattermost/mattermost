@@ -243,6 +243,38 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
             );
         }
 
+        if (this.props.role.name === Constants.PERMISSIONS_SHARED_CHANNEL_MANAGER) {
+            return (
+                <>
+                    <p>
+                        <FormattedMessage
+                            id='admin.permissions.roles.system_shared_channel_manager.introduction'
+                            defaultMessage='The built-in Shared Channel Manager role can be used to delegate the ability to browse available connections and share or unshare channels with <a>remote servers</a> to users other than the System Admin.'
+                            values={{
+                                a: (chunks) => (
+                                    <ExternalLink
+                                        href='https://docs.mattermost.com/administration-guide/onboard/connected-workspaces.html'
+                                        location='adminConsoleSystemRoles'
+                                    >
+                                        {chunks}
+                                    </ExternalLink>
+                                ),
+                            }}
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='admin.permissions.roles.system_shared_channel_manager.permissions_info'
+                            defaultMessage='This role has the <b>manage_shared_channels</b> permission, which allows browsing available connections and sharing or unsharing channels with remote servers.'
+                            values={{
+                                b: (chunks) => <b>{chunks}</b>,
+                            }}
+                        />
+                    </p>
+                </>
+            );
+        }
+
         if (this.props.role.name === Constants.PERMISSIONS_SYSTEM_USER_MANAGER) {
             let permissionsToShow: Record<string, boolean> = {};
             Object.keys(permissionsMap).forEach((permission) => {

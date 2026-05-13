@@ -84,7 +84,7 @@ func (s *ScheduledPost) PreUpdate() {
 	s.Draft.PreCommit()
 }
 
-// ToPost converts a scheduled post toa  regular, mattermost post object.
+// ToPost converts a scheduled post to a regular, mattermost post object.
 func (s *ScheduledPost) ToPost() (*Post, error) {
 	post := &Post{
 		UserId:    s.UserId,
@@ -121,9 +121,9 @@ func (s *ScheduledPost) ToPost() (*Post, error) {
 		}
 
 		post.Metadata.Priority = &PostPriority{
-			Priority:                NewPointer(priority),
-			RequestedAck:            NewPointer(requestedAck),
-			PersistentNotifications: NewPointer(persistentNotifications),
+			Priority:                new(priority),
+			RequestedAck:            new(requestedAck),
+			PersistentNotifications: new(persistentNotifications),
 		}
 	}
 

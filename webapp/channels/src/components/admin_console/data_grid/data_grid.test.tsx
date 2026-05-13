@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import DataGrid from './data_grid';
 
@@ -24,26 +25,26 @@ describe('components/admin_console/data_grid/DataGrid', () => {
     };
 
     test('should match snapshot with no items found', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <DataGrid
                 {...baseProps}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot while loading', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <DataGrid
                 {...baseProps}
                 loading={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with content and custom styling on rows', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <DataGrid
                 {...baseProps}
                 rows={[
@@ -57,11 +58,11 @@ describe('components/admin_console/data_grid/DataGrid', () => {
                 ]}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with custom classes', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <DataGrid
                 {...baseProps}
                 rows={[
@@ -76,6 +77,6 @@ describe('components/admin_console/data_grid/DataGrid', () => {
                 className={'customTable'}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

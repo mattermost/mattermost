@@ -33,19 +33,19 @@ type FlagContentRequest struct {
 
 func (f *FlagContentRequest) IsValid(commentRequired bool, validReasons []string) *AppError {
 	if f.Reason == "" {
-		return NewAppError("FlagContentRequest.IsValid", "api.content_flagging.error.reason_required", nil, "", http.StatusBadRequest)
+		return NewAppError("FlagContentRequest.IsValid", "api.data_spillage.error.reason_required", nil, "", http.StatusBadRequest)
 	}
 
 	if !slices.Contains(validReasons, f.Reason) {
-		return NewAppError("FlagContentRequest.IsValid", "api.content_flagging.error.reason_invalid", nil, "", http.StatusBadRequest)
+		return NewAppError("FlagContentRequest.IsValid", "api.data_spillage.error.reason_invalid", nil, "", http.StatusBadRequest)
 	}
 
 	if commentRequired && f.Comment == "" {
-		return NewAppError("FlagContentRequest.IsValid", "api.content_flagging.error.comment_required", nil, "", http.StatusBadRequest)
+		return NewAppError("FlagContentRequest.IsValid", "api.data_spillage.error.comment_required", nil, "", http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(f.Comment) > commentMaxRunes {
-		return NewAppError("FlagContentRequest.IsValid", "api.content_flagging.error.comment_too_long", map[string]any{"MaxLength": commentMaxRunes}, "", http.StatusBadRequest)
+		return NewAppError("FlagContentRequest.IsValid", "api.data_spillage.error.comment_too_long", map[string]any{"MaxLength": commentMaxRunes}, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -57,11 +57,11 @@ type FlagContentActionRequest struct {
 
 func (f *FlagContentActionRequest) IsValid(commentRequired bool) *AppError {
 	if commentRequired && f.Comment == "" {
-		return NewAppError("FlagContentActionRequest.IsValid", "api.content_flagging.error.comment_required", nil, "", http.StatusBadRequest)
+		return NewAppError("FlagContentActionRequest.IsValid", "api.data_spillage.error.comment_required", nil, "", http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(f.Comment) > commentMaxRunes {
-		return NewAppError("FlagContentActionRequest.IsValid", "api.content_flagging.error.comment_too_long", map[string]any{"MaxLength": commentMaxRunes}, "", http.StatusBadRequest)
+		return NewAppError("FlagContentActionRequest.IsValid", "api.data_spillage.error.comment_too_long", map[string]any{"MaxLength": commentMaxRunes}, "", http.StatusBadRequest)
 	}
 
 	return nil

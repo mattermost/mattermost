@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {NavLink, useRouteMatch} from 'react-router-dom';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
@@ -18,7 +20,6 @@ import {getDrafts} from 'actions/views/drafts';
 import {makeGetDraftsCount} from 'selectors/drafts';
 
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
-import WithTooltip from 'components/with_tooltip';
 
 import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 
@@ -97,7 +98,7 @@ function DraftsLink() {
         return (
             <FormattedMessage
                 id='drafts.tooltipText'
-                defaultMessage=''
+                defaultMessage='{draftCount, plural, =0 {} =1 {1 Draft} other {{draftCount} Drafts}} <br></br> {scheduledPostCount, plural, =0 {} other {{scheduledPostCount} Scheduled}}'
                 values={{
                     draftCount,
                     scheduledPostCount: teamScheduledPostCount,

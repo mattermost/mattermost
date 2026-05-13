@@ -5,12 +5,11 @@ import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import Permissions from 'mattermost-redux/constants/permissions';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
-
-import * as Utils from 'utils/utils';
 
 import EmojiList from './emoji_list';
 
@@ -19,7 +18,6 @@ type Props = {
     teamDisplayName?: string;
     siteName?: string;
     scrollToTop(): void;
-    currentTheme: Theme;
     actions: {
         loadRolesIfNeeded(roles: Iterable<string>): void;
     };
@@ -33,7 +31,6 @@ export default function EmojiPage({
     teamName = '',
     siteName = '',
     scrollToTop,
-    currentTheme,
     actions,
 }: Props) {
     const intl = useIntl();
@@ -41,11 +38,6 @@ export default function EmojiPage({
     useEffect(() => {
         updateTitle();
         actions.loadRolesIfNeeded(ROLES);
-        Utils.resetTheme();
-
-        return () => {
-            Utils.applyTheme(currentTheme);
-        };
     }, []);
 
     useEffect(() => {
@@ -70,15 +62,15 @@ export default function EmojiPage({
                         className='add-link'
                         to={'/' + teamName + '/emoji/add'}
                     >
-                        <button
+                        <Button
                             type='button'
-                            className='btn btn-primary'
+                            emphasis='primary'
                         >
                             <FormattedMessage
                                 id='emoji_list.add'
                                 defaultMessage='Add Custom Emoji'
                             />
-                        </button>
+                        </Button>
                     </Link>
                 </AnyTeamPermissionGate>
             </div>

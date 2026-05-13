@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 
 import FormattingBar from './formatting_bar';
@@ -12,7 +11,7 @@ import * as Hooks from './hooks';
 
 jest.mock('./hooks');
 
-const {splitFormattingBarControls} = jest.requireActual('./hooks');
+const {LayoutModes, splitFormattingBarControls} = jest.requireActual('./hooks');
 
 describe('FormattingBar', () => {
     const baseProps = {
@@ -24,7 +23,7 @@ describe('FormattingBar', () => {
     };
 
     test('should render hidden formatting button when screen size is min', () => {
-        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({wideMode: 'min', ...splitFormattingBarControls('min')});
+        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Min, ...splitFormattingBarControls('min')});
 
         renderWithContext(
             <FormattingBar {...baseProps}/>,
@@ -34,7 +33,7 @@ describe('FormattingBar', () => {
     });
 
     test('should render hidden formatting button when screen size is narrow', () => {
-        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({wideMode: 'narrow', ...splitFormattingBarControls('narrow')});
+        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Narrow, ...splitFormattingBarControls('narrow')});
 
         renderWithContext(
             <FormattingBar {...baseProps}/>,
@@ -44,7 +43,7 @@ describe('FormattingBar', () => {
     });
 
     test('should render hidden formatting button when screen size is normal', () => {
-        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({wideMode: 'normal', ...splitFormattingBarControls('normal')});
+        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Normal, ...splitFormattingBarControls('normal')});
 
         renderWithContext(
             <FormattingBar {...baseProps}/>,
@@ -54,7 +53,7 @@ describe('FormattingBar', () => {
     });
 
     test('should not render hidden formatting button when screen size is wide', () => {
-        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({wideMode: 'wide', ...splitFormattingBarControls('wide')});
+        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Wide, ...splitFormattingBarControls('wide')});
 
         renderWithContext(
             <FormattingBar {...baseProps}/>,
@@ -64,7 +63,7 @@ describe('FormattingBar', () => {
     });
 
     test('MM-56705 should not submit form when clicking on hidden formatting button', async () => {
-        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({wideMode: 'narrow', ...splitFormattingBarControls('narrow')});
+        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Narrow, ...splitFormattingBarControls('narrow')});
 
         const onSubmit = jest.fn();
 
@@ -83,7 +82,7 @@ describe('FormattingBar', () => {
     });
 
     test('should disable tooltip when hidden controls are shown', async () => {
-        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({wideMode: 'narrow', ...splitFormattingBarControls('narrow')});
+        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Narrow, ...splitFormattingBarControls('narrow')});
 
         const {container} = renderWithContext(
             <FormattingBar {...baseProps}/>,
@@ -97,5 +96,15 @@ describe('FormattingBar', () => {
         // Find the WithTooltip component and verify it has disabled prop
         const tooltipWrapper = container.querySelector('.tooltipContainer');
         expect(tooltipWrapper).toBeNull(); // Tooltip should not be visible when controls are shown
+    });
+
+    test('MM-67352 should prevent formatting buttons from stealing editor focus on mouse down', () => {
+        jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Wide, ...splitFormattingBarControls('wide')});
+
+        renderWithContext(
+            <FormattingBar {...baseProps}/>,
+        );
+
+        expect(fireEvent.mouseDown(screen.getByLabelText('code'))).toBe(false);
     });
 });

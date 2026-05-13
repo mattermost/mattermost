@@ -9,6 +9,8 @@ import {FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {GetOptionValue, InputActionMeta, MultiValueRemoveProps, SelectInstance} from 'react-select';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import SaveButton from 'components/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import Avatar from 'components/widgets/users/avatar';
@@ -31,7 +33,6 @@ export type Value = {
 export type Props<T extends Value> = {
     ariaLabelRenderer: GetOptionValue<T>;
     backButtonClick?: () => void;
-    backButtonClass?: string;
     backButtonText?: string | MessageDescriptor;
     buttonSubmitLoadingText?: ReactNode | MessageDescriptor;
     buttonSubmitText?: ReactNode | MessageDescriptor;
@@ -404,29 +405,33 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             if (!this.props.loading) {
                 if (options.length > pageEnd) {
                     nextButton = (
-                        <button
-                            className='btn btn-sm btn-tertiary filter-control filter-control__next'
+                        <Button
+                            emphasis='tertiary'
+                            size='sm'
+                            className='filter-control filter-control__next'
                             onClick={this.nextPage}
                         >
                             <FormattedMessage
                                 id='filtered_user_list.next'
                                 defaultMessage='Next'
                             />
-                        </button>
+                        </Button>
                     );
                 }
 
                 if (this.state.page > 0) {
                     previousButton = (
-                        <button
-                            className='btn btn-sm btn-tertiary filter-control filter-control__prev'
+                        <Button
+                            emphasis='tertiary'
+                            size='sm'
+                            className='filter-control filter-control__prev'
                             onClick={this.prevPage}
                         >
                             <FormattedMessage
                                 id='filtered_user_list.prev'
                                 defaultMessage='Previous'
                             />
-                        </button>
+                        </Button>
                     );
                 }
             }
@@ -444,9 +449,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                         options={optionsToDisplay}
                         optionRenderer={this.props.optionRenderer}
                         ariaLabelRenderer={this.props.ariaLabelRenderer}
-                        page={this.state.page}
-                        perPage={this.props.perPage}
-                        onPageChange={this.props.handlePageChange}
                         onAdd={this.onAdd}
                         onSelect={this.onSelect}
                         loading={this.props.loading}
@@ -463,9 +465,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     options={optionsToDisplay}
                     optionRenderer={this.props.optionRenderer}
                     ariaLabelRenderer={this.props.ariaLabelRenderer}
-                    page={this.state.page}
-                    perPage={this.props.perPage}
-                    onPageChange={this.props.handlePageChange}
                     onAdd={this.onAdd}
                     onSelect={this.onSelect}
                     loading={this.props.loading}
@@ -568,7 +567,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                             </span>
                         </div>
                     )}
-                    {this.props.saveButtonPosition === 'top' &&
+                    {this.props.saveButtonPosition === 'top' && (previousButton || nextButton) &&
                         <div className='filter-controls'>
                             {previousButton}
                             {nextButton}
@@ -579,17 +578,17 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     <div className='multi-select__footer modal-footer'>
                         {
                             this.props.backButtonClick &&
-                            <button
+                            <Button
                                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                                     e.preventDefault();
                                     if (this.props.backButtonClick) {
                                         this.props.backButtonClick();
                                     }
                                 }}
-                                className={classNames('btn btn-tertiary', this.props.backButtonClass)}
+                                emphasis='tertiary'
                             >
                                 {backButtonText}
-                            </button>
+                            </Button>
                         }
                         <SaveButton
                             id='saveItems'

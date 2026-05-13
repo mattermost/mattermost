@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import FilePreviewModalMainNav from './file_preview_modal_main_nav';
 
@@ -20,7 +21,7 @@ describe('components/file_preview_modal/file_preview_modal_main_nav/FilePreviewM
             enablePublicLink: false,
         };
 
-        const wrapper = shallow(<FilePreviewModalMainNav {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FilePreviewModalMainNav {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 });

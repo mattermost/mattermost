@@ -10,12 +10,13 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
+import {Bot} from '@mattermost/types/bots';
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import {createBotPatch} from '../../../support/api/bots';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {createBotPatch} from '@/support/api/bots';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Bot tags', () => {
     let me: UserProfile;
@@ -29,7 +30,7 @@ describe('Bot tags', () => {
             channel = out.channel;
         });
 
-        let meId;
+        let meId: string;
 
         cy.getCurrentUserId().then((id) => {
             meId = id;
@@ -38,7 +39,7 @@ describe('Bot tags', () => {
         cy.makeClient().then(async (client) => {
             // # Setup state
             me = await client.getUser(meId);
-            const bot = await client.createBot(createBotPatch());
+            const bot = await client.createBot(createBotPatch() as Partial<Bot>);
             await client.addToTeam(team.id, bot.user_id);
             await client.addToChannel(bot.user_id, channel.id);
 
@@ -48,7 +49,7 @@ describe('Bot tags', () => {
             // # Post message as bot through api with auth token
             const props = {attachments: [{pretext: 'Some Pretext', text: 'Some Text'}]};
 
-            cy.postBotMessage({token, message, props, channelId: channel.id}).then(async ({id}) => {
+            cy.postBotMessage({token: token!, message, props, channelId: channel.id}).then(async ({id}) => {
                 postId = id;
                 await client.pinPost(postId);
 

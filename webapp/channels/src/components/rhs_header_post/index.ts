@@ -13,11 +13,6 @@ import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/sele
 
 import {
     setRhsExpanded,
-    showMentions,
-    showSearchResults,
-    showFlaggedPosts,
-    showPinnedPosts,
-    showChannelFiles,
     closeRightHandSide,
     toggleRhsExpanded,
     goBack,
@@ -72,11 +67,6 @@ function makeMapStateToProps() {
 
 const actions = {
     setRhsExpanded,
-    showSearchResults,
-    showMentions,
-    showFlaggedPosts,
-    showPinnedPosts,
-    showChannelFiles,
     closeRightHandSide,
     toggleRhsExpanded,
     setThreadFollow,

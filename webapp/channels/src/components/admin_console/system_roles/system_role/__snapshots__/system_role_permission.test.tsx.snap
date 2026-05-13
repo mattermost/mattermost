@@ -1,49 +1,57 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/system_role_permission should match snapshot 1`] = `
-<div
-  className="PermissionRow"
->
+<div>
   <div
-    className="PermissionSection"
-    data-testid="permission_section_environment"
-    key="environment"
+    class="PermissionRow"
   >
     <div
-      className="PermissionSectionText"
+      class="PermissionSection"
+      data-testid="permission_section_environment"
     >
       <div
-        className="PermissionSectionText_title"
+        class="PermissionSectionText"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Environment"
-          id="admin.permissions.sysconsole_section_environment.name"
-        />
+        <div
+          class="PermissionSectionText_title"
+        >
+          Environment
+        </div>
+        <div
+          class="PermissionSection_description"
+        >
+          Review server environment configuration such as URLs, database and performance.
+        </div>
       </div>
       <div
-        className="PermissionSection_description"
+        class="PermissionSectionDropdown"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Review server environment configuration such as URLs, database and performance."
-          id="admin.permissions.sysconsole_section_environment.description"
-        />
+        <div
+          class="MenuWrapper "
+          disabled=""
+        >
+          <button
+            aria-expanded="true"
+            class="PermissionSectionDropdownButton dropdown-toggle theme"
+            id="systemRolePermissionDropdownenvironment"
+            type="button"
+          >
+            <div
+              class="PermissionSectionDropdownButton_text"
+            >
+              Read only
+            </div>
+            <div
+              class="PermissionSectionDropdownButton_icon"
+            >
+              <i
+                class="fa fa-angle-down"
+                title="Dropdown Icon"
+              />
+            </div>
+          </button>
+        </div>
       </div>
-    </div>
-    <div
-      className="PermissionSectionDropdown"
-    >
-      <SystemRolePermissionDropdown
-        access="read"
-        isDisabled={true}
-        section={
-          Object {
-            "hasDescription": true,
-            "name": "environment",
-            "subsections": Array [],
-          }
-        }
-        updatePermissions={[MockFunction]}
-      />
     </div>
   </div>
 </div>

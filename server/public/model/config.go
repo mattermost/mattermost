@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/ldap"
 	"github.com/pkg/errors"
 
@@ -44,8 +45,9 @@ const (
 	MinioSecretKey = "miniosecretkey"
 	MinioBucket    = "mattermost-test"
 
-	PasswordMaximumLength = 72
-	PasswordMinimumLength = 5
+	PasswordMaximumLength     = 72
+	PasswordMinimumLength     = 5
+	PasswordFIPSMinimumLength = 14
 
 	ServiceGitlab = "gitlab"
 
@@ -204,6 +206,8 @@ const (
 	AnnouncementSettingsDefaultNoticesJsonURL               = "https://notices.mattermost.com/"
 	AnnouncementSettingsDefaultNoticesFetchFrequencySeconds = 3600
 
+	AutoTranslationDefaultWorkers = 6
+
 	TeamSettingsDefaultTeamText = "default"
 
 	ElasticsearchSettingsDefaultConnectionURL               = "http://localhost:9200"
@@ -236,11 +240,12 @@ const (
 
 	OutgoingIntegrationRequestsDefaultTimeout = 30
 
-	PluginSettingsDefaultDirectory         = "./plugins"
-	PluginSettingsDefaultClientDirectory   = "./client/plugins"
-	PluginSettingsDefaultEnableMarketplace = true
-	PluginSettingsDefaultMarketplaceURL    = "https://api.integrations.mattermost.com"
-	PluginSettingsOldMarketplaceURL        = "https://marketplace.integrations.mattermost.com"
+	PluginSettingsDefaultDirectory          = "./plugins"
+	PluginSettingsDefaultClientDirectory    = "./client/plugins"
+	PluginSettingsDefaultEnableMarketplace  = true
+	PluginSettingsDefaultMarketplaceURL     = "https://api.integrations.mattermost.com"
+	PluginSettingsOldMarketplaceURL         = "https://marketplace.integrations.mattermost.com"
+	PluginSettingsDefaultHookTimeoutSeconds = 30
 
 	ComplianceExportDirectoryFormat                = "compliance-export-2006-01-02-15h04m"
 	ComplianceExportPath                           = "export"
@@ -348,6 +353,7 @@ type ServiceSettings struct {
 	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
 	EnableDynamicClientRegistration     *bool    `access:"integrations_integration_management"`
+	DCRRedirectURIAllowlist             []string `access:"integrations_integration_management"`
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
@@ -416,24 +422,25 @@ type ServiceSettings struct {
 	EnableAPIUserDeletion                             *bool
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
-	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
-	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	EnableEmailInvitations                            *bool `access:"authentication_signup"`
-	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts"`
-	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
-	EnableSVGs                                        *bool `access:"site_posts"`
-	EnableLatex                                       *bool `access:"site_posts"`
-	EnableInlineLatex                                 *bool `access:"site_posts"`
-	PostPriority                                      *bool `access:"site_posts"`
-	AllowPersistentNotifications                      *bool `access:"site_posts"`
-	AllowPersistentNotificationsForGuests             *bool `access:"site_posts"`
-	PersistentNotificationIntervalMinutes             *int  `access:"site_posts"`
-	PersistentNotificationMaxCount                    *int  `access:"site_posts"`
-	PersistentNotificationMaxRecipients               *int  `access:"site_posts"`
-	EnableBurnOnRead                                  *bool `access:"site_posts"`
-	BurnOnReadDurationSeconds                         *int  `access:"site_posts"`
-	BurnOnReadMaximumTimeToLiveSeconds                *int  `access:"site_posts"`
-	BurnOnReadSchedulerFrequencySeconds               *int  `access:"site_posts,cloud_restrictable"`
+	MinimumDesktopAppVersion                          *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	ExperimentalEnableHardenedMode                    *bool   `access:"experimental_features"`
+	ExperimentalStrictCSRFEnforcement                 *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableEmailInvitations                            *bool   `access:"authentication_signup"`
+	DisableBotsWhenOwnerIsDeactivated                 *bool   `access:"integrations_bot_accounts"`
+	EnableBotAccountCreation                          *bool   `access:"integrations_bot_accounts"`
+	EnableSVGs                                        *bool   `access:"site_posts"`
+	EnableLatex                                       *bool   `access:"site_posts"`
+	EnableInlineLatex                                 *bool   `access:"site_posts"`
+	PostPriority                                      *bool   `access:"site_posts"`
+	AllowPersistentNotifications                      *bool   `access:"site_posts"`
+	AllowPersistentNotificationsForGuests             *bool   `access:"site_posts"`
+	PersistentNotificationIntervalMinutes             *int    `access:"site_posts"`
+	PersistentNotificationMaxCount                    *int    `access:"site_posts"`
+	PersistentNotificationMaxRecipients               *int    `access:"site_posts"`
+	EnableBurnOnRead                                  *bool   `access:"site_posts"`
+	BurnOnReadDurationSeconds                         *int    `access:"site_posts"`
+	BurnOnReadMaximumTimeToLiveSeconds                *int    `access:"site_posts"`
+	BurnOnReadSchedulerFrequencySeconds               *int    `access:"site_posts,cloud_restrictable"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
 	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
@@ -463,138 +470,142 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
 		// If the site URL is also not present then assume this is a clean install
 		if s.SiteURL == nil {
-			s.EnableEmailInvitations = NewPointer(false)
+			s.EnableEmailInvitations = new(false)
 		} else {
-			s.EnableEmailInvitations = NewPointer(true)
+			s.EnableEmailInvitations = new(true)
 		}
 	}
 
 	if s.SiteURL == nil {
 		if s.EnableDeveloper != nil && *s.EnableDeveloper {
-			s.SiteURL = NewPointer(ServiceSettingsDefaultSiteURL)
+			s.SiteURL = new(ServiceSettingsDefaultSiteURL)
 		} else {
-			s.SiteURL = NewPointer("")
+			s.SiteURL = new("")
 		}
 	}
 
 	if s.WebsocketURL == nil {
-		s.WebsocketURL = NewPointer("")
+		s.WebsocketURL = new("")
 	}
 
 	if s.LicenseFileLocation == nil {
-		s.LicenseFileLocation = NewPointer("")
+		s.LicenseFileLocation = new("")
 	}
 
 	if s.ListenAddress == nil {
-		s.ListenAddress = NewPointer(ServiceSettingsDefaultListenAndAddress)
+		s.ListenAddress = new(ServiceSettingsDefaultListenAndAddress)
 	}
 
 	if s.EnableLinkPreviews == nil {
-		s.EnableLinkPreviews = NewPointer(true)
+		s.EnableLinkPreviews = new(true)
 	}
 
 	if s.EnablePermalinkPreviews == nil {
-		s.EnablePermalinkPreviews = NewPointer(true)
+		s.EnablePermalinkPreviews = new(true)
 	}
 
 	if s.RestrictLinkPreviews == nil {
-		s.RestrictLinkPreviews = NewPointer("")
+		s.RestrictLinkPreviews = new("")
 	}
 
 	if s.EnableTesting == nil {
-		s.EnableTesting = NewPointer(false)
+		s.EnableTesting = new(false)
 	}
 
 	if s.EnableDeveloper == nil {
-		s.EnableDeveloper = NewPointer(false)
+		s.EnableDeveloper = new(false)
 	}
 
 	if s.DeveloperFlags == nil {
-		s.DeveloperFlags = NewPointer("")
+		s.DeveloperFlags = new("")
 	}
 
 	if s.EnableClientPerformanceDebugging == nil {
-		s.EnableClientPerformanceDebugging = NewPointer(false)
+		s.EnableClientPerformanceDebugging = new(false)
 	}
 
 	if s.EnableSecurityFixAlert == nil {
-		s.EnableSecurityFixAlert = NewPointer(true)
+		s.EnableSecurityFixAlert = new(true)
 	}
 
 	if s.EnableInsecureOutgoingConnections == nil {
-		s.EnableInsecureOutgoingConnections = NewPointer(false)
+		s.EnableInsecureOutgoingConnections = new(false)
 	}
 
 	if s.AllowedUntrustedInternalConnections == nil {
-		s.AllowedUntrustedInternalConnections = NewPointer("")
+		s.AllowedUntrustedInternalConnections = new("")
 	}
 
 	if s.EnableMultifactorAuthentication == nil {
-		s.EnableMultifactorAuthentication = NewPointer(false)
+		s.EnableMultifactorAuthentication = new(false)
 	}
 
 	if s.EnforceMultifactorAuthentication == nil {
-		s.EnforceMultifactorAuthentication = NewPointer(false)
+		s.EnforceMultifactorAuthentication = new(false)
 	}
 
 	if s.EnableUserAccessTokens == nil {
-		s.EnableUserAccessTokens = NewPointer(false)
+		s.EnableUserAccessTokens = new(false)
 	}
 
 	if s.GoroutineHealthThreshold == nil {
-		s.GoroutineHealthThreshold = NewPointer(-1)
+		s.GoroutineHealthThreshold = new(-1)
 	}
 
 	if s.GoogleDeveloperKey == nil {
-		s.GoogleDeveloperKey = NewPointer("")
+		s.GoogleDeveloperKey = new("")
 	}
 
 	if s.EnableOAuthServiceProvider == nil {
-		s.EnableOAuthServiceProvider = NewPointer(true)
+		s.EnableOAuthServiceProvider = new(true)
 	}
 
 	if s.EnableDynamicClientRegistration == nil {
-		s.EnableDynamicClientRegistration = NewPointer(false)
+		s.EnableDynamicClientRegistration = new(false)
+	}
+
+	if s.DCRRedirectURIAllowlist == nil {
+		s.DCRRedirectURIAllowlist = []string{}
 	}
 
 	if s.EnableIncomingWebhooks == nil {
-		s.EnableIncomingWebhooks = NewPointer(true)
+		s.EnableIncomingWebhooks = new(true)
 	}
 
 	if s.EnableOutgoingWebhooks == nil {
-		s.EnableOutgoingWebhooks = NewPointer(true)
+		s.EnableOutgoingWebhooks = new(true)
 	}
 
 	if s.EnableOutgoingOAuthConnections == nil {
-		s.EnableOutgoingOAuthConnections = NewPointer(false)
+		s.EnableOutgoingOAuthConnections = new(false)
 	}
 
 	if s.OutgoingIntegrationRequestsTimeout == nil {
-		s.OutgoingIntegrationRequestsTimeout = NewPointer(int64(OutgoingIntegrationRequestsDefaultTimeout))
+		s.OutgoingIntegrationRequestsTimeout = new(int64(OutgoingIntegrationRequestsDefaultTimeout))
 	}
 
 	if s.ConnectionSecurity == nil {
-		s.ConnectionSecurity = NewPointer("")
+		s.ConnectionSecurity = new("")
 	}
 
 	if s.TLSKeyFile == nil {
-		s.TLSKeyFile = NewPointer(ServiceSettingsDefaultTLSKeyFile)
+		s.TLSKeyFile = new(ServiceSettingsDefaultTLSKeyFile)
 	}
 
 	if s.TLSCertFile == nil {
-		s.TLSCertFile = NewPointer(ServiceSettingsDefaultTLSCertFile)
+		s.TLSCertFile = new(ServiceSettingsDefaultTLSCertFile)
 	}
 
 	if s.TLSMinVer == nil {
-		s.TLSMinVer = NewPointer("1.2")
+		s.TLSMinVer = new("1.2")
 	}
 
 	if s.TLSStrictTransport == nil {
-		s.TLSStrictTransport = NewPointer(false)
+		s.TLSStrictTransport = new(false)
 	}
 
 	if s.TLSStrictTransportMaxAge == nil {
-		s.TLSStrictTransportMaxAge = NewPointer(int64(63072000))
+		s.TLSStrictTransportMaxAge = new(int64(63072000))
 	}
 
 	if s.TLSOverwriteCiphers == nil {
@@ -602,31 +613,31 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.UseLetsEncrypt == nil {
-		s.UseLetsEncrypt = NewPointer(false)
+		s.UseLetsEncrypt = new(false)
 	}
 
 	if s.LetsEncryptCertificateCacheFile == nil {
-		s.LetsEncryptCertificateCacheFile = NewPointer("./config/letsencrypt.cache")
+		s.LetsEncryptCertificateCacheFile = new("./config/letsencrypt.cache")
 	}
 
 	if s.ReadTimeout == nil {
-		s.ReadTimeout = NewPointer(ServiceSettingsDefaultReadTimeout)
+		s.ReadTimeout = new(ServiceSettingsDefaultReadTimeout)
 	}
 
 	if s.WriteTimeout == nil {
-		s.WriteTimeout = NewPointer(ServiceSettingsDefaultWriteTimeout)
+		s.WriteTimeout = new(ServiceSettingsDefaultWriteTimeout)
 	}
 
 	if s.IdleTimeout == nil {
-		s.IdleTimeout = NewPointer(ServiceSettingsDefaultIdleTimeout)
+		s.IdleTimeout = new(ServiceSettingsDefaultIdleTimeout)
 	}
 
 	if s.MaximumLoginAttempts == nil {
-		s.MaximumLoginAttempts = NewPointer(ServiceSettingsDefaultMaxLoginAttempts)
+		s.MaximumLoginAttempts = new(ServiceSettingsDefaultMaxLoginAttempts)
 	}
 
 	if s.Forward80To443 == nil {
-		s.Forward80To443 = NewPointer(false)
+		s.Forward80To443 = new(false)
 	}
 
 	if s.TrustedProxyIPHeader == nil {
@@ -634,64 +645,64 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.TimeBetweenUserTypingUpdatesMilliseconds == nil {
-		s.TimeBetweenUserTypingUpdatesMilliseconds = NewPointer(int64(5000))
+		s.TimeBetweenUserTypingUpdatesMilliseconds = new(int64(5000))
 	}
 
 	if s.EnableCrossTeamSearch == nil {
-		s.EnableCrossTeamSearch = NewPointer(true)
+		s.EnableCrossTeamSearch = new(true)
 	}
 
 	if s.EnablePostSearch == nil {
-		s.EnablePostSearch = NewPointer(true)
+		s.EnablePostSearch = new(true)
 	}
 
 	if s.EnableFileSearch == nil {
-		s.EnableFileSearch = NewPointer(true)
+		s.EnableFileSearch = new(true)
 	}
 
 	if s.MinimumHashtagLength == nil {
-		s.MinimumHashtagLength = NewPointer(3)
+		s.MinimumHashtagLength = new(3)
 	}
 
 	if s.EnableUserTypingMessages == nil {
-		s.EnableUserTypingMessages = NewPointer(true)
+		s.EnableUserTypingMessages = new(true)
 	}
 
 	if s.EnableChannelViewedMessages == nil {
-		s.EnableChannelViewedMessages = NewPointer(true)
+		s.EnableChannelViewedMessages = new(true)
 	}
 
 	if s.EnableUserStatuses == nil {
-		s.EnableUserStatuses = NewPointer(true)
+		s.EnableUserStatuses = new(true)
 	}
 
 	if s.ClusterLogTimeoutMilliseconds == nil {
-		s.ClusterLogTimeoutMilliseconds = NewPointer(2000)
+		s.ClusterLogTimeoutMilliseconds = new(2000)
 	}
 
 	if s.EnableTutorial == nil {
-		s.EnableTutorial = NewPointer(true)
+		s.EnableTutorial = new(true)
 	}
 
 	if s.EnableOnboardingFlow == nil {
-		s.EnableOnboardingFlow = NewPointer(true)
+		s.EnableOnboardingFlow = new(true)
 	}
 
 	// Must be manually enabled for existing installations.
 	if s.ExtendSessionLengthWithActivity == nil {
-		s.ExtendSessionLengthWithActivity = NewPointer(!isUpdate)
+		s.ExtendSessionLengthWithActivity = new(!isUpdate)
 	}
 
 	// Must be manually enabled for existing installations.
 	if s.TerminateSessionsOnPasswordChange == nil {
-		s.TerminateSessionsOnPasswordChange = NewPointer(!isUpdate)
+		s.TerminateSessionsOnPasswordChange = new(!isUpdate)
 	}
 
 	if s.SessionLengthWebInDays == nil {
 		if isUpdate {
-			s.SessionLengthWebInDays = NewPointer(180)
+			s.SessionLengthWebInDays = new(180)
 		} else {
-			s.SessionLengthWebInDays = NewPointer(30)
+			s.SessionLengthWebInDays = new(30)
 		}
 	}
 
@@ -706,14 +717,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		} else {
 			webTTLDays = *s.SessionLengthWebInDays
 		}
-		s.SessionLengthWebInHours = NewPointer(webTTLDays * 24)
+		s.SessionLengthWebInHours = new(webTTLDays * 24)
 	}
 
 	if s.SessionLengthMobileInDays == nil {
 		if isUpdate {
-			s.SessionLengthMobileInDays = NewPointer(180)
+			s.SessionLengthMobileInDays = new(180)
 		} else {
-			s.SessionLengthMobileInDays = NewPointer(30)
+			s.SessionLengthMobileInDays = new(30)
 		}
 	}
 
@@ -728,11 +739,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		} else {
 			mobileTTLDays = *s.SessionLengthMobileInDays
 		}
-		s.SessionLengthMobileInHours = NewPointer(mobileTTLDays * 24)
+		s.SessionLengthMobileInHours = new(mobileTTLDays * 24)
 	}
 
 	if s.SessionLengthSSOInDays == nil {
-		s.SessionLengthSSOInDays = NewPointer(30)
+		s.SessionLengthSSOInDays = new(30)
 	}
 
 	if s.SessionLengthSSOInHours == nil {
@@ -742,277 +753,281 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		} else {
 			ssoTTLDays = *s.SessionLengthSSOInDays
 		}
-		s.SessionLengthSSOInHours = NewPointer(ssoTTLDays * 24)
+		s.SessionLengthSSOInHours = new(ssoTTLDays * 24)
 	}
 
 	if s.SessionCacheInMinutes == nil {
-		s.SessionCacheInMinutes = NewPointer(10)
+		s.SessionCacheInMinutes = new(10)
 	}
 
 	if s.SessionIdleTimeoutInMinutes == nil {
-		s.SessionIdleTimeoutInMinutes = NewPointer(43200)
+		s.SessionIdleTimeoutInMinutes = new(43200)
 	}
 
 	if s.EnableCommands == nil {
-		s.EnableCommands = NewPointer(true)
+		s.EnableCommands = new(true)
 	}
 
 	if s.EnablePostUsernameOverride == nil {
-		s.EnablePostUsernameOverride = NewPointer(false)
+		s.EnablePostUsernameOverride = new(false)
 	}
 
 	if s.EnablePostIconOverride == nil {
-		s.EnablePostIconOverride = NewPointer(false)
+		s.EnablePostIconOverride = new(false)
 	}
 
 	if s.WebsocketPort == nil {
-		s.WebsocketPort = NewPointer(80)
+		s.WebsocketPort = new(80)
 	}
 
 	if s.WebsocketSecurePort == nil {
-		s.WebsocketSecurePort = NewPointer(443)
+		s.WebsocketSecurePort = new(443)
 	}
 
 	if s.AllowCorsFrom == nil {
-		s.AllowCorsFrom = NewPointer(ServiceSettingsDefaultAllowCorsFrom)
+		s.AllowCorsFrom = new(ServiceSettingsDefaultAllowCorsFrom)
 	}
 
 	if s.CorsExposedHeaders == nil {
-		s.CorsExposedHeaders = NewPointer("")
+		s.CorsExposedHeaders = new("")
 	}
 
 	if s.CorsAllowCredentials == nil {
-		s.CorsAllowCredentials = NewPointer(false)
+		s.CorsAllowCredentials = new(false)
 	}
 
 	if s.CorsDebug == nil {
-		s.CorsDebug = NewPointer(false)
+		s.CorsDebug = new(false)
 	}
 
 	if s.AllowCookiesForSubdomains == nil {
-		s.AllowCookiesForSubdomains = NewPointer(false)
+		s.AllowCookiesForSubdomains = new(false)
 	}
 
 	if s.WebserverMode == nil {
-		s.WebserverMode = NewPointer("gzip")
+		s.WebserverMode = new("gzip")
 	} else if *s.WebserverMode == "regular" {
 		*s.WebserverMode = "gzip"
 	}
 
 	if s.EnableCustomEmoji == nil {
-		s.EnableCustomEmoji = NewPointer(true)
+		s.EnableCustomEmoji = new(true)
 	}
 
 	if s.EnableEmojiPicker == nil {
-		s.EnableEmojiPicker = NewPointer(true)
+		s.EnableEmojiPicker = new(true)
 	}
 
 	if s.EnableGifPicker == nil {
-		s.EnableGifPicker = NewPointer(true)
+		s.EnableGifPicker = new(true)
 	}
 
 	if s.GiphySdkKey == nil || *s.GiphySdkKey == "" {
-		s.GiphySdkKey = NewPointer("")
+		s.GiphySdkKey = new("")
 	}
 
 	if s.ExperimentalEnableAuthenticationTransfer == nil {
-		s.ExperimentalEnableAuthenticationTransfer = NewPointer(true)
+		s.ExperimentalEnableAuthenticationTransfer = new(true)
 	}
 
 	if s.PostEditTimeLimit == nil {
-		s.PostEditTimeLimit = NewPointer(-1)
+		s.PostEditTimeLimit = new(-1)
 	}
 
 	if s.ExperimentalEnableDefaultChannelLeaveJoinMessages == nil {
-		s.ExperimentalEnableDefaultChannelLeaveJoinMessages = NewPointer(true)
+		s.ExperimentalEnableDefaultChannelLeaveJoinMessages = new(true)
 	}
 
 	if s.ExperimentalGroupUnreadChannels == nil {
-		s.ExperimentalGroupUnreadChannels = NewPointer(GroupUnreadChannelsDisabled)
+		s.ExperimentalGroupUnreadChannels = new(GroupUnreadChannelsDisabled)
 	} else if *s.ExperimentalGroupUnreadChannels == "0" {
-		s.ExperimentalGroupUnreadChannels = NewPointer(GroupUnreadChannelsDisabled)
+		s.ExperimentalGroupUnreadChannels = new(GroupUnreadChannelsDisabled)
 	} else if *s.ExperimentalGroupUnreadChannels == "1" {
-		s.ExperimentalGroupUnreadChannels = NewPointer(GroupUnreadChannelsDefaultOn)
+		s.ExperimentalGroupUnreadChannels = new(GroupUnreadChannelsDefaultOn)
 	}
 
 	if s.EnableAPITeamDeletion == nil {
-		s.EnableAPITeamDeletion = NewPointer(false)
+		s.EnableAPITeamDeletion = new(false)
 	}
 
 	if s.EnableAPITriggerAdminNotifications == nil {
-		s.EnableAPITriggerAdminNotifications = NewPointer(false)
+		s.EnableAPITriggerAdminNotifications = new(false)
 	}
 
 	if s.EnableAPIUserDeletion == nil {
-		s.EnableAPIUserDeletion = NewPointer(false)
+		s.EnableAPIUserDeletion = new(false)
 	}
 
 	if s.EnableAPIPostDeletion == nil {
-		s.EnableAPIPostDeletion = NewPointer(false)
+		s.EnableAPIPostDeletion = new(false)
 	}
 
 	if s.EnableAPIChannelDeletion == nil {
-		s.EnableAPIChannelDeletion = NewPointer(false)
+		s.EnableAPIChannelDeletion = new(false)
 	}
 
 	if s.ExperimentalEnableHardenedMode == nil {
-		s.ExperimentalEnableHardenedMode = NewPointer(false)
+		s.ExperimentalEnableHardenedMode = new(false)
 	}
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
-		s.ExperimentalStrictCSRFEnforcement = NewPointer(false)
+		s.ExperimentalStrictCSRFEnforcement = new(false)
 	}
 
 	if s.DisableBotsWhenOwnerIsDeactivated == nil {
-		s.DisableBotsWhenOwnerIsDeactivated = NewPointer(true)
+		s.DisableBotsWhenOwnerIsDeactivated = new(true)
 	}
 
 	if s.EnableBotAccountCreation == nil {
-		s.EnableBotAccountCreation = NewPointer(false)
+		s.EnableBotAccountCreation = new(false)
 	}
 
 	if s.EnableDesktopLandingPage == nil {
-		s.EnableDesktopLandingPage = NewPointer(true)
+		s.EnableDesktopLandingPage = new(true)
+	}
+
+	if s.MinimumDesktopAppVersion == nil {
+		s.MinimumDesktopAppVersion = new("")
 	}
 
 	if s.EnableSVGs == nil {
 		if isUpdate {
-			s.EnableSVGs = NewPointer(true)
+			s.EnableSVGs = new(true)
 		} else {
-			s.EnableSVGs = NewPointer(false)
+			s.EnableSVGs = new(false)
 		}
 	}
 
 	if s.EnableLatex == nil {
 		if isUpdate {
-			s.EnableLatex = NewPointer(true)
+			s.EnableLatex = new(true)
 		} else {
-			s.EnableLatex = NewPointer(false)
+			s.EnableLatex = new(false)
 		}
 	}
 
 	if s.EnableInlineLatex == nil {
-		s.EnableInlineLatex = NewPointer(true)
+		s.EnableInlineLatex = new(true)
 	}
 
 	if s.EnableLocalMode == nil {
-		s.EnableLocalMode = NewPointer(false)
+		s.EnableLocalMode = new(false)
 	}
 
 	if s.LocalModeSocketLocation == nil {
-		s.LocalModeSocketLocation = NewPointer(LocalModeSocketPath)
+		s.LocalModeSocketLocation = new(LocalModeSocketPath)
 	}
 
 	if s.EnableAWSMetering == nil {
-		s.EnableAWSMetering = NewPointer(false)
+		s.EnableAWSMetering = new(false)
 	}
 
 	if s.AWSMeteringTimeoutSeconds == nil {
-		s.AWSMeteringTimeoutSeconds = NewPointer(30)
+		s.AWSMeteringTimeoutSeconds = new(30)
 	}
 
 	if s.SplitKey == nil {
-		s.SplitKey = NewPointer("")
+		s.SplitKey = new("")
 	}
 
 	if s.FeatureFlagSyncIntervalSeconds == nil {
-		s.FeatureFlagSyncIntervalSeconds = NewPointer(30)
+		s.FeatureFlagSyncIntervalSeconds = new(30)
 	}
 
 	if s.DebugSplit == nil {
-		s.DebugSplit = NewPointer(false)
+		s.DebugSplit = new(false)
 	}
 
 	if s.ThreadAutoFollow == nil {
-		s.ThreadAutoFollow = NewPointer(true)
+		s.ThreadAutoFollow = new(true)
 	}
 
 	if s.CollapsedThreads == nil {
-		s.CollapsedThreads = NewPointer(CollapsedThreadsAlwaysOn)
+		s.CollapsedThreads = new(CollapsedThreadsAlwaysOn)
 	}
 
 	if s.ManagedResourcePaths == nil {
-		s.ManagedResourcePaths = NewPointer("")
+		s.ManagedResourcePaths = new("")
 	}
 
 	if s.EnableCustomGroups == nil {
-		s.EnableCustomGroups = NewPointer(true)
+		s.EnableCustomGroups = new(true)
 	}
 
 	if s.PostPriority == nil {
-		s.PostPriority = NewPointer(true)
+		s.PostPriority = new(true)
 	}
 
 	if s.AllowPersistentNotifications == nil {
-		s.AllowPersistentNotifications = NewPointer(true)
+		s.AllowPersistentNotifications = new(true)
 	}
 
 	if s.AllowPersistentNotificationsForGuests == nil {
-		s.AllowPersistentNotificationsForGuests = NewPointer(false)
+		s.AllowPersistentNotificationsForGuests = new(false)
 	}
 
 	if s.PersistentNotificationIntervalMinutes == nil {
-		s.PersistentNotificationIntervalMinutes = NewPointer(5)
+		s.PersistentNotificationIntervalMinutes = new(5)
 	}
 
 	if s.PersistentNotificationMaxCount == nil {
-		s.PersistentNotificationMaxCount = NewPointer(6)
+		s.PersistentNotificationMaxCount = new(6)
 	}
 
 	if s.PersistentNotificationMaxRecipients == nil {
-		s.PersistentNotificationMaxRecipients = NewPointer(5)
+		s.PersistentNotificationMaxRecipients = new(5)
 	}
 
 	if s.AllowSyncedDrafts == nil {
-		s.AllowSyncedDrafts = NewPointer(true)
+		s.AllowSyncedDrafts = new(true)
 	}
 
 	if s.UniqueEmojiReactionLimitPerPost == nil {
-		s.UniqueEmojiReactionLimitPerPost = NewPointer(ServiceSettingsDefaultUniqueReactionsPerPost)
+		s.UniqueEmojiReactionLimitPerPost = new(ServiceSettingsDefaultUniqueReactionsPerPost)
 	}
 
 	if *s.UniqueEmojiReactionLimitPerPost > ServiceSettingsMaxUniqueReactionsPerPost {
-		s.UniqueEmojiReactionLimitPerPost = NewPointer(ServiceSettingsMaxUniqueReactionsPerPost)
+		s.UniqueEmojiReactionLimitPerPost = new(ServiceSettingsMaxUniqueReactionsPerPost)
 	}
 
 	if s.RefreshPostStatsRunTime == nil {
-		s.RefreshPostStatsRunTime = NewPointer("00:00")
+		s.RefreshPostStatsRunTime = new("00:00")
 	}
 
 	if s.EnableBurnOnRead == nil {
-		s.EnableBurnOnRead = NewPointer(true)
+		s.EnableBurnOnRead = new(true)
 	}
 
 	if s.BurnOnReadDurationSeconds == nil {
-		s.BurnOnReadDurationSeconds = NewPointer(600) // 10 minutes in seconds
+		s.BurnOnReadDurationSeconds = new(600) // 10 minutes in seconds
 	}
 
 	if s.BurnOnReadMaximumTimeToLiveSeconds == nil {
-		s.BurnOnReadMaximumTimeToLiveSeconds = NewPointer(604800) // 7 days in seconds
+		s.BurnOnReadMaximumTimeToLiveSeconds = new(604800) // 7 days in seconds
 	}
 
 	if s.BurnOnReadSchedulerFrequencySeconds == nil {
-		s.BurnOnReadSchedulerFrequencySeconds = NewPointer(600) // 10 minutes in seconds
+		s.BurnOnReadSchedulerFrequencySeconds = new(600) // 10 minutes in seconds
 	}
 
 	if s.MaximumPayloadSizeBytes == nil {
-		s.MaximumPayloadSizeBytes = NewPointer(int64(300000))
+		s.MaximumPayloadSizeBytes = new(int64(300000))
 	}
 
 	if s.MaximumURLLength == nil {
-		s.MaximumURLLength = NewPointer(ServiceSettingsDefaultMaxURLLength)
+		s.MaximumURLLength = new(ServiceSettingsDefaultMaxURLLength)
 	}
 
 	if s.ScheduledPosts == nil {
-		s.ScheduledPosts = NewPointer(true)
+		s.ScheduledPosts = new(true)
 	}
 
 	if s.EnableWebHubChannelIteration == nil {
-		s.EnableWebHubChannelIteration = NewPointer(false)
+		s.EnableWebHubChannelIteration = new(false)
 	}
 
 	if s.FrameAncestors == nil {
-		s.FrameAncestors = NewPointer("")
+		s.FrameAncestors = new("")
 	}
 
 	if !isSafeLink(s.DeleteAccountLink) {
@@ -1020,7 +1035,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.DeleteAccountLink == nil {
-		s.DeleteAccountLink = NewPointer("")
+		s.DeleteAccountLink = new("")
 	}
 }
 
@@ -1035,27 +1050,27 @@ type CacheSettings struct {
 
 func (s *CacheSettings) SetDefaults() {
 	if s.CacheType == nil {
-		s.CacheType = NewPointer(CacheTypeLRU)
+		s.CacheType = new(CacheTypeLRU)
 	}
 
 	if s.RedisAddress == nil {
-		s.RedisAddress = NewPointer("")
+		s.RedisAddress = new("")
 	}
 
 	if s.RedisPassword == nil {
-		s.RedisPassword = NewPointer("")
+		s.RedisPassword = new("")
 	}
 
 	if s.RedisDB == nil {
-		s.RedisDB = NewPointer(-1)
+		s.RedisDB = new(-1)
 	}
 
 	if s.RedisCachePrefix == nil {
-		s.RedisCachePrefix = NewPointer("")
+		s.RedisCachePrefix = new("")
 	}
 
 	if s.DisableClientCache == nil {
-		s.DisableClientCache = NewPointer(false)
+		s.DisableClientCache = new(false)
 	}
 }
 
@@ -1093,51 +1108,51 @@ type ClusterSettings struct {
 
 func (s *ClusterSettings) SetDefaults() {
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	if s.ClusterName == nil {
-		s.ClusterName = NewPointer("")
+		s.ClusterName = new("")
 	}
 
 	if s.OverrideHostname == nil {
-		s.OverrideHostname = NewPointer("")
+		s.OverrideHostname = new("")
 	}
 
 	if s.NetworkInterface == nil {
-		s.NetworkInterface = NewPointer("")
+		s.NetworkInterface = new("")
 	}
 
 	if s.BindAddress == nil {
-		s.BindAddress = NewPointer("")
+		s.BindAddress = new("")
 	}
 
 	if s.AdvertiseAddress == nil {
-		s.AdvertiseAddress = NewPointer("")
+		s.AdvertiseAddress = new("")
 	}
 
 	if s.UseIPAddress == nil {
-		s.UseIPAddress = NewPointer(true)
+		s.UseIPAddress = new(true)
 	}
 
 	if s.EnableGossipEncryption == nil {
 		if s.EnableExperimentalGossipEncryption != nil {
-			s.EnableGossipEncryption = NewPointer(*s.EnableExperimentalGossipEncryption)
+			s.EnableGossipEncryption = new(*s.EnableExperimentalGossipEncryption)
 		} else {
-			s.EnableGossipEncryption = NewPointer(true)
+			s.EnableGossipEncryption = new(true)
 		}
 	}
 
 	if s.EnableGossipCompression == nil {
-		s.EnableGossipCompression = NewPointer(true)
+		s.EnableGossipCompression = new(true)
 	}
 
 	if s.ReadOnlyConfig == nil {
-		s.ReadOnlyConfig = NewPointer(true)
+		s.ReadOnlyConfig = new(true)
 	}
 
 	if s.GossipPort == nil {
-		s.GossipPort = NewPointer(8074)
+		s.GossipPort = new(8074)
 	}
 }
 
@@ -1152,23 +1167,23 @@ type MetricsSettings struct {
 
 func (s *MetricsSettings) SetDefaults() {
 	if s.ListenAddress == nil {
-		s.ListenAddress = NewPointer(":8067")
+		s.ListenAddress = new(":8067")
 	}
 
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	if s.BlockProfileRate == nil {
-		s.BlockProfileRate = NewPointer(0)
+		s.BlockProfileRate = new(0)
 	}
 
 	if s.EnableClientMetrics == nil {
-		s.EnableClientMetrics = NewPointer(true)
+		s.EnableClientMetrics = new(true)
 	}
 
 	if s.EnableNotificationMetrics == nil {
-		s.EnableNotificationMetrics = NewPointer(true)
+		s.EnableNotificationMetrics = new(true)
 	}
 
 	if s.ClientSideUserIds == nil {
@@ -1202,56 +1217,56 @@ type ExperimentalSettings struct {
 	DisableWakeUpReconnectHandler                         *bool  `access:"experimental_features"`
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64 `access:"experimental_features"`
 	YoutubeReferrerPolicy                                 *bool  `access:"experimental_features"`
-	ExperimentalChannelCategorySorting                    *bool  `access:"experimental_features"`
+	EnableWatermark                                       *bool  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
 	if s.ClientSideCertEnable == nil {
-		s.ClientSideCertEnable = NewPointer(false)
+		s.ClientSideCertEnable = new(false)
 	}
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
-		s.LinkMetadataTimeoutMilliseconds = NewPointer(int64(ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds))
+		s.LinkMetadataTimeoutMilliseconds = new(int64(ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds))
 	}
 
 	if s.RestrictSystemAdmin == nil {
-		s.RestrictSystemAdmin = NewPointer(false)
+		s.RestrictSystemAdmin = new(false)
 	}
 
 	if s.EnableSharedChannels == nil {
-		s.EnableSharedChannels = NewPointer(false)
+		s.EnableSharedChannels = new(false)
 	}
 
 	if s.EnableRemoteClusterService == nil {
-		s.EnableRemoteClusterService = NewPointer(false)
+		s.EnableRemoteClusterService = new(false)
 	}
 
 	if s.DisableAppBar == nil {
-		s.DisableAppBar = NewPointer(false)
+		s.DisableAppBar = new(false)
 	}
 
 	if s.DisableRefetchingOnBrowserFocus == nil {
-		s.DisableRefetchingOnBrowserFocus = NewPointer(false)
+		s.DisableRefetchingOnBrowserFocus = new(false)
 	}
 
 	if s.DelayChannelAutocomplete == nil {
-		s.DelayChannelAutocomplete = NewPointer(false)
+		s.DelayChannelAutocomplete = new(false)
 	}
 
 	if s.DisableWakeUpReconnectHandler == nil {
-		s.DisableWakeUpReconnectHandler = NewPointer(false)
+		s.DisableWakeUpReconnectHandler = new(false)
 	}
 
 	if s.UsersStatusAndProfileFetchingPollIntervalMilliseconds == nil {
-		s.UsersStatusAndProfileFetchingPollIntervalMilliseconds = NewPointer(int64(ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds))
+		s.UsersStatusAndProfileFetchingPollIntervalMilliseconds = new(int64(ExperimentalSettingsDefaultUsersStatusAndProfileFetchingPollIntervalMilliseconds))
 	}
 
 	if s.YoutubeReferrerPolicy == nil {
-		s.YoutubeReferrerPolicy = NewPointer(false)
+		s.YoutubeReferrerPolicy = new(false)
 	}
 
-	if s.ExperimentalChannelCategorySorting == nil {
-		s.ExperimentalChannelCategorySorting = NewPointer(false)
+	if s.EnableWatermark == nil {
+		s.EnableWatermark = new(false)
 	}
 }
 
@@ -1261,112 +1276,123 @@ type AnalyticsSettings struct {
 
 func (s *AnalyticsSettings) SetDefaults() {
 	if s.MaxUsersForStatistics == nil {
-		s.MaxUsersForStatistics = NewPointer(AnalyticsSettingsDefaultMaxUsersForStatistics)
+		s.MaxUsersForStatistics = new(AnalyticsSettingsDefaultMaxUsersForStatistics)
 	}
 }
 
 type SSOSettings struct {
-	Enable            *bool   `access:"authentication_openid"`
-	Secret            *string `access:"authentication_openid"` // telemetry: none
-	Id                *string `access:"authentication_openid"` // telemetry: none
-	Scope             *string `access:"authentication_openid"` // telemetry: none
-	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
-	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
-	UserAPIEndpoint   *string `access:"authentication_openid"` // telemetry: none
-	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
-	ButtonText        *string `access:"authentication_openid"` // telemetry: none
-	ButtonColor       *string `access:"authentication_openid"` // telemetry: none
+	Enable               *bool   `access:"authentication_openid"`
+	Secret               *string `access:"authentication_openid"` // telemetry: none
+	Id                   *string `access:"authentication_openid"` // telemetry: none
+	Scope                *string `access:"authentication_openid"` // telemetry: none
+	AuthEndpoint         *string `access:"authentication_openid"` // telemetry: none
+	TokenEndpoint        *string `access:"authentication_openid"` // telemetry: none
+	UserAPIEndpoint      *string `access:"authentication_openid"` // telemetry: none
+	DiscoveryEndpoint    *string `access:"authentication_openid"` // telemetry: none
+	ButtonText           *string `access:"authentication_openid"` // telemetry: none
+	ButtonColor          *string `access:"authentication_openid"` // telemetry: none
+	UsePreferredUsername *bool   `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEndpoint, buttonColor string) {
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	if s.Secret == nil {
-		s.Secret = NewPointer("")
+		s.Secret = new("")
 	}
 
 	if s.Id == nil {
-		s.Id = NewPointer("")
+		s.Id = new("")
 	}
 
 	if s.Scope == nil {
-		s.Scope = NewPointer(scope)
+		s.Scope = new(scope)
 	}
 
 	if s.DiscoveryEndpoint == nil {
-		s.DiscoveryEndpoint = NewPointer("")
+		s.DiscoveryEndpoint = new("")
 	}
 
 	if s.AuthEndpoint == nil {
-		s.AuthEndpoint = NewPointer(authEndpoint)
+		s.AuthEndpoint = new(authEndpoint)
 	}
 
 	if s.TokenEndpoint == nil {
-		s.TokenEndpoint = NewPointer(tokenEndpoint)
+		s.TokenEndpoint = new(tokenEndpoint)
 	}
 
 	if s.UserAPIEndpoint == nil {
-		s.UserAPIEndpoint = NewPointer(userAPIEndpoint)
+		s.UserAPIEndpoint = new(userAPIEndpoint)
 	}
 
 	if s.ButtonText == nil {
-		s.ButtonText = NewPointer("")
+		s.ButtonText = new("")
 	}
 
 	if s.ButtonColor == nil {
-		s.ButtonColor = NewPointer(buttonColor)
+		s.ButtonColor = new(buttonColor)
+	}
+
+	// Note: Preferred username is not supported for Google.
+	if s.UsePreferredUsername == nil {
+		s.UsePreferredUsername = new(false)
 	}
 }
 
 type Office365Settings struct {
-	Enable            *bool   `access:"authentication_openid"`
-	Secret            *string `access:"authentication_openid"` // telemetry: none
-	Id                *string `access:"authentication_openid"` // telemetry: none
-	Scope             *string `access:"authentication_openid"`
-	AuthEndpoint      *string `access:"authentication_openid"` // telemetry: none
-	TokenEndpoint     *string `access:"authentication_openid"` // telemetry: none
-	UserAPIEndpoint   *string `access:"authentication_openid"` // telemetry: none
-	DiscoveryEndpoint *string `access:"authentication_openid"` // telemetry: none
-	DirectoryId       *string `access:"authentication_openid"` // telemetry: none
+	Enable               *bool   `access:"authentication_openid"`
+	Secret               *string `access:"authentication_openid"` // telemetry: none
+	Id                   *string `access:"authentication_openid"` // telemetry: none
+	Scope                *string `access:"authentication_openid"`
+	AuthEndpoint         *string `access:"authentication_openid"` // telemetry: none
+	TokenEndpoint        *string `access:"authentication_openid"` // telemetry: none
+	UserAPIEndpoint      *string `access:"authentication_openid"` // telemetry: none
+	DiscoveryEndpoint    *string `access:"authentication_openid"` // telemetry: none
+	DirectoryId          *string `access:"authentication_openid"` // telemetry: none
+	UsePreferredUsername *bool   `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *Office365Settings) setDefaults() {
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	if s.Id == nil {
-		s.Id = NewPointer("")
+		s.Id = new("")
 	}
 
 	if s.Secret == nil {
-		s.Secret = NewPointer("")
+		s.Secret = new("")
 	}
 
 	if s.Scope == nil {
-		s.Scope = NewPointer(Office365SettingsDefaultScope)
+		s.Scope = new(Office365SettingsDefaultScope)
 	}
 
 	if s.DiscoveryEndpoint == nil {
-		s.DiscoveryEndpoint = NewPointer("")
+		s.DiscoveryEndpoint = new("")
 	}
 
 	if s.AuthEndpoint == nil {
-		s.AuthEndpoint = NewPointer(Office365SettingsDefaultAuthEndpoint)
+		s.AuthEndpoint = new(Office365SettingsDefaultAuthEndpoint)
 	}
 
 	if s.TokenEndpoint == nil {
-		s.TokenEndpoint = NewPointer(Office365SettingsDefaultTokenEndpoint)
+		s.TokenEndpoint = new(Office365SettingsDefaultTokenEndpoint)
 	}
 
 	if s.UserAPIEndpoint == nil {
-		s.UserAPIEndpoint = NewPointer(Office365SettingsDefaultUserAPIEndpoint)
+		s.UserAPIEndpoint = new(Office365SettingsDefaultUserAPIEndpoint)
 	}
 
 	if s.DirectoryId == nil {
-		s.DirectoryId = NewPointer("")
+		s.DirectoryId = new("")
+	}
+
+	if s.UsePreferredUsername == nil {
+		s.UsePreferredUsername = new(false)
 	}
 }
 
@@ -1380,32 +1406,33 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
 	ssoSettings.UserAPIEndpoint = s.UserAPIEndpoint
+	ssoSettings.UsePreferredUsername = s.UsePreferredUsername
 	return &ssoSettings
 }
 
 type IntuneSettings struct {
-	Enable      *bool   `access:"mobile_intune"`
-	TenantId    *string `access:"mobile_intune"` // telemetry: none
-	ClientId    *string `access:"mobile_intune"` // telemetry: none
-	AuthService *string `access:"mobile_intune"` // "office365" or "saml"
+	Enable      *bool   `access:"environment_mobile_security"`
+	TenantId    *string `access:"environment_mobile_security"` // telemetry: none
+	ClientId    *string `access:"environment_mobile_security"` // telemetry: none
+	AuthService *string `access:"environment_mobile_security"` // "office365" or "saml"
 }
 
 func (s *IntuneSettings) SetDefaults() {
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	if s.TenantId == nil {
-		s.TenantId = NewPointer("")
+		s.TenantId = new("")
 	}
 
 	if s.ClientId == nil {
-		s.ClientId = NewPointer("")
+		s.ClientId = new("")
 	}
 
 	// AuthService has no default - must be explicitly set
 	if s.AuthService == nil {
-		s.AuthService = NewPointer("")
+		s.AuthService = new("")
 	}
 }
 
@@ -1464,6 +1491,7 @@ type SqlSettings struct {
 	Trace                             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
 	AtRestEncryptKey                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
 	QueryTimeout                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	AnalyticsQueryTimeout             *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 	DisableDatabaseSearch             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
 	MigrationsStatementTimeoutSeconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 	ReplicaLagSettings                []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1472,11 +1500,11 @@ type SqlSettings struct {
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	if s.DriverName == nil {
-		s.DriverName = NewPointer(DatabaseDriverPostgres)
+		s.DriverName = new(DatabaseDriverPostgres)
 	}
 
 	if s.DataSource == nil {
-		s.DataSource = NewPointer(SqlSettingsDefaultDataSource)
+		s.DataSource = new(SqlSettingsDefaultDataSource)
 	}
 
 	if s.DataSourceReplicas == nil {
@@ -1490,43 +1518,47 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	if isUpdate {
 		// When updating an existing configuration, ensure an encryption key has been specified.
 		if s.AtRestEncryptKey == nil || *s.AtRestEncryptKey == "" {
-			s.AtRestEncryptKey = NewPointer(NewRandomString(32))
+			s.AtRestEncryptKey = new(NewRandomString(32))
 		}
 	} else {
 		// When generating a blank configuration, leave this key empty to be generated on server start.
-		s.AtRestEncryptKey = NewPointer("")
+		s.AtRestEncryptKey = new("")
 	}
 
 	if s.MaxIdleConns == nil {
-		s.MaxIdleConns = NewPointer(50)
+		s.MaxIdleConns = new(50)
 	}
 
 	if s.MaxOpenConns == nil {
-		s.MaxOpenConns = NewPointer(100)
+		s.MaxOpenConns = new(100)
 	}
 
 	if s.ConnMaxLifetimeMilliseconds == nil {
-		s.ConnMaxLifetimeMilliseconds = NewPointer(3600000)
+		s.ConnMaxLifetimeMilliseconds = new(3600000)
 	}
 
 	if s.ConnMaxIdleTimeMilliseconds == nil {
-		s.ConnMaxIdleTimeMilliseconds = NewPointer(300000)
+		s.ConnMaxIdleTimeMilliseconds = new(300000)
 	}
 
 	if s.Trace == nil {
-		s.Trace = NewPointer(false)
+		s.Trace = new(false)
 	}
 
 	if s.QueryTimeout == nil {
-		s.QueryTimeout = NewPointer(30)
+		s.QueryTimeout = new(30)
+	}
+
+	if s.AnalyticsQueryTimeout == nil {
+		s.AnalyticsQueryTimeout = new(300)
 	}
 
 	if s.DisableDatabaseSearch == nil {
-		s.DisableDatabaseSearch = NewPointer(false)
+		s.DisableDatabaseSearch = new(false)
 	}
 
 	if s.MigrationsStatementTimeoutSeconds == nil {
-		s.MigrationsStatementTimeoutSeconds = NewPointer(100000)
+		s.MigrationsStatementTimeoutSeconds = new(100000)
 	}
 
 	if s.ReplicaLagSettings == nil {
@@ -1534,7 +1566,7 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ReplicaMonitorIntervalSeconds == nil {
-		s.ReplicaMonitorIntervalSeconds = NewPointer(5)
+		s.ReplicaMonitorIntervalSeconds = new(5)
 	}
 }
 
@@ -1577,47 +1609,47 @@ func (s *LogSettings) isValid() *AppError {
 
 func (s *LogSettings) SetDefaults() {
 	if s.EnableConsole == nil {
-		s.EnableConsole = NewPointer(true)
+		s.EnableConsole = new(true)
 	}
 
 	if s.ConsoleLevel == nil {
-		s.ConsoleLevel = NewPointer("DEBUG")
+		s.ConsoleLevel = new("DEBUG")
 	}
 
 	if s.EnableColor == nil {
-		s.EnableColor = NewPointer(false)
+		s.EnableColor = new(false)
 	}
 
 	if s.EnableFile == nil {
-		s.EnableFile = NewPointer(true)
+		s.EnableFile = new(true)
 	}
 
 	if s.FileLevel == nil {
-		s.FileLevel = NewPointer("INFO")
+		s.FileLevel = new("INFO")
 	}
 
 	if s.FileLocation == nil {
-		s.FileLocation = NewPointer("")
+		s.FileLocation = new("")
 	}
 
 	if s.EnableWebhookDebugging == nil {
-		s.EnableWebhookDebugging = NewPointer(true)
+		s.EnableWebhookDebugging = new(true)
 	}
 
 	if s.EnableDiagnostics == nil {
-		s.EnableDiagnostics = NewPointer(true)
+		s.EnableDiagnostics = new(true)
 	}
 
 	if s.EnableSentry == nil {
-		s.EnableSentry = NewPointer(*s.EnableDiagnostics)
+		s.EnableSentry = new(*s.EnableDiagnostics)
 	}
 
 	if s.ConsoleJson == nil {
-		s.ConsoleJson = NewPointer(true)
+		s.ConsoleJson = new(true)
 	}
 
 	if s.FileJson == nil {
-		s.FileJson = NewPointer(true)
+		s.FileJson = new(true)
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
@@ -1625,7 +1657,7 @@ func (s *LogSettings) SetDefaults() {
 	}
 
 	if s.MaxFieldSize == nil {
-		s.MaxFieldSize = NewPointer(2048)
+		s.MaxFieldSize = new(2048)
 	}
 }
 
@@ -1641,11 +1673,6 @@ func (s *LogSettings) GetAdvancedLoggingConfig() []byte {
 type ExperimentalAuditSettings struct {
 	FileEnabled         *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileName            *string         `access:"experimental_features,write_restrictable,cloud_restrictable"` // telemetry: none
-	FileMaxSizeMB       *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxAgeDays      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxBackups      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileCompress        *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	AdvancedLoggingJSON json.RawMessage `access:"experimental_features"`
 	Certificate         *string         `access:"experimental_features"` // telemetry: none
 }
@@ -1658,22 +1685,6 @@ func (s *ExperimentalAuditSettings) isValid() *AppError {
 
 		if strings.HasSuffix(*s.FileName, `\`) {
 			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_name_is_directory", nil, "", http.StatusBadRequest)
-		}
-
-		if *s.FileMaxSizeMB <= 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_size_invalid", nil, "", http.StatusBadRequest)
-		}
-
-		if *s.FileMaxAgeDays < 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_age_invalid", nil, "", http.StatusBadRequest)
-		}
-
-		if *s.FileMaxBackups < 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid", nil, "", http.StatusBadRequest)
-		}
-
-		if *s.FileMaxQueueSize <= 0 {
-			return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid", nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -1693,31 +1704,11 @@ func (s *ExperimentalAuditSettings) isValid() *AppError {
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
 	if s.FileEnabled == nil {
-		s.FileEnabled = NewPointer(false)
+		s.FileEnabled = new(false)
 	}
 
 	if s.FileName == nil {
-		s.FileName = NewPointer("")
-	}
-
-	if s.FileMaxSizeMB == nil {
-		s.FileMaxSizeMB = NewPointer(100)
-	}
-
-	if s.FileMaxAgeDays == nil {
-		s.FileMaxAgeDays = NewPointer(0) // no limit on age
-	}
-
-	if s.FileMaxBackups == nil { // no limit on number of backups
-		s.FileMaxBackups = NewPointer(0)
-	}
-
-	if s.FileCompress == nil {
-		s.FileCompress = NewPointer(false)
-	}
-
-	if s.FileMaxQueueSize == nil {
-		s.FileMaxQueueSize = NewPointer(1000)
+		s.FileName = new("")
 	}
 
 	if utils.IsEmptyJSON(s.AdvancedLoggingJSON) {
@@ -1725,7 +1716,7 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 	}
 
 	if s.Certificate == nil {
-		s.Certificate = NewPointer("")
+		s.Certificate = new("")
 	}
 }
 
@@ -1749,27 +1740,31 @@ type PasswordSettings struct {
 
 func (s *PasswordSettings) SetDefaults() {
 	if s.MinimumLength == nil {
-		s.MinimumLength = NewPointer(8)
+		if FIPSEnabled {
+			s.MinimumLength = new(PasswordFIPSMinimumLength)
+		} else {
+			s.MinimumLength = new(8)
+		}
 	}
 
 	if s.Lowercase == nil {
-		s.Lowercase = NewPointer(false)
+		s.Lowercase = new(false)
 	}
 
 	if s.Number == nil {
-		s.Number = NewPointer(false)
+		s.Number = new(false)
 	}
 
 	if s.Uppercase == nil {
-		s.Uppercase = NewPointer(false)
+		s.Uppercase = new(false)
 	}
 
 	if s.Symbol == nil {
-		s.Symbol = NewPointer(false)
+		s.Symbol = new(false)
 	}
 
 	if s.EnableForgotLink == nil {
-		s.EnableForgotLink = NewPointer(true)
+		s.EnableForgotLink = new(true)
 	}
 }
 
@@ -1822,91 +1817,91 @@ type FileSettings struct {
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
 	if s.EnableFileAttachments == nil {
-		s.EnableFileAttachments = NewPointer(true)
+		s.EnableFileAttachments = new(true)
 	}
 
 	if s.EnableMobileUpload == nil {
-		s.EnableMobileUpload = NewPointer(true)
+		s.EnableMobileUpload = new(true)
 	}
 
 	if s.EnableMobileDownload == nil {
-		s.EnableMobileDownload = NewPointer(true)
+		s.EnableMobileDownload = new(true)
 	}
 
 	if s.MaxFileSize == nil {
-		s.MaxFileSize = NewPointer(int64(100 * 1024 * 1024)) // 100MB (IEC)
+		s.MaxFileSize = new(int64(100 * 1024 * 1024)) // 100MB (IEC)
 	}
 
 	if s.MaxImageResolution == nil {
-		s.MaxImageResolution = NewPointer(int64(7680 * 4320)) // 8K, ~33MPX
+		s.MaxImageResolution = new(int64(7680 * 4320)) // 8K, ~33MPX
 	}
 
 	if s.MaxImageDecoderConcurrency == nil {
-		s.MaxImageDecoderConcurrency = NewPointer(int64(-1)) // Default to NumCPU
+		s.MaxImageDecoderConcurrency = new(int64(-1)) // Default to NumCPU
 	}
 
 	if s.DriverName == nil {
-		s.DriverName = NewPointer(ImageDriverLocal)
+		s.DriverName = new(ImageDriverLocal)
 	}
 
 	if s.Directory == nil || *s.Directory == "" {
-		s.Directory = NewPointer(FileSettingsDefaultDirectory)
+		s.Directory = new(FileSettingsDefaultDirectory)
 	}
 
 	if s.EnablePublicLink == nil {
-		s.EnablePublicLink = NewPointer(false)
+		s.EnablePublicLink = new(false)
 	}
 
 	if s.ExtractContent == nil {
-		s.ExtractContent = NewPointer(true)
+		s.ExtractContent = new(true)
 	}
 
 	if s.ArchiveRecursion == nil {
-		s.ArchiveRecursion = NewPointer(false)
+		s.ArchiveRecursion = new(false)
 	}
 
 	if isUpdate {
 		// When updating an existing configuration, ensure link salt has been specified.
 		if s.PublicLinkSalt == nil || *s.PublicLinkSalt == "" {
-			s.PublicLinkSalt = NewPointer(NewRandomString(32))
+			s.PublicLinkSalt = new(NewRandomString(32))
 		}
 	} else {
 		// When generating a blank configuration, leave link salt empty to be generated on server start.
-		s.PublicLinkSalt = NewPointer("")
+		s.PublicLinkSalt = new("")
 	}
 
 	if s.InitialFont == nil {
 		// Defaults to "nunito-bold.ttf"
-		s.InitialFont = NewPointer("nunito-bold.ttf")
+		s.InitialFont = new("nunito-bold.ttf")
 	}
 
 	if s.AmazonS3AccessKeyId == nil {
-		s.AmazonS3AccessKeyId = NewPointer("")
+		s.AmazonS3AccessKeyId = new("")
 	}
 
 	if s.AmazonS3SecretAccessKey == nil {
-		s.AmazonS3SecretAccessKey = NewPointer("")
+		s.AmazonS3SecretAccessKey = new("")
 	}
 
 	if s.AmazonS3Bucket == nil {
-		s.AmazonS3Bucket = NewPointer("")
+		s.AmazonS3Bucket = new("")
 	}
 
 	if s.AmazonS3PathPrefix == nil {
-		s.AmazonS3PathPrefix = NewPointer("")
+		s.AmazonS3PathPrefix = new("")
 	}
 
 	if s.AmazonS3Region == nil {
-		s.AmazonS3Region = NewPointer("")
+		s.AmazonS3Region = new("")
 	}
 
 	if s.AmazonS3Endpoint == nil || *s.AmazonS3Endpoint == "" {
 		// Defaults to "s3.amazonaws.com"
-		s.AmazonS3Endpoint = NewPointer("s3.amazonaws.com")
+		s.AmazonS3Endpoint = new("s3.amazonaws.com")
 	}
 
 	if s.AmazonS3SSL == nil {
-		s.AmazonS3SSL = NewPointer(true) // Secure by default.
+		s.AmazonS3SSL = new(true) // Secure by default.
 	}
 
 	if s.AmazonS3SignV2 == nil {
@@ -1915,64 +1910,64 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.AmazonS3SSE == nil {
-		s.AmazonS3SSE = NewPointer(false) // Not Encrypted by default.
+		s.AmazonS3SSE = new(false) // Not Encrypted by default.
 	}
 
 	if s.AmazonS3Trace == nil {
-		s.AmazonS3Trace = NewPointer(false)
+		s.AmazonS3Trace = new(false)
 	}
 
 	if s.AmazonS3RequestTimeoutMilliseconds == nil {
-		s.AmazonS3RequestTimeoutMilliseconds = NewPointer(int64(30000))
+		s.AmazonS3RequestTimeoutMilliseconds = new(int64(30000))
 	}
 
 	if s.AmazonS3UploadPartSizeBytes == nil {
-		s.AmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3UploadPartSizeBytes))
+		s.AmazonS3UploadPartSizeBytes = new(int64(FileSettingsDefaultS3UploadPartSizeBytes))
 	}
 
 	if s.AmazonS3StorageClass == nil {
-		s.AmazonS3StorageClass = NewPointer("")
+		s.AmazonS3StorageClass = new("")
 	}
 
 	if s.DedicatedExportStore == nil {
-		s.DedicatedExportStore = NewPointer(false)
+		s.DedicatedExportStore = new(false)
 	}
 
 	if s.ExportDriverName == nil {
-		s.ExportDriverName = NewPointer(ImageDriverLocal)
+		s.ExportDriverName = new(ImageDriverLocal)
 	}
 
 	if s.ExportDirectory == nil || *s.ExportDirectory == "" {
-		s.ExportDirectory = NewPointer(FileSettingsDefaultDirectory)
+		s.ExportDirectory = new(FileSettingsDefaultDirectory)
 	}
 
 	if s.ExportAmazonS3AccessKeyId == nil {
-		s.ExportAmazonS3AccessKeyId = NewPointer("")
+		s.ExportAmazonS3AccessKeyId = new("")
 	}
 
 	if s.ExportAmazonS3SecretAccessKey == nil {
-		s.ExportAmazonS3SecretAccessKey = NewPointer("")
+		s.ExportAmazonS3SecretAccessKey = new("")
 	}
 
 	if s.ExportAmazonS3Bucket == nil {
-		s.ExportAmazonS3Bucket = NewPointer("")
+		s.ExportAmazonS3Bucket = new("")
 	}
 
 	if s.ExportAmazonS3PathPrefix == nil {
-		s.ExportAmazonS3PathPrefix = NewPointer("")
+		s.ExportAmazonS3PathPrefix = new("")
 	}
 
 	if s.ExportAmazonS3Region == nil {
-		s.ExportAmazonS3Region = NewPointer("")
+		s.ExportAmazonS3Region = new("")
 	}
 
 	if s.ExportAmazonS3Endpoint == nil || *s.ExportAmazonS3Endpoint == "" {
 		// Defaults to "s3.amazonaws.com"
-		s.ExportAmazonS3Endpoint = NewPointer("s3.amazonaws.com")
+		s.ExportAmazonS3Endpoint = new("s3.amazonaws.com")
 	}
 
 	if s.ExportAmazonS3SSL == nil {
-		s.ExportAmazonS3SSL = NewPointer(true) // Secure by default.
+		s.ExportAmazonS3SSL = new(true) // Secure by default.
 	}
 
 	if s.ExportAmazonS3SignV2 == nil {
@@ -1981,27 +1976,27 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ExportAmazonS3SSE == nil {
-		s.ExportAmazonS3SSE = NewPointer(false) // Not Encrypted by default.
+		s.ExportAmazonS3SSE = new(false) // Not Encrypted by default.
 	}
 
 	if s.ExportAmazonS3Trace == nil {
-		s.ExportAmazonS3Trace = NewPointer(false)
+		s.ExportAmazonS3Trace = new(false)
 	}
 
 	if s.ExportAmazonS3RequestTimeoutMilliseconds == nil {
-		s.ExportAmazonS3RequestTimeoutMilliseconds = NewPointer(int64(30000))
+		s.ExportAmazonS3RequestTimeoutMilliseconds = new(int64(30000))
 	}
 
 	if s.ExportAmazonS3PresignExpiresSeconds == nil {
-		s.ExportAmazonS3PresignExpiresSeconds = NewPointer(int64(21600)) // 6h
+		s.ExportAmazonS3PresignExpiresSeconds = new(int64(21600)) // 6h
 	}
 
 	if s.ExportAmazonS3UploadPartSizeBytes == nil {
-		s.ExportAmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3ExportUploadPartSizeBytes))
+		s.ExportAmazonS3UploadPartSizeBytes = new(int64(FileSettingsDefaultS3ExportUploadPartSizeBytes))
 	}
 
 	if s.ExportAmazonS3StorageClass == nil {
-		s.ExportAmazonS3StorageClass = NewPointer("")
+		s.ExportAmazonS3StorageClass = new("")
 	}
 }
 
@@ -2040,118 +2035,118 @@ type EmailSettings struct {
 
 func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	if s.EnableSignUpWithEmail == nil {
-		s.EnableSignUpWithEmail = NewPointer(true)
+		s.EnableSignUpWithEmail = new(true)
 	}
 
 	if s.EnableSignInWithEmail == nil {
-		s.EnableSignInWithEmail = NewPointer(*s.EnableSignUpWithEmail)
+		s.EnableSignInWithEmail = new(*s.EnableSignUpWithEmail)
 	}
 
 	if s.EnableSignInWithUsername == nil {
-		s.EnableSignInWithUsername = NewPointer(true)
+		s.EnableSignInWithUsername = new(true)
 	}
 
 	if s.SendEmailNotifications == nil {
-		s.SendEmailNotifications = NewPointer(true)
+		s.SendEmailNotifications = new(true)
 	}
 
 	if s.UseChannelInEmailNotifications == nil {
-		s.UseChannelInEmailNotifications = NewPointer(false)
+		s.UseChannelInEmailNotifications = new(false)
 	}
 
 	if s.RequireEmailVerification == nil {
-		s.RequireEmailVerification = NewPointer(false)
+		s.RequireEmailVerification = new(false)
 	}
 
 	if s.FeedbackName == nil {
-		s.FeedbackName = NewPointer("")
+		s.FeedbackName = new("")
 	}
 
 	if s.FeedbackEmail == nil {
-		s.FeedbackEmail = NewPointer("test@example.com")
+		s.FeedbackEmail = new("test@example.com")
 	}
 
 	if s.ReplyToAddress == nil {
-		s.ReplyToAddress = NewPointer("test@example.com")
+		s.ReplyToAddress = new("test@example.com")
 	}
 
 	if s.FeedbackOrganization == nil {
-		s.FeedbackOrganization = NewPointer(EmailSettingsDefaultFeedbackOrganization)
+		s.FeedbackOrganization = new(EmailSettingsDefaultFeedbackOrganization)
 	}
 
 	if s.EnableSMTPAuth == nil {
 		if s.ConnectionSecurity == nil || *s.ConnectionSecurity == ConnSecurityNone {
-			s.EnableSMTPAuth = NewPointer(false)
+			s.EnableSMTPAuth = new(false)
 		} else {
-			s.EnableSMTPAuth = NewPointer(true)
+			s.EnableSMTPAuth = new(true)
 		}
 	}
 
 	if s.SMTPUsername == nil {
-		s.SMTPUsername = NewPointer("")
+		s.SMTPUsername = new("")
 	}
 
 	if s.SMTPPassword == nil {
-		s.SMTPPassword = NewPointer("")
+		s.SMTPPassword = new("")
 	}
 
 	if s.SMTPServer == nil || *s.SMTPServer == "" {
-		s.SMTPServer = NewPointer(EmailSMTPDefaultServer)
+		s.SMTPServer = new(EmailSMTPDefaultServer)
 	}
 
 	if s.SMTPPort == nil || *s.SMTPPort == "" {
-		s.SMTPPort = NewPointer(EmailSMTPDefaultPort)
+		s.SMTPPort = new(EmailSMTPDefaultPort)
 	}
 
 	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
-		s.SMTPServerTimeout = NewPointer(10)
+		s.SMTPServerTimeout = new(10)
 	}
 
 	if s.ConnectionSecurity == nil || *s.ConnectionSecurity == ConnSecurityPlain {
-		s.ConnectionSecurity = NewPointer(ConnSecurityNone)
+		s.ConnectionSecurity = new(ConnSecurityNone)
 	}
 
 	if s.SendPushNotifications == nil {
-		s.SendPushNotifications = NewPointer(!isUpdate)
+		s.SendPushNotifications = new(!isUpdate)
 	}
 
 	if s.PushNotificationServer == nil {
 		if isUpdate {
-			s.PushNotificationServer = NewPointer("")
+			s.PushNotificationServer = new("")
 		} else {
-			s.PushNotificationServer = NewPointer(GenericNotificationServer)
+			s.PushNotificationServer = new(GenericNotificationServer)
 		}
 	}
 
 	if s.PushNotificationContents == nil {
-		s.PushNotificationContents = NewPointer(FullNotification)
+		s.PushNotificationContents = new(FullNotification)
 	}
 
 	if s.PushNotificationBuffer == nil {
-		s.PushNotificationBuffer = NewPointer(1000)
+		s.PushNotificationBuffer = new(1000)
 	}
 
 	if s.EnableEmailBatching == nil {
-		s.EnableEmailBatching = NewPointer(false)
+		s.EnableEmailBatching = new(false)
 	}
 
 	if s.EmailBatchingBufferSize == nil {
-		s.EmailBatchingBufferSize = NewPointer(EmailBatchingBufferSize)
+		s.EmailBatchingBufferSize = new(EmailBatchingBufferSize)
 	}
 
 	if s.EmailBatchingInterval == nil {
-		s.EmailBatchingInterval = NewPointer(EmailBatchingInterval)
+		s.EmailBatchingInterval = new(EmailBatchingInterval)
 	}
 
 	if s.EnablePreviewModeBanner == nil {
-		s.EnablePreviewModeBanner = NewPointer(true)
+		s.EnablePreviewModeBanner = new(true)
 	}
 
 	if s.EnableSMTPAuth == nil {
 		if *s.ConnectionSecurity == ConnSecurityNone {
-			s.EnableSMTPAuth = NewPointer(false)
+			s.EnableSMTPAuth = new(false)
 		} else {
-			s.EnableSMTPAuth = NewPointer(true)
+			s.EnableSMTPAuth = new(true)
 		}
 	}
 
@@ -2160,23 +2155,23 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SkipServerCertificateVerification == nil {
-		s.SkipServerCertificateVerification = NewPointer(false)
+		s.SkipServerCertificateVerification = new(false)
 	}
 
 	if s.EmailNotificationContentsType == nil {
-		s.EmailNotificationContentsType = NewPointer(EmailNotificationContentsFull)
+		s.EmailNotificationContentsType = new(EmailNotificationContentsFull)
 	}
 
 	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = NewPointer("#0000")
+		s.LoginButtonColor = new("#0000")
 	}
 
 	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = NewPointer("#2389D7")
+		s.LoginButtonBorderColor = new("#2389D7")
 	}
 
 	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = NewPointer("#2389D7")
+		s.LoginButtonTextColor = new("#2389D7")
 	}
 }
 
@@ -2192,42 +2187,47 @@ type RateLimitSettings struct {
 
 func (s *RateLimitSettings) SetDefaults() {
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	if s.PerSec == nil {
-		s.PerSec = NewPointer(10)
+		s.PerSec = new(10)
 	}
 
 	if s.MaxBurst == nil {
-		s.MaxBurst = NewPointer(100)
+		s.MaxBurst = new(100)
 	}
 
 	if s.MemoryStoreSize == nil {
-		s.MemoryStoreSize = NewPointer(10000)
+		s.MemoryStoreSize = new(10000)
 	}
 
 	if s.VaryByRemoteAddr == nil {
-		s.VaryByRemoteAddr = NewPointer(true)
+		s.VaryByRemoteAddr = new(true)
 	}
 
 	if s.VaryByUser == nil {
-		s.VaryByUser = NewPointer(false)
+		s.VaryByUser = new(false)
 	}
 }
 
 type PrivacySettings struct {
 	ShowEmailAddress *bool `access:"site_users_and_teams"`
 	ShowFullName     *bool `access:"site_users_and_teams"`
+	UseAnonymousURLs *bool `access:"site_users_and_teams"`
 }
 
 func (s *PrivacySettings) setDefaults() {
 	if s.ShowEmailAddress == nil {
-		s.ShowEmailAddress = NewPointer(true)
+		s.ShowEmailAddress = new(true)
 	}
 
 	if s.ShowFullName == nil {
-		s.ShowFullName = NewPointer(true)
+		s.ShowFullName = new(true)
+	}
+
+	if s.UseAnonymousURLs == nil {
+		s.UseAnonymousURLs = new(false)
 	}
 }
 
@@ -2253,7 +2253,7 @@ func (s *SupportSettings) SetDefaults() {
 	}
 
 	if s.TermsOfServiceLink == nil {
-		s.TermsOfServiceLink = NewPointer(SupportSettingsDefaultTermsOfServiceLink)
+		s.TermsOfServiceLink = new(SupportSettingsDefaultTermsOfServiceLink)
 	}
 
 	if !isSafeLink(s.PrivacyPolicyLink) {
@@ -2261,7 +2261,7 @@ func (s *SupportSettings) SetDefaults() {
 	}
 
 	if s.PrivacyPolicyLink == nil {
-		s.PrivacyPolicyLink = NewPointer(SupportSettingsDefaultPrivacyPolicyLink)
+		s.PrivacyPolicyLink = new(SupportSettingsDefaultPrivacyPolicyLink)
 	}
 
 	if !isSafeLink(s.AboutLink) {
@@ -2269,7 +2269,7 @@ func (s *SupportSettings) SetDefaults() {
 	}
 
 	if s.AboutLink == nil {
-		s.AboutLink = NewPointer(SupportSettingsDefaultAboutLink)
+		s.AboutLink = new(SupportSettingsDefaultAboutLink)
 	}
 
 	if !isSafeLink(s.HelpLink) {
@@ -2277,7 +2277,7 @@ func (s *SupportSettings) SetDefaults() {
 	}
 
 	if s.HelpLink == nil {
-		s.HelpLink = NewPointer(SupportSettingsDefaultHelpLink)
+		s.HelpLink = new(SupportSettingsDefaultHelpLink)
 	}
 
 	if !isSafeLink(s.ReportAProblemLink) {
@@ -2285,19 +2285,19 @@ func (s *SupportSettings) SetDefaults() {
 	}
 
 	if s.ReportAProblemLink == nil {
-		s.ReportAProblemLink = NewPointer(SupportSettingsDefaultReportAProblemLink)
+		s.ReportAProblemLink = new(SupportSettingsDefaultReportAProblemLink)
 	}
 
 	if s.ReportAProblemType == nil {
-		s.ReportAProblemType = NewPointer(SupportSettingsDefaultReportAProblemType)
+		s.ReportAProblemType = new(SupportSettingsDefaultReportAProblemType)
 	}
 
 	if s.ReportAProblemMail == nil {
-		s.ReportAProblemMail = NewPointer("")
+		s.ReportAProblemMail = new("")
 	}
 
 	if s.AllowDownloadLogs == nil {
-		s.AllowDownloadLogs = NewPointer(true)
+		s.AllowDownloadLogs = new(true)
 	}
 
 	if !isSafeLink(s.ForgotPasswordLink) {
@@ -2305,23 +2305,23 @@ func (s *SupportSettings) SetDefaults() {
 	}
 
 	if s.ForgotPasswordLink == nil {
-		s.ForgotPasswordLink = NewPointer("")
+		s.ForgotPasswordLink = new("")
 	}
 
 	if s.SupportEmail == nil {
-		s.SupportEmail = NewPointer(SupportSettingsDefaultSupportEmail)
+		s.SupportEmail = new(SupportSettingsDefaultSupportEmail)
 	}
 
 	if s.CustomTermsOfServiceEnabled == nil {
-		s.CustomTermsOfServiceEnabled = NewPointer(false)
+		s.CustomTermsOfServiceEnabled = new(false)
 	}
 
 	if s.CustomTermsOfServiceReAcceptancePeriod == nil {
-		s.CustomTermsOfServiceReAcceptancePeriod = NewPointer(SupportSettingsDefaultReAcceptancePeriod)
+		s.CustomTermsOfServiceReAcceptancePeriod = new(SupportSettingsDefaultReAcceptancePeriod)
 	}
 
 	if s.EnableAskCommunityLink == nil {
-		s.EnableAskCommunityLink = NewPointer(true)
+		s.EnableAskCommunityLink = new(true)
 	}
 }
 
@@ -2340,40 +2340,40 @@ type AnnouncementSettings struct {
 
 func (s *AnnouncementSettings) SetDefaults() {
 	if s.EnableBanner == nil {
-		s.EnableBanner = NewPointer(false)
+		s.EnableBanner = new(false)
 	}
 
 	if s.BannerText == nil {
-		s.BannerText = NewPointer("")
+		s.BannerText = new("")
 	}
 
 	if s.BannerColor == nil {
-		s.BannerColor = NewPointer(AnnouncementSettingsDefaultBannerColor)
+		s.BannerColor = new(AnnouncementSettingsDefaultBannerColor)
 	}
 
 	if s.BannerTextColor == nil {
-		s.BannerTextColor = NewPointer(AnnouncementSettingsDefaultBannerTextColor)
+		s.BannerTextColor = new(AnnouncementSettingsDefaultBannerTextColor)
 	}
 
 	if s.AllowBannerDismissal == nil {
-		s.AllowBannerDismissal = NewPointer(true)
+		s.AllowBannerDismissal = new(true)
 	}
 
 	if s.AdminNoticesEnabled == nil {
-		s.AdminNoticesEnabled = NewPointer(true)
+		s.AdminNoticesEnabled = new(true)
 	}
 
 	if s.UserNoticesEnabled == nil {
-		s.UserNoticesEnabled = NewPointer(true)
+		s.UserNoticesEnabled = new(true)
 	}
 	if s.NoticesURL == nil {
-		s.NoticesURL = NewPointer(AnnouncementSettingsDefaultNoticesJsonURL)
+		s.NoticesURL = new(AnnouncementSettingsDefaultNoticesJsonURL)
 	}
 	if s.NoticesSkipCache == nil {
-		s.NoticesSkipCache = NewPointer(false)
+		s.NoticesSkipCache = new(false)
 	}
 	if s.NoticesFetchFrequency == nil {
-		s.NoticesFetchFrequency = NewPointer(AnnouncementSettingsDefaultNoticesFetchFrequencySeconds)
+		s.NoticesFetchFrequency = new(AnnouncementSettingsDefaultNoticesFetchFrequencySeconds)
 	}
 }
 
@@ -2386,15 +2386,15 @@ type ThemeSettings struct {
 
 func (s *ThemeSettings) SetDefaults() {
 	if s.EnableThemeSelection == nil {
-		s.EnableThemeSelection = NewPointer(true)
+		s.EnableThemeSelection = new(true)
 	}
 
 	if s.DefaultTheme == nil {
-		s.DefaultTheme = NewPointer(TeamSettingsDefaultTeamText)
+		s.DefaultTheme = new(TeamSettingsDefaultTeamText)
 	}
 
 	if s.AllowCustomThemes == nil {
-		s.AllowCustomThemes = NewPointer(true)
+		s.AllowCustomThemes = new(true)
 	}
 
 	if s.AllowedThemes == nil {
@@ -2419,6 +2419,7 @@ type TeamSettings struct {
 	// In seconds.
 	UserStatusAwayTimeout               *int64  `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64  `access:"site_users_and_teams"`
+	EnableChannelCategorySorting        *bool   `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64  `access:"environment_push_notification_server"`
 	EnableConfirmNotificationsToChannel *bool   `access:"site_notifications"`
 	TeammateNameDisplay                 *string `access:"site_users_and_teams"`
@@ -2432,79 +2433,83 @@ type TeamSettings struct {
 
 func (s *TeamSettings) SetDefaults() {
 	if s.SiteName == nil || *s.SiteName == "" {
-		s.SiteName = NewPointer(TeamSettingsDefaultSiteName)
+		s.SiteName = new(TeamSettingsDefaultSiteName)
 	}
 
 	if s.MaxUsersPerTeam == nil {
-		s.MaxUsersPerTeam = NewPointer(TeamSettingsDefaultMaxUsersPerTeam)
+		s.MaxUsersPerTeam = new(TeamSettingsDefaultMaxUsersPerTeam)
 	}
 
 	if s.EnableJoinLeaveMessageByDefault == nil {
-		s.EnableJoinLeaveMessageByDefault = NewPointer(true)
+		s.EnableJoinLeaveMessageByDefault = new(true)
 	}
 
 	if s.EnableUserCreation == nil {
-		s.EnableUserCreation = NewPointer(true)
+		s.EnableUserCreation = new(true)
 	}
 
 	if s.EnableOpenServer == nil {
-		s.EnableOpenServer = NewPointer(false)
+		s.EnableOpenServer = new(false)
 	}
 
 	if s.RestrictCreationToDomains == nil {
-		s.RestrictCreationToDomains = NewPointer("")
+		s.RestrictCreationToDomains = new("")
 	}
 
 	if s.EnableCustomUserStatuses == nil {
-		s.EnableCustomUserStatuses = NewPointer(true)
+		s.EnableCustomUserStatuses = new(true)
 	}
 
 	if s.EnableLastActiveTime == nil {
-		s.EnableLastActiveTime = NewPointer(true)
+		s.EnableLastActiveTime = new(true)
 	}
 
 	if s.EnableCustomBrand == nil {
-		s.EnableCustomBrand = NewPointer(false)
+		s.EnableCustomBrand = new(false)
 	}
 
 	if s.EnableUserDeactivation == nil {
-		s.EnableUserDeactivation = NewPointer(false)
+		s.EnableUserDeactivation = new(false)
 	}
 
 	if s.CustomBrandText == nil {
-		s.CustomBrandText = NewPointer(TeamSettingsDefaultCustomBrandText)
+		s.CustomBrandText = new(TeamSettingsDefaultCustomBrandText)
 	}
 
 	if s.CustomDescriptionText == nil {
-		s.CustomDescriptionText = NewPointer(TeamSettingsDefaultCustomDescriptionText)
+		s.CustomDescriptionText = new(TeamSettingsDefaultCustomDescriptionText)
 	}
 
 	if s.RestrictDirectMessage == nil {
-		s.RestrictDirectMessage = NewPointer(DirectMessageAny)
+		s.RestrictDirectMessage = new(DirectMessageAny)
 	}
 
 	if s.UserStatusAwayTimeout == nil {
-		s.UserStatusAwayTimeout = NewPointer(int64(TeamSettingsDefaultUserStatusAwayTimeout))
+		s.UserStatusAwayTimeout = new(int64(TeamSettingsDefaultUserStatusAwayTimeout))
 	}
 
 	if s.MaxChannelsPerTeam == nil {
-		s.MaxChannelsPerTeam = NewPointer(int64(2000))
+		s.MaxChannelsPerTeam = new(int64(2000))
+	}
+
+	if s.EnableChannelCategorySorting == nil {
+		s.EnableChannelCategorySorting = new(true)
 	}
 
 	if s.MaxNotificationsPerChannel == nil {
-		s.MaxNotificationsPerChannel = NewPointer(int64(1000))
+		s.MaxNotificationsPerChannel = new(int64(1000))
 	}
 
 	if s.EnableConfirmNotificationsToChannel == nil {
-		s.EnableConfirmNotificationsToChannel = NewPointer(true)
+		s.EnableConfirmNotificationsToChannel = new(true)
 	}
 
 	if s.ExperimentalEnableAutomaticReplies == nil {
-		s.ExperimentalEnableAutomaticReplies = NewPointer(false)
+		s.ExperimentalEnableAutomaticReplies = new(false)
 	}
 
 	if s.ExperimentalPrimaryTeam == nil {
-		s.ExperimentalPrimaryTeam = NewPointer("")
+		s.ExperimentalPrimaryTeam = new("")
 	}
 
 	if s.ExperimentalDefaultChannels == nil {
@@ -2512,15 +2517,15 @@ func (s *TeamSettings) SetDefaults() {
 	}
 
 	if s.EnableUserCreation == nil {
-		s.EnableUserCreation = NewPointer(true)
+		s.EnableUserCreation = new(true)
 	}
 
 	if s.ExperimentalViewArchivedChannels == nil {
-		s.ExperimentalViewArchivedChannels = NewPointer(true)
+		s.ExperimentalViewArchivedChannels = new(true)
 	}
 
 	if s.LockTeammateNameDisplay == nil {
-		s.LockTeammateNameDisplay = NewPointer(false)
+		s.LockTeammateNameDisplay = new(false)
 	}
 }
 
@@ -2586,108 +2591,108 @@ type LdapSettings struct {
 
 func (s *LdapSettings) SetDefaults() {
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	// When unset should default to LDAP Enabled
 	if s.EnableSync == nil {
-		s.EnableSync = NewPointer(*s.Enable)
+		s.EnableSync = new(*s.Enable)
 	}
 
 	if s.EnableAdminFilter == nil {
-		s.EnableAdminFilter = NewPointer(false)
+		s.EnableAdminFilter = new(false)
 	}
 
 	if s.LdapServer == nil {
-		s.LdapServer = NewPointer("")
+		s.LdapServer = new("")
 	}
 
 	if s.LdapPort == nil {
-		s.LdapPort = NewPointer(389)
+		s.LdapPort = new(389)
 	}
 
 	if s.ConnectionSecurity == nil {
-		s.ConnectionSecurity = NewPointer("")
+		s.ConnectionSecurity = new("")
 	}
 
 	if s.PublicCertificateFile == nil {
-		s.PublicCertificateFile = NewPointer("")
+		s.PublicCertificateFile = new("")
 	}
 
 	if s.PrivateKeyFile == nil {
-		s.PrivateKeyFile = NewPointer("")
+		s.PrivateKeyFile = new("")
 	}
 
 	if s.BaseDN == nil {
-		s.BaseDN = NewPointer("")
+		s.BaseDN = new("")
 	}
 
 	if s.BindUsername == nil {
-		s.BindUsername = NewPointer("")
+		s.BindUsername = new("")
 	}
 
 	if s.BindPassword == nil {
-		s.BindPassword = NewPointer("")
+		s.BindPassword = new("")
 	}
 
 	if s.MaximumLoginAttempts == nil {
-		s.MaximumLoginAttempts = NewPointer(LdapSettingsDefaultMaximumLoginAttempts)
+		s.MaximumLoginAttempts = new(LdapSettingsDefaultMaximumLoginAttempts)
 	}
 
 	if s.UserFilter == nil {
-		s.UserFilter = NewPointer("")
+		s.UserFilter = new("")
 	}
 
 	if s.GuestFilter == nil {
-		s.GuestFilter = NewPointer("")
+		s.GuestFilter = new("")
 	}
 
 	if s.AdminFilter == nil {
-		s.AdminFilter = NewPointer("")
+		s.AdminFilter = new("")
 	}
 
 	if s.GroupFilter == nil {
-		s.GroupFilter = NewPointer("")
+		s.GroupFilter = new("")
 	}
 
 	if s.GroupDisplayNameAttribute == nil {
-		s.GroupDisplayNameAttribute = NewPointer(LdapSettingsDefaultGroupDisplayNameAttribute)
+		s.GroupDisplayNameAttribute = new(LdapSettingsDefaultGroupDisplayNameAttribute)
 	}
 
 	if s.GroupIdAttribute == nil {
-		s.GroupIdAttribute = NewPointer(LdapSettingsDefaultGroupIdAttribute)
+		s.GroupIdAttribute = new(LdapSettingsDefaultGroupIdAttribute)
 	}
 
 	if s.FirstNameAttribute == nil {
-		s.FirstNameAttribute = NewPointer(LdapSettingsDefaultFirstNameAttribute)
+		s.FirstNameAttribute = new(LdapSettingsDefaultFirstNameAttribute)
 	}
 
 	if s.LastNameAttribute == nil {
-		s.LastNameAttribute = NewPointer(LdapSettingsDefaultLastNameAttribute)
+		s.LastNameAttribute = new(LdapSettingsDefaultLastNameAttribute)
 	}
 
 	if s.EmailAttribute == nil {
-		s.EmailAttribute = NewPointer(LdapSettingsDefaultEmailAttribute)
+		s.EmailAttribute = new(LdapSettingsDefaultEmailAttribute)
 	}
 
 	if s.UsernameAttribute == nil {
-		s.UsernameAttribute = NewPointer(LdapSettingsDefaultUsernameAttribute)
+		s.UsernameAttribute = new(LdapSettingsDefaultUsernameAttribute)
 	}
 
 	if s.NicknameAttribute == nil {
-		s.NicknameAttribute = NewPointer(LdapSettingsDefaultNicknameAttribute)
+		s.NicknameAttribute = new(LdapSettingsDefaultNicknameAttribute)
 	}
 
 	if s.IdAttribute == nil {
-		s.IdAttribute = NewPointer(LdapSettingsDefaultIdAttribute)
+		s.IdAttribute = new(LdapSettingsDefaultIdAttribute)
 	}
 
 	if s.PositionAttribute == nil {
-		s.PositionAttribute = NewPointer(LdapSettingsDefaultPositionAttribute)
+		s.PositionAttribute = new(LdapSettingsDefaultPositionAttribute)
 	}
 
 	if s.PictureAttribute == nil {
-		s.PictureAttribute = NewPointer(LdapSettingsDefaultPictureAttribute)
+		s.PictureAttribute = new(LdapSettingsDefaultPictureAttribute)
 	}
 
 	// For those upgrading to the version when LoginIdAttribute was added
@@ -2697,39 +2702,39 @@ func (s *LdapSettings) SetDefaults() {
 	}
 
 	if s.SyncIntervalMinutes == nil {
-		s.SyncIntervalMinutes = NewPointer(60)
+		s.SyncIntervalMinutes = new(60)
 	}
 
 	if s.ReAddRemovedMembers == nil {
-		s.ReAddRemovedMembers = NewPointer(false)
+		s.ReAddRemovedMembers = new(false)
 	}
 
 	if s.SkipCertificateVerification == nil {
-		s.SkipCertificateVerification = NewPointer(false)
+		s.SkipCertificateVerification = new(false)
 	}
 
 	if s.QueryTimeout == nil {
-		s.QueryTimeout = NewPointer(60)
+		s.QueryTimeout = new(60)
 	}
 
 	if s.MaxPageSize == nil {
-		s.MaxPageSize = NewPointer(0)
+		s.MaxPageSize = new(0)
 	}
 
 	if s.LoginFieldName == nil {
-		s.LoginFieldName = NewPointer(LdapSettingsDefaultLoginFieldName)
+		s.LoginFieldName = new(LdapSettingsDefaultLoginFieldName)
 	}
 
 	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = NewPointer("#0000")
+		s.LoginButtonColor = new("#0000")
 	}
 
 	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = NewPointer("#2389D7")
+		s.LoginButtonBorderColor = new("#2389D7")
 	}
 
 	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = NewPointer("#2389D7")
+		s.LoginButtonTextColor = new("#2389D7")
 	}
 }
 
@@ -2742,19 +2747,19 @@ type ComplianceSettings struct {
 
 func (s *ComplianceSettings) SetDefaults() {
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	if s.Directory == nil {
-		s.Directory = NewPointer("./data/")
+		s.Directory = new("./data/")
 	}
 
 	if s.EnableDaily == nil {
-		s.EnableDaily = NewPointer(false)
+		s.EnableDaily = new(false)
 	}
 
 	if s.BatchSize == nil {
-		s.BatchSize = NewPointer(30000)
+		s.BatchSize = new(30000)
 	}
 }
 
@@ -2767,103 +2772,94 @@ type LocalizationSettings struct {
 
 func (s *LocalizationSettings) SetDefaults() {
 	if s.DefaultServerLocale == nil {
-		s.DefaultServerLocale = NewPointer(DefaultLocale)
+		s.DefaultServerLocale = new(DefaultLocale)
 	}
 
 	if s.DefaultClientLocale == nil {
-		s.DefaultClientLocale = NewPointer(DefaultLocale)
+		s.DefaultClientLocale = new(DefaultLocale)
 	}
 
 	if s.AvailableLocales == nil {
-		s.AvailableLocales = NewPointer("")
+		s.AvailableLocales = new("")
 	}
 
 	if s.EnableExperimentalLocales == nil {
-		s.EnableExperimentalLocales = NewPointer(false)
+		s.EnableExperimentalLocales = new(false)
 	}
 }
 
 type AutoTranslationSettings struct {
-	Enable         *bool                           `access:"site_localization,cloud_restrictable"`
-	Provider       *string                         `access:"site_localization,cloud_restrictable"`
-	TimeoutsMs     *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
-	LibreTranslate *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
-	// TODO: Enable Agents provider in future release
-	// Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
+	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
+	RestrictDMAndGM *bool                           `access:"site_localization,cloud_restrictable"`
+	Provider        *string                         `access:"site_localization,cloud_restrictable"`
+	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
+	Workers         *int                            `access:"site_localization,cloud_restrictable"`
+	TimeoutMs       *int                            `access:"site_localization,cloud_restrictable"`
+	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
+	Agents          *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
 }
 
-type AutoTranslationTimeoutsInMs struct {
-	NewPost      *int `access:"site_localization,cloud_restrictable"`
-	Fetch        *int `access:"site_localization,cloud_restrictable"`
-	Notification *int `access:"site_localization,cloud_restrictable"`
-}
-
+// LibreTranslateProviderSettings configures the LibreTranslate translation provider.
 type LibreTranslateProviderSettings struct {
-	URL    *string `access:"site_localization,cloud_restrictable"`
-	APIKey *string `access:"site_localization,cloud_restrictable"`
+	URL    *string `access:"site_localization,cloud_restrictable"` // LibreTranslate server URL
+	APIKey *string `access:"site_localization,cloud_restrictable"` // Optional API key for authenticated requests
 }
 
-// TODO: Enable Agents provider in future release
-// type AgentsProviderSettings struct {
-// 	BotUserId *string `access:"site_localization,cloud_restrictable"`
-// }
+type AgentsProviderSettings struct {
+	LLMServiceID *string `access:"site_localization,cloud_restrictable"`
+}
 
 func (s *AutoTranslationSettings) SetDefaults() {
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	if s.Provider == nil {
-		s.Provider = NewPointer("")
+		s.Provider = new("")
 	}
 
-	if s.TimeoutsMs == nil {
-		s.TimeoutsMs = &AutoTranslationTimeoutsInMs{}
+	if s.TargetLanguages == nil {
+		s.TargetLanguages = &[]string{"en"}
 	}
-	s.TimeoutsMs.SetDefaults()
+
+	if s.Workers == nil {
+		s.Workers = new(AutoTranslationDefaultWorkers)
+	}
+
+	if s.TimeoutMs == nil {
+		s.TimeoutMs = new(5000)
+	}
 
 	if s.LibreTranslate == nil {
 		s.LibreTranslate = &LibreTranslateProviderSettings{}
 	}
 	s.LibreTranslate.SetDefaults()
 
-	// TODO: Enable Agents provider in future release
-	// if s.Agents == nil {
-	// 	s.Agents = &AgentsProviderSettings{}
-	// }
-	// s.Agents.SetDefaults()
-}
-
-func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
-	if s.NewPost == nil {
-		s.NewPost = NewPointer(800)
+	if s.Agents == nil {
+		s.Agents = &AgentsProviderSettings{}
 	}
+	s.Agents.SetDefaults()
 
-	if s.Fetch == nil {
-		s.Fetch = NewPointer(2000)
-	}
-
-	if s.Notification == nil {
-		s.Notification = NewPointer(300)
+	if s.RestrictDMAndGM == nil {
+		s.RestrictDMAndGM = new(false)
 	}
 }
 
 func (s *LibreTranslateProviderSettings) SetDefaults() {
 	if s.URL == nil {
-		s.URL = NewPointer("")
+		s.URL = new("")
 	}
 
 	if s.APIKey == nil {
-		s.APIKey = NewPointer("")
+		s.APIKey = new("")
 	}
 }
 
-// TODO: Enable Agents provider in future release
-// func (s *AgentsProviderSettings) SetDefaults() {
-// 	if s.BotUserId == nil {
-// 		s.BotUserId = NewPointer("")
-// 	}
-// }
+func (s *AgentsProviderSettings) SetDefaults() {
+	if s.LLMServiceID == nil {
+		s.LLMServiceID = new("")
+	}
+}
 
 type SamlSettings struct {
 	// Basic
@@ -2914,141 +2910,141 @@ type SamlSettings struct {
 
 func (s *SamlSettings) SetDefaults() {
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	if s.EnableSyncWithLdap == nil {
-		s.EnableSyncWithLdap = NewPointer(false)
+		s.EnableSyncWithLdap = new(false)
 	}
 
 	if s.EnableSyncWithLdapIncludeAuth == nil {
-		s.EnableSyncWithLdapIncludeAuth = NewPointer(false)
+		s.EnableSyncWithLdapIncludeAuth = new(false)
 	}
 
 	if s.IgnoreGuestsLdapSync == nil {
-		s.IgnoreGuestsLdapSync = NewPointer(false)
+		s.IgnoreGuestsLdapSync = new(false)
 	}
 
 	if s.EnableAdminAttribute == nil {
-		s.EnableAdminAttribute = NewPointer(false)
+		s.EnableAdminAttribute = new(false)
 	}
 
 	if s.Verify == nil {
-		s.Verify = NewPointer(true)
+		s.Verify = new(true)
 	}
 
 	if s.Encrypt == nil {
-		s.Encrypt = NewPointer(true)
+		s.Encrypt = new(true)
 	}
 
 	if s.SignRequest == nil {
-		s.SignRequest = NewPointer(false)
+		s.SignRequest = new(false)
 	}
 
 	if s.SignatureAlgorithm == nil {
-		s.SignatureAlgorithm = NewPointer(SamlSettingsDefaultSignatureAlgorithm)
+		s.SignatureAlgorithm = new(SamlSettingsDefaultSignatureAlgorithm)
 	}
 
 	if s.CanonicalAlgorithm == nil {
-		s.CanonicalAlgorithm = NewPointer(SamlSettingsDefaultCanonicalAlgorithm)
+		s.CanonicalAlgorithm = new(SamlSettingsDefaultCanonicalAlgorithm)
 	}
 
 	if s.IdpURL == nil {
-		s.IdpURL = NewPointer("")
+		s.IdpURL = new("")
 	}
 
 	if s.IdpDescriptorURL == nil {
-		s.IdpDescriptorURL = NewPointer("")
+		s.IdpDescriptorURL = new("")
 	}
 
 	if s.ServiceProviderIdentifier == nil {
 		if s.IdpDescriptorURL != nil {
-			s.ServiceProviderIdentifier = NewPointer(*s.IdpDescriptorURL)
+			s.ServiceProviderIdentifier = new(*s.IdpDescriptorURL)
 		} else {
-			s.ServiceProviderIdentifier = NewPointer("")
+			s.ServiceProviderIdentifier = new("")
 		}
 	}
 
 	if s.IdpMetadataURL == nil {
-		s.IdpMetadataURL = NewPointer("")
+		s.IdpMetadataURL = new("")
 	}
 
 	if s.IdpCertificateFile == nil {
-		s.IdpCertificateFile = NewPointer("")
+		s.IdpCertificateFile = new("")
 	}
 
 	if s.PublicCertificateFile == nil {
-		s.PublicCertificateFile = NewPointer("")
+		s.PublicCertificateFile = new("")
 	}
 
 	if s.PrivateKeyFile == nil {
-		s.PrivateKeyFile = NewPointer("")
+		s.PrivateKeyFile = new("")
 	}
 
 	if s.AssertionConsumerServiceURL == nil {
-		s.AssertionConsumerServiceURL = NewPointer("")
+		s.AssertionConsumerServiceURL = new("")
 	}
 
 	if s.ScopingIDPProviderId == nil {
-		s.ScopingIDPProviderId = NewPointer("")
+		s.ScopingIDPProviderId = new("")
 	}
 
 	if s.ScopingIDPName == nil {
-		s.ScopingIDPName = NewPointer("")
+		s.ScopingIDPName = new("")
 	}
 
 	if s.LoginButtonText == nil || *s.LoginButtonText == "" {
-		s.LoginButtonText = NewPointer(UserAuthServiceSamlText)
+		s.LoginButtonText = new(UserAuthServiceSamlText)
 	}
 
 	if s.IdAttribute == nil {
-		s.IdAttribute = NewPointer(SamlSettingsDefaultIdAttribute)
+		s.IdAttribute = new(SamlSettingsDefaultIdAttribute)
 	}
 
 	if s.GuestAttribute == nil {
-		s.GuestAttribute = NewPointer(SamlSettingsDefaultGuestAttribute)
+		s.GuestAttribute = new(SamlSettingsDefaultGuestAttribute)
 	}
 	if s.AdminAttribute == nil {
-		s.AdminAttribute = NewPointer(SamlSettingsDefaultAdminAttribute)
+		s.AdminAttribute = new(SamlSettingsDefaultAdminAttribute)
 	}
 	if s.FirstNameAttribute == nil {
-		s.FirstNameAttribute = NewPointer(SamlSettingsDefaultFirstNameAttribute)
+		s.FirstNameAttribute = new(SamlSettingsDefaultFirstNameAttribute)
 	}
 
 	if s.LastNameAttribute == nil {
-		s.LastNameAttribute = NewPointer(SamlSettingsDefaultLastNameAttribute)
+		s.LastNameAttribute = new(SamlSettingsDefaultLastNameAttribute)
 	}
 
 	if s.EmailAttribute == nil {
-		s.EmailAttribute = NewPointer(SamlSettingsDefaultEmailAttribute)
+		s.EmailAttribute = new(SamlSettingsDefaultEmailAttribute)
 	}
 
 	if s.UsernameAttribute == nil {
-		s.UsernameAttribute = NewPointer(SamlSettingsDefaultUsernameAttribute)
+		s.UsernameAttribute = new(SamlSettingsDefaultUsernameAttribute)
 	}
 
 	if s.NicknameAttribute == nil {
-		s.NicknameAttribute = NewPointer(SamlSettingsDefaultNicknameAttribute)
+		s.NicknameAttribute = new(SamlSettingsDefaultNicknameAttribute)
 	}
 
 	if s.PositionAttribute == nil {
-		s.PositionAttribute = NewPointer(SamlSettingsDefaultPositionAttribute)
+		s.PositionAttribute = new(SamlSettingsDefaultPositionAttribute)
 	}
 
 	if s.LocaleAttribute == nil {
-		s.LocaleAttribute = NewPointer(SamlSettingsDefaultLocaleAttribute)
+		s.LocaleAttribute = new(SamlSettingsDefaultLocaleAttribute)
 	}
 
 	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = NewPointer("#34a28b")
+		s.LoginButtonColor = new("#34a28b")
 	}
 
 	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = NewPointer("#2389D7")
+		s.LoginButtonBorderColor = new("#2389D7")
 	}
 
 	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = NewPointer("#ffffff")
+		s.LoginButtonTextColor = new("#ffffff")
 	}
 }
 
@@ -3068,15 +3064,15 @@ type NativeAppSettings struct {
 
 func (s *NativeAppSettings) SetDefaults() {
 	if s.AppDownloadLink == nil {
-		s.AppDownloadLink = NewPointer(NativeappSettingsDefaultAppDownloadLink)
+		s.AppDownloadLink = new(NativeappSettingsDefaultAppDownloadLink)
 	}
 
 	if s.AndroidAppDownloadLink == nil {
-		s.AndroidAppDownloadLink = NewPointer(NativeappSettingsDefaultAndroidAppDownloadLink)
+		s.AndroidAppDownloadLink = new(NativeappSettingsDefaultAndroidAppDownloadLink)
 	}
 
 	if s.IosAppDownloadLink == nil {
-		s.IosAppDownloadLink = NewPointer(NativeappSettingsDefaultIosAppDownloadLink)
+		s.IosAppDownloadLink = new(NativeappSettingsDefaultIosAppDownloadLink)
 	}
 
 	if s.AppCustomURLSchemes == nil {
@@ -3084,172 +3080,195 @@ func (s *NativeAppSettings) SetDefaults() {
 	}
 
 	if s.MobileExternalBrowser == nil {
-		s.MobileExternalBrowser = NewPointer(false)
+		s.MobileExternalBrowser = new(false)
 	}
 
 	if s.MobileEnableBiometrics == nil {
-		s.MobileEnableBiometrics = NewPointer(false)
+		s.MobileEnableBiometrics = new(false)
 	}
 
 	if s.MobilePreventScreenCapture == nil {
-		s.MobilePreventScreenCapture = NewPointer(false)
+		s.MobilePreventScreenCapture = new(false)
 	}
 
 	if s.MobileJailbreakProtection == nil {
-		s.MobileJailbreakProtection = NewPointer(false)
+		s.MobileJailbreakProtection = new(false)
 	}
 
 	if s.MobileEnableSecureFilePreview == nil {
-		s.MobileEnableSecureFilePreview = NewPointer(false)
+		s.MobileEnableSecureFilePreview = new(false)
 	}
 
 	if s.MobileAllowPdfLinkNavigation == nil {
-		s.MobileAllowPdfLinkNavigation = NewPointer(false)
+		s.MobileAllowPdfLinkNavigation = new(false)
 	}
 
 	if s.EnableIntuneMAM == nil {
-		s.EnableIntuneMAM = NewPointer(false)
+		s.EnableIntuneMAM = new(false)
 	}
 }
 
+func (s *NativeAppSettings) AreDownloadLinksValid() *AppError {
+	for _, link := range []*string{s.AppDownloadLink, s.AndroidAppDownloadLink, s.IosAppDownloadLink} {
+		if link == nil || *link == "" {
+			continue
+		}
+		u, err := url.ParseRequestURI(*link)
+		if err != nil || u.Scheme == "" || u.Hostname() == "" {
+			return NewAppError("NativeAppSettings.AreDownloadLinksValid", "model.config.is_valid.native_app_settings.download_link.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	return nil
+}
+
 type ElasticsearchSettings struct {
-	ConnectionURL                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Backend                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Username                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Password                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableSearching               *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableAutocomplete            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Sniff                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	PostIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	PostIndexShards               *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ChannelIndexReplicas          *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ChannelIndexShards            *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	UserIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	UserIndexShards               *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	AggregatePostsAfterDays       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
-	PostsAggregatorJobStartTime   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
-	IndexPrefix                   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	GlobalSearchPrefix            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	LiveIndexingBatchSize         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
-	BatchSize                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	RequestTimeoutSeconds         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	SkipTLSVerification           *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	CA                            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	IgnoredPurgeIndexes           *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	ConnectionURL                               *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Backend                                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Username                                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Password                                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableIndexing                              *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableSearching                             *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableCJKAnalyzers                          *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableAutocomplete                          *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Sniff                                       *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	PostIndexReplicas                           *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	PostIndexShards                             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ChannelIndexReplicas                        *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ChannelIndexShards                          *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	UserIndexReplicas                           *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	UserIndexShards                             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	AggregatePostsAfterDays                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	PostsAggregatorJobStartTime                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	IndexPrefix                                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	GlobalSearchPrefix                          *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	LiveIndexingBatchSize                       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	BulkIndexingTimeWindowSeconds               *int    `json:",omitempty"` // telemetry: none
+	BatchSize                                   *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	RequestTimeoutSeconds                       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	SkipTLSVerification                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	CA                                          *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientCert                                  *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientKey                                   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Trace                                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	IgnoredPurgeIndexes                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableSearchPublicChannelsWithoutMembership *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
 	if s.ConnectionURL == nil {
-		s.ConnectionURL = NewPointer(ElasticsearchSettingsDefaultConnectionURL)
+		s.ConnectionURL = new(ElasticsearchSettingsDefaultConnectionURL)
 	}
 
 	if s.Backend == nil {
-		s.Backend = NewPointer(ElasticsearchSettingsESBackend)
+		s.Backend = new(ElasticsearchSettingsESBackend)
 	}
 
 	if s.Username == nil {
-		s.Username = NewPointer(ElasticsearchSettingsDefaultUsername)
+		s.Username = new(ElasticsearchSettingsDefaultUsername)
 	}
 
 	if s.Password == nil {
-		s.Password = NewPointer(ElasticsearchSettingsDefaultPassword)
+		s.Password = new(ElasticsearchSettingsDefaultPassword)
 	}
 
 	if s.CA == nil {
-		s.CA = NewPointer("")
+		s.CA = new("")
 	}
 
 	if s.ClientCert == nil {
-		s.ClientCert = NewPointer("")
+		s.ClientCert = new("")
 	}
 
 	if s.ClientKey == nil {
-		s.ClientKey = NewPointer("")
+		s.ClientKey = new("")
 	}
 
 	if s.EnableIndexing == nil {
-		s.EnableIndexing = NewPointer(false)
+		s.EnableIndexing = new(false)
 	}
 
 	if s.EnableSearching == nil {
-		s.EnableSearching = NewPointer(false)
+		s.EnableSearching = new(false)
+	}
+
+	if s.EnableCJKAnalyzers == nil {
+		s.EnableCJKAnalyzers = new(false)
 	}
 
 	if s.EnableAutocomplete == nil {
-		s.EnableAutocomplete = NewPointer(false)
+		s.EnableAutocomplete = new(false)
 	}
 
 	if s.Sniff == nil {
-		s.Sniff = NewPointer(true)
+		s.Sniff = new(true)
 	}
 
 	if s.PostIndexReplicas == nil {
-		s.PostIndexReplicas = NewPointer(ElasticsearchSettingsDefaultPostIndexReplicas)
+		s.PostIndexReplicas = new(ElasticsearchSettingsDefaultPostIndexReplicas)
 	}
 
 	if s.PostIndexShards == nil {
-		s.PostIndexShards = NewPointer(ElasticsearchSettingsDefaultPostIndexShards)
+		s.PostIndexShards = new(ElasticsearchSettingsDefaultPostIndexShards)
 	}
 
 	if s.ChannelIndexReplicas == nil {
-		s.ChannelIndexReplicas = NewPointer(ElasticsearchSettingsDefaultChannelIndexReplicas)
+		s.ChannelIndexReplicas = new(ElasticsearchSettingsDefaultChannelIndexReplicas)
 	}
 
 	if s.ChannelIndexShards == nil {
-		s.ChannelIndexShards = NewPointer(ElasticsearchSettingsDefaultChannelIndexShards)
+		s.ChannelIndexShards = new(ElasticsearchSettingsDefaultChannelIndexShards)
 	}
 
 	if s.UserIndexReplicas == nil {
-		s.UserIndexReplicas = NewPointer(ElasticsearchSettingsDefaultUserIndexReplicas)
+		s.UserIndexReplicas = new(ElasticsearchSettingsDefaultUserIndexReplicas)
 	}
 
 	if s.UserIndexShards == nil {
-		s.UserIndexShards = NewPointer(ElasticsearchSettingsDefaultUserIndexShards)
+		s.UserIndexShards = new(ElasticsearchSettingsDefaultUserIndexShards)
 	}
 
 	if s.AggregatePostsAfterDays == nil {
-		s.AggregatePostsAfterDays = NewPointer(ElasticsearchSettingsDefaultAggregatePostsAfterDays)
+		s.AggregatePostsAfterDays = new(ElasticsearchSettingsDefaultAggregatePostsAfterDays)
 	}
 
 	if s.PostsAggregatorJobStartTime == nil {
-		s.PostsAggregatorJobStartTime = NewPointer(ElasticsearchSettingsDefaultPostsAggregatorJobStartTime)
+		s.PostsAggregatorJobStartTime = new(ElasticsearchSettingsDefaultPostsAggregatorJobStartTime)
 	}
 
 	if s.IndexPrefix == nil {
-		s.IndexPrefix = NewPointer(ElasticsearchSettingsDefaultIndexPrefix)
+		s.IndexPrefix = new(ElasticsearchSettingsDefaultIndexPrefix)
 	}
 
 	if s.GlobalSearchPrefix == nil {
-		s.GlobalSearchPrefix = NewPointer("")
+		s.GlobalSearchPrefix = new("")
 	}
 
 	if s.LiveIndexingBatchSize == nil {
-		s.LiveIndexingBatchSize = NewPointer(ElasticsearchSettingsDefaultLiveIndexingBatchSize)
+		s.LiveIndexingBatchSize = new(ElasticsearchSettingsDefaultLiveIndexingBatchSize)
 	}
 
 	if s.BatchSize == nil {
-		s.BatchSize = NewPointer(ElasticsearchSettingsDefaultBatchSize)
+		s.BatchSize = new(ElasticsearchSettingsDefaultBatchSize)
 	}
 
 	if s.RequestTimeoutSeconds == nil {
-		s.RequestTimeoutSeconds = NewPointer(ElasticsearchSettingsDefaultRequestTimeoutSeconds)
+		s.RequestTimeoutSeconds = new(ElasticsearchSettingsDefaultRequestTimeoutSeconds)
 	}
 
 	if s.SkipTLSVerification == nil {
-		s.SkipTLSVerification = NewPointer(false)
+		s.SkipTLSVerification = new(false)
 	}
 
 	if s.Trace == nil {
-		s.Trace = NewPointer("")
+		s.Trace = new("")
 	}
 
 	if s.IgnoredPurgeIndexes == nil {
-		s.IgnoredPurgeIndexes = NewPointer("")
+		s.IgnoredPurgeIndexes = new("")
+	}
+
+	if s.EnableSearchPublicChannelsWithoutMembership == nil {
+		s.EnableSearchPublicChannelsWithoutMembership = new(true)
 	}
 }
 
@@ -3271,54 +3290,54 @@ type DataRetentionSettings struct {
 
 func (s *DataRetentionSettings) SetDefaults() {
 	if s.EnableMessageDeletion == nil {
-		s.EnableMessageDeletion = NewPointer(false)
+		s.EnableMessageDeletion = new(false)
 	}
 
 	if s.EnableFileDeletion == nil {
-		s.EnableFileDeletion = NewPointer(false)
+		s.EnableFileDeletion = new(false)
 	}
 
 	if s.EnableBoardsDeletion == nil {
-		s.EnableBoardsDeletion = NewPointer(false)
+		s.EnableBoardsDeletion = new(false)
 	}
 
 	if s.MessageRetentionDays == nil {
-		s.MessageRetentionDays = NewPointer(DataRetentionSettingsDefaultMessageRetentionDays)
+		s.MessageRetentionDays = new(DataRetentionSettingsDefaultMessageRetentionDays)
 	}
 
 	if s.MessageRetentionHours == nil {
-		s.MessageRetentionHours = NewPointer(DataRetentionSettingsDefaultMessageRetentionHours)
+		s.MessageRetentionHours = new(DataRetentionSettingsDefaultMessageRetentionHours)
 	}
 
 	if s.FileRetentionDays == nil {
-		s.FileRetentionDays = NewPointer(DataRetentionSettingsDefaultFileRetentionDays)
+		s.FileRetentionDays = new(DataRetentionSettingsDefaultFileRetentionDays)
 	}
 
 	if s.FileRetentionHours == nil {
-		s.FileRetentionHours = NewPointer(DataRetentionSettingsDefaultFileRetentionHours)
+		s.FileRetentionHours = new(DataRetentionSettingsDefaultFileRetentionHours)
 	}
 
 	if s.BoardsRetentionDays == nil {
-		s.BoardsRetentionDays = NewPointer(DataRetentionSettingsDefaultBoardsRetentionDays)
+		s.BoardsRetentionDays = new(DataRetentionSettingsDefaultBoardsRetentionDays)
 	}
 
 	if s.DeletionJobStartTime == nil {
-		s.DeletionJobStartTime = NewPointer(DataRetentionSettingsDefaultDeletionJobStartTime)
+		s.DeletionJobStartTime = new(DataRetentionSettingsDefaultDeletionJobStartTime)
 	}
 
 	if s.BatchSize == nil {
-		s.BatchSize = NewPointer(DataRetentionSettingsDefaultBatchSize)
+		s.BatchSize = new(DataRetentionSettingsDefaultBatchSize)
 	}
 
 	if s.TimeBetweenBatchesMilliseconds == nil {
-		s.TimeBetweenBatchesMilliseconds = NewPointer(DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds)
+		s.TimeBetweenBatchesMilliseconds = new(DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds)
 	}
 	if s.RetentionIdsBatchSize == nil {
-		s.RetentionIdsBatchSize = NewPointer(DataRetentionSettingsDefaultRetentionIdsBatchSize)
+		s.RetentionIdsBatchSize = new(DataRetentionSettingsDefaultRetentionIdsBatchSize)
 	}
 
 	if s.PreservePinnedPosts == nil {
-		s.PreservePinnedPosts = NewPointer(false)
+		s.PreservePinnedPosts = new(false)
 	}
 }
 
@@ -3355,19 +3374,19 @@ type JobSettings struct {
 
 func (s *JobSettings) SetDefaults() {
 	if s.RunJobs == nil {
-		s.RunJobs = NewPointer(true)
+		s.RunJobs = new(true)
 	}
 
 	if s.RunScheduler == nil {
-		s.RunScheduler = NewPointer(true)
+		s.RunScheduler = new(true)
 	}
 
 	if s.CleanupJobsThresholdDays == nil {
-		s.CleanupJobsThresholdDays = NewPointer(-1)
+		s.CleanupJobsThresholdDays = new(-1)
 	}
 
 	if s.CleanupConfigThresholdDays == nil {
-		s.CleanupConfigThresholdDays = NewPointer(-1)
+		s.CleanupConfigThresholdDays = new(-1)
 	}
 }
 
@@ -3384,18 +3403,18 @@ func (s *CloudSettings) SetDefaults() {
 	if s.CWSURL == nil || serviceEnvironment == ServiceEnvironmentProduction {
 		switch serviceEnvironment {
 		case ServiceEnvironmentProduction:
-			s.CWSURL = NewPointer(CloudSettingsDefaultCwsURL)
+			s.CWSURL = new(CloudSettingsDefaultCwsURL)
 		case ServiceEnvironmentTest, ServiceEnvironmentDev:
-			s.CWSURL = NewPointer(CloudSettingsDefaultCwsURLTest)
+			s.CWSURL = new(CloudSettingsDefaultCwsURLTest)
 		}
 	}
 
 	if s.CWSAPIURL == nil {
 		switch serviceEnvironment {
 		case ServiceEnvironmentProduction:
-			s.CWSAPIURL = NewPointer(CloudSettingsDefaultCwsAPIURL)
+			s.CWSAPIURL = new(CloudSettingsDefaultCwsAPIURL)
 		case ServiceEnvironmentTest, ServiceEnvironmentDev:
-			s.CWSAPIURL = NewPointer(CloudSettingsDefaultCwsAPIURLTest)
+			s.CWSAPIURL = new(CloudSettingsDefaultCwsAPIURLTest)
 		}
 	}
 	if s.CWSMock == nil {
@@ -3404,11 +3423,11 @@ func (s *CloudSettings) SetDefaults() {
 	}
 
 	if s.Disable == nil {
-		s.Disable = NewPointer(false)
+		s.Disable = new(false)
 	}
 
 	if s.PreviewModalBucketURL == nil {
-		s.PreviewModalBucketURL = NewPointer("")
+		s.PreviewModalBucketURL = new("")
 	}
 }
 
@@ -3436,27 +3455,27 @@ type PluginSettings struct {
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.Enable == nil {
-		s.Enable = NewPointer(true)
+		s.Enable = new(true)
 	}
 
 	if s.EnableUploads == nil {
-		s.EnableUploads = NewPointer(false)
+		s.EnableUploads = new(false)
 	}
 
 	if s.AllowInsecureDownloadURL == nil {
-		s.AllowInsecureDownloadURL = NewPointer(false)
+		s.AllowInsecureDownloadURL = new(false)
 	}
 
 	if s.EnableHealthCheck == nil {
-		s.EnableHealthCheck = NewPointer(true)
+		s.EnableHealthCheck = new(true)
 	}
 
 	if s.Directory == nil || *s.Directory == "" {
-		s.Directory = NewPointer(PluginSettingsDefaultDirectory)
+		s.Directory = new(PluginSettingsDefaultDirectory)
 	}
 
 	if s.ClientDirectory == nil || *s.ClientDirectory == "" {
-		s.ClientDirectory = NewPointer(PluginSettingsDefaultClientDirectory)
+		s.ClientDirectory = new(PluginSettingsDefaultClientDirectory)
 	}
 
 	if s.Plugins == nil {
@@ -3488,23 +3507,23 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.EnableMarketplace == nil {
-		s.EnableMarketplace = NewPointer(PluginSettingsDefaultEnableMarketplace)
+		s.EnableMarketplace = new(PluginSettingsDefaultEnableMarketplace)
 	}
 
 	if s.EnableRemoteMarketplace == nil {
-		s.EnableRemoteMarketplace = NewPointer(true)
+		s.EnableRemoteMarketplace = new(true)
 	}
 
 	if s.AutomaticPrepackagedPlugins == nil {
-		s.AutomaticPrepackagedPlugins = NewPointer(true)
+		s.AutomaticPrepackagedPlugins = new(true)
 	}
 
 	if s.MarketplaceURL == nil || *s.MarketplaceURL == "" || *s.MarketplaceURL == PluginSettingsOldMarketplaceURL {
-		s.MarketplaceURL = NewPointer(PluginSettingsDefaultMarketplaceURL)
+		s.MarketplaceURL = new(PluginSettingsDefaultMarketplaceURL)
 	}
 
 	if s.RequirePluginSignature == nil {
-		s.RequirePluginSignature = NewPointer(false)
+		s.RequirePluginSignature = new(false)
 	}
 
 	if s.SignaturePublicKeyFiles == nil {
@@ -3512,7 +3531,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.ChimeraOAuthProxyURL == nil {
-		s.ChimeraOAuthProxyURL = NewPointer("")
+		s.ChimeraOAuthProxyURL = new("")
 	}
 }
 
@@ -3548,6 +3567,15 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 					break
 				}
 			}
+
+			for _, section := range manifest.SettingsSchema.Sections {
+				for _, definedSetting := range section.Settings {
+					if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
+						settings[key] = FakeSetting
+						break
+					}
+				}
+			}
 		}
 	}
 }
@@ -3570,19 +3598,19 @@ func (w *WranglerSettings) SetDefaults() {
 		w.AllowedEmailDomain = make([]string, 0)
 	}
 	if w.MoveThreadMaxCount == nil {
-		w.MoveThreadMaxCount = NewPointer(int64(100))
+		w.MoveThreadMaxCount = new(int64(100))
 	}
 	if w.MoveThreadToAnotherTeamEnable == nil {
-		w.MoveThreadToAnotherTeamEnable = NewPointer(false)
+		w.MoveThreadToAnotherTeamEnable = new(false)
 	}
 	if w.MoveThreadFromPrivateChannelEnable == nil {
-		w.MoveThreadFromPrivateChannelEnable = NewPointer(false)
+		w.MoveThreadFromPrivateChannelEnable = new(false)
 	}
 	if w.MoveThreadFromDirectMessageChannelEnable == nil {
-		w.MoveThreadFromDirectMessageChannelEnable = NewPointer(false)
+		w.MoveThreadFromDirectMessageChannelEnable = new(false)
 	}
 	if w.MoveThreadFromGroupMessageChannelEnable == nil {
-		w.MoveThreadFromGroupMessageChannelEnable = NewPointer(false)
+		w.MoveThreadFromGroupMessageChannelEnable = new(false)
 	}
 }
 
@@ -3612,7 +3640,7 @@ func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalS
 		if isUpdate && e.EnableSharedChannels != nil {
 			c.EnableSharedChannels = e.EnableSharedChannels
 		} else {
-			c.EnableSharedChannels = NewPointer(false)
+			c.EnableSharedChannels = new(false)
 		}
 	}
 
@@ -3620,28 +3648,28 @@ func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalS
 		if isUpdate && e.EnableRemoteClusterService != nil {
 			c.EnableRemoteClusterService = e.EnableRemoteClusterService
 		} else {
-			c.EnableRemoteClusterService = NewPointer(false)
+			c.EnableRemoteClusterService = new(false)
 		}
 	}
 
 	if c.DisableSharedChannelsStatusSync == nil {
-		c.DisableSharedChannelsStatusSync = NewPointer(false)
+		c.DisableSharedChannelsStatusSync = new(false)
 	}
 
 	if c.SyncUsersOnConnectionOpen == nil {
-		c.SyncUsersOnConnectionOpen = NewPointer(false)
+		c.SyncUsersOnConnectionOpen = new(false)
 	}
 
 	if c.GlobalUserSyncBatchSize == nil {
-		c.GlobalUserSyncBatchSize = NewPointer(25) // Default to MaxUsersPerSync
+		c.GlobalUserSyncBatchSize = new(25) // Default to MaxUsersPerSync
 	}
 
 	if c.MaxPostsPerSync == nil {
-		c.MaxPostsPerSync = NewPointer(ConnectedWorkspacesSettingsDefaultMaxPostsPerSync)
+		c.MaxPostsPerSync = new(ConnectedWorkspacesSettingsDefaultMaxPostsPerSync)
 	}
 
 	if c.MemberSyncBatchSize == nil {
-		c.MemberSyncBatchSize = NewPointer(ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize)
+		c.MemberSyncBatchSize = new(ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize)
 	}
 }
 
@@ -3657,25 +3685,25 @@ type GlobalRelayMessageExportSettings struct {
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	if s.CustomerType == nil {
-		s.CustomerType = NewPointer(GlobalrelayCustomerTypeA9)
+		s.CustomerType = new(GlobalrelayCustomerTypeA9)
 	}
 	if s.SMTPUsername == nil {
-		s.SMTPUsername = NewPointer("")
+		s.SMTPUsername = new("")
 	}
 	if s.SMTPPassword == nil {
-		s.SMTPPassword = NewPointer("")
+		s.SMTPPassword = new("")
 	}
 	if s.EmailAddress == nil {
-		s.EmailAddress = NewPointer("")
+		s.EmailAddress = new("")
 	}
 	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
-		s.SMTPServerTimeout = NewPointer(1800)
+		s.SMTPServerTimeout = new(1800)
 	}
 	if s.CustomSMTPServerName == nil {
-		s.CustomSMTPServerName = NewPointer("")
+		s.CustomSMTPServerName = new("")
 	}
 	if s.CustomSMTPPort == nil {
-		s.CustomSMTPPort = NewPointer("25")
+		s.CustomSMTPPort = new("25")
 	}
 }
 
@@ -3695,35 +3723,35 @@ type MessageExportSettings struct {
 
 func (s *MessageExportSettings) SetDefaults() {
 	if s.EnableExport == nil {
-		s.EnableExport = NewPointer(false)
+		s.EnableExport = new(false)
 	}
 
 	if s.DownloadExportResults == nil {
-		s.DownloadExportResults = NewPointer(false)
+		s.DownloadExportResults = new(false)
 	}
 
 	if s.ExportFormat == nil {
-		s.ExportFormat = NewPointer(ComplianceExportTypeActiance)
+		s.ExportFormat = new(ComplianceExportTypeActiance)
 	}
 
 	if s.DailyRunTime == nil {
-		s.DailyRunTime = NewPointer("01:00")
+		s.DailyRunTime = new("01:00")
 	}
 
 	if s.ExportFromTimestamp == nil {
-		s.ExportFromTimestamp = NewPointer(int64(0))
+		s.ExportFromTimestamp = new(int64(0))
 	}
 
 	if s.BatchSize == nil {
-		s.BatchSize = NewPointer(10000)
+		s.BatchSize = new(10000)
 	}
 
 	if s.ChannelBatchSize == nil || *s.ChannelBatchSize == 0 {
-		s.ChannelBatchSize = NewPointer(ComplianceExportChannelBatchSizeDefault)
+		s.ChannelBatchSize = new(ComplianceExportChannelBatchSizeDefault)
 	}
 
 	if s.ChannelHistoryBatchSize == nil || *s.ChannelHistoryBatchSize == 0 {
-		s.ChannelHistoryBatchSize = NewPointer(ComplianceExportChannelHistoryBatchSizeDefault)
+		s.ChannelHistoryBatchSize = new(ComplianceExportChannelHistoryBatchSizeDefault)
 	}
 
 	if s.GlobalRelaySettings == nil {
@@ -3744,7 +3772,7 @@ func (s *DisplaySettings) SetDefaults() {
 	}
 
 	if s.MaxMarkdownNodes == nil {
-		s.MaxMarkdownNodes = NewPointer(0)
+		s.MaxMarkdownNodes = new(0)
 	}
 }
 
@@ -3759,27 +3787,27 @@ type GuestAccountsSettings struct {
 
 func (s *GuestAccountsSettings) SetDefaults() {
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	if s.HideTags == nil {
-		s.HideTags = NewPointer(false)
+		s.HideTags = new(false)
 	}
 
 	if s.AllowEmailAccounts == nil {
-		s.AllowEmailAccounts = NewPointer(true)
+		s.AllowEmailAccounts = new(true)
 	}
 
 	if s.EnforceMultifactorAuthentication == nil {
-		s.EnforceMultifactorAuthentication = NewPointer(false)
+		s.EnforceMultifactorAuthentication = new(false)
 	}
 
 	if s.RestrictCreationToDomains == nil {
-		s.RestrictCreationToDomains = NewPointer("")
+		s.RestrictCreationToDomains = new("")
 	}
 
 	if s.EnableGuestMagicLink == nil {
-		s.EnableGuestMagicLink = NewPointer(false)
+		s.EnableGuestMagicLink = new(false)
 	}
 }
 
@@ -3802,19 +3830,19 @@ type ImageProxySettings struct {
 
 func (s *ImageProxySettings) SetDefaults() {
 	if s.Enable == nil {
-		s.Enable = NewPointer(false)
+		s.Enable = new(false)
 	}
 
 	if s.ImageProxyType == nil {
-		s.ImageProxyType = NewPointer(ImageProxyTypeLocal)
+		s.ImageProxyType = new(ImageProxyTypeLocal)
 	}
 
 	if s.RemoteImageProxyURL == nil {
-		s.RemoteImageProxyURL = NewPointer("")
+		s.RemoteImageProxyURL = new("")
 	}
 
 	if s.RemoteImageProxyOptions == nil {
-		s.RemoteImageProxyOptions = NewPointer("")
+		s.RemoteImageProxyOptions = new("")
 	}
 }
 
@@ -3841,11 +3869,11 @@ func (s *ImportSettings) isValid() *AppError {
 // SetDefaults applies the default settings to the struct.
 func (s *ImportSettings) SetDefaults() {
 	if s.Directory == nil || *s.Directory == "" {
-		s.Directory = NewPointer(ImportSettingsDefaultDirectory)
+		s.Directory = new(ImportSettingsDefaultDirectory)
 	}
 
 	if s.RetentionDays == nil {
-		s.RetentionDays = NewPointer(ImportSettingsDefaultRetentionDays)
+		s.RetentionDays = new(ImportSettingsDefaultRetentionDays)
 	}
 }
 
@@ -3872,31 +3900,26 @@ func (s *ExportSettings) isValid() *AppError {
 // SetDefaults applies the default settings to the struct.
 func (s *ExportSettings) SetDefaults() {
 	if s.Directory == nil || *s.Directory == "" {
-		s.Directory = NewPointer(ExportSettingsDefaultDirectory)
+		s.Directory = new(ExportSettingsDefaultDirectory)
 	}
 
 	if s.RetentionDays == nil {
-		s.RetentionDays = NewPointer(ExportSettingsDefaultRetentionDays)
+		s.RetentionDays = new(ExportSettingsDefaultRetentionDays)
 	}
 }
 
 type AccessControlSettings struct {
 	EnableAttributeBasedAccessControl *bool
-	EnableChannelScopeAccessControl   *bool
 	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
 	if s.EnableAttributeBasedAccessControl == nil {
-		s.EnableAttributeBasedAccessControl = NewPointer(false)
-	}
-
-	if s.EnableChannelScopeAccessControl == nil {
-		s.EnableChannelScopeAccessControl = NewPointer(true)
+		s.EnableAttributeBasedAccessControl = new(false)
 	}
 
 	if s.EnableUserManagedAttributes == nil {
-		s.EnableUserManagedAttributes = NewPointer(false)
+		s.EnableUserManagedAttributes = new(false)
 	}
 }
 
@@ -4059,7 +4082,7 @@ func (o *Config) SetDefaults() {
 	o.SamlSettings.SetDefaults()
 
 	if o.TeamSettings.TeammateNameDisplay == nil {
-		o.TeamSettings.TeammateNameDisplay = NewPointer(ShowUsername)
+		o.TeamSettings.TeammateNameDisplay = new(ShowUsername)
 
 		if *o.SamlSettings.Enable || *o.LdapSettings.Enable {
 			*o.TeamSettings.TeammateNameDisplay = ShowFullName
@@ -4169,6 +4192,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.NativeAppSettings.AreDownloadLinksValid(); appErr != nil {
+		return appErr
+	}
+
 	// Cross-reference validation: IntuneSettings requires either Office365 or SAML to be enabled
 	if o.IntuneSettings.Enable != nil && *o.IntuneSettings.Enable {
 		if o.IntuneSettings.AuthService != nil && *o.IntuneSettings.AuthService != "" {
@@ -4185,8 +4212,12 @@ func (o *Config) IsValid() *AppError {
 		}
 	}
 
-	if *o.PasswordSettings.MinimumLength < PasswordMinimumLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {
-		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]any{"MinLength": PasswordMinimumLength, "MaxLength": PasswordMaximumLength}, "", http.StatusBadRequest)
+	minPasswordLength := PasswordMinimumLength
+	if FIPSEnabled {
+		minPasswordLength = PasswordFIPSMinimumLength
+	}
+	if *o.PasswordSettings.MinimumLength < minPasswordLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {
+		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]any{"MinLength": minPasswordLength, "MaxLength": PasswordMaximumLength}, "", http.StatusBadRequest)
 	}
 
 	if appErr := o.RateLimitSettings.isValid(); appErr != nil {
@@ -4343,6 +4374,10 @@ func (s *SqlSettings) isValid() *AppError {
 
 	if *s.QueryTimeout <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_query_timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.AnalyticsQueryTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_analytics_query_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.DataSource == "" {
@@ -4651,6 +4686,12 @@ func (s *ServiceSettings) isValid() *AppError {
 		}
 	}
 
+	if *s.MinimumDesktopAppVersion != "" {
+		if _, err := semver.StrictNewVersion(*s.MinimumDesktopAppVersion); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.minimum_desktop_app_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+	}
+
 	host, port, _ := net.SplitHostPort(*s.ListenAddress)
 	var isValidHost bool
 	if host == "" {
@@ -4694,6 +4735,16 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.persistent_notifications_recipients.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	for _, pattern := range s.DCRRedirectURIAllowlist {
+		trimmed := strings.TrimSpace(pattern)
+		if trimmed == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !IsValidDCRRedirectURIPattern(trimmed) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	// we check if file has a valid parent, the server will try to create the socket
 	// file if it doesn't exist, but we need to be sure if the directory exist or not
 	if *s.EnableLocalMode {
@@ -4718,6 +4769,13 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", map[string]any{
 			"Searching":      "ElasticsearchSettings.EnableSearching",
 			"EnableIndexing": "ElasticsearchSettings.EnableIndexing",
+		}, "", http.StatusBadRequest)
+	}
+
+	if *s.EnableCJKAnalyzers && !*s.EnableSearching {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error", map[string]any{
+			"EnableCJKAnalyzers": "ElasticsearchSettings.EnableCJKAnalyzers",
+			"Searching":          "ElasticsearchSettings.EnableSearching",
 		}, "", http.StatusBadRequest)
 	}
 
@@ -4829,26 +4887,22 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 		if s.LibreTranslate == nil || s.LibreTranslate.URL == nil || *s.LibreTranslate.URL == "" || !IsValidHTTPURL(*s.LibreTranslate.URL) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.libretranslate.url.app_error", nil, "", http.StatusBadRequest)
 		}
-	// TODO: Enable Agents provider in future release
-	// case "agents":
-	// 	if s.Agents == nil || s.Agents.BotUserId == nil || *s.Agents.BotUserId == "" {
-	// 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
-	// 	}
+	case "agents":
+		if s.Agents == nil || s.Agents.LLMServiceID == nil || *s.Agents.LLMServiceID == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.llm_service_id.app_error", nil, "", http.StatusBadRequest)
+		}
 	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Validate timeouts if set
-	if s.TimeoutsMs != nil {
-		if s.TimeoutsMs.NewPost != nil && *s.TimeoutsMs.NewPost <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.new_post.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Fetch != nil && *s.TimeoutsMs.Fetch <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.fetch.app_error", nil, "", http.StatusBadRequest)
-		}
-		if s.TimeoutsMs.Notification != nil && *s.TimeoutsMs.Notification <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
-		}
+	// Validate timeout if set (must be positive)
+	if s.TimeoutMs != nil && *s.TimeoutMs <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate workers if set (must be between 1 and 64)
+	if s.Workers != nil && (*s.Workers < 1 || *s.Workers > 64) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.workers.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -4935,6 +4989,12 @@ func (s *ImageProxySettings) isValid() *AppError {
 			if *s.RemoteImageProxyOptions == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
 			}
+
+			// RemoteImageProxyOptions is used as the HMAC key for URL signing,
+			// so it is subject to the same FIPS minimum key length as passwords.
+			if FIPSEnabled && len(*s.RemoteImageProxyOptions) < PasswordFIPSMinimumLength {
+				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error", map[string]any{"MinLength": PasswordFIPSMinimumLength}, "", http.StatusBadRequest)
+			}
 		default:
 			return NewAppError("Config.IsValid", "model.config.is_valid.image_proxy_type.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -4997,6 +5057,10 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.FileSettings.AmazonS3SecretAccessKey = FakeSetting
 	}
 
+	if o.FileSettings.ExportAmazonS3SecretAccessKey != nil && *o.FileSettings.ExportAmazonS3SecretAccessKey != "" {
+		*o.FileSettings.ExportAmazonS3SecretAccessKey = FakeSetting
+	}
+
 	if o.EmailSettings.SMTPPassword != nil && *o.EmailSettings.SMTPPassword != "" {
 		*o.EmailSettings.SMTPPassword = FakeSetting
 	}
@@ -5029,6 +5093,10 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.ElasticsearchSettings.Password = FakeSetting
 	}
 
+	if o.ElasticsearchSettings.ClientKey != nil && *o.ElasticsearchSettings.ClientKey != "" {
+		*o.ElasticsearchSettings.ClientKey = FakeSetting
+	}
+
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = sanitizeDataSourceField(o.SqlSettings.DataSourceReplicas[i], "SqlSettings.DataSourceReplicas")
 	}
@@ -5040,7 +5108,7 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 	for i := range o.SqlSettings.ReplicaLagSettings {
 		if o.SqlSettings.ReplicaLagSettings[i].DataSource != nil {
 			sanitized := sanitizeDataSourceField(*o.SqlSettings.ReplicaLagSettings[i].DataSource, "SqlSettings.ReplicaLagSettings")
-			o.SqlSettings.ReplicaLagSettings[i].DataSource = NewPointer(sanitized)
+			o.SqlSettings.ReplicaLagSettings[i].DataSource = new(sanitized)
 		}
 	}
 
@@ -5054,56 +5122,60 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.ServiceSettings.SplitKey = FakeSetting
 	}
 
+	if o.ServiceSettings.GoogleDeveloperKey != nil && *o.ServiceSettings.GoogleDeveloperKey != "" {
+		*o.ServiceSettings.GoogleDeveloperKey = FakeSetting
+	}
+
+	if o.ServiceSettings.GiphySdkKey != nil && *o.ServiceSettings.GiphySdkKey != "" {
+		*o.ServiceSettings.GiphySdkKey = FakeSetting
+	}
+
 	if o.CacheSettings.RedisPassword != nil {
 		*o.CacheSettings.RedisPassword = FakeSetting
+	}
+
+	if o.AutoTranslationSettings.LibreTranslate != nil &&
+		o.AutoTranslationSettings.LibreTranslate.APIKey != nil &&
+		*o.AutoTranslationSettings.LibreTranslate.APIKey != "" {
+		*o.AutoTranslationSettings.LibreTranslate.APIKey = FakeSetting
 	}
 
 	o.PluginSettings.Sanitize(pluginManifests)
 }
 
-// SanitizeDataSource redacts sensitive information (username and password) from a database
+// SanitizeDataSource redacts sensitive information (username and password) from a PostgreSQL
 // connection string while preserving other connection parameters.
 //
-// Parameters:
-//   - driverName: The database driver name (postgres or mysql)
-//   - dataSource: The database connection string to sanitize
+// Example:
 //
-// Returns:
-//   - The sanitized connection string with username/password replaced by SanitizedPassword
-//   - An error if the driverName is not supported or if parsing fails
-//
-// Examples:
-//   - PostgreSQL: "postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
-//   - MySQL: "user:pass@tcp(host:3306)/db" -> "****:****@tcp(host:3306)/db"
+//	"postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
 func SanitizeDataSource(driverName, dataSource string) (string, error) {
-	// Handle empty data source
 	if dataSource == "" {
 		return "", nil
 	}
 
-	switch driverName {
-	case DatabaseDriverPostgres:
-		u, err := url.Parse(dataSource)
-		if err != nil {
-			return "", err
-		}
-		u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
-
-		// Remove username and password from query string
-		params := u.Query()
-		params.Del("user")
-		params.Del("password")
-		u.RawQuery = params.Encode()
-
-		// Unescape the URL to make it human-readable
-		out, err := url.QueryUnescape(u.String())
-		if err != nil {
-			return "", err
-		}
-		return out, nil
-	default:
-		return "", errors.New("invalid drivername. Not postgres or mysql.")
+	if driverName != DatabaseDriverPostgres {
+		return "", errors.New("invalid drivername: only postgres is supported")
 	}
+
+	u, err := url.Parse(dataSource)
+	if err != nil {
+		return "", err
+	}
+	u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
+
+	// Remove username and password from query string
+	params := u.Query()
+	params.Del("user")
+	params.Del("password")
+	u.RawQuery = params.Encode()
+
+	// Unescape the URL to make it human-readable
+	out, err := url.QueryUnescape(u.String())
+	if err != nil {
+		return "", err
+	}
+	return out, nil
 }
 
 type FilterTag struct {

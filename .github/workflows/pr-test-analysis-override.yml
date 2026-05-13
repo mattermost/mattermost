@@ -1,0 +1,34 @@
+---
+name: PR Test Analysis Override
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: test-analyzer-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  override:
+    permissions:
+      statuses: write
+      pull-requests: read
+      contents: read
+      issues: write
+    if: >-
+      github.repository == 'mattermost/mattermost' &&
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/test-analysis-override') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    # Pin to a commit SHA once the reusable workflow is stable. Using @main during initial rollout.
+    uses: mattermost/mattermost-test-automation-toolkit/.github/workflows/pr-test-analysis-override.yml@main
+    with:
+      pr_number: ${{ github.event.issue.number }}
+      target_repo: mattermost/mattermost
+      comment_body: ${{ github.event.comment.body }}
+      comment_id: ${{ github.event.comment.id }}
+      sender: ${{ github.event.comment.user.login }}
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_TEST_PR_ANALYSIS_HUB }}

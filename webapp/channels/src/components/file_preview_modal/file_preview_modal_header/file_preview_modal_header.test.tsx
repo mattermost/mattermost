@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import FilePreviewModalHeader from './file_preview_modal_header';
@@ -36,8 +36,8 @@ describe('components/file_preview_modal/file_preview_modal_header/FilePreviewMod
             ...defaultProps,
         };
 
-        const wrapper = shallow(<FilePreviewModalHeader {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FilePreviewModalHeader {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot the mobile view', () => {
@@ -46,7 +46,7 @@ describe('components/file_preview_modal/file_preview_modal_header/FilePreviewMod
             isMobileView: true,
         };
 
-        const wrapper = shallow(<FilePreviewModalHeader {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FilePreviewModalHeader {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 });

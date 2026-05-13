@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -167,22 +169,24 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <button
+                        <Button
                             type='button'
-                            className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
+                            emphasis='tertiary'
+                            className={classNames('prev', {disabled: firstPage})}
                             onClick={firstPage ? () => null : this.previousPage}
                             disabled={firstPage}
                         >
                             <PreviousIcon/>
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type='button'
-                            className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
+                            emphasis='tertiary'
+                            className={classNames('next', {disabled: lastPage})}
                             onClick={lastPage ? () => null : this.nextPage}
                             disabled={lastPage}
                         >
                             <NextIcon/>
-                        </button>
+                        </Button>
                     </div>
                 }
             </div>

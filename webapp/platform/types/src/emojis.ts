@@ -28,10 +28,8 @@ export type CustomEmoji = {
 export type SystemEmoji = {
     name: string;
     category: EmojiCategory;
-    image: string;
     short_name: string;
     short_names: string[];
-    batch: number;
     skins?: string[];
     skin_variations?: Record<string, SystemEmojiVariation>;
     unified: string;
@@ -63,3 +61,11 @@ export type RecentEmojiData = {
     name: string;
     usageCount: number;
 };
+
+export function isSystemEmoji(emoji: Emoji): emoji is SystemEmoji {
+    if ('category' in emoji) {
+        return emoji.category !== 'custom';
+    }
+
+    return !('id' in emoji);
+}
