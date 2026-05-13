@@ -100,6 +100,8 @@ func (api *API) InitChannel() {
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods(http.MethodPut)
+
+	api.initChannelJoinRequestRoutes()
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -142,6 +144,24 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if channel.Type == model.ChannelTypePrivate && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePrivateChannel) {
 		c.SetPermissionError(model.PermissionCreatePrivateChannel)
 		return
+	}
+
+	if channel.Discoverable {
+		if !c.App.Config().FeatureFlags.DiscoverableChannels {
+			c.Err = model.NewAppError("createChannel", "api.channel.discoverable_join_request.feature_disabled.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if channel.Type != model.ChannelTypePrivate {
+			c.Err = model.NewAppError("createChannel", "model.channel.is_valid.discoverable.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		// The team-scoped check is the closest analog to "would this user
+		// have permission to manage discoverability after the channel is
+		// created" — channel-scope grants don't exist yet at creation time.
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManagePrivateChannelDiscoverability) {
+			c.SetPermissionError(model.PermissionManagePrivateChannelDiscoverability)
+			return
+		}
 	}
 
 	sc, appErr := c.App.CreateChannelWithUser(c.AppContext, channel, c.AppContext.Session().UserId)
@@ -377,10 +397,34 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	updatingProperties := patch.DisplayName != nil || patch.Name != nil || patch.Header != nil || patch.Purpose != nil || patch.GroupConstrained != nil || patch.DefaultCategoryName != nil
 	updatingAutoTranslation := patch.AutoTranslation != nil
 	updatingManagedCategory := patch.ManagedCategoryName != nil
+	updatingDiscoverable := patch.Discoverable != nil
 
-	if !updatingProperties && !updatingAutoTranslation && patch.BannerInfo == nil && !updatingManagedCategory {
+	if !updatingProperties && !updatingAutoTranslation && patch.BannerInfo == nil && !updatingManagedCategory && !updatingDiscoverable {
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.no_changes.app_error", nil, "", http.StatusBadRequest)
 		return
+	}
+
+	if updatingDiscoverable {
+		if !c.App.Config().FeatureFlags.DiscoverableChannels {
+			c.Err = model.NewAppError("patchChannel", "api.channel.discoverable_join_request.feature_disabled.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if oldChannel.Type != model.ChannelTypePrivate {
+			c.Err = model.NewAppError("patchChannel", "model.channel.is_valid.discoverable.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if oldChannel.DeleteAt != 0 {
+			c.Err = model.NewAppError("patchChannel", "api.channel.update_channel.deleted.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if oldChannel.IsShared() {
+			c.Err = model.NewAppError("patchChannel", "api.channel.discoverable_join_request.shared.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelDiscoverability); !ok {
+			c.SetPermissionError(model.PermissionManagePrivateChannelDiscoverability)
+			return
+		}
 	}
 
 	if updatingAutoTranslation && (c.App.AutoTranslation() == nil || !c.App.AutoTranslation().IsFeatureAvailable()) {
@@ -806,7 +850,30 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		} else if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-			c.SetPermissionError(model.PermissionReadChannel)
+			// Non-members may still GET a discoverable private channel they
+			// would qualify for, so the Browse Channels modal can show
+			// metadata + Request to Join. Sanitize the response so we leak
+			// only the fields documented in plan §6c, and use 404 (not 403)
+			// when the user does not qualify so the policy doesn't act as an
+			// existence oracle.
+			user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+			if userErr != nil {
+				c.Err = userErr
+				return
+			}
+			allowed, allowedErr := c.App.IsDiscoverableJoinAllowed(c.AppContext, user, channel)
+			if allowedErr != nil {
+				c.Err = allowedErr
+				return
+			}
+			if !allowed {
+				c.Err = model.NewAppError("getChannel", "app.channel.get.existing.app_error", nil, "channel_id="+channel.Id, http.StatusNotFound)
+				return
+			}
+			channel = sanitizeDiscoverableChannel(channel)
+			if err := json.NewEncoder(w).Encode(channel); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
 			return
 		}
 	}
@@ -819,6 +886,30 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(channel); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// sanitizeDiscoverableChannel returns a copy of `channel` containing only the
+// fields safe to expose to a non-member who can see the channel through the
+// discoverable surface. Cell-level secrets such as Props or per-channel
+// scheme identifiers are stripped so this view is strictly read-only metadata.
+func sanitizeDiscoverableChannel(channel *model.Channel) *model.Channel {
+	if channel == nil {
+		return nil
+	}
+	return &model.Channel{
+		Id:             channel.Id,
+		TeamId:         channel.TeamId,
+		Type:           channel.Type,
+		DisplayName:    channel.DisplayName,
+		Name:           channel.Name,
+		Header:         channel.Header,
+		Purpose:        channel.Purpose,
+		Discoverable:   channel.Discoverable,
+		PolicyEnforced: channel.PolicyEnforced,
+		CreateAt:       channel.CreateAt,
+		UpdateAt:       channel.UpdateAt,
+		DeleteAt:       channel.DeleteAt,
 	}
 }
 
@@ -1646,6 +1737,15 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		// allows team admins to access private channel
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel); !ok {
+				if sanitized, sanitizedErr := serveDiscoverableChannelOr404(c, channel); sanitizedErr != nil {
+					c.Err = sanitizedErr
+					return
+				} else if sanitized != nil {
+					if err := json.NewEncoder(w).Encode(sanitized); err != nil {
+						c.Logger.Warn("Error while writing response", mlog.Err(err))
+					}
+					return
+				}
 				c.Err = model.NewAppError("getChannelByName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 				return
 			}
@@ -1661,6 +1761,26 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(channel); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// serveDiscoverableChannelOr404 returns a sanitized representation of a
+// non-member private channel when the calling user qualifies under the
+// discoverable visibility rules, or nil when the channel must remain
+// hidden. Errors are propagated; the nil/nil return means "fall through and
+// emit the original 404".
+func serveDiscoverableChannelOr404(c *Context, channel *model.Channel) (*model.Channel, *model.AppError) {
+	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if userErr != nil {
+		return nil, userErr
+	}
+	allowed, allowedErr := c.App.IsDiscoverableJoinAllowed(c.AppContext, user, channel)
+	if allowedErr != nil {
+		return nil, allowedErr
+	}
+	if !allowed {
+		return nil, nil
+	}
+	return sanitizeDiscoverableChannel(channel), nil
 }
 
 func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1686,6 +1806,15 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	} else if !channelOk {
 		// allows team admins to access private channel
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) {
+			if sanitized, sanitizedErr := serveDiscoverableChannelOr404(c, channel); sanitizedErr != nil {
+				c.Err = sanitizedErr
+				return
+			} else if sanitized != nil {
+				if err := json.NewEncoder(w).Encode(sanitized); err != nil {
+					c.Logger.Warn("Error while writing response", mlog.Err(err))
+				}
+				return
+			}
 			c.Err = model.NewAppError("getChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 			return
 		}
@@ -2252,8 +2381,24 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if channel.Type == model.ChannelTypePrivate {
 		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers); !hasPermission {
+			// Allow the user to self-add to a discoverable private channel only
+			// through the request flow — the discoverable toggle does not
+			// implicitly grant PermissionManagePrivateChannelMembers, and the
+			// existing addChannelMember API would otherwise let any caller
+			// bypass the queue by issuing a direct POST.
 			c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
 			return
+		}
+
+		// Discoverable + no policy: the request flow is the only path. Even
+		// admins use it to ensure the audit trail. We exempt the case where
+		// the requester is adding someone other than themselves so admin
+		// invites still work.
+		for _, userId := range userIds {
+			if c.App.IsDiscoverableSelfAddBlocked(c.AppContext, channel, c.AppContext.Session().UserId, userId) {
+				c.Err = model.NewAppError("addChannelMember", "api.channel.discoverable_join_request.discoverable_requires_approval.app_error", nil, "channel_id="+channel.Id, http.StatusForbidden)
+				return
+			}
 		}
 	}
 
