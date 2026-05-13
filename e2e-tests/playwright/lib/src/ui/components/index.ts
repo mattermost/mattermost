@@ -174,6 +174,7 @@ export {
     FlagPostConfirmationDialog,
     NewChannelModal,
     BrowseChannelsModal,
+    DirectChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
     MembersInvitedModal,

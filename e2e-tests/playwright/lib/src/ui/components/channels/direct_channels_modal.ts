@@ -31,10 +31,10 @@ export default class DirectChannelsModal {
             .locator('.more-modal__row:not(:has(.more-modal__gm-icon))')
             .getByText(`@${user.username}`, {exact: false});
 
-        await row.click({force: true});
+        await row.click();
 
         await expect(
-            this.container.getByRole('button', {name: `Remove ${user.username}`, includeHidden: true}),
+            this.container.getByRole('button', {name: `Remove ${user.username}`}),
         ).toBeVisible();
     }
 

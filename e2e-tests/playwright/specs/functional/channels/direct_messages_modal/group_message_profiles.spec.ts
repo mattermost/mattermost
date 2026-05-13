@@ -73,7 +73,7 @@ test(
         const otherGms = gmChannels.slice(1);
 
         // # Refresh the app and go back to Town Square
-        channelsPage.goto(team.name, 'town-square');
+        await channelsPage.goto(team.name, 'town-square');
 
         // * Verify the target GM is not present in the sidebar to ensure that the sidebar hasn't loaded it
         await expect(page.locator(`#sidebarItem_${targetGm.channel.name}`)).toHaveCount(0);

@@ -14,7 +14,7 @@ import {makeUseEntity} from './useEntity';
  * Returns a Set of user IDs in a given group channel. Those users are loaded from the server when needed.
  */
 export const useUserIdsInGroupChannel = makeUseEntity<Set<UserProfile['id']>>({
-    name: 'useProfilesInGroupChannel',
+    name: 'useUserIdsInGroupChannel',
     fetch: (channelId: string) => batchGetProfilesInGroupChannel(channelId),
     selector: (state: GlobalState, channelId: string) => {
         return getUserIdsInChannels(state)[channelId];
