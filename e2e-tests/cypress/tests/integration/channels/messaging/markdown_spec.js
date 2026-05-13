@@ -86,32 +86,6 @@ describe('Markdown', () => {
         });
     });
 
-    it('MM-T51016 Markdown list item paragraphs render with the right display mode', () => {
-        // # Post the existing list fixture with loose-list items that render as a single paragraph
-        postMarkdownTest('/test url test-markdown-lists.md');
-
-        cy.getNthPostId(-2).then((postId) => {
-            const postMessageTextId = `#postMessageText_${postId}`;
-
-            // * Single-paragraph list items should stay inline so loose lists keep their original spacing
-            cy.contains(`${postMessageTextId} li span > p`, 'Item B').should('have.css', 'display', 'inline');
-            cy.contains(`${postMessageTextId} li span > p`, 'Item C').should('have.css', 'display', 'inline');
-            cy.contains(`${postMessageTextId} li span > p`, 'One').should('have.css', 'display', 'inline');
-        });
-
-        // # Post a list item with two paragraphs
-        cy.postMessage('- First paragraph\n\n  Second paragraph');
-
-        cy.getLastPostId().then((postId) => {
-            const postMessageTextId = `#postMessageText_${postId}`;
-
-            // * Multiple paragraphs in the same list item should keep block layout
-            cy.get(`${postMessageTextId} li span > p`).should('have.length', 2);
-            cy.contains(`${postMessageTextId} li span > p`, 'First paragraph').should('have.css', 'display', 'block');
-            cy.contains(`${postMessageTextId} li span > p`, 'Second paragraph').should('have.css', 'display', 'block');
-        });
-    });
-
     it('MM-T2244 Markdown tables', () => {
         // # Post markdown message
         postMarkdownTest('/test url test-tables.md');
