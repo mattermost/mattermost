@@ -7,13 +7,16 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	"io"
+	"net/http"
 	"path"
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
@@ -65,7 +68,23 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 		serviceURL = fmt.Sprintf("%s://%s/%s/", scheme, strings.Trim(settings.AzureEndpoint, "/"), settings.AzureStorageAccount)
 	}
 
-	client, err := azblob.NewClientWithSharedKeyCredential(serviceURL, credential, nil)
+	var clientOptions *azblob.ClientOptions
+	if settings.SkipVerify {
+		// Mirror the S3 backend: when the admin opts into skipping TLS
+		// verification, plumb a custom transport into the SDK so the toggle
+		// actually takes effect for Azure too.
+		clientOptions = &azblob.ClientOptions{
+			ClientOptions: azcore.ClientOptions{
+				Transport: &http.Client{
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+					},
+				},
+			},
+		}
+	}
+
+	client, err := azblob.NewClientWithSharedKeyCredential(serviceURL, credential, clientOptions)
 	if err != nil {
 		return nil, pkgerr.Wrap(err, "failed to create azure blob client")
 	}
