@@ -479,9 +479,11 @@ func (ss *SqlStore) analyticsContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), time.Duration(*ss.settings.AnalyticsQueryTimeout)*time.Second)
 }
 
-// noTimeoutContext should only be used with queries that expect no client-side timeout.
+// noTimeoutContext returns a context that suppresses automatic timeout injection
+// by withQueryTimeout. Use only for queries that legitimately must be unbounded,
+// such as schema introspection or long-running migrations.
 func (ss *SqlStore) noTimeoutContext() context.Context {
-	return context.Background()
+	return context.WithValue(context.Background(), noTimeoutKey{}, true)
 }
 
 func (ss *SqlStore) monitorReplicas() {

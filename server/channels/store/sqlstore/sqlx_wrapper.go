@@ -145,6 +145,26 @@ func (w *sqlxDBWrapper) Rebind(query string) string {
 	return w.db.Rebind(query)
 }
 
+// noTimeoutKey is the context key that opts a context out of automatic timeout
+// injection by withQueryTimeout. Use noTimeoutContext() to create such a context.
+type noTimeoutKey struct{}
+
+// withQueryTimeout returns ctx unchanged if it already carries a deadline or
+// has been explicitly marked as timeout-exempt (via noTimeoutContext), otherwise
+// wraps it with the given timeout. Callers that complete synchronously should
+// defer the returned cancel. Callers that return a handle to be consumed later
+// (e.g. QueryRowContext) may discard it — the timer bounds any resource leak to
+// at most timeout duration.
+func withQueryTimeout(ctx context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
+	if _, ok := ctx.Deadline(); ok {
+		return ctx, func() {}
+	}
+	if ctx.Value(noTimeoutKey{}) != nil {
+		return ctx, func() {}
+	}
+	return context.WithTimeout(ctx, timeout)
+}
+
 func (w *sqlxDBWrapper) Begin() (*sqlxTxWrapper, error) {
 	tx, err := w.db.Beginx()
 	if err != nil {
@@ -242,10 +262,12 @@ func (w *sqlxDBWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 	return w.checkErrWithResult(w.db.ExecContext(ctx, query, args...))
 }
 
-// QueryRowContext forwards to the underlying *sqlx.DB with the caller-supplied context.
-// The caller is responsible for applying an appropriate timeout.
-func (w *sqlxDBWrapper) QueryRowContext(ctx context.Context, query string, args ...any) *sqlx.Row {
-	return w.db.QueryRowxContext(ctx, query, args...)
+// QueryRowContext forwards to the underlying *sqlx.DB, adding the wrapper timeout
+// if the caller's context carries no deadline. The cancel is released when the
+// caller calls Scan on the returned *sqlxRow.
+func (w *sqlxDBWrapper) QueryRowContext(ctx context.Context, query string, args ...any) *sqlxRow {
+	ctx, cancel := withQueryTimeout(ctx, w.queryTimeout)
+	return &sqlxRow{row: w.db.QueryRowxContext(ctx, query, args...), cancel: cancel}
 }
 
 func (w *sqlxDBWrapper) QueryRow(query string, args ...any) *sqlxRow {
@@ -279,9 +301,11 @@ func (w *sqlxDBWrapper) Query(query string, args ...any) (*sqlxRows, error) {
 	return &sqlxRows{Rows: rows, cancel: cancel}, nil
 }
 
-// ExecContext forwards to the underlying DB with the caller-supplied context.
-// The caller is responsible for applying an appropriate timeout.
+// ExecContext forwards to the underlying DB, adding the wrapper timeout if the
+// caller's context carries no deadline.
 func (w *sqlxDBWrapper) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+	ctx, cancel := withQueryTimeout(ctx, w.queryTimeout)
+	defer cancel()
 	return w.checkErrWithResult(w.db.ExecContext(ctx, query, args...))
 }
 
@@ -291,7 +315,7 @@ func (w *sqlxDBWrapper) Select(dest any, query string, args ...any) error {
 
 func (w *sqlxDBWrapper) SelectContext(ctx context.Context, dest any, query string, args ...any) error {
 	query = w.db.Rebind(query)
-	ctx, cancel := context.WithTimeout(ctx, w.queryTimeout)
+	ctx, cancel := withQueryTimeout(ctx, w.queryTimeout)
 	defer cancel()
 
 	if w.trace {

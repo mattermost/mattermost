@@ -168,6 +168,77 @@ func TestSqlxQueryRow(t *testing.T) {
 	})
 }
 
+func TestWithQueryTimeout(t *testing.T) {
+	t.Run("no deadline adds timeout", func(t *testing.T) {
+		timeout := 30 * time.Second
+		ctx, cancel := withQueryTimeout(context.Background(), timeout)
+		defer cancel()
+		deadline, ok := ctx.Deadline()
+		require.True(t, ok)
+		require.WithinDuration(t, time.Now().Add(timeout), deadline, time.Second)
+	})
+
+	t.Run("existing deadline is preserved", func(t *testing.T) {
+		originalDeadline := time.Now().Add(5 * time.Minute)
+		parent, parentCancel := context.WithDeadline(context.Background(), originalDeadline)
+		defer parentCancel()
+
+		ctx, cancel := withQueryTimeout(parent, 30*time.Second)
+		defer cancel()
+
+		deadline, ok := ctx.Deadline()
+		require.True(t, ok)
+		require.Equal(t, originalDeadline, deadline)
+	})
+
+	t.Run("no-op cancel is safe to call", func(t *testing.T) {
+		parent, parentCancel := context.WithTimeout(context.Background(), time.Minute)
+		defer parentCancel()
+
+		_, cancel := withQueryTimeout(parent, 30*time.Second)
+		require.NotPanics(t, func() { cancel() }) // calling the no-op cancel must not panic
+	})
+
+	t.Run("noTimeoutKey suppresses timeout injection", func(t *testing.T) {
+		ctx := context.WithValue(context.Background(), noTimeoutKey{}, true)
+		newCtx, cancel := withQueryTimeout(ctx, 30*time.Second)
+		defer cancel()
+		_, ok := newCtx.Deadline()
+		require.False(t, ok)
+	})
+}
+
+func TestSqlxSelectContext(t *testing.T) {
+	store := makeStoreWithTimeout(t, model.DatabaseDriverPostgres, 1*time.Second)
+
+	t.Run("adds timeout when context has none", func(t *testing.T) {
+		// context.Background() has no deadline — wrapper adds 1s; pg_sleep(2) times out.
+		var result []string
+		err := store.GetMaster().SelectContext(context.Background(), &result, "SELECT pg_sleep(2)")
+		requireQueryTimeout(t, err)
+	})
+
+	t.Run("respects caller deadline shorter than wrapper timeout", func(t *testing.T) {
+		// 1ns context fires before the query reaches the server.
+		ctx, cancel := context.WithTimeout(context.Background(), 1)
+		defer cancel()
+		var result []string
+		err := store.GetMaster().SelectContext(ctx, &result, "SELECT pg_sleep(2)")
+		requireQueryTimeout(t, err)
+	})
+
+	t.Run("respects caller deadline longer than wrapper timeout", func(t *testing.T) {
+		// Caller supplies a 5s deadline; wrapper queryTimeout is 1s.
+		// With "add only if missing" the 5s deadline is used — the 2s sleep completes.
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		var result []int
+		err := store.GetMaster().SelectContext(ctx, &result, "SELECT 1 FROM (SELECT pg_sleep(2)) s")
+		require.NoError(t, err)
+		require.Equal(t, []int{1}, result)
+	})
+}
+
 func TestSqlxSelect(t *testing.T) {
 	store := makeStoreWithTimeout(t, model.DatabaseDriverPostgres, 1*time.Second)
 
