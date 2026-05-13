@@ -142,12 +142,18 @@
                         .modal-header {
                             display: flex;
                             width: 100%;
+                            align-items: center;
                             background-color: var(--center-channel-bg);
 
                             .modal-title {
+                                display: flex;
                                 width: 100%;
+                                min-height: 40px;
+                                align-items: center;
+                                justify-content: center;
                                 max-width: 100%;
                                 padding: 0 40px;
+                                line-height: 28px;
                                 text-align: center;
 
                                 >span {
@@ -175,6 +181,11 @@
 
                 .settings-table {
                     padding: 0;
+
+                    .settings-links {
+                        width: 100%;
+                        border-right: 0;
+                    }
 
                     .nav {
                         position: relative;

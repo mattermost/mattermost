@@ -63,10 +63,15 @@
             height: 40px;
             align-items: center;
             justify-content: center;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: inherit;
             cursor: pointer;
             font-size: 27px;
             font-weight: normal;
             text-align: center;
+            z-index: 1;
         }
 
         .modal-body {
