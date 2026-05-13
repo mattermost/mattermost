@@ -139,7 +139,7 @@ func (s *SqlChannelJoinRequestStore) GetForChannel(channelId string, opts model.
 	limit, offset := paginate(opts)
 	listQuery := s.selectQuery.
 		Where(where).
-		OrderBy("CreateAt DESC").
+		OrderBy("CreateAt DESC", "Id DESC").
 		Limit(limit).
 		Offset(offset)
 
@@ -167,7 +167,7 @@ func (s *SqlChannelJoinRequestStore) GetForUser(userId string, opts model.GetCha
 	limit, offset := paginate(opts)
 	listQuery := s.selectQuery.
 		Where(where).
-		OrderBy("CreateAt DESC").
+		OrderBy("CreateAt DESC", "Id DESC").
 		Limit(limit).
 		Offset(offset)
 

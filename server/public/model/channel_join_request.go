@@ -73,16 +73,16 @@ func IsValidChannelJoinRequestStatus(s string) bool {
 
 func (r *ChannelJoinRequest) Auditable() map[string]any {
 	return map[string]any{
-		"id":            r.Id,
-		"channel_id":    r.ChannelId,
-		"user_id":       r.UserId,
-		"status":        r.Status,
-		"create_at":     r.CreateAt,
-		"update_at":     r.UpdateAt,
-		"reviewed_by":   r.ReviewedBy,
-		"reviewed_at":   r.ReviewedAt,
-		"has_message":   r.Message != "",
-		"denial_reason": r.DenialReason,
+		"id":                r.Id,
+		"channel_id":        r.ChannelId,
+		"user_id":           r.UserId,
+		"status":            r.Status,
+		"create_at":         r.CreateAt,
+		"update_at":         r.UpdateAt,
+		"reviewed_by":       r.ReviewedBy,
+		"reviewed_at":       r.ReviewedAt,
+		"has_message":       r.Message != "",
+		"has_denial_reason": r.DenialReason != "",
 	}
 }
 
