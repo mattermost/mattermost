@@ -6,6 +6,7 @@ package model
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -15,13 +16,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/pkg/errors"
-
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
-	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 )
 
 const (
@@ -72,47 +70,55 @@ const (
 	UserAuthServiceMagicLink = "magic_link"
 )
 
+// ErrPasswordTooLong is returned when the password exceeds
+// UserPasswordMaxLength bytes.
+var ErrPasswordTooLong = fmt.Errorf("password too long; maximum length in bytes: %d", UserPasswordMaxLength)
+
+type UserPasswordHasher interface {
+	Hash(password string) (string, error)
+}
+
 //msgp:tuple User
 
 // User contains the details about the user.
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
 // please run make gen-serialized.
 type User struct {
-	Id                     string      `json:"id"`
-	CreateAt               int64       `json:"create_at,omitempty"`
-	UpdateAt               int64       `json:"update_at,omitempty"`
-	DeleteAt               int64       `json:"delete_at"`
-	Username               string      `json:"username"`
-	Password               string      `json:"password,omitempty"`
-	AuthData               *string     `json:"auth_data,omitempty"`
-	AuthService            string      `json:"auth_service"`
-	Email                  string      `json:"email"`
-	EmailVerified          bool        `json:"email_verified,omitempty"`
-	Nickname               string      `json:"nickname"`
-	FirstName              string      `json:"first_name"`
-	LastName               string      `json:"last_name"`
-	Position               string      `json:"position"`
-	Roles                  string      `json:"roles"`
-	AllowMarketing         bool        `json:"allow_marketing,omitempty"`
-	Props                  StringMap   `json:"props,omitempty"`
-	NotifyProps            StringMap   `json:"notify_props,omitempty"`
-	LastPasswordUpdate     int64       `json:"last_password_update,omitempty"`
-	LastPictureUpdate      int64       `json:"last_picture_update,omitempty"`
-	FailedAttempts         int         `json:"failed_attempts,omitempty"`
-	Locale                 string      `json:"locale"`
-	Timezone               StringMap   `json:"timezone"`
-	MfaActive              bool        `json:"mfa_active,omitempty"`
-	MfaSecret              string      `json:"mfa_secret,omitempty"`
-	RemoteId               *string     `json:"remote_id,omitempty"`
-	LastActivityAt         int64       `json:"last_activity_at,omitempty"`
-	IsBot                  bool        `json:"is_bot,omitempty"`
-	BotDescription         string      `json:"bot_description,omitempty"`
-	BotLastIconUpdate      int64       `json:"bot_last_icon_update,omitempty"`
-	TermsOfServiceId       string      `json:"terms_of_service_id,omitempty"`
-	TermsOfServiceCreateAt int64       `json:"terms_of_service_create_at,omitempty"`
-	DisableWelcomeEmail    bool        `json:"disable_welcome_email"`
-	LastLogin              int64       `json:"last_login,omitempty"`
-	MfaUsedTimestamps      StringArray `json:"mfa_used_timestamps,omitempty"`
+	Id                     string      `json:"id" xml:"Id"`
+	CreateAt               int64       `json:"create_at,omitempty" xml:"CreateAt,omitempty"`
+	UpdateAt               int64       `json:"update_at,omitempty" xml:"UpdateAt,omitempty"`
+	DeleteAt               int64       `json:"delete_at" xml:"DeleteAt"`
+	Username               string      `json:"username" xml:"Username"`
+	Password               string      `json:"password,omitempty" xml:"-"`
+	AuthData               *string     `json:"auth_data,omitempty" xml:"-"`
+	AuthService            string      `json:"auth_service" xml:"AuthService"`
+	Email                  string      `json:"email" xml:"Email"`
+	EmailVerified          bool        `json:"email_verified,omitempty" xml:"EmailVerified,omitempty"`
+	Nickname               string      `json:"nickname" xml:"Nickname"`
+	FirstName              string      `json:"first_name" xml:"FirstName"`
+	LastName               string      `json:"last_name" xml:"LastName"`
+	Position               string      `json:"position" xml:"Position"`
+	Roles                  string      `json:"roles" xml:"Roles"`
+	AllowMarketing         bool        `json:"allow_marketing,omitempty" xml:"AllowMarketing,omitempty"`
+	Props                  StringMap   `json:"props,omitempty" xml:"Props,omitempty"`
+	NotifyProps            StringMap   `json:"notify_props,omitempty" xml:"NotifyProps,omitempty"`
+	LastPasswordUpdate     int64       `json:"last_password_update,omitempty" xml:"LastPasswordUpdate,omitempty"`
+	LastPictureUpdate      int64       `json:"last_picture_update,omitempty" xml:"LastPictureUpdate,omitempty"`
+	FailedAttempts         int         `json:"failed_attempts,omitempty" xml:"FailedAttempts,omitempty"`
+	Locale                 string      `json:"locale" xml:"Locale"`
+	Timezone               StringMap   `json:"timezone" xml:"Timezone"`
+	MfaActive              bool        `json:"mfa_active,omitempty" xml:"MfaActive,omitempty"`
+	MfaSecret              string      `json:"mfa_secret,omitempty" xml:"-"`
+	RemoteId               *string     `json:"remote_id,omitempty" xml:"RemoteId,omitempty"`
+	LastActivityAt         int64       `json:"last_activity_at,omitempty" xml:"LastActivityAt,omitempty"`
+	IsBot                  bool        `json:"is_bot,omitempty" xml:"IsBot,omitempty"`
+	BotDescription         string      `json:"bot_description,omitempty" xml:"BotDescription,omitempty"`
+	BotLastIconUpdate      int64       `json:"bot_last_icon_update,omitempty" xml:"BotLastIconUpdate,omitempty"`
+	TermsOfServiceId       string      `json:"terms_of_service_id,omitempty" xml:"TermsOfServiceId,omitempty"`
+	TermsOfServiceCreateAt int64       `json:"terms_of_service_create_at,omitempty" xml:"TermsOfServiceCreateAt,omitempty"`
+	DisableWelcomeEmail    bool        `json:"disable_welcome_email" xml:"DisableWelcomeEmail"`
+	LastLogin              int64       `json:"last_login,omitempty" xml:"LastLogin,omitempty"`
+	MfaUsedTimestamps      StringArray `json:"mfa_used_timestamps,omitempty" xml:"-"`
 }
 
 func (u *User) Auditable() map[string]any {
@@ -464,7 +470,7 @@ func NormalizeEmail(email string) string {
 // PreSave will set the Id and Username if missing.  It will also fill
 // in the CreateAt, UpdateAt times.  It will also hash the password.  It should
 // be run before saving the user to the db.
-func (u *User) PreSave() *AppError {
+func (u *User) PreSave(hasher UserPasswordHasher) *AppError {
 	if u.Id == "" {
 		u.Id = NewId()
 	}
@@ -511,13 +517,13 @@ func (u *User) PreSave() *AppError {
 	}
 
 	if u.Password != "" {
-		hashed, err := hashers.Hash(u.Password)
-		if errors.Is(err, hashers.ErrPasswordTooLong) {
+		hashed, err := hasher.Hash(u.Password)
+		if errors.Is(err, ErrPasswordTooLong) {
 			return NewAppError("User.PreSave", "model.user.pre_save.password_too_long.app_error",
 				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
 		} else if err != nil {
 			return NewAppError("User.PreSave", "model.user.pre_save.password_hash.app_error",
-				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
+				nil, "user_id="+u.Id, http.StatusInternalServerError).Wrap(err)
 		}
 		u.Password = hashed
 	}

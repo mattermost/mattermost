@@ -1,58 +1,20 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/ThreadViewer should match snapshot 1`] = `
-<Fragment>
+<div>
   <div
-    className="ThreadViewer"
+    class="ThreadViewer"
   >
     <div
-      className="post-right-comments-container"
+      class="post-right-comments-container"
     >
-      <FileUploadOverlay
-        id="threadView"
-        overlayType="right"
+      <div
+        data-testid="file-upload-overlay"
       />
-      <DeferredRenderWrapper
-        channelId="channel_id"
-        isThreadView={false}
-        key="id"
-        onCardClick={[Function]}
-        postIds={
-          Array [
-            "id",
-          ]
-        }
-        selected={
-          Object {
-            "channel_id": "channel_id",
-            "create_at": 1502715365009,
-            "delete_at": 0,
-            "edit_at": 0,
-            "hashtags": "",
-            "id": "id",
-            "is_following": true,
-            "is_pinned": false,
-            "message": "post message",
-            "metadata": Object {
-              "embeds": Array [],
-              "emojis": Array [],
-              "files": Array [],
-              "images": Object {},
-              "reactions": Array [],
-            },
-            "original_id": "",
-            "pending_post_id": "",
-            "props": Object {},
-            "reply_count": 3,
-            "root_id": "",
-            "type": "system_add_remove",
-            "update_at": 1502715372443,
-            "user_id": "user_id",
-          }
-        }
-        useRelativeTimestamp={false}
+      <div
+        data-testid="virtualized-thread-viewer"
       />
     </div>
   </div>
-</Fragment>
+</div>
 `;

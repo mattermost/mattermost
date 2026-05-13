@@ -10,13 +10,13 @@
 // Stage: @prod
 // Group: @channels @enterprise @onboarding
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {generateRandomUser} from '../../../support/api/user';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {generateRandomUser} from '@/support/api/user';
 import {
     getWelcomeEmailTemplate,
     reUrl,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 describe('Onboarding', () => {
     let siteName;

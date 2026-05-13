@@ -280,21 +280,214 @@ func TestCreateTeamInviteIdHiddenWithoutInvitePermission(t *testing.T) {
 	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 
-	// Remove PermissionInviteUser from the default team user role
+	// team_admin inherits from team_user by default, so removing from team_user is enough.
 	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
 
-	// Regular user creates a team - InviteId should be hidden
-	// since the team user role lacks invite permission
 	rteam, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
-		DisplayName:    "Team Without Invite Permission",
-		Name:           GenerateTestTeamName(),
-		Email:          th.GenerateTestEmail(),
-		Type:           model.TeamOpen,
-		AllowedDomains: "simulator.amazonses.com,localhost",
+		DisplayName: "Team Without Invite Permission",
+		Name:        GenerateTestTeamName(),
+		Email:       th.GenerateTestEmail(),
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, rteam.Email, "should not have sanitized email")
 	require.Empty(t, rteam.InviteId, "should have hidden invite_id when user lacks invite permission")
+}
+
+func TestCreateTeamInviteUserPermission(t *testing.T) {
+	th := Setup(t)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+	t.Run("AllowOpenInvite=true is rejected with 403", func(t *testing.T) {
+		_, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{
+			DisplayName:     "Open Invite Team Without Permission",
+			Name:            GenerateTestTeamName(),
+			Email:           th.GenerateTestEmail(),
+			Type:            model.TeamOpen,
+			AllowOpenInvite: true,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("non-empty AllowedDomains is rejected with 403", func(t *testing.T) {
+		creatorDomain := strings.SplitN(th.BasicUser.Email, "@", 2)[1]
+
+		_, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{
+			DisplayName:    "Restricted Domains Team Without Permission",
+			Name:           GenerateTestTeamName(),
+			Email:          th.GenerateTestEmail(),
+			Type:           model.TeamOpen,
+			AllowedDomains: creatorDomain,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("team without invite-restricted fields is still created", func(t *testing.T) {
+		createdTeam, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{
+			DisplayName: "Plain Team Without Invite Permission",
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.False(t, createdTeam.AllowOpenInvite)
+		assert.Empty(t, createdTeam.AllowedDomains)
+		assert.Empty(t, createdTeam.InviteId, "InviteId should be hidden from creators that can't invite users")
+	})
+}
+
+func TestCreateTeamInviteUserPermissionSystemAdmin(t *testing.T) {
+	th := Setup(t)
+	creatorDomain := strings.SplitN(th.SystemAdminUser.Email, "@", 2)[1]
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+	createdTeam, resp, err := th.SystemAdminClient.CreateTeam(context.Background(), &model.Team{
+		DisplayName:     "System Admin Team With Invite Permission",
+		Name:            GenerateTestTeamName(),
+		Email:           th.GenerateTestEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: true,
+		AllowedDomains:  creatorDomain,
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	assert.True(t, createdTeam.AllowOpenInvite, "system admins should still be able to create open invite teams")
+	assert.Equal(t, creatorDomain, createdTeam.AllowedDomains, "system admins should still be able to set allowed domains")
+	require.NotEmpty(t, createdTeam.InviteId, "system admins should receive the invite_id when they can invite users")
+
+	persistedTeam, _, err := th.SystemAdminClient.GetTeam(context.Background(), createdTeam.Id, "")
+	require.NoError(t, err)
+
+	assert.True(t, persistedTeam.AllowOpenInvite, "system admins should persist open invite team settings")
+	assert.Equal(t, creatorDomain, persistedTeam.AllowedDomains, "system admins should persist allowed domains")
+}
+
+// Exercises the scheme branch of creatorCanInviteUsersOnTeam.
+func TestCreateTeamInviteUserPermissionScheme(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	// Remove InviteUser from the built-in team roles; new schemes inherit from these at creation, so their defaults start without it too.
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+	// SystemManager has SchemeWrite but not system-level InviteUser, so it exercises the scheme branch.
+	th.LoginSystemManager(t)
+	managerClient := th.SystemManagerClient
+
+	t.Run("scheme admin role grants InviteUser - create succeeds", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, scheme.DefaultTeamAdminRole)
+		require.NotEmpty(t, scheme.DefaultTeamUserRole)
+
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, scheme.DefaultTeamAdminRole)
+
+		rteam, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName:     "Scheme Team With Invite " + model.NewId(),
+			Name:            GenerateTestTeamName(),
+			Email:           th.GenerateTestEmail(),
+			Type:            model.TeamOpen,
+			SchemeId:        &scheme.Id,
+			AllowOpenInvite: true,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.True(t, rteam.AllowOpenInvite, "AllowOpenInvite should be preserved when scheme grants InviteUser")
+		assert.NotEmpty(t, rteam.InviteId, "InviteId should be returned when scheme grants InviteUser")
+	})
+
+	t.Run("scheme roles do not grant InviteUser - create is rejected", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+
+		_, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName:     "Scheme Team Without Invite " + model.NewId(),
+			Name:            GenerateTestTeamName(),
+			Email:           th.GenerateTestEmail(),
+			Type:            model.TeamOpen,
+			SchemeId:        &scheme.Id,
+			AllowOpenInvite: true,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("scheme roles do not grant InviteUser but no invite-restricted fields - create succeeds with hidden invite_id", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+
+		rteam, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName: "Scheme Team Without Invite Fields " + model.NewId(),
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+			SchemeId:    &scheme.Id,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.Empty(t, rteam.InviteId, "InviteId should be hidden when scheme does not grant InviteUser")
+	})
+
+	t.Run("scheme admin role grants InviteUser but no invite-restricted fields - create succeeds with invite_id", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, scheme.DefaultTeamAdminRole)
+
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, scheme.DefaultTeamAdminRole)
+
+		rteam, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName: "Scheme Team Invite Via Defaults Only " + model.NewId(),
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+			SchemeId:    &scheme.Id,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.False(t, rteam.AllowOpenInvite)
+		assert.Empty(t, rteam.AllowedDomains)
+		assert.NotEmpty(t, rteam.InviteId, "InviteId should be returned when scheme grants InviteUser without open invite or domain restrictions")
+	})
 }
 
 func TestGetTeam(t *testing.T) {
@@ -3055,15 +3248,16 @@ func TestAddTeamMembersDomainConstrained(t *testing.T) {
 	require.NoError(t, err)
 
 	// create two users on allowed domains
+	password := model.NewTestPassword()
 	user1, _, err := client.CreateUser(context.Background(), &model.User{
 		Email:    "user@domain1.com",
-		Password: "Pa$$word11",
+		Password: password,
 		Username: GenerateTestUsername(),
 	})
 	require.NoError(t, err)
 	user2, _, err := client.CreateUser(context.Background(), &model.User{
 		Email:    "user@domain2.com",
-		Password: "Pa$$word11",
+		Password: password,
 		Username: GenerateTestUsername(),
 	})
 	require.NoError(t, err)
@@ -3552,7 +3746,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 		Nickname:      "nn_" + id,
 		FirstName:     "f_" + id,
 		LastName:      "l_" + id,
-		Password:      "Pa$$word11",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 	guest, appError := th.App.CreateGuest(th.Context, guest)
@@ -4606,5 +4800,253 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 		res, err := th.SystemAdminClient.InvalidateEmailInvites(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, res)
+	})
+}
+
+func setupTeamWithAdminAndMember(t *testing.T, th *TestHelper) *model.Client4 {
+	t.Helper()
+	th.UpdateUserToTeamAdmin(t, th.BasicUser2, th.BasicTeam)
+	require.Nil(t, th.App.Srv().InvalidateAllCaches())
+	teamAdminClient := th.CreateClient()
+	_, _, err := teamAdminClient.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
+	require.NoError(t, err)
+	return teamAdminClient
+}
+
+func assertRoleDataSanitized(t *testing.T, m *model.TeamMember) {
+	t.Helper()
+	assert.Empty(t, m.Roles)
+	assert.Empty(t, m.ExplicitRoles)
+	assert.False(t, m.SchemeAdmin)
+	assert.False(t, m.SchemeGuest)
+	assert.False(t, m.SchemeUser)
+	assert.Equal(t, int64(-1), m.DeleteAt)
+}
+
+func TestGetTeamMembersRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("non-admin cannot see role data of others", func(t *testing.T) {
+		members, _, err := th.Client.GetTeamMembers(context.Background(), th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+
+		for _, m := range members {
+			if m.UserId != th.BasicUser.Id {
+				assertRoleDataSanitized(t, m)
+			}
+		}
+	})
+
+	t.Run("non-admin sees own role data", func(t *testing.T) {
+		members, _, err := th.Client.GetTeamMembers(context.Background(), th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+
+		for _, m := range members {
+			if m.UserId == th.BasicUser.Id {
+				assert.True(t, m.SchemeUser)
+				return
+			}
+		}
+		require.Fail(t, "current user not found in members")
+	})
+
+	t.Run("team admin sees full role data for other user", func(t *testing.T) {
+		members, _, err := teamAdminClient.GetTeamMembers(context.Background(), th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+
+		for _, m := range members {
+			if m.UserId == th.BasicUser.Id {
+				assert.True(t, m.SchemeUser)
+				return
+			}
+		}
+		require.Fail(t, "target user not found in members")
+	})
+
+	t.Run("system admin sees full role data", func(t *testing.T) {
+		members, _, err := th.SystemAdminClient.GetTeamMembers(context.Background(), th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+
+		for _, m := range members {
+			if m.UserId == th.BasicUser2.Id {
+				assert.True(t, m.SchemeAdmin)
+				return
+			}
+		}
+		require.Fail(t, "team admin not found in members")
+	})
+}
+
+func TestGetTeamMemberRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("non-admin cannot see role data of others", func(t *testing.T) {
+		member, _, err := th.Client.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		assertRoleDataSanitized(t, member)
+	})
+
+	t.Run("non-admin sees own role data", func(t *testing.T) {
+		member, _, err := th.Client.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		assert.True(t, member.SchemeUser)
+	})
+
+	t.Run("team admin sees full role data for other user", func(t *testing.T) {
+		member, _, err := teamAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		assert.True(t, member.SchemeUser)
+	})
+
+	t.Run("system admin sees full role data", func(t *testing.T) {
+		member, _, err := th.SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		assert.True(t, member.SchemeAdmin)
+	})
+}
+
+func TestGetTeamMembersByIdsRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("non-admin cannot see role data of others", func(t *testing.T) {
+		members, _, err := th.Client.GetTeamMembersByIds(context.Background(), th.BasicTeam.Id, []string{th.BasicUser2.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assertRoleDataSanitized(t, members[0])
+	})
+
+	t.Run("non-admin sees own role data", func(t *testing.T) {
+		members, _, err := th.Client.GetTeamMembersByIds(context.Background(), th.BasicTeam.Id, []string{th.BasicUser.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assert.True(t, members[0].SchemeUser)
+	})
+
+	t.Run("team admin sees full role data for other user", func(t *testing.T) {
+		members, _, err := teamAdminClient.GetTeamMembersByIds(context.Background(), th.BasicTeam.Id, []string{th.BasicUser.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assert.True(t, members[0].SchemeUser)
+	})
+
+	t.Run("system admin sees full role data", func(t *testing.T) {
+		members, _, err := th.SystemAdminClient.GetTeamMembersByIds(context.Background(), th.BasicTeam.Id, []string{th.BasicUser2.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assert.True(t, members[0].SchemeAdmin)
+	})
+}
+
+func TestAddTeamMemberRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("team admin adding user sees full role data in response", func(t *testing.T) {
+		newUser := th.CreateUser(t)
+		tm, _, err := teamAdminClient.AddTeamMember(context.Background(), th.BasicTeam.Id, newUser.Id)
+		require.NoError(t, err)
+		assert.True(t, tm.SchemeUser)
+	})
+
+	t.Run("non-admin adding user sees sanitized role data in response", func(t *testing.T) {
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.AddPermissionToRole(t, model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
+
+		newUser := th.CreateUser(t)
+		tm, _, err := th.Client.AddTeamMember(context.Background(), th.BasicTeam.Id, newUser.Id)
+		require.NoError(t, err)
+		assertRoleDataSanitized(t, tm)
+	})
+}
+
+func TestAddTeamMembersRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("team admin adding users sees full role data in response", func(t *testing.T) {
+		newUser := th.CreateUser(t)
+		members, _, err := teamAdminClient.AddTeamMembers(context.Background(), th.BasicTeam.Id, []string{newUser.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assert.True(t, members[0].SchemeUser)
+	})
+
+	t.Run("non-admin adding users sees sanitized role data in response", func(t *testing.T) {
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.AddPermissionToRole(t, model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
+
+		newUser := th.CreateUser(t)
+		members, _, err := th.Client.AddTeamMembers(context.Background(), th.BasicTeam.Id, []string{newUser.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assertRoleDataSanitized(t, members[0])
+	})
+}
+
+func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("user sees own role data", func(t *testing.T) {
+		members, _, err := th.Client.GetTeamMembersForUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			assert.True(t, m.SchemeUser)
+		}
+	})
+
+	t.Run("non-admin cannot see role data of another user", func(t *testing.T) {
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.AddPermissionToRole(t, model.PermissionReadOtherUsersTeams.Id, model.SystemUserRoleId)
+
+		members, _, err := th.Client.GetTeamMembersForUser(context.Background(), th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			assertRoleDataSanitized(t, m)
+		}
+	})
+
+	t.Run("team admin sees full role data for other user in managed team", func(t *testing.T) {
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.AddPermissionToRole(t, model.PermissionReadOtherUsersTeams.Id, model.SystemUserRoleId)
+
+		members, _, err := teamAdminClient.GetTeamMembersForUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			if m.TeamId == th.BasicTeam.Id {
+				assert.True(t, m.SchemeUser)
+				return
+			}
+		}
+		require.Fail(t, "basic team membership not found")
+	})
+
+	t.Run("system admin sees full role data", func(t *testing.T) {
+		members, _, err := th.SystemAdminClient.GetTeamMembersForUser(context.Background(), th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			if m.TeamId == th.BasicTeam.Id {
+				assert.True(t, m.SchemeAdmin)
+				return
+			}
+		}
+		require.Fail(t, "basic team membership not found")
 	})
 }

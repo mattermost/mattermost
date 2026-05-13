@@ -13,8 +13,8 @@ test('displays and allows editing of authentication data field', {tag: '@user_ma
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Generate unique auth data to avoid unique constraint errors
-    const originalAuthData = `auth-data-${await pw.random.id()}`;
-    const newAuthData = `auth-data-${await pw.random.id()}`;
+    const originalAuthData = `auth-data-${pw.random.id()}`;
+    const newAuthData = `auth-data-${pw.random.id()}`;
 
     // # Update user to have an auth service (simulate SAML/LDAP user)
     await adminClient.updateUserAuth(user.id, {
@@ -60,7 +60,7 @@ test('disables email and username fields for users with auth service', {tag: '@u
     // # Update user to have an auth service
     await adminClient.updateUserAuth(user.id, {
         auth_service: 'ldap',
-        auth_data: `ldap-user-data-${await pw.random.id()}`,
+        auth_data: `ldap-user-data-${pw.random.id()}`,
     });
 
     // # Navigate to user detail page
@@ -102,8 +102,8 @@ test('allows editing email and username fields for regular users', {tag: '@user_
     await expect(userCard.usernameInput).toBeEnabled();
 
     // # Update both email and username
-    const newEmail = `updated-${await pw.random.id()}@example.com`;
-    const newUsername = `updated-${await pw.random.id()}`;
+    const newEmail = `updated-${pw.random.id()}@example.com`;
+    const newUsername = `updated-${pw.random.id()}`;
 
     await userCard.emailInput.clear();
     await userCard.emailInput.fill(newEmail);
@@ -173,7 +173,7 @@ test('allows cancelling save confirmation dialog', {tag: '@user_management'}, as
     const {userDetail} = systemConsolePage.users;
 
     // # Update email field
-    const newEmail = `cancelled-${await pw.random.id()}@example.com`;
+    const newEmail = `cancelled-${pw.random.id()}@example.com`;
     await userDetail.userCard.emailInput.clear();
     await userDetail.userCard.emailInput.fill(newEmail);
 

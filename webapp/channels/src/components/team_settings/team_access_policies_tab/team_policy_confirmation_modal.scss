@@ -1,0 +1,24 @@
+.TeamPolicyConfirmationModal {
+    .modal-body {
+        padding: 0 24px 24px;
+    }
+
+    &__body {
+        p {
+            margin: 0 0 16px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
+            line-height: 20px;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    &__footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+}

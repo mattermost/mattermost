@@ -4,11 +4,18 @@
 package platform
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path"
+	"runtime"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/goccy/go-yaml"
@@ -37,8 +44,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	// Set MM_LOG_PATH to allow log file reads from our temp directory
-	t.Setenv("MM_LOG_PATH", dir)
+	// Override log root path to allow log file reads from our temp directory
+	th.Service.SetLogRootPathOverride(dir)
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
@@ -165,7 +172,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 func TestGetSupportPacketDiagnostics(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	t.Setenv(envVarInstallType, "docker")
+	th.Service.installTypeOverride = "docker"
 
 	licenseUsers := 100
 	license := model.NewTestLicense("ldap")
@@ -206,9 +213,20 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, d.Server.Hostname)
 		assert.Equal(t, model.CurrentVersion, d.Server.Version)
 		// BuildHash is not present in tests
+		assert.NotEmpty(t, d.Server.GoVersion)
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
 		assert.Positive(t, d.Server.TotalMemoryMB)
+		assert.True(t, d.Server.OpenFileDescriptors == -1 || d.Server.OpenFileDescriptors > 0, "OpenFileDescriptors should be -1 (unsupported) or positive, got %d", d.Server.OpenFileDescriptors)
+		assert.True(t, d.Server.MaxFileDescriptors == -1 || d.Server.MaxFileDescriptors > 0, "MaxFileDescriptors should be -1 (unsupported) or positive, got %d", d.Server.MaxFileDescriptors)
+		assert.Positive(t, d.Server.ProcessID)
+		assert.False(t, d.Server.StartedAt.IsZero())
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+			assert.False(t, d.Server.HostStartedAt.IsZero())
+			assert.True(t, !d.Server.HostStartedAt.After(d.Server.StartedAt))
+		} else {
+			assert.True(t, d.Server.HostStartedAt.IsZero(), "HostStartedAt should be zero on unsupported platforms")
+		}
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)
@@ -225,6 +243,15 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "OK", d.FileStore.Status)
 		assert.Empty(t, d.FileStore.Error)
 		assert.Equal(t, "local", d.FileStore.Driver)
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+			assert.NotEmpty(t, d.FileStore.FilesystemType, "FilesystemType should not be empty on supported platforms")
+			assert.Positive(t, d.FileStore.TotalMB, "TotalMB should be positive on supported platforms")
+			assert.Positive(t, d.FileStore.AvailableMB, "AvailableMB should be positive on supported platforms")
+		} else {
+			assert.Empty(t, d.FileStore.FilesystemType)
+			assert.Zero(t, d.FileStore.TotalMB)
+			assert.Zero(t, d.FileStore.AvailableMB)
+		}
 
 		/* Websockets */
 		assert.Zero(t, d.Websocket.Connections)
@@ -234,7 +261,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Zero(t, d.Cluster.NumberOfNodes)
 
 		/* LDAP */
-		assert.Empty(t, d.LDAP.Status)
+		assert.Equal(t, model.StatusDisabled, d.LDAP.Status)
 		assert.Empty(t, d.LDAP.Error)
 		assert.Empty(t, d.LDAP.ServerName)
 		assert.Empty(t, d.LDAP.ServerVersion)
@@ -243,6 +270,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, d.SAML.ProviderType)
 
 		/* Elastic Search */
+		assert.Equal(t, model.StatusDisabled, d.ElasticSearch.Status)
 		assert.Empty(t, d.ElasticSearch.ServerVersion)
 		assert.Empty(t, d.ElasticSearch.ServerPlugins)
 	})
@@ -261,6 +289,28 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "mock", packet.FileStore.Driver)
 	})
 
+	t.Run("s3 driver omits disk space fields", func(t *testing.T) {
+		orig := th.Service.filestore
+		t.Cleanup(func() {
+			err := SetFileStore(orig)(th.Service)
+			require.NoError(t, err)
+		})
+
+		fb := &fmocks.FileBackend{}
+		err := SetFileStore(fb)(th.Service)
+		require.NoError(t, err)
+		fb.On("DriverName").Return("amazons3")
+		fb.On("TestConnection").Return(nil)
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, "OK", packet.FileStore.Status)
+		assert.Equal(t, "amazons3", packet.FileStore.Driver)
+		assert.Empty(t, packet.FileStore.FilesystemType)
+		assert.Zero(t, packet.FileStore.TotalMB)
+		assert.Zero(t, packet.FileStore.AvailableMB)
+	})
+
 	t.Run("no LDAP info if LDAP sync is disabled", func(t *testing.T) {
 		ldapMock := &emocks.LdapDiagnosticInterface{}
 		originalLDAP := th.Service.ldapDiagnostic
@@ -271,6 +321,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
+		assert.Equal(t, model.StatusDisabled, packet.LDAP.Status)
 		assert.Equal(t, "", packet.LDAP.ServerName)
 		assert.Equal(t, "", packet.LDAP.ServerVersion)
 	})
@@ -432,6 +483,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
+		assert.Equal(t, model.StatusDisabled, packet.ElasticSearch.Status)
 		assert.Equal(t, model.ElasticsearchSettingsESBackend, packet.ElasticSearch.Backend)
 		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
 		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
@@ -456,6 +508,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
+		assert.Equal(t, model.StatusOk, packet.ElasticSearch.Status)
 		assert.Equal(t, model.ElasticsearchSettingsOSBackend, packet.ElasticSearch.Backend)
 		assert.Equal(t, "2.5.0", packet.ElasticSearch.ServerVersion)
 		assert.Equal(t, []string{"opensearch-plugin"}, packet.ElasticSearch.ServerPlugins)
@@ -481,14 +534,177 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
+		assert.Equal(t, model.StatusFail, packet.ElasticSearch.Status)
 		assert.Equal(t, model.ElasticsearchSettingsESBackend, packet.ElasticSearch.Backend)
 		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
 		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
 		assert.Equal(t, "TestConfig: ent.elasticsearch.test_config.connection_failed, connection refused", packet.ElasticSearch.Error)
 	})
+
+	t.Run("push notifications disabled", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusDisabled, packet.Notifications.Push.Status)
+		assert.Empty(t, packet.Notifications.Push.Error)
+	})
+
+	t.Run("push notifications reachable", func(t *testing.T) {
+		pushServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			require.Equal(t, "/version", r.URL.Path)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer pushServer.Close()
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+			cfg.EmailSettings.PushNotificationServer = model.NewPointer(pushServer.URL)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+				cfg.EmailSettings.PushNotificationServer = model.NewPointer(model.GenericNotificationServer)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusOk, packet.Notifications.Push.Status)
+		assert.Empty(t, packet.Notifications.Push.Error)
+	})
+
+	t.Run("push notifications unreachable", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+			cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://localhost:1")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+				cfg.EmailSettings.PushNotificationServer = model.NewPointer(model.GenericNotificationServer)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.Notifications.Push.Status)
+		assert.NotEmpty(t, packet.Notifications.Push.Error)
+	})
+
+	t.Run("email notifications disabled", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendEmailNotifications = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusDisabled, packet.Notifications.Email.Status)
+		assert.Empty(t, packet.Notifications.Email.Error)
+	})
+
+	t.Run("email notifications reachable", func(t *testing.T) {
+		l, listenErr := net.Listen("tcp", "127.0.0.1:0")
+		require.NoError(t, listenErr)
+		defer l.Close()
+
+		go func() {
+			for {
+				conn, err := l.Accept()
+				if err != nil {
+					return
+				}
+				go func(c net.Conn) {
+					defer c.Close()
+					rw := bufio.NewReadWriter(bufio.NewReader(c), bufio.NewWriter(c))
+					_, _ = rw.WriteString("220 localhost ESMTP Test\r\n")
+					rw.Flush()
+					for {
+						line, err := rw.ReadString('\n')
+						if err != nil {
+							return
+						}
+						if strings.HasPrefix(strings.ToUpper(strings.TrimSpace(line)), "QUIT") {
+							_, _ = rw.WriteString("221 Bye\r\n")
+							rw.Flush()
+							return
+						}
+						_, _ = rw.WriteString("250 OK\r\n")
+						rw.Flush()
+					}
+				}(conn)
+			}
+		}()
+
+		tcpAddr := l.Addr().(*net.TCPAddr)
+		smtpPort := strconv.Itoa(tcpAddr.Port)
+
+		// MM_EMAILSETTINGS_SMTPSERVER may be set in CI and would override UpdateConfig.
+		// Use t.Setenv so the env var is updated before UpdateConfig calls Store.Set(),
+		// which re-reads GetEnvironment() (os.Environ()) and applies overrides.
+		t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", "127.0.0.1")
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+			cfg.EmailSettings.SMTPServer = model.NewPointer("127.0.0.1")
+			cfg.EmailSettings.SMTPPort = model.NewPointer(smtpPort)
+			cfg.EmailSettings.EnableSMTPAuth = model.NewPointer(false)
+			cfg.EmailSettings.ConnectionSecurity = model.NewPointer("")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
+				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusOk, packet.Notifications.Email.Status)
+		assert.Empty(t, packet.Notifications.Email.Error)
+	})
+
+	t.Run("email notifications unreachable", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+			cfg.EmailSettings.SMTPServer = model.NewPointer("localhost")
+			cfg.EmailSettings.SMTPPort = model.NewPointer("1")
+			cfg.EmailSettings.SMTPServerTimeout = model.NewPointer(1)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
+				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
+				cfg.EmailSettings.SMTPServerTimeout = model.NewPointer(10)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.Notifications.Email.Status)
+		assert.NotEmpty(t, packet.Notifications.Email.Error)
+	})
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
+	// t.Setenv is correct here: this test verifies that feature flags set via
+	// environment variables (the production mechanism) appear in the sanitized
+	// config output. UpdateConfig won't work because SetDefaults() resets
+	// FeatureFlags before applyEnvironmentMap() re-applies env overrides.
 	t.Setenv("MM_FEATUREFLAGS_TestFeature", "true")
 
 	th := Setup(t)
@@ -564,6 +780,11 @@ func TestDetectSAMLProviderType(t *testing.T) {
 		{
 			name:             "ADFS provider",
 			idpDescriptorURL: "https://localhost/adfs/services/trust",
+			expectedProvider: "ADFS",
+		},
+		{
+			name:             "ADFS provider with bare /adfs path (no trailing slash)",
+			idpDescriptorURL: "https://adfs.company.com/adfs",
 			expectedProvider: "ADFS",
 		},
 		{

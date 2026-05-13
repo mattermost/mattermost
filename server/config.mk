@@ -4,7 +4,7 @@
 
 # Enable services to be run in docker.
 #
-# Possible options: postgres, minio, inbucket, openldap, dejavu,
+# Possible options: postgres, minio, azurite, inbucket, openldap, dejavu,
 # keycloak, elasticsearch, opensearch, redis, prometheus,
 # grafana, loki and otel-collector.
 #

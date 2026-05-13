@@ -43,6 +43,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         channelProfiles: [],
         isReadOnly: false,
         isFavorite: false,
+        isInManagedCategory: false,
         enableUserCreation: false,
         teamIsGroupConstrained: false,
         creatorName: 'creatorName',

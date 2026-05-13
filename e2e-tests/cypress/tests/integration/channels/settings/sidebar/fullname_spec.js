@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import {getRandomId} from '../../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Settings > Sidebar > General', () => {
     const randomId = getRandomId();

@@ -52,7 +52,7 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         // 1. policyWithChannel - has a channel assigned
         // 2. policyWithoutChannel - has NO channels assigned
         // ===========================================
-        const uniqueId = await pw.random.id();
+        const uniqueId = pw.random.id();
         const policyWithChannelName = `ABAC-WithChannel-${uniqueId}`;
         const policyWithoutChannelName = `ABAC-NoChannel-${uniqueId}`;
 
@@ -116,7 +116,7 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         // The "Apply policy" modal should NOT appear since there are no channels
         // The webapp will call handleSubmit() directly and navigate back automatically
         // Wait for navigation to complete
-        await page.waitForURL('**/attribute_based_access_control', {timeout: 10000});
+        await page.waitForURL('**/membership_policies', {timeout: 10000});
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(1500);
 

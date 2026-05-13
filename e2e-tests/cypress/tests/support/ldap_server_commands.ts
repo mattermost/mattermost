@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from 'tests/types';
-
 import {getRandomId} from '../utils';
+
+import {ChainableT} from '@/types';
+
 
 const ldapTmpFolder = 'ldap_tmp';
 
@@ -19,7 +20,7 @@ export interface LdapUser {
 }
 
 function modifyLDAPUsers(filename: string) {
-    cy.exec(`ldapmodify -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -H ldap://${Cypress.env('ldapServer')}:${Cypress.env('ldapPort')} -f tests/fixtures/${filename} -c`, {failOnNonZeroExit: false});
+    cy.exec(`ldapmodify -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -H ldap://${Cypress.expose('ldapServer')}:${Cypress.expose('ldapPort')} -f tests/fixtures/${filename} -c`, {failOnNonZeroExit: false});
 }
 
 Cypress.Commands.add('modifyLDAPUsers', modifyLDAPUsers);
@@ -30,7 +31,7 @@ function resetLDAPUsers() {
 
 Cypress.Commands.add('resetLDAPUsers', resetLDAPUsers);
 
-function createLDAPUser({prefix = 'ldap', user = null} = {}): ChainableT<LdapUser> {
+function createLDAPUser({prefix = 'ldap', user = null as LdapUser | null} = {}): ChainableT<LdapUser> {
     const ldapUser = user || generateLDAPUser(prefix);
     const data = generateContent(ldapUser);
     const filename = `new_user_${Date.now()}.ldif`;
@@ -86,7 +87,7 @@ function ldapModify(filePath: string) {
 Cypress.Commands.add('ldapModify', ldapModify);
 
 function getLDAPCredentials() {
-    const host = `ldap://${Cypress.env('ldapServer')}:${Cypress.env('ldapPort')}`;
+    const host = `ldap://${Cypress.expose('ldapServer')}:${Cypress.expose('ldapPort')}`;
     const bindDn = 'cn=admin,dc=mm,dc=test,dc=com';
     const password = 'mostest';
 

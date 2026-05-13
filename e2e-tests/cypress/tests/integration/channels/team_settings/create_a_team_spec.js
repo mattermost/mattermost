@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @team_settings @smoke
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Teams Suite', () => {
     before(() => {

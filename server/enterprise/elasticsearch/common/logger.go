@@ -69,7 +69,7 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 func (l *Logger) RequestBodyEnabled() bool { return l.trace }
 
 // ResponseBodyEnabled makes the client pass response body to logger
-func (l *Logger) ResponseBodyEnabled() bool { return false }
+func (l *Logger) ResponseBodyEnabled() bool { return l.trace }
 
 func NewBulkIndexerLogger(mlogger mlog.LoggerIFace, name string) BulkIndexerDebugLogger {
 	return BulkIndexerDebugLogger{

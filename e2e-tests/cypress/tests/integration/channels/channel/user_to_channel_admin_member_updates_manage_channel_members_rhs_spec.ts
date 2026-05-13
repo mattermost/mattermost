@@ -11,9 +11,9 @@
 
 import {UserProfile} from '@mattermost/types/users';
 
-import {getAdminAccount} from '../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
-const demoteToChannelMember = (user, channelId, admin) => {
+const demoteToChannelMember = (user: Pick<UserProfile, 'id'>, channelId: string, admin: Pick<UserProfile, 'username' | 'password'>) => {
     cy.externalRequest({
         user: admin,
         method: 'put',
@@ -25,7 +25,7 @@ const demoteToChannelMember = (user, channelId, admin) => {
     });
 };
 
-const promoteToChannelAdmin = (user, channelId, admin) => {
+const promoteToChannelAdmin = (user: Pick<UserProfile, 'id'>, channelId: string, admin: Pick<UserProfile, 'username' | 'password'>) => {
     cy.externalRequest({
         user: admin,
         method: 'put',

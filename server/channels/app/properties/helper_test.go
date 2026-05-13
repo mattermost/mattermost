@@ -33,6 +33,7 @@ func Setup(tb testing.TB) *TestHelper {
 }
 
 func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
+	logger := mlog.CreateConsoleTestLogger(tb)
 	service, err := New(ServiceConfig{
 		PropertyGroupStore: s.PropertyGroup(),
 		PropertyFieldStore: s.PropertyField(),
@@ -58,7 +59,7 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	return &TestHelper{
 		service: service,
 		dbStore: s,
-		Context: request.EmptyContext(mlog.CreateConsoleTestLogger(tb)),
+		Context: request.EmptyContext(logger),
 	}
 }
 
@@ -70,11 +71,22 @@ func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
 
 func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	// Register the CPA group so requiresAccessControl can always look it up
-	group, groupErr := th.service.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	group, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: model.CustomProfileAttributesPropertyGroupName, Version: model.PropertyGroupVersionV1})
 	require.NoError(tb, groupErr)
 	th.CPAGroupID = group.ID
 
 	return th
+}
+
+// RegisterPropertyGroup registers a new property group with the given version and a unique name.
+func (th *TestHelper) RegisterPropertyGroup(tb testing.TB, version int) *model.PropertyGroup {
+	tb.Helper()
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{
+		Name:    model.NewId(),
+		Version: version,
+	})
+	require.NoError(tb, err)
+	return group
 }
 
 // CreateTeam creates a team for testing hierarchy
@@ -120,7 +132,7 @@ func (th *TestHelper) CreateUser(tb testing.TB) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 	user, err := th.dbStore.User().Save(th.Context, user)

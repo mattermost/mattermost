@@ -1621,6 +1621,105 @@ func TestDoActionRequest(t *testing.T) {
 	})
 }
 
+func TestGetPostActionClient(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	tests := []struct {
+		name       string
+		siteURL    string
+		subpath    string
+		requestURL string
+		expectAuth bool
+	}{
+		{
+			name:       "same host with plugin path gets auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/plugins/myplugin/action",
+			expectAuth: true,
+		},
+		{
+			name:       "same host with non-plugin path does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/api/v4/posts",
+			expectAuth: false,
+		},
+		{
+			name:       "different host with plugin path does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://evil.com/plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "different host same port does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://attacker.com:8065/plugins/myplugin/action",
+			expectAuth: false,
+		},
+		{
+			name:       "path traversal to reach plugins does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/api/../../plugins/myplugin",
+			expectAuth: true, // path.Clean normalizes to /plugins/myplugin
+		},
+		{
+			name:       "path traversal escaping plugins does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/plugins/../api/v4/posts",
+			expectAuth: false, // path.Clean normalizes to /api/v4/posts
+		},
+		{
+			name:       "subpath with plugin path gets auth",
+			siteURL:    "http://localhost:8065/mattermost",
+			subpath:    "/mattermost",
+			requestURL: "http://localhost:8065/mattermost/plugins/myplugin/action",
+			expectAuth: true,
+		},
+		{
+			name:       "subpath without subpath prefix does not get auth",
+			siteURL:    "http://localhost:8065/mattermost",
+			subpath:    "/mattermost",
+			requestURL: "http://localhost:8065/plugins/myplugin/action",
+			expectAuth: false, // plugins path doesn't include subpath
+		},
+		{
+			name:       "empty path does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/",
+			expectAuth: false,
+		},
+		{
+			name:       "plugins as query param does not get auth",
+			siteURL:    "http://localhost:8065",
+			requestURL: "http://localhost:8065/api?path=plugins/myplugin",
+			expectAuth: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.SiteURL = tc.siteURL
+			})
+
+			inURL, err := url.Parse(tc.requestURL)
+			require.NoError(t, err)
+
+			req, err := http.NewRequest("POST", tc.requestURL, nil)
+			require.NoError(t, err)
+
+			_ = th.App.getPostActionClient(th.Context, inURL, req)
+
+			if tc.expectAuth {
+				assert.NotEmpty(t, req.Header.Get(model.HeaderAuth), "expected auth header to be set")
+				assert.Contains(t, req.Header.Get(model.HeaderAuth), "Bearer ")
+			} else {
+				assert.Empty(t, req.Header.Get(model.HeaderAuth), "expected no auth header")
+			}
+		})
+	}
+}
+
 func TestDoLocalRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1816,4 +1915,90 @@ func TestDoPluginRequest(t *testing.T) {
 	require.NotNil(t, resp)
 	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "param multiple not correct", string(body))
+
+	t.Run("should handle URLs with path traversals", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			rawURL    string
+			expectErr bool
+			errDetail string
+		}{
+			{
+				name:      "path traversal to escape plugins directory",
+				rawURL:    "/plugins/../../../etc/passwd",
+				expectErr: true,
+				errDetail: "plugins not in path",
+			},
+			{
+				name:      "path traversal with encoded slashes",
+				rawURL:    "/plugins/..%2F..%2F..%2Fetc%2Fpasswd",
+				expectErr: true, // url.Parse decodes %2F, path.Clean normalizes traversal
+				errDetail: "plugins not in path",
+			},
+			{
+				name:      "double dot in plugin path",
+				rawURL:    "/plugins/../plugins/myplugin/action",
+				expectErr: false, // path.Clean normalizes this back to plugins/myplugin/action
+			},
+			{
+				name:      "path traversal without leading slash",
+				rawURL:    "plugins/../../../etc/passwd",
+				expectErr: true,
+				errDetail: "plugins not in path",
+			},
+			{
+				name:      "only plugins with no plugin ID",
+				rawURL:    "/plugins/",
+				expectErr: true,
+				errDetail: "Unable to find pluginId",
+			},
+			{
+				name:      "just plugins no trailing slash",
+				rawURL:    "/plugins",
+				expectErr: true,
+				errDetail: "Unable to find pluginId",
+			},
+			{
+				name:      "non-plugins path",
+				rawURL:    "/api/v4/users",
+				expectErr: true,
+				errDetail: "plugins not in path",
+			},
+			{
+				name:      "path traversal via dot segments after plugin ID",
+				rawURL:    "/plugins/myplugin/../../etc/passwd",
+				expectErr: true,
+				errDetail: "plugins not in path",
+			},
+			{
+				name:      "backslash traversal attempt",
+				rawURL:    "/plugins/myplugin/..\\..\\etc\\passwd",
+				expectErr: false, // backslashes are not path separators in URL paths; treated as literal
+			},
+			{
+				name:      "null byte injection attempt",
+				rawURL:    "/plugins/myplugin\x00/action",
+				expectErr: true, // url.Parse rejects URLs with null bytes
+			},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				resp, appErr := th.App.doPluginRequest(th.Context, "GET", tc.rawURL, nil, nil)
+				if tc.expectErr {
+					require.NotNil(t, appErr, "expected error for URL: %s", tc.rawURL)
+					if tc.errDetail != "" {
+						assert.Contains(t, appErr.DetailedError, tc.errDetail)
+					}
+				} else {
+					// Should not return an app error from path validation;
+					// may still get a 404 if the plugin doesn't exist, which is fine.
+					assert.Nil(t, appErr, "unexpected error for URL: %s - %v", tc.rawURL, appErr)
+					if resp != nil {
+						resp.Body.Close()
+					}
+				}
+			})
+		}
+	})
 }

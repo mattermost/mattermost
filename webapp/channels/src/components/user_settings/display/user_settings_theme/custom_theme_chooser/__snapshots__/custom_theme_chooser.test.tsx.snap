@@ -63,10 +63,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="sidebarBg-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="sidebarBg-squareColorIconValue"
                 style="background-color: rgb(30, 50, 92);"
               />
@@ -95,10 +97,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="sidebarText-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="sidebarText-squareColorIconValue"
                 style="background-color: rgb(255, 255, 255);"
               />
@@ -127,10 +131,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="sidebarHeaderBg-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="sidebarHeaderBg-squareColorIconValue"
                 style="background-color: rgb(25, 42, 77);"
               />
@@ -159,10 +165,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="sidebarTeamBarBg-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="sidebarTeamBarBg-squareColorIconValue"
                 style="background-color: rgb(22, 37, 69);"
               />
@@ -191,10 +199,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="sidebarHeaderTextColor-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="sidebarHeaderTextColor-squareColorIconValue"
                 style="background-color: rgb(255, 255, 255);"
               />
@@ -223,10 +233,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="sidebarUnreadText-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="sidebarUnreadText-squareColorIconValue"
                 style="background-color: rgb(255, 255, 255);"
               />
@@ -255,10 +267,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="sidebarTextHoverBg-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="sidebarTextHoverBg-squareColorIconValue"
                 style="background-color: rgb(40, 66, 123);"
               />
@@ -287,10 +301,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="sidebarTextActiveBorder-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="sidebarTextActiveBorder-squareColorIconValue"
                 style="background-color: rgb(93, 137, 234);"
               />
@@ -319,10 +335,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="sidebarTextActiveColor-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="sidebarTextActiveColor-squareColorIconValue"
                 style="background-color: rgb(255, 255, 255);"
               />
@@ -351,10 +369,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="onlineIndicator-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="onlineIndicator-squareColorIconValue"
                 style="background-color: rgb(61, 184, 135);"
               />
@@ -383,10 +403,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="awayIndicator-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="awayIndicator-squareColorIconValue"
                 style="background-color: rgb(255, 188, 31);"
               />
@@ -415,10 +437,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="dndIndicator-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="dndIndicator-squareColorIconValue"
                 style="background-color: rgb(210, 75, 78);"
               />
@@ -447,10 +471,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="mentionBg-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="mentionBg-squareColorIconValue"
                 style="background-color: rgb(255, 255, 255);"
               />
@@ -479,10 +505,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="mentionColor-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="mentionColor-squareColorIconValue"
                 style="background-color: rgb(30, 50, 92);"
               />
@@ -547,10 +575,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="centerChannelBg-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="centerChannelBg-squareColorIconValue"
                 style="background-color: rgb(255, 255, 255);"
               />
@@ -579,10 +609,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="centerChannelColor-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="centerChannelColor-squareColorIconValue"
                 style="background-color: rgb(63, 67, 80);"
               />
@@ -611,10 +643,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="newMessageSeparator-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="newMessageSeparator-squareColorIconValue"
                 style="background-color: rgb(204, 143, 0);"
               />
@@ -643,10 +677,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="errorTextColor-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="errorTextColor-squareColorIconValue"
                 style="background-color: rgb(210, 75, 78);"
               />
@@ -675,10 +711,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="mentionHighlightBg-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="mentionHighlightBg-squareColorIconValue"
                 style="background-color: rgb(255, 212, 112);"
               />
@@ -707,10 +745,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="mentionHighlightLink-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="mentionHighlightLink-squareColorIconValue"
                 style="background-color: rgb(27, 29, 34);"
               />
@@ -824,10 +864,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="linkColor-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="linkColor-squareColorIconValue"
                 style="background-color: rgb(56, 111, 229);"
               />
@@ -856,10 +898,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="buttonBg-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="buttonBg-squareColorIconValue"
                 style="background-color: rgb(28, 88, 217);"
               />
@@ -888,10 +932,12 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             />
             <span
               class="input-group-addon color-pad"
+              data-testid="color-togglerButton"
               id="buttonColor-squareColorIcon"
             >
               <i
                 class="color-icon"
+                data-testid="color-icon"
                 id="buttonColor-squareColorIconValue"
                 style="background-color: rgb(255, 255, 255);"
               />

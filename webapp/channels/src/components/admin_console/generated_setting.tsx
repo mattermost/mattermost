@@ -5,6 +5,8 @@ import crypto from 'crypto';
 import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import SetByEnv from './set_by_env';
 
 type Props = {
@@ -94,14 +96,14 @@ const GeneratedSetting = ({
                     {helpText}
                 </div>
                 <div className='help-text'>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={regenerate}
                         disabled={disabled || setByEnv}
                     >
                         {regenerateText}
-                    </button>
+                    </Button>
                 </div>
                 {regenerateHelpText}
                 {setByEnv ? <SetByEnv/> : null}

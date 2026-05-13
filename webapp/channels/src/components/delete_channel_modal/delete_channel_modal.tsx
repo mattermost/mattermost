@@ -5,6 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import Constants from 'utils/constants';
@@ -82,19 +83,19 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='delete_channel.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-danger'
+                        variant='destructive'
                         data-dismiss='modal'
                         onClick={this.handleDelete}
                         autoFocus={true}
@@ -104,7 +105,7 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                             id='delete_channel.del'
                             defaultMessage='Archive'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

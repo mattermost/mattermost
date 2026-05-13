@@ -1748,7 +1748,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 		sess1 := &model.Session{

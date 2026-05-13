@@ -133,9 +133,6 @@ type State = {
     postListIds: string[];
     topPostId: string;
     postMenuOpened: boolean;
-    dynamicListStyle: {
-        willChange: string;
-    };
     initScrollCompleted: boolean;
     initScrollOffsetFromBottom: number;
     showSearchHint: boolean;
@@ -170,9 +167,6 @@ export default class PostList extends React.PureComponent<Props, State> {
             postListIds: [channelIntroMessage],
             topPostId: '',
             postMenuOpened: false,
-            dynamicListStyle: {
-                willChange: 'transform',
-            },
             initScrollCompleted: false,
             initScrollOffsetFromBottom: 0,
             showSearchHint: false,
@@ -282,7 +276,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         EventEmitter.removeListener(EventTypes.POST_LIST_SCROLL_TO_BOTTOM, this.scrollToLatestMessages);
     }
 
-    static getDerivedStateFromProps(props: Props, state: State) {
+    static getDerivedStateFromProps(props: Props) {
         const postListIds = props.postListIds || [];
         let newPostListIds;
 
@@ -306,25 +300,6 @@ export default class PostList extends React.PureComponent<Props, State> {
             postListIds: newPostListIds,
         };
 
-        if (props.isMobileView !== state.isMobileView) {
-            nextState.isMobileView = props.isMobileView;
-
-            const dynamicListStyle = state.dynamicListStyle;
-            if (state.postMenuOpened) {
-                if (!props.isMobileView && dynamicListStyle.willChange === 'unset') {
-                    nextState.dynamicListStyle = {
-                        ...dynamicListStyle,
-                        willChange: 'transform',
-                    };
-                } else if (props.isMobileView && dynamicListStyle.willChange === 'transform') {
-                    nextState.dynamicListStyle = {
-                        ...dynamicListStyle,
-                        willChange: 'unset',
-                    };
-                }
-            }
-        }
-
         return nextState;
     }
 
@@ -333,17 +308,8 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
 
     togglePostMenu = (opened: boolean) => {
-        let dynamicListStyle = this.state.dynamicListStyle;
-        if (this.props.isMobileView) {
-            dynamicListStyle = {
-                ...dynamicListStyle,
-                willChange: opened ? 'unset' : 'transform',
-            };
-        }
-
         this.setState({
             postMenuOpened: opened,
-            dynamicListStyle,
         });
     };
 
@@ -375,13 +341,9 @@ export default class PostList extends React.PureComponent<Props, State> {
         // Since the first in the list is the latest message
         const isLastPost = itemId === this.state.postListIds[0];
 
-        const isLoader = itemId === PostListRowListIds.OLDER_MESSAGES_LOADER || itemId === PostListRowListIds.NEWER_MESSAGES_LOADER;
-        const shouldHideLoader = isLoader && !this.props.loadingOlderPosts && !this.props.loadingNewerPosts;
-        const rowStyle = shouldHideLoader ? {...style, display: 'none'} : style;
-
         return (
             <div
-                style={rowStyle}
+                style={style}
                 className={className}
             >
                 <PostListRow
@@ -694,8 +656,6 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {dynamicListStyle} = this.state;
-
         return (
             <div
                 className='a11y__region'
@@ -752,7 +712,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             initScrollToIndex={this.initScrollToIndex}
                                             canLoadMorePosts={this.props.actions.canLoadMorePosts}
                                             innerRef={this.postListRef}
-                                            style={{...virtListStyles, ...dynamicListStyle}}
+                                            style={virtListStyles}
                                             innerListStyle={postListStyle}
                                             initRangeToRender={this.initRangeToRender}
                                             loaderId={PostListRowListIds.OLDER_MESSAGES_LOADER}

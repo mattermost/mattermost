@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
@@ -228,9 +229,9 @@ func (a *App) RenameChannel(rctx request.CTX, channel *model.Channel, newChannel
 }
 
 func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
-	a.handleChannelCategoryName(channel)
-
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
+	channel.DefaultCategoryName = strings.TrimSpace(channel.DefaultCategoryName)
+	channel.ManagedCategoryName = strings.TrimSpace(channel.ManagedCategoryName)
 	sc, nErr := a.Srv().Store().Channel().Save(rctx, channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
@@ -300,6 +301,21 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		}
 
 		a.Srv().Platform().InvalidateChannelCacheForUser(channel.CreatorId)
+	}
+
+	if channel.ManagedCategoryName != "" {
+		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !a.Config().FeatureFlags.ManagedChannelCategories {
+			rctx.Logger().Warn("Managed category update ignored: feature not available")
+			sc.ManagedCategoryName = ""
+		} else {
+			if appErr := a.SetChannelManagedCategory(rctx, sc.Id, channel.ManagedCategoryName); appErr != nil {
+				rctx.Logger().Error("Failed to set managed category on new channel",
+					mlog.String("channel_id", sc.Id),
+					mlog.String("category_name", channel.ManagedCategoryName),
+					mlog.Err(appErr))
+				sc.ManagedCategoryName = ""
+			}
+		}
 	}
 
 	a.Srv().Go(func() {
@@ -713,12 +729,30 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
-	ok, appErr := a.ChannelAccessControlled(rctx, channel.Id)
+	enforced, appErr := a.ChannelAccessControlled(rctx, channel.Id)
 	if appErr != nil {
 		return nil, appErr
 	}
-	if ok && channel.Type != model.ChannelTypePrivate {
-		return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+	if enforced {
+		if channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeOpen {
+			return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+		}
+
+		// Block public ↔ private conversion while an ABAC policy is attached.
+		// Public-channel and private-channel ABAC have asymmetric semantics
+		// (advisory recommend/auto-add vs hard-gate with member removal); a
+		// silent type flip would change what the existing policy actually
+		// does to members. The admin must remove the policy first and
+		// re-apply it after the conversion if they still want it.
+		current, getErr := a.Srv().Store().Channel().Get(channel.Id, true)
+		if getErr != nil {
+			return nil, model.NewAppError("UpdateChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
+		}
+		if current.Type != channel.Type {
+			return nil, model.NewAppError("UpdateChannel",
+				"api.channel.update_channel.policy_enforced_type_conversion.app_error",
+				nil, "channel has an active ABAC policy; remove the policy before converting between public and private", http.StatusBadRequest)
+		}
 	}
 
 	_, err := a.Srv().Store().Channel().Update(rctx, channel)
@@ -816,6 +850,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
+	messageWs.Add("channel_type", string(channel.Type))
 	a.Publish(messageWs)
 
 	return channel, nil
@@ -951,7 +986,6 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 	oldChannelAutotranslation := channel.AutoTranslation
 
 	channel.Patch(patch)
-	a.handleChannelCategoryName(channel)
 	channel, err = a.UpdateChannel(rctx, channel)
 	if err != nil {
 		return nil, err
@@ -1616,6 +1650,12 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 			map[string]any{"Reason": archiveRejectionReason}, "", http.StatusBadRequest)
 	}
 
+	deleteAt := model.GetMillis()
+
+	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
+		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if user != nil {
 		T := i18n.GetUserTranslations(user.Locale)
 
@@ -1671,11 +1711,11 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 		return model.NewAppError("DeleteChannel", "app.post_persistent_notification.delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	deleteAt := model.GetMillis()
-
-	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
-		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
+	// Archiving a channel tears down the membership policy attached to it.
+	// If the channel is later restored the admin can re-apply policies;
+	// leaving the policy row behind would otherwise keep the sync job
+	// processing an archived channel.
+	a.cleanupChannelAccessControlPolicy(rctx, channel)
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
@@ -1737,16 +1777,10 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	if channel.Type == model.ChannelTypePrivate {
 		if ok, appErr := a.ChannelAccessControlled(rctx, channel.Id); ok {
 			if acs := a.Srv().Channels().AccessControl; acs != nil {
-				groupID, err := a.CpaGroupID()
-				if err != nil {
-					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
-				}
-
-				s, getSubjectErr := a.Srv().Store().Attributes().GetSubject(rctx, user.Id, groupID)
-				if getSubjectErr != nil {
-					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", getSubjectErr, user.Id, channel.Id), http.StatusForbidden)
+				s, buildErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles)
+				if buildErr != nil {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.abac_subject_build_failed.app_error", nil,
+						fmt.Sprintf("failed to build subject: %v, user_id: %s, channel_id: %s", buildErr, user.Id, channel.Id), http.StatusInternalServerError)
 				}
 
 				decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
@@ -1755,7 +1789,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 						Type: model.AccessControlPolicyTypeChannel,
 						ID:   channel.Id,
 					},
-					Action: "join_channel",
+					Action: "membership",
 				})
 				if evalErr != nil {
 					return nil, evalErr
@@ -2484,15 +2518,6 @@ func (a *App) GetChannelPinnedPostCount(rctx request.CTX, channelID string) (int
 	return count, nil
 }
 
-func (a *App) GetChannelCounts(rctx request.CTX, teamID string, userID string) (*model.ChannelCounts, *model.AppError) {
-	counts, err := a.Srv().Store().Channel().GetChannelCounts(teamID, userID)
-	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.GetChannelCounts", "app.channel.get_channel_counts.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return counts, nil
-}
-
 func (a *App) GetChannelUnread(rctx request.CTX, channelID, userID string) (*model.ChannelUnread, *model.AppError) {
 	channelUnread, err := a.Srv().Store().Channel().GetChannelUnread(channelID, userID)
 	if err != nil {
@@ -3179,6 +3204,23 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 	return channelList, nil
 }
 
+func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, userID, term string, privateOnly, excludeGroupConstrained bool) (model.ChannelList, *model.AppError) {
+	includeDeleted := true
+	term = strings.TrimSpace(term)
+
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	channelList, err := a.Srv().Store().Channel().AutocompleteInTeamFiltered(rctx, teamID, userID, term, includeDeleted, user.IsGuest(), privateOnly, excludeGroupConstrained)
+	if err != nil {
+		return nil, model.NewAppError("AutocompleteChannelsForTeamFiltered", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return channelList, nil
+}
+
 func (a *App) AutocompleteChannelsForSearch(rctx request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
 	includeDeleted := true
 
@@ -3384,6 +3426,12 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 	if nErr := a.Srv().Store().Channel().PermanentDelete(rctx, channel.Id); nErr != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
+
+	// Remove any orphaned channel-scope ABAC policy tied to this channel ID.
+	// cleanupChannelAccessControlPolicy intentionally does not gate on
+	// PolicyEnforced (see its doc comment) — the underlying DeletePolicy is a
+	// no-op when no row exists, so it's safe to call unconditionally.
+	a.cleanupChannelAccessControlPolicy(rctx, channel)
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
@@ -4116,17 +4164,170 @@ func (a *App) ChannelAccessControlled(rctx request.CTX, channelID string) (bool,
 	return channel.PolicyEnforced, nil
 }
 
-func (a *App) handleChannelCategoryName(channel *model.Channel) {
-	if *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting && strings.Contains(channel.DisplayName, "/") {
-		parts := strings.Split(channel.DisplayName, "/")
-		channel.DisplayName = strings.TrimSpace(strings.Join(parts[1:], "/"))
-		channel.DefaultCategoryName = strings.TrimSpace(parts[0])
+// cleanupChannelAccessControlPolicy removes the channel-scope ABAC policy row,
+// if any, for a channel being archived or permanently deleted. Orphan policy
+// rows left behind would still be picked up by the sync job and surface in
+// searches that filter by AccessControlPolicyEnforced. Failures are logged
+// but not returned — deleting/archiving a channel must not be blocked by an
+// ABAC cleanup error.
+//
+// We intentionally do NOT gate this on channel.PolicyEnforced: that flag is
+// computed from the AccessControlPolicies table via the channel store and can
+// be stale when read through the channel cache, which would cause us to skip
+// cleanup and leave an orphaned policy behind. DeletePolicy is a no-op when
+// no matching row exists, so calling it unconditionally is safe.
+//
+// When the enterprise access control service is unavailable (acs == nil) or
+// reports the operation as unsupported (NotImplemented / NotAcceptable —
+// e.g. running on Team Edition or under a license that gates the ABAC
+// engine), we still need to remove the underlying row to avoid leaving an
+// orphaned policy behind. In those cases we fall back to deleting directly
+// through the access control policy store.
+func (a *App) cleanupChannelAccessControlPolicy(rctx request.CTX, channel *model.Channel) {
+	if channel == nil || channel.Id == "" {
+		return
 	}
+
+	useStoreFallback := false
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		useStoreFallback = true
+	} else if appErr := acs.DeletePolicy(rctx, channel.Id); appErr != nil {
+		switch appErr.StatusCode {
+		case http.StatusNotImplemented, http.StatusNotAcceptable:
+			useStoreFallback = true
+		default:
+			rctx.Logger().Warn("Failed to delete channel ABAC policy during channel delete/archive",
+				mlog.String("channel_id", channel.Id),
+				mlog.Err(appErr),
+			)
+		}
+	}
+
+	if useStoreFallback {
+		if err := a.Srv().Store().AccessControlPolicy().Delete(rctx, channel.Id); err != nil {
+			rctx.Logger().Warn("Failed to delete channel ABAC policy during channel delete/archive",
+				mlog.String("channel_id", channel.Id),
+				mlog.Err(err),
+			)
+		}
+	}
+}
+
+// recommendedPublicChannelsScanPageSize is the per-page size used while
+// paginating through policy-enforced public channels in
+// GetRecommendedPublicChannelsForUser.
+const recommendedPublicChannelsScanPageSize = 200
+
+// recommendedPublicChannelsScanCap is a hard upper bound on the total number
+// of candidate channels we will evaluate per request. Evaluation is O(n) and
+// CEL programs are non-trivial; this guards against runaway scans on
+// pathological deployments. In practice teams have far fewer policy-enforced
+// public channels than this cap.
+const recommendedPublicChannelsScanCap = 2000
+
+// GetRecommendedPublicChannelsForUser returns public channels in the given team
+// that have an ABAC policy assigned and whose membership rule the user
+// satisfies. ABAC policies on public channels are advisory — this list is
+// consumed by the "Recommended channels" feature in the Browse Channels UI.
+//
+// Channels the user is already a member of are intentionally NOT filtered out:
+// membership filtering is a presentation concern handled by the caller (the
+// Browse Channels UI has its own "Hide joined channels" preference and may
+// want to show membership state alongside each recommendation).
+//
+// Returns an empty list when the Enterprise Advanced license or ABAC feature
+// flag is not available, or when the access control service is not wired up.
+func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, teamID string) (model.ChannelList, *model.AppError) {
+	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return model.ChannelList{}, nil
+	}
+
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return model.ChannelList{}, nil
+	}
+
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	subject, appErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// Page through policy-enforced public channels until the team is fully
+	// scanned or we hit the hard cap. SearchAllChannels signals "no more
+	// pages" by returning fewer rows than the requested page size.
+	candidates := make(model.ChannelListWithTeamData, 0)
+	for page := 0; len(candidates) < recommendedPublicChannelsScanCap; page++ {
+		batch, _, searchErr := a.SearchAllChannels(rctx, "", model.ChannelSearchOpts{
+			TeamIds:                     []string{teamID},
+			Public:                      true,
+			AccessControlPolicyEnforced: true,
+			Page:                        model.NewPointer(page),
+			PerPage:                     model.NewPointer(recommendedPublicChannelsScanPageSize),
+		})
+		if searchErr != nil {
+			return nil, searchErr
+		}
+		if len(batch) == 0 {
+			break
+		}
+
+		// Truncate to the remaining cap so the final candidate count never
+		// exceeds the documented bound. The loop condition only gates entry
+		// to a new iteration; without this, a final page worth of channels
+		// could push len past the cap by up to (pageSize - 1).
+		remaining := recommendedPublicChannelsScanCap - len(candidates)
+		if len(batch) > remaining {
+			candidates = append(candidates, batch[:remaining]...)
+			break
+		}
+
+		candidates = append(candidates, batch...)
+		if len(batch) < recommendedPublicChannelsScanPageSize {
+			break
+		}
+	}
+
+	// We intentionally do NOT filter out channels the user is already a member
+	// of here — the Browse Channels UI has its own "Hide joined channels"
+	// preference and callers may want to show membership state next to each
+	// recommendation. Membership filtering is a presentation concern.
+	recommended := make(model.ChannelList, 0, len(candidates))
+	for _, channel := range candidates {
+		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+			Subject: *subject,
+			Resource: model.Resource{
+				Type: model.AccessControlPolicyTypeChannel,
+				ID:   channel.Id,
+			},
+			Action: "membership",
+		})
+		if evalErr != nil {
+			rctx.Logger().Debug("ABAC evaluation failed when computing recommended channels",
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", channel.Id),
+				mlog.Err(evalErr),
+			)
+			continue
+		}
+		if !decision.Decision {
+			continue
+		}
+
+		recommended = append(recommended, &channel.Channel)
+	}
+
+	return recommended, nil
 }
 
 func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, channel *model.Channel) {
 	// Add channel to default category if specified
-	if channel.DefaultCategoryName != "" && *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting {
+	if channel.DefaultCategoryName != "" && *a.Config().TeamSettings.EnableChannelCategorySorting {
 		// Get user's categories for this team
 		categories, err := a.GetSidebarCategoriesForTeamForUser(rctx, userID, channel.TeamId)
 		if err != nil {
@@ -4140,6 +4341,21 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 				targetCategory = category
 				break
 			}
+		}
+
+		// Find the original category if the channel is already in a category
+		var originalCategory *model.SidebarCategoryWithChannels
+		for _, category := range categories.Categories {
+			if category.Type == model.SidebarCategoryCustom && category.Channels != nil && slices.Contains(category.Channels, channel.Id) {
+				originalCategory = category
+				break
+			}
+		}
+
+		var categoriesToUpdate []*model.SidebarCategoryWithChannels
+		if originalCategory != nil {
+			originalCategory.Channels = slices.Delete(originalCategory.Channels, slices.Index(originalCategory.Channels, channel.Id), 1)
+			categoriesToUpdate = append(categoriesToUpdate, originalCategory)
 		}
 
 		if targetCategory == nil {
@@ -4159,12 +4375,225 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 				mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 			}
 		} else {
-			// Add channel to existing category
 			targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
-			_, err = a.UpdateSidebarCategories(rctx, userID, channel.TeamId, []*model.SidebarCategoryWithChannels{targetCategory})
-			if err != nil {
-				mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+			categoriesToUpdate = append(categoriesToUpdate, targetCategory)
+		}
+
+		// Add channel to existing category
+		_, err = a.UpdateSidebarCategories(rctx, userID, channel.TeamId, categoriesToUpdate)
+		if err != nil {
+			mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
+		}
+	}
+}
+
+// SetChannelMembers reconciles the membership of a channel to match the desired list of user IDs.
+// Users already in the channel are left untouched (no-op). Users not in the desired list are removed.
+// Users in the desired list but not in the channel are added.
+//
+// When adminSet is non-nil, channel admin roles are set declaratively: users in adminSet become
+// channel admins, all other members lose the admin role. When adminSet is nil, existing admin
+// roles are preserved for members who remain in the channel.
+//
+// Operations are processed in batches with a configurable delay between batches.
+// The onBatch callback is invoked after each batch with the results for that batch.
+func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desiredUserIDs []string, adminSet map[string]struct{}, requestorUserID string, batchSize int, batchDelayMs int, onBatch func(*model.SetChannelMembersResponse)) *model.AppError {
+	currentIDs, err := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
+	if err != nil {
+		return model.NewAppError("SetChannelMembers", "app.channel.set_members.get_current.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	currentSet := make(map[string]struct{}, len(currentIDs))
+	for _, id := range currentIDs {
+		currentSet[id] = struct{}{}
+	}
+	desiredSet := make(map[string]struct{}, len(desiredUserIDs))
+	for _, id := range desiredUserIDs {
+		desiredSet[id] = struct{}{}
+	}
+
+	var toAdd, toRemove []string
+	for id := range desiredSet {
+		if _, exists := currentSet[id]; !exists {
+			toAdd = append(toAdd, id)
+		}
+	}
+	for id := range currentSet {
+		if _, exists := desiredSet[id]; !exists {
+			toRemove = append(toRemove, id)
+		}
+	}
+
+	// Prevent emptying private channels, they become orphaned since non-admins can't rejoin.
+	if channel.Type == model.ChannelTypePrivate && len(desiredUserIDs) == 0 {
+		return model.NewAppError("SetChannelMembers", "app.channel.set_members.empty_private.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(toAdd) == 0 && len(toRemove) == 0 && adminSet == nil {
+		onBatch(&model.SetChannelMembersResponse{})
+		return nil
+	}
+
+	if batchSize <= 0 {
+		batchSize = 1
+	}
+
+	batchDelay := time.Duration(batchDelayMs) * time.Millisecond
+
+	// Process removals first
+	for i := 0; i < len(toRemove); i += batchSize {
+		end := min(i+batchSize, len(toRemove))
+		batch := toRemove[i:end]
+
+		result := &model.SetChannelMembersResponse{}
+		for _, userID := range batch {
+			if appErr := a.removeUserFromChannel(rctx, userID, requestorUserID, channel); appErr != nil {
+				result.Errors = append(result.Errors, model.SetChannelMembersError{
+					UserID: userID,
+					ID:     appErr.Id,
+					Error:  appErr.Error(),
+				})
+			} else {
+				result.Removed = append(result.Removed, userID)
+			}
+		}
+		onBatch(result)
+
+		if end < len(toRemove) {
+			select {
+			case <-rctx.Context().Done():
+				return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+			case <-time.After(batchDelay):
 			}
 		}
 	}
+
+	// Check context between removal and addition phases
+	if rctx.Context().Err() != nil {
+		return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+	}
+
+	// Process additions
+	for i := 0; i < len(toAdd); i += batchSize {
+		end := min(i+batchSize, len(toAdd))
+		batch := toAdd[i:end]
+
+		result := &model.SetChannelMembersResponse{}
+		for _, userID := range batch {
+			if _, appErr := a.AddChannelMember(rctx, userID, channel, ChannelMemberOpts{UserRequestorID: requestorUserID}); appErr != nil {
+				result.Errors = append(result.Errors, model.SetChannelMembersError{
+					UserID: userID,
+					ID:     appErr.Id,
+					Error:  appErr.Error(),
+				})
+			} else {
+				result.Added = append(result.Added, userID)
+			}
+		}
+		onBatch(result)
+
+		if end < len(toAdd) {
+			select {
+			case <-rctx.Context().Done():
+				return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+			case <-time.After(batchDelay):
+			}
+		}
+	}
+
+	// Reconcile channel admin roles when adminSet is provided.
+	if adminSet != nil {
+		if rctx.Context().Err() != nil {
+			return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+		}
+
+		// Build the list of members whose admin status needs to change.
+		// We need the current SchemeAdmin state for all remaining members.
+		members, storeErr := a.Srv().Store().Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: channel.Id, Offset: 0, Limit: 100000})
+		if storeErr != nil {
+			return model.NewAppError("SetChannelMembers", "app.channel.set_members.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+
+		var toPromote, toDemote []string
+		for _, m := range members {
+			_, wantAdmin := adminSet[m.UserId]
+			if wantAdmin && !m.SchemeAdmin {
+				toPromote = append(toPromote, m.UserId)
+			} else if !wantAdmin && m.SchemeAdmin {
+				toDemote = append(toDemote, m.UserId)
+			}
+		}
+
+		// Process role changes in batches
+		for i := 0; i < len(toPromote); i += batchSize {
+			end := min(i+batchSize, len(toPromote))
+			batch := toPromote[i:end]
+
+			result := &model.SetChannelMembersResponse{}
+			for _, userID := range batch {
+				if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, channel.Id, userID, false, true, true); appErr != nil {
+					result.Errors = append(result.Errors, model.SetChannelMembersError{
+						UserID: userID,
+						ID:     appErr.Id,
+						Error:  appErr.Error(),
+					})
+				} else {
+					result.Promoted = append(result.Promoted, userID)
+				}
+			}
+			onBatch(result)
+
+			if end < len(toPromote) {
+				select {
+				case <-rctx.Context().Done():
+					return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+				case <-time.After(batchDelay):
+				}
+			}
+		}
+
+		if len(toDemote) > 0 && rctx.Context().Err() != nil {
+			return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+		}
+
+		for i := 0; i < len(toDemote); i += batchSize {
+			end := min(i+batchSize, len(toDemote))
+			batch := toDemote[i:end]
+
+			result := &model.SetChannelMembersResponse{}
+			for _, userID := range batch {
+				if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, channel.Id, userID, false, true, false); appErr != nil {
+					result.Errors = append(result.Errors, model.SetChannelMembersError{
+						UserID: userID,
+						ID:     appErr.Id,
+						Error:  appErr.Error(),
+					})
+				} else {
+					result.Demoted = append(result.Demoted, userID)
+				}
+			}
+			onBatch(result)
+
+			if end < len(toDemote) {
+				select {
+				case <-rctx.Context().Done():
+					return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+				case <-time.After(batchDelay):
+				}
+			}
+		}
+	}
+
+	// Warn if a private channel was left with no members (known limitation)
+	if channel.Type == model.ChannelTypePrivate {
+		remainingIDs, err := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
+		if err == nil && len(remainingIDs) == 0 {
+			rctx.Logger().Error("SetChannelMembers left private channel with no members",
+				mlog.String("channel_id", channel.Id),
+				mlog.String("requestor_user_id", requestorUserID),
+			)
+		}
+	}
+
+	return nil
 }

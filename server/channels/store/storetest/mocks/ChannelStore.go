@@ -163,6 +163,36 @@ func (_m *ChannelStore) AutocompleteInTeam(rctx request.CTX, teamID string, user
 	return r0, r1
 }
 
+// AutocompleteInTeamFiltered provides a mock function with given fields: rctx, teamID, userID, term, includeDeleted, isGuest, privateOnly, excludeGroupConstrained
+func (_m *ChannelStore) AutocompleteInTeamFiltered(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool, privateOnly bool, excludeGroupConstrained bool) (model.ChannelList, error) {
+	ret := _m.Called(rctx, teamID, userID, term, includeDeleted, isGuest, privateOnly, excludeGroupConstrained)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AutocompleteInTeamFiltered")
+	}
+
+	var r0 model.ChannelList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, bool, bool, bool, bool) (model.ChannelList, error)); ok {
+		return rf(rctx, teamID, userID, term, includeDeleted, isGuest, privateOnly, excludeGroupConstrained)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, bool, bool, bool, bool) model.ChannelList); ok {
+		r0 = rf(rctx, teamID, userID, term, includeDeleted, isGuest, privateOnly, excludeGroupConstrained)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string, bool, bool, bool, bool) error); ok {
+		r1 = rf(rctx, teamID, userID, term, includeDeleted, isGuest, privateOnly, excludeGroupConstrained)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AutocompleteInTeamForSearch provides a mock function with given fields: teamID, userID, term, includeDeleted
 func (_m *ChannelStore) AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
 	ret := _m.Called(teamID, userID, term, includeDeleted)
@@ -852,36 +882,6 @@ func (_m *ChannelStore) GetByNamesIncludeDeleted(teamID string, names []string, 
 
 	if rf, ok := ret.Get(1).(func(string, []string, bool) error); ok {
 		r1 = rf(teamID, names, allowFromCache)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetChannelCounts provides a mock function with given fields: teamID, userID
-func (_m *ChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
-	ret := _m.Called(teamID, userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetChannelCounts")
-	}
-
-	var r0 *model.ChannelCounts
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (*model.ChannelCounts, error)); ok {
-		return rf(teamID, userID)
-	}
-	if rf, ok := ret.Get(0).(func(string, string) *model.ChannelCounts); ok {
-		r0 = rf(teamID, userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelCounts)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(teamID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

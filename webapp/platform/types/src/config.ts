@@ -64,6 +64,7 @@ export type ClientConfig = {
     EnableExperimentalLocales: string;
     EnableUserStatuses: string;
     EnableLastActiveTime: string;
+    EnableChannelCategorySorting: string;
     EnableTimedDND: string;
     EnableCrossTeamSearch: 'true' | 'false';
     EnableCustomTermsOfService: string;
@@ -116,7 +117,6 @@ export type ClientConfig = {
     EnableUserDeactivation: string;
     EnableUserTypingMessages: string;
     EnforceMultifactorAuthentication: string;
-    ExperimentalChannelCategorySorting: string;
     ExperimentalEnableAuthenticationTransfer: string;
     ExperimentalEnableAutomaticReplies: string;
     ExperimentalEnableDefaultChannelLeaveJoinMessages: string;
@@ -128,8 +128,11 @@ export type ClientConfig = {
     FeatureFlagCallsEnabled: string;
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
+    FeatureFlagPermissionPolicies: string;
     FeatureFlagWebSocketEventScope: string;
     FeatureFlagContentFlagging: string;
+    FeatureFlagClassificationMarkings: string;
+    FeatureFlagManagedChannelCategories: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -205,6 +208,7 @@ export type ClientConfig = {
     WebsocketSecurePort: string;
     WebsocketURL: string;
     ExperimentalSharedChannels: string;
+    ExperimentalRemoteClusterService: string;
     DisableAppBar: string;
     EnableComplianceExport: string;
     PostPriority: string;
@@ -464,6 +468,7 @@ export type TeamSettings = {
     ExperimentalDefaultChannels: string[];
     EnableLastActiveTime: boolean;
     EnableJoinLeaveMessageByDefault: boolean;
+    EnableChannelCategorySorting: boolean;
 };
 
 export type ClientRequirements = {
@@ -485,6 +490,7 @@ export type SqlSettings = {
     Trace: boolean;
     AtRestEncryptKey: string;
     QueryTimeout: number;
+    AnalyticsQueryTimeout: number;
     DisableDatabaseSearch: boolean;
     MigrationsStatementTimeoutSeconds: number;
     ReplicaLagSettings: ReplicaLagSetting[];
@@ -687,6 +693,7 @@ export type SSOSettings = {
     DiscoveryEndpoint: string;
     ButtonText: string;
     ButtonColor: string;
+    UsePreferredUsername: boolean;
 };
 
 export type Office365Settings = {
@@ -699,6 +706,7 @@ export type Office365Settings = {
     UserAPIEndpoint: string;
     DiscoveryEndpoint: string;
     DirectoryId: string;
+    UsePreferredUsername: boolean;
 };
 
 export type LdapSettings = {
@@ -863,7 +871,7 @@ export type ExperimentalSettings = {
     DisableWakeUpReconnectHandler: boolean;
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: number;
     YoutubeReferrerPolicy: boolean;
-    ExperimentalChannelCategorySorting: boolean;
+    EnableWatermark: boolean;
 };
 
 export type AnalyticsSettings = {

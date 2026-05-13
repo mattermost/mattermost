@@ -5,7 +5,7 @@ import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getRandomId} from '../util';
+import {getRandomId, newTestPassword} from '../util';
 
 /**
  * Create a user with custom profile attributes
@@ -15,7 +15,7 @@ export async function createUserWithAttributes(
     client: Client4,
     attributes: Record<string, string>,
 ): Promise<UserProfile> {
-    const randomId = await getRandomId();
+    const randomId = getRandomId();
     // Ensure username starts with a letter (Mattermost requirement)
     const username = `user${randomId}`.toLowerCase();
 
@@ -24,7 +24,7 @@ export async function createUserWithAttributes(
         {
             email: `${username}@example.com`,
             username: username,
-            password: 'Password123!',
+            password: newTestPassword(),
         } as any,
         '',
         '',
@@ -57,51 +57,71 @@ export async function createUserWithAttributes(
 }
 
 /**
- * Enable ABAC in System Console
+ * Enable ABAC in System Console.
+ * Always navigates to the Attribute-Based Access settings page (where the toggle lives)
+ * before interacting, then navigates to Membership Policies afterward so callers land
+ * on the correct page for policy management.
  */
 export async function enableABAC(page: Page): Promise<void> {
-    const enableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControltrue');
-    await enableRadio.click();
+    await page.goto('/admin_console/system_attributes/attribute_based_access_control');
+    await page.waitForLoadState('networkidle');
 
-    // Wait for Save button to become enabled (indicates change detected)
+    const enableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControltrue');
     const saveButton = page.getByRole('button', {name: 'Save'});
+
+    await enableRadio.click();
     await saveButton.waitFor({state: 'visible', timeout: 5000});
 
-    // Check if already enabled (button stays disabled if no change needed)
-    const isDisabled = await saveButton.isDisabled();
-    if (isDisabled) {
-        return;
+    if (!(await saveButton.isDisabled())) {
+        await saveButton.click();
+        await page.waitForLoadState('networkidle');
     }
 
-    await saveButton.click();
+    // Always land on Membership Policies so callers can immediately create/manage policies
+    await page.goto('/admin_console/system_attributes/membership_policies');
     await page.waitForLoadState('networkidle');
 }
 
 /**
- * Disable ABAC in System Console
+ * Disable ABAC in System Console.
+ * Always navigates to the Attribute-Based Access settings page first.
  */
 export async function disableABAC(page: Page): Promise<void> {
-    const disableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControlfalse');
-    await disableRadio.click();
+    await page.goto('/admin_console/system_attributes/attribute_based_access_control');
+    await page.waitForLoadState('networkidle');
 
-    // Wait for Save button to become enabled (indicates change detected)
+    const disableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControlfalse');
     const saveButton = page.getByRole('button', {name: 'Save'});
+
+    await disableRadio.click();
     await saveButton.waitFor({state: 'visible', timeout: 5000});
 
-    // Check if already disabled (button stays disabled if no change needed)
-    const isDisabled = await saveButton.isDisabled();
-    if (isDisabled) {
-        return;
+    if (!(await saveButton.isDisabled())) {
+        await saveButton.click();
+        await page.waitForLoadState('networkidle');
     }
+}
 
-    await saveButton.click();
+/**
+ * Navigate to Membership Policies page in System Console
+ */
+export async function navigateToABACPage(page: Page): Promise<void> {
+    await page.goto('/admin_console/system_attributes/membership_policies');
     await page.waitForLoadState('networkidle');
 }
 
 /**
- * Navigate to ABAC page in System Console
+ * Navigate to Permission Policies page in System Console
  */
-export async function navigateToABACPage(page: Page): Promise<void> {
+export async function navigateToPermissionPoliciesPage(page: Page): Promise<void> {
+    await page.goto('/admin_console/system_attributes/permission_policies');
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Navigate to the ABAC enable/disable settings page
+ */
+export async function navigateToAttributeBasedAccessPage(page: Page): Promise<void> {
     await page.goto('/admin_console/system_attributes/attribute_based_access_control');
     await page.waitForLoadState('networkidle');
 }
@@ -268,16 +288,40 @@ export async function deletePolicy(page: Page, policyName: string): Promise<void
 }
 
 /**
- * Run ABAC sync job
+ * Click the "Run Sync Job" button and return the new job ID immediately.
+ *
+ * Intercepts the POST /api/v4/jobs response so the caller gets the exact job ID
+ * without a polling round-trip. Pass the returned ID to waitForLatestSyncJob as
+ * the `jobId` argument to skip Phase 1 and poll the specific job directly.
+ *
+ * Throws if the server returns a non-2xx status or if the response body has no
+ * id field. Returns null only if the interception times out (network hiccup),
+ * allowing callers to fall back to list-based Phase 1 polling.
  */
-export async function runSyncJob(page: Page, waitForCompletion: boolean = true): Promise<void> {
-    const runSyncButton = page.getByRole('button', {name: 'Run Sync Job'});
-    await runSyncButton.click();
-    await page.waitForLoadState('networkidle');
-
-    // Wait for job to process if requested
-    if (waitForCompletion) {
-        await page.waitForTimeout(3000);
+export async function runSyncJob(page: Page): Promise<string | null> {
+    // Do NOT filter by resp.ok() here — capture the response regardless of status
+    // so we can surface API errors explicitly instead of silently swallowing them.
+    const jobResponsePromise = page.waitForResponse(
+        (resp) => resp.url().includes('/api/v4/jobs') && resp.request().method() === 'POST',
+        {timeout: 10000},
+    );
+    await page.getByRole('button', {name: 'Run Sync Job'}).click();
+    try {
+        const response = await jobResponsePromise;
+        if (!response.ok()) {
+            throw new Error(`POST /api/v4/jobs failed with status ${response.status()}`);
+        }
+        const job = await response.json();
+        if (!job.id) {
+            throw new Error('POST /api/v4/jobs response missing id field');
+        }
+        return job.id as string;
+    } catch (err) {
+        if (err instanceof Error && err.message.startsWith('POST /api/v4/jobs')) {
+            throw err;
+        }
+        // Interception timed out — callers fall back to list-based polling in Phase 1.
+        return null;
     }
 }
 

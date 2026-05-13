@@ -41,12 +41,13 @@ import {
     AppsTypes,
     CloudTypes,
     ChannelBookmarkTypes,
+    PropertyTypes,
     ScheduledPostTypes,
     ContentFlaggingTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
+import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
     getMyChannelMember,
@@ -72,9 +73,14 @@ import {
     resetReloadPostsInChannel,
     resetReloadPostsInTranslatedChannels,
 } from 'mattermost-redux/actions/posts';
+import {
+    fetchPropertyFields,
+    fetchSystemPropertyValues,
+} from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
@@ -106,11 +112,12 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
     getTeamIdByChannelId,
     getMyTeams,
@@ -147,6 +154,15 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
+import {
+    GROUP_NAME,
+    OBJECT_TYPE,
+    TARGET_TYPE,
+    TARGET_ID,
+    LINKED_OBJECT_TYPE,
+    SYSTEM_FIELD_TARGET_ID,
+} from 'components/admin_console/classification_markings/utils';
+import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
@@ -156,6 +172,7 @@ import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
+import {isEnterpriseLicense} from 'utils/license_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 
@@ -273,7 +290,9 @@ export function reconnect() {
         }
 
         dispatch(fetchAllMyTeamsChannels());
-        dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
+        if (isScheduledPostsEnabled(state)) {
+            dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
+        }
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
         loadProfilesForSidebar();
@@ -319,7 +338,25 @@ export function reconnect() {
     });
 
     // Refresh custom profile attributes on reconnect
-    dispatch(getCustomProfileAttributeFields());
+    if (isEnterpriseLicense(getLicense(state)) && isCustomProfileAttributesEnabled(state)) {
+        dispatch(getCustomProfileAttributeFields());
+    }
+
+    // Refresh classification fields and values on reconnect when the feature flag is active
+    if (getFeatureFlagValue(state, 'ClassificationMarkings') === 'true') {
+        dispatch(
+            fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID),
+        );
+        dispatch(
+            fetchPropertyFields(
+                GROUP_NAME,
+                LINKED_OBJECT_TYPE,
+                TARGET_TYPE,
+                SYSTEM_FIELD_TARGET_ID,
+            ),
+        );
+        dispatch(fetchSystemPropertyValues(GROUP_NAME));
+    }
 
     if (state.websocket.lastDisconnectAt) {
         dispatch(checkForModifiedUsers());
@@ -479,6 +516,10 @@ export function handleEvent(msg: WebSocketMessage) {
         handleChannelConvertedEvent(msg);
         break;
 
+    case WebSocketEvents.SharedChannelRemoteUpdated:
+        handleSharedChannelRemoteUpdatedEvent(msg);
+        break;
+
     case WebSocketEvents.ChannelUpdated:
         dispatch(handleChannelUpdatedEvent(msg));
         break;
@@ -501,6 +542,10 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.ChannelBookmarkSorted:
         dispatch(handleChannelBookmarkSorted(msg));
+        break;
+
+    case WebSocketEvents.ChannelAccessControlUpdated:
+        dispatch(handleChannelAccessControlUpdatedEvent(msg));
         break;
 
     case WebSocketEvents.DirectAdded:
@@ -617,6 +662,26 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.SidebarCategoryOrderUpdated:
         dispatch(handleSidebarCategoryOrderUpdated(msg));
         break;
+    case WebSocketEvents.PropertyFieldCreated:
+    case WebSocketEvents.PropertyFieldUpdated:
+        dispatch(
+            handlePropertyFieldCreatedOrUpdated(
+                msg as
+                    | WebSocketMessages.PropertyFieldCreated
+                    | WebSocketMessages.PropertyFieldUpdated,
+            ),
+        );
+        break;
+    case WebSocketEvents.PropertyFieldDeleted:
+        dispatch(
+            handlePropertyFieldDeleted(
+                msg as WebSocketMessages.PropertyFieldDeleted,
+            ),
+        );
+        break;
+    case WebSocketEvents.PropertyValuesUpdated:
+        dispatch(handlePropertyValuesUpdated(msg));
+        break;
     case WebSocketEvents.UserActivationStatusChange:
         dispatch(handleUserActivationStatusChange());
         break;
@@ -710,15 +775,23 @@ export function handleEvent(msg: WebSocketMessage) {
     });
 }
 
-// handleChannelConvertedEvent handles updating of channel which is converted from public to private
+function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChannelRemoteUpdated) {
+    const channelId = msg.data.channel_id || msg.broadcast.channel_id;
+    if (channelId) {
+        dispatch(fetchChannelRemotes(channelId, true));
+    }
+}
+
+// handleChannelConvertedEvent handles updating of channel which is converted between public and private
 function handleChannelConvertedEvent(msg: WebSocketMessages.ChannelConverted) {
     const channelId = msg.data.channel_id;
     if (channelId) {
         const channel = getChannel(getState(), channelId);
         if (channel) {
+            const newType = msg.data.channel_type === General.OPEN_CHANNEL ? General.OPEN_CHANNEL : General.PRIVATE_CHANNEL;
             dispatch({
                 type: ChannelTypes.RECEIVED_CHANNEL,
-                data: {...channel, type: General.PRIVATE_CHANNEL},
+                data: {...channel, type: newType},
             });
         }
     }
@@ -765,6 +838,25 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
             }
             getHistory().replace(channelPath);
         }
+    };
+}
+
+export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        if (!msg.data.channel) {
+            return;
+        }
+
+        const channel = JSON.parse(msg.data.channel) as Channel;
+
+        // Refresh the channel record so consumers see the latest
+        // policy_enforced flag (and any other access-control-derived fields).
+        doDispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: channel});
+
+        // Drop any cached access control attributes for this channel so
+        // consumers (e.g. the channel invite modal banner) refetch the
+        // latest attribute set after a policy change.
+        invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
     };
 }
 
@@ -1160,6 +1252,66 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
         if (msg.data.team_id && config.RestrictDirectMessage === 'team') {
             dispatch({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
         }
+    };
+}
+
+function handlePropertyFieldCreatedOrUpdated(
+    msg:
+    | WebSocketMessages.PropertyFieldCreated
+    | WebSocketMessages.PropertyFieldUpdated,
+): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        let field;
+        try {
+            field = JSON.parse(msg.data.property_field);
+        } catch {
+            return;
+        }
+
+        doDispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+            data: {fields: [field]},
+        });
+    };
+}
+
+function handlePropertyFieldDeleted(
+    msg: WebSocketMessages.PropertyFieldDeleted,
+): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        doDispatch({
+            type: PropertyTypes.PROPERTY_FIELD_DELETED,
+            data: {fieldId: msg.data.field_id},
+        });
+    };
+}
+
+function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        let values;
+        try {
+            values = JSON.parse(msg.data.values ?? '[]');
+        } catch {
+            // invalid JSON
+            return;
+        }
+
+        const parsedPropertyValuesUpdated = {
+            object_type: msg.data.object_type,
+            target_id: msg.data.target_id,
+            field_id: msg.data.field_id,
+            values,
+        };
+
+        // Populate the Redux property values store so any component that reads
+        // from entities.properties.values (e.g. GlobalClassificationBanner) gets
+        // real-time updates without an extra network round-trip.
+        doDispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+            data: {values},
+        });
+
+        doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
     };
 }
 

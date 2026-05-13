@@ -34,7 +34,6 @@ type testPayload struct {
 
 func TestBroadcastMsg(t *testing.T) {
 	msgId := model.NewId()
-	disablePing = true
 
 	t.Run("No error", func(t *testing.T) {
 		var countCallbacks atomic.Int32
@@ -87,6 +86,7 @@ func TestBroadcastMsg(t *testing.T) {
 
 		service, err := NewRemoteClusterService(mockServer, mockApp)
 		require.NoError(t, err)
+		service.disablePing = true
 
 		err = service.Start()
 		require.NoError(t, err)
@@ -144,6 +144,7 @@ func TestBroadcastMsg(t *testing.T) {
 
 		service, err := NewRemoteClusterService(mockServer, mockApp)
 		require.NoError(t, err)
+		service.disablePing = true
 
 		err = service.Start()
 		require.NoError(t, err)

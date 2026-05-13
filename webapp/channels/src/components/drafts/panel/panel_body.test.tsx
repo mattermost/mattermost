@@ -3,13 +3,11 @@
 
 import type {ComponentProps} from 'react';
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import {PostPriority} from '@mattermost/types/posts';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import * as utils from 'utils/utils';
 
 import type {PostDraft} from 'types/store/draft';
@@ -79,66 +77,56 @@ describe('components/drafts/panel/panel_body', () => {
     };
 
     it('should match snapshot', () => {
-        const store = mockStore(initialState);
-
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <PanelBody
-                    {...baseProps}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <PanelBody
+                {...baseProps}
+            />,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for requested_ack', () => {
-        const store = mockStore(initialState);
-
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <PanelBody
-                    {...baseProps}
-                    priority={{
-                        priority: '',
-                        requested_ack: true,
-                    }}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <PanelBody
+                {...baseProps}
+                priority={{
+                    priority: '',
+                    requested_ack: true,
+                }}
+            />,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for priority', () => {
-        const store = mockStore(initialState);
-
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <PanelBody
-                    {...baseProps}
-                    priority={{
-                        priority: PostPriority.IMPORTANT,
-                        requested_ack: false,
-                    }}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <PanelBody
+                {...baseProps}
+                priority={{
+                    priority: PostPriority.IMPORTANT,
+                    requested_ack: false,
+                }}
+            />,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     it('should have called handleFormattedTextClick', () => {
         const handleClickSpy = jest.spyOn(utils, 'handleFormattedTextClick');
-        const store = mockStore(initialState);
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <PanelBody
-                    {...baseProps}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <PanelBody
+                {...baseProps}
+            />,
+            initialState,
         );
 
-        wrapper.find('div.post__content').simulate('click');
+        const postContent = container.querySelector('div.post__content');
+        (postContent as HTMLElement)?.click();
         expect(handleClickSpy).toHaveBeenCalledTimes(1);
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

@@ -87,6 +87,7 @@ const (
 	WebsocketEventChannelBookmarkUpdated              WebsocketEventType = "channel_bookmark_updated"
 	WebsocketEventChannelBookmarkDeleted              WebsocketEventType = "channel_bookmark_deleted"
 	WebsocketEventChannelBookmarkSorted               WebsocketEventType = "channel_bookmark_sorted"
+	WebsocketEventChannelAccessControlUpdated         WebsocketEventType = "channel_access_control_updated"
 	WebsocketPresenceIndicator                        WebsocketEventType = "presence"
 	WebsocketPostedNotifyAck                          WebsocketEventType = "posted_notify_ack"
 	WebsocketScheduledPostCreated                     WebsocketEventType = "scheduled_post_created"
@@ -112,6 +113,7 @@ const (
 	WebsocketEventPropertyValuesUpdated               WebsocketEventType = "property_values_updated"
 	WebsocketEventFileDownloadRejected                WebsocketEventType = "file_download_rejected"
 	WebsocketEventShowToast                           WebsocketEventType = "show_toast"
+	WebsocketEventSharedChannelRemoteUpdated          WebsocketEventType = "shared_channel_remote_updated"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"

@@ -37,7 +37,7 @@ jobs:
           COMMIT_SHA: ${{ steps.pr-info.outputs.head_sha }}
         run: |
           # Only full tests can be overridden (smoke tests must pass)
-          FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise")
+          FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise" "e2e-test/playwright-full/fips" "e2e-test/cypress-full/fips")
 
           for CONTEXT_NAME in "${FULL_TEST_CONTEXTS[@]}"; do
             echo "Checking: $CONTEXT_NAME"

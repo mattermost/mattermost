@@ -5,7 +5,11 @@ package platform
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	rpprof "runtime/pprof"
@@ -19,6 +23,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
 const (
@@ -103,17 +109,41 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting total memory"))
 	}
 	d.Server.TotalMemoryMB = totalMemoryBytes / 1024 / 1024
+	containerLimits, err := getContainerLimits()
+	if err != nil {
+		rctx.Logger().Debug("Failed to get container limits for Support Packet", mlog.Err(err))
+	} else {
+		d.Server.ContainerCPULimit = containerLimits.CPULimit
+		d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
+	}
 	d.Server.Hostname, err = os.Hostname()
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting hostname"))
 	}
+	d.Server.ProcessID = os.Getpid()
+	d.Server.StartedAt = ps.startTime.UTC()
+	if hostUptimeSeconds, hostUptimeErr := getHostUptimeSeconds(); hostUptimeErr == nil {
+		d.Server.HostStartedAt = time.Now().Add(-time.Duration(hostUptimeSeconds) * time.Second).UTC()
+	}
 	d.Server.Version = model.CurrentVersion
 	d.Server.BuildHash = model.BuildHash
-	installationType := os.Getenv(envVarInstallType)
+	d.Server.GoVersion = runtime.Version()
+	installationType := ps.installTypeOverride
+	if installationType == "" {
+		installationType = os.Getenv(envVarInstallType)
+	}
 	if installationType == "" {
 		installationType = unknownDataPoint
 	}
 	d.Server.InstallationType = installationType
+	d.Server.OpenFileDescriptors, err = getOpenFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting open file descriptor count"))
+	}
+	d.Server.MaxFileDescriptors, err = getMaxFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting max file descriptor limit"))
+	}
 
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()
@@ -142,6 +172,20 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.FileStore.Error = err.Error()
 	}
 	d.FileStore.Driver = ps.FileBackend().DriverName()
+	if d.FileStore.Driver == model.ImageDriverLocal {
+		dir := model.SafeDereference(ps.Config().FileSettings.Directory)
+		if dir == "" {
+			dir = model.FileSettingsDefaultDirectory
+		}
+		di, diskErr := getDiskInfo(dir)
+		if diskErr != nil {
+			rErr = multierror.Append(errors.Wrap(diskErr, "error while getting disk space info"))
+		} else {
+			d.FileStore.FilesystemType = di.FilesystemType
+			d.FileStore.TotalMB = di.TotalMB
+			d.FileStore.AvailableMB = di.AvailableMB
+		}
+	}
 
 	/* Websockets */
 	d.Websocket.Connections = ps.TotalWebsocketConnections()
@@ -183,6 +227,8 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		}
 		d.LDAP.ServerName = severName
 		d.LDAP.ServerVersion = serverVersion
+	} else {
+		d.LDAP.Status = model.StatusDisabled
 	}
 
 	/* SAML */
@@ -193,14 +239,64 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Elastic Search */
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {
 		d.ElasticSearch.Backend = *ps.Config().ElasticsearchSettings.Backend
+		d.ElasticSearch.ServerVersion = se.GetFullVersion()
+		d.ElasticSearch.ServerPlugins = se.GetPlugins()
 		if *ps.Config().ElasticsearchSettings.EnableIndexing {
 			appErr := se.TestConfig(rctx, ps.Config())
 			if appErr != nil {
+				d.ElasticSearch.Status = model.StatusFail
 				d.ElasticSearch.Error = appErr.Error()
+			} else {
+				d.ElasticSearch.Status = model.StatusOk
 			}
+		} else {
+			d.ElasticSearch.Status = model.StatusDisabled
 		}
-		d.ElasticSearch.ServerVersion = se.GetFullVersion()
-		d.ElasticSearch.ServerPlugins = se.GetPlugins()
+	} else {
+		d.ElasticSearch.Status = model.StatusDisabled
+	}
+
+	/* Email Notifications */
+	if model.SafeDereference(ps.Config().EmailSettings.SendEmailNotifications) {
+		emailSettings := ps.Config().EmailSettings
+		hostname := utils.GetHostnameFromSiteURL(model.SafeDereference(ps.Config().ServiceSettings.SiteURL))
+		mailCfg := &mail.SMTPConfig{
+			Hostname:                          hostname,
+			ConnectionSecurity:                model.SafeDereference(emailSettings.ConnectionSecurity),
+			SkipServerCertificateVerification: model.SafeDereference(emailSettings.SkipServerCertificateVerification),
+			ServerName:                        model.SafeDereference(emailSettings.SMTPServer),
+			Server:                            model.SafeDereference(emailSettings.SMTPServer),
+			Port:                              model.SafeDereference(emailSettings.SMTPPort),
+			ServerTimeout:                     model.SafeDereference(emailSettings.SMTPServerTimeout),
+			Username:                          model.SafeDereference(emailSettings.SMTPUsername),
+			Password:                          model.SafeDereference(emailSettings.SMTPPassword),
+			EnableSMTPAuth:                    model.SafeDereference(emailSettings.EnableSMTPAuth),
+			SendEmailNotifications:            true,
+			FeedbackName:                      model.SafeDereference(emailSettings.FeedbackName),
+			FeedbackEmail:                     model.SafeDereference(emailSettings.FeedbackEmail),
+			ReplyToAddress:                    model.SafeDereference(emailSettings.ReplyToAddress),
+		}
+		if smtpErr := mail.TestConnection(mailCfg); smtpErr != nil {
+			d.Notifications.Email.Status = model.StatusFail
+			d.Notifications.Email.Error = smtpErr.Error()
+		} else {
+			d.Notifications.Email.Status = model.StatusOk
+		}
+	} else {
+		d.Notifications.Email.Status = model.StatusDisabled
+	}
+
+	/* Push Notifications */
+	if model.SafeDereference(ps.Config().EmailSettings.SendPushNotifications) {
+		pushServerURL := model.SafeDereference(ps.Config().EmailSettings.PushNotificationServer)
+		if pushErr := testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
+			d.Notifications.Push.Status = model.StatusFail
+			d.Notifications.Push.Error = pushErr.Error()
+		} else {
+			d.Notifications.Push.Status = model.StatusOk
+		}
+	} else {
+		d.Notifications.Push.Status = model.StatusDisabled
 	}
 
 	b, err := yaml.Marshal(&d)
@@ -213,6 +309,29 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		Body:     b,
 	}
 	return fileData, rErr.ErrorOrNil()
+}
+
+// TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
+func testPushProxyConnection(ctx context.Context, serverURL string) error {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	versionURL, err := url.JoinPath(serverURL, "version")
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, versionURL, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("push proxy returned unexpected status %d", resp.StatusCode)
+	}
+	return nil
 }
 
 func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.FileData, error) {
@@ -313,7 +432,7 @@ func detectSAMLProviderType(idpDescriptorURL string) string {
 		return "Centrify"
 	case strings.Contains(normalizedURL, "/realms/"):
 		return "Keycloak"
-	case strings.Contains(normalizedURL, "/adfs/") || strings.Contains(normalizedURL, "/FederationMetadata/"):
+	case strings.Contains(normalizedURL, "/adfs") || strings.Contains(normalizedURL, "/federationmetadata/"):
 		return "ADFS"
 	case strings.Contains(normalizedURL, "shibboleth.net") || strings.Contains(normalizedURL, "/idp/shibboleth"):
 		return "Shibboleth"
