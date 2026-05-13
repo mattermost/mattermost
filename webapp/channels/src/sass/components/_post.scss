@@ -1418,6 +1418,10 @@
             }
 
             li {
+                > span > p:only-of-type {
+                    display: inline;
+                }
+
                 ul {
                     padding: 0 0 0 20px;
                     margin: 0;
