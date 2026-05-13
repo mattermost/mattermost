@@ -268,6 +268,10 @@
     "translation": "Can not add user to this channel type."
   },
   {
+    "id": "api.channel.board_channel.app_error",
+    "translation": "Board channels cannot be accessed via /channels endpoints. Use the /boards API instead."
+  },
+  {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
     "translation": "Your license does not support channel bookmarks."
   },
@@ -5423,6 +5427,26 @@
     "translation": "Unable to count urgent posts since given date."
   },
   {
+    "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
+    "translation": "The Integrated Boards feature is not enabled."
+  },
+  {
+    "id": "app.channel.create_board_channel.internal_error",
+    "translation": "Unable to create the board channel."
+  },
+  {
+    "id": "app.channel.create_board_channel.invalid.app_error",
+    "translation": "Invalid board channel data."
+  },
+  {
+    "id": "app.channel.create_board_channel.limit.app_error",
+    "translation": "The maximum number of channels per team has been reached."
+  },
+  {
+    "id": "app.channel.create_channel.board_type.app_error",
+    "translation": "Board channels cannot be created via CreateChannel. Use the /boards API instead."
+  },
+  {
     "id": "app.channel.create_channel.internal_error",
     "translation": "Unable to save channel."
   },
@@ -5677,6 +5701,10 @@
   {
     "id": "app.channel.restore.app_error",
     "translation": "Unable to restore the channel."
+  },
+  {
+    "id": "app.channel.save_member.app_error",
+    "translation": "Unable to save channel member."
   },
   {
     "id": "app.channel.save_member.exists.app_error",
@@ -10779,6 +10807,18 @@
     "translation": "Update at must be a valid time."
   },
   {
+    "id": "model.channel.is_valid_board.display_name.app_error",
+    "translation": "Board display name must not be empty."
+  },
+  {
+    "id": "model.channel.is_valid_board.team_id.app_error",
+    "translation": "Board channels must belong to a team."
+  },
+  {
+    "id": "model.channel.is_valid_board.type.app_error",
+    "translation": "Channel type must be BO (open board) or BP (private board)."
+  },
+  {
     "id": "model.channel_bookmark.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
@@ -12701,6 +12741,38 @@
   {
     "id": "model.view.is_valid.id.app_error",
     "translation": "Invalid view ID."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_id.app_error",
+    "translation": "Kanban column has an invalid or missing ID."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_name.app_error",
+    "translation": "Kanban column name must not be empty."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_column_options.app_error",
+    "translation": "Kanban column must have at least one option ID."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_empty.app_error",
+    "translation": "Kanban view must have at least one column."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_columns_max.app_error",
+    "translation": "Kanban view exceeds the maximum number of columns."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_field_id.app_error",
+    "translation": "Kanban view must reference a valid property field ID."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_invalid.app_error",
+    "translation": "Kanban view has invalid props structure."
+  },
+  {
+    "id": "model.view.is_valid.props.kanban_required.app_error",
+    "translation": "Kanban view requires props with a group_by configuration."
   },
   {
     "id": "model.view.is_valid.title.app_error",
