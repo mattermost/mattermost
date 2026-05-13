@@ -4165,7 +4165,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.saml.getSamlMetadataFromIDPUrl', defaultMessage: 'Get SAML Metadata from IdP'}),
                             loading: defineMessage({id: 'admin.saml.getSamlMetadataFromIDPFetching', defaultMessage: 'Fetching...'}),
                             error_message: defineMessage({id: 'admin.saml.getSamlMetadataFromIDPFail', defaultMessage: 'SAML Metadata URL did not connect and pull data successfully'}),
-                            success_message: defineMessage({id: 'admin.saml.getSamlMetadataFromIDPSuccess', defaultMessage: 'SAML Metadata retrieved successfully. Two fields below have been updated'}),
+                            success_message: defineMessage({id: 'admin.saml.getSamlMetadataFromIDPSuccess', defaultMessage: 'SAML Metadata retrieved successfully. Two fields and one certificate have been updated'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
                                 it.stateIsFalse('SamlSettings.Enable'),

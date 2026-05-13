@@ -397,8 +397,16 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                         if (tsetting.type === Constants.SettingsTypes.TYPE_TEXT) {
                             this.setState({[tsetting.key]: inputData, [`${tsetting.key}Error`]: null});
                         } else if (tsetting.type === Constants.SettingsTypes.TYPE_FILE_UPLOAD) {
-                            if (this.buildSettingFunctions[tsetting.type] && this.buildSettingFunctions[tsetting.type](tsetting)?.props.onSetData) {
-                                this.buildSettingFunctions[tsetting.type](tsetting)?.props.onSetData(tsetting.key, inputData);
+                            if (tsetting.set_action && tsetting.key) {
+                                const key = tsetting.key;
+                                const onSuccess = (filename: string) => {
+                                    this.handleChange(key, filename);
+                                    this.setState({[key]: filename, [`${key}Error`]: null});
+                                };
+                                const onError = (err: {message: string}) => {
+                                    this.setState({[key]: null, [`${key}Error`]: err.message});
+                                };
+                                tsetting.set_action(onSuccess, onError, inputData);
                             }
                         }
                     }
