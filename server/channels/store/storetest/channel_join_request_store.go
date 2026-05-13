@@ -240,7 +240,7 @@ func testChannelJoinRequestCountPending(ss store.Store) func(*testing.T) {
 		assert.Equal(t, int64(0), count)
 
 		for range 4 {
-			_, err := ss.ChannelJoinRequest().Save(newPendingRequest(channelId, model.NewId()))
+			_, err = ss.ChannelJoinRequest().Save(newPendingRequest(channelId, model.NewId()))
 			require.NoError(t, err)
 		}
 

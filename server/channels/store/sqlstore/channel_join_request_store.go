@@ -129,10 +129,7 @@ func paginate(opts model.GetChannelJoinRequestsOpts) (limit, offset uint64) {
 	if perPage <= 0 {
 		perPage = 60
 	}
-	page := opts.Page
-	if page < 0 {
-		page = 0
-	}
+	page := max(opts.Page, 0)
 	return uint64(perPage), uint64(page) * uint64(perPage)
 }
 
