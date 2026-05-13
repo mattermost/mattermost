@@ -11,14 +11,6 @@ import InstalledIncomingWebhooks from 'components/integrations/installed_incomin
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-jest.mock('components/integrations/delete_integration_link', () => {
-    const ReactMock = require('react'); // eslint-disable-line @typescript-eslint/no-var-requires, global-require
-    return {
-        __esModule: true,
-        default: (props: {onDelete: () => void}) => ReactMock.createElement('button', {onClick: props.onDelete}, 'Delete'),
-    };
-});
-
 describe('components/integrations/InstalledIncomingWebhooks', () => {
     const team = TestHelper.getTeamMock({id: 'teamId', name: 'test'});
     const user = TestHelper.getUserMock({id: 'userId'});
@@ -67,7 +59,7 @@ describe('components/integrations/InstalledIncomingWebhooks', () => {
         enableIncomingWebhooks: true,
         actions: {
             removeIncomingHook: jest.fn(),
-            loadIncomingHooksAndProfilesForTeam: jest.fn().mockResolvedValue({data: []}),
+            loadIncomingHooksAndProfilesForTeam: jest.fn().mockReturnValue(Promise.resolve()),
         },
     };
 
@@ -116,8 +108,8 @@ describe('components/integrations/InstalledIncomingWebhooks', () => {
     });
 
     test('compares hooks with missing display_name symmetrically using channel name fallback', async () => {
-        const noNameHookA: IncomingWebhook = TestHelper.getIncomingWebhookMock({
-            id: 'hook-no-name-a',
+        const noNameHook: IncomingWebhook = TestHelper.getIncomingWebhookMock({
+            id: 'hook-no-name',
             display_name: '',
             channel_id: 'channelId',
             team_id: 'teamId',
@@ -131,10 +123,10 @@ describe('components/integrations/InstalledIncomingWebhooks', () => {
             user_id: 'userId',
         });
 
-        // channel display_name is "Town Square" — this should sort before "Zeta Webhook"
+        // channel display_name is "Town Square" which sorts before "Zeta Webhook"
         const props = {
             ...defaultProps,
-            incomingHooks: [namedHook, noNameHookA],
+            incomingHooks: [namedHook, noNameHook],
             incomingHooksTotalCount: 2,
         };
 
@@ -149,14 +141,13 @@ describe('components/integrations/InstalledIncomingWebhooks', () => {
             expect(screen.getByText('Zeta Webhook')).toBeInTheDocument();
         });
 
-        // "Town Square" (channel fallback) < "Zeta Webhook" alphabetically
         const townSquareEl = screen.getByText('Town Square');
         const zetaEl = screen.getByText('Zeta Webhook');
 
         expect(townSquareEl).toBeInTheDocument();
         expect(zetaEl).toBeInTheDocument();
 
-        // Verify DOM order: Town Square should come before Zeta Webhook
+        // Verify DOM order: Town Square (channel fallback) should appear before Zeta Webhook
         const position = townSquareEl.compareDocumentPosition(zetaEl);
         expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
