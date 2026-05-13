@@ -981,7 +981,7 @@ func (c *Context) ValidatePageBelongsToWiki() (*model.Post, bool) {
 		return nil, false
 	}
 
-	pageWikiId, wikiErr := c.App.GetWikiIdForPost(c.AppContext, page)
+	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, page.Id)
 	if wikiErr != nil || pageWikiId == "" {
 		c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_wiki_not_set",
 			nil, "", http.StatusBadRequest)

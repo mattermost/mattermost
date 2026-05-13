@@ -19,7 +19,7 @@ func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, u
 		wikiId, _ := page.Props[model.PagePropsWikiID].(string)
 		if wikiId == "" {
 			var err *model.AppError
-			wikiId, err = a.GetWikiIdForPost(rctx, page)
+			wikiId, err = a.GetWikiIdForPage(rctx, page.Id)
 			if err != nil {
 				rctx.Logger().Warn("Failed to get wiki for page update notification",
 					mlog.String("page_id", page.Id),

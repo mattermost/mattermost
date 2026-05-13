@@ -39,7 +39,7 @@ func updatePageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.SetPageStatus(c.AppContext, page, req.Status); err != nil {
+	if err := c.App.SetPageStatus(c.AppContext, page.Id, req.Status); err != nil {
 		c.Err = err
 		return
 	}
@@ -178,17 +178,8 @@ func restorePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageWikiId, wikiErr := c.App.GetWikiIdForPost(c.AppContext, page)
-	if wikiErr != nil || pageWikiId == "" {
-		c.Err = model.NewAppError("restorePage", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("restorePage", "api.wiki.page_not_found.app_error", nil, "", http.StatusNotFound)
-		return
-	}
-
-	// Validate page's channel matches wiki's channel
+	// Wiki membership is structural: a page belongs to the wiki whose backing channel matches.
+	// GetWikiIdForPage cannot be used here — it calls GetPage which excludes soft-deleted posts.
 	if page.ChannelId != wiki.ChannelId {
 		c.Err = model.NewAppError("restorePage", "api.wiki.page_not_found.app_error", nil, "", http.StatusNotFound)
 		return

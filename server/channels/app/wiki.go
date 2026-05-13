@@ -4,7 +4,6 @@
 package app
 
 import (
-	"encoding/json"
 	"errors"
 	"maps"
 	"net/http"
@@ -443,17 +442,13 @@ func (a *App) GetWikiPages(rctx request.CTX, wikiId string, offset, limit int) (
 	return pages, nil
 }
 
-// AddPageToWiki associates a page with a wiki.
-// page is optional - if provided, avoids a redundant DB fetch.
-func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string, page *model.Post) *model.AppError {
-	if page == nil {
-		var err *model.AppError
-		page, err = a.GetPage(rctx, pageId)
-		if err != nil {
-			return model.NewAppError("AddPageToWiki", "app.wiki.add.not_a_page", nil, "", http.StatusBadRequest).Wrap(err)
-		}
+// AddPageToWiki validates that a page is in the wiki's backing channel and warms the wiki_id Props cache.
+// The page-wiki association itself is structural: a page belongs to the wiki whose ChannelId matches the page's ChannelId.
+func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppError {
+	post, err := a.GetPage(rctx, pageId)
+	if err != nil {
+		return model.NewAppError("AddPageToWiki", "app.wiki.add.not_a_page", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	post := page
 
 	pageTitle := post.GetPageTitle()
 
@@ -472,83 +467,14 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string, page *model
 		return model.NewAppError("AddPageToWiki", "app.wiki.add.channel_mismatch", nil, "", http.StatusBadRequest)
 	}
 
-	existingWikiId, wikiErr := a.GetWikiIdForPage(rctx, pageId)
-	if wikiErr != nil {
-		if wikiErr.StatusCode == http.StatusNotFound {
-			rctx.Logger().Debug("No existing wiki association found for page - will create new",
-				mlog.String("page_id", pageId),
-				mlog.String("wiki_id", wikiId))
-		} else {
-			return wikiErr
-		}
-	} else {
-		if existingWikiId == wikiId {
-			rctx.Logger().Debug("Page already associated with this wiki",
-				mlog.String("page_id", pageId),
-				mlog.String("wiki_id", wikiId))
-			return nil
-		}
-		return model.NewAppError("AddPageToWiki", "app.wiki.add.already_attached", nil, "", http.StatusConflict)
-	}
-
-	group, grpErr := a.GetPagePropertyGroup()
-	if grpErr != nil {
-		return model.NewAppError("AddPageToWiki", "app.wiki.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(grpErr)
-	}
-
-	wikiField, fldErr := a.Srv().PropertyService().PropertyAccessService().GetPropertyFieldByName(anonymousCallerID, group.ID, "", "wiki")
-	if fldErr != nil {
-		return model.NewAppError("AddPageToWiki", "app.wiki.get_wiki_field.app_error", nil, "", http.StatusInternalServerError).Wrap(fldErr)
-	}
-
-	valueJSON, jsonErr := json.Marshal(wikiId)
-	if jsonErr != nil {
-		rctx.Logger().Warn("Failed to marshal wiki ID", mlog.String("wiki_id", wikiId), mlog.Err(jsonErr))
-		return model.NewAppError("AddPageToWiki", "app.wiki.marshal_wiki_id.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-	}
-	value := &model.PropertyValue{
-		TargetType: model.PropertyValueTargetTypePost,
-		TargetID:   pageId,
-		GroupID:    group.ID,
-		FieldID:    wikiField.ID,
-		Value:      valueJSON,
-	}
-
-	rctx.Logger().Debug("Creating PropertyValue",
-		mlog.String("page_id", pageId),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("group_id", group.ID),
-		mlog.String("field_id", wikiField.ID),
-		mlog.String("value_json", string(valueJSON)))
-
-	_, createErr := a.Srv().Store().PropertyValue().Create(value)
-	if createErr != nil {
-		rctx.Logger().Error("Failed to create PropertyValue",
-			mlog.Err(createErr),
-			mlog.String("page_id", pageId),
-			mlog.String("wiki_id", wikiId),
-			mlog.String("page_title", pageTitle))
-		return model.NewAppError("AddPageToWiki", "app.wiki.add_page.app_error", nil, "", http.StatusInternalServerError).Wrap(createErr)
-	}
-
-	// Invalidate cache now that the canonical PropertyValue write succeeded, so other
-	// cluster nodes see the updated wiki association regardless of whether the
-	// Post.Props optimization write below succeeds.
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
-	// Store wiki_id in Post.Props for fast lookup (optimization to avoid property service queries)
 	if err := a.setWikiIdInPostProps(pageId, wikiId); err != nil {
 		rctx.Logger().Warn("Failed to store wiki_id in Post.Props (non-fatal)",
 			mlog.String("page_id", pageId),
 			mlog.String("wiki_id", wikiId),
 			mlog.Err(err))
 	}
-
-	rctx.Logger().Debug("PropertyValue created successfully",
-		mlog.String("page_id", pageId),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("page_title", pageTitle),
-		mlog.String("page_parent_id", post.PageParentId))
 
 	return nil
 }
@@ -578,15 +504,6 @@ func (a *App) DeleteWikiPage(rctx request.CTX, page *model.Post, wikiId string, 
 
 	if channel != nil && channel.DeleteAt != 0 {
 		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.deleted_channel.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	group, grpErr := a.GetPagePropertyGroup()
-	if grpErr != nil {
-		return model.NewAppError("DeleteWikiPage", "app.wiki.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(grpErr)
-	}
-
-	if deleteErr := a.Srv().Store().PropertyValue().DeleteForTarget(group.ID, "post", pageId); deleteErr != nil {
-		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
 	if deletePageErr := a.DeletePage(rctx, page, wikiId); deletePageErr != nil {
@@ -652,18 +569,10 @@ func (a *App) MovePageToWiki(rctx request.CTX, page *model.Post, targetWikiId st
 				"", http.StatusNotFound).Wrap(parentErr)
 		}
 
-		// Try to get parent's wiki ID from Props first (fast path)
-		var parentWikiId string
-		if propWikiId, ok := parentPage.Props[model.PagePropsWikiID].(string); ok && propWikiId != "" {
-			parentWikiId = propWikiId
-		} else {
-			// Fallback to property values lookup
-			var wikiErr *model.AppError
-			parentWikiId, wikiErr = a.GetWikiIdForPage(rctx, parentPage.Id)
-			if wikiErr != nil {
-				return model.NewAppError("MovePageToWiki", "app.page.move.parent_wiki_not_found", nil,
-					"", http.StatusInternalServerError).Wrap(wikiErr)
-			}
+		parentWikiId, parentWikiErr := a.GetWikiIdForPage(rctx, parentPage.Id)
+		if parentWikiErr != nil {
+			return model.NewAppError("MovePageToWiki", "app.page.move.parent_wiki_not_found", nil,
+				"", http.StatusInternalServerError).Wrap(parentWikiErr)
 		}
 
 		if parentWikiId != targetWikiId {
@@ -778,7 +687,7 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePage *model.Post, targetWiki
 		return nil, createErr
 	}
 
-	if linkErr := a.AddPageToWiki(rctx, duplicatedPage.Id, targetWikiId, duplicatedPage); linkErr != nil {
+	if linkErr := a.AddPageToWiki(rctx, duplicatedPage.Id, targetWikiId); linkErr != nil {
 		if delErr := a.DeletePage(rctx, duplicatedPage, ""); delErr != nil {
 			rctx.Logger().Error("Failed to delete page after AddPageToWiki failed",
 				mlog.String("page_id", duplicatedPage.Id),

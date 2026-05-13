@@ -19,7 +19,7 @@ import (
 // GetPageChildren fetches direct children of a page.
 // Note: Permission checks should be performed by the caller (API layer) before calling this method.
 func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	_, appErr := a.GetSinglePost(rctx, postID, false)
+	_, appErr := a.GetPage(rctx, postID)
 	if appErr != nil {
 		return nil, model.NewAppError("GetPageChildren", "app.page.get_children.parent.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 	}
@@ -395,7 +395,7 @@ func (a *App) calculatePageDepth(rctx request.CTX, pageID string, page *model.Po
 	// Use provided page or fetch if not provided
 	if page == nil {
 		var err *model.AppError
-		page, err = a.GetSinglePost(rctx, pageID, false)
+		page, err = a.GetPage(rctx, pageID)
 		if err != nil {
 			return 0, model.NewAppError("calculatePageDepth", "app.page.calculate_depth.not_found", nil, "", http.StatusBadRequest).Wrap(err)
 		}

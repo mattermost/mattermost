@@ -343,7 +343,7 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 			// Parent exists as a draft for this user - no wiki validation needed since
 			// drafts are wiki-scoped and we'll save the child with the same wiki ID
 		} else {
-			parentWikiId, wikiErr := c.App.GetWikiIdForPost(c.AppContext, parentPage)
+			parentWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, parentPage.Id)
 			if wikiErr != nil || parentWikiId == "" {
 				c.Err = model.NewAppError("createPageDraft", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
 				return

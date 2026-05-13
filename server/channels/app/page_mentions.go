@@ -72,8 +72,8 @@ func (a *App) extractMentionsFromNodes(rctx request.CTX, nodes []json.RawMessage
 	}
 }
 
-// GetPreviouslyNotifiedMentions retrieves the list of users who were previously notified
-func (a *App) GetPreviouslyNotifiedMentions(page *model.Post) []string {
+// getPreviouslyNotifiedMentions retrieves the list of users who were previously notified
+func getPreviouslyNotifiedMentions(page *model.Post) []string {
 	if page.Props == nil {
 		return []string{}
 	}
@@ -99,8 +99,8 @@ func (a *App) GetPreviouslyNotifiedMentions(page *model.Post) []string {
 	}
 }
 
-// SetNotifiedMentions updates the page props with the current list of notified users
-func (a *App) SetNotifiedMentions(page *model.Post, userIDs []string) {
+// setNotifiedMentions updates the page props with the current list of notified users
+func setNotifiedMentions(page *model.Post, userIDs []string) {
 	if page.Props == nil {
 		page.Props = make(model.StringInterface)
 	}
@@ -147,7 +147,7 @@ func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channel *mo
 		mlog.String("page_id", page.Id),
 		mlog.Int("current_mention_count", len(currentMentions)))
 
-	previouslyNotified := a.GetPreviouslyNotifiedMentions(page)
+	previouslyNotified := getPreviouslyNotifiedMentions(page)
 
 	rctx.Logger().Debug("handlePageMentions: previous notifications",
 		mlog.String("page_id", page.Id),
@@ -172,7 +172,7 @@ func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channel *mo
 	// set and clobber the other's update. A full fix requires an atomic read-modify-write
 	// at the store level; the duplicate-notification risk is accepted for now.
 	updatedPage := page.Clone()
-	a.SetNotifiedMentions(updatedPage, currentMentions)
+	setNotifiedMentions(updatedPage, currentMentions)
 
 	if _, updateErr := a.Srv().Store().Post().Update(rctx, updatedPage, page.Clone()); updateErr != nil {
 		rctx.Logger().Warn("Failed to update page props with notified mentions",
@@ -220,7 +220,7 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 	// Use provided wikiId or fetch if not provided
 	if wikiId == "" {
 		var wikiIdErr *model.AppError
-		wikiId, wikiIdErr = a.GetWikiIdForPost(rctx, page)
+		wikiId, wikiIdErr = a.GetWikiIdForPage(rctx, page.Id)
 		if wikiIdErr != nil {
 			rctx.Logger().Warn("Failed to get wiki ID for page mention channel posts",
 				mlog.String("page_id", page.Id),
