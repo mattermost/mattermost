@@ -32,7 +32,7 @@ func TestConfigDefaults(t *testing.T) {
 	t.Run("nowhere nil when partially initialized", func(t *testing.T) {
 		var recursivelyUninitialize func(*Config, string, reflect.Value)
 		recursivelyUninitialize = func(config *Config, name string, v reflect.Value) {
-			if v.Type().Kind() == reflect.Ptr {
+			if v.Type().Kind() == reflect.Pointer {
 				// Ignoring these 2 settings.
 				// TODO: remove them completely in v8.0.
 				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
@@ -2884,10 +2884,10 @@ func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
 			fieldPath := path + "." + field.Name
 
 			elemType := field.Type
-			if elemType.Kind() == reflect.Ptr || elemType.Kind() == reflect.Slice {
+			if elemType.Kind() == reflect.Pointer || elemType.Kind() == reflect.Slice {
 				elemType = elemType.Elem()
 			}
-			if elemType.Kind() == reflect.Ptr {
+			if elemType.Kind() == reflect.Pointer {
 				elemType = elemType.Elem()
 			}
 			if elemType.Kind() == reflect.Struct {
