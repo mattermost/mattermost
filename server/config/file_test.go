@@ -1005,6 +1005,22 @@ func TestFileGetFile(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []byte("new file"), data)
 	})
+
+	t.Run("reject invalid relative path", func(t *testing.T) {
+		baseDir := filepath.Dir(path)
+		parentDir := filepath.Dir(baseDir)
+		outsideFile := filepath.Join(parentDir, "invalid-target-file")
+
+		err := os.WriteFile(outsideFile, []byte("outside"), 0600)
+		require.NoError(t, err)
+		defer os.Remove(outsideFile)
+
+		relativePath, err := filepath.Rel(baseDir, outsideFile)
+		require.NoError(t, err)
+
+		_, err = fs.GetFile(relativePath)
+		require.Error(t, err)
+	})
 }
 
 func TestFileSetFile(t *testing.T) {
@@ -1054,6 +1070,26 @@ func TestFileSetFile(t *testing.T) {
 		fi, err := os.Stat(absolutePath)
 		require.NoError(t, err)
 		require.Equal(t, os.FileMode(0600), fi.Mode().Perm())
+	})
+
+	t.Run("reject invalid relative path", func(t *testing.T) {
+		baseDir := filepath.Dir(path)
+		parentDir := filepath.Dir(baseDir)
+		outsideFile := filepath.Join(parentDir, "invalid-target-file")
+
+		err := os.WriteFile(outsideFile, []byte("outside"), 0600)
+		require.NoError(t, err)
+		defer os.Remove(outsideFile)
+
+		relativePath, err := filepath.Rel(baseDir, outsideFile)
+		require.NoError(t, err)
+
+		err = fs.SetFile(relativePath, []byte("written"))
+		require.Error(t, err)
+
+		b, readErr := os.ReadFile(outsideFile)
+		require.NoError(t, readErr)
+		require.Equal(t, []byte("outside"), b)
 	})
 }
 
@@ -1137,6 +1173,30 @@ func TestFileHasFile(t *testing.T) {
 		has, err := fs.HasFile(filepath.Join(filepath.Dir(path), "existing"))
 		require.NoError(t, err)
 		require.True(t, has)
+	})
+
+	t.Run("reject invalid relative path", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		baseDir := filepath.Dir(path)
+		parentDir := filepath.Dir(baseDir)
+		outsideFile := filepath.Join(parentDir, "invalid-target-file")
+
+		err = os.WriteFile(outsideFile, []byte("outside"), 0600)
+		require.NoError(t, err)
+		defer os.Remove(outsideFile)
+
+		relativePath, err := filepath.Rel(baseDir, outsideFile)
+		require.NoError(t, err)
+
+		has, err := fs.HasFile(relativePath)
+		require.Error(t, err)
+		require.False(t, has)
 	})
 }
 
