@@ -466,21 +466,21 @@ func TestExtraUsersBehavior(t *testing.T) {
 			{
 				name:              "zero license users with extra users",
 				licenseUserLimit:  0,
-				extraUsers:        model.NewPointer(5),
+				extraUsers:        new(5),
 				expectedBaseLimit: 0,
 				expectedHardLimit: 5, // 0 + 5 extra users = 5
 			},
 			{
 				name:              "license with configured extra users",
 				licenseUserLimit:  10,
-				extraUsers:        model.NewPointer(2),
+				extraUsers:        new(2),
 				expectedBaseLimit: 10,
 				expectedHardLimit: 12, // 10 + 2 extra users = 12
 			},
 			{
 				name:              "license with zero extra users (hard cap)",
 				licenseUserLimit:  100,
-				extraUsers:        model.NewPointer(0),
+				extraUsers:        new(0),
 				expectedBaseLimit: 100,
 				expectedHardLimit: 100, // 100 + 0 extra users = 100 (hard cap)
 			},
@@ -494,7 +494,7 @@ func TestExtraUsersBehavior(t *testing.T) {
 			{
 				name:              "license with large number of extra users",
 				licenseUserLimit:  1000,
-				extraUsers:        model.NewPointer(200),
+				extraUsers:        new(200),
 				expectedBaseLimit: 1000,
 				expectedHardLimit: 1200, // 1000 + 200 extra users = 1200
 			},
@@ -697,7 +697,7 @@ func TestShouldTrackSingleChannelGuests(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		license := model.NewTestLicense("")
-		license.Features.GuestAccounts = model.NewPointer(false)
+		license.Features.GuestAccounts = new(false)
 		th.App.Srv().SetLicense(license)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
