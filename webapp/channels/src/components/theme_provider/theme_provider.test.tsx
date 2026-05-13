@@ -3,6 +3,7 @@
 
 import {createMemoryHistory} from 'history';
 import React from 'react';
+import {useLocation} from 'react-router-dom';
 
 import {Preferences} from 'mattermost-redux/constants';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
@@ -16,6 +17,20 @@ import ThemeProvider from './theme_provider';
 jest.mock('utils/utils', () => ({
     applyTheme: jest.fn(),
 }));
+
+function NestedThemedProductRoute() {
+    const {pathname} = useLocation();
+
+    if (pathname.startsWith('/playbooks')) {
+        return (
+            <WithUserTheme>
+                <div>{'Playbooks content'}</div>
+            </WithUserTheme>
+        );
+    }
+
+    return <div>{'Channels content'}</div>;
+}
 
 describe('ThemeProvider', () => {
     afterEach(() => {
@@ -132,5 +147,52 @@ describe('ThemeProvider', () => {
         await waitFor(() => {
             expect(applyTheme).toHaveBeenLastCalledWith(Preferences.THEMES.denim);
         });
+    });
+
+    it('keeps app__body while leaving a nested themed product route', async () => {
+        const history = createMemoryHistory({initialEntries: ['/team/channels/town-square']});
+        renderWithContext(
+            <ThemeProvider>
+                <WithUserTheme>
+                    <NestedThemedProductRoute/>
+                </WithUserTheme>
+            </ThemeProvider>,
+            {
+                entities: {
+                    preferences: {
+                        myPreferences: {
+                            [getPreferenceKey(Preferences.CATEGORY_THEME, '')]: {
+                                category: Preferences.CATEGORY_THEME,
+                                name: '',
+                                value: JSON.stringify(Preferences.THEMES.indigo),
+                            },
+                        },
+                    },
+                },
+            },
+            {history},
+        );
+
+        await waitFor(() => {
+            expect(applyTheme).toHaveBeenLastCalledWith(Preferences.THEMES.indigo);
+        });
+        expect(document.body.classList.contains('app__body')).toBe(true);
+
+        act(() => {
+            history.push('/playbooks/start');
+        });
+
+        await waitFor(() => {
+            expect(document.body.classList.contains('app__body')).toBe(true);
+        });
+
+        act(() => {
+            history.push('/team/channels/town-square');
+        });
+
+        await waitFor(() => {
+            expect(applyTheme).toHaveBeenLastCalledWith(Preferences.THEMES.indigo);
+        });
+        expect(document.body.classList.contains('app__body')).toBe(true);
     });
 });

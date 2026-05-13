@@ -3,6 +3,8 @@
 
 import React, {useContext, useEffect} from 'react';
 
+let appBodyClassUsageCount = 0;
+
 export const ThemeContext = React.createContext({
     startUsingUserTheme: () => {},
     stopUsingUserTheme: () => {},
@@ -31,10 +33,15 @@ export function useUserTheme() {
  */
 export function useAppBodyClass() {
     useEffect(() => {
+        appBodyClassUsageCount += 1;
         document.body.classList.add('app__body');
 
         return () => {
-            document.body.classList.remove('app__body');
+            appBodyClassUsageCount = Math.max(0, appBodyClassUsageCount - 1);
+
+            if (appBodyClassUsageCount === 0) {
+                document.body.classList.remove('app__body');
+            }
         };
     }, []);
 }
