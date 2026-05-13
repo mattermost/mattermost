@@ -21,12 +21,12 @@ const (
 
 	BoardsPropertyGroupName      = "boards"
 	BoardsPropertyFieldNameBoard = "board"
+	BoardsPropertyFieldAssignee  = "assignee"
+	BoardsPropertyFieldStatus    = "status"
 
-	BoardsPropertyFieldAssignee    = "assignee"
-	BoardsPropertyFieldStatus      = "status"
-	BoardsStatusOptionTodoID       = "boards_status_todo"
-	BoardsStatusOptionInProgressID = "boards_status_in_progress"
-	BoardsStatusOptionCompleteID   = "boards_status_complete"
+	BoardsStatusOptionTodo       = "Todo"
+	BoardsStatusOptionInProgress = "In Progress"
+	BoardsStatusOptionComplete   = "Complete"
 )
 
 type View struct {

@@ -33,8 +33,8 @@ const (
 	contentFlaggingMigrationVersion                = "v5"
 	managedCategorySetupDoneKey                    = "managed_category_setup_done"
 	managedCategoryMigrationVersion                = "v2"
-	boardsPropertiesSetupDoneKey                   = "boards_properties_setup_done"
-	boardsMigrationVersion                         = "v1"
+	boardsPropertySetupDoneKey                     = "boards_property_setup_done"
+	boardsPropertyMigrationVersion                 = "v1"
 	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
@@ -884,12 +884,12 @@ func (s *Server) cacheManagedCategoryIDs() error {
 
 func (s *Server) doSetupBoardsProperties() error {
 	var nfErr *store.ErrNotFound
-	data, err := s.Store().System().GetByName(boardsPropertiesSetupDoneKey)
+	data, err := s.Store().System().GetByName(boardsPropertySetupDoneKey)
 	if err != nil && !errors.As(err, &nfErr) {
-		return fmt.Errorf("could not query boards properties migration: %w", err)
+		return fmt.Errorf("could not query boards migration: %w", err)
 	}
 
-	if data != nil && data.Value == boardsMigrationVersion {
+	if data != nil && data.Value == boardsPropertyMigrationVersion {
 		return nil
 	}
 
@@ -898,60 +898,74 @@ func (s *Server) doSetupBoardsProperties() error {
 		return fmt.Errorf("failed to register boards property group: %w", err)
 	}
 
-	_, err = s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.BoardsPropertyFieldAssignee)
+	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if err != nil {
-		assigneeField := &model.PropertyField{
-			GroupID:           group.ID,
-			Name:              model.BoardsPropertyFieldAssignee,
-			Type:              model.PropertyFieldTypeUser,
-			ObjectType:        model.PropertyValueTargetTypePost,
-			TargetType:        "system",
-			TargetID:          "",
-			Protected:         true,
-			PermissionField:   model.NewPointer(model.PermissionLevelNone),
-			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
-			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
-		}
-
-		if _, createErr := s.propertyService.CreatePropertyField(nil, assigneeField); createErr != nil {
-			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.BoardsPropertyFieldAssignee); retryErr != nil {
-				return fmt.Errorf("failed to create boards assignee field: %w", createErr)
-			}
-		}
+		return fmt.Errorf("failed to search for existing boards properties: %w", err)
 	}
 
-	_, err = s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.BoardsPropertyFieldStatus)
-	if err != nil {
-		attrs := model.StringInterface{
-			"options": []map[string]any{
-				{"id": model.BoardsStatusOptionTodoID, "name": "Todo", "color": "default"},
-				{"id": model.BoardsStatusOptionInProgressID, "name": "In Progress", "color": "blue"},
-				{"id": model.BoardsStatusOptionCompleteID, "name": "Complete", "color": "green"},
+	existingPropertiesMap := map[string]*model.PropertyField{}
+	for _, property := range existingProperties {
+		existingPropertiesMap[property.Name] = property
+	}
+
+	expectedPropertiesMap := map[string]*model.PropertyField{
+		model.BoardsPropertyFieldAssignee: {
+			GroupID:         group.ID,
+			Name:            model.BoardsPropertyFieldAssignee,
+			Type:            model.PropertyFieldTypeUser,
+			ObjectType:      model.PropertyFieldObjectTypePost,
+			TargetType:      string(model.PropertyFieldTargetLevelSystem),
+			Protected:       true,
+			PermissionField: model.NewPointer(model.PermissionLevelNone),
+		},
+		model.BoardsPropertyFieldStatus: {
+			GroupID:         group.ID,
+			Name:            model.BoardsPropertyFieldStatus,
+			Type:            model.PropertyFieldTypeSelect,
+			ObjectType:      model.PropertyFieldObjectTypePost,
+			TargetType:      string(model.PropertyFieldTargetLevelSystem),
+			Protected:       true,
+			PermissionField: model.NewPointer(model.PermissionLevelNone),
+			Attrs: map[string]any{
+				"options": []map[string]string{
+					{"name": model.BoardsStatusOptionTodo},
+					{"name": model.BoardsStatusOptionInProgress},
+					{"name": model.BoardsStatusOptionComplete},
+				},
 			},
-		}
-		statusField := &model.PropertyField{
-			GroupID:           group.ID,
-			Name:              model.BoardsPropertyFieldStatus,
-			Type:              model.PropertyFieldTypeSelect,
-			ObjectType:        model.PropertyValueTargetTypePost,
-			TargetType:        "system",
-			TargetID:          "",
-			Attrs:             attrs,
-			Protected:         true,
-			PermissionField:   model.NewPointer(model.PermissionLevelNone),
-			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
-			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
-		}
+		},
+	}
 
-		if _, createErr := s.propertyService.CreatePropertyField(nil, statusField); createErr != nil {
-			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.BoardsPropertyFieldStatus); retryErr != nil {
-				return fmt.Errorf("failed to create boards status field: %w", createErr)
-			}
+	var propertiesToUpdate []*model.PropertyField
+	var propertiesToCreate []*model.PropertyField
+
+	for name, expectedProperty := range expectedPropertiesMap {
+		if _, exists := existingPropertiesMap[name]; exists {
+			property := existingPropertiesMap[name]
+			property.Type = expectedProperty.Type
+			property.Attrs = expectedProperty.Attrs
+			property.Protected = expectedProperty.Protected
+			property.PermissionField = expectedProperty.PermissionField
+			propertiesToUpdate = append(propertiesToUpdate, property)
+		} else {
+			propertiesToCreate = append(propertiesToCreate, expectedProperty)
 		}
 	}
 
-	if err := s.Store().System().SaveOrUpdate(&model.System{Name: boardsPropertiesSetupDoneKey, Value: boardsMigrationVersion}); err != nil {
-		return fmt.Errorf("failed to save boards properties setup done flag: %w", err)
+	for _, property := range propertiesToCreate {
+		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
+			return fmt.Errorf("failed to create boards property: %q, error: %w", property.Name, err)
+		}
+	}
+
+	if len(propertiesToUpdate) > 0 {
+		if _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+			return fmt.Errorf("failed to update boards property fields: %w", err)
+		}
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: boardsPropertySetupDoneKey, Value: boardsPropertyMigrationVersion}); err != nil {
+		return fmt.Errorf("failed to save boards setup done flag in system store %w", err)
 	}
 
 	return nil
@@ -1143,8 +1157,8 @@ func (s *Server) doAppMigrations() {
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
-		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
 		{"Boards Properties Setup", s.doSetupBoardsProperties},
+		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
 	}
 
 	for i := range m1 {
