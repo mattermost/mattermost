@@ -64,8 +64,11 @@ test('should open /dialog date and post submit confirmation after selecting date
     await channelsPage.page.getByRole('grid').getByText('20', {exact: true}).click();
 
     // 8. Select date and time using the Meeting Date & Time picker
+    // The datetime picker renders a date-part button whose accessible name is
+    // 'Date Select date' (label 'Date' + placeholder 'Select date' from datetime_input.tsx).
+    // Note: 'Select date' (no article) differs from the date-only field's 'Select a date'.
     await dialog
-        .getByRole('button', {name: /Date.*Today|Select a date/i})
+        .getByRole('button', {name: /Select date/i})
         .first()
         .click();
     await expect(channelsPage.page.getByRole('grid')).toBeVisible();
