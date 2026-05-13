@@ -361,6 +361,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		require.Equal(t, "app.pap.delete_policy.masked_values", appErr.Id)
 
 		mockAccessControl.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
+		mockAccessControl.AssertExpectations(t)
 	})
 
 	t.Run("Masking flag off: delete proceeds for callers that would otherwise be blocked", func(t *testing.T) {
@@ -394,6 +395,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		appErr := thMock.App.DeleteAccessControlPolicy(thMock.Context, channelID)
 		require.Nil(t, appErr)
 		mockAccessControl.AssertExpectations(t)
+		mockChannelStore.AssertExpectations(t)
 	})
 }
 
@@ -421,6 +423,7 @@ func TestCheckSelfInclusion(t *testing.T) {
 
 		appErr := th.App.checkSelfInclusion(th.Context, policy, callerID)
 		require.Nil(t, appErr)
+		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("caller who does not satisfy the policy is rejected with 403", func(t *testing.T) {
@@ -443,6 +446,7 @@ func TestCheckSelfInclusion(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 		require.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
+		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("trivial rules (empty / 'true') are skipped without querying", func(t *testing.T) {
