@@ -348,7 +348,7 @@ function CELEditor({
                     <i className='icon icon-alert-outline'/>
                     <FormattedMessage
                         id='admin.access_control.cel.masked_values_banner'
-                        defaultMessage='This expression contains restricted values. Switch to Simple mode to edit the values you have access to, or delete the entire rule.'
+                        defaultMessage='This expression contains restricted values. Switch to Simple mode to edit the values you have access to.'
                     />
                 </div>
             )}

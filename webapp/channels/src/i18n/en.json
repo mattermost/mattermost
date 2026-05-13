@@ -268,7 +268,7 @@
   "admin.access_control.cel.help_text": "Write rules like `user.attributes.{lessThan}attribute{greaterThan} == {lessSign}value{greaterSign}`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.",
   "admin.access_control.cel.incomplete_expression": "Incomplete expression, awaiting input...",
   "admin.access_control.cel.line_and_column_number": "L{lineNumber}:{columnNumber}",
-  "admin.access_control.cel.masked_values_banner": "This expression contains restricted values. Switch to Simple mode to edit the values you have access to, or delete the entire rule.",
+  "admin.access_control.cel.masked_values_banner": "This expression contains restricted values. Switch to Simple mode to edit the values you have access to.",
   "admin.access_control.cel.type_expression": "Type an expression...",
   "admin.access_control.cel.validating": "Validating...",
   "admin.access_control.delete": "Delete",
