@@ -39,9 +39,13 @@ func TestChannelJoinRequestPreSaveDefaults(t *testing.T) {
 func TestChannelJoinRequestPreUpdateAdvancesUpdateAt(t *testing.T) {
 	r := validRequest()
 	originalCreate := r.CreateAt
+	// Seed UpdateAt to a known-old value so we can prove PreUpdate actually
+	// advanced it (the validRequest factory sets UpdateAt = GetMillis(), so
+	// a no-op PreUpdate could otherwise still pass a GreaterOrEqual check).
+	r.UpdateAt = 1
 	r.PreUpdate()
 
-	assert.GreaterOrEqual(t, r.UpdateAt, originalCreate)
+	assert.Greater(t, r.UpdateAt, int64(1))
 	assert.Equal(t, originalCreate, r.CreateAt, "PreUpdate must not mutate CreateAt")
 }
 

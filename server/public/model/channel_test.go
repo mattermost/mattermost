@@ -85,6 +85,9 @@ func TestChannelIsValidDiscoverable(t *testing.T) {
 		c.Type = ChannelTypeDirect
 		require.NotNil(t, c.IsValid())
 
+		c.Type = ChannelTypeGroup
+		require.NotNil(t, c.IsValid())
+
 		c.Type = ChannelTypePrivate
 		require.Nil(t, c.IsValid())
 	})
