@@ -471,7 +471,7 @@ func TestCrossChannelAccess(t *testing.T) {
 		pageInChannel1, _, appErr = th.App.CreatePost(th.Context, pageInChannel1, channel1, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
-		appErr = th.App.AddPageToWiki(th.Context, pageInChannel1.Id, wiki2.Id, nil)
+		appErr = th.App.AddPageToWiki(th.Context, pageInChannel1.Id, wiki2.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.wiki.add.channel_mismatch", appErr.Id)
 	})
@@ -615,7 +615,7 @@ func TestWikiPermissions(t *testing.T) {
 		page, _, appErr = th.App.CreatePost(th.Context, page, wikiChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
-		appErr = th.App.AddPageToWiki(th.Context, page.Id, wiki.Id, nil)
+		appErr = th.App.AddPageToWiki(th.Context, page.Id, wiki.Id)
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
@@ -2546,7 +2546,7 @@ func TestUpdatePageStatus(t *testing.T) {
 
 		pageObj, appErr := th.App.GetPage(th.Context, page.Id)
 		require.Nil(t, appErr)
-		status, appErr := th.App.GetPageStatus(th.Context, pageObj)
+		status, appErr := th.App.GetPageStatus(th.Context, pageObj.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusDone, status)
 	})
@@ -2623,7 +2623,7 @@ func TestGetPageStatus(t *testing.T) {
 	t.Run("successfully get updated status", func(t *testing.T) {
 		pageObj, appErr := th.App.GetPage(th.Context, page.Id)
 		require.Nil(t, appErr)
-		appErr = th.App.SetPageStatus(th.Context, pageObj, model.PageStatusDone)
+		appErr = th.App.SetPageStatus(th.Context, pageObj.Id, model.PageStatusDone)
 		require.Nil(t, appErr)
 
 		httpResp, err := th.Client.DoAPIGet(context.Background(), "/wikis/"+createdWiki.Id+"/pages/"+page.Id+"/status", "")

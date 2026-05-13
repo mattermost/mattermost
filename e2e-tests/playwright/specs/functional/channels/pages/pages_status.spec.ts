@@ -68,7 +68,9 @@ test('changes page status from in_progress to in_review', {tag: '@pages'}, async
     // # Click Edit button to enter draft mode
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
     await editButton.click();
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
+    await page
+        .locator('[data-testid="wiki-page-publish-button"]')
+        .waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
 
     // # Change status to 'in_review' in draft mode
     const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
@@ -165,7 +167,9 @@ test('allows selection of all valid status values', {tag: '@pages'}, async ({pw,
         // # Edit page
         const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
         await editButton.click();
-        await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
+        await page
+            .locator('[data-testid="wiki-page-publish-button"]')
+            .waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
 
         // # Click status selector to open dropdown
         const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');

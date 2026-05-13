@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import type {Post} from '@mattermost/types/posts';
+import type {FieldType} from '@mattermost/types/properties';
 
 import {PostTypes} from 'mattermost-redux/constants/posts';
 
 import {makeInitialPagesState} from 'tests/helpers/pages_state';
 
 import type {GlobalState} from 'types/store';
-
-import type {FieldType} from '@mattermost/types/properties';
 
 import {
     getPage,
@@ -395,7 +394,7 @@ describe('pages selectors', () => {
             delete_at: 0,
             target_id: '',
             target_type: 'system',
-            object_type: 'post',
+            object_type: 'page',
             created_by: '',
             updated_by: '',
             attrs: {options: [{id: 'draft', name: 'Draft', color: '#ccc'}]},
@@ -407,7 +406,7 @@ describe('pages selectors', () => {
                 properties: {
                     fields: {
                         byObjectType: {
-                            post: {
+                            page: {
                                 'pages-group-id': {'status-field-id': mockStatusField},
                             },
                         },
@@ -439,7 +438,7 @@ describe('pages selectors', () => {
 
         test('returns null when pages group has no fields', () => {
             const state = stateWithStatusField({
-                fields: {byObjectType: {post: {}}, byId: {}},
+                fields: {byObjectType: {page: {}}, byId: {}},
             });
 
             expect(getPageStatusField(state)).toBeNull();
@@ -453,7 +452,7 @@ describe('pages selectors', () => {
                     properties: {
                         fields: {
                             byObjectType: {
-                                post: {
+                                page: {
                                     'other-group-id': {'other-status-id': otherGroupField},
                                 },
                             },

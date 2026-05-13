@@ -2892,9 +2892,15 @@ export async function setupPageWithComment(
 export async function deletePageThroughUI(page: Page, pageTitle: string) {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]', {hasText: pageTitle});
+    await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+
+    // Hover to reveal the menu button (opacity: 0 by default, opacity: 1 on hover)
+    await pageNode.hover();
+    await page.waitForTimeout(SHORT_WAIT); // settle CSS opacity transition
 
     // Click the menu button on the page node
     const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await menuButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await menuButton.click();
 
     // Click delete from the context menu
@@ -2908,9 +2914,8 @@ export async function deletePageThroughUI(page: Page, pageTitle: string) {
     await deleteButton.click();
 
     // Wait for the modal to close, which indicates the delete operation completed.
-    // Uses ELEMENT_TIMEOUT instead of MODAL_CLOSE_TIMEOUT because deletion involves
-    // a server API call that can be slow under load.
-    await deleteModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    // Uses HIERARCHY_TIMEOUT because deletion involves a server API call that can be slow under load.
+    await deleteModal.waitFor({state: 'hidden', timeout: HIERARCHY_TIMEOUT});
     await page.waitForLoadState('networkidle');
 }
 

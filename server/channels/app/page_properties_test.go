@@ -29,7 +29,7 @@ func TestEnrichPageWithProperties(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
-		setErr := th.App.SetPageStatus(th.Context, page, model.PageStatusInProgress)
+		setErr := th.App.SetPageStatus(th.Context, page.Id, model.PageStatusInProgress)
 		require.Nil(t, setErr)
 
 		th.App.EnrichPageWithProperties(th.Context, page)
@@ -86,7 +86,7 @@ func TestEnrichPagesWithProperties(t *testing.T) {
 		page2, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page Two", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 
-		setErr := th.App.SetPageStatus(th.Context, page1, model.PageStatusInProgress)
+		setErr := th.App.SetPageStatus(th.Context, page1.Id, model.PageStatusInProgress)
 		require.Nil(t, setErr)
 
 		postList := &model.PostList{
@@ -165,23 +165,8 @@ func TestGetPagePropertyFieldByName(t *testing.T) {
 		field, err := th.App.GetPagePropertyFieldByName("status")
 		require.Nil(t, err)
 		require.NotNil(t, field)
-		require.Equal(t, model.PropertyFieldObjectTypePost, field.ObjectType, "status field must target post objects for Property System v2 filtering")
+		require.Equal(t, model.PropertyFieldObjectTypePage, field.ObjectType, "status field must target page objects for Property System v2 filtering")
 		require.True(t, field.Protected, "status field must be protected to prevent deletion via the generic property API")
-	})
-
-	t.Run("retrieves wiki field", func(t *testing.T) {
-		field, err := th.App.GetPagePropertyFieldByName("wiki")
-		require.Nil(t, err)
-		require.NotNil(t, field)
-		require.Equal(t, "wiki", field.Name)
-	})
-
-	t.Run("wiki field has correct ObjectType and Protected", func(t *testing.T) {
-		field, err := th.App.GetPagePropertyFieldByName("wiki")
-		require.Nil(t, err)
-		require.NotNil(t, field)
-		require.Equal(t, model.PropertyFieldObjectTypePost, field.ObjectType, "wiki field must target post objects for Property System v2 filtering")
-		require.True(t, field.Protected, "wiki field must be protected to prevent deletion via the generic property API")
 	})
 
 	t.Run("returns error for nonexistent field", func(t *testing.T) {

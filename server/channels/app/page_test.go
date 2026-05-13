@@ -1730,7 +1730,7 @@ func TestGetPageStatus(t *testing.T) {
 	t.Run("returns default status when page has no status property", func(t *testing.T) {
 		page, appErr := th.App.GetPage(rctx, createdPage.Id)
 		require.Nil(t, appErr)
-		status, appErr := th.App.GetPageStatus(rctx, page)
+		status, appErr := th.App.GetPageStatus(rctx, page.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusInProgress, status)
 	})
@@ -1738,12 +1738,12 @@ func TestGetPageStatus(t *testing.T) {
 	t.Run("returns actual status after setting", func(t *testing.T) {
 		page, appErr := th.App.GetPage(rctx, createdPage.Id)
 		require.Nil(t, appErr)
-		appErr = th.App.SetPageStatus(rctx, page, model.PageStatusDone)
+		appErr = th.App.SetPageStatus(rctx, page.Id, model.PageStatusDone)
 		require.Nil(t, appErr)
 
 		page, appErr = th.App.GetPage(rctx, createdPage.Id)
 		require.Nil(t, appErr)
-		status, appErr := th.App.GetPageStatus(rctx, page)
+		status, appErr := th.App.GetPageStatus(rctx, page.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusDone, status)
 	})
@@ -1782,12 +1782,12 @@ func TestSetPageStatus(t *testing.T) {
 	t.Run("successfully sets page status", func(t *testing.T) {
 		page, appErr := th.App.GetPage(rctx, createdPage.Id)
 		require.Nil(t, appErr)
-		appErr = th.App.SetPageStatus(rctx, page, model.PageStatusInReview)
+		appErr = th.App.SetPageStatus(rctx, page.Id, model.PageStatusInReview)
 		require.Nil(t, appErr)
 
 		page, appErr = th.App.GetPage(rctx, createdPage.Id)
 		require.Nil(t, appErr)
-		status, appErr := th.App.GetPageStatus(rctx, page)
+		status, appErr := th.App.GetPageStatus(rctx, page.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusInReview, status)
 	})
@@ -1795,23 +1795,23 @@ func TestSetPageStatus(t *testing.T) {
 	t.Run("updates existing status", func(t *testing.T) {
 		page, appErr := th.App.GetPage(rctx, createdPage.Id)
 		require.Nil(t, appErr)
-		appErr = th.App.SetPageStatus(rctx, page, model.PageStatusRoughDraft)
+		appErr = th.App.SetPageStatus(rctx, page.Id, model.PageStatusRoughDraft)
 		require.Nil(t, appErr)
 
 		page, appErr = th.App.GetPage(rctx, createdPage.Id)
 		require.Nil(t, appErr)
-		status, appErr := th.App.GetPageStatus(rctx, page)
+		status, appErr := th.App.GetPageStatus(rctx, page.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusRoughDraft, status)
 
 		page, appErr = th.App.GetPage(rctx, createdPage.Id)
 		require.Nil(t, appErr)
-		appErr = th.App.SetPageStatus(rctx, page, model.PageStatusDone)
+		appErr = th.App.SetPageStatus(rctx, page.Id, model.PageStatusDone)
 		require.Nil(t, appErr)
 
 		page, appErr = th.App.GetPage(rctx, createdPage.Id)
 		require.Nil(t, appErr)
-		status, appErr = th.App.GetPageStatus(rctx, page)
+		status, appErr = th.App.GetPageStatus(rctx, page.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PageStatusDone, status)
 	})
@@ -1821,12 +1821,12 @@ func TestSetPageStatus(t *testing.T) {
 		for _, status := range validStatuses {
 			page, appErr := th.App.GetPage(rctx, createdPage.Id)
 			require.Nil(t, appErr)
-			appErr = th.App.SetPageStatus(rctx, page, status)
+			appErr = th.App.SetPageStatus(rctx, page.Id, status)
 			require.Nil(t, appErr, "Should accept status: %s", status)
 
 			page, appErr = th.App.GetPage(rctx, createdPage.Id)
 			require.Nil(t, appErr)
-			retrievedStatus, appErr := th.App.GetPageStatus(rctx, page)
+			retrievedStatus, appErr := th.App.GetPageStatus(rctx, page.Id)
 			require.Nil(t, appErr)
 			require.Equal(t, status, retrievedStatus)
 		}

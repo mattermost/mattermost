@@ -4,7 +4,6 @@
 package app
 
 import (
-	"net/http"
 	"strings"
 	"testing"
 
@@ -1145,56 +1144,6 @@ func TestGetWikiIdForPage(t *testing.T) {
 	})
 }
 
-func TestGetWikiIdForPost(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-	th.SetupPagePermissions()
-
-	rctx := th.CreateSessionContext()
-
-	wiki := &model.Wiki{Title: "Post Wiki"}
-	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
-	require.Nil(t, err)
-
-	t.Run("nil post returns BadRequest", func(t *testing.T) {
-		wikiId, appErr := th.App.GetWikiIdForPost(rctx, nil)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-		require.Empty(t, wikiId)
-	})
-
-	t.Run("uses Props fast path when wiki id is cached", func(t *testing.T) {
-		// Synthetic post with wiki id pre-stamped in Props — no DB lookup required.
-		post := &model.Post{
-			Id:    model.NewId(),
-			Props: model.StringInterface{model.PagePropsWikiID: createdWiki.Id},
-		}
-		wikiId, appErr := th.App.GetWikiIdForPost(rctx, post)
-		require.Nil(t, appErr)
-		require.Equal(t, createdWiki.Id, wikiId)
-	})
-
-	t.Run("falls back to PropertyValues when Props missing", func(t *testing.T) {
-		// Real page → Props will be hydrated, but we strip them to force the fallback path.
-		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Fallback Page", "", th.BasicUser.Id, "", "")
-		require.Nil(t, appErr)
-
-		stripped := &model.Post{Id: page.Id, Props: model.StringInterface{}}
-		wikiId, appErr := th.App.GetWikiIdForPost(rctx, stripped)
-		require.Nil(t, appErr)
-		require.Equal(t, createdWiki.Id, wikiId)
-	})
-
-	t.Run("post with no wiki property returns NotFound", func(t *testing.T) {
-		// Random non-page post id → no PropertyValues row.
-		post := &model.Post{Id: model.NewId(), Props: model.StringInterface{}}
-		wikiId, appErr := th.App.GetWikiIdForPost(rctx, post)
-		require.NotNil(t, appErr)
-		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
-		require.Empty(t, wikiId)
-	})
-}
-
 func TestAddPageToWiki(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1213,7 +1162,7 @@ func TestAddPageToWiki(t *testing.T) {
 		page, appErr := th.App.CreatePage(th.Context, createdWiki.ChannelId, "Standalone Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		appErr = th.App.AddPageToWiki(rctx, page.Id, createdWiki.Id, nil)
+		appErr = th.App.AddPageToWiki(rctx, page.Id, createdWiki.Id)
 		require.Nil(t, appErr)
 
 		// Verify the page is now associated with the wiki
@@ -1226,7 +1175,7 @@ func TestAddPageToWiki(t *testing.T) {
 		page, appErr := th.App.CreatePage(th.Context, createdWiki.ChannelId, "Another Page", "", "", th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
-		appErr = th.App.AddPageToWiki(rctx, page.Id, model.NewId(), nil)
+		appErr = th.App.AddPageToWiki(rctx, page.Id, model.NewId())
 		require.NotNil(t, appErr)
 	})
 }

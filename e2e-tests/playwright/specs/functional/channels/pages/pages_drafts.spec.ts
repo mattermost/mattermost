@@ -27,7 +27,6 @@ import {
     loginAndNavigateToChannel,
     uniqueName,
     waitForAutoSave,
-    EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
     SHORT_WAIT,
     WEBSOCKET_WAIT,
@@ -136,7 +135,9 @@ test(
         // * Verify NO modal appears (auto-resumes like Confluence)
         // * Verify automatically navigated to draft URL
         await page.waitForURL(/\/drafts\//);
-        await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
+        await page
+            .locator('[data-testid="wiki-page-publish-button"]')
+            .waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
 
         // * Verify editor shows draft content (auto-resumed)
         const editorAfter = await getEditorAndWait(page);
@@ -245,8 +246,6 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, 
     await newPageButton.click();
     await fillCreatePageModal(page, 'Draft 1');
 
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
-
     await getEditorAndWait(page);
     await typeInEditor(page, 'Content 1');
 
@@ -270,8 +269,6 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, 
     // # Create second draft
     await newPageButton.click();
     await fillCreatePageModal(page, 'Draft 2');
-
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     await getEditorAndWait(page);
     await typeInEditor(page, 'Content 2');
@@ -327,8 +324,6 @@ test('recovers draft after browser refresh', {tag: '@pages'}, async ({pw, shared
     await page.waitForLoadState('networkidle');
 
     // * Verify draft recovered (either in editor or drafts section)
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
-
     const titleAfterRefresh = page.locator('[data-testid="wiki-page-title-input"]');
     const editorAfterRefresh = await getEditorAndWait(page);
 
@@ -428,8 +423,6 @@ test('navigates to draft editor when clicking draft node', {tag: '@pages'}, asyn
     await newPageButton.click();
     await fillCreatePageModal(page, 'Navigable Draft');
 
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
-
     await getEditorAndWait(page);
     await typeInEditor(page, 'Draft content');
 
@@ -517,8 +510,6 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
     await newPageButton.click();
     await fillCreatePageModal(page, 'First Draft');
 
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
-
     let titleInput = page.locator('[data-testid="wiki-page-title-input"]');
     let editor = await getEditorAndWait(page);
     await typeInEditor(page, 'First draft content');
@@ -542,8 +533,6 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
 
     await newPageButton.click();
     await fillCreatePageModal(page, 'Second Draft');
-
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     editor = await getEditorAndWait(page);
     await typeInEditor(page, 'Second draft content');
@@ -599,9 +588,6 @@ test(
         const newPageButton = getNewPageButton(page);
         await newPageButton.click();
         await fillCreatePageModal(page, 'Draft Page');
-
-        // Wait for editor to load
-        await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
         await getEditorAndWait(page);
         await typeInEditor(page, 'Draft content');
@@ -802,7 +788,6 @@ test(
 
         // # Navigate to wiki view to see hierarchy
         await navigateToWikiView(page, pw.url, team.name, wiki.id, channel.id);
-        await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // # Ensure pages panel is open
         await ensurePanelOpen(page);
@@ -821,7 +806,6 @@ test(
         const expandAfterPublish = publishedParentNode.locator('[data-testid="page-tree-node-expand-button"]');
         await expect(expandAfterPublish).toBeVisible({timeout: WEBSOCKET_WAIT});
         await expandAfterPublish.click();
-        await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify child draft is STILL under published parent (NOT moved to root)
         // The child should still be visible and still be a draft
@@ -1354,7 +1338,6 @@ test('handles page deletion while user has unpublished draft', {tag: '@pages'}, 
     await ensurePanelOpen(pageB);
 
     await deletePageThroughUI(pageB, 'Page To Be Deleted');
-    await pageB.waitForTimeout(WEBSOCKET_WAIT);
 
     // # User A refreshes the page
     await pageA.reload();

@@ -48,7 +48,8 @@ test('shows page version history after multiple edits', {tag: '@pages'}, async (
     await editPageThroughUI(page, '\n\nFinal content v3');
     await page.waitForTimeout(AUTOSAVE_WAIT);
 
-    // # Wait for page to be updated in Redux store (visible in tree)
+    // # Ensure hierarchy panel is open and page node is visible
+    await ensurePanelOpen(page);
     const pageNode = getPageTreeNodeByTitle(page, 'Version Test Page');
     await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 

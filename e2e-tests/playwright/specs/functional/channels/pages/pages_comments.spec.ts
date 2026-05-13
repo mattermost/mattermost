@@ -194,16 +194,18 @@ test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw, 
     // # Publish page with both comments
     await publishPage(page);
 
-    // * Verify both comment markers exist
-    const commentMarkers = page.locator('[id^="ic-"], .comment-anchor');
+    // * Verify both comment markers exist AND inline comments are loaded from API.
+    // The comment-anchor-active class is added only after inlineComments are fetched
+    // and storage.comments is populated — that is when clicks will open the RHS.
+    const activeMarkers = page.locator('.comment-anchor-active');
     await expect(async () => {
-        const markerCount = await commentMarkers.count();
+        const markerCount = await activeMarkers.count();
         expect(markerCount).toBeGreaterThanOrEqual(2);
     }).toPass({timeout: ELEMENT_TIMEOUT});
 
     // * Verify each marker is clickable and opens RHS
-    const marker1 = commentMarkers.nth(0);
-    const marker2 = commentMarkers.nth(1);
+    const marker1 = activeMarkers.nth(0);
+    const marker2 = activeMarkers.nth(1);
 
     await marker1.click();
     const rhs = page.locator('[data-testid="wiki-rhs"]');

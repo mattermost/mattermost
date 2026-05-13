@@ -117,7 +117,7 @@ func TestCanResolvePageComment(t *testing.T) {
 		session := &model.Session{
 			UserId: th.BasicUser2.Id,
 		}
-		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id, page)
+		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page)
 		require.True(t, canResolve, "comment author should be able to resolve their own comment")
 	})
 
@@ -125,7 +125,7 @@ func TestCanResolvePageComment(t *testing.T) {
 		session := &model.Session{
 			UserId: th.BasicUser2.Id,
 		}
-		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id, page)
+		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page)
 		require.True(t, canResolve, "page author should be able to resolve comments on their page")
 	})
 
@@ -139,7 +139,7 @@ func TestCanResolvePageComment(t *testing.T) {
 			UserId:      th.BasicUser.Id,
 			TeamMembers: []*model.TeamMember{tm},
 		}
-		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id, page)
+		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page)
 		require.True(t, canResolve, "wiki admin should be able to resolve any comment")
 	})
 
@@ -149,7 +149,7 @@ func TestCanResolvePageComment(t *testing.T) {
 		session := &model.Session{
 			UserId: regularUser.Id,
 		}
-		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id, page)
+		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page)
 		require.False(t, canResolve, "regular user should NOT be able to resolve others' comments")
 	})
 
@@ -158,7 +158,7 @@ func TestCanResolvePageComment(t *testing.T) {
 		session := &model.Session{
 			UserId: outsideUser.Id,
 		}
-		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page.Id, page)
+		canResolve := th.App.CanResolvePageComment(th.Context, session, comment, page)
 		require.False(t, canResolve, "user not in channel should NOT be able to resolve comments")
 	})
 }

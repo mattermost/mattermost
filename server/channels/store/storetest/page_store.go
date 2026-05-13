@@ -60,7 +60,7 @@ func TestPageStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 
 	t.Cleanup(func() {
 		typesSQL := pagePostTypesSQL()
-		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM PropertyValues WHERE TargetType = 'post' AND TargetID IN (SELECT Id FROM Posts WHERE Type IN (%s))", typesSQL))
+		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM PropertyValues WHERE TargetType = '"+model.PropertyValueTargetTypePage+"' AND TargetID IN (SELECT Id FROM Posts WHERE Type IN (%s))", typesSQL))
 		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM Posts WHERE Type IN (%s)", typesSQL))
 		// Clean up wikis that have no remaining pages (orphaned by page deletion above)
 		_, _ = s.GetMaster().Exec("DELETE FROM Wikis WHERE Id NOT IN (SELECT DISTINCT (Props->>'wiki_id')::text FROM Posts WHERE Props->>'wiki_id' IS NOT NULL AND Type = 'page' AND DeleteAt = 0)")

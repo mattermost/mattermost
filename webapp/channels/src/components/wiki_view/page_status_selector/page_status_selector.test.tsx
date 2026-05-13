@@ -31,7 +31,7 @@ describe('components/wiki_view/page_status_selector/PageStatusSelector', () => {
         delete_at: 0,
         target_id: '',
         target_type: '',
-        object_type: 'post',
+        object_type: 'page',
         created_by: '',
         updated_by: '',
         attrs: {
@@ -46,7 +46,7 @@ describe('components/wiki_view/page_status_selector/PageStatusSelector', () => {
     const statusFieldsState = {
         fields: {
             byObjectType: {
-                post: {
+                page: {
                     'group-1': {
                         'status-field-id': mockStatusField,
                     },

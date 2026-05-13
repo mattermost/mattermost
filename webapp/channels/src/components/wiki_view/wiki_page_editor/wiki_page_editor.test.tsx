@@ -64,14 +64,14 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             properties: {
                 fields: {
                     byObjectType: {
-                        post: {
+                        page: {
                             pages_group_id: {
                                 status_field_id: {
                                     id: 'status_field_id',
                                     name: 'status',
                                     type: 'select',
                                     group_id: 'pages_group_id',
-                                    object_type: 'post',
+                                    object_type: 'page',
                                     attrs: {
                                         options: [
                                             {id: 'rough_draft', name: 'rough_draft', color: 'light_grey'},

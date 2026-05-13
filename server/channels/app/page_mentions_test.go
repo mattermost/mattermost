@@ -11,17 +11,15 @@ import (
 )
 
 func TestGetPreviouslyNotifiedMentions(t *testing.T) {
-	th := Setup(t)
-
 	t.Run("empty props returns empty slice", func(t *testing.T) {
 		page := &model.Post{}
-		result := th.App.GetPreviouslyNotifiedMentions(page)
+		result := getPreviouslyNotifiedMentions(page)
 		assert.Empty(t, result)
 	})
 
 	t.Run("nil props returns empty slice", func(t *testing.T) {
 		page := &model.Post{Props: nil}
-		result := th.App.GetPreviouslyNotifiedMentions(page)
+		result := getPreviouslyNotifiedMentions(page)
 		assert.Empty(t, result)
 	})
 
@@ -31,7 +29,7 @@ func TestGetPreviouslyNotifiedMentions(t *testing.T) {
 				"other_prop": "value",
 			},
 		}
-		result := th.App.GetPreviouslyNotifiedMentions(page)
+		result := getPreviouslyNotifiedMentions(page)
 		assert.Empty(t, result)
 	})
 
@@ -41,7 +39,7 @@ func TestGetPreviouslyNotifiedMentions(t *testing.T) {
 				"notified_mentions": []string{"user1", "user2", "user3"},
 			},
 		}
-		result := th.App.GetPreviouslyNotifiedMentions(page)
+		result := getPreviouslyNotifiedMentions(page)
 		assert.ElementsMatch(t, []string{"user1", "user2", "user3"}, result)
 	})
 
@@ -51,7 +49,7 @@ func TestGetPreviouslyNotifiedMentions(t *testing.T) {
 				"notified_mentions": []any{"user1", "user2"},
 			},
 		}
-		result := th.App.GetPreviouslyNotifiedMentions(page)
+		result := getPreviouslyNotifiedMentions(page)
 		assert.ElementsMatch(t, []string{"user1", "user2"}, result)
 	})
 
@@ -61,7 +59,7 @@ func TestGetPreviouslyNotifiedMentions(t *testing.T) {
 				"notified_mentions": []any{"user1", 123, "user2", nil},
 			},
 		}
-		result := th.App.GetPreviouslyNotifiedMentions(page)
+		result := getPreviouslyNotifiedMentions(page)
 		assert.ElementsMatch(t, []string{"user1", "user2"}, result)
 	})
 
@@ -71,17 +69,15 @@ func TestGetPreviouslyNotifiedMentions(t *testing.T) {
 				"notified_mentions": "invalid_type",
 			},
 		}
-		result := th.App.GetPreviouslyNotifiedMentions(page)
+		result := getPreviouslyNotifiedMentions(page)
 		assert.Empty(t, result)
 	})
 }
 
 func TestSetNotifiedMentions(t *testing.T) {
-	th := Setup(t)
-
 	t.Run("sets notified_mentions on page with nil props", func(t *testing.T) {
 		page := &model.Post{Props: nil}
-		th.App.SetNotifiedMentions(page, []string{"user1", "user2"})
+		setNotifiedMentions(page, []string{"user1", "user2"})
 
 		assert.NotNil(t, page.Props)
 		assert.Equal(t, []string{"user1", "user2"}, page.Props["notified_mentions"])
@@ -93,7 +89,7 @@ func TestSetNotifiedMentions(t *testing.T) {
 				"other_prop": "value",
 			},
 		}
-		th.App.SetNotifiedMentions(page, []string{"user1", "user2"})
+		setNotifiedMentions(page, []string{"user1", "user2"})
 
 		assert.Equal(t, []string{"user1", "user2"}, page.Props["notified_mentions"])
 		assert.Equal(t, "value", page.Props["other_prop"])
@@ -105,14 +101,14 @@ func TestSetNotifiedMentions(t *testing.T) {
 				"notified_mentions": []string{"old_user"},
 			},
 		}
-		th.App.SetNotifiedMentions(page, []string{"new_user1", "new_user2"})
+		setNotifiedMentions(page, []string{"new_user1", "new_user2"})
 
 		assert.Equal(t, []string{"new_user1", "new_user2"}, page.Props["notified_mentions"])
 	})
 
 	t.Run("sets empty slice", func(t *testing.T) {
 		page := &model.Post{Props: model.StringInterface{}}
-		th.App.SetNotifiedMentions(page, []string{})
+		setNotifiedMentions(page, []string{})
 
 		assert.Equal(t, []string{}, page.Props["notified_mentions"])
 	})
