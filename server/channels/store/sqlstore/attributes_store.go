@@ -67,9 +67,6 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID string) (*
 	}
 
 	row := s.GetReplica().QueryRowContext(rctx.Context(), q, args...)
-	if err := row.Err(); err != nil {
-		return nil, errors.Wrap(err, "failed to get subject")
-	}
 
 	var subject model.Subject
 	var properties []byte
