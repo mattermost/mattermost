@@ -1,0 +1,20 @@
+{
+  "name": "Mattermost Cloud Agent",
+  "user": "ubuntu",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "install": "bash .cursor/scripts/cloud-agent-install.sh",
+  "start": "bash .cursor/scripts/cloud-agent-start.sh",
+  "ports": [
+    {
+      "name": "Mattermost server",
+      "port": 8065
+    },
+    {
+      "name": "Webapp dev server",
+      "port": 9005
+    }
+  ]
+}
