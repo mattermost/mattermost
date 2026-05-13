@@ -8,43 +8,21 @@ import {Table} from '@tiptap/extension-table';
 import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
 import {TableRow} from '@tiptap/extension-table-row';
-import {Markdown, MarkdownManager} from '@tiptap/markdown';
-import type {MarkdownExtensionOptions} from '@tiptap/markdown';
+import {Markdown} from '@tiptap/markdown';
 import {splitListItem} from '@tiptap/pm/schema-list';
 import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import debounce from 'lodash/debounce';
 import {common, createLowlight} from 'lowlight';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef} from 'react';
+import {useDispatch} from 'react-redux';
 
-import {MattermostListCompat} from './mattermost_list_extension';
+import {editLatestPost} from 'actions/views/create_comment';
+
+import {useDebounce} from 'hooks/useDebounce';
+import {useLatest} from 'hooks/useLatest';
+
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
-
-// A fresh per-editor marked instance keeps MattermostListCompat's tokenizer
-// override out of the shared global marked singleton.
-type MarkedClass = new () => unknown;
-let cachedMarkedCtor: MarkedClass | null = null;
-
-function getMarkedConstructor(): MarkedClass | null {
-    if (cachedMarkedCtor) {
-        return cachedMarkedCtor;
-    }
-    const probe = new MarkdownManager({extensions: []});
-    const instance = probe.instance as unknown as {constructor: MarkedClass} | undefined;
-    if (instance?.constructor) {
-        cachedMarkedCtor = instance.constructor;
-    }
-    return cachedMarkedCtor;
-}
-
-function createPerEditorMarked(): unknown {
-    const Ctor = getMarkedConstructor();
-    if (!Ctor) {
-        return undefined;
-    }
-    return new Ctor();
-}
 
 import './wysiwyg_editor.scss';
 
@@ -69,7 +47,6 @@ type Props = {
     value: string;
     onChange: (markdown: string) => void;
     onSubmit: () => void;
-    onEditLatestPost?: () => void;
     onFocus?: () => void;
     onBlur?: () => void;
     placeholder?: string;
@@ -78,15 +55,14 @@ type Props = {
     disabled?: boolean;
     id?: string;
     useCtrlSend?: boolean;
-
     sendCodeBlockOnCtrlEnter?: boolean;
+    onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
 };
 
 const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     value,
     onChange,
     onSubmit,
-    onEditLatestPost,
     onFocus,
     onBlur,
     placeholder: placeholderText,
@@ -96,58 +72,26 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     id,
     useCtrlSend = false,
     sendCodeBlockOnCtrlEnter = false,
+    onKeyDown,
 }, ref) => {
-    const onSubmitRef = useRef(onSubmit);
-    const onChangeRef = useRef(onChange);
-    const onFocusRef = useRef(onFocus);
-    const onBlurRef = useRef(onBlur);
-    const onEditLatestPostRef = useRef(onEditLatestPost);
-    const placeholderRef = useRef(placeholderText ?? '');
+    const dispatch = useDispatch();
+    const channelIdRef = useLatest(channelId);
+    const rootIdRef = useLatest(rootId);
 
-    useEffect(() => {
-        onSubmitRef.current = onSubmit;
-    }, [onSubmit]);
-
-    useEffect(() => {
-        onChangeRef.current = onChange;
-    }, [onChange]);
-
-    useEffect(() => {
-        onFocusRef.current = onFocus;
-    }, [onFocus]);
-
-    useEffect(() => {
-        onBlurRef.current = onBlur;
-    }, [onBlur]);
-
-    useEffect(() => {
-        onEditLatestPostRef.current = onEditLatestPost;
-    }, [onEditLatestPost]);
-
-    const useCtrlSendRef = useRef(useCtrlSend);
-    useEffect(() => {
-        useCtrlSendRef.current = useCtrlSend;
-    }, [useCtrlSend]);
-
-    const sendCodeBlockOnCtrlEnterRef = useRef(sendCodeBlockOnCtrlEnter);
-    useEffect(() => {
-        sendCodeBlockOnCtrlEnterRef.current = sendCodeBlockOnCtrlEnter;
-    }, [sendCodeBlockOnCtrlEnter]);
+    const onSubmitRef = useLatest(onSubmit);
+    const onChangeRef = useLatest(onChange);
+    const onFocusRef = useLatest(onFocus);
+    const onBlurRef = useLatest(onBlur);
+    const useCtrlSendRef = useLatest(useCtrlSend);
+    const sendCodeBlockOnCtrlEnterRef = useLatest(sendCodeBlockOnCtrlEnter);
+    const placeholderRef = useLatest(placeholderText ?? '');
+    const onKeyDownRef = useLatest(onKeyDown);
 
     const editorRef = useRef<Editor | null>(null);
 
-    const debouncedOnChange = useMemo(() => {
-        const fn = debounce((md: string) => {
-            onChangeRef.current(md);
-        }, SERIALIZE_DEBOUNCE_MS);
-        return fn;
-    }, []);
-
-    useEffect(() => {
-        return () => {
-            debouncedOnChange.cancel();
-        };
-    }, [debouncedOnChange]);
+    const debouncedOnChange = useDebounce((md: string) => {
+        onChangeRef.current(md);
+    }, SERIALIZE_DEBOUNCE_MS);
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
         // Strip &nbsp; artifacts the @tiptap/markdown serializer leaves around
@@ -184,9 +128,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             TableHeader,
             Markdown.configure({
                 markedOptions: {gfm: true},
-                marked: createPerEditorMarked() as MarkdownExtensionOptions['marked'],
             }),
-            MattermostListCompat,
         ],
         content: value,
         contentType: 'markdown',
@@ -194,9 +136,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         editorProps: {
             attributes: {
                 ...(id ? {id, 'data-testid': id} : {}),
-                'data-channel-id': channelId,
                 role: 'textbox',
-                ...(placeholderText ? {placeholder: placeholderText, 'aria-placeholder': placeholderText} : {}),
                 ...(disabled ? {'aria-disabled': 'true', 'data-disabled': 'true'} : {'aria-disabled': 'false'}),
             },
             handlePaste: (_view, event) => {
@@ -224,6 +164,44 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 return true;
             },
             handleKeyDown: (view, event) => {
+                const forward = onKeyDownRef.current;
+                if (forward) {
+                    let consumed = false;
+                    let propagationStopped = false;
+                    const synthetic = {
+                        nativeEvent: event,
+                        target: view.dom,
+                        currentTarget: view.dom,
+                        key: event.key,
+                        code: event.code,
+                        keyCode: event.keyCode,
+                        which: event.keyCode,
+                        ctrlKey: event.ctrlKey,
+                        metaKey: event.metaKey,
+                        altKey: event.altKey,
+                        shiftKey: event.shiftKey,
+                        repeat: event.repeat,
+                        get defaultPrevented() {
+                            return consumed;
+                        },
+                        preventDefault: () => {
+                            consumed = true;
+                            event.preventDefault();
+                        },
+                        stopPropagation: () => {
+                            propagationStopped = true;
+                            event.stopPropagation();
+                        },
+                        isDefaultPrevented: () => consumed,
+                        isPropagationStopped: () => propagationStopped,
+                        persist: () => undefined,
+                    };
+                    forward(synthetic as unknown as React.KeyboardEvent<HTMLDivElement>);
+                    if (consumed) {
+                        return true;
+                    }
+                }
+
                 if (event.key === 'Tab') {
                     const {state} = view;
                     const {$from} = state.selection;
@@ -245,9 +223,9 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 if (event.key === 'ArrowUp' && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
                     const {state} = view;
                     const isEmpty = state.doc.textContent.length === 0 && state.doc.childCount <= 1;
-                    if (isEmpty && onEditLatestPostRef.current) {
+                    if (isEmpty) {
                         event.preventDefault();
-                        onEditLatestPostRef.current();
+                        dispatch(editLatestPost(channelIdRef.current, rootIdRef.current ?? ''));
                         return true;
                     }
                 }
@@ -356,13 +334,6 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         },
     }), []);
 
-    useEffect(() => {
-        if (!editor || editor.isDestroyed) {
-            return;
-        }
-        (editor.view.dom as HTMLElement).setAttribute('data-channel-id', channelId);
-    }, [editor, channelId]);
-
     const lastValueRef = useRef(value);
     useEffect(() => {
         if (!editor || editor.isDestroyed) {
@@ -375,28 +346,6 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             editor.commands.clearContent();
         }
     }, [value, editor]);
-
-    useEffect(() => {
-        placeholderRef.current = placeholderText ?? '';
-
-        if (!editor || editor.isDestroyed) {
-            return;
-        }
-        const dom = editor.view.dom as HTMLElement;
-        if (placeholderText) {
-            dom.setAttribute('placeholder', placeholderText);
-            dom.setAttribute('aria-placeholder', placeholderText);
-        } else {
-            dom.removeAttribute('placeholder');
-            dom.removeAttribute('aria-placeholder');
-        }
-        dom.setAttribute('aria-disabled', disabled ? 'true' : 'false');
-        if (disabled) {
-            dom.setAttribute('data-disabled', 'true');
-        } else {
-            dom.removeAttribute('data-disabled');
-        }
-    }, [editor, placeholderText, disabled]);
 
     useEffect(() => {
         if (editor && !editor.isDestroyed) {

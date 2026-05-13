@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useFloating, offset, flip, shift, useDismiss, useInteractions} from '@floating-ui/react';
+import {useFloating, offset, flip, shift, useDismiss, useInteractions, FloatingPortal} from '@floating-ui/react';
 import type {Editor} from '@tiptap/react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {createPortal} from 'react-dom';
+import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
@@ -15,10 +14,13 @@ import {
     TextBoxOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
-const POPOVER_WIDTH = 496;
+import {RootHtmlPortalId} from 'utils/constants';
+
+const POPOVER_MAX_WIDTH = 496;
+const POPOVER_VIEWPORT_PADDING = 32;
 
 const PopoverContainer = styled.div`
-    width: ${POPOVER_WIDTH}px;
+    width: min(${POPOVER_MAX_WIDTH}px, calc(100vw - ${POPOVER_VIEWPORT_PADDING}px));
     border-radius: 8px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     background: var(--center-channel-bg);
@@ -126,12 +128,6 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
     const [displayText, setDisplayText] = useState(() => existingData?.text || getSelectionText(editor));
     const [url, setUrl] = useState(() => existingData?.href || '');
 
-    const urlInputRef = useRef<HTMLInputElement>(null);
-    useEffect(() => {
-        const raf = requestAnimationFrame(() => urlInputRef.current?.focus());
-        return () => cancelAnimationFrame(raf);
-    }, []);
-
     const {refs, floatingStyles, context} = useFloating({
         open: true,
         onOpenChange: (open) => {
@@ -200,77 +196,79 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
     const isUrlDirty = url.length > 0;
     const isSaved = isEditing && !isUrlDirty ? false : isEditing;
 
-    const popover = (
-        <PopoverContainer
-            ref={refs.setFloating}
-            style={floatingStyles}
-            onKeyDown={handleKeyDown}
-            onMouseDown={(e) => e.stopPropagation()}
-            {...getFloatingProps()}
-        >
-            <Row>
-                <RowIcon>
-                    <LinkVariantIcon
-                        size={18}
-                        color='currentColor'
-                    />
-                </RowIcon>
-                <RowInput
-                    ref={urlInputRef}
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder={formatMessage({id: 'wysiwyg.link.placeholder', defaultMessage: 'Type or paste a link'})}
-                />
-                {isUrlDirty && (
-                    <HintText>
-                        <span>{formatMessage({id: 'wysiwyg.link.save_hint', defaultMessage: '↵ ENTER to save'})}</span>
-                    </HintText>
-                )}
-                {isSaved && (
-                    <IconButton
-                        type='button'
-                        onClick={handleOpenExternal}
-                        title={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}
-                    >
-                        <OpenInNewIcon
-                            size={18}
-                            color='currentColor'
-                        />
-                    </IconButton>
-                )}
-                {isSaved && (
-                    <IconButton
-                        type='button'
-                        className='danger'
-                        onClick={handleRemove}
-                        title={formatMessage({id: 'wysiwyg.link.remove', defaultMessage: 'Remove link'})}
-                    >
-                        <TrashCanOutlineIcon
-                            size={18}
-                            color='currentColor'
-                        />
-                    </IconButton>
-                )}
-            </Row>
-            {!hasSelection && !isEditing && (
+    return (
+        <FloatingPortal id={RootHtmlPortalId}>
+            <PopoverContainer
+                ref={refs.setFloating}
+                style={floatingStyles}
+                onKeyDown={handleKeyDown}
+                onMouseDown={(e) => e.stopPropagation()}
+                {...getFloatingProps()}
+            >
                 <Row>
                     <RowIcon>
-                        <TextBoxOutlineIcon
+                        <LinkVariantIcon
                             size={18}
                             color='currentColor'
                         />
                     </RowIcon>
                     <RowInput
-                        value={displayText}
-                        onChange={(e) => setDisplayText(e.target.value)}
-                        placeholder={formatMessage({id: 'wysiwyg.link.display_text', defaultMessage: 'Display text'})}
-                    />
-                </Row>
-            )}
-        </PopoverContainer>
-    );
 
-    return createPortal(popover, document.body);
+                        // eslint-disable-next-line jsx-a11y/no-autofocus
+                        autoFocus={true}
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        placeholder={formatMessage({id: 'wysiwyg.link.placeholder', defaultMessage: 'Type or paste a link'})}
+                    />
+                    {isUrlDirty && (
+                        <HintText>
+                            <span>{formatMessage({id: 'wysiwyg.link.save_hint', defaultMessage: '↵ ENTER to save'})}</span>
+                        </HintText>
+                    )}
+                    {isSaved && (
+                        <IconButton
+                            type='button'
+                            onClick={handleOpenExternal}
+                            title={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}
+                        >
+                            <OpenInNewIcon
+                                size={18}
+                                color='currentColor'
+                            />
+                        </IconButton>
+                    )}
+                    {isSaved && (
+                        <IconButton
+                            type='button'
+                            className='danger'
+                            onClick={handleRemove}
+                            title={formatMessage({id: 'wysiwyg.link.remove', defaultMessage: 'Remove link'})}
+                        >
+                            <TrashCanOutlineIcon
+                                size={18}
+                                color='currentColor'
+                            />
+                        </IconButton>
+                    )}
+                </Row>
+                {!hasSelection && !isEditing && (
+                    <Row>
+                        <RowIcon>
+                            <TextBoxOutlineIcon
+                                size={18}
+                                color='currentColor'
+                            />
+                        </RowIcon>
+                        <RowInput
+                            value={displayText}
+                            onChange={(e) => setDisplayText(e.target.value)}
+                            placeholder={formatMessage({id: 'wysiwyg.link.display_text', defaultMessage: 'Display text'})}
+                        />
+                    </Row>
+                )}
+            </PopoverContainer>
+        </FloatingPortal>
+    );
 };
 
 export default LinkPopover;

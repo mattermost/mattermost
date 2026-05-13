@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import classNames from 'classnames';
+import React, {forwardRef, memo} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import styled from 'styled-components';
@@ -115,12 +116,17 @@ const MAP_MARKDOWN_MODE_TO_KEYBOARD_SHORTCUTS: Record<FormattingIconProps['mode'
     ol: KEYBOARD_SHORTCUTS.msgMarkdownOl,
 };
 
-const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
+const FormattingIcon = forwardRef<HTMLButtonElement, FormattingIconProps>((props, ref) => {
+    /**
+     * by passing in the otherProps spread we guarantee that accessibility
+     * properties like aria-label, etc. get added to the DOM
+     */
     const {mode, onClick, isActive, className, ...otherProps} = props;
     const handleMouseDown = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
     }, []);
 
+    /* get the correct Icon from the IconMap */
     const Icon = MAP_MARKDOWN_MODE_TO_ICON[mode];
     const {formatMessage} = useIntl();
     const ariaLabelDefinition = MAP_MARKDOWN_MODE_TO_ARIA_LABEL[mode];
@@ -128,12 +134,14 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
 
     const bodyAction = (
         <IconContainer
+            ref={ref}
             type='button'
             id={props.id || `FormattingControl_${mode}`}
             onClick={onClick}
             onMouseDown={handleMouseDown}
             aria-label={buttonAriaLabel}
-            className={isActive ? `${className || ''} active`.trim() : className}
+            aria-pressed={typeof isActive === 'boolean' ? isActive : undefined}
+            className={classNames(className, {active: isActive})}
             {...otherProps}
         >
             <Icon
@@ -159,6 +167,8 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
             {bodyAction}
         </WithTooltip>
     );
-};
+});
+
+FormattingIcon.displayName = 'FormattingIcon';
 
 export default memo(FormattingIcon);
