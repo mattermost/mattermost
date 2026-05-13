@@ -140,8 +140,14 @@ func (b *AzureFileBackend) newContainerClient() *container.Client {
 	return b.client.ServiceClient().NewContainerClient(b.container)
 }
 
-// TestConnection auto-creates the container if it doesn't exist, mirroring
-// the S3 backend's bucket auto-creation behavior.
+// TestConnection probes the configured container and reports the outcome
+// using the typed errors shared with the other backends. Container
+// creation is deliberately out of scope here - callers (Server.Start)
+// decide whether to provision a missing container via MakeContainer.
+// That separation keeps a typo in the System Console from silently
+// provisioning an unwanted container, and matches the S3 contract where
+// TestConnection returns FileBackendNoBucketError and MakeBucket is an
+// explicit call.
 func (b *AzureFileBackend) TestConnection() error {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
@@ -151,17 +157,24 @@ func (b *AzureFileBackend) TestConnection() error {
 		return nil
 	}
 	if bloberror.HasCode(err, bloberror.ContainerNotFound) {
-		if _, createErr := b.newContainerClient().Create(ctx, nil); createErr != nil {
-			errMsg := fmt.Sprintf("unable to create azure container %q", b.container)
-			return &FileBackendNoBucketError{Err: pkgerr.Wrap(createErr, errMsg)}
-		}
-		return nil
+		return &FileBackendNoBucketError{Err: pkgerr.Wrapf(err, "azure container %q does not exist", b.container)}
 	}
 	if isAzureAuthError(err) {
-		errMsg := "unable to authenticate against azure blob storage"
-		return &FileBackendAuthError{Err: pkgerr.Wrap(err, errMsg)}
+		return &FileBackendAuthError{Err: pkgerr.Wrap(err, "unable to authenticate against azure blob storage")}
 	}
 	return pkgerr.Wrap(err, "unable to connect to azure blob storage")
+}
+
+// MakeContainer creates the configured container. Mirrors S3FileBackend.MakeBucket
+// so callers can opt into container provisioning explicitly.
+func (b *AzureFileBackend) MakeContainer() error {
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+
+	if _, err := b.newContainerClient().Create(ctx, nil); err != nil {
+		return pkgerr.Wrapf(err, "unable to create azure container %q", b.container)
+	}
+	return nil
 }
 
 func (b *AzureFileBackend) Reader(p string) (ReadCloseSeeker, error) {

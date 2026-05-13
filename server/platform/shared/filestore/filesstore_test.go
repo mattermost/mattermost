@@ -123,12 +123,15 @@ func (s *FileBackendTestSuite) SetupTest() {
 	require.NoError(s.T(), err)
 	s.backend = backend
 
-	// This is needed to create the bucket if it doesn't exist.
+	// This is needed to create the bucket / container if it doesn't exist.
 	err = s.backend.TestConnection()
 	if _, ok := err.(*FileBackendNoBucketError); ok {
-		if s3Backend, isS3 := s.backend.(*S3FileBackend); isS3 {
-			s.NoError(s3Backend.MakeBucket())
-		} else {
+		switch b := s.backend.(type) {
+		case *S3FileBackend:
+			s.NoError(b.MakeBucket())
+		case *AzureFileBackend:
+			s.NoError(b.MakeContainer())
+		default:
 			s.NoError(err)
 		}
 	} else {
