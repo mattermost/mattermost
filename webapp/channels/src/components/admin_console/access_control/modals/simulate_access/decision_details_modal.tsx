@@ -95,8 +95,11 @@ export default function DecisionDetailsModal({
     const [show, setShow] = useState(true);
     const handleHide = useCallback(() => setShow(false), []);
 
-    const hasUserAttrs = userAttributes && Object.keys(userAttributes).length > 0;
-    const hasSessionAttrs = sessionAttributes && Object.keys(sessionAttributes).length > 0;
+    // Narrow into a defined-or-undefined local so the JSX below doesn't
+    // need a non-null assertion — checking `userAttributes` indirectly
+    // through `hasUserAttrs` would lose the narrowing.
+    const userAttrs = userAttributes && Object.keys(userAttributes).length > 0 ? userAttributes : undefined;
+    const sessionAttrs = sessionAttributes && Object.keys(sessionAttributes).length > 0 ? sessionAttributes : undefined;
 
     return (
         <GenericModal
@@ -147,12 +150,12 @@ export default function DecisionDetailsModal({
                 </div>
             </div>
 
-            {(hasUserAttrs || hasSessionAttrs) ? (
+            {(userAttrs || sessionAttrs) ? (
                 <div
                     className='SimulateAccessModal__detailsAttributes'
                     data-testid='simulate-access-details-attributes'
                 >
-                    {hasUserAttrs ? (
+                    {userAttrs ? (
                         <AttributeSection
                             heading={
                                 <FormattedMessage
@@ -160,11 +163,11 @@ export default function DecisionDetailsModal({
                                     defaultMessage='User attributes'
                                 />
                             }
-                            values={userAttributes!}
+                            values={userAttrs}
                             testId='simulate-access-details-user-attributes'
                         />
                     ) : null}
-                    {hasSessionAttrs ? (
+                    {sessionAttrs ? (
                         <AttributeSection
                             heading={
                                 <FormattedMessage
@@ -172,7 +175,7 @@ export default function DecisionDetailsModal({
                                     defaultMessage='Session attributes'
                                 />
                             }
-                            values={sessionAttributes!}
+                            values={sessionAttrs}
                             testId='simulate-access-details-session-attributes'
                         />
                     ) : null}

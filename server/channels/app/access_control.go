@@ -284,10 +284,358 @@ func (a *App) ValidatePolicySimulationUsersInScope(rctx request.CTX, teamID, cha
 }
 
 // isThisRuleScope returns true when the simulator should run in
-// "this rule only" mode. Empty defaults to this_rule for backward
-// compatibility with older clients that don't set EvaluationScope.
+// "this rule only" mode. The empty string is included as a defensive
+// belt-and-braces fallback for callers that bypass the api4 handler's
+// normalisation (it forces "" → this_rule per the model docstring
+// default). Direct App.SimulateAccessControlPolicyForUsers callers
+// in tests / future RPC entry points may still hit this helper with
+// a raw empty string; we treat it consistently with the documented
+// model default rather than letting it silently fall through to
+// "all" semantics.
 func isThisRuleScope(scope string) bool {
 	return scope == "" || scope == model.PolicyEvaluationScopeThisRule
+}
+
+// userAttributesPathPrefix is the canonical CEL prefix the simulator
+// records on leaf evaluation-tree nodes for user-attribute references
+// (e.g. `user.attributes.Clearance`). The CPA field name is the
+// suffix; we strip the prefix to match against the protected set
+// indexed by field name.
+const userAttributesPathPrefix = "user.attributes."
+
+// RedactSimulationAttributesForCaller strips attribute values from a
+// PolicySimulationResponse on every surface the picker exposes
+// (top-level user/session Attributes maps AND the per-leaf
+// ActualValue inside same-scope blame evaluation trees) when the
+// caller is not a system admin.
+//
+// A field is treated as protected — and therefore redacted — when
+// any of the following applies (channel and team admins are never a
+// CPA field's source plugin, so the access_mode branches collapse
+// to "not public" for these callers):
+//
+//   - `visibility == "hidden"`: the field is hidden on the user
+//     profile page; the simulate UI must not be a side channel.
+//
+//   - `access_mode == "source_only"`: the CPA value is reserved for
+//     the source plugin. Channel/team admins are never plugin
+//     callers, so the value is always inaccessible to them.
+//
+//   - `access_mode == "shared_only"`: the underlying property
+//     service computes an intersection of the caller's and target's
+//     values on read. The simulator does NOT call the property
+//     service (it reads from AttributeView directly), so we
+//     conservatively redact these values rather than ship them
+//     unfiltered.
+//
+// System admins (passed via callerIsSystemAdmin=true) bypass the
+// filter entirely; they always see every attribute the simulator
+// recorded.
+//
+// On failure to look up the CPA fields we *strip every attribute map*
+// and clear every evaluation tree's ActualValue, rather than leaking
+// a value through a transient error — the fail-closed default mirrors
+// how `BuildAccessControlSubject` treats a missing channel-role
+// lookup.
+func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.PolicySimulationResponse, callerIsSystemAdmin bool) {
+	if resp == nil || callerIsSystemAdmin {
+		return
+	}
+
+	// Cheap-out when no result row carries any of the redactable
+	// surfaces (top-level Attributes maps or blame evaluation trees) —
+	// saves the CPA fetch on the common "deny chip only, no Decision
+	// Details panel" UX.
+	if !simulationHasRedactableAttributeData(resp) {
+		return
+	}
+
+	protected, err := a.protectedCPAFieldNamesForCaller(rctx)
+	if err != nil {
+		rctx.Logger().Warn(
+			"RedactSimulationAttributesForCaller: failed to load CPA fields; redacting every simulation attribute surface as a fail-closed default",
+			mlog.Err(err),
+		)
+		// Fail closed: drop every attribute snapshot AND every leaf
+		// `actual_value` rather than leak a protected field through a
+		// transient lookup failure.
+		clearAllSimulationAttributes(resp)
+		clearAllEvaluationTreeActualValues(resp)
+		return
+	}
+	if len(protected) == 0 {
+		return
+	}
+
+	stripProtectedAttributes(resp, protected)
+	redactProtectedEvaluationTreeActualValues(resp, protected)
+}
+
+// protectedCPAFieldNamesForCaller returns the set of CPA field names
+// whose contents must be hidden from a non-system-admin caller. The
+// set includes both `visibility: hidden` fields and any field whose
+// `access_mode` is not public (source_only / shared_only). The
+// simulator's AttributeView populates its per-user map keyed by
+// `pf.Name` (see db/migrations/postgres/000137_update_attribute_view.up.sql),
+// and the evaluation-tree walker likewise records `user.attributes.<name>`
+// on each leaf — so matching by name is correct for both.
+func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (map[string]struct{}, error) {
+	fields, appErr := a.ListCPAFields(rctx)
+	if appErr != nil {
+		return nil, appErr
+	}
+	protected := map[string]struct{}{}
+	for _, f := range fields {
+		if f == nil {
+			continue
+		}
+		if cpaFieldIsProtectedForChannelAdmin(f) {
+			protected[f.Name] = struct{}{}
+		}
+	}
+	return protected, nil
+}
+
+// cpaFieldIsProtectedForChannelAdmin reports whether a CPA field's
+// value must be hidden from a non-system-admin caller. Pure helper
+// so the protected-set construction and the per-leaf tree walker can
+// share the same predicate.
+func cpaFieldIsProtectedForChannelAdmin(f *model.CPAField) bool {
+	if f == nil {
+		return false
+	}
+	if f.Attrs.Visibility == model.CustomProfileAttributesVisibilityHidden {
+		return true
+	}
+	// access_mode "" defaults to public — only non-public values are
+	// protected. Channel/team admins are never the source plugin so
+	// both source_only and shared_only collapse to "inaccessible".
+	if f.Attrs.AccessMode != "" && f.Attrs.AccessMode != model.PropertyAccessModePublic {
+		return true
+	}
+	return false
+}
+
+// simulationHasRedactableAttributeData reports whether any result row
+// carries a non-empty top-level `Attributes` map at the user OR
+// session level, or any blame entry whose `EvaluationTree` (or
+// per-rule subtree under MergedRules) might leak a leaf
+// `ActualValue`. Used to short-circuit the redact pass when the
+// response is purely "decision chips only" with no Decision Details
+// data to redact.
+func simulationHasRedactableAttributeData(resp *model.PolicySimulationResponse) bool {
+	if resp == nil {
+		return false
+	}
+	for i := range resp.Results {
+		r := &resp.Results[i]
+		if len(r.Attributes) > 0 {
+			return true
+		}
+		for j := range r.Decisions {
+			if decisionCarriesActualValue(r.Decisions[j]) {
+				return true
+			}
+		}
+		for j := range r.Sessions {
+			if len(r.Sessions[j].Attributes) > 0 {
+				return true
+			}
+			for k := range r.Sessions[j].Decisions {
+				if decisionCarriesActualValue(r.Sessions[j].Decisions[k]) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// decisionCarriesActualValue reports whether any blame entry on the
+// decision has an evaluation tree (either at the top level or under a
+// merged-rule entry) that could leak an `ActualValue`.
+func decisionCarriesActualValue(dec model.PolicySimulationActionDecision) bool {
+	for i := range dec.Blame {
+		b := &dec.Blame[i]
+		if b.EvaluationTree != nil {
+			return true
+		}
+		for j := range b.MergedRules {
+			if b.MergedRules[j].EvaluationTree != nil {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// stripProtectedAttributes deletes any key in `protected` from every
+// result row's user-level and per-session top-level Attributes maps in
+// `resp`. Mutates `resp` in place; safe to call when `protected` is
+// empty (no-op). This handles the top-level snapshot the Decision
+// Details panel renders as a User/Session attributes table.
+func stripProtectedAttributes(resp *model.PolicySimulationResponse, protected map[string]struct{}) {
+	if resp == nil || len(protected) == 0 {
+		return
+	}
+	for i := range resp.Results {
+		r := &resp.Results[i]
+		for name := range protected {
+			delete(r.Attributes, name)
+		}
+		for j := range r.Sessions {
+			for name := range protected {
+				delete(r.Sessions[j].Attributes, name)
+			}
+		}
+	}
+}
+
+// redactProtectedEvaluationTreeActualValues walks every blame entry's
+// EvaluationTree (and the per-rule subtrees attached under
+// MergedRules) on every result and session decision in `resp`. For
+// each leaf node whose `Attribute` references a protected CPA field
+// (path format `user.attributes.<name>`), the leaf's `ActualValue`
+// is blanked.
+//
+// Why ActualValue and nothing else:
+//   - `Attribute` is the path; it already appears in the rule's
+//     `Expression`, which the channel admin can see.
+//   - `ExpectedValue` is the literal from the rule (e.g. `"il5"`),
+//     not the user's data — also already in `Expression`.
+//   - `ActualValue` is the only field that records the target user's
+//     concrete attribute value. That's the one we must redact.
+func redactProtectedEvaluationTreeActualValues(resp *model.PolicySimulationResponse, protected map[string]struct{}) {
+	if resp == nil || len(protected) == 0 {
+		return
+	}
+	for i := range resp.Results {
+		r := &resp.Results[i]
+		for action, dec := range r.Decisions {
+			redactProtectedActualValuesInDecision(&dec, protected)
+			r.Decisions[action] = dec
+		}
+		for j := range r.Sessions {
+			for action, dec := range r.Sessions[j].Decisions {
+				redactProtectedActualValuesInDecision(&dec, protected)
+				r.Sessions[j].Decisions[action] = dec
+			}
+		}
+	}
+}
+
+func redactProtectedActualValuesInDecision(dec *model.PolicySimulationActionDecision, protected map[string]struct{}) {
+	for i := range dec.Blame {
+		b := &dec.Blame[i]
+		if b.EvaluationTree != nil {
+			redactProtectedActualValuesInTree(b.EvaluationTree, protected)
+		}
+		for j := range b.MergedRules {
+			if b.MergedRules[j].EvaluationTree != nil {
+				redactProtectedActualValuesInTree(b.MergedRules[j].EvaluationTree, protected)
+			}
+		}
+	}
+}
+
+// redactProtectedActualValuesInTree recursively walks `node` and
+// blanks the `ActualValue` on every leaf whose `Attribute` resolves
+// to a CPA field in `protected`. Operates in place on the tree
+// pointer the response shares with its parent blame entry.
+func redactProtectedActualValuesInTree(node *model.PolicySimulationEvaluationNode, protected map[string]struct{}) {
+	if node == nil {
+		return
+	}
+	if isProtectedAttributePath(node.Attribute, protected) {
+		node.ActualValue = ""
+	}
+	for i := range node.Children {
+		redactProtectedActualValuesInTree(&node.Children[i], protected)
+	}
+}
+
+// isProtectedAttributePath returns true when `path` is the canonical
+// CEL form `user.attributes.<name>` and `<name>` is in `protected`.
+// Returns false for empty paths and for any path that doesn't carry
+// the user-attribute prefix (other shapes — function-call leaves,
+// constant comparisons — are not user data).
+func isProtectedAttributePath(path string, protected map[string]struct{}) bool {
+	if path == "" || len(protected) == 0 {
+		return false
+	}
+	name, ok := strings.CutPrefix(path, userAttributesPathPrefix)
+	if !ok || name == "" {
+		return false
+	}
+	_, found := protected[name]
+	return found
+}
+
+// clearAllSimulationAttributes wipes every top-level user-level and
+// per-session Attributes map in `resp`. Used as part of the fail-
+// closed default when the CPA visibility lookup fails — a transient
+// store error must not leak a hidden value to a channel admin via
+// the simulator.
+func clearAllSimulationAttributes(resp *model.PolicySimulationResponse) {
+	if resp == nil {
+		return
+	}
+	for i := range resp.Results {
+		r := &resp.Results[i]
+		r.Attributes = nil
+		for j := range r.Sessions {
+			r.Sessions[j].Attributes = nil
+		}
+	}
+}
+
+// clearAllEvaluationTreeActualValues wipes the `ActualValue` field on
+// every leaf in every evaluation tree the response carries (top-level
+// and per-merged-rule). Companion to `clearAllSimulationAttributes`
+// for the fail-closed path: we don't know which fields are protected
+// because the CPA lookup failed, so we redact every leaf rather than
+// take the risk.
+func clearAllEvaluationTreeActualValues(resp *model.PolicySimulationResponse) {
+	if resp == nil {
+		return
+	}
+	for i := range resp.Results {
+		r := &resp.Results[i]
+		for action, dec := range r.Decisions {
+			clearActualValuesInDecision(&dec)
+			r.Decisions[action] = dec
+		}
+		for j := range r.Sessions {
+			for action, dec := range r.Sessions[j].Decisions {
+				clearActualValuesInDecision(&dec)
+				r.Sessions[j].Decisions[action] = dec
+			}
+		}
+	}
+}
+
+func clearActualValuesInDecision(dec *model.PolicySimulationActionDecision) {
+	for i := range dec.Blame {
+		b := &dec.Blame[i]
+		if b.EvaluationTree != nil {
+			clearActualValuesInTree(b.EvaluationTree)
+		}
+		for j := range b.MergedRules {
+			if b.MergedRules[j].EvaluationTree != nil {
+				clearActualValuesInTree(b.MergedRules[j].EvaluationTree)
+			}
+		}
+	}
+}
+
+func clearActualValuesInTree(node *model.PolicySimulationEvaluationNode) {
+	if node == nil {
+		return
+	}
+	node.ActualValue = ""
+	for i := range node.Children {
+		clearActualValuesInTree(&node.Children[i])
+	}
 }
 
 // enrichBlameForDraftScope walks the simulator response and:

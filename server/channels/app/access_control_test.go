@@ -2622,3 +2622,539 @@ func TestEnrichBlameForDraftScope(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 }
+
+// TestRedactSimulationAttributesForCaller covers the CPA-visibility
+// + access-mode post-processor that strips attribute values from a
+// simulator response for non-system-admin callers. The simulator
+// surfaces per-user (and per-session) attribute snapshots so the
+// Decision Details panel can read a deny like an evaluation trace —
+// channel and team admins must not see values for fields configured
+// as `visibility: hidden`, source_only, or shared_only because each
+// of those tiers is hidden from them on the user profile page
+// itself. The redactor also walks every blame entry's evaluation
+// tree and blanks `ActualValue` on every leaf whose `Attribute`
+// references a protected field; the top-level Attributes snapshot
+// is not the only leak surface.
+func TestRedactSimulationAttributesForCaller(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	rctx := th.emptyContextWithCallerID(anonymousCallerId)
+
+	cpaGroupID, gErr := th.App.CpaGroupID()
+	require.Nil(t, gErr)
+
+	// Two CPA fields: one hidden (the realistic non-plugin path) and
+	// one visible. Source_only and shared_only access modes are
+	// covered by TestCPAFieldIsProtectedForChannelAdmin below because
+	// they require `protected: true` (and therefore a plugin caller)
+	// to create through the normal app path.
+	hiddenField, hErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+		GroupID: cpaGroupID,
+		Name:    celSafeName(),
+		Type:    model.PropertyFieldTypeText,
+		Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
+	})
+	require.NoError(t, hErr)
+	createdHidden, hAppErr := th.App.CreateCPAField(rctx, hiddenField)
+	require.Nil(t, hAppErr)
+
+	visibleField, vErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+		GroupID: cpaGroupID,
+		Name:    celSafeName(),
+		Type:    model.PropertyFieldTypeText,
+		Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet},
+	})
+	require.NoError(t, vErr)
+	createdVisible, vAppErr := th.App.CreateCPAField(rctx, visibleField)
+	require.Nil(t, vAppErr)
+
+	hiddenName := createdHidden.Name
+	visibleName := createdVisible.Name
+
+	// makeResp builds a fresh response that exercises every leak
+	// surface in one shot: top-level user attributes, top-level
+	// session attributes, the deny blame's evaluation tree (root +
+	// per-attribute leaf), and a per-merged-rule evaluation tree.
+	// Each tier carries a value for BOTH CPA fields so the test can
+	// assert "protected: blanked" and "visible: preserved" on every
+	// surface in the same pass.
+	mkLeaf := func(name, value string) model.PolicySimulationEvaluationNode {
+		return model.PolicySimulationEvaluationNode{
+			Kind:        model.PolicySimulationEvaluationKindCompare,
+			Attribute:   userAttributesPathPrefix + name,
+			ActualValue: value,
+			Outcome:     model.PolicySimulationEvaluationOutcomeFalse,
+		}
+	}
+	mkResp := func() *model.PolicySimulationResponse {
+		topLevelTree := &model.PolicySimulationEvaluationNode{
+			Kind:    model.PolicySimulationEvaluationKindAnd,
+			Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+			Children: []model.PolicySimulationEvaluationNode{
+				mkLeaf(hiddenName, "il5"),
+				mkLeaf(visibleName, "us"),
+			},
+		}
+		mergedRuleTree := &model.PolicySimulationEvaluationNode{
+			Kind:        model.PolicySimulationEvaluationKindCompare,
+			Attribute:   userAttributesPathPrefix + hiddenName,
+			ActualValue: "il5",
+			Outcome:     model.PolicySimulationEvaluationOutcomeFalse,
+		}
+		return &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: model.NewId()},
+				Attributes: map[string]string{
+					hiddenName:  "il5",
+					visibleName: "us",
+				},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:         model.PolicySimulationBlameSourceThisRule,
+							RuleName:       "rule1",
+							EvaluationTree: topLevelTree,
+							MergedRules: []model.PolicySimulationMergedRule{{
+								Name:           "rule1",
+								EvaluationTree: mergedRuleTree,
+							}},
+						}},
+					},
+				},
+				Sessions: []model.PolicySimulationSession{{
+					ID: "s1",
+					Attributes: map[string]string{
+						hiddenName:  "il5",
+						visibleName: "us",
+					},
+				}},
+			}},
+		}
+	}
+
+	t.Run("system admins see every attribute value on every surface", func(t *testing.T) {
+		resp := mkResp()
+		th.App.RedactSimulationAttributesForCaller(rctx, resp, true)
+
+		// Top-level snapshot (user + session): every field passes through.
+		for _, name := range []string{hiddenName, visibleName} {
+			assert.NotEmpty(t, resp.Results[0].Attributes[name], "system admin must see %q in user-level attributes", name)
+			assert.NotEmpty(t, resp.Results[0].Sessions[0].Attributes[name], "system admin must see %q in session attributes", name)
+		}
+
+		// Evaluation tree leaves keep their ActualValue.
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		for _, child := range blame.EvaluationTree.Children {
+			assert.NotEmpty(t, child.ActualValue, "system admin must see ActualValue on every leaf, including %q", child.Attribute)
+		}
+		assert.NotEmpty(t, blame.MergedRules[0].EvaluationTree.ActualValue, "merged-rule tree ActualValue preserved for system admin")
+	})
+
+	t.Run("non-system-admin callers do not see hidden values on any surface", func(t *testing.T) {
+		resp := mkResp()
+		th.App.RedactSimulationAttributesForCaller(rctx, resp, false)
+
+		// Top-level snapshot redactions: hidden field removed from the
+		// user-level and session Attributes maps; the visible field
+		// passes through.
+		_, presentUser := resp.Results[0].Attributes[hiddenName]
+		_, presentSession := resp.Results[0].Sessions[0].Attributes[hiddenName]
+		assert.False(t, presentUser, "hidden user attribute must be stripped for non-system-admin caller")
+		assert.False(t, presentSession, "hidden session attribute must be stripped for non-system-admin caller")
+		assert.Equal(t, "us", resp.Results[0].Attributes[visibleName])
+		assert.Equal(t, "us", resp.Results[0].Sessions[0].Attributes[visibleName])
+
+		// Evaluation tree redactions: leaf whose Attribute references
+		// the hidden field has ActualValue blanked; the visible
+		// field's leaf keeps its value — that's the value the channel
+		// admin would see on the user profile page itself.
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		require.Len(t, blame.EvaluationTree.Children, 2)
+		leafByAttribute := map[string]model.PolicySimulationEvaluationNode{}
+		for _, child := range blame.EvaluationTree.Children {
+			leafByAttribute[child.Attribute] = child
+		}
+		assert.Empty(t, leafByAttribute[userAttributesPathPrefix+hiddenName].ActualValue,
+			"hidden leaf must have ActualValue blanked")
+		assert.Equal(t, "us", leafByAttribute[userAttributesPathPrefix+visibleName].ActualValue,
+			"visible leaf must keep ActualValue")
+
+		// Merged-rule subtree gets the same treatment — that's the
+		// per-rule view the picker renders alongside the merged tree.
+		assert.Empty(t, blame.MergedRules[0].EvaluationTree.ActualValue,
+			"merged-rule leaf for the hidden field must have ActualValue blanked")
+	})
+
+	t.Run("nil response is a safe no-op", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			th.App.RedactSimulationAttributesForCaller(rctx, nil, false)
+		})
+	})
+
+	t.Run("response with no attribute surfaces short-circuits before CPA lookup", func(t *testing.T) {
+		// Most common shape: a deny chip alone, no Decision Details
+		// panel ever opened. Both the top-level Attributes map and
+		// every blame's evaluation tree are nil. The redactor must
+		// return immediately without paying for ListCPAFields.
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: model.NewId()},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:   model.PolicySimulationBlameSourceThisRule,
+							RuleName: "rule1",
+						}},
+					},
+				},
+			}},
+		}
+		require.NotPanics(t, func() {
+			th.App.RedactSimulationAttributesForCaller(rctx, resp, false)
+		})
+		assert.Nil(t, resp.Results[0].Attributes)
+	})
+}
+
+// TestCPAFieldIsProtectedForChannelAdmin covers the per-field
+// predicate used to build the protected-name set. Source_only and
+// shared_only access modes require `protected: true` and a
+// source_plugin_id, which only a plugin caller can set through the
+// app — so this is a pure unit test against directly-constructed
+// CPAField values rather than going through the app's create path.
+func TestCPAFieldIsProtectedForChannelAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	tests := []struct {
+		name  string
+		field *model.CPAField
+		want  bool
+	}{
+		{
+			name: "visibility=hidden is protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityHidden},
+			},
+			want: true,
+		},
+		{
+			name: "access_mode=source_only is protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
+					AccessMode: model.PropertyAccessModeSourceOnly,
+				},
+			},
+			want: true,
+		},
+		{
+			name: "access_mode=shared_only is protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
+					AccessMode: model.PropertyAccessModeSharedOnly,
+				},
+			},
+			want: true,
+		},
+		{
+			name: "visibility=when_set + public access mode is NOT protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
+					AccessMode: model.PropertyAccessModePublic,
+				},
+			},
+			want: false,
+		},
+		{
+			name: "visibility=always + public access mode is NOT protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityAlways,
+					AccessMode: model.PropertyAccessModePublic,
+				},
+			},
+			want: false,
+		},
+		{
+			name: "empty access mode defaults to public and is NOT protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
+					AccessMode: "",
+				},
+			},
+			want: false,
+		},
+		{
+			name: "visibility=hidden wins over public access mode (still protected)",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityHidden,
+					AccessMode: model.PropertyAccessModePublic,
+				},
+			},
+			want: true,
+		},
+		{
+			name:  "nil field is not protected (caller short-circuits but the predicate is defensive)",
+			field: nil,
+			want:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := cpaFieldIsProtectedForChannelAdmin(tt.field)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+// TestRedactProtectedActualValuesInTree is a focused unit test for
+// the tree walker. Exercises:
+//   - protected leaves at the root level get ActualValue blanked
+//   - protected leaves nested under compound nodes get ActualValue
+//     blanked
+//   - unprotected leaves are untouched
+//   - non-user-attribute leaves (e.g. function call results, raw
+//     expressions) are untouched
+//   - nil node is a safe no-op
+func TestRedactProtectedActualValuesInTree(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	protected := map[string]struct{}{
+		"Clearance":   {},
+		"NetworkZone": {},
+	}
+
+	t.Run("redacts ActualValue on protected leaves at every depth", func(t *testing.T) {
+		tree := &model.PolicySimulationEvaluationNode{
+			Kind:    model.PolicySimulationEvaluationKindAnd,
+			Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+			Children: []model.PolicySimulationEvaluationNode{
+				{
+					Kind:        model.PolicySimulationEvaluationKindCompare,
+					Attribute:   "user.attributes.Clearance",
+					ActualValue: "il5",
+				},
+				{
+					Kind:    model.PolicySimulationEvaluationKindOr,
+					Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+					Children: []model.PolicySimulationEvaluationNode{
+						{
+							Kind:        model.PolicySimulationEvaluationKindCompare,
+							Attribute:   "user.attributes.NetworkZone",
+							ActualValue: "vpn",
+						},
+						{
+							Kind:        model.PolicySimulationEvaluationKindCompare,
+							Attribute:   "user.attributes.Region",
+							ActualValue: "us",
+						},
+					},
+				},
+				{
+					Kind: model.PolicySimulationEvaluationKindFunction,
+
+					// Function leaf with no attribute path (e.g. a
+					// constant comparison or receiver-style call
+					// where we couldn't infer the attribute) must
+					// be left alone — there's no protected user
+					// data to leak.
+					Attribute:   "",
+					ActualValue: "some-internal-value",
+				},
+			},
+		}
+
+		redactProtectedActualValuesInTree(tree, protected)
+
+		// Root-level Clearance leaf: blanked.
+		assert.Empty(t, tree.Children[0].ActualValue, "Clearance leaf must be blanked")
+
+		// Nested NetworkZone (protected) blanked; nested Region
+		// (public) preserved.
+		assert.Empty(t, tree.Children[1].Children[0].ActualValue, "NetworkZone leaf must be blanked")
+		assert.Equal(t, "us", tree.Children[1].Children[1].ActualValue, "Region leaf must be preserved")
+
+		// Function leaf with no attribute path is left alone.
+		assert.Equal(t, "some-internal-value", tree.Children[2].ActualValue, "non-user-attribute leaf must be preserved")
+	})
+
+	t.Run("nil node is a safe no-op", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			redactProtectedActualValuesInTree(nil, protected)
+		})
+	})
+
+	t.Run("empty protected set is a safe no-op", func(t *testing.T) {
+		tree := &model.PolicySimulationEvaluationNode{
+			Kind:        model.PolicySimulationEvaluationKindCompare,
+			Attribute:   "user.attributes.Clearance",
+			ActualValue: "il5",
+		}
+		redactProtectedActualValuesInTree(tree, nil)
+
+		// Helper itself is unconditional but the public entry point
+		// short-circuits before calling it with an empty set —
+		// either way, an empty set must not zap anything.
+		assert.Equal(t, "il5", tree.ActualValue)
+	})
+}
+
+// TestIsProtectedAttributePath pins the path-prefix matcher used by
+// the tree walker. Covers the canonical CEL prefix, mis-prefixed
+// paths, empty paths, and empty protected sets.
+func TestIsProtectedAttributePath(t *testing.T) {
+	mainHelper.Parallel(t)
+	protected := map[string]struct{}{"Clearance": {}}
+
+	t.Run("returns true for the canonical user.attributes.<name> form", func(t *testing.T) {
+		assert.True(t, isProtectedAttributePath("user.attributes.Clearance", protected))
+	})
+
+	t.Run("returns false for non-user-attribute paths", func(t *testing.T) {
+		// Resource / session / channel paths must not collide with
+		// the user-attributes namespace — only `user.attributes.*`
+		// is in scope for the CPA visibility filter.
+		assert.False(t, isProtectedAttributePath("session.network_status", protected))
+		assert.False(t, isProtectedAttributePath("resource.id", protected))
+		assert.False(t, isProtectedAttributePath("channel.member_count", protected))
+	})
+
+	t.Run("returns false for paths whose suffix is not in the protected set", func(t *testing.T) {
+		assert.False(t, isProtectedAttributePath("user.attributes.Region", protected))
+	})
+
+	t.Run("returns false for empty inputs", func(t *testing.T) {
+		assert.False(t, isProtectedAttributePath("", protected))
+		assert.False(t, isProtectedAttributePath("user.attributes.Clearance", nil))
+		assert.False(t, isProtectedAttributePath("user.attributes.", protected),
+			"empty suffix must not match — that's a malformed path, not a protected reference")
+	})
+}
+
+// TestStripProtectedAttributes is a focused unit test for the
+// top-level attribute-map pruner. Exercises both vertical levels
+// (user + session) and the no-op edge cases (empty protected set,
+// nil response).
+func TestStripProtectedAttributes(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("removes protected keys from user and session attribute maps", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u1"},
+				Attributes: map[string]string{
+					"Clearance": "il5",
+					"Region":    "us",
+				},
+				Sessions: []model.PolicySimulationSession{{
+					Attributes: map[string]string{
+						"Clearance":   "il5",
+						"NetworkZone": "vpn",
+					},
+				}},
+			}},
+		}
+		stripProtectedAttributes(resp, map[string]struct{}{
+			"Clearance": {}, "NetworkZone": {},
+		})
+
+		_, c1 := resp.Results[0].Attributes["Clearance"]
+		assert.False(t, c1, "Clearance must be stripped from user-level attributes")
+		assert.Equal(t, "us", resp.Results[0].Attributes["Region"], "Region must survive")
+
+		_, c2 := resp.Results[0].Sessions[0].Attributes["Clearance"]
+		assert.False(t, c2, "Clearance must be stripped from session attributes")
+		_, n := resp.Results[0].Sessions[0].Attributes["NetworkZone"]
+		assert.False(t, n, "NetworkZone must be stripped from session attributes")
+	})
+
+	t.Run("empty protected set is a no-op", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				Attributes: map[string]string{"Region": "us"},
+			}},
+		}
+		stripProtectedAttributes(resp, nil)
+		assert.Equal(t, "us", resp.Results[0].Attributes["Region"])
+	})
+
+	t.Run("nil response is a safe no-op", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			stripProtectedAttributes(nil, map[string]struct{}{"Anything": {}})
+		})
+	})
+}
+
+// TestClearAllSimulationAttributesAndTrees pins the fail-closed
+// default used by RedactSimulationAttributesForCaller when the CPA
+// lookup itself errors. Every attribute map (user + session) AND
+// every evaluation tree's ActualValue (top-level + per-merged-rule)
+// must be wiped so a transient store failure cannot leak protected
+// values through the simulator.
+func TestClearAllSimulationAttributesAndTrees(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	resp := &model.PolicySimulationResponse{
+		Results: []model.PolicySimulationUserResult{{
+			User:       &model.User{Id: "u1"},
+			Attributes: map[string]string{"Region": "us", "Clearance": "il5"},
+			Decisions: map[string]model.PolicySimulationActionDecision{
+				"upload_file_attachment": {
+					Decision: false,
+					Blame: []model.PolicySimulationBlame{{
+						Source: model.PolicySimulationBlameSourceThisRule,
+						EvaluationTree: &model.PolicySimulationEvaluationNode{
+							Kind: model.PolicySimulationEvaluationKindAnd,
+							Children: []model.PolicySimulationEvaluationNode{{
+								Attribute:   "user.attributes.Clearance",
+								ActualValue: "il5",
+							}, {
+								Attribute:   "user.attributes.Region",
+								ActualValue: "us",
+							}},
+						},
+						MergedRules: []model.PolicySimulationMergedRule{{
+							Name: "rule1",
+							EvaluationTree: &model.PolicySimulationEvaluationNode{
+								Attribute:   "user.attributes.Clearance",
+								ActualValue: "il5",
+							},
+						}},
+					}},
+				},
+			},
+			Sessions: []model.PolicySimulationSession{{
+				Attributes: map[string]string{"NetworkZone": "vpn"},
+			}},
+		}, {
+			User:       &model.User{Id: "u2"},
+			Attributes: map[string]string{"Region": "eu"},
+		}},
+	}
+
+	clearAllSimulationAttributes(resp)
+	clearAllEvaluationTreeActualValues(resp)
+
+	// Every Attributes map cleared (user + session) on both rows.
+	for _, r := range resp.Results {
+		assert.Nil(t, r.Attributes, "user-level attributes must be cleared")
+		for _, s := range r.Sessions {
+			assert.Nil(t, s.Attributes, "session-level attributes must be cleared")
+		}
+	}
+
+	// Every tree leaf's ActualValue cleared — including nested
+	// children and the merged-rule subtree.
+	blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+	for _, child := range blame.EvaluationTree.Children {
+		assert.Empty(t, child.ActualValue, "leaf %q ActualValue must be cleared", child.Attribute)
+	}
+	assert.Empty(t, blame.MergedRules[0].EvaluationTree.ActualValue, "merged-rule leaf ActualValue must be cleared")
+}

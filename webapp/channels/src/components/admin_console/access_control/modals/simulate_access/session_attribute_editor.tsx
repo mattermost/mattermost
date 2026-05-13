@@ -15,7 +15,7 @@ import {
     useInteractions,
     useRole,
 } from '@floating-ui/react';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -29,7 +29,12 @@ type SessionAttributeEditorButtonProps = {
     displayName: string;
     fields: UserPropertyField[];
     currentOverrides: Record<string, string>;
-    onApply: (userId: string, overrides: Record<string, string>) => void;
+
+    /** Persist the overrides upstream. Returning a Promise is supported
+     *  so the editor stays open until the upstream commit settles —
+     *  prevents the popover from disappearing on click before the
+     *  caller's state update flushes. */
+    onApply: (userId: string, overrides: Record<string, string>) => void | Promise<void>;
 };
 
 /**
@@ -76,6 +81,19 @@ export default function SessionAttributeEditorButton({userId, displayName, field
         useRole(context, {role: 'dialog'}),
     ]);
 
+    const handleCancel = useCallback(() => {
+        setOpen(false);
+    }, []);
+
+    const handleApply = useCallback(async (overrides: Record<string, string>) => {
+        // Await keeps the popover open until the upstream commit
+        // finishes — if a future caller swaps the local-state update
+        // for an async API request, the editor won't disappear mid-
+        // flight.
+        await onApply(userId, overrides);
+        setOpen(false);
+    }, [onApply, userId]);
+
     return (
         <>
             <button
@@ -109,11 +127,8 @@ export default function SessionAttributeEditorButton({userId, displayName, field
                                 displayName={displayName}
                                 fields={fields}
                                 initialOverrides={currentOverrides}
-                                onCancel={() => setOpen(false)}
-                                onApply={(overrides) => {
-                                    onApply(userId, overrides);
-                                    setOpen(false);
-                                }}
+                                onCancel={handleCancel}
+                                onApply={handleApply}
                             />
                         </div>
                     </FloatingFocusManager>
@@ -133,7 +148,7 @@ type SessionAttributeEditorFormProps = {
     fields: UserPropertyField[];
     initialOverrides: Record<string, string>;
     onCancel: () => void;
-    onApply: (overrides: Record<string, string>) => void;
+    onApply: (overrides: Record<string, string>) => void | Promise<void>;
 };
 
 /**
@@ -145,7 +160,7 @@ type SessionAttributeEditorFormProps = {
 function SessionAttributeEditorForm({titleId, displayName, fields, initialOverrides, onCancel, onApply}: SessionAttributeEditorFormProps): JSX.Element {
     const [values, setValues] = useState<Record<string, string>>(initialOverrides);
 
-    const handleSet = (name: string, value: string) => {
+    const handleSet = useCallback((name: string, value: string) => {
         setValues((prev) => {
             const next = {...prev};
             if (value === '') {
@@ -155,15 +170,17 @@ function SessionAttributeEditorForm({titleId, displayName, fields, initialOverri
             }
             return next;
         });
-    };
+    }, []);
+
+    const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        await onApply(values);
+    }, [onApply, values]);
 
     return (
         <form
             className='SimulateAccessModal__editorForm'
-            onSubmit={(e) => {
-                e.preventDefault();
-                onApply(values);
-            }}
+            onSubmit={handleSubmit}
         >
             <div
                 id={titleId}

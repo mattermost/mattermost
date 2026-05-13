@@ -19,12 +19,21 @@ import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control'
  *                       picker prompts the author to drill into the
  *                       per-permission breakdown modal.
  */
+/**
+ * Stable string keys for the rolled-up aggregate state. Re-export the
+ * literals as a frozen object so consumers (picker_row, stacked chip,
+ * tests) don't have to repeat the bare string in conditionals.
+ */
+export const AGGREGATE_DECISION_STATE = Object.freeze({
+    PENDING: 'pending',
+    NOT_APPLICABLE: 'not-applicable',
+    ALLOWED: 'allowed',
+    DENIED: 'denied',
+    MIXED: 'mixed',
+} as const);
+
 export type AggregateDecisionState =
-    | 'pending'
-    | 'not-applicable'
-    | 'allowed'
-    | 'denied'
-    | 'mixed';
+    (typeof AGGREGATE_DECISION_STATE)[keyof typeof AGGREGATE_DECISION_STATE];
 
 /**
  * Aggregates a row's per-action decisions into a single chip-friendly
@@ -47,10 +56,10 @@ export function aggregateDecisions(
     pending: boolean,
 ): AggregateDecisionState {
     if (pending || actions.length === 0) {
-        return 'pending';
+        return AGGREGATE_DECISION_STATE.PENDING;
     }
     if (!decisions) {
-        return 'pending';
+        return AGGREGATE_DECISION_STATE.PENDING;
     }
 
     let allows = 0;
@@ -76,16 +85,16 @@ export function aggregateDecisions(
     }
 
     if (missing > 0) {
-        return 'pending';
+        return AGGREGATE_DECISION_STATE.PENDING;
     }
     if (inapplicable === actions.length) {
-        return 'not-applicable';
+        return AGGREGATE_DECISION_STATE.NOT_APPLICABLE;
     }
     if (allows > 0 && denies > 0) {
-        return 'mixed';
+        return AGGREGATE_DECISION_STATE.MIXED;
     }
     if (denies > 0) {
-        return 'denied';
+        return AGGREGATE_DECISION_STATE.DENIED;
     }
-    return 'allowed';
+    return AGGREGATE_DECISION_STATE.ALLOWED;
 }

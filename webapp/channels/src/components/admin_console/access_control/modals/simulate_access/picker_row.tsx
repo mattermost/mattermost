@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy, PolicySimulationActionDecision} from '@mattermost/types/access_control';
@@ -14,7 +14,10 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import ProfilePicture from 'components/profile_picture';
 
-import {aggregateDecisions} from './decision_aggregate';
+import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+
+import {AGGREGATE_DECISION_STATE, aggregateDecisions} from './decision_aggregate';
 import DecisionChip from './decision_chip';
 import DecisionDetailsModal from './decision_details_modal';
 import SessionAttributeEditorButton from './session_attribute_editor';
@@ -71,6 +74,25 @@ export default function PickerRow({
     const {user} = row;
     const [showDetails, setShowDetails] = useState(false);
 
+    const handleOpenDetails = useCallback(() => {
+        setShowDetails(true);
+    }, []);
+
+    const handleCloseDetails = useCallback(() => {
+        setShowDetails(false);
+    }, []);
+
+    const handleChipButtonClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+        // The chip lives inside the (mouse-clickable) row, so stop the
+        // click from bubbling up to the row's expand handler.
+        e.stopPropagation();
+        setShowDetails(true);
+    }, []);
+
+    const stopRowPropagation = useCallback((e: React.MouseEvent<HTMLElement>) => {
+        e.stopPropagation();
+    }, []);
+
     // Single-action rows render the regular DecisionChip directly so the
     // per-rule blame label stays visible without a click. Multi-action
     // rows collapse to a stacked Allowed/Mixed/Denied chip and reveal
@@ -104,10 +126,7 @@ export default function PickerRow({
                     type='button'
                     className='SimulateAccessModal__rowChipButton'
                     data-testid='simulate-access-row-chip-button'
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setShowDetails(true);
-                    }}
+                    onClick={handleChipButtonClick}
                 >
                     {chip}
                 </button>
@@ -117,10 +136,10 @@ export default function PickerRow({
             <StackedDecisionChip
                 state={aggregate}
                 count={actions.length}
-                onClick={() => setShowDetails(true)}
+                onClick={handleOpenDetails}
             />
         );
-    }, [actions, aggregate, bundle, pending]);
+    }, [actions, aggregate, bundle, pending, handleChipButtonClick, handleOpenDetails]);
 
     const sessionsCount = bundle?.sessions?.length ?? 0;
     const deniedSessionsCount = useMemo(() => {
@@ -130,7 +149,7 @@ export default function PickerRow({
         let count = 0;
         for (const s of bundle.sessions) {
             const state = aggregateDecisions(actions, s.decisions, false);
-            if (state === 'denied' || state === 'mixed') {
+            if (state === AGGREGATE_DECISION_STATE.DENIED || state === AGGREGATE_DECISION_STATE.MIXED) {
                 count++;
             }
         }
@@ -168,24 +187,26 @@ export default function PickerRow({
     // hidden) and there's nothing meaningful for the author to inspect.
     const expandable = sessionAttributesEnabled && sessionsCount > 0;
 
-    const handleRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>) => {
-        if (!expandable) {
-            return;
-        }
+    const handleToggle = useCallback(() => {
+        onToggleExpand(user.id);
+    }, [onToggleExpand, user.id]);
 
-        // Only act on Enter/Space when the keystroke originated on the
-        // <tr> itself. Without this guard a chip-button or pencil-icon
-        // descendant's space/enter would be hijacked by the row's
-        // expand handler before the inner control gets to run, breaking
-        // keyboard interaction with anything inside the row.
-        if (e.target !== e.currentTarget) {
-            return;
-        }
-        if (e.key === 'Enter' || e.key === ' ') {
+    const handleActivityButtonClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+        // The whole row is also clickable as a mouse convenience, so
+        // stop the button's click from bubbling up and toggling twice.
+        e.stopPropagation();
+        onToggleExpand(user.id);
+    }, [onToggleExpand, user.id]);
+
+    const handleActivityButtonKeyDown = useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {
+        // Space defaults to scrolling the modal body — intercept both
+        // Enter and Space so the activity button activates like a real
+        // disclosure widget.
+        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
             e.preventDefault();
             onToggleExpand(user.id);
         }
-    };
+    }, [onToggleExpand, user.id]);
 
     return (
         <>
@@ -194,11 +215,14 @@ export default function PickerRow({
                     'SimulateAccessModal__row--expandable': expandable,
                     'SimulateAccessModal__row--expanded': expanded,
                 })}
-                role={expandable ? 'button' : undefined}
-                tabIndex={expandable ? 0 : undefined}
-                aria-expanded={expandable ? expanded : undefined}
-                onClick={expandable ? () => onToggleExpand(user.id) : undefined}
-                onKeyDown={handleRowKeyDown}
+
+                // Mouse convenience only: clicking anywhere on the row
+                // toggles the per-session unfold. Screen-reader and
+                // keyboard users interact via the explicit
+                // disclosure button rendered inside the activity cell
+                // (`<tr role="button">` confuses assistive tech because
+                // it strips the cells' row semantics).
+                onClick={expandable ? handleToggle : undefined}
             >
                 <td className='SimulateAccessModal__rowUser'>
                     <div className='SimulateAccessModal__rowAvatar'>
@@ -226,7 +250,13 @@ export default function PickerRow({
                 {sessionAttributesEnabled ? (
                     <td className='SimulateAccessModal__rowActivity'>
                         {recentActivityLabel ? (
-                            <span className='SimulateAccessModal__rowActivityLabel'>
+                            <button
+                                type='button'
+                                className='SimulateAccessModal__rowActivityLabel'
+                                aria-expanded={expanded}
+                                onClick={handleActivityButtonClick}
+                                onKeyDown={handleActivityButtonKeyDown}
+                            >
                                 {recentActivityLabel}
                                 <i
                                     className={classNames('icon', {
@@ -235,7 +265,7 @@ export default function PickerRow({
                                     })}
                                     aria-hidden='true'
                                 />
-                            </span>
+                            </button>
                         ) : (
                             <span className='SimulateAccessModal__rowActivityEmpty'>{'—'}</span>
                         )}
@@ -247,7 +277,7 @@ export default function PickerRow({
 
                         // Stop row-click propagation so clicking the
                         // pencil button doesn't also expand/collapse.
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={stopRowPropagation}
                     >
                         <SessionAttributeEditorButton
                             userId={user.id}
@@ -270,7 +300,7 @@ export default function PickerRow({
             ) : null}
             {showDetails ? (
                 <DecisionDetailsModal
-                    onExited={() => setShowDetails(false)}
+                    onExited={handleCloseDetails}
                     user={user}
                     actions={actions}
                     actionLabels={actionLabels}

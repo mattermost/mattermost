@@ -488,6 +488,11 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Normalize the empty string up front to the default
+	if params.EvaluationScope == "" {
+		params.EvaluationScope = model.PolicyEvaluationScopeThisRule
+	}
+
 	hasSystemPermission, ok := authorizeSimulatePolicy(c, params.ChannelID, params.TeamID)
 	if !ok {
 		return
@@ -530,6 +535,10 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 	for i := range resp.Results {
 		c.App.SanitizeProfile(resp.Results[i].User, hasSystemPermission)
 	}
+
+	// Redact protected CPA attribute values for non-system-admin
+	// callers.
+	c.App.RedactSimulationAttributesForCaller(c.AppContext, resp, hasSystemPermission)
 
 	js, err := json.Marshal(resp)
 	if err != nil {

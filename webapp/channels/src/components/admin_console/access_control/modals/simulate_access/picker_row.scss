@@ -65,7 +65,22 @@
 .SimulateAccessModal__rowActivityLabel {
     display: inline-flex;
     align-items: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
     gap: 4px;
+
+    &:disabled {
+        cursor: default;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
 
     i {
         font-size: 14px;

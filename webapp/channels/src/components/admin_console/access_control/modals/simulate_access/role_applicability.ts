@@ -3,6 +3,8 @@
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {General} from 'mattermost-redux/constants';
+
 /**
  * Mirrors the backend draftAppliesToSubject helper. Used by the picker UI to
  * pre-filter users so authors can't add ones the policy wouldn't govern.
@@ -22,11 +24,11 @@ import type {UserProfile} from '@mattermost/types/users';
 export type TargetScope = 'system' | 'channel';
 
 const SYSTEM_ROLE_FALLBACK: Record<string, string> = {
-    system_admin: 'system_user',
+    [General.SYSTEM_ADMIN_ROLE]: General.SYSTEM_USER_ROLE,
 };
 
 const CHANNEL_ROLE_FALLBACK: Record<string, string> = {
-    channel_admin: 'channel_user',
+    [General.CHANNEL_ADMIN_ROLE]: General.CHANNEL_USER_ROLE,
 };
 
 /**
@@ -68,14 +70,14 @@ export function pickSystemRoleFromTokens(roles: string): string {
         return '';
     }
     const tokens = roles.split(/\s+/).filter(Boolean);
-    if (tokens.includes('system_admin')) {
-        return 'system_admin';
+    if (tokens.includes(General.SYSTEM_ADMIN_ROLE)) {
+        return General.SYSTEM_ADMIN_ROLE;
     }
-    if (tokens.includes('system_guest')) {
-        return 'system_guest';
+    if (tokens.includes(General.SYSTEM_GUEST_ROLE)) {
+        return General.SYSTEM_GUEST_ROLE;
     }
-    if (tokens.includes('system_user')) {
-        return 'system_user';
+    if (tokens.includes(General.SYSTEM_USER_ROLE)) {
+        return General.SYSTEM_USER_ROLE;
     }
     return '';
 }
@@ -93,14 +95,14 @@ export function pickChannelRoleFromTokens(roles: string): string {
         return '';
     }
     const tokens = roles.split(/\s+/).filter(Boolean);
-    if (tokens.includes('channel_admin')) {
-        return 'channel_admin';
+    if (tokens.includes(General.CHANNEL_ADMIN_ROLE)) {
+        return General.CHANNEL_ADMIN_ROLE;
     }
-    if (tokens.includes('channel_guest')) {
-        return 'channel_guest';
+    if (tokens.includes(General.CHANNEL_GUEST_ROLE)) {
+        return General.CHANNEL_GUEST_ROLE;
     }
-    if (tokens.includes('channel_user')) {
-        return 'channel_user';
+    if (tokens.includes(General.CHANNEL_USER_ROLE)) {
+        return General.CHANNEL_USER_ROLE;
     }
     return '';
 }
@@ -113,7 +115,7 @@ export function pickChannelRoleFromTokens(roles: string): string {
  * for a sysadmin who isn't a channel member).
  */
 export function userIsSystemAdmin(user: Pick<UserProfile, 'roles'>): boolean {
-    return pickSystemRoleFromTokens(user.roles) === 'system_admin';
+    return pickSystemRoleFromTokens(user.roles) === General.SYSTEM_ADMIN_ROLE;
 }
 
 /**
@@ -160,7 +162,7 @@ export function userMatchesTargetRole(
  * channel-role mismatch that triggers the "skip filtering" path above.
  */
 export function isChannelRole(role: string): boolean {
-    return role === 'channel_admin' || role === 'channel_user' || role === 'channel_guest';
+    return role === General.CHANNEL_ADMIN_ROLE || role === General.CHANNEL_USER_ROLE || role === General.CHANNEL_GUEST_ROLE;
 }
 
 /**
@@ -190,6 +192,6 @@ export function channelRolesMatchingTarget(targetRole: string): string[] {
     if (!targetRole) {
         return [];
     }
-    const candidates = ['channel_admin', 'channel_user', 'channel_guest'];
+    const candidates = [General.CHANNEL_ADMIN_ROLE, General.CHANNEL_USER_ROLE, General.CHANNEL_GUEST_ROLE];
     return candidates.filter((subject) => draftRoleAppliesToSubjectRole(targetRole, 'channel', subject));
 }
