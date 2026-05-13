@@ -2118,6 +2118,138 @@ func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(_ request.CTX, ch
 	return channelsWithUnreads, channelsWithMentions, readTimes, nil
 }
 
+func (s SqlChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, teamID string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	query := s.getQueryBuilder().
+		Select(
+			"Channels.Id",
+			"Channels.Type",
+			"Channels.TotalMsgCount",
+			"Channels.LastPostAt",
+			"ChannelMembers.MsgCount",
+			"ChannelMembers.MentionCount",
+			"ChannelMembers.NotifyProps",
+			"ChannelMembers.LastViewedAt",
+		).
+		From("ChannelMembers").
+		Join("Channels ON ChannelMembers.ChannelId = Channels.Id").
+		Where(sq.Eq{
+			"Channels.TeamId":       teamID,
+			"ChannelMembers.UserId": userID,
+		})
+
+	var channels []struct {
+		Id            string
+		Type          string
+		TotalMsgCount int
+		LastPostAt    int64
+		MsgCount      int
+		MentionCount  int
+		NotifyProps   model.StringMap
+		LastViewedAt  int64
+	}
+
+	if err := s.GetReplica().SelectBuilder(&channels, query); err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to find team channels with unreads and mentions data")
+	}
+
+	channelsWithUnreads := make([]string, 0, len(channels))
+	channelsWithMentions := make([]string, 0, len(channels))
+	readTimes := make(map[string]int64, len(channels))
+
+	for _, channel := range channels {
+		hasMentions := (channel.MentionCount > 0)
+		hasUnreads := (channel.TotalMsgCount-channel.MsgCount > 0) || hasMentions
+
+		if hasUnreads {
+			channelsWithUnreads = append(channelsWithUnreads, channel.Id)
+		}
+
+		notify := channel.NotifyProps[model.PushNotifyProp]
+		if notify == model.ChannelNotifyDefault {
+			notify = userNotifyProps[model.PushNotifyProp]
+		}
+		if notify == model.UserNotifyAll || channel.Type == string(model.ChannelTypeDirect) {
+			if hasUnreads {
+				channelsWithMentions = append(channelsWithMentions, channel.Id)
+			}
+		} else if notify == model.UserNotifyMention {
+			if hasMentions {
+				channelsWithMentions = append(channelsWithMentions, channel.Id)
+			}
+		}
+
+		readTimes[channel.Id] = max(channel.LastPostAt, channel.LastViewedAt)
+	}
+
+	return channelsWithUnreads, channelsWithMentions, readTimes, nil
+}
+
+func (s SqlChannelStore) GetDirectMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	query := s.getQueryBuilder().
+		Select(
+			"Channels.Id",
+			"Channels.Type",
+			"Channels.TotalMsgCount",
+			"Channels.LastPostAt",
+			"ChannelMembers.MsgCount",
+			"ChannelMembers.MentionCount",
+			"ChannelMembers.NotifyProps",
+			"ChannelMembers.LastViewedAt",
+		).
+		From("ChannelMembers").
+		Join("Channels ON ChannelMembers.ChannelId = Channels.Id").
+		Where(sq.Eq{
+			"ChannelMembers.UserId": userID,
+			"Type":                  []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup},
+		})
+
+	var channels []struct {
+		Id            string
+		Type          string
+		TotalMsgCount int
+		LastPostAt    int64
+		MsgCount      int
+		MentionCount  int
+		NotifyProps   model.StringMap
+		LastViewedAt  int64
+	}
+
+	if err := s.GetReplica().SelectBuilder(&channels, query); err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to find direct or group channels with unreads and mentions data")
+	}
+
+	channelsWithUnreads := make([]string, 0, len(channels))
+	channelsWithMentions := make([]string, 0, len(channels))
+	readTimes := make(map[string]int64, len(channels))
+
+	for _, channel := range channels {
+		hasMentions := (channel.MentionCount > 0)
+		hasUnreads := (channel.TotalMsgCount-channel.MsgCount > 0) || hasMentions
+
+		if hasUnreads {
+			channelsWithUnreads = append(channelsWithUnreads, channel.Id)
+		}
+
+		notify := channel.NotifyProps[model.PushNotifyProp]
+		if notify == model.ChannelNotifyDefault {
+			notify = userNotifyProps[model.PushNotifyProp]
+		}
+		if notify == model.UserNotifyAll || channel.Type == string(model.ChannelTypeDirect) {
+			if hasUnreads {
+				channelsWithMentions = append(channelsWithMentions, channel.Id)
+			}
+		} else if notify == model.UserNotifyMention {
+			if hasMentions {
+				channelsWithMentions = append(channelsWithMentions, channel.Id)
+			}
+		}
+
+		readTimes[channel.Id] = max(channel.LastPostAt, channel.LastViewedAt)
+	}
+
+	return channelsWithUnreads, channelsWithMentions, readTimes, nil
+}
+
 func (s SqlChannelStore) GetMember(rctx request.CTX, channelID string, userID string) (*model.ChannelMember, error) {
 	selectSQL, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
 		Where(sq.Eq{

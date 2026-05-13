@@ -458,6 +458,8 @@ const (
 	AuditEventLogin                        = "login"                        // user login to system
 	AuditEventLoginWithDesktopToken        = "loginWithDesktopToken"        // user login to system with desktop token
 	AuditEventLogout                       = "logout"                       // user logout from system
+	AuditEventMarkMessagesRead             = "markAllMessagesRead"          // user marked all direct and group messages as read
+	AuditEventMarkTeamRead                 = "markFullTeamRead"             // user marked an entire team as read
 	AuditEventMigrateAuthToLdap            = "migrateAuthToLdap"            // migrate user authentication method to LDAP
 	AuditEventMigrateAuthToSaml            = "migrateAuthToSaml"            // migrate user authentication method to SAML
 	AuditEventPatchUser                    = "patchUser"                    // update user properties

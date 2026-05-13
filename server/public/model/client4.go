@@ -3269,6 +3269,25 @@ func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, chann
 	return DecodeJSONFromResponse[*ChannelViewResponse](r)
 }
 
+// ReadAllMessages performs a view action on all direct and group messages for a user
+func (c *Client4) ReadAllMessages(ctx context.Context, userId string) (*ChannelViewResponse, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.channelsRoute().Join("members", userId, "direct", "read"), nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelViewResponse](r)
+}
+
+func (c *Client4) ReadAllInTeam(ctx context.Context, userId string, teamId string) (*ChannelViewResponse, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.userRoute(userId).Join("teams", teamId, "read"), nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelViewResponse](r)
+}
+
 // GetChannelUnread will return a ChannelUnread object that contains the number of
 // unread messages and mentions for a user.
 func (c *Client4) GetChannelUnread(ctx context.Context, channelId, userId string) (*ChannelUnread, *Response, error) {

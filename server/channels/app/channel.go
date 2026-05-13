@@ -3319,7 +3319,130 @@ func (a *App) SearchChannelsUserNotIn(rctx request.CTX, teamID string, userID st
 	return channelList, nil
 }
 
-func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError) {
+func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, userID string, currentSessionID string, isCRTEnabled bool) (map[string]int64, *model.AppError) {
+	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
+	if err != nil {
+		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, user.NotifyProps)
+	if err != nil {
+		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// times already contains every channel the user belongs to in this team, including
+	// fully-read ones. We pass the full set to the thread store because a CRT-enabled
+	// user can have unread thread replies in a channel whose channel-level counters are
+	// already up to date (thread replies don't bump TotalMsgCount). The thread store's
+	// `LastReplyAt > LastViewed` clause keeps the actual UPDATE bounded to genuinely
+	// stale thread memberships.
+	allChannelIDs := make([]string, 0, len(times))
+	for channelID := range times {
+		allChannelIDs = append(allChannelIDs, channelID)
+	}
+	if err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, allChannelIDs); err != nil {
+		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.thread.mark_all_as_read_by_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if len(channelsToView) > 0 {
+		_, err = a.Srv().Store().Channel().UpdateLastViewedAt(channelsToView, userID)
+		if err != nil {
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &invErr):
+				return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			default:
+				return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+
+		if *a.Config().ServiceSettings.EnableChannelViewedMessages {
+			message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
+			message.Add("channel_times", times)
+			a.Publish(message)
+		}
+	}
+
+	for _, channelID := range channelsToClearPushNotifications {
+		a.clearPushNotification(currentSessionID, userID, channelID, "")
+	}
+
+	if isCRTEnabled {
+		// Threads can have been marked read across the entire team, so broadcast a
+		// single team-scoped event. The client routes this to a single
+		// ALL_TEAM_THREADS_READ Redux action — it does NOT trigger any API calls.
+		message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil, "")
+		message.Add("timestamp", model.GetMillis())
+		a.Publish(message)
+	}
+
+	return times, nil
+}
+
+func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID string, currentSessionID string, isCRTEnabled bool) (map[string]int64, *model.AppError) {
+	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
+	if err != nil {
+		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	messagesToView, messagesToClearPushNotifications, times, err := a.Srv().Store().Channel().GetDirectMessagesWithUnreadAndMentions(rctx, userID, user.NotifyProps)
+	if err != nil {
+		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// times already contains every DM/GM the user belongs to, including fully-read
+	// ones. We pass the full set to the thread store because a CRT-enabled user can
+	// have unread thread replies in a channel whose channel-level counters are
+	// already up to date (thread replies don't bump TotalMsgCount). The thread
+	// store's `LastReplyAt > LastViewed` clause keeps the actual UPDATE bounded to
+	// genuinely stale thread memberships.
+	allChannelIDs := make([]string, 0, len(times))
+	for channelID := range times {
+		allChannelIDs = append(allChannelIDs, channelID)
+	}
+	if err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, allChannelIDs); err != nil {
+		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.thread.mark_all_as_read_by_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if len(messagesToView) > 0 {
+		_, err = a.Srv().Store().Channel().UpdateLastViewedAt(messagesToView, userID)
+		if err != nil {
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &invErr):
+				return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			default:
+				return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+
+		if *a.Config().ServiceSettings.EnableChannelViewedMessages {
+			message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
+			message.Add("channel_times", times)
+			a.Publish(message)
+		}
+	}
+
+	for _, channelID := range messagesToClearPushNotifications {
+		a.clearPushNotification(currentSessionID, userID, channelID, "")
+	}
+
+	if isCRTEnabled {
+		// Threads can have been marked read in any DM/GM. There's no team to
+		// broadcast on, so emit one event per channel. The client routes each to a
+		// single ALL_THREADS_IN_CHANNEL_READ Redux action — no API calls are made.
+		timestamp := model.GetMillis()
+		for _, channelID := range allChannelIDs {
+			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
+			message.Add("timestamp", timestamp)
+			a.Publish(message)
+		}
+	}
+
+	return times, nil
+}
+
+func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID string, currentSessionID string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError) {
 	var err error
 
 	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
@@ -3363,7 +3486,7 @@ func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID
 	}
 
 	for _, channelID := range channelsToClearPushNotifications {
-		a.clearPushNotification(currentSessionId, userID, channelID, "")
+		a.clearPushNotification(currentSessionID, userID, channelID, "")
 	}
 
 	if updateThreads && isCRTEnabled {
