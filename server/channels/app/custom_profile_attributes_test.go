@@ -459,10 +459,10 @@ func TestPatchCPAField(t *testing.T) {
 	require.Nil(t, appErr)
 
 	patch := &model.PropertyFieldPatch{
-		Name:       model.NewPointer("patched_name"),
-		Attrs:      model.NewPointer(model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet}),
-		TargetID:   model.NewPointer(model.NewId()),
-		TargetType: model.NewPointer(model.NewId()),
+		Name:       new("patched_name"),
+		Attrs:      new(model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet}),
+		TargetID:   new(model.NewId()),
+		TargetType: new(model.NewId()),
 	}
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
@@ -540,7 +540,7 @@ func TestPatchCPAField(t *testing.T) {
 
 		// Patch the field with updated option names and colors
 		selectPatch := &model.PropertyFieldPatch{
-			Attrs: model.NewPointer(model.StringInterface{
+			Attrs: new(model.StringInterface{
 				model.PropertyFieldAttributeOptions: []any{
 					map[string]any{
 						"id":    originalID1,
@@ -616,8 +616,8 @@ func TestPatchCPAField(t *testing.T) {
 
 		// Patch the field without changing type (just update name and add a new option)
 		patch := &model.PropertyFieldPatch{
-			Name: model.NewPointer("updated_select_field_name"),
-			Attrs: model.NewPointer(model.StringInterface{
+			Name: new("updated_select_field_name"),
+			Attrs: new(model.StringInterface{
 				model.PropertyFieldAttributeOptions: []any{
 					map[string]any{
 						"id":    optionID, // Keep the same ID for the first option
@@ -1241,7 +1241,7 @@ func TestPatchCPAField_GrandfatherSkipsValidationOnUnchangedName(t *testing.T) {
 	t.Run("patching name to another invalid value returns validation error", func(t *testing.T) {
 		stillInvalidName := "still invalid name"
 		patch := &model.PropertyFieldPatch{
-			Name: model.NewPointer(stillInvalidName),
+			Name: new(stillInvalidName),
 		}
 		_, appErr := th.App.PatchCPAField(rctx, legacyField.ID, patch)
 		require.NotNil(t, appErr, "renaming to an invalid name must be rejected")
@@ -1251,7 +1251,7 @@ func TestPatchCPAField_GrandfatherSkipsValidationOnUnchangedName(t *testing.T) {
 	t.Run("patching name to a valid value succeeds", func(t *testing.T) {
 		validName := "my_legacy_field"
 		patch := &model.PropertyFieldPatch{
-			Name: model.NewPointer(validName),
+			Name: new(validName),
 		}
 		patched, appErr := th.App.PatchCPAField(rctx, legacyField.ID, patch)
 		require.Nil(t, appErr, "renaming to a valid CEL identifier must succeed")

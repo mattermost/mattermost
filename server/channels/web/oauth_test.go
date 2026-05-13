@@ -962,10 +962,10 @@ func TestAuthorizeOAuthPage(t *testing.T) {
 
 	t.Run("PublicClient_PKCERequired", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
@@ -983,10 +983,10 @@ func TestAuthorizeOAuthPage(t *testing.T) {
 
 	t.Run("PublicClient_WithPKCE_Success", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
@@ -1074,10 +1074,10 @@ func TestAuthorizeOAuthAppHandler(t *testing.T) {
 
 	t.Run("PublicClient_PKCEParameters", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)
@@ -1134,10 +1134,10 @@ func TestGetAccessToken(t *testing.T) {
 
 	t.Run("PublicClient_NoClientSecret", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
-			ClientName:              model.NewPointer("Public Client Test"),
+			ClientName:              new("Public Client Test"),
 			RedirectURIs:            []string{"https://example.com/callback"},
 			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-			ClientURI:               model.NewPointer("https://example.com"),
+			ClientURI:               new("https://example.com"),
 		}
 
 		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser.Id)

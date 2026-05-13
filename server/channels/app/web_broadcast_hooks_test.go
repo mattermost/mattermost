@@ -921,7 +921,7 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 
 	t.Run("when ABAC is disabled: hook NOT registered", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
 		})
 
 		post := &model.Post{
@@ -942,7 +942,7 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 
 	t.Run("when post has no files: hook NOT registered", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		post := &model.Post{
@@ -961,7 +961,7 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 
 	t.Run("when post is burn-on-read: hook NOT registered", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		post := &model.Post{
@@ -986,7 +986,7 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 		// Even with ABAC config enabled, the nil check on AccessControl
 		// prevents registration.
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		post := &model.Post{
@@ -1013,7 +1013,7 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 		// by checking that the function does not register when AccessControl is nil, but the
 		// fileCount derivation is tested through the Process tests above.
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		post := &model.Post{

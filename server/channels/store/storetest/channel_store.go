@@ -163,6 +163,8 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, rctx, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, rctx, ss) })
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
+	t.Run("GetDirectMessagesWithUnreadAndMentions", func(t *testing.T) { testGetDirectMessagesWithUnreadAndMentions(t, rctx, ss) })
+	t.Run("GetTeamChannelsWithUnreadAndMentions", func(t *testing.T) { testGetTeamChannelsWithUnreadAndMentions(t, rctx, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -221,9 +223,9 @@ func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1.Name = NewTestID()
 	o1.Type = model.ChannelTypeOpen
 	o1.BannerInfo = &model.ChannelBannerInfo{
-		Enabled:         model.NewPointer(true),
-		Text:            model.NewPointer("banner text"),
-		BackgroundColor: model.NewPointer("#000000"),
+		Enabled:         new(true),
+		Text:            new("banner text"),
+		BackgroundColor: new("#000000"),
 	}
 
 	savedChannel, nErr := ss.Channel().Save(rctx, &o1, -1)
@@ -467,9 +469,9 @@ func testChannelStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, nErr)
 
 	channel.BannerInfo = &model.ChannelBannerInfo{
-		Enabled:         model.NewPointer(true),
-		Text:            model.NewPointer("banner text"),
-		BackgroundColor: model.NewPointer("#000000"),
+		Enabled:         new(true),
+		Text:            new("banner text"),
+		BackgroundColor: new("#000000"),
 	}
 
 	updatedChannel, err := ss.Channel().Update(rctx, &channel)
@@ -480,7 +482,7 @@ func testChannelStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, "#000000", *updatedChannel.BannerInfo.BackgroundColor)
 
 	// can turn off channel banners
-	channel.BannerInfo.Enabled = model.NewPointer(false)
+	channel.BannerInfo.Enabled = new(false)
 
 	updatedChannel, err = ss.Channel().Update(rctx, &channel)
 	require.NoError(t, err, err)
@@ -488,8 +490,8 @@ func testChannelStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.False(t, *updatedChannel.BannerInfo.Enabled)
 
 	// can update text and color of channel banners
-	channel.BannerInfo.Text = model.NewPointer("updated text")
-	channel.BannerInfo.BackgroundColor = model.NewPointer("#FFFFFF")
+	channel.BannerInfo.Text = new("updated text")
+	channel.BannerInfo.BackgroundColor = new("#FFFFFF")
 
 	updatedChannel, err = ss.Channel().Update(rctx, &channel)
 	require.NoError(t, err, err)
@@ -4031,15 +4033,15 @@ func testChannelStoreGetAllChannels(t *testing.T, rctx request.CTX, ss store.Sto
 	c1.DisplayName = "Channel1" + model.NewId()
 	c1.Name = NewTestID()
 	c1.Type = model.ChannelTypeOpen
-	c1.GroupConstrained = model.NewPointer(true)
+	c1.GroupConstrained = new(true)
 	_, nErr := ss.Channel().Save(rctx, &c1, -1)
 	require.NoError(t, nErr)
 
 	group := &model.Group{
-		Name:        model.NewPointer(model.NewId()),
+		Name:        new(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	}
 	_, err = ss.Group().Create(group)
 	require.NoError(t, err)
@@ -4140,7 +4142,7 @@ func testChannelStoreGetAllChannels(t *testing.T, rctx request.CTX, ss store.Sto
 	policy, nErr := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewPointer(int64(30)),
+			PostDurationDays: new(int64(30)),
 		},
 		ChannelIDs: []string{c1.Id},
 	})
@@ -5027,8 +5029,8 @@ func testCountUrgentPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(false),
-					PersistentNotifications: model.NewPointer(false),
+					RequestedAck:            new(false),
+					PersistentNotifications: new(false),
 				},
 			},
 		})
@@ -5040,9 +5042,9 @@ func testCountUrgentPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 			CreateAt:  1001,
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority:                model.NewPointer("important"),
-					RequestedAck:            model.NewPointer(false),
-					PersistentNotifications: model.NewPointer(false),
+					Priority:                new("important"),
+					RequestedAck:            new(false),
+					PersistentNotifications: new(false),
 				},
 			},
 		})
@@ -5062,8 +5064,8 @@ func testCountUrgentPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(false),
-					PersistentNotifications: model.NewPointer(false),
+					RequestedAck:            new(false),
+					PersistentNotifications: new(false),
 				},
 			},
 		})
@@ -5473,10 +5475,10 @@ func testGetMemberCountsByGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	var memberCounts []*model.ChannelMemberCountByGroup
 	teamID := model.NewId()
 	g1 := &model.Group{
-		Name:        model.NewPointer(model.NewId()),
+		Name:        new(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	}
 	_, err := ss.Group().Create(g1)
 	require.NoError(t, err)
@@ -5545,10 +5547,10 @@ func testGetMemberCountsByGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 
 	g2 := &model.Group{
-		Name:        model.NewPointer(model.NewId()),
+		Name:        new(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -5584,10 +5586,10 @@ func testGetMemberCountsByGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	}
 
 	g3 := &model.Group{
-		Name:        model.NewPointer(model.NewId()),
+		Name:        new(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	}
 
 	_, err = ss.Group().Create(g3)
@@ -7026,7 +7028,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, rctx request.CTX, ss store.
 		DisplayName:      "A5 ChannelC",
 		Name:             NewTestID(),
 		Type:             model.ChannelTypePrivate,
-		GroupConstrained: model.NewPointer(true),
+		GroupConstrained: new(true),
 	}
 	_, nErr = ss.Channel().Save(rctx, &o5, -1)
 	require.NoError(t, nErr)
@@ -7050,10 +7052,10 @@ func testChannelStoreSearchAllChannels(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, nErr)
 
 	group := &model.Group{
-		Name:        model.NewPointer(model.NewId()),
+		Name:        new(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	}
 	_, err = ss.Group().Create(group)
 	require.NoError(t, err)
@@ -7133,7 +7135,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, rctx request.CTX, ss store.
 	_, nErr = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewPointer(int64(30)),
+			PostDurationDays: new(int64(30)),
 		},
 		ChannelIDs: []string{o14.Id},
 	})
@@ -7188,24 +7190,24 @@ func testChannelStoreSearchAllChannels(t *testing.T, rctx request.CTX, ss store.
 		{"exclude defaults search 'off'", "off-", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"off-topic"}}, model.ChannelList{&o7, &o8}, 0},
 		{"exclude defaults search 'town'", "town", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"town-square"}}, model.ChannelList{}, 0},
 		{"exclude by group association", "off-", store.ChannelSearchOpts{IncludeDeleted: false, NotAssociatedToGroup: group.Id}, model.ChannelList{&o6, &o8}, 0},
-		{"paginate includes count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewPointer(100)}, model.ChannelList{&o6, &o7, &o8}, 3},
-		{"paginate, page 2 correct entries and count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewPointer(2), Page: model.NewPointer(1)}, model.ChannelList{&o8}, 3},
+		{"paginate includes count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: new(100)}, model.ChannelList{&o6, &o7, &o8}, 3},
+		{"paginate, page 2 correct entries and count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: new(2), Page: new(1)}, model.ChannelList{&o8}, 3},
 		{"Filter private", "", store.ChannelSearchOpts{IncludeDeleted: false, Private: true}, model.ChannelList{&o4, &o5, &o8}, 3},
-		{"Filter public", "", store.ChannelSearchOpts{IncludeDeleted: false, Public: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o1, &o2, &o3, &o6, &o7}, 10},
-		{"Filter public and private", "", store.ChannelSearchOpts{IncludeDeleted: false, Public: true, Private: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 13},
-		{"Filter public and private and include deleted", "", store.ChannelSearchOpts{IncludeDeleted: true, Public: true, Private: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 14},
-		{"Filter group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, GroupConstrained: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o5}, 1},
-		{"Filter exclude group constrained and include deleted", "", store.ChannelSearchOpts{IncludeDeleted: true, ExcludeGroupConstrained: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o6}, 13},
-		{"Filter private and exclude group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeGroupConstrained: true, Private: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o4, &o8}, 2},
+		{"Filter public", "", store.ChannelSearchOpts{IncludeDeleted: false, Public: true, Page: new(0), PerPage: new(5)}, model.ChannelList{&o1, &o2, &o3, &o6, &o7}, 10},
+		{"Filter public and private", "", store.ChannelSearchOpts{IncludeDeleted: false, Public: true, Private: true, Page: new(0), PerPage: new(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 13},
+		{"Filter public and private and include deleted", "", store.ChannelSearchOpts{IncludeDeleted: true, Public: true, Private: true, Page: new(0), PerPage: new(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 14},
+		{"Filter group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, GroupConstrained: true, Page: new(0), PerPage: new(5)}, model.ChannelList{&o5}, 1},
+		{"Filter exclude group constrained and include deleted", "", store.ChannelSearchOpts{IncludeDeleted: true, ExcludeGroupConstrained: true, Page: new(0), PerPage: new(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o6}, 13},
+		{"Filter private and exclude group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeGroupConstrained: true, Private: true, Page: new(0), PerPage: new(5)}, model.ChannelList{&o4, &o8}, 2},
 		{"Exclude policy constrained", "", store.ChannelSearchOpts{ExcludePolicyConstrained: true}, model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o6, &o7, &o8, &o9, &o10, &o11, &o12}, 0},
-		{"Filter team 2", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o2, &o14}, 2},
-		{"Filter team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Private: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{}, 0},
-		{"Filter team 1 and team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Private: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o4, &o5, &o8}, 3},
-		{"Filter team 1 and team 2, public and private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 13},
-		{"Filter team 1 and team 2, public and private and group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, GroupConstrained: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o5}, 1},
-		{"Filter team 1 and team 2, public and private and exclude group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, ExcludeGroupConstrained: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o6}, 12},
-		{"Filter deleted returns only deleted channels", "", store.ChannelSearchOpts{Deleted: true, Page: model.NewPointer(0), PerPage: model.NewPointer(5)}, model.ChannelList{&o13}, 1},
-		{"Search ChannelA by id", o1.Id, store.ChannelSearchOpts{IncludeDeleted: false, Page: model.NewPointer(0), PerPage: model.NewPointer(5), IncludeSearchByID: true}, model.ChannelList{&o1}, 1},
+		{"Filter team 2", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Page: new(0), PerPage: new(5)}, model.ChannelList{&o2, &o14}, 2},
+		{"Filter team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Private: true, Page: new(0), PerPage: new(5)}, model.ChannelList{}, 0},
+		{"Filter team 1 and team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Private: true, Page: new(0), PerPage: new(5)}, model.ChannelList{&o4, &o5, &o8}, 3},
+		{"Filter team 1 and team 2, public and private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, Page: new(0), PerPage: new(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 13},
+		{"Filter team 1 and team 2, public and private and group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, GroupConstrained: true, Page: new(0), PerPage: new(5)}, model.ChannelList{&o5}, 1},
+		{"Filter team 1 and team 2, public and private and exclude group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, ExcludeGroupConstrained: true, Page: new(0), PerPage: new(5)}, model.ChannelList{&o1, &o2, &o3, &o4, &o6}, 12},
+		{"Filter deleted returns only deleted channels", "", store.ChannelSearchOpts{Deleted: true, Page: new(0), PerPage: new(5)}, model.ChannelList{&o13}, 1},
+		{"Search ChannelA by id", o1.Id, store.ChannelSearchOpts{IncludeDeleted: false, Page: new(0), PerPage: new(5), IncludeSearchByID: true}, model.ChannelList{&o1}, 1},
 		{"Filter excluding remote channels", "", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeRemote: true}, model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o6, &o7, &o8, &o9, &o10, &o11, &o12}, 0},
 	}
 
@@ -8588,7 +8590,7 @@ func testGroupSyncedChannelCount(t *testing.T, rctx request.CTX, ss store.Store)
 		DisplayName:      model.NewId(),
 		Name:             model.NewId(),
 		Type:             model.ChannelTypePrivate,
-		GroupConstrained: model.NewPointer(true),
+		GroupConstrained: new(true),
 	}, 999)
 	require.NoError(t, nErr)
 	require.True(t, channel1.IsGroupConstrained())
@@ -8607,7 +8609,7 @@ func testGroupSyncedChannelCount(t *testing.T, rctx request.CTX, ss store.Store)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, count, int64(1))
 
-	channel2.GroupConstrained = model.NewPointer(true)
+	channel2.GroupConstrained = new(true)
 	channel2, err = ss.Channel().Update(rctx, channel2)
 	require.NoError(t, err)
 	require.True(t, channel2.IsGroupConstrained())
@@ -8847,5 +8849,518 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 		require.Len(t, unreads, 0)
 		require.Len(t, mentions, 0)
 		require.Len(t, times, 0)
+	})
+}
+
+func testGetDirectMessagesWithUnreadAndMentions(t *testing.T, rctx request.CTX, ss store.Store) {
+	setupMembership := func(
+		pushProp string,
+		withUnreads bool,
+		withMentions bool,
+		channelType model.ChannelType,
+		userID string,
+	) (model.Channel, model.ChannelMember) {
+		var o1 *model.Channel
+		var err error
+
+		if channelType == model.ChannelTypeDirect {
+			o1, err = ss.Channel().CreateDirectChannel(rctx, &model.User{Id: userID}, &model.User{Id: model.NewId()}, func(channel *model.Channel) {
+				channel.TotalMsgCount = 25
+				channel.LastPostAt = 12345
+				channel.LastRootPostAt = 12345
+			})
+			require.NoError(t, err)
+		} else if channelType == model.ChannelTypeGroup {
+			// No builtin method to create groups, looks
+			// like a decent amount of logic goes into it too.
+			o1 = &model.Channel{}
+			o1.DisplayName = "GroupChannel1"
+			o1.Name = NewTestID()
+			o1.Type = model.ChannelTypeGroup
+			o1.TotalMsgCount = 25
+			o1.LastPostAt = 12345
+			o1.LastRootPostAt = 12345
+			_, err = ss.Channel().Save(rctx, o1, -1)
+			require.NoError(t, err)
+
+			m1 := model.ChannelMember{}
+			m1.ChannelId = o1.Id
+			m1.UserId = userID
+			m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+			m1.NotifyProps[model.PushNotifyProp] = pushProp
+			if !withUnreads {
+				m1.MsgCount = o1.TotalMsgCount
+				m1.LastViewedAt = o1.LastPostAt
+			}
+			if withMentions {
+				m1.MentionCount = 5
+			}
+			_, err = ss.Channel().SaveMember(rctx, &m1)
+			require.NoError(t, err)
+		}
+
+		m1, err := ss.Channel().GetMember(rctx, o1.Id, userID)
+		require.NoError(t, err)
+
+		m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+		m1.NotifyProps[model.PushNotifyProp] = pushProp
+
+		if !withUnreads {
+			m1.MsgCount = o1.TotalMsgCount
+			m1.LastViewedAt = o1.LastPostAt
+		}
+		if withMentions {
+			m1.MentionCount = 5
+		}
+
+		m1, err = ss.Channel().UpdateMember(rctx, m1)
+		require.NoError(t, err)
+
+		return *o1, *m1
+	}
+
+	type TestCase struct {
+		name           string
+		pushProp       string
+		userNotifyProp string
+		channelType    model.ChannelType
+		withUnreads    bool
+		withMentions   bool
+	}
+	ttcc := []TestCase{}
+
+	channelNotifyProps := []string{model.ChannelNotifyDefault, model.ChannelNotifyAll, model.ChannelNotifyMention, model.ChannelNotifyNone}
+	userNotifyProps := []string{model.UserNotifyAll, model.UserNotifyMention, model.UserNotifyHere, model.UserNotifyNone}
+	channelTypes := []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}
+	boolRange := []bool{true, false}
+
+	nameTemplate := "pushProp: %s, userPushProp: %s, type: %s, unreads: %t, mentions: %t"
+	for _, pushProp := range channelNotifyProps {
+		for _, userNotifyProp := range userNotifyProps {
+			for _, channelType := range channelTypes {
+				for _, withUnreads := range boolRange {
+					ttcc = append(ttcc, TestCase{
+						name:           fmt.Sprintf(nameTemplate, pushProp, userNotifyProp, channelType, withUnreads, false),
+						pushProp:       pushProp,
+						userNotifyProp: userNotifyProp,
+						channelType:    channelType,
+						withUnreads:    withUnreads,
+						withMentions:   false,
+					})
+					if withUnreads {
+						ttcc = append(ttcc, TestCase{
+							name:           fmt.Sprintf(nameTemplate, pushProp, userNotifyProp, channelType, withUnreads, true),
+							pushProp:       pushProp,
+							userNotifyProp: userNotifyProp,
+							channelType:    channelType,
+							withUnreads:    withUnreads,
+							withMentions:   true,
+						})
+					}
+				}
+			}
+		}
+	}
+
+	for _, tc := range ttcc {
+		t.Run(tc.name, func(t *testing.T) {
+			userID := model.NewId()
+			o1, m1 := setupMembership(tc.pushProp, tc.withUnreads, tc.withMentions, tc.channelType, userID)
+
+			userNotifyProps := model.GetDefaultChannelNotifyProps()
+			userNotifyProps[model.PushNotifyProp] = tc.userNotifyProp
+
+			unreads, mentions, times, err := ss.Channel().GetDirectMessagesWithUnreadAndMentions(rctx, m1.UserId, userNotifyProps)
+			require.NoError(t, err)
+
+			expectedUnreadsLength := 0
+			if tc.withUnreads {
+				expectedUnreadsLength = 1
+			}
+			require.Len(t, unreads, expectedUnreadsLength)
+
+			propToUse := tc.pushProp
+			if tc.pushProp == model.ChannelNotifyDefault {
+				propToUse = tc.userNotifyProp
+			}
+
+			expectedMentionsLength := 0
+			// Direct messages seem to always have notify on, at least
+			// that is the logic copied from GetChannelsWithUnreadsAndMentions
+			if (tc.channelType == model.ChannelTypeDirect && tc.withUnreads) ||
+				(propToUse == model.UserNotifyAll && tc.withUnreads) ||
+				(propToUse == model.UserNotifyMention && tc.withMentions) {
+				expectedMentionsLength = 1
+			}
+
+			require.Len(t, mentions, expectedMentionsLength)
+
+			if tc.withUnreads {
+				require.Contains(t, times, o1.Id)
+				require.Equal(t, o1.LastPostAt, times[o1.Id])
+			}
+		})
+	}
+
+	t.Run("multiple directs and groups", func(t *testing.T) {
+		userID := model.NewId()
+		dm1, _ := setupMembership(model.ChannelNotifyDefault, true, true, model.ChannelTypeDirect, userID)
+		dm2, _ := setupMembership(model.ChannelNotifyDefault, true, false, model.ChannelTypeDirect, userID)
+		gm1, _ := setupMembership(model.ChannelNotifyDefault, true, true, model.ChannelTypeGroup, userID)
+		gm2, _ := setupMembership(model.ChannelNotifyMention, true, false, model.ChannelTypeGroup, userID)
+
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
+
+		unreads, mentions, times, err := ss.Channel().GetDirectMessagesWithUnreadAndMentions(rctx, userID, userNotifyProps)
+		require.NoError(t, err)
+
+		require.Len(t, unreads, 4)
+		require.Contains(t, unreads, dm1.Id)
+		require.Contains(t, unreads, dm2.Id)
+		require.Contains(t, unreads, gm1.Id)
+		require.Contains(t, unreads, gm2.Id)
+
+		require.Len(t, mentions, 3)
+		// Same as above, direct messages seem to always have notify on
+		// but group messages need to have notification policies set.
+		require.Contains(t, mentions, dm1.Id)
+		require.Contains(t, mentions, dm2.Id)
+		require.Contains(t, mentions, gm1.Id)
+		require.NotContains(t, mentions, gm2.Id)
+
+		require.Equal(t, dm1.LastPostAt, times[dm1.Id])
+		require.Equal(t, dm2.LastPostAt, times[dm2.Id])
+		require.Equal(t, gm1.LastPostAt, times[gm1.Id])
+		require.Equal(t, gm2.LastPostAt, times[gm2.Id])
+	})
+
+	t.Run("excludes regular channels", func(t *testing.T) {
+		userID := model.NewId()
+
+		dm, _ := setupMembership(model.ChannelNotifyDefault, true, true, model.ChannelTypeDirect, userID)
+
+		regularChannel := model.Channel{}
+		regularChannel.TeamId = model.NewId()
+		regularChannel.DisplayName = "Regular Channel"
+		regularChannel.Name = NewTestID()
+		regularChannel.Type = model.ChannelTypeOpen
+		regularChannel.TotalMsgCount = 25
+		regularChannel.LastPostAt = 12345
+		regularChannel.LastRootPostAt = 12345
+		_, nErr := ss.Channel().Save(rctx, &regularChannel, -1)
+		require.NoError(t, nErr)
+
+		regularMember := model.ChannelMember{}
+		regularMember.ChannelId = regularChannel.Id
+		regularMember.UserId = userID
+		regularMember.NotifyProps = model.GetDefaultChannelNotifyProps()
+		regularMember.MentionCount = 5
+		_, err := ss.Channel().SaveMember(rctx, &regularMember)
+		require.NoError(t, err)
+
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
+
+		unreads, mentions, times, err := ss.Channel().GetDirectMessagesWithUnreadAndMentions(rctx, userID, userNotifyProps)
+		require.NoError(t, err)
+
+		// Should only find the DMs and GMs
+		require.Len(t, unreads, 1)
+		require.Contains(t, unreads, dm.Id)
+		require.NotContains(t, unreads, regularChannel.Id)
+
+		require.Len(t, mentions, 1)
+		require.Contains(t, mentions, dm.Id)
+
+		require.Equal(t, dm.LastPostAt, times[dm.Id])
+		require.NotContains(t, times, regularChannel.Id)
+	})
+
+	t.Run("user with no DMs or GMs", func(t *testing.T) {
+		userID := model.NewId()
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
+
+		unreads, mentions, times, err := ss.Channel().GetDirectMessagesWithUnreadAndMentions(rctx, userID, userNotifyProps)
+		require.NoError(t, err)
+
+		require.Len(t, unreads, 0)
+		require.Len(t, mentions, 0)
+		require.Len(t, times, 0)
+	})
+}
+
+func testGetTeamChannelsWithUnreadAndMentions(t *testing.T, rctx request.CTX, ss store.Store) {
+	setupMembership := func(
+		teamID string,
+		pushProp string,
+		withUnreads bool,
+		withMentions bool,
+		userID string,
+	) (model.Channel, model.ChannelMember) {
+		o1 := model.Channel{}
+		o1.TeamId = teamID
+		o1.DisplayName = "Channel1"
+		o1.Name = NewTestID()
+		o1.Type = model.ChannelTypeOpen
+		o1.TotalMsgCount = 25
+		o1.LastPostAt = 12345
+		o1.LastRootPostAt = 12345
+		_, nErr := ss.Channel().Save(rctx, &o1, -1)
+		require.NoError(t, nErr)
+
+		m1 := model.ChannelMember{}
+		m1.ChannelId = o1.Id
+		m1.UserId = userID
+		m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+		m1.NotifyProps[model.PushNotifyProp] = pushProp
+		if !withUnreads {
+			m1.MsgCount = o1.TotalMsgCount
+			m1.LastViewedAt = o1.LastPostAt
+		}
+		if withMentions {
+			m1.MentionCount = 5
+		}
+		_, err := ss.Channel().SaveMember(rctx, &m1)
+		require.NoError(t, err)
+
+		return o1, m1
+	}
+
+	type TestCase struct {
+		name           string
+		pushProp       string
+		userNotifyProp string
+		withUnreads    bool
+		withMentions   bool
+	}
+	ttcc := []TestCase{}
+
+	channelNotifyProps := []string{model.ChannelNotifyDefault, model.ChannelNotifyAll, model.ChannelNotifyMention, model.ChannelNotifyNone}
+	userNotifyProps := []string{model.UserNotifyAll, model.UserNotifyMention, model.UserNotifyHere, model.UserNotifyNone}
+	boolRange := []bool{true, false}
+
+	nameTemplate := "pushProp: %s, userPushProp: %s, unreads: %t, mentions: %t"
+	for _, pushProp := range channelNotifyProps {
+		for _, userNotifyProp := range userNotifyProps {
+			for _, withUnreads := range boolRange {
+				ttcc = append(ttcc, TestCase{
+					name:           fmt.Sprintf(nameTemplate, pushProp, userNotifyProp, withUnreads, false),
+					pushProp:       pushProp,
+					userNotifyProp: userNotifyProp,
+					withUnreads:    withUnreads,
+					withMentions:   false,
+				})
+				if withUnreads {
+					ttcc = append(ttcc, TestCase{
+						name:           fmt.Sprintf(nameTemplate, pushProp, userNotifyProp, withUnreads, true),
+						pushProp:       pushProp,
+						userNotifyProp: userNotifyProp,
+						withUnreads:    withUnreads,
+						withMentions:   true,
+					})
+				}
+			}
+		}
+	}
+
+	for _, tc := range ttcc {
+		t.Run(tc.name, func(t *testing.T) {
+			teamID := model.NewId()
+			userID := model.NewId()
+			o1, m1 := setupMembership(teamID, tc.pushProp, tc.withUnreads, tc.withMentions, userID)
+			userNotifyProps := model.GetDefaultChannelNotifyProps()
+			userNotifyProps[model.PushNotifyProp] = tc.userNotifyProp
+			unreads, mentions, times, err := ss.Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID, m1.UserId, userNotifyProps)
+			require.NoError(t, err)
+
+			expectedUnreadsLength := 0
+			if tc.withUnreads {
+				expectedUnreadsLength = 1
+			}
+			require.Len(t, unreads, expectedUnreadsLength)
+
+			propToUse := tc.pushProp
+			if tc.pushProp == model.ChannelNotifyDefault {
+				propToUse = tc.userNotifyProp
+			}
+			expectedMentionsLength := 0
+			if (propToUse == model.UserNotifyAll && tc.withUnreads) || (propToUse == model.UserNotifyMention && tc.withMentions) {
+				expectedMentionsLength = 1
+			}
+
+			require.Len(t, mentions, expectedMentionsLength)
+
+			if tc.withUnreads {
+				require.Contains(t, times, o1.Id)
+				require.Equal(t, o1.LastPostAt, times[o1.Id])
+			}
+		})
+	}
+
+	t.Run("multiple channels on same team", func(t *testing.T) {
+		teamID := model.NewId()
+		userID := model.NewId()
+		o1, _ := setupMembership(teamID, model.ChannelNotifyDefault, true, true, userID)
+		o2, _ := setupMembership(teamID, model.ChannelNotifyDefault, true, true, userID)
+
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
+
+		unreads, mentions, times, err := ss.Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, userNotifyProps)
+		require.NoError(t, err)
+
+		require.Contains(t, unreads, o1.Id)
+		require.Contains(t, unreads, o2.Id)
+		require.Contains(t, mentions, o1.Id)
+		require.Contains(t, mentions, o2.Id)
+		require.Equal(t, o1.LastPostAt, times[o1.Id])
+		require.Equal(t, o2.LastPostAt, times[o2.Id])
+	})
+
+	t.Run("excludes channels from other teams", func(t *testing.T) {
+		teamID1 := model.NewId()
+		teamID2 := model.NewId()
+		userID := model.NewId()
+
+		o1, _ := setupMembership(teamID1, model.ChannelNotifyDefault, true, true, userID)
+		o2, _ := setupMembership(teamID2, model.ChannelNotifyDefault, true, true, userID)
+
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
+
+		unreads, mentions, times, err := ss.Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID1, userID, userNotifyProps)
+		require.NoError(t, err)
+
+		// Should only include channel from teamID1
+		require.Len(t, unreads, 1)
+		require.Contains(t, unreads, o1.Id)
+		require.NotContains(t, unreads, o2.Id)
+
+		require.Len(t, mentions, 1)
+		require.Contains(t, mentions, o1.Id)
+		require.NotContains(t, mentions, o2.Id)
+
+		require.Equal(t, o1.LastPostAt, times[o1.Id])
+		require.NotContains(t, times, o2.Id)
+	})
+
+	t.Run("non existing team", func(t *testing.T) {
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
+		unreads, mentions, times, err := ss.Channel().GetTeamChannelsWithUnreadAndMentions(rctx, "nonexistent-team", "foo", userNotifyProps)
+		require.NoError(t, err)
+
+		require.Len(t, unreads, 0)
+		require.Len(t, mentions, 0)
+		require.Len(t, times, 0)
+	})
+
+	t.Run("user not member of any team channels", func(t *testing.T) {
+		teamID := model.NewId()
+		userID := model.NewId()
+
+		// Create a channel on the team but don't add the user as a member
+		o1 := model.Channel{}
+		o1.TeamId = teamID
+		o1.DisplayName = "Channel1"
+		o1.Name = NewTestID()
+		o1.Type = model.ChannelTypeOpen
+		o1.TotalMsgCount = 25
+		o1.LastPostAt = 12345
+		o1.LastRootPostAt = 12345
+		_, nErr := ss.Channel().Save(rctx, &o1, -1)
+		require.NoError(t, nErr)
+
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
+
+		unreads, mentions, times, err := ss.Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, userNotifyProps)
+		require.NoError(t, err)
+
+		require.Len(t, unreads, 0)
+		require.Len(t, mentions, 0)
+		require.Len(t, times, 0)
+	})
+
+	t.Run("LastViewedAt affects readTimes", func(t *testing.T) {
+		teamID := model.NewId()
+		userID := model.NewId()
+
+		o1 := model.Channel{}
+		o1.TeamId = teamID
+		o1.DisplayName = "Channel1"
+		o1.Name = NewTestID()
+		o1.Type = model.ChannelTypeOpen
+		o1.TotalMsgCount = 25
+		o1.LastPostAt = 10000
+		o1.LastRootPostAt = 10000
+		_, nErr := ss.Channel().Save(rctx, &o1, -1)
+		require.NoError(t, nErr)
+
+		m1 := model.ChannelMember{}
+		m1.ChannelId = o1.Id
+		m1.UserId = userID
+		m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+		// Set LastViewedAt to be AFTER LastPostAt (user viewed after last message)
+		m1.MsgCount = o1.TotalMsgCount - 5 // Still has unreads
+		m1.LastViewedAt = 15000            // Newer than LastPostAt
+		_, err := ss.Channel().SaveMember(rctx, &m1)
+		require.NoError(t, err)
+
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		unreads, mentions, times, err := ss.Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, userNotifyProps)
+		require.NoError(t, err)
+
+		require.Len(t, unreads, 1)
+		require.Len(t, mentions, 1)
+
+		// Should return the max of LastPostAt and LastViewedAt
+		require.Equal(t, int64(15000), times[o1.Id])
+	})
+
+	t.Run("mixed notification settings on same team", func(t *testing.T) {
+		teamID := model.NewId()
+		userID := model.NewId()
+
+		// Channel with UserNotifyAll behavior
+		o1, _ := setupMembership(teamID, model.ChannelNotifyAll, true, false, userID)
+
+		// Channel with UserNotifyMention behavior (has unreads but no mentions)
+		o2, _ := setupMembership(teamID, model.ChannelNotifyMention, true, false, userID)
+
+		// Channel with UserNotifyMention behavior (has unreads AND mentions)
+		o3, _ := setupMembership(teamID, model.ChannelNotifyMention, true, true, userID)
+
+		// Channel with UserNotifyNone behavior
+		o4, _ := setupMembership(teamID, model.ChannelNotifyNone, true, true, userID)
+
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention // User default (not used when channel overrides)
+
+		unreads, mentions, times, err := ss.Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, userNotifyProps)
+		require.NoError(t, err)
+
+		// All 4 channels should have unreads
+		require.Len(t, unreads, 4)
+		require.Contains(t, unreads, o1.Id)
+		require.Contains(t, unreads, o2.Id)
+		require.Contains(t, unreads, o3.Id)
+		require.Contains(t, unreads, o4.Id)
+
+		// Only o1 (NotifyAll) and o3 (NotifyMention with mentions) should trigger mentions
+		require.Len(t, mentions, 2)
+		require.Contains(t, mentions, o1.Id)
+		require.NotContains(t, mentions, o2.Id) // NotifyMention but no mentions
+		require.Contains(t, mentions, o3.Id)
+		require.NotContains(t, mentions, o4.Id) // NotifyNone
+
+		require.Equal(t, o1.LastPostAt, times[o1.Id])
+		require.Equal(t, o2.LastPostAt, times[o2.Id])
+		require.Equal(t, o3.LastPostAt, times[o3.Id])
+		require.Equal(t, o4.LastPostAt, times[o4.Id])
 	})
 }

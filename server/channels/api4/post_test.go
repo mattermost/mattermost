@@ -38,7 +38,7 @@ import (
 func enableBurnOnReadFeature(th *TestHelper) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+		cfg.ServiceSettings.EnableBurnOnRead = new(true)
 	})
 }
 
@@ -450,7 +450,7 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("Should not be able to define the RemoteId of a post from the API", func(t *testing.T) {
 		newPost := &model.Post{
-			RemoteId:  model.NewPointer(model.NewId()),
+			RemoteId:  new(model.NewId()),
 			ChannelId: th.BasicChannel.Id,
 			Message:   "post content " + model.NewId(),
 			DeleteAt:  0,
@@ -502,7 +502,7 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority: model.NewPointer("urgent"),
+				Priority: new("urgent"),
 			},
 		}}
 
@@ -520,7 +520,7 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		replyPost := &model.Post{RootId: post.Id, ChannelId: th.BasicChannel.Id, Message: "reply", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority: model.NewPointer("urgent"),
+				Priority: new("urgent"),
 			},
 		}}
 		_, resp, err = client.CreatePost(context.Background(), replyPost)
@@ -535,8 +535,8 @@ func TestCreatePostForPriority(t *testing.T) {
 		//  for Acknowledment
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:     model.NewPointer("urgent"),
-				RequestedAck: model.NewPointer(true),
+				Priority:     new("urgent"),
+				RequestedAck: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -546,8 +546,8 @@ func TestCreatePostForPriority(t *testing.T) {
 		//  for Persistent Notification
 		p2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("urgent"),
-				PersistentNotifications: model.NewPointer(true),
+				Priority:                new("urgent"),
+				PersistentNotifications: new(true),
 			},
 		}}
 		_, resp, err = client.CreatePost(context.Background(), p2)
@@ -567,8 +567,8 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("urgent"),
-				PersistentNotifications: model.NewPointer(true),
+				Priority:                new("urgent"),
+				PersistentNotifications: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -579,8 +579,8 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should return badRequest when post is not urgent for persistent notification", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("important"),
-				PersistentNotifications: model.NewPointer(true),
+				Priority:                new("important"),
+				PersistentNotifications: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -606,8 +606,8 @@ func TestCreatePostForPriority(t *testing.T) {
 
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("urgent"),
-				PersistentNotifications: model.NewPointer(true),
+				Priority:                new("urgent"),
+				PersistentNotifications: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -618,7 +618,7 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should create priority post", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority: model.NewPointer("important"),
+				Priority: new("important"),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -629,8 +629,8 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should create acknowledge post", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test", Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:     model.NewPointer(""),
-				RequestedAck: model.NewPointer(true),
+				Priority:     new(""),
+				RequestedAck: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -641,9 +641,9 @@ func TestCreatePostForPriority(t *testing.T) {
 	t.Run("should create persistent notification post", func(t *testing.T) {
 		p1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "test @" + th.BasicUser2.Username, Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("urgent"),
-				RequestedAck:            model.NewPointer(false),
-				PersistentNotifications: model.NewPointer(true),
+				Priority:                new("urgent"),
+				RequestedAck:            new(false),
+				PersistentNotifications: new(true),
 			},
 		}}
 		_, resp, err := client.CreatePost(context.Background(), p1)
@@ -851,7 +851,7 @@ func testCreatePostWithOutgoingHook(
 		}
 
 		outGoingHookResponse := &model.OutgoingWebhookResponse{
-			Text:         model.NewPointer("some test text"),
+			Text:         new("some test text"),
 			Username:     "TestCommandServer",
 			IconURL:      "https://mattermost.com/wp-content/uploads/2022/02/icon.png",
 			Type:         "custom_as",
@@ -2348,12 +2348,12 @@ func TestPatchPost(t *testing.T) {
 	t.Run("new message, props, files, HasReactions bit", func(t *testing.T) {
 		patch := &model.PostPatch{}
 
-		patch.IsPinned = model.NewPointer(false)
-		patch.Message = model.NewPointer("#otherhashtag other message")
+		patch.IsPinned = new(false)
+		patch.Message = new("#otherhashtag other message")
 		patch.Props = &model.StringInterface{"channel_header": "new_header"}
 		patchFileIds := model.StringArray(fileIDs) // one extra file
 		patch.FileIds = &patchFileIds
-		patch.HasReactions = model.NewPointer(false)
+		patch.HasReactions = new(false)
 
 		rpost, _, err = client.PatchPost(context.Background(), post.Id, patch)
 		require.NoError(t, err)
@@ -2474,7 +2474,7 @@ func TestPatchPost(t *testing.T) {
 		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
 		patch := &model.PostPatch{
-			Message: model.NewPointer("edited message"),
+			Message: new("edited message"),
 		}
 		_, resp, err := client.PatchPost(context.Background(), postToEdit.Id, patch)
 		require.Error(t, err)
@@ -2621,7 +2621,7 @@ func TestPatchPost(t *testing.T) {
 		require.NoError(t, err)
 
 		patch2 := &model.PostPatch{
-			Message: model.NewPointer("new message"),
+			Message: new("new message"),
 		}
 		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), post2.Id, patch2)
 		require.Error(t, err)
@@ -2700,7 +2700,7 @@ func TestPatchPost(t *testing.T) {
 		require.NoError(t, err)
 
 		patch := &model.PostPatch{
-			IsPinned: model.NewPointer(true),
+			IsPinned: new(true),
 		}
 		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
 		require.Error(t, err)
@@ -2725,7 +2725,7 @@ func TestPatchPost(t *testing.T) {
 		require.NoError(t, err)
 
 		patch := &model.PostPatch{
-			HasReactions: model.NewPointer(true),
+			HasReactions: new(true),
 		}
 		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
 		require.Error(t, err)
@@ -5415,7 +5415,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 	// update the post message
 	patch := &model.PostPatch{
-		Message: model.NewPointer("new message edited"),
+		Message: new("new message edited"),
 	}
 
 	// Patch the post
@@ -5425,7 +5425,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 	// update the post message again
 	patch = &model.PostPatch{
-		Message: model.NewPointer("new message edited again"),
+		Message: new("new message edited again"),
 	}
 
 	_, response2, err2 := client.PatchPost(context.Background(), rpost.Id, patch)
@@ -5478,21 +5478,21 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		require.Contains(t, createdPost.FileIds, fileInfo2.Id)
 
 		patch = &model.PostPatch{
-			Message: model.NewPointer("new message 1"),
+			Message: new("new message 1"),
 		}
 		_, response, err := client.PatchPost(context.Background(), createdPost.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 
 		patch = &model.PostPatch{
-			Message: model.NewPointer("new message 2"),
+			Message: new("new message 2"),
 		}
 		_, response, err = client.PatchPost(context.Background(), createdPost.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 
 		patch = &model.PostPatch{
-			Message: model.NewPointer("new message 3"),
+			Message: new("new message 3"),
 		}
 		_, response, err = client.PatchPost(context.Background(), createdPost.Id, patch)
 		require.NoError(t, err)
@@ -6346,14 +6346,14 @@ func TestRestorePostVersion(t *testing.T) {
 		CheckCreatedStatus(t, response)
 
 		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message 1"),
+			Message: new("edited message 1"),
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 		require.Equal(t, "edited message 1", patch.Message)
 
 		patch, response, err = client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message 2"),
+			Message: new("edited message 2"),
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
@@ -6408,7 +6408,7 @@ func TestRestorePostVersion(t *testing.T) {
 		require.Equal(t, 1, len(createdPost.FileIds))
 
 		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message 1"),
+			Message: new("edited message 1"),
 			FileIds: &model.StringArray{},
 		})
 		require.NoError(t, err)
@@ -6500,7 +6500,7 @@ func TestRestorePostVersion(t *testing.T) {
 		CheckCreatedStatus(t, response)
 
 		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message 1"),
+			Message: new("edited message 1"),
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
@@ -6534,7 +6534,7 @@ func TestRestorePostVersion(t *testing.T) {
 		CheckCreatedStatus(t, response)
 
 		patch, response, err := th.Client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message 1"),
+			Message: new("edited message 1"),
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
@@ -6574,7 +6574,7 @@ func TestRestorePostVersion(t *testing.T) {
 
 		// Patch via app layer to create edit history (bypasses API time limit check)
 		_, _, appErr = th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message"),
+			Message: new("edited message"),
 		}, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
@@ -6617,7 +6617,7 @@ func TestRestorePostVersion(t *testing.T) {
 		// Remove file via app layer to create history entry that has the file
 		emptyFiles := model.StringArray{}
 		_, _, appErr = th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
-			Message: model.NewPointer("edited message"),
+			Message: new("edited message"),
 			FileIds: &emptyFiles,
 		}, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
@@ -7067,7 +7067,7 @@ func TestBurnPost(t *testing.T) {
 		post := createBurnOnReadPost(th.SystemAdminClient, th.BasicChannel)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(false)
+			cfg.ServiceSettings.EnableBurnOnRead = new(false)
 		})
 
 		_, resp, err := th.Client.RevealPost(context.Background(), post.Id)
@@ -7299,7 +7299,7 @@ func TestPatchCardPostByNonOwner(t *testing.T) {
 	// User 2 (non-owner, but channel member) patches the card
 	th.LoginBasic2(t)
 	patch := &model.PostPatch{
-		Message: model.NewPointer("patched by user2"),
+		Message: new("patched by user2"),
 	}
 	rpost, _, err := client.PatchPost(context.Background(), cardPost.Id, patch)
 	require.NoError(t, err)
@@ -7313,7 +7313,7 @@ func TestPatchCardPostByNonOwner(t *testing.T) {
 		require.NoError(t, err)
 
 		patch := &model.PostPatch{
-			Message: model.NewPointer("should fail"),
+			Message: new("should fail"),
 		}
 		_, resp, err := cli.PatchPost(context.Background(), cardPost.Id, patch)
 		require.Error(t, err)
