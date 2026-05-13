@@ -266,6 +266,7 @@ func (w *sqlxDBWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 // if the caller's context carries no deadline. The cancel is released when the
 // caller calls Scan on the returned *sqlxRow.
 func (w *sqlxDBWrapper) QueryRowContext(ctx context.Context, query string, args ...any) *sqlxRow {
+	query = w.db.Rebind(query)
 	ctx, cancel := withQueryTimeout(ctx, w.queryTimeout)
 	return &sqlxRow{row: w.db.QueryRowxContext(ctx, query, args...), cancel: cancel}
 }
@@ -304,6 +305,7 @@ func (w *sqlxDBWrapper) Query(query string, args ...any) (*sqlxRows, error) {
 // ExecContext forwards to the underlying DB, adding the wrapper timeout if the
 // caller's context carries no deadline.
 func (w *sqlxDBWrapper) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+	query = w.db.Rebind(query)
 	ctx, cancel := withQueryTimeout(ctx, w.queryTimeout)
 	defer cancel()
 	return w.checkErrWithResult(w.db.ExecContext(ctx, query, args...))
@@ -330,6 +332,7 @@ func (w *sqlxDBWrapper) SelectContext(ctx context.Context, dest any, query strin
 // QueryContext forwards to the underlying DB with the caller-supplied context.
 // The caller is responsible for applying an appropriate timeout.
 func (w *sqlxDBWrapper) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+	query = w.db.Rebind(query)
 	rows, err := w.db.QueryContext(ctx, query, args...)
 	return rows, w.checkErr(err)
 }
