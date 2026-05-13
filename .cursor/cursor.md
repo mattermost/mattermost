@@ -57,6 +57,7 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
   make run
   ```
 
+- When the server starts and `MM_LICENSE` is present in the environment, the server applies that license automatically. If `MM_LICENSE` is not set, starting the server automatically applies an Entry license, which provides nearly all functionality needed for development.
 - `ENABLED_DOCKER_SERVICES='postgres redis'` avoids optional local-dev services such as Prometheus, Grafana, Loki, Minio, Azurite, and OpenLDAP. This is useful in Cloud when Docker Hub rate limits block the default `make start-docker` dependency set.
 - If the first-user signup UI is flaky but the server is already healthy, seed local state with `mmctl` and then log in through the browser:
 
