@@ -154,8 +154,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(true),
-					PersistentNotifications: model.NewPointer(true),
+					RequestedAck:            new(true),
+					PersistentNotifications: new(true),
 				},
 			},
 		}, testChannel, model.CreatePostFlags{})
@@ -216,8 +216,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(true),
-					PersistentNotifications: model.NewPointer(false),
+					RequestedAck:            new(true),
+					PersistentNotifications: new(false),
 				},
 			},
 		}, testChannel, model.CreatePostFlags{})
@@ -292,8 +292,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(true),
-					PersistentNotifications: model.NewPointer(false),
+					RequestedAck:            new(true),
+					PersistentNotifications: new(false),
 				},
 			},
 		}, testChannel, model.CreatePostFlags{})
@@ -398,8 +398,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(true),
-					PersistentNotifications: model.NewPointer(true),
+					RequestedAck:            new(true),
+					PersistentNotifications: new(true),
 				},
 			},
 		}, testChannel, model.CreatePostFlags{})
@@ -571,8 +571,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(true),
-					PersistentNotifications: model.NewPointer(false),
+					RequestedAck:            new(true),
+					PersistentNotifications: new(false),
 				},
 			},
 		}, testChannel, model.CreatePostFlags{})

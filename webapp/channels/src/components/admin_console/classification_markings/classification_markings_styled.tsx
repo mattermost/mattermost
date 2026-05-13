@@ -7,6 +7,25 @@ import {Button} from '@mattermost/shared/components/button';
 
 import {SectionContent} from '../system_properties/controls';
 
+export const GlobalBannerSectionContent = styled(SectionContent).attrs({
+    $compact: true,
+})`
+    &&& {
+        padding: 24px;
+    }
+`;
+
+export const GlobalBannerSectionSetting = styled.div`
+    min-height: 36px;
+    margin-top: 24px;
+`;
+
+export const LevelOptionLabel = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
 export const InformationNoticeWrapper = styled.div`
     margin-bottom: 16px;
 
