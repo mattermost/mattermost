@@ -296,6 +296,33 @@ func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
 	}
 }
 
+func TestFileSettingsAzurePathPrefixTraversal(t *testing.T) {
+	cases := []struct {
+		name         string
+		configSetter func(*Config, *string)
+	}{
+		{
+			"AzurePathPrefix",
+			func(cfg *Config, value *string) { cfg.FileSettings.AzurePathPrefix = value },
+		},
+		{
+			"ExportAzurePathPrefix",
+			func(cfg *Config, value *string) { cfg.FileSettings.ExportAzurePathPrefix = value },
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			tc.configSetter(cfg, NewPointer("../escape"))
+
+			err := cfg.FileSettings.isValid()
+			require.NotNil(t, err)
+			assert.Equal(t, "model.config.is_valid.directory_traversal.app_error", err.Id)
+		})
+	}
+}
+
 func TestConfigDefaultSignatureAlgorithm(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()

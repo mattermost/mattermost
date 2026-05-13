@@ -87,8 +87,18 @@ func (b *AzureFileBackend) DriverName() string {
 	return driverAzure
 }
 
+// prefix joins the configured pathPrefix and the caller-supplied path.
+// Using a plain path.Join, a value like "foo/../../secret" can escape
+// the prefix entirely, so we compute the join and, if the result no longer
+// has the prefix in front, fall back to joining with path.Base
+// This may drop any intermediate directories the caller intended.
 func (b *AzureFileBackend) prefix(p string) string {
-	return path.Join(b.pathPrefix, p)
+	joined := path.Join(b.pathPrefix, p)
+	if b.pathPrefix == "" || strings.HasPrefix(joined, b.pathPrefix) {
+		return joined
+	}
+
+	return path.Join(b.pathPrefix, path.Base(p))
 }
 
 func (b *AzureFileBackend) newBlobClient(p string) *blob.Client {

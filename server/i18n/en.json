@@ -11115,6 +11115,10 @@
     "translation": "Invalid Local Storage Directory. Must be a non-empty string."
   },
   {
+    "id": "model.config.is_valid.directory_traversal.app_error",
+    "translation": "Path traversal sequences (\"..\") are not allowed in {{.Setting}}. Found \"{{.Value}}\"."
+  },
+  {
     "id": "model.config.is_valid.directory_whitespace.app_error",
     "translation": "Leading or trailing whitespace detected for {{.Setting}}. Found \"{{.Value}}\"."
   },

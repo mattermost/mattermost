@@ -8,8 +8,33 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
+
+func TestAzureFileBackendPrefix(t *testing.T) {
+	tests := []struct {
+		name     string
+		prefix   string
+		input    string
+		expected string
+	}{
+		{name: "no prefix, plain path", prefix: "", input: "team/channel/file", expected: "team/channel/file"},
+		{name: "no prefix, with dot-dot", prefix: "", input: "../escape", expected: "../escape"},
+		{name: "prefix, plain path", prefix: "mattermost", input: "team/channel/file", expected: "mattermost/team/channel/file"},
+		{name: "prefix, exact root", prefix: "mattermost", input: "", expected: "mattermost"},
+		{name: "prefix, dot-dot escapes", prefix: "mattermost", input: "../escape", expected: "mattermost/escape"},
+		{name: "prefix, nested dot-dot escapes", prefix: "mattermost", input: "sub/../../escape", expected: "mattermost/escape"},
+		{name: "prefix, dot-dot in middle stays inside", prefix: "mattermost", input: "a/../b", expected: "mattermost/b"},
+		{name: "prefix with trailing slash, dot-dot escapes", prefix: "mattermost/", input: "../escape", expected: "mattermost/escape"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &AzureFileBackend{pathPrefix: tt.prefix}
+			require.Equal(t, tt.expected, b.prefix(tt.input))
+		})
+	}
+}
 
 // azuriteWellKnownAccount and azuriteWellKnownKey are Azurite's published
 // development credentials. They are not secrets — they are documented in the
