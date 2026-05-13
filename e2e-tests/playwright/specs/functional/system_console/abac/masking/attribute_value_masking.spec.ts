@@ -291,7 +291,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
+            await setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
 
             // Navigate back to the policy editor — masking now applies on load
             await openExistingPolicy(page, policyName);
@@ -375,7 +375,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId);
+            await setFieldAsSharedOnly(fieldId);
 
             await openExistingPolicy(page, policyName);
             const storedPolicyId = await getPolicyIdFromURL(page);
@@ -401,7 +401,7 @@ test.describe('Attribute-Value Masking', () => {
             await page.waitForLoadState('networkidle');
 
             // Verify via API (flag off): Bravo + Charlie preserved by merge-on-save
-            const rawExpression = getStoredPolicyRuleExpressions(storedPolicyId)[0] ?? '';
+            const rawExpression = (await getStoredPolicyRuleExpressions(storedPolicyId))[0] ?? '';
 
             expect(rawExpression).toContain('Alpha');
             expect(rawExpression).toContain('Bravo');
@@ -458,7 +458,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId);
+            await setFieldAsSharedOnly(fieldId);
 
             await openExistingPolicy(page, policyName);
 
@@ -525,7 +525,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId);
+            await setFieldAsSharedOnly(fieldId);
 
             await openExistingPolicy(page, policyName);
 
@@ -679,7 +679,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
+            await setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
 
             await openExistingPolicy(page, policyName);
 
@@ -774,7 +774,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
+            await setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
 
             await openExistingPolicy(page, policyName);
 
@@ -922,7 +922,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId);
+            await setFieldAsSharedOnly(fieldId);
 
             await openExistingPolicy(page, policyName);
             const storedPolicyId = await getPolicyIdFromURL(page);
@@ -952,7 +952,7 @@ test.describe('Attribute-Value Masking', () => {
             // Verify via API (flag off): Bravo + Charlie still in the stored policy.
             // Alpha is NOT expected — this test's policy never contained Alpha and the
             // caller had no way to add it through the locked selector.
-            const rawExpression = getStoredPolicyRuleExpressions(storedPolicyId)[0] ?? '';
+            const rawExpression = (await getStoredPolicyRuleExpressions(storedPolicyId))[0] ?? '';
 
             expect(rawExpression).toContain('Bravo');
             expect(rawExpression).toContain('Charlie');
@@ -1006,7 +1006,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
+            await setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
 
             await openExistingPolicy(page, policyName);
 
@@ -1069,7 +1069,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
+            await setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
 
             await openExistingPolicy(page, policyName);
 
@@ -1131,7 +1131,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
+            await setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
 
             // Get the policy ID from the URL after navigating to it
             await openExistingPolicy(page, policyName);
@@ -1149,7 +1149,7 @@ test.describe('Attribute-Value Masking', () => {
 
             // Direct DB read bypasses the API masking pipeline — stored expression
             // must still contain the originals.
-            const rawExpression = getStoredPolicyRuleExpressions(storedPolicyId)[0] ?? '';
+            const rawExpression = (await getStoredPolicyRuleExpressions(storedPolicyId))[0] ?? '';
             expect(rawExpression).toContain('Alpha');
             expect(rawExpression).toContain('Bravo');
             expect(rawExpression).toContain('Charlie');
@@ -1202,7 +1202,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
+            await setFieldAsSharedOnly(fieldId); // UNPLUG: remove to skip masking setup
 
             // Search as the logged-in (masked) user — the response must contain the
             // masked-token sentinel for any hidden values, never the raw originals.
@@ -1213,7 +1213,7 @@ test.describe('Attribute-Value Masking', () => {
 
             // Verify the stored policy still contains the originals — direct DB read,
             // bypassing the API masking pipeline.
-            const rawExpression = getStoredPolicyRuleExpressions(policyId)[0] ?? '';
+            const rawExpression = (await getStoredPolicyRuleExpressions(policyId))[0] ?? '';
             expect(rawExpression).toContain('Alpha');
             expect(rawExpression).toContain('Bravo');
         } finally {
@@ -1275,7 +1275,7 @@ test.describe('Attribute-Value Masking', () => {
 
             // shared_only must flip AFTER both policy saves: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold.
-            setFieldAsSharedOnly(fieldId);
+            await setFieldAsSharedOnly(fieldId);
 
             // Open masked policy — warning banner must be present
             await openExistingPolicy(page, maskedPolicyName);
@@ -1345,7 +1345,7 @@ test.describe('Attribute-Value Masking', () => {
 
             // shared_only must flip AFTER both policy saves: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold.
-            setFieldAsSharedOnly(fieldId);
+            await setFieldAsSharedOnly(fieldId);
 
             // --- Masked policy: Delete button must be disabled (no modal flow) ---
             await openExistingPolicy(page, maskedPolicyName);
@@ -1421,7 +1421,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId);
+            await setFieldAsSharedOnly(fieldId);
 
             await openExistingPolicy(page, policyName);
 
@@ -1452,7 +1452,7 @@ test.describe('Attribute-Value Masking', () => {
             expect(status, `DELETE /api/v4/access_control_policies/${policyId} returned ${status}`).toBe(403);
 
             // Verify policy still exists via API (flag off)
-            const expression = getStoredPolicyRuleExpressions(policyId)[0] ?? '';
+            const expression = (await getStoredPolicyRuleExpressions(policyId))[0] ?? '';
             expect(expression).toContain('Alpha');
         } finally {
             for (const id of policyIds) {
@@ -1509,8 +1509,8 @@ test.describe('Attribute-Value Masking', () => {
 
             // shared_only must flip AFTER the policy save for both fields: validatePolicyExpressionValues
             // would otherwise reject Bravo / Charlie / Secret / TopSecret which the caller doesn't hold.
-            setFieldAsSharedOnly(programFieldId);
-            setFieldAsSharedOnly(clearanceFieldId);
+            await setFieldAsSharedOnly(programFieldId);
+            await setFieldAsSharedOnly(clearanceFieldId);
 
             await openExistingPolicy(page, policyName);
             const storedPolicyId = await getPolicyIdFromURL(page);
@@ -1542,7 +1542,7 @@ test.describe('Attribute-Value Masking', () => {
             // Verify the stored policy directly — bypass API masking, all hidden values
             // must survive merge-on-save. The persisted CEL uses canonical id form
             // (`user.id_<userid>.id_<fieldid>`), so match on field ids, not names.
-            const rawExpression = getStoredPolicyRuleExpressions(storedPolicyId)[0] ?? '';
+            const rawExpression = (await getStoredPolicyRuleExpressions(storedPolicyId))[0] ?? '';
 
             expect(rawExpression).toContain(programFieldId);
             expect(rawExpression).toContain('Bravo');
@@ -1635,7 +1635,7 @@ test.describe('Attribute-Value Masking', () => {
             // shared_only must flip AFTER the policy save: validatePolicyExpressionValues would
             // otherwise reject values the caller does not hold. Flipping now means the policy
             // is created against a public field, then masking applies on the next load.
-            setFieldAsSharedOnly(fieldId);
+            await setFieldAsSharedOnly(fieldId);
 
             // Assign team to policy so it shows up in team settings
             await adminClient.addToTeam(team.id, adminUser.id);
