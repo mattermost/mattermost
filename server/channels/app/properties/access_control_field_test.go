@@ -1440,3 +1440,7 @@ func TestLinkedPropertyField_SecurityInheritance(t *testing.T) {
 		assert.False(t, model.IsPropertyFieldProtected(linked))
 	})
 }
+
+// The previous "member-writable shared_only" early-return in applyFieldReadAccessControl
+// was removed in favor of rejecting that contradictory configuration at validation time
+// (see TestValidatePropertyFieldAccessMode in server/public/model/property_access_test.go).

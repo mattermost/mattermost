@@ -375,7 +375,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
 	if o.IsFollowing != nil {
-		dst.IsFollowing = NewPointer(*o.IsFollowing)
+		dst.IsFollowing = new(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
 	return nil
@@ -591,7 +591,7 @@ func (o *Post) SanitizeProps() {
 // Remove any input data from the post object that is not user controlled
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
-	o.RemoteId = NewPointer("")
+	o.RemoteId = new("")
 
 	if o.Metadata != nil {
 		o.Metadata.Embeds = nil

@@ -95,7 +95,7 @@ func TestFetchMembershipsForSync_DeduplicatesJoinLeaveRejoin(t *testing.T) {
 	// User joined at 1000, left at 2000, rejoined at 3000
 	mockCMHStore.On("GetMembershipChanges", channelID, int64(0), mock.AnythingOfType("int")).
 		Return([]*model.ChannelMemberHistory{
-			{ChannelId: channelID, UserId: userID, JoinTime: 1000, LeaveTime: model.NewPointer(int64(2000))},
+			{ChannelId: channelID, UserId: userID, JoinTime: 1000, LeaveTime: new(int64(2000))},
 			{ChannelId: channelID, UserId: userID, JoinTime: 3000, LeaveTime: nil},
 		}, nil)
 
@@ -137,7 +137,7 @@ func TestFetchMembershipsForSync_DeduplicatesJoinThenLeave(t *testing.T) {
 	// User joined at 1000, then left at 2000
 	mockCMHStore.On("GetMembershipChanges", channelID, int64(0), mock.AnythingOfType("int")).
 		Return([]*model.ChannelMemberHistory{
-			{ChannelId: channelID, UserId: userID, JoinTime: 1000, LeaveTime: model.NewPointer(int64(2000))},
+			{ChannelId: channelID, UserId: userID, JoinTime: 1000, LeaveTime: new(int64(2000))},
 		}, nil)
 
 	// User profile needed for remote-origin filtering
@@ -170,9 +170,9 @@ func TestFetchMembershipsForSync_MultipleUsers(t *testing.T) {
 
 	mockCMHStore.On("GetMembershipChanges", channelID, int64(0), mock.AnythingOfType("int")).
 		Return([]*model.ChannelMemberHistory{
-			{ChannelId: channelID, UserId: user1, JoinTime: 1000, LeaveTime: nil},                           // joined, still member
-			{ChannelId: channelID, UserId: user2, JoinTime: 2000, LeaveTime: model.NewPointer(int64(3000))}, // joined then left
-			{ChannelId: channelID, UserId: user3, JoinTime: 4000, LeaveTime: nil},                           // joined, still member
+			{ChannelId: channelID, UserId: user1, JoinTime: 1000, LeaveTime: nil},              // joined, still member
+			{ChannelId: channelID, UserId: user2, JoinTime: 2000, LeaveTime: new(int64(3000))}, // joined then left
+			{ChannelId: channelID, UserId: user3, JoinTime: 4000, LeaveTime: nil},              // joined, still member
 		}, nil)
 
 	// User profiles for all users — needed for remote-origin filtering
