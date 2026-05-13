@@ -835,9 +835,27 @@ func (a *App) UpdateChannelScheme(rctx request.CTX, channel *model.Channel) (*mo
 }
 
 func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
+	wasDiscoverable := oldChannel.Discoverable
+	// Public channels are inherently joinable; the discoverable flag only
+	// has meaning for private channels. Clear it eagerly so callers reading
+	// the row mid-conversion don't see an inconsistent state.
+	if oldChannel.Type == model.ChannelTypeOpen {
+		oldChannel.Discoverable = false
+	}
+
 	channel, err := a.UpdateChannel(rctx, oldChannel)
 	if err != nil {
 		return channel, err
+	}
+
+	// When a discoverable private channel becomes public, any pending
+	// requests are nonsensical (the user can join without approval). Cancel
+	// them — the WS broadcast inside the helper updates the requester's My
+	// Pending Requests list in real-time.
+	if wasDiscoverable && channel.Type == model.ChannelTypeOpen {
+		a.Srv().Go(func() {
+			a.CancelPendingChannelJoinRequestsOnConvert(rctx, channel)
+		})
 	}
 
 	postErr := a.postChannelPrivacyMessage(rctx, user, channel)
@@ -3206,6 +3224,10 @@ func (a *App) AutocompleteChannels(rctx request.CTX, userID, term string) (model
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	channelList, _, appErr = a.FilterChannelListWithTeamDataForUserVisibility(rctx, channelList, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
 	return channelList, nil
 }
 
@@ -3223,7 +3245,7 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return channelList, nil
+	return a.FilterChannelListForUserVisibility(rctx, channelList, userID)
 }
 
 func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, userID, term string, privateOnly, excludeGroupConstrained bool) (model.ChannelList, *model.AppError) {
@@ -3240,7 +3262,7 @@ func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, user
 		return nil, model.NewAppError("AutocompleteChannelsForTeamFiltered", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return channelList, nil
+	return a.FilterChannelListForUserVisibility(rctx, channelList, userID)
 }
 
 func (a *App) AutocompleteChannelsForSearch(rctx request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
