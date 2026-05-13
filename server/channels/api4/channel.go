@@ -852,28 +852,21 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
 			// Non-members may still GET a discoverable private channel they
 			// would qualify for, so the Browse Channels modal can show
-			// metadata + Request to Join. Sanitize the response so we leak
-			// only the fields documented in plan §6c, and use 404 (not 403)
-			// when the user does not qualify so the policy doesn't act as an
-			// existence oracle.
-			user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
-			if userErr != nil {
-				c.Err = userErr
-				return
+			// metadata + Request to Join. The new behavior is gated on the
+			// feature flag so the existing 403 contract for non-members is
+			// preserved when the discoverable feature is off.
+			if c.App.Config().FeatureFlags.DiscoverableChannels {
+				if sanitized, sanitizedErr := serveDiscoverableChannelOr404(c, channel); sanitizedErr != nil {
+					c.Err = sanitizedErr
+					return
+				} else if sanitized != nil {
+					if err := json.NewEncoder(w).Encode(sanitized); err != nil {
+						c.Logger.Warn("Error while writing response", mlog.Err(err))
+					}
+					return
+				}
 			}
-			allowed, allowedErr := c.App.IsDiscoverableJoinAllowed(c.AppContext, user, channel)
-			if allowedErr != nil {
-				c.Err = allowedErr
-				return
-			}
-			if !allowed {
-				c.Err = model.NewAppError("getChannel", "app.channel.get.existing.app_error", nil, "channel_id="+channel.Id, http.StatusNotFound)
-				return
-			}
-			channel = sanitizeDiscoverableChannel(channel)
-			if err := json.NewEncoder(w).Encode(channel); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
+			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 	}
@@ -1737,14 +1730,16 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		// allows team admins to access private channel
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel); !ok {
-				if sanitized, sanitizedErr := serveDiscoverableChannelOr404(c, channel); sanitizedErr != nil {
-					c.Err = sanitizedErr
-					return
-				} else if sanitized != nil {
-					if err := json.NewEncoder(w).Encode(sanitized); err != nil {
-						c.Logger.Warn("Error while writing response", mlog.Err(err))
+				if c.App.Config().FeatureFlags.DiscoverableChannels {
+					if sanitized, sanitizedErr := serveDiscoverableChannelOr404(c, channel); sanitizedErr != nil {
+						c.Err = sanitizedErr
+						return
+					} else if sanitized != nil {
+						if err := json.NewEncoder(w).Encode(sanitized); err != nil {
+							c.Logger.Warn("Error while writing response", mlog.Err(err))
+						}
+						return
 					}
-					return
 				}
 				c.Err = model.NewAppError("getChannelByName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 				return
@@ -1806,14 +1801,16 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	} else if !channelOk {
 		// allows team admins to access private channel
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) {
-			if sanitized, sanitizedErr := serveDiscoverableChannelOr404(c, channel); sanitizedErr != nil {
-				c.Err = sanitizedErr
-				return
-			} else if sanitized != nil {
-				if err := json.NewEncoder(w).Encode(sanitized); err != nil {
-					c.Logger.Warn("Error while writing response", mlog.Err(err))
+			if c.App.Config().FeatureFlags.DiscoverableChannels {
+				if sanitized, sanitizedErr := serveDiscoverableChannelOr404(c, channel); sanitizedErr != nil {
+					c.Err = sanitizedErr
+					return
+				} else if sanitized != nil {
+					if err := json.NewEncoder(w).Encode(sanitized); err != nil {
+						c.Logger.Warn("Error while writing response", mlog.Err(err))
+					}
+					return
 				}
-				return
 			}
 			c.Err = model.NewAppError("getChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 			return
