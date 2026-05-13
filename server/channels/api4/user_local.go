@@ -40,7 +40,7 @@ func (api *API) InitUserLocal() {
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APILocal(localGetUserByUsername)).Methods(http.MethodGet)
 	api.BaseRoutes.UserByEmail.Handle("", api.APILocal(localGetUserByEmail)).Methods(http.MethodGet)
-	api.BaseRoutes.Users.Handle("/auth_data", api.APILocal(localGetUserByAuth)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/auth_data", api.APILocal(localGetUserByAuthData)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APILocal(revokeUserAccessToken)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/tokens", api.APILocal(getUserAccessTokensForUser)).Methods(http.MethodGet)
@@ -428,7 +428,7 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func localGetUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+func localGetUserByAuthData(c *Context, w http.ResponseWriter, r *http.Request) {
 	authData := r.URL.Query().Get("value")
 	if authData == "" {
 		c.SetInvalidParam("value")

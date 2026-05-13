@@ -76,7 +76,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername)).Methods(http.MethodGet)
 	api.BaseRoutes.UserByEmail.Handle("", api.APISessionRequired(getUserByEmail)).Methods(http.MethodGet)
-	api.BaseRoutes.Users.Handle("/auth_data", api.APISessionRequired(getUserByAuth)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/auth_data", api.APISessionRequired(getUserByAuthData)).Methods(http.MethodGet)
 
 	api.BaseRoutes.User.Handle("/sessions", api.APISessionRequired(getSessions)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/sessions/revoke", api.APISessionRequired(revokeSession)).Methods(http.MethodPost)
@@ -462,7 +462,7 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+func getUserByAuthData(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.IsSystemAdmin() {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
@@ -478,15 +478,6 @@ func getUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	user, err := c.App.GetUserByAuthData(&authData)
 	if err != nil {
-		restrictions, err2 := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
-		if err2 != nil {
-			c.Err = err2
-			return
-		}
-		if restrictions != nil {
-			c.SetPermissionError(model.PermissionViewMembers)
-			return
-		}
 		c.Err = err
 		return
 	}
@@ -502,17 +493,15 @@ func getUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.IsSystemAdmin() || c.AppContext.Session().UserId == user.Id {
-		userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
-		if err != nil && err.StatusCode != http.StatusNotFound {
-			c.Err = err
-			return
-		}
+	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
+	if err != nil && err.StatusCode != http.StatusNotFound {
+		c.Err = err
+		return
+	}
 
-		if userTermsOfService != nil {
-			user.TermsOfServiceId = userTermsOfService.TermsOfServiceId
-			user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
-		}
+	if userTermsOfService != nil {
+		user.TermsOfServiceId = userTermsOfService.TermsOfServiceId
+		user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
 	}
 
 	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
