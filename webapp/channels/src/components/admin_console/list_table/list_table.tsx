@@ -1,16 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combine} from '@atlaskit/pragmatic-drag-and-drop/combine';
-import {draggable, dropTargetForElements, monitorForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-import {setCustomNativeDragPreview} from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
-import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
-import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import {flexRender} from '@tanstack/react-table';
 import type {SortDirection, Table, Row} from '@tanstack/react-table';
 import classNames from 'classnames';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {AriaAttributes, KeyboardEvent, MouseEvent, ReactNode} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
@@ -20,6 +15,8 @@ import {DragVerticalIcon} from '@mattermost/compass-icons/components';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {useListTableDnd} from './hooks/use_list_table_dnd';
+import {useListTableRowDnd} from './hooks/use_list_table_row_dnd';
 import {Pagination} from './pagination';
 
 import './list_table.scss';
@@ -90,30 +87,6 @@ type Props<TableType extends TableMandatoryTypes> = {
     table: Table<TableType>;
 };
 
-/**
- * Returns the destination index after accounting for the source item being
- * removed from its original position and the closest edge of the drop target.
- */
-function getDropIndex(
-    sourceIndex: number,
-    targetIndex: number,
-    edge: Edge | null,
-): number {
-    if (edge === 'top') {
-        // Insert before the target
-        if (sourceIndex < targetIndex) {
-            return targetIndex - 1;
-        }
-        return targetIndex;
-    }
-
-    // 'bottom' — insert after the target
-    if (sourceIndex < targetIndex) {
-        return targetIndex;
-    }
-    return targetIndex + 1;
-}
-
 type DraggableRowProps<T extends TableMandatoryTypes> = {
     row: Row<T>;
     tableMeta: TableMeta;
@@ -132,9 +105,8 @@ function DraggableRow<T extends TableMandatoryTypes>({
     handleRowClick,
 }: DraggableRowProps<T>) {
     const {formatMessage} = useIntl();
-    const rowRef = useRef<HTMLTableRowElement>(null);
-    const handleRef = useRef<HTMLButtonElement>(null);
-    const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
+    const [rowElement, setRowElement] = useState<HTMLElement | null>(null);
+    const [handleElement, setHandleElement] = useState<HTMLElement | null>(null);
 
     const dragEnabled =
         Boolean(tableMeta.onReorder) &&
@@ -142,52 +114,15 @@ function DraggableRow<T extends TableMandatoryTypes>({
 
     const dragKind = `list-table-row:${tableMeta.tableId}`;
 
-    useEffect(() => {
-        const rowEl = rowRef.current;
-        if (!rowEl || !dragEnabled) {
-            return undefined;
-        }
-
-        const cleanup = combine(
-            draggable({
-                element: rowEl,
-                dragHandle: handleRef.current ?? undefined,
-                getInitialData: () => ({
-                    kind: dragKind,
-                    rowId: row.original.id,
-                    rowIndex: row.index,
-                }),
-                onGenerateDragPreview: ({nativeSetDragImage}) => {
-                    const previewEl = tableMeta.getRowDragPreview?.(row.original.id);
-                    if (!previewEl) {
-                        return;
-                    }
-                    setCustomNativeDragPreview({
-                        nativeSetDragImage,
-                        render: ({container}) => {
-                            container.appendChild(previewEl);
-                        },
-                    });
-                },
-            }),
-            dropTargetForElements({
-                element: rowEl,
-                canDrop: ({source}) =>
-                    source.data.kind === dragKind &&
-                    source.data.rowId !== row.original.id,
-                getData: ({input, element}) =>
-                    attachClosestEdge(
-                        {kind: dragKind, rowId: row.original.id, rowIndex: row.index},
-                        {input, element, allowedEdges: ['top', 'bottom']},
-                    ),
-                onDrag: ({self}) => setClosestEdge(extractClosestEdge(self.data)),
-                onDragLeave: () => setClosestEdge(null),
-                onDrop: () => setClosestEdge(null),
-            }),
-        );
-
-        return cleanup;
-    }, [dragEnabled, dragKind, row.original.id, row.index]);
+    const {closestEdge} = useListTableRowDnd({
+        dragKind,
+        rowId: row.original.id,
+        rowIndex: row.index,
+        rowElement,
+        handleElement,
+        enabled: dragEnabled,
+        getDragPreview: () => tableMeta.getRowDragPreview?.(row.original.id),
+    });
 
     const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
         if (e.key === 'ArrowUp') {
@@ -203,7 +138,7 @@ function DraggableRow<T extends TableMandatoryTypes>({
 
     return (
         <tr
-            ref={rowRef}
+            ref={setRowElement}
             id={`${rowIdPrefix}${row.original.id}`}
             key={row.id}
             onClick={handleRowClick}
@@ -224,7 +159,7 @@ function DraggableRow<T extends TableMandatoryTypes>({
                             <span className='dragHandle dragHandle--disabled'/>
                         ) : (
                             <button
-                                ref={handleRef}
+                                ref={setHandleElement}
                                 type='button'
                                 className='dragHandle'
                                 aria-label={formatMessage({
@@ -289,29 +224,10 @@ export function ListTable<TableType extends TableMandatoryTypes>(
         }
     }
 
-    // Top-level monitor: resolves drops across the whole table
-    useEffect(() => {
-        if (!tableMeta.onReorder) {
-            return undefined;
-        }
-        const dragKind = `list-table-row:${tableMeta.tableId}`;
-        return monitorForElements({
-            canMonitor: ({source}) => source.data.kind === dragKind,
-            onDrop: ({source, location}) => {
-                const target = location.current.dropTargets[0];
-                if (!target) {
-                    return;
-                }
-                const sourceIndex = source.data.rowIndex as number;
-                const targetIndex = target.data.rowIndex as number;
-                const edge = extractClosestEdge(target.data);
-                const dropIndex = getDropIndex(sourceIndex, targetIndex, edge);
-                if (dropIndex !== sourceIndex) {
-                    tableMeta.onReorder?.(sourceIndex, dropIndex);
-                }
-            },
-        });
-    }, [tableMeta.onReorder, tableMeta.tableId]);
+    useListTableDnd({
+        dragKind: `list-table-row:${tableMeta.tableId}`,
+        onReorder: tableMeta.onReorder,
+    });
 
     const colCount = props.table.getAllColumns().length;
     const rowCount = props.table.getRowModel().rows.length;

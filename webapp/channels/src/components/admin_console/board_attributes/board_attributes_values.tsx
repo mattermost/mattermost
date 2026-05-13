@@ -1,11 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combine} from '@atlaskit/pragmatic-drag-and-drop/combine';
-import {draggable, dropTargetForElements, monitorForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-import {setCustomNativeDragPreview} from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
-import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
-import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -18,39 +13,11 @@ import {supportsOptions, type BoardPropertyField, type PropertyFieldOption} from
 
 import * as Menu from 'components/menu';
 
-import {useLatest} from 'hooks/useLatest';
-
 import {ValidationWarningOptionsUnique, isOptionNameTaken} from './board_attributes_utils';
+import {useBoardOptionDnd} from './hooks/use_board_option_dnd';
+import {useBoardOptionsDnd} from './hooks/use_board_options_dnd';
 
 import {DangerText} from '../system_properties/controls';
-
-// ---------------------------------------------------------------------------
-// Drag-and-drop helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Compute the insertion index after removing the source from its original slot.
- * Copied from use_bookmarks_dnd.ts so reorder logic stays consistent.
- */
-function getDropIndex(
-    sourceIndex: number,
-    targetIndex: number,
-    edge: Edge | null,
-): number {
-    if (edge === 'left' || edge === 'top') {
-        // Insert before the target
-        if (sourceIndex < targetIndex) {
-            return targetIndex - 1;
-        }
-        return targetIndex;
-    }
-
-    // 'right' or 'bottom' — insert after the target
-    if (sourceIndex < targetIndex) {
-        return targetIndex;
-    }
-    return targetIndex + 1;
-}
 
 // Color tokens for select-option chips. Each token is a stable string stored
 // on `PropertyFieldOption.color`. The map below renders the token as a light
@@ -123,48 +90,7 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
         updateField({...field, attrs: {...field.attrs, options: next}});
     };
 
-    // Keep stable refs so the monitor effect only registers once per field
-    // but always sees the current options array and setOptions callback.
-    // These refs are safe to create unconditionally; the effect is no-op when
-    // the field is read-only or non-selectable.
-    const optionsRef = useLatest(options);
-    const setOptionsRef = useLatest(setOptions);
-
-    useEffect(() => {
-        if (!isEditable) {
-            return undefined;
-        }
-        const fieldKind = `board-option-chip:${field.id}`;
-        return monitorForElements({
-            canMonitor: ({source}) => source.data.kind === fieldKind,
-            onDrop: ({source, location}) => {
-                const target = location.current.dropTargets[0];
-                if (!target) {
-                    return;
-                }
-                const sourceKey = source.data.optionKey as string;
-                const targetKey = target.data.optionKey as string;
-                const edge = extractClosestEdge(target.data);
-                const current = optionsRef.current;
-                const sourceIndex = current.findIndex(
-                    (o, i) => (o.id || `pending-${i}`) === sourceKey,
-                );
-                const targetIndex = current.findIndex(
-                    (o, i) => (o.id || `pending-${i}`) === targetKey,
-                );
-                if (sourceIndex === -1 || targetIndex === -1) {
-                    return;
-                }
-                const dropIndex = getDropIndex(sourceIndex, targetIndex, edge);
-                if (dropIndex !== sourceIndex) {
-                    const next = [...current];
-                    const [moved] = next.splice(sourceIndex, 1);
-                    next.splice(dropIndex, 0, moved);
-                    setOptionsRef.current(next);
-                }
-            },
-        });
-    }, [field.id, isEditable]); // eslint-disable-line react-hooks/exhaustive-deps
+    useBoardOptionsDnd({fieldId: field.id, options, setOptions, enabled: isEditable});
 
     if (!supportsOptions(field) || field.type === 'user' || field.type === 'multiuser') {
         return (
@@ -270,9 +196,8 @@ const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) 
     const {formatMessage} = useIntl();
     const [editValue, setEditValue] = useState(option.name);
     const inputRef = useRef<HTMLInputElement>(null);
-    const chipRef = useRef<HTMLSpanElement>(null);
-    const dropZoneRef = useRef<HTMLSpanElement>(null);
-    const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
+    const [chipElement, setChipElement] = useState<HTMLElement | null>(null);
+    const [dropZoneElement, setDropZoneElement] = useState<HTMLElement | null>(null);
     const canDelete = options.length > 1;
     const currentColor = normalizeColor(option.color);
 
@@ -284,47 +209,20 @@ const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) 
         setEditValue(option.name);
     }, [option.name]);
 
-    useEffect(() => {
-        const chipEl = chipRef.current;
-        const zoneEl = dropZoneRef.current;
-        if (!chipEl || !zoneEl) {
-            return undefined;
-        }
-        const optionKey = option.id || `pending-${index}`;
-        const fieldKind = `board-option-chip:${fieldId}`;
-        return combine(
-            draggable({
-                element: chipEl,
-                getInitialData: () => ({kind: fieldKind, optionKey}),
-                onGenerateDragPreview: ({nativeSetDragImage}) => {
-                    setCustomNativeDragPreview({
-                        nativeSetDragImage,
-                        render: ({container}) => {
-                            const node = document.createElement('span');
-                            node.className = 'BoardAttributes__optionDragPreview';
-                            node.style.backgroundColor = resolveColor(option.color);
-                            node.textContent = option.name;
-                            container.appendChild(node);
-                        },
-                    });
-                },
-            }),
-            dropTargetForElements({
-                element: zoneEl,
-                canDrop: ({source}) =>
-                    source.data.kind === fieldKind &&
-                    source.data.optionKey !== optionKey,
-                getData: ({input, element: targetElement}) =>
-                    attachClosestEdge(
-                        {kind: fieldKind, optionKey},
-                        {input, element: targetElement, allowedEdges: ['left', 'right']},
-                    ),
-                onDrag: ({self}) => setClosestEdge(extractClosestEdge(self.data)),
-                onDragLeave: () => setClosestEdge(null),
-                onDrop: () => setClosestEdge(null),
-            }),
-        );
-    }, [option.id, fieldId, index]);
+    const optionKey = option.id || `pending-${index}`;
+    const {closestEdge} = useBoardOptionDnd({
+        fieldId,
+        optionKey,
+        chipElement,
+        dropZoneElement,
+        getDragPreview: () => {
+            const node = document.createElement('span');
+            node.className = 'BoardAttributes__optionDragPreview';
+            node.style.backgroundColor = resolveColor(option.color);
+            node.textContent = option.name;
+            return node;
+        },
+    });
 
     // True while the input value (typed or committed) would duplicate a
     // sibling. Provides immediate in-menu feedback before the edit reaches
@@ -378,9 +276,9 @@ const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) 
     };
 
     return (
-        <ChipDropZone ref={dropZoneRef}>
+        <ChipDropZone ref={setDropZoneElement}>
             <ChipShell
-                ref={chipRef}
+                ref={setChipElement}
                 $invalid={isInvalid}
                 style={{backgroundColor: resolveColor(option.color)}}
             >
@@ -497,7 +395,8 @@ const EmptyValues = styled.span`
 const ValuesContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 0;
+    row-gap: 3px;
+    column-gap: 0;
     align-items: center;
     padding: 6px 0;
     min-height: 40px;
@@ -534,7 +433,8 @@ const ChipDropZone = styled.span`
 const ProtectedValues = styled.div`
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    row-gap: 3px;
+    column-gap: 6px;
     align-items: center;
     padding: 6px 0;
     min-height: 40px;
