@@ -8,15 +8,11 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {supportsOptions, type BoardPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
-
 import LoadingScreen from 'components/loading_screen';
-
-import {DangerText, BorderlessInput, LinkButton} from '../system_properties/controls';
-import type {SectionHook} from '../system_properties/section_utils';
 
 import BoardAttributesDotMenu from './board_attributes_dot_menu';
 import SelectType from './board_attributes_type_menu';
@@ -25,6 +21,8 @@ import {isCreatePending, useBoardPropertyFields, ValidationWarningNameRequired, 
 import BoardAttributesValues from './board_attributes_values';
 
 import {AdminConsoleListTable} from '../list_table';
+import {DangerText, BorderlessInput, LinkButton} from '../system_properties/controls';
+import type {SectionHook} from '../system_properties/section_utils';
 
 const MAX_BOARD_ATTRIBUTES = 20;
 

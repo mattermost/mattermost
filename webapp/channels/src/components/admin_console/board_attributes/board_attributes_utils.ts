@@ -32,6 +32,7 @@ export const useBoardPropertyFields = () => {
     const [fieldCollection, readIO] = useThing<BoardPropertyFields>(useMemo(() => ({
         get: async () => {
             const data = await Client4.getPropertyFields(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, TARGET_TYPE_SYSTEM);
+
             // Protected (system) fields render first, then custom fields ordered by sort_order.
             const sorted = (data as BoardPropertyField[]).sort((a, b) => {
                 if (Boolean(a.protected) !== Boolean(b.protected)) {
@@ -86,7 +87,7 @@ export const useBoardPropertyFields = () => {
             await Promise.all(process.delete.map(async ({id, protected: isProtected}) => {
                 // skip protected fields
                 if (isProtected) {
-                    return;
+                    return undefined;
                 }
                 return Client4.deletePropertyField(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, id).
                     then(() => {
@@ -115,7 +116,7 @@ export const useBoardPropertyFields = () => {
                 // Boards epic before doing this.
                 if (pendingItem.protected) {
                     next.data[pendingItem.id] = prevCollection.data[pendingItem.id];
-                    return;
+                    return undefined;
                 }
 
                 const {id, name, type, attrs} = pendingItem;

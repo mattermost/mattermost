@@ -9,11 +9,10 @@ import {setNavigationBlocked} from 'actions/admin_actions';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {AdminSection, AdminWrapper, DangerText, SectionContent, SectionHeader, SectionHeading} from '../system_properties/controls';
-
 import {useBoardAttributesTable} from './board_attributes_table';
 
 import SaveChangesPanel from '../save_changes_panel';
+import {AdminSection, AdminWrapper, DangerText, SectionContent, SectionHeader, SectionHeading} from '../system_properties/controls';
 import type {SearchableStrings} from '../types';
 
 type Props = {

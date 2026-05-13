@@ -38,6 +38,7 @@ const DotMenu = ({
         if (isProtected) {
             return;
         }
+
         // The create flow rewrites the name with a `(N)` suffix if needed,
         // so we pass the bare field name here (any existing `(copy)` or
         // `(N)` suffix is stripped to find the base name).
@@ -52,7 +53,7 @@ const DotMenu = ({
             // skip prompt when field is pending creation
             deleteField(field.id);
         } else {
-            promptDelete(field).then((confirmed) => {
+            promptDelete().then((confirmed) => {
                 if (confirmed) {
                     deleteField(field.id);
                 }

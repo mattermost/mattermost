@@ -1,21 +1,55 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {combine} from '@atlaskit/pragmatic-drag-and-drop/combine';
+import {draggable, dropTargetForElements, monitorForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
+import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
+import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import styled, {css} from 'styled-components';
 
 import {CheckIcon, CloseCircleIcon, LockOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {supportsOptions, type BoardPropertyField, type PropertyFieldOption} from '@mattermost/types/properties';
 
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
-
 import * as Menu from 'components/menu';
+
+import {useLatest} from 'hooks/useLatest';
 
 import {ValidationWarningOptionsUnique, isOptionNameTaken} from './board_attributes_utils';
 
 import {DangerText} from '../system_properties/controls';
+
+// ---------------------------------------------------------------------------
+// Drag-and-drop helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Compute the insertion index after removing the source from its original slot.
+ * Copied from use_bookmarks_dnd.ts so reorder logic stays consistent.
+ */
+function getDropIndex(
+    sourceIndex: number,
+    targetIndex: number,
+    edge: Edge | null,
+): number {
+    if (edge === 'left' || edge === 'top') {
+        // Insert before the target
+        if (sourceIndex < targetIndex) {
+            return targetIndex - 1;
+        }
+        return targetIndex;
+    }
+
+    // 'right' or 'bottom' — insert after the target
+    if (sourceIndex < targetIndex) {
+        return targetIndex;
+    }
+    return targetIndex + 1;
+}
 
 // Color tokens for select-option chips. Each token is a stable string stored
 // on `PropertyFieldOption.color`. The map below renders the token as a light
@@ -76,6 +110,61 @@ type Props = {
 const BoardAttributesValues = ({field, updateField, warning}: Props) => {
     const {formatMessage} = useIntl();
 
+    const isEditable =
+        supportsOptions(field) &&
+        field.type !== 'user' &&
+        field.type !== 'multiuser' &&
+        !field.protected;
+
+    const options = field.attrs?.options ?? [];
+
+    const setOptions = (next: PropertyFieldOption[]) => {
+        updateField({...field, attrs: {...field.attrs, options: next}});
+    };
+
+    // Keep stable refs so the monitor effect only registers once per field
+    // but always sees the current options array and setOptions callback.
+    // These refs are safe to create unconditionally; the effect is no-op when
+    // the field is read-only or non-selectable.
+    const optionsRef = useLatest(options);
+    const setOptionsRef = useLatest(setOptions);
+
+    useEffect(() => {
+        if (!isEditable) {
+            return undefined;
+        }
+        const fieldKind = `board-option-chip:${field.id}`;
+        return monitorForElements({
+            canMonitor: ({source}) => source.data.kind === fieldKind,
+            onDrop: ({source, location}) => {
+                const target = location.current.dropTargets[0];
+                if (!target) {
+                    return;
+                }
+                const sourceKey = source.data.optionKey as string;
+                const targetKey = target.data.optionKey as string;
+                const edge = extractClosestEdge(target.data);
+                const current = optionsRef.current;
+                const sourceIndex = current.findIndex(
+                    (o, i) => (o.id || `pending-${i}`) === sourceKey,
+                );
+                const targetIndex = current.findIndex(
+                    (o, i) => (o.id || `pending-${i}`) === targetKey,
+                );
+                if (sourceIndex === -1 || targetIndex === -1) {
+                    return;
+                }
+                const dropIndex = getDropIndex(sourceIndex, targetIndex, edge);
+                if (dropIndex !== sourceIndex) {
+                    const next = [...current];
+                    const [moved] = next.splice(sourceIndex, 1);
+                    next.splice(dropIndex, 0, moved);
+                    setOptionsRef.current(next);
+                }
+            },
+        });
+    }, [field.id, isEditable]); // eslint-disable-line react-hooks/exhaustive-deps
+
     if (!supportsOptions(field) || field.type === 'user' || field.type === 'multiuser') {
         return (
             <EmptyValues>
@@ -84,8 +173,6 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
             </EmptyValues>
         );
     }
-
-    const options = field.attrs?.options ?? [];
 
     if (field.protected) {
         return (
@@ -124,10 +211,6 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
         return name;
     };
 
-    const setOptions = (next: PropertyFieldOption[]) => {
-        updateField({...field, attrs: {...field.attrs, options: next}});
-    };
-
     const handleAdd = () => {
         setOptions([...options, {id: '', name: generateDefaultName()}]);
     };
@@ -141,6 +224,8 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
                         option={option}
                         options={options}
                         setOptions={setOptions}
+                        index={index}
+                        fieldId={field.id}
                     />
                 ))}
                 <WithTooltip
@@ -176,12 +261,16 @@ type ChipProps = {
     option: PropertyFieldOption;
     options: PropertyFieldOption[];
     setOptions: (next: PropertyFieldOption[]) => void;
+    index: number;
+    fieldId: string;
 };
 
-const EditableChip = ({option, options, setOptions}: ChipProps) => {
+const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) => {
     const {formatMessage} = useIntl();
     const [editValue, setEditValue] = useState(option.name);
     const inputRef = useRef<HTMLInputElement>(null);
+    const chipRef = useRef<HTMLSpanElement>(null);
+    const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
     const canDelete = options.length > 1;
     const currentColor = normalizeColor(option.color);
 
@@ -192,6 +281,37 @@ const EditableChip = ({option, options, setOptions}: ChipProps) => {
     useEffect(() => {
         setEditValue(option.name);
     }, [option.name]);
+
+    // Wire this chip as both a draggable source and a drop target so the
+    // parent's monitorForElements can handle the reorder commit.
+    useEffect(() => {
+        const el = chipRef.current;
+        if (!el) {
+            return undefined;
+        }
+        const optionKey = option.id || `pending-${index}`;
+        const fieldKind = `board-option-chip:${fieldId}`;
+        return combine(
+            draggable({
+                element: el,
+                getInitialData: () => ({kind: fieldKind, optionKey}),
+            }),
+            dropTargetForElements({
+                element: el,
+                canDrop: ({source}) =>
+                    source.data.kind === fieldKind &&
+                    source.data.optionKey !== optionKey,
+                getData: ({input, element: targetElement}) =>
+                    attachClosestEdge(
+                        {kind: fieldKind, optionKey},
+                        {input, element: targetElement, allowedEdges: ['left', 'right']},
+                    ),
+                onDrag: ({self}) => setClosestEdge(extractClosestEdge(self.data)),
+                onDragLeave: () => setClosestEdge(null),
+                onDrop: () => setClosestEdge(null),
+            }),
+        );
+    }, [option.id, fieldId, index]);
 
     // True while the input value (typed or committed) would duplicate a
     // sibling. Provides immediate in-menu feedback before the edit reaches
@@ -246,9 +366,11 @@ const EditableChip = ({option, options, setOptions}: ChipProps) => {
 
     return (
         <ChipShell
+            ref={chipRef}
             $invalid={isInvalid}
             style={{backgroundColor: resolveColor(option.color)}}
         >
+            {closestEdge && <DropIndicator edge={closestEdge}/>}
             <Menu.Container
                 menuButton={{
                     id: `${menuId}-button`,
@@ -336,7 +458,7 @@ const EditableChip = ({option, options, setOptions}: ChipProps) => {
                     onClick={handleDeleteClick}
                     aria-label={formatMessage({
                         id: 'admin.board_attributes.values.delete_option',
-                        defaultMessage: 'Delete option',
+                        defaultMessage: 'Delete option {name}',
                     }, {name: option.name})}
                     data-testid={`property-option-delete-${option.id || option.name}`}
                 >
@@ -399,13 +521,21 @@ const ProtectedValues = styled.div`
 
 /* Outer pill: takes the option's colour as background, holds the menu-trigger
    button and the inline X delete button as siblings so they render as one
-   visual chip but remain individually focusable. */
+   visual chip but remain individually focusable.
+   position: relative is required so DropIndicator (absolute-positioned) clips
+   to the chip boundary. */
 const ChipShell = styled.span<{$invalid?: boolean}>`
+    position: relative;
     display: inline-flex;
     align-items: center;
     border-radius: 4px;
     user-select: none;
+    cursor: grab;
     transition: filter 0.15s ease, box-shadow 0.15s ease;
+
+    &:active {
+        cursor: grabbing;
+    }
 
     &:hover {
         filter: brightness(0.97);

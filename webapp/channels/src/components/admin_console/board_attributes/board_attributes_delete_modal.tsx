@@ -6,14 +6,12 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
-import type {BoardPropertyField} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
-    name: string;
     onConfirm: () => void;
     onCancel: () => void;
     onExited: () => void;
@@ -21,7 +19,7 @@ type Props = {
 
 export const useBoardAttributeFieldDelete = () => {
     const dispatch = useDispatch();
-    const promptDelete = (field: BoardPropertyField) => {
+    const promptDelete = () => {
         return new Promise<boolean>((resolve) => {
             let settled = false;
             const settle = (value: boolean) => {
@@ -34,7 +32,6 @@ export const useBoardAttributeFieldDelete = () => {
                 modalId: ModalIdentifiers.BOARD_ATTRIBUTE_FIELD_DELETE,
                 dialogType: RemoveBoardAttributeFieldModal,
                 dialogProps: {
-                    name: field.name,
                     onConfirm: () => settle(true),
                     onCancel: () => settle(false),
                     onExited: () => settle(false),
@@ -47,7 +44,6 @@ export const useBoardAttributeFieldDelete = () => {
 };
 
 function RemoveBoardAttributeFieldModal({
-    name,
     onExited,
     onCancel,
     onConfirm,
