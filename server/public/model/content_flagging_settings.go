@@ -110,15 +110,15 @@ type ReviewerSettings struct {
 
 func (rs *ReviewerSettings) SetDefaults() {
 	if rs.CommonReviewers == nil {
-		rs.CommonReviewers = NewPointer(true)
+		rs.CommonReviewers = new(true)
 	}
 
 	if rs.SystemAdminsAsReviewers == nil {
-		rs.SystemAdminsAsReviewers = NewPointer(false)
+		rs.SystemAdminsAsReviewers = new(false)
 	}
 
 	if rs.TeamAdminsAsReviewers == nil {
-		rs.TeamAdminsAsReviewers = NewPointer(true)
+		rs.TeamAdminsAsReviewers = new(true)
 	}
 }
 
@@ -135,15 +135,15 @@ func (acfs *AdditionalContentFlaggingSettings) SetDefaults() {
 	}
 
 	if acfs.ReporterCommentRequired == nil {
-		acfs.ReporterCommentRequired = NewPointer(true)
+		acfs.ReporterCommentRequired = new(true)
 	}
 
 	if acfs.ReviewerCommentRequired == nil {
-		acfs.ReviewerCommentRequired = NewPointer(true)
+		acfs.ReviewerCommentRequired = new(true)
 	}
 
 	if acfs.HideFlaggedContent == nil {
-		acfs.HideFlaggedContent = NewPointer(true)
+		acfs.HideFlaggedContent = new(true)
 	}
 }
 
@@ -163,7 +163,7 @@ type ContentFlaggingSettingsBase struct {
 
 func (cfs *ContentFlaggingSettingsBase) SetDefaults() {
 	if cfs.EnableContentFlagging == nil {
-		cfs.EnableContentFlagging = NewPointer(false)
+		cfs.EnableContentFlagging = new(false)
 	}
 
 	if cfs.NotificationSettings == nil {

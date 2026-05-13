@@ -3,7 +3,12 @@
 
 import {combineReducers} from 'redux';
 
-import type {PropertyField, PropertyFieldsState, PropertyGroupsState, PropertyValuesState} from '@mattermost/types/properties';
+import type {
+    PropertyField,
+    PropertyFieldsState,
+    PropertyGroupsState,
+    PropertyValuesState,
+} from '@mattermost/types/properties';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {PropertyTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -24,7 +29,10 @@ const initialGroupsState: PropertyGroupsState = {
     byName: {},
 };
 
-function fieldsReducer(state: PropertyFieldsState = initialFieldsState, action: MMReduxAction): PropertyFieldsState {
+function fieldsReducer(
+    state: PropertyFieldsState = initialFieldsState,
+    action: MMReduxAction,
+): PropertyFieldsState {
     switch (action.type) {
     case PropertyTypes.RECEIVED_PROPERTY_FIELDS: {
         const fields: PropertyField[] = action.data.fields;
@@ -37,7 +45,7 @@ function fieldsReducer(state: PropertyFieldsState = initialFieldsState, action: 
         let changed = false;
 
         for (const field of fields) {
-            if (isPSAv1PropertyField(field) || field.delete_at > 0) {
+            if (isPSAv1PropertyField(field)) {
                 continue;
             }
 
@@ -49,17 +57,31 @@ function fieldsReducer(state: PropertyFieldsState = initialFieldsState, action: 
 
             if (!nextByObjectType[objectType]) {
                 nextByObjectType[objectType] = {};
-            } else if (nextByObjectType[objectType] === state.byObjectType[objectType]) {
-                nextByObjectType[objectType] = {...nextByObjectType[objectType]};
+            } else if (
+                nextByObjectType[objectType] ===
+                    state.byObjectType[objectType]
+            ) {
+                nextByObjectType[objectType] = {
+                    ...nextByObjectType[objectType],
+                };
             }
 
             if (!nextByObjectType[objectType][groupId]) {
                 nextByObjectType[objectType][groupId] = {};
-            } else if (nextByObjectType[objectType][groupId] === state.byObjectType[objectType]?.[groupId]) {
-                nextByObjectType[objectType][groupId] = {...nextByObjectType[objectType][groupId]};
+            } else if (
+                nextByObjectType[objectType][groupId] ===
+                    state.byObjectType[objectType]?.[groupId]
+            ) {
+                nextByObjectType[objectType][groupId] = {
+                    ...nextByObjectType[objectType][groupId],
+                };
             }
 
-            nextByObjectType[objectType][groupId][field.id] = field;
+            if (field.delete_at > 0) {
+                Reflect.deleteProperty(nextByObjectType[objectType][groupId], field.id);
+            } else {
+                nextByObjectType[objectType][groupId][field.id] = field;
+            }
         }
 
         if (!changed) {
@@ -84,11 +106,18 @@ function fieldsReducer(state: PropertyFieldsState = initialFieldsState, action: 
 
         const nextByObjectType = {...state.byObjectType};
         nextByObjectType[objectType] = {...nextByObjectType[objectType]};
-        nextByObjectType[objectType][groupId] = {...nextByObjectType[objectType][groupId]};
-        Reflect.deleteProperty(nextByObjectType[objectType][groupId], fieldId);
+        nextByObjectType[objectType][groupId] = {
+            ...nextByObjectType[objectType][groupId],
+        };
+        Reflect.deleteProperty(
+            nextByObjectType[objectType][groupId],
+            fieldId,
+        );
 
         // Clean up empty buckets
-        if (Object.keys(nextByObjectType[objectType][groupId]).length === 0) {
+        if (
+            Object.keys(nextByObjectType[objectType][groupId]).length === 0
+        ) {
             Reflect.deleteProperty(nextByObjectType[objectType], groupId);
             if (Object.keys(nextByObjectType[objectType]).length === 0) {
                 Reflect.deleteProperty(nextByObjectType, objectType);
@@ -106,10 +135,13 @@ function fieldsReducer(state: PropertyFieldsState = initialFieldsState, action: 
     }
 }
 
-function valuesReducer(state: PropertyValuesState = initialValuesState, action: MMReduxAction): PropertyValuesState {
+function valuesReducer(
+    state: PropertyValuesState = initialValuesState,
+    action: MMReduxAction,
+): PropertyValuesState {
     switch (action.type) {
     case PropertyTypes.RECEIVED_PROPERTY_VALUES: {
-        const values = action.data.values;
+        const values = action.data.values ?? [];
         if (values.length === 0) {
             return state;
         }
@@ -123,7 +155,9 @@ function valuesReducer(state: PropertyValuesState = initialValuesState, action: 
             // byTargetId
             if (!nextByTargetId[targetId]) {
                 nextByTargetId[targetId] = {};
-            } else if (nextByTargetId[targetId] === state.byTargetId[targetId]) {
+            } else if (
+                nextByTargetId[targetId] === state.byTargetId[targetId]
+            ) {
                 nextByTargetId[targetId] = {...nextByTargetId[targetId]};
             }
             nextByTargetId[targetId][fieldId] = value;
@@ -131,7 +165,9 @@ function valuesReducer(state: PropertyValuesState = initialValuesState, action: 
             // byFieldId
             if (!nextByFieldId[fieldId]) {
                 nextByFieldId[fieldId] = {};
-            } else if (nextByFieldId[fieldId] === state.byFieldId[fieldId]) {
+            } else if (
+                nextByFieldId[fieldId] === state.byFieldId[fieldId]
+            ) {
                 nextByFieldId[fieldId] = {...nextByFieldId[fieldId]};
             }
             nextByFieldId[fieldId][targetId] = value;
@@ -221,7 +257,10 @@ function valuesReducer(state: PropertyValuesState = initialValuesState, action: 
     }
 }
 
-function groupsReducer(state: PropertyGroupsState = initialGroupsState, action: MMReduxAction): PropertyGroupsState {
+function groupsReducer(
+    state: PropertyGroupsState = initialGroupsState,
+    action: MMReduxAction,
+): PropertyGroupsState {
     switch (action.type) {
     case PropertyTypes.RECEIVED_PROPERTY_GROUP: {
         const group = action.data;

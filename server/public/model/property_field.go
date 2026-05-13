@@ -46,7 +46,11 @@ const (
 	PropertyFieldObjectTypeChannel  = "channel"
 	PropertyFieldObjectTypeUser     = "user"
 	PropertyFieldObjectTypeTemplate = "template"
-	PropertyFieldObjectTypeSystem   = "system"
+
+	PropertyFieldObjectTypeSystem = "system"
+
+	// NOTE: Temporarily using this until CPA is migrated to v2
+	ClassificationMarkingsPropertyGroupName = "classification_markings"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.
