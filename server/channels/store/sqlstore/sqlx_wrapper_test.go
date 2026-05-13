@@ -168,10 +168,10 @@ func TestSqlxQueryRow(t *testing.T) {
 	})
 }
 
-func TestWithQueryTimeout(t *testing.T) {
+func TestEnsureQueryTimeout(t *testing.T) {
 	t.Run("no deadline adds timeout", func(t *testing.T) {
 		timeout := 30 * time.Second
-		ctx, cancel := withQueryTimeout(context.Background(), timeout)
+		ctx, cancel := ensureQueryTimeout(context.Background(), timeout)
 		defer cancel()
 		deadline, ok := ctx.Deadline()
 		require.True(t, ok)
@@ -183,7 +183,7 @@ func TestWithQueryTimeout(t *testing.T) {
 		parent, parentCancel := context.WithDeadline(context.Background(), originalDeadline)
 		defer parentCancel()
 
-		ctx, cancel := withQueryTimeout(parent, 30*time.Second)
+		ctx, cancel := ensureQueryTimeout(parent, 30*time.Second)
 		defer cancel()
 
 		deadline, ok := ctx.Deadline()
@@ -195,13 +195,13 @@ func TestWithQueryTimeout(t *testing.T) {
 		parent, parentCancel := context.WithTimeout(context.Background(), time.Minute)
 		defer parentCancel()
 
-		_, cancel := withQueryTimeout(parent, 30*time.Second)
+		_, cancel := ensureQueryTimeout(parent, 30*time.Second)
 		require.NotPanics(t, func() { cancel() }) // calling the no-op cancel must not panic
 	})
 
 	t.Run("noTimeoutKey suppresses timeout injection", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), noTimeoutKey{}, true)
-		newCtx, cancel := withQueryTimeout(ctx, 30*time.Second)
+		newCtx, cancel := ensureQueryTimeout(ctx, 30*time.Second)
 		defer cancel()
 		_, ok := newCtx.Deadline()
 		require.False(t, ok)

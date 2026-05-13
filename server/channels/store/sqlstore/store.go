@@ -480,7 +480,7 @@ func (ss *SqlStore) analyticsContext() (context.Context, context.CancelFunc) {
 }
 
 // noTimeoutContext returns a context that suppresses automatic timeout injection
-// by withQueryTimeout. Use only for queries that legitimately must be unbounded,
+// by ensureQueryTimeout. Use only for queries that legitimately must be unbounded,
 // such as schema introspection or long-running migrations.
 func (ss *SqlStore) noTimeoutContext() context.Context {
 	return context.WithValue(context.Background(), noTimeoutKey{}, true)
