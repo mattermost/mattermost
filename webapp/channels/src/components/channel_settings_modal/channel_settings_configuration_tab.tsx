@@ -14,6 +14,7 @@ import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {Client4} from 'mattermost-redux/client';
 import {isChannelAutotranslated as isChannelAutotranslatedSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getRemotesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import {
@@ -103,6 +104,8 @@ function ChannelSettingsConfigurationTab({
     const classificationBanner = useChannelClassificationBanner(channel.id);
 
     const classification = useClassificationMarkings();
+    const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
+    const canManageClassification = classification.available && isSystemAdmin;
     const [classificationEnabled, setClassificationEnabled] = useState(classificationBanner.hasClassification);
     const [selectedClassificationId, setSelectedClassificationId] = useState(classificationBanner.classificationId || '');
 
@@ -603,11 +606,11 @@ function ChannelSettingsConfigurationTab({
                 </>
             )}
 
-            {canManageSharedChannels && (classification.available || canManageBanner) && (
+            {canManageSharedChannels && (canManageClassification || canManageBanner) && (
                 <div className='ChannelSettingsModal__configurationTab__configurationDivider'/>
             )}
 
-            {classification.available && (
+            {canManageClassification && (
                 <>
                     <div className='channel_banner_header'>
                         <div className='channel_banner_header__text'>
@@ -682,7 +685,7 @@ function ChannelSettingsConfigurationTab({
                 </>
             )}
 
-            {classification.available && canManageBanner && (
+            {canManageClassification && canManageBanner && (
                 <div className='ChannelSettingsModal__configurationTab__configurationDivider'/>
             )}
 

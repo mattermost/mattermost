@@ -527,6 +527,65 @@ describe('ClassificationMarkings component', () => {
         expect(screen.getByText('Classification levels')).toBeInTheDocument();
     });
 
+    test('should not show Custom option in preset dropdown when a named preset is active', async () => {
+        const usPreset = presets.find((p) => p.id === 'us')!;
+        const field = makePropertyField({
+            attrs: {
+                options: usPreset.levels.map((l) => ({
+                    id: l.id,
+                    name: l.name,
+                    color: l.color,
+                    rank: l.rank,
+                })),
+            },
+        });
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([]); // linked field
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+
+        await screen.findByText('Classification levels');
+
+        // The selected value in the dropdown should be US, not Custom
+        expect(screen.queryByText('Custom classification levels')).not.toBeInTheDocument();
+    });
+
+    test('should show Custom indicator after editing a level', async () => {
+        const usPreset = presets.find((p) => p.id === 'us')!;
+        const field = makePropertyField({
+            attrs: {
+                options: usPreset.levels.map((l) => ({
+                    id: l.id,
+                    name: l.name,
+                    color: l.color,
+                    rank: l.rank,
+                })),
+            },
+        });
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([]); // linked field
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+
+        await screen.findByText('Classification levels');
+
+        const user = userEvent.setup();
+
+        // Initially shows US preset, not Custom
+        expect(screen.queryByText('Custom classification levels')).not.toBeInTheDocument();
+
+        // Edit the first level name to trigger switchToCustom
+        const nameInputs = screen.getAllByRole('textbox', {name: /Classification level name/i});
+        await user.clear(nameInputs[0]);
+        await user.type(nameInputs[0], 'MODIFIED');
+        await user.tab();
+
+        // Custom should now appear as the selected dropdown value
+        expect(screen.getByText('Custom classification levels')).toBeInTheDocument();
+    });
+
     test('should detect hasChanges when toggling enabled', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 

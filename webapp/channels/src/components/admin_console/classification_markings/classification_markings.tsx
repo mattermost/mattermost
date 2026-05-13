@@ -219,20 +219,21 @@ export default function ClassificationMarkings({disabled}: Props) {
     }, []);
 
     const presetDropdownOptions = useMemo((): ValueType[] => {
-        return [
-            ...presets.map((p) => ({value: p.id, label: p.label})),
-            {
+        const options = presets.map((p) => ({value: p.id, label: p.label}));
+        if (presetId === PRESET_CUSTOM) {
+            options.push({
                 value: PRESET_CUSTOM,
                 label: formatMessage({
                     id: 'admin.classification_markings.preset.custom',
                     defaultMessage: 'Custom classification levels',
                 }),
-            },
-        ];
-    }, [formatMessage]);
+            });
+        }
+        return options;
+    }, [formatMessage, presetId]);
 
     const presetDropdownValue = useMemo(() => {
-        return presetDropdownOptions.find((o) => o.value === presetId) ?? presetDropdownOptions[presetDropdownOptions.length - 1]!;
+        return presetDropdownOptions.find((o) => o.value === presetId) ?? presetDropdownOptions[0]!;
     }, [presetDropdownOptions, presetId]);
 
     const handlePresetDropdownChange = useCallback((selected: ValueType | null) => {
@@ -240,10 +241,6 @@ export default function ClassificationMarkings({disabled}: Props) {
             return;
         }
         const newPresetId = selected.value;
-        if (newPresetId === PRESET_CUSTOM) {
-            setPresetId(PRESET_CUSTOM);
-            return;
-        }
         if (levels.length > 0) {
             setConfirmPresetSwitch(newPresetId);
             return;

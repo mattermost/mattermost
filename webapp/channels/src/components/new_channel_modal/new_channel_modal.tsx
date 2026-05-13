@@ -21,6 +21,7 @@ import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSid
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
@@ -100,6 +101,8 @@ const NewChannelModal = () => {
     const [managedCategoryName, setManagedCategoryName] = useState<string | undefined>(undefined);
 
     const classification = useClassificationMarkings();
+    const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
+    const canManageClassification = classification.available && isSystemAdmin;
     const [classificationEnabled, setClassificationEnabled] = useState(false);
     const [selectedClassificationId, setSelectedClassificationId] = useState('');
     const [bannerText, setBannerText] = useState('');
@@ -427,7 +430,7 @@ const NewChannelModal = () => {
                         />
                     }
                 </div>
-                {classification.available && (
+                {canManageClassification && (
                     <div className='new-channel-modal-classification'>
                         <div className='new-channel-modal-classification__header'>
                             <div className='new-channel-modal-classification__header-text'>

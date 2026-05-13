@@ -744,6 +744,18 @@ describe('ChannelSettingsConfigurationTab', () => {
     });
 
     describe('Classification', () => {
+        const SYSADMIN_USER_ID = 'sysadmin_user_1';
+        const sysAdminState = {
+            entities: {
+                users: {
+                    currentUserId: SYSADMIN_USER_ID,
+                    profiles: {
+                        [SYSADMIN_USER_ID]: {id: SYSADMIN_USER_ID, roles: 'system_admin system_user'},
+                    },
+                },
+            },
+        };
+
         const TEMPLATE_FIELD_ID = 'template_field_1';
         const CHANNEL_FIELD_ID = 'channel_field_1';
         const LEVEL_UNCLASSIFIED = {id: 'lvl_unclass', name: 'UNCLASSIFIED', color: '#007A33', rank: 1};
@@ -801,6 +813,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
+                sysAdminState,
             );
 
             expect(screen.getByText('Classification')).toBeInTheDocument();
@@ -808,7 +821,19 @@ describe('ChannelSettingsConfigurationTab', () => {
         });
 
         it('does not render the Classification section when feature is unavailable', () => {
-            renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+            renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>, sysAdminState);
+
+            expect(screen.queryByText('Classification')).not.toBeInTheDocument();
+        });
+
+        it('does not render the Classification section for non-sysadmin users', () => {
+            enableClassification();
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
 
             expect(screen.queryByText('Classification')).not.toBeInTheDocument();
         });
@@ -825,6 +850,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
+                sysAdminState,
             );
 
             await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
@@ -852,6 +878,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
+                sysAdminState,
             );
 
             const textInput = await screen.findByTestId('channel_banner_banner_text_textbox');
@@ -890,6 +917,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
+                sysAdminState,
             );
 
             // Edit only the banner text without changing the classification toggle or level.
@@ -923,7 +951,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
-                {},
+                sysAdminState,
                 {useMockedStore: true},
             );
 
@@ -960,6 +988,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
+                sysAdminState,
             );
 
             // Toggle off → triggers changes → Save panel appears with Reset.
@@ -990,6 +1019,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
+                sysAdminState,
             );
 
             // Enable classification toggle.
@@ -1021,6 +1051,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     {...baseProps}
                     canManageSharedChannels={true}
                 />,
+                sysAdminState,
             );
 
             // Toggle off then on to create a classification state change.
