@@ -462,8 +462,8 @@ func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, rctx request.CTX, 
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o1, err := ss.Webhook().SaveOutgoing(o1)
-	require.NoError(t, err)
+	o1, errSave := ss.Webhook().SaveOutgoing(o1)
+	require.NoError(t, errSave)
 
 	o2 := &model.OutgoingWebhook{}
 	o2.ChannelId = o1.ChannelId
@@ -471,8 +471,8 @@ func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, rctx request.CTX, 
 	o2.TeamId = model.NewId()
 	o2.CallbackURLs = []string{"http://nowhere.com/"}
 
-	_, err = ss.Webhook().SaveOutgoing(o2)
-	require.NoError(t, err)
+	_, errSave = ss.Webhook().SaveOutgoing(o2)
+	require.NoError(t, errSave)
 
 	t.Run("GetOutgoingByChannelByUser, no user filter", func(t *testing.T) {
 		hooks, err := ss.Webhook().GetOutgoingByChannel(o1.ChannelId, 0, 100)
@@ -491,6 +491,27 @@ func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, rctx request.CTX, 
 		hooks, err := ss.Webhook().GetOutgoingByChannelByUser(o1.ChannelId, "123465", 0, 100)
 		require.NoError(t, err)
 		require.Equal(t, 0, len(hooks))
+	})
+
+	t.Run("GetOutgoingByChannelByUser, ordered alphabetically by display name", func(t *testing.T) {
+		channelId := model.NewId()
+		hookC := &model.OutgoingWebhook{ChannelId: channelId, CreatorId: model.NewId(), TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Charlie"}
+		hookA := &model.OutgoingWebhook{ChannelId: channelId, CreatorId: model.NewId(), TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Alpha"}
+		hookB := &model.OutgoingWebhook{ChannelId: channelId, CreatorId: model.NewId(), TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Bravo"}
+
+		hookC, err := ss.Webhook().SaveOutgoing(hookC)
+		require.NoError(t, err)
+		hookA, err = ss.Webhook().SaveOutgoing(hookA)
+		require.NoError(t, err)
+		hookB, err = ss.Webhook().SaveOutgoing(hookB)
+		require.NoError(t, err)
+
+		hooks, err := ss.Webhook().GetOutgoingByChannel(channelId, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, hooks, 3)
+		require.Equal(t, hookA.Id, hooks[0].Id, "first result should be Alpha (alphabetical order)")
+		require.Equal(t, hookB.Id, hooks[1].Id, "second result should be Bravo (alphabetical order)")
+		require.Equal(t, hookC.Id, hooks[2].Id, "third result should be Charlie (alphabetical order)")
 	})
 }
 

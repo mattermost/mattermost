@@ -299,7 +299,8 @@ func (s SqlWebhookStore) GetOutgoingByChannelByUser(channelId string, userId str
 		Where(sq.And{
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": 0},
-		})
+		}).
+		OrderBy("DisplayName", "Id")
 
 	if userId != "" {
 		query = query.Where(sq.Eq{"CreatorId": userId})
