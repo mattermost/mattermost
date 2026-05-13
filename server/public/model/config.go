@@ -138,6 +138,12 @@ const (
 	FileSettingsDefaultS3UploadPartSizeBytes       = 5 * 1024 * 1024   // 5MB
 	FileSettingsDefaultS3ExportUploadPartSizeBytes = 100 * 1024 * 1024 // 100MB
 
+	// maxAzureRequestTimeoutMilliseconds caps the per-request timeout so a
+	// hung Azure call cannot keep a goroutine open indefinitely. Ten minutes
+	// is well beyond any realistic single-request workload and matches the
+	// upper end of Azure SDK retry guidance.
+	maxAzureRequestTimeoutMilliseconds = 10 * 60 * 1000
+
 	ImportSettingsDefaultDirectory     = "./import"
 	ImportSettingsDefaultRetentionDays = 30
 
@@ -4492,7 +4498,7 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.amazons3_timeout.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
 	}
 
-	if *s.AzureRequestTimeoutMilliseconds <= 0 {
+	if *s.AzureRequestTimeoutMilliseconds <= 0 || *s.AzureRequestTimeoutMilliseconds > maxAzureRequestTimeoutMilliseconds {
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_timeout.app_error", map[string]any{"Value": *s.AzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
 	}
 
@@ -4516,7 +4522,7 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.ExportAmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
 
-	if *s.ExportAzureRequestTimeoutMilliseconds <= 0 {
+	if *s.ExportAzureRequestTimeoutMilliseconds <= 0 || *s.ExportAzureRequestTimeoutMilliseconds > maxAzureRequestTimeoutMilliseconds {
 		return NewAppError("Config.IsValid", "model.config.is_valid.export_azure_timeout.app_error", map[string]any{"Value": *s.ExportAzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
 	}
 
