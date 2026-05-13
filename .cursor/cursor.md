@@ -53,7 +53,7 @@ Prefer verifying UI changes against the running local Mattermost instance before
 
 ## AWS And PR Artifacts
 
-AWS CLI v2 is installed for uploading screenshots or reports. Prefer Cursor's IAM role integration; when configured, the environment provides `AWS_CONFIG_FILE`, `AWS_PROFILE=cursor-cloud-agent`, and `AWS_SDK_LOAD_CONFIG=1`.
+AWS CLI v2 is installed for uploading screenshots or reports. Cloud Agents should receive `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_S3_BUCKET_NAME` as environment variables.
 
 Before uploading, verify credentials with:
 

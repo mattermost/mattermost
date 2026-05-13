@@ -118,6 +118,8 @@ RUN case "$(dpkg --print-architecture)" in \
     curl --retry 3 --retry-delay 5 -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${go_arch}.tar.gz" -o /tmp/go.tgz && \
     rm -rf /usr/local/go && \
     tar -C /usr/local -xzf /tmp/go.tgz && \
+    ln -sfnT /usr/local/go/bin/go /usr/local/bin/go && \
+    ln -sfnT /usr/local/go/bin/gofmt /usr/local/bin/gofmt && \
     rm -f /tmp/go.tgz
 
 RUN case "$(dpkg --print-architecture)" in \

@@ -18,6 +18,18 @@ cd "$ROOT"
 NODE_VERSION="${CLOUD_AGENT_NODE_VERSION:-24.11.1}"
 AGENT_BROWSER_VERSION="${CLOUD_AGENT_BROWSER_VERSION:-0.27.0}"
 
+export GOPATH="${GOPATH:-$HOME/go}"
+export PATH="/usr/local/go/bin:$GOPATH/bin:/usr/local/bin:$PATH"
+
+ensure_go() {
+  if ! command -v go >/dev/null 2>&1; then
+    log "Go is not available on PATH. PATH=$PATH"
+    return 1
+  fi
+
+  log "Using $(go version)"
+}
+
 source_node() {
   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
   if [ -s "$NVM_DIR/nvm.sh" ]; then
@@ -215,6 +227,7 @@ hydrate_playwright_dependencies() {
   fi
 }
 
+ensure_go
 ensure_node
 sync_enterprise_repo
 hydrate_go_dependencies

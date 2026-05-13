@@ -34,4 +34,4 @@ Set these environment variables to `true` to shorten startup for narrow tasks:
 ## Expected Secrets
 
 - `CURSOR_GH_TOKEN` is needed for the private `mattermost/enterprise` clone until Cursor multi-repo environments are enabled for this repo group.
-- AWS access should use Cursor's IAM role integration when possible. When configured, Cursor provides `AWS_CONFIG_FILE`, `AWS_PROFILE=cursor-cloud-agent`, and `AWS_SDK_LOAD_CONFIG=1`; the image only supplies the `aws` binary.
+- AWS uploads use the standard AWS CLI environment variables provided to the Cloud Agent: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_S3_BUCKET_NAME`. The image only supplies the `aws` binary.
