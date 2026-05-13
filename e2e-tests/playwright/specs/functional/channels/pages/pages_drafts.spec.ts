@@ -32,6 +32,7 @@ import {
     SHORT_WAIT,
     WEBSOCKET_WAIT,
     HIERARCHY_TIMEOUT,
+    PAGE_LOAD_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -93,7 +94,6 @@ test(
 
         // # Navigate to Page A and edit
         await clickPageInHierarchy(page, 'Page A');
-        await page.waitForLoadState('networkidle');
         await enterEditMode(page);
 
         const editor = await getEditorAndWait(page);
@@ -107,7 +107,6 @@ test(
 
         // * Verify navigation completes immediately without prompt
         await page.waitForURL(new RegExp(`/wiki/.*/${pageB.id}`));
-        await page.waitForLoadState('networkidle');
         await verifyPageContentContains(page, 'Original content B');
 
         // * Verify hierarchy does NOT show a draft node for Page A (only the published page)
@@ -121,7 +120,6 @@ test(
 
         // # Navigate back to Page A
         await clickPageInHierarchy(page, 'Page A');
-        await page.waitForLoadState('networkidle');
 
         // * Verify viewing published page (not draft)
         await verifyPageContentContains(page, 'Original content A');
@@ -138,7 +136,7 @@ test(
         // * Verify NO modal appears (auto-resumes like Confluence)
         // * Verify automatically navigated to draft URL
         await page.waitForURL(/\/drafts\//);
-        await page.waitForLoadState('networkidle');
+        await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
 
         // * Verify editor shows draft content (auto-resumed)
         const editorAfter = await getEditorAndWait(page);
@@ -448,7 +446,7 @@ test('navigates to draft editor when clicking draft node', {tag: '@pages'}, asyn
     });
     await expect(draftNode).toBeVisible();
     await draftNode.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForURL(/\/drafts\/|\/edit/, {timeout: PAGE_LOAD_TIMEOUT});
 
     // * Verify navigated to draft editor
     const currentUrl = page.url();
