@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {SortDirection, Table} from '@tanstack/react-table';
+import {combine} from '@atlaskit/pragmatic-drag-and-drop/combine';
+import {draggable, dropTargetForElements, monitorForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
+import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
+import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import {flexRender} from '@tanstack/react-table';
+import type {SortDirection, Table, Row} from '@tanstack/react-table';
 import classNames from 'classnames';
-import React, {useMemo} from 'react';
-import type {AriaAttributes, MouseEvent, ReactNode} from 'react';
-import type {DropResult} from 'react-beautiful-dnd';
-import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import type {AriaAttributes, KeyboardEvent, MouseEvent, ReactNode} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {IndicatorsContainerProps, OnChangeValue} from 'react-select';
@@ -80,6 +83,150 @@ type Props<TableType extends TableMandatoryTypes> = {
 };
 
 /**
+ * Returns the destination index after accounting for the source item being
+ * removed from its original position and the closest edge of the drop target.
+ */
+function getDropIndex(
+    sourceIndex: number,
+    targetIndex: number,
+    edge: Edge | null,
+): number {
+    if (edge === 'top') {
+        // Insert before the target
+        if (sourceIndex < targetIndex) {
+            return targetIndex - 1;
+        }
+        return targetIndex;
+    }
+
+    // 'bottom' — insert after the target
+    if (sourceIndex < targetIndex) {
+        return targetIndex;
+    }
+    return targetIndex + 1;
+}
+
+type DraggableRowProps<T extends TableMandatoryTypes> = {
+    row: Row<T>;
+    tableMeta: TableMeta;
+    rowIdPrefix: string;
+    cellIdPrefix: string;
+    headerIdPrefix: string;
+    handleRowClick: (e: MouseEvent<HTMLTableRowElement>) => void;
+};
+
+function DraggableRow<T extends TableMandatoryTypes>({
+    row,
+    tableMeta,
+    rowIdPrefix,
+    cellIdPrefix,
+    headerIdPrefix,
+    handleRowClick,
+}: DraggableRowProps<T>) {
+    const {formatMessage} = useIntl();
+    const rowRef = useRef<HTMLTableRowElement>(null);
+    const handleRef = useRef<HTMLButtonElement>(null);
+    const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
+
+    const dragEnabled =
+        Boolean(tableMeta.onReorder) &&
+        tableMeta.isRowDragDisabled?.(row.original.id) !== true;
+
+    const dragKind = `list-table-row:${tableMeta.tableId}`;
+
+    useEffect(() => {
+        const rowEl = rowRef.current;
+        if (!rowEl || !dragEnabled) {
+            return undefined;
+        }
+
+        const cleanup = combine(
+            draggable({
+                element: rowEl,
+                dragHandle: handleRef.current ?? undefined,
+                getInitialData: () => ({
+                    kind: dragKind,
+                    rowId: row.original.id,
+                    rowIndex: row.index,
+                }),
+            }),
+            dropTargetForElements({
+                element: rowEl,
+                canDrop: ({source}) =>
+                    source.data.kind === dragKind &&
+                    source.data.rowId !== row.original.id,
+                getData: ({input, element}) =>
+                    attachClosestEdge(
+                        {kind: dragKind, rowId: row.original.id, rowIndex: row.index},
+                        {input, element, allowedEdges: ['top', 'bottom']},
+                    ),
+                onDrag: ({self}) => setClosestEdge(extractClosestEdge(self.data)),
+                onDragLeave: () => setClosestEdge(null),
+                onDrop: () => setClosestEdge(null),
+            }),
+        );
+
+        return cleanup;
+    }, [dragEnabled, dragKind, row.original.id, row.index]);
+
+    const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (row.index > 0) {
+                tableMeta.onReorder?.(row.index, row.index - 1);
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            tableMeta.onReorder?.(row.index, row.index + 1);
+        }
+    };
+
+    return (
+        <tr
+            ref={rowRef}
+            id={`${rowIdPrefix}${row.original.id}`}
+            key={row.id}
+            onClick={handleRowClick}
+            className={classNames({clickable: Boolean(tableMeta.onRowClick)})}
+            style={{position: 'relative'}}
+        >
+            {row.getVisibleCells().map((cell, i) => (
+                <td
+                    key={cell.id}
+                    id={`${cellIdPrefix}${cell.id}`}
+                    headers={`${headerIdPrefix}${cell.column.id}`}
+                    className={classNames(`${cell.column.id}`, {
+                        [PINNED_CLASS]: cell.column.getCanPin(),
+                    })}
+                    style={{width: cell.column.getSize()}}
+                >
+                    {tableMeta.onReorder && i === 0 && (
+                        tableMeta.isRowDragDisabled?.(row.original.id) === true ? (
+                            <span className='dragHandle dragHandle--disabled'/>
+                        ) : (
+                            <button
+                                ref={handleRef}
+                                type='button'
+                                className='dragHandle'
+                                aria-label={formatMessage({
+                                    id: 'adminConsole.list.table.dragHandleLabel',
+                                    defaultMessage: 'Reorder row',
+                                })}
+                                onKeyDown={handleKeyDown}
+                            >
+                                <DragVerticalIcon size={18}/>
+                            </button>
+                        )
+                    )}
+                    {cell.getIsPlaceholder() ? null : flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+            ))}
+            {closestEdge && <DropIndicator edge={closestEdge}/>}
+        </tr>
+    );
+}
+
+/**
  * A wrapper around the react-table component that provides a consistent look and feel for the admin console list tables.
  * It also provides a default pagination component. This table is not meant to be used outside of the admin console since it relies on the admin console styles.
  *
@@ -123,13 +270,29 @@ export function ListTable<TableType extends TableMandatoryTypes>(
         }
     }
 
-    const handleDragEnd = (result: DropResult) => {
-        const {source, destination} = result;
-        if (!destination) {
-            return;
+    // Top-level monitor: resolves drops across the whole table
+    useEffect(() => {
+        if (!tableMeta.onReorder) {
+            return undefined;
         }
-        tableMeta.onReorder?.(source.index, destination.index);
-    };
+        const dragKind = `list-table-row:${tableMeta.tableId}`;
+        return monitorForElements({
+            canMonitor: ({source}) => source.data.kind === dragKind,
+            onDrop: ({source, location}) => {
+                const target = location.current.dropTargets[0];
+                if (!target) {
+                    return;
+                }
+                const sourceIndex = source.data.rowIndex as number;
+                const targetIndex = target.data.rowIndex as number;
+                const edge = extractClosestEdge(target.data);
+                const dropIndex = getDropIndex(sourceIndex, targetIndex, edge);
+                if (dropIndex !== sourceIndex) {
+                    tableMeta.onReorder?.(sourceIndex, dropIndex);
+                }
+            },
+        });
+    }, [tableMeta.onReorder, tableMeta.tableId]);
 
     const colCount = props.table.getAllColumns().length;
     const rowCount = props.table.getRowModel().rows.length;
@@ -208,108 +371,60 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                         </tr>
                     ))}
                 </thead>
-                <DragDropContext onDragEnd={handleDragEnd}>
-                    <Droppable droppableId='table-body'>
-                        {(provided, snap) => (
-                            <tbody
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
+                <tbody>
+                    {props.table.getRowModel().rows.map((row) => (
+                        <DraggableRow
+                            key={row.original.id}
+                            row={row}
+                            tableMeta={tableMeta}
+                            rowIdPrefix={rowIdPrefix}
+                            cellIdPrefix={cellIdPrefix}
+                            headerIdPrefix={headerIdPrefix}
+                            handleRowClick={handleRowClick}
+                        />
+                    ))}
+
+                    {/* State where it is initially loading the data */}
+                    {(tableMeta.loadingState === LoadingStates.Loading && rowCount === 0) && (
+                        <tr>
+                            <td
+                                colSpan={colCount}
+                                className='noRows'
+                                disabled={true}
                             >
-                                {props.table.getRowModel().rows.map((row) => (
-                                    <Draggable
-                                        draggableId={row.original.id}
-                                        key={row.original.id}
-                                        index={row.index}
-                                        isDragDisabled={!tableMeta.onReorder || tableMeta.isRowDragDisabled?.(row.original.id) === true}
-                                    >
-                                        {(provided) => {
-                                            return (
-                                                <tr
-                                                    id={`${rowIdPrefix}${row.original.id}`}
-                                                    key={row.id}
-                                                    onClick={handleRowClick}
-                                                    className={classNames({clickable: Boolean(tableMeta.onRowClick) && !snap.isDraggingOver})}
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                >
-                                                    {row.getVisibleCells().map((cell, i) => (
-                                                        <td
-                                                            key={cell.id}
-                                                            id={`${cellIdPrefix}${cell.id}`}
-                                                            headers={`${headerIdPrefix}${cell.column.id}`}
-                                                            className={classNames(`${cell.column.id}`, {
-                                                                [PINNED_CLASS]: cell.column.getCanPin(),
-                                                            })}
-                                                            style={{width: cell.column.getSize()}}
-                                                        >
-                                                            {tableMeta.onReorder && i === 0 && (
-                                                                tableMeta.isRowDragDisabled?.(row.original.id) === true ? (
-                                                                    <span className='dragHandle dragHandle--disabled'/>
-                                                                ) : (
-                                                                    <span
-                                                                        className='dragHandle'
-                                                                        {...provided.dragHandleProps}
-                                                                    >
-                                                                        <DragVerticalIcon size={18}/>
-                                                                    </span>
-                                                                )
-                                                            )}
-                                                            {cell.getIsPlaceholder() ? null : flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                        </td>
-                                                    ))}
-                                                </tr>
-                                            );
-                                        }}
-                                    </Draggable>
+                                <LoadingSpinner
+                                    text={formatMessage({id: 'adminConsole.list.table.genericLoading', defaultMessage: 'Loading'})}
+                                />
+                            </td>
+                        </tr>
+                    )}
 
-                                ))}
+                    {/* State where there is no data */}
+                    {(tableMeta.loadingState === LoadingStates.Loaded && rowCount === 0) && (
+                        <tr>
+                            <td
+                                colSpan={colCount}
+                                className='noRows'
+                                disabled={true}
+                            >
+                                {tableMeta.emptyDataMessage || formatMessage({id: 'adminConsole.list.table.genericNoData', defaultMessage: 'No data'})}
+                            </td>
+                        </tr>
+                    )}
 
-                                {provided.placeholder}
-
-                                {/* State where it is initially loading the data */}
-                                {(tableMeta.loadingState === LoadingStates.Loading && rowCount === 0) && (
-                                    <tr>
-                                        <td
-                                            colSpan={colCount}
-                                            className='noRows'
-                                            disabled={true}
-                                        >
-                                            <LoadingSpinner
-                                                text={formatMessage({id: 'adminConsole.list.table.genericLoading', defaultMessage: 'Loading'})}
-                                            />
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {/* State where there is no data */}
-                                {(tableMeta.loadingState === LoadingStates.Loaded && rowCount === 0) && (
-                                    <tr>
-                                        <td
-                                            colSpan={colCount}
-                                            className='noRows'
-                                            disabled={true}
-                                        >
-                                            {tableMeta.emptyDataMessage || formatMessage({id: 'adminConsole.list.table.genericNoData', defaultMessage: 'No data'})}
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {/* State where there is an error loading the data */}
-                                {tableMeta.loadingState === LoadingStates.Failed && (
-                                    <tr>
-                                        <td
-                                            colSpan={colCount}
-                                            className='noRows'
-                                            disabled={true}
-                                        >
-                                            {formatMessage({id: 'adminConsole.list.table.genericError', defaultMessage: 'There was an error loading the data, please try again'})}
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        )}
-                    </Droppable>
-                </DragDropContext>
+                    {/* State where there is an error loading the data */}
+                    {tableMeta.loadingState === LoadingStates.Failed && (
+                        <tr>
+                            <td
+                                colSpan={colCount}
+                                className='noRows'
+                                disabled={true}
+                            >
+                                {formatMessage({id: 'adminConsole.list.table.genericError', defaultMessage: 'There was an error loading the data, please try again'})}
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
                 <tfoot>
                     {props.table.getFooterGroups().map((footerGroup) => (
                         <tr key={footerGroup.id}>
