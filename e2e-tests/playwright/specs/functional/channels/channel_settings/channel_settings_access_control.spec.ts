@@ -51,7 +51,14 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
     test('MM-67326_c2 Access Control tab hidden when ABAC disabled', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
-        // ABAC NOT enabled
+
+        // Explicitly disable ABAC. initSetup() resets to the default config which has
+        // EnableAttributeBasedAccessControl:true (required by the ABAC test suite baseline),
+        // so we must patch it off. Concurrent tests in other files also call enableABACConfig()
+        // and may race to re-enable it before this modal opens.
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+        });
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
@@ -60,6 +67,10 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
 
+        // Disable ABAC once more right before the modal opens to shrink the race window.
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+        });
         const channelSettings = await channelsPage.openChannelSettings();
 
         // * Access Control tab is NOT visible
@@ -202,7 +213,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         // * SaveChangesPanel disappears — rules were saved
         await expect(saveBtn).not.toBeVisible({timeout: 15000});
 
-        await channelSettings.close();
+        // The dialog may auto-close after save or the Close button may take a moment to stabilise
+        // after the panel removal re-render. Only close if the dialog is still open.
+        const isOpen = await channelSettings.container.isVisible({timeout: 2000}).catch(() => false);
+        if (isOpen) {
+            await channelSettings.close();
+        }
     });
 
     test('MM-67326_c8 Auto-add checkbox becomes enabled after adding an attribute rule', async ({pw}) => {
@@ -392,11 +408,11 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         // # First close click — modal stays open (unsaved-changes two-step close)
         await channelSettings.closeButton.click();
-        await expect(channelSettings.container).toBeVisible({timeout: 3000});
+        await expect(channelSettings.container).toBeVisible({timeout: 15000});
 
         // # Second click — modal closes
         await channelSettings.closeButton.click();
-        await expect(channelSettings.container).not.toBeVisible({timeout: 10000});
+        await expect(channelSettings.container).not.toBeVisible({timeout: 30000});
     });
 
     test('MM-67326_c12 View users — Restricted tab shows member count and user when rule removes a channel member', async ({

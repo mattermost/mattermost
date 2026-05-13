@@ -333,17 +333,7 @@
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - id
-                - version
-              properties:
-                id:
-                  type: string
-                  description: The ID of the plugin to install.
-                version:
-                  type: string
-                  description: The version of the plugin to install.
+              $ref: "#/components/schemas/InstallMarketplacePluginRequest"
         description: The metadata identifying the plugin to install.
         required: true
       responses:
@@ -477,3 +467,59 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+
+  /api/v4/plugins/reattach:
+    post:
+      tags:
+        - plugins
+      summary: Reattach a plugin process
+      description: |
+        Reattaches the server to an already running plugin process.
+        This endpoint is only exposed over a local socket.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: ReattachPlugin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PluginReattachRequest"
+      responses:
+        "200":
+          description: Plugin reattached successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  "/api/v4/plugins/{plugin_id}/detach":
+    post:
+      tags:
+        - plugins
+      summary: Detach a reattached plugin process
+      description: |
+        Detaches a previously reattached plugin from the server.
+        This endpoint is only exposed over a local socket.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: DetachPlugin
+      parameters:
+        - name: plugin_id
+          in: path
+          description: The ID of the plugin to detach.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Plugin detached successfully
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

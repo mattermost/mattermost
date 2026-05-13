@@ -2102,6 +2102,14 @@
     "translation": "The user is not a content reviewer."
   },
   {
+    "id": "api.data_spillage.report.open.app_error",
+    "translation": "Failed to open the generated flagged post report file."
+  },
+  {
+    "id": "api.data_spillage.report.stat.app_error",
+    "translation": "Failed to read the flagged post report file information."
+  },
+  {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
     "translation": "Can not save draft to deleted channel"
   },
@@ -6055,6 +6063,10 @@
     "translation": "Cleared"
   },
   {
+    "id": "app.data_spillage.report.close.app_error",
+    "translation": "Failed to close the flagged post report file."
+  },
+  {
     "id": "app.data_spillage.report.column.detail",
     "translation": "Detail"
   },
@@ -6123,6 +6135,10 @@
   {
     "id": "app.data_spillage.report.incomplete_warning",
     "translation": "Post deletion incomplete. Review the Error Log and escalate to a System Administrator for manual remediation."
+  },
+  {
+    "id": "app.data_spillage.report.marshal_comment.app_error",
+    "translation": "An error occurred while marshaling the comment for the flagged post report."
   },
   {
     "id": "app.data_spillage.report.post_id",
@@ -6197,12 +6213,48 @@
     "translation": "Summary"
   },
   {
+    "id": "app.data_spillage.report.sync.app_error",
+    "translation": "Failed to sync the flagged post report file to disk."
+  },
+  {
+    "id": "app.data_spillage.report.tempfile.app_error",
+    "translation": "Failed to create a temporary file for the flagged post report."
+  },
+  {
     "id": "app.data_spillage.report.title",
     "translation": "Post Deletion Report"
   },
   {
     "id": "app.data_spillage.report.total_steps",
     "translation": "Total Steps:"
+  },
+  {
+    "id": "app.data_spillage.report.write_edit_yaml.app_error",
+    "translation": "Failed to write edit history entry to the flagged post report."
+  },
+  {
+    "id": "app.data_spillage.report.write_metadata_yaml.app_error",
+    "translation": "Failed to write metadata to the flagged post report."
+  },
+  {
+    "id": "app.data_spillage.report.write_post_yaml.app_error",
+    "translation": "Failed to write post details to the flagged post report."
+  },
+  {
+    "id": "app.data_spillage.report.write_review_yaml.app_error",
+    "translation": "Failed to write content review details to the flagged post report."
+  },
+  {
+    "id": "app.data_spillage.report.zip_close.app_error",
+    "translation": "Failed to close the flagged post report archive."
+  },
+  {
+    "id": "app.data_spillage.report.zip_copy.app_error",
+    "translation": "Failed to copy attachment contents into the flagged post report archive."
+  },
+  {
+    "id": "app.data_spillage.report.zip_create.app_error",
+    "translation": "Failed to create an entry in the flagged post report archive."
   },
   {
     "id": "app.data_spillage.save_reviewer_settings.app_error",
@@ -7523,6 +7575,10 @@
   {
     "id": "app.pap.get_channel_members_to_remove.app_error",
     "translation": "Could not get channel members to remove."
+  },
+  {
+    "id": "app.pap.get_masked_visual_ast.app_error",
+    "translation": "Could not generate masked visual AST from expression."
   },
   {
     "id": "app.pap.get_policies_for_field_ids.app_error",

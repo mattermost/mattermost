@@ -413,7 +413,7 @@ func CalculateChannelExports(rctx request.CTX, opt ChannelExportsParams) (map[st
 
 		for _, channel := range channels {
 			channelMetadata[channel.Id] = &MetadataChannel{
-				TeamId:             model.NewPointer(channel.TeamId),
+				TeamId:             new(channel.TeamId),
 				ChannelId:          channel.Id,
 				ChannelName:        channel.Name,
 				ChannelDisplayName: channel.DisplayName,
