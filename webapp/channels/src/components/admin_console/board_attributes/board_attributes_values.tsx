@@ -23,16 +23,19 @@ import {DangerText} from '../system_properties/controls';
 const COLOR_TOKEN_NAMES = ['default', 'brown', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'red'] as const;
 type ColorToken = typeof COLOR_TOKEN_NAMES[number];
 
+// Palette pulled from Figma node 696:91067 ("Select Chip Color"). These are
+// feature-level domain tokens (not theme variables); same hex values render
+// across light/dark mode pending a dedicated dark-mode pass.
 const colorTokenMap: Record<ColorToken, string> = {
-    default: 'rgba(var(--center-channel-color-rgb), 0.08)',
-    brown: '#e9e5e3',
-    orange: '#fadec9',
-    yellow: '#fdecc8',
-    green: '#dbeddb',
-    blue: '#d3e5ef',
-    purple: '#e8deee',
-    pink: '#f5e0e9',
-    red: '#ffe2dd',
+    default: '#f0f0f1',
+    brown: '#f1d9bb',
+    orange: '#f8cfb9',
+    yellow: '#f4eead',
+    green: '#c5e6bb',
+    blue: '#aec9f5',
+    purple: '#dfcaff',
+    pink: '#f9d2e6',
+    red: '#f3a4a0',
 };
 
 // Backward-compat: prior seeds and earlier dev installs stored "neutral".
@@ -454,13 +457,13 @@ const ChipDeleteButton = styled.button`
     }
 `;
 
-/* Rounded-square colour preview shown inside menu items, matching the look
-   of a paint chip (~18px square, light border for low-saturation colours). */
+/* Rounded-square colour preview shown inside menu items. 20px square with a
+   1px hairline border, per Figma node 696:91067. */
 const ColorPreview = styled.span`
     display: inline-block;
-    width: 18px;
-    height: 18px;
-    border-radius: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
     flex-shrink: 0;
     box-shadow: inset 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.08);
 `;
