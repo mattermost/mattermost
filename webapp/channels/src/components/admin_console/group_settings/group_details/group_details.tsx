@@ -311,17 +311,13 @@ export class GroupDetails extends React.PureComponent<Props, State> {
     };
 
     onChangeRoles = (id: string, type: string, schemeAdmin: boolean) => {
-        const {
-            rolesToChange = {},
-            groupTeams = [],
-            groupChannels = [],
-        } = this.state;
+        const {groupTeams = [], groupChannels = []} = this.state;
         let listToUpdate;
         let getId: (item: any) => string;
         let stateKey;
 
         const key = `${id}/${type}`;
-        rolesToChange[key] = schemeAdmin;
+        const rolesToChange = {...(this.state.rolesToChange ?? {}), [key]: schemeAdmin};
 
         if (
             this.syncableTypeFromEntryType(type) === SyncableType.Team
@@ -335,12 +331,14 @@ export class GroupDetails extends React.PureComponent<Props, State> {
             stateKey = 'groupChannels';
         }
 
+        // Items in listToUpdate may originate from the (deep-frozen) Redux store,
+        // so produce a new object instead of mutating scheme_admin in place.
         const updatedItems = listToUpdate.map((item) => {
             if (getId(item) === id) {
-                item.scheme_admin = schemeAdmin;
+                return {...item, scheme_admin: schemeAdmin};
             }
             return item;
-        }); // clone list of objects
+        });
 
         this.setState({
             saveNeeded: true,
