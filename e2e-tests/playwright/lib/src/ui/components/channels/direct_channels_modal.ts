@@ -33,9 +33,7 @@ export default class DirectChannelsModal {
 
         await row.click();
 
-        await expect(
-            this.container.getByRole('button', {name: `Remove ${user.username}`}),
-        ).toBeVisible();
+        await expect(this.container.getByRole('button', {name: `Remove ${user.username}`})).toBeVisible();
     }
 
     async toHaveNUsersSelected(count: number) {
