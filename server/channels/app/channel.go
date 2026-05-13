@@ -4008,7 +4008,7 @@ func (a *App) setSidebarCategoriesForConvertedGroupMessage(rctx request.CTX, gmC
 		channelsCategory := categories.Categories[0]
 		_, appErr = a.UpdateSidebarCategories(rctx, user.Id, gmConversionRequest.TeamID, []*model.SidebarCategoryWithChannels{channelsCategory})
 		if appErr != nil {
-			rctx.Logger().Error("Failed to add converted GM to default sidebar category for user", mlog.String("user_id", user.Id), mlog.Err(err))
+			rctx.Logger().Error("Failed to add converted GM to default sidebar category for user", mlog.String("user_id", user.Id), mlog.Err(appErr))
 		}
 	}
 
