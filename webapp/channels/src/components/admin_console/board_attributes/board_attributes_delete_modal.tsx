@@ -15,22 +15,29 @@ import {ModalIdentifiers} from 'utils/constants';
 type Props = {
     name: string;
     onConfirm: () => void;
-    onCancel?: () => void;
+    onCancel: () => void;
     onExited: () => void;
 }
-
-const noop = () => {};
 
 export const useBoardAttributeFieldDelete = () => {
     const dispatch = useDispatch();
     const promptDelete = (field: BoardPropertyField) => {
         return new Promise<boolean>((resolve) => {
+            let settled = false;
+            const settle = (value: boolean) => {
+                if (!settled) {
+                    settled = true;
+                    resolve(value);
+                }
+            };
             dispatch(openModal({
                 modalId: ModalIdentifiers.BOARD_ATTRIBUTE_FIELD_DELETE,
                 dialogType: RemoveBoardAttributeFieldModal,
                 dialogProps: {
                     name: field.name,
-                    onConfirm: () => resolve(true),
+                    onConfirm: () => settle(true),
+                    onCancel: () => settle(false),
+                    onExited: () => settle(false),
                 },
             }));
         });
@@ -68,7 +75,7 @@ function RemoveBoardAttributeFieldModal({
         <GenericModal
             confirmButtonText={confirmButtonText}
             confirmButtonVariant='destructive'
-            handleCancel={onCancel ?? noop}
+            handleCancel={onCancel}
             handleConfirm={onConfirm}
             modalHeaderText={title}
             onExited={onExited}

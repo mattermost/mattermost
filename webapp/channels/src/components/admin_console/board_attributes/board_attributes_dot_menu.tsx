@@ -55,7 +55,11 @@ const DotMenu = ({
             // skip prompt when field is pending creation
             deleteField(field.id);
         } else {
-            promptDelete(field).then(() => deleteField(field.id));
+            promptDelete(field).then((confirmed) => {
+                if (confirmed) {
+                    deleteField(field.id);
+                }
+            });
         }
     };
 

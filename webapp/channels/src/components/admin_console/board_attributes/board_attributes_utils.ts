@@ -6,7 +6,8 @@ import isEmpty from 'lodash/isEmpty';
 import {useMemo} from 'react';
 
 import type {ClientError} from '@mattermost/client';
-import type {BoardPropertyField, BoardPropertyFieldGroupID, BoardPropertyFieldPatch, PropertyField} from '@mattermost/types/properties';
+import type {BoardPropertyField, BoardPropertyFieldGroupID, BoardPropertyFieldPatch, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import {supportsOptions} from '@mattermost/types/properties';
 import {collectionAddItem, collectionFromArray, collectionRemoveItem, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
 import type {IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
 
@@ -50,7 +51,10 @@ export const useBoardPropertyFields = () => {
     // pending fields to be saved
     const [pendingCollection, pendingIO] = usePendingThing<BoardPropertyFields, BatchProcessingError<ClientError>>(fieldCollection, useMemo(() => ({
         commit: async (collection: BoardPropertyFields, prevCollection: BoardPropertyFields) => {
-            // prepare ops
+            // Invariant: a field that is "created and then deleted" before save
+            // never reaches this loop — itemOps.delete short-circuits via
+            // collectionRemoveItem when isCreatePending(field), so create_at=0
+            // delete_at!=0 combinations don't end up in either op bucket.
             const process = collectionToArray(collection).reduce<PendingOps<BoardPropertyField>>((ops, item) => {
                 // don't process unchanged items
                 if (item === prevCollection.data[item.id]) {
@@ -202,10 +206,10 @@ export const useBoardPropertyFields = () => {
                     }
                 }
 
-                if (field.type === 'select' || field.type === 'multiselect') {
-                    const options = field.attrs?.options;
-                    if (!options?.length) {
-                        acc[field.id] = {attrs: ValidationWarningOptionsRequired};
+                if (supportsOptions(field)) {
+                    const optionWarning = validateSelectOptions(field.attrs?.options);
+                    if (optionWarning) {
+                        acc[field.id] = {...acc[field.id], ...optionWarning};
                     }
                 }
 
@@ -326,6 +330,36 @@ export const ValidationWarningNameRequired = 'board_attributes.validation.name_r
 export const ValidationWarningNameUnique = 'board_attributes.validation.name_unique';
 export const ValidationWarningNameTaken = 'board_attributes.validation.name_taken';
 export const ValidationWarningOptionsRequired = 'board_attributes.validation.options_required';
+export const ValidationWarningOptionsUnique = 'board_attributes.validation.options_unique';
+
+const normalizeOptionName = (name: string) => name.trim().toLowerCase();
+
+const hasDuplicateOptionNames = (options: PropertyFieldOption[]) => {
+    const names = options.map((o) => normalizeOptionName(o.name));
+    return new Set(names).size !== names.length;
+};
+
+// Cell-level pre-commit check: is `candidate` already taken by some other
+// option in `options`? Used for live feedback inside the rename dropdown so
+// the user sees the conflict before the edit reaches the collection.
+export const isOptionNameTaken = (
+    candidate: string,
+    options: PropertyFieldOption[],
+    excluding?: PropertyFieldOption,
+): boolean => {
+    const normalized = normalizeOptionName(candidate);
+    return options.some((o) => o !== excluding && normalizeOptionName(o.name) === normalized);
+};
+
+const validateSelectOptions = (options: PropertyFieldOption[] | undefined): {attrs: string} | undefined => {
+    if (!options?.length) {
+        return {attrs: ValidationWarningOptionsRequired};
+    }
+    if (hasDuplicateOptionNames(options)) {
+        return {attrs: ValidationWarningOptionsUnique};
+    }
+    return undefined;
+};
 
 // Strip trailing ` (copy)` or ` (N)` suffixes (repeatedly) so that duplicating
 // `Text (copy)` yields `Text (2)` and duplicating `Text (2)` yields `Text (3)`,

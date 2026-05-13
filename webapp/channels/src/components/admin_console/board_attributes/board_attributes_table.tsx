@@ -207,13 +207,12 @@ export function BoardAttributesTable({
                     </ColHeaderLeft>
                 ),
                 cell: ({row}) => (
-                    <>
-                        <BoardAttributesValues
-                            field={row.original}
-                            updateField={updateField}
-                            autoFocus={isCreatePending(row.original) && supportsOptions(row.original)}
-                        />
-                    </>
+                    <BoardAttributesValues
+                        field={row.original}
+                        updateField={updateField}
+                        warning={collection.warnings?.[row.original.id]?.attrs}
+                        autoFocus={isCreatePending(row.original) && supportsOptions(row.original)}
+                    />
                 ),
                 enableHiding: false,
                 enableSorting: false,

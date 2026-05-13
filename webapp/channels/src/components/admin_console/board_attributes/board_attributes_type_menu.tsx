@@ -39,7 +39,7 @@ const SelectType = (props: Props) => {
         return Object.values(TYPE_DESCRIPTOR).filter((descriptor) => {
             return formatMessage(descriptor.label).toLowerCase().includes(filter.toLowerCase());
         });
-    }, [TYPE_DESCRIPTOR, filter]);
+    }, [filter, formatMessage]);
 
     const currentTypeDescriptor = useMemo(() => {
         return getTypeDescriptor(props.field);
@@ -99,7 +99,7 @@ const SelectType = (props: Props) => {
                         trailingElements={id === currentTypeDescriptor.id && (
                             <CheckIcon
                                 size={16}
-                                color='var(--button-bg, #1c58d9)'
+                                color='var(--button-bg)'
                             />
                         )}
                     />

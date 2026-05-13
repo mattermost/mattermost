@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
-import styled from 'styled-components';
+import styled, {css} from 'styled-components';
 
 import {CheckIcon, CloseCircleIcon, LockOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import {supportsOptions, type BoardPropertyField, type PropertyFieldOption} from '@mattermost/types/properties';
@@ -12,6 +12,10 @@ import {supportsOptions, type BoardPropertyField, type PropertyFieldOption} from
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import * as Menu from 'components/menu';
+
+import {ValidationWarningOptionsUnique, isOptionNameTaken} from './board_attributes_utils';
+
+import {DangerText} from '../system_properties/controls';
 
 // Color tokens for select-option chips. Each token is a stable string stored
 // on `PropertyFieldOption.color`. The map below renders the token as a light
@@ -62,10 +66,11 @@ const MAX_OPTION_NAME_LENGTH = 64;
 type Props = {
     field: BoardPropertyField;
     updateField: (field: BoardPropertyField) => void;
+    warning?: string;
     autoFocus?: boolean;
 }
 
-const BoardAttributesValues = ({field, updateField}: Props) => {
+const BoardAttributesValues = ({field, updateField, warning}: Props) => {
     const {formatMessage} = useIntl();
 
     if (!supportsOptions(field) || field.type === 'user' || field.type === 'multiuser') {
@@ -125,33 +130,42 @@ const BoardAttributesValues = ({field, updateField}: Props) => {
     };
 
     return (
-        <ValuesContainer data-testid='property-values-input'>
-            {options.map((option, index) => (
-                <EditableChip
-                    key={option.id || `pending-${index}`}
-                    option={option}
-                    options={options}
-                    setOptions={setOptions}
-                />
-            ))}
-            <WithTooltip
-                title={formatMessage({
-                    id: 'admin.board_attributes.values.add_value',
-                    defaultMessage: 'Add value',
-                })}
-            >
-                <AddButton
-                    onClick={handleAdd}
-                    aria-label={formatMessage({
+        <>
+            <ValuesContainer data-testid='property-values-input'>
+                {options.map((option, index) => (
+                    <EditableChip
+                        key={option.id || `pending-${index}`}
+                        option={option}
+                        options={options}
+                        setOptions={setOptions}
+                    />
+                ))}
+                <WithTooltip
+                    title={formatMessage({
                         id: 'admin.board_attributes.values.add_value',
                         defaultMessage: 'Add value',
                     })}
-                    type='button'
                 >
-                    <PlusIcon size={14}/>
-                </AddButton>
-            </WithTooltip>
-        </ValuesContainer>
+                    <AddButton
+                        onClick={handleAdd}
+                        aria-label={formatMessage({
+                            id: 'admin.board_attributes.values.add_value',
+                            defaultMessage: 'Add value',
+                        })}
+                        type='button'
+                    >
+                        <PlusIcon size={14}/>
+                    </AddButton>
+                </WithTooltip>
+            </ValuesContainer>
+            {warning === ValidationWarningOptionsUnique && (
+                <FormattedMessage
+                    tagName={DangerText}
+                    id='admin.board_attributes.table.validation.values_unique'
+                    defaultMessage='Values must be unique.'
+                />
+            )}
+        </>
     );
 };
 
@@ -168,23 +182,33 @@ const EditableChip = ({option, options, setOptions}: ChipProps) => {
     const canDelete = options.length > 1;
     const currentColor = normalizeColor(option.color);
 
+    // The committed name conflicts with a sibling — render the chip with a
+    // red border so the conflict is visible without opening the dropdown.
+    const isInvalid = isOptionNameTaken(option.name, options, option);
+
     useEffect(() => {
         setEditValue(option.name);
     }, [option.name]);
 
+    // True while the input value (typed or committed) would duplicate a
+    // sibling. Provides immediate in-menu feedback before the edit reaches
+    // the collection; the hook's beforeUpdate still runs the authoritative
+    // check and BoardAttributesValues surfaces the persistent warning under
+    // the chip list.
+    const liveRenameTaken = useMemo(
+        () => Boolean(editValue.trim()) && isOptionNameTaken(editValue, options, option),
+        [editValue, options, option],
+    );
+
+    // Commit any non-empty distinct value to the collection — even a duplicate.
+    // Surfacing the conflict is the warning's job (live in the menu, plus
+    // collection-level under the chip list). We don't discard the edit.
     const commitRename = () => {
         const trimmed = editValue.trim();
         if (!trimmed || trimmed === option.name) {
             setEditValue(option.name);
             return;
         }
-
-        const duplicate = options.some((o) => o !== option && o.name.toLowerCase() === trimmed.toLowerCase());
-        if (duplicate) {
-            setEditValue(option.name);
-            return;
-        }
-
         setOptions(options.map((o) => (o === option ? {...o, name: trimmed} : o)));
     };
 
@@ -218,7 +242,10 @@ const EditableChip = ({option, options, setOptions}: ChipProps) => {
     };
 
     return (
-        <ChipShell style={{backgroundColor: resolveColor(option.color)}}>
+        <ChipShell
+            $invalid={isInvalid}
+            style={{backgroundColor: resolveColor(option.color)}}
+        >
             <Menu.Container
                 menuButton={{
                     id: `${menuId}-button`,
@@ -233,11 +260,6 @@ const EditableChip = ({option, options, setOptions}: ChipProps) => {
                         defaultMessage: 'Edit option',
                     }),
                     className: 'property-option-menu',
-                    onToggle: (open: boolean) => {
-                        if (!open) {
-                            commitRename();
-                        }
-                    },
                 }}
             >
                 <RenameInputWrapper>
@@ -254,7 +276,16 @@ const EditableChip = ({option, options, setOptions}: ChipProps) => {
                             defaultMessage: 'Option name',
                         })}
                         autoFocus={true}
+                        aria-invalid={liveRenameTaken}
                     />
+                    {liveRenameTaken && (
+                        <RenameError role='alert'>
+                            <FormattedMessage
+                                id='admin.board_attributes.values.rename_duplicate'
+                                defaultMessage='A value with this name already exists.'
+                            />
+                        </RenameError>
+                    )}
                 </RenameInputWrapper>
                 {canDelete && (
                     <Menu.Item
@@ -290,7 +321,7 @@ const EditableChip = ({option, options, setOptions}: ChipProps) => {
                         trailingElements={currentColor === token ? (
                             <CheckIcon
                                 size={16}
-                                color='var(--button-bg, #1c58d9)'
+                                color='var(--button-bg)'
                             />
                         ) : undefined}
                     />
@@ -366,17 +397,20 @@ const ProtectedValues = styled.div`
 /* Outer pill: takes the option's colour as background, holds the menu-trigger
    button and the inline X delete button as siblings so they render as one
    visual chip but remain individually focusable. */
-const ChipShell = styled.span`
+const ChipShell = styled.span<{$invalid?: boolean}>`
     display: inline-flex;
     align-items: center;
     border-radius: 4px;
-    overflow: hidden;
     user-select: none;
-    transition: filter 0.15s ease;
+    transition: filter 0.15s ease, box-shadow 0.15s ease;
 
     &:hover {
         filter: brightness(0.97);
     }
+
+    ${({$invalid}) => $invalid && css`
+        box-shadow: 0 0 0 1px var(--error-text);
+    `}
 `;
 
 const ReadonlyChip = styled.span`
@@ -486,5 +520,22 @@ const RenameInput = styled.input`
     &::placeholder {
         color: rgba(var(--center-channel-color-rgb), 0.48);
     }
+
+    &[aria-invalid='true'] {
+        border-color: var(--error-text);
+    }
+
+    &[aria-invalid='true']:focus {
+        border-color: var(--error-text);
+        box-shadow: 0 0 0 2px rgba(var(--error-text-color-rgb), 0.2);
+    }
+`;
+
+const RenameError = styled.div`
+    margin-top: 6px;
+    font-family: 'Open Sans';
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--error-text);
 `;
 
