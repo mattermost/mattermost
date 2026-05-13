@@ -64,14 +64,10 @@ ensure_node() {
 }
 
 enterprise_build_dir() {
-  if [ -n "${BUILD_ENTERPRISE_DIR:-}" ]; then
-    case "$BUILD_ENTERPRISE_DIR" in
-      /*) realpath -m "$BUILD_ENTERPRISE_DIR" ;;
-      *) realpath -m "$ROOT/server/$BUILD_ENTERPRISE_DIR" ;;
-    esac
-  else
-    printf '%s\n' "/enterprise"
-  fi
+  case "$BUILD_ENTERPRISE_DIR" in
+    /*) realpath -m "$BUILD_ENTERPRISE_DIR" ;;
+    *) realpath -m "$ROOT/server/$BUILD_ENTERPRISE_DIR" ;;
+  esac
 }
 
 find_enterprise_checkout() {
@@ -84,9 +80,9 @@ find_enterprise_checkout() {
   fi
 
   candidates+=(
-    "$HOME/enterprise"
     "$ROOT/../enterprise"
     "$ROOT/../../enterprise"
+    "$HOME/enterprise"
   )
 
   local candidate
@@ -100,28 +96,19 @@ find_enterprise_checkout() {
   return 1
 }
 
-setup_enterprise_checkout() {
+verify_enterprise_checkout() {
   if is_true "${CLOUD_AGENT_SKIP_ENTERPRISE:-false}"; then
-    log "Skipping enterprise setup because CLOUD_AGENT_SKIP_ENTERPRISE is set."
+    log "Skipping enterprise verification because CLOUD_AGENT_SKIP_ENTERPRISE is set."
     return 0
   fi
 
   local target
   if ! target="$(find_enterprise_checkout)"; then
     log "Enterprise checkout not found. Ensure the Cursor multi-repo environment includes github.com/mattermost/enterprise."
-    if [ -L /enterprise ]; then
-      sudo rm -f /enterprise
-    fi
-    return 0
+    return 1
   fi
 
-  if [ -e /enterprise ] && [ ! -L /enterprise ]; then
-    log "/enterprise exists and is not a symlink; leaving it unchanged."
-    return 0
-  fi
-
-  sudo ln -sfnT "$target" /enterprise
-  log "Enterprise checkout ready at $target and linked to /enterprise."
+  log "Enterprise checkout ready at $target."
 }
 
 hydrate_go_dependencies() {
@@ -131,17 +118,29 @@ hydrate_go_dependencies() {
   fi
 
   if [ -d server ]; then
-    local enterprise_dir
-    enterprise_dir="$(enterprise_build_dir)"
-    log "Hydrating Go workspace with BUILD_ENTERPRISE_DIR=$enterprise_dir"
-    (
-      cd server
-      BUILD_ENTERPRISE_DIR="$enterprise_dir" make setup-go-work
-      go mod download
-      if [ -f public/go.mod ]; then
-        (cd public && go mod download)
-      fi
-    )
+    if [ -n "${BUILD_ENTERPRISE_DIR:-}" ]; then
+      local enterprise_dir
+      enterprise_dir="$(enterprise_build_dir)"
+      log "Hydrating Go workspace with BUILD_ENTERPRISE_DIR=$enterprise_dir"
+      (
+        cd server
+        BUILD_ENTERPRISE_DIR="$enterprise_dir" make setup-go-work
+        go mod download
+        if [ -f public/go.mod ]; then
+          (cd public && go mod download)
+        fi
+      )
+    else
+      log "Hydrating Go workspace with server/Makefile default enterprise path."
+      (
+        cd server
+        make setup-go-work
+        go mod download
+        if [ -f public/go.mod ]; then
+          (cd public && go mod download)
+        fi
+      )
+    fi
   fi
 }
 
@@ -171,7 +170,7 @@ hydrate_playwright_dependencies() {
 
 ensure_go
 ensure_node
-setup_enterprise_checkout
+verify_enterprise_checkout
 hydrate_go_dependencies
 hydrate_webapp_dependencies
 hydrate_playwright_dependencies

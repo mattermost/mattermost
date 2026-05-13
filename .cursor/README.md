@@ -16,10 +16,10 @@ The Docker build context is `.cursor/` only. The Dockerfile intentionally does n
 
 ## Runtime Hooks
 
-- `cloud-agent-install.sh` runs after Cursor checks out the repo. It refreshes nvm, installs agent-browser browsers, links Cursor's multi-repo `mattermost/enterprise` checkout to `/enterprise`, runs `server` Go dependency hydration, installs webapp dependencies, and runs Playwright `npm ci`.
+- `cloud-agent-install.sh` runs after Cursor checks out the repo. It refreshes nvm, installs agent-browser browsers, verifies Cursor's multi-repo `mattermost/enterprise` checkout, runs `server` Go dependency hydration, installs webapp dependencies, and runs Playwright `npm ci`.
 - `cloud-agent-start.sh` materializes `.cursor/cursor.md` as `.cursor/AGENTS.md`, fixes current-session Docker socket access, then starts Docker and waits until `docker info` and `docker compose version` succeed.
 
-The environment declares `github.com/mattermost/enterprise` in `repositoryDependencies` so Cursor can provide it as part of the multi-repo workspace. The install hook does not clone or pull enterprise; it only discovers Cursor's checkout and symlinks it to `/enterprise` for `server/Makefile`.
+The environment declares `github.com/mattermost/enterprise` in `repositoryDependencies` so Cursor can provide it as part of the multi-repo workspace. Cursor currently clones the repositories as siblings, such as `/agent/repos/mattermost` and `/agent/repos/enterprise`, which matches `server/Makefile`'s default `../../enterprise` path. The install hook does not clone, pull, or symlink enterprise.
 
 ## Useful Skips
 
