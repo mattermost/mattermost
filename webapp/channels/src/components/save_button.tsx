@@ -4,22 +4,22 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button, type ButtonProps} from '@mattermost/shared/components/button';
+
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-type Props = {
+type Props = Pick<ButtonProps, 'emphasis' | 'size' | 'variant'> & {
     saving?: boolean;
     disabled?: boolean;
     id?: string;
     onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
     savingMessage?: React.ReactNode;
     defaultMessage?: React.ReactNode;
-    btnClass?: string;
     extraClasses?: string;
 };
 
 const SaveButton: React.FC<Props> = ({
     saving = false,
-    disabled = false,
     savingMessage = (
         <FormattedMessage
             id='save_button.saving'
@@ -32,30 +32,19 @@ const SaveButton: React.FC<Props> = ({
             defaultMessage='Save'
         />
     ),
-    btnClass = '',
+    emphasis,
+    variant,
     extraClasses = '',
     ...props
 }) => {
-    let className = 'btn';
-    if (!btnClass) {
-        className += ' btn-primary';
-    }
-
-    if (!disabled || saving) {
-        className += ' ' + btnClass;
-    }
-
-    if (extraClasses) {
-        className += ' ' + extraClasses;
-    }
-
     return (
-        <button
+        <Button
             type='submit'
             data-testid='saveSetting'
             id='saveSetting'
-            className={className}
-            disabled={disabled}
+            emphasis={emphasis}
+            variant={variant}
+            className={extraClasses}
             {...props}
         >
             <LoadingWrapper
@@ -64,7 +53,7 @@ const SaveButton: React.FC<Props> = ({
             >
                 <span>{defaultMessage}</span>
             </LoadingWrapper>
-        </button>
+        </Button>
     );
 };
 

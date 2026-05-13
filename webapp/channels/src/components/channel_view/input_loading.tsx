@@ -4,6 +4,8 @@
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 const onClickRefresh = () => {
     location.reload();
 };
@@ -45,15 +47,16 @@ const InputLoading = ({
                         id='center_panel.input.cannot_load_component'
                         defaultMessage='Something went wrong while loading the component. Please wait a moment, or try reloading the app.'
                     />
-                    <button
-                        className='btn btn-tertiary channel-archived__close-btn'
+                    <Button
+                        emphasis='tertiary'
+                        className='channel-archived__close-btn'
                         onClick={onClickRefresh}
                     >
                         <FormattedMessage
                             id='center_panel.reloadPage'
                             defaultMessage='Reload'
                         />
-                    </button>
+                    </Button>
                 </>
             )}
         </div>

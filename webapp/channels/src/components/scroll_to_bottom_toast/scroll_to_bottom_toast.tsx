@@ -4,6 +4,8 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import CloseIcon from 'components/widgets/icons/close_icon';
 import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
 
@@ -25,21 +27,22 @@ export const ScrollToBottomToast = ({onDismiss, onClick}: ScrollToBottomToastPro
         defaultMessage: 'Jump to recents',
     });
 
-    const handleScrollToBottom: React.MouseEventHandler<HTMLDivElement> = (e) => {
+    const handleScrollToBottom: React.MouseEventHandler = (e) => {
         e.preventDefault();
         onClick();
     };
 
-    const handleDismiss: React.MouseEventHandler<HTMLDivElement> = (e) => {
+    const handleDismiss: React.MouseEventHandler = (e) => {
         e.preventDefault();
         e.stopPropagation();
         onDismiss();
     };
 
     return (
-        <div
+        <Button
             data-testid={SCROLL_TO_BOTTOM_TOAST_TESTID}
-            className='scroll-to-bottom-toast btn btn-primary'
+            emphasis='primary'
+            className='scroll-to-bottom-toast'
             onClick={handleScrollToBottom}
         >
             <UnreadBelowIcon/>
@@ -54,7 +57,7 @@ export const ScrollToBottomToast = ({onDismiss, onClick}: ScrollToBottomToastPro
                     id='dismissScrollToBottomToast'
                 />
             </div>
-        </div>
+        </Button>
     );
 };
 

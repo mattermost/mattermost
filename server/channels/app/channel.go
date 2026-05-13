@@ -229,9 +229,9 @@ func (a *App) RenameChannel(rctx request.CTX, channel *model.Channel, newChannel
 }
 
 func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
-	a.handleChannelCategoryName(channel)
-
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
+	channel.DefaultCategoryName = strings.TrimSpace(channel.DefaultCategoryName)
+	channel.ManagedCategoryName = strings.TrimSpace(channel.ManagedCategoryName)
 	sc, nErr := a.Srv().Store().Channel().Save(rctx, channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
@@ -304,7 +304,7 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 	}
 
 	if channel.ManagedCategoryName != "" {
-		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !model.SafeDereference(a.Config().TeamSettings.EnableManagedChannelCategories) {
+		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !a.Config().FeatureFlags.ManagedChannelCategories {
 			rctx.Logger().Warn("Managed category update ignored: feature not available")
 			sc.ManagedCategoryName = ""
 		} else {
@@ -593,7 +593,7 @@ func (a *App) createGroupChannel(rctx request.CTX, userIDs []string, creatorID s
 		Name:        model.GetGroupNameFromUserIds(userIDs),
 		DisplayName: model.GetGroupDisplayNameFromUsers(users, true),
 		Type:        model.ChannelTypeGroup,
-		Shared:      model.NewPointer(channelIsShared),
+		Shared:      new(channelIsShared),
 	}
 
 	channel, nErr := a.Srv().Store().Channel().Save(rctx, group, *a.Config().TeamSettings.MaxChannelsPerTeam, channelOptions...)
@@ -850,6 +850,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
+	messageWs.Add("channel_type", string(channel.Type))
 	a.Publish(messageWs)
 
 	return channel, nil
@@ -985,7 +986,6 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 	oldChannelAutotranslation := channel.AutoTranslation
 
 	channel.Patch(patch)
-	a.handleChannelCategoryName(channel)
 	channel, err = a.UpdateChannel(rctx, channel)
 	if err != nil {
 		return nil, err
@@ -2516,15 +2516,6 @@ func (a *App) GetChannelPinnedPostCount(rctx request.CTX, channelID string) (int
 	}
 
 	return count, nil
-}
-
-func (a *App) GetChannelCounts(rctx request.CTX, teamID string, userID string) (*model.ChannelCounts, *model.AppError) {
-	counts, err := a.Srv().Store().Channel().GetChannelCounts(teamID, userID)
-	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.GetChannelCounts", "app.channel.get_channel_counts.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return counts, nil
 }
 
 func (a *App) GetChannelUnread(rctx request.CTX, channelID, userID string) (*model.ChannelUnread, *model.AppError) {
@@ -4276,8 +4267,8 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 			TeamIds:                     []string{teamID},
 			Public:                      true,
 			AccessControlPolicyEnforced: true,
-			Page:                        model.NewPointer(page),
-			PerPage:                     model.NewPointer(recommendedPublicChannelsScanPageSize),
+			Page:                        new(page),
+			PerPage:                     new(recommendedPublicChannelsScanPageSize),
 		})
 		if searchErr != nil {
 			return nil, searchErr
@@ -4334,17 +4325,9 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 	return recommended, nil
 }
 
-func (a *App) handleChannelCategoryName(channel *model.Channel) {
-	if *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting && strings.Contains(channel.DisplayName, "/") {
-		parts := strings.Split(channel.DisplayName, "/")
-		channel.DisplayName = strings.TrimSpace(strings.Join(parts[1:], "/"))
-		channel.DefaultCategoryName = strings.TrimSpace(parts[0])
-	}
-}
-
 func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, channel *model.Channel) {
 	// Add channel to default category if specified
-	if channel.DefaultCategoryName != "" && *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting {
+	if channel.DefaultCategoryName != "" && *a.Config().TeamSettings.EnableChannelCategorySorting {
 		// Get user's categories for this team
 		categories, err := a.GetSidebarCategoriesForTeamForUser(rctx, userID, channel.TeamId)
 		if err != nil {
@@ -4358,6 +4341,21 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 				targetCategory = category
 				break
 			}
+		}
+
+		// Find the original category if the channel is already in a category
+		var originalCategory *model.SidebarCategoryWithChannels
+		for _, category := range categories.Categories {
+			if category.Type == model.SidebarCategoryCustom && category.Channels != nil && slices.Contains(category.Channels, channel.Id) {
+				originalCategory = category
+				break
+			}
+		}
+
+		var categoriesToUpdate []*model.SidebarCategoryWithChannels
+		if originalCategory != nil {
+			originalCategory.Channels = slices.Delete(originalCategory.Channels, slices.Index(originalCategory.Channels, channel.Id), 1)
+			categoriesToUpdate = append(categoriesToUpdate, originalCategory)
 		}
 
 		if targetCategory == nil {
@@ -4377,12 +4375,14 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 				mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 			}
 		} else {
-			// Add channel to existing category
 			targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
-			_, err = a.UpdateSidebarCategories(rctx, userID, channel.TeamId, []*model.SidebarCategoryWithChannels{targetCategory})
-			if err != nil {
-				mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
-			}
+			categoriesToUpdate = append(categoriesToUpdate, targetCategory)
+		}
+
+		// Add channel to existing category
+		_, err = a.UpdateSidebarCategories(rctx, userID, channel.TeamId, categoriesToUpdate)
+		if err != nil {
+			mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 		}
 	}
 }

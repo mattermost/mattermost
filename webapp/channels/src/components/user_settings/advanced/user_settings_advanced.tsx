@@ -660,7 +660,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             </div>,
                         ]}
                         saveButtonText={'Deactivate'}
-                        saveButtonClassName={'btn-danger'}
+                        saveButtonVariant='destructive'
                         setting={'deactivateAccount'}
                         submit={this.handleShowDeactivateAccountModal}
                         saving={this.state.isSaving}
@@ -691,7 +691,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 />
             );
 
-            const confirmButtonClass = 'btn btn-danger';
             const deactivateMemberButton = (
                 <FormattedMessage
                     id='user.settings.advance.deactivate_member_modal.deactivateButton'
@@ -714,7 +713,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             defaultMessage='Are you sure you want to deactivate your account? This can only be reversed by your System Administrator.'
                         />
                     }
-                    confirmButtonClass={confirmButtonClass}
+                    confirmButtonVariant='destructive'
                     confirmButtonText={deactivateMemberButton}
                     onConfirm={this.handleDeactivateAccountSubmit}
                     onCancel={this.handleHideDeactivateAccountModal}

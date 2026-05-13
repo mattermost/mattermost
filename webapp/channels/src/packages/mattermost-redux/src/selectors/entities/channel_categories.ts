@@ -475,7 +475,11 @@ function isUnreadChannel(
 }
 
 export function areManagedCategoriesEnabled(state: GlobalState): boolean {
-    return getConfig(state).EnableManagedChannelCategories === 'true';
+    return getConfig(state).FeatureFlagManagedChannelCategories === 'true';
+}
+
+export function isChannelCategorySortingEnabled(state: GlobalState): boolean {
+    return getConfig(state).EnableChannelCategorySorting === 'true';
 }
 
 export function getManagedCategoryMappings(state: GlobalState, teamId: string): Record<string, string> | undefined {
@@ -534,6 +538,24 @@ export function makeGetCategoriesForTeam(): (state: GlobalState, teamId: string)
                 ...managedCategories,
                 ...strippedNonManagedCategories,
             ];
+        },
+    );
+}
+
+export function makeGetSidebarCategoryNamesForTeam(): (state: GlobalState, teamId: string) => string[] {
+    const getCategoriesForTeam = makeGetCategoriesForTeam();
+
+    return createSelector(
+        'makeGetSidebarCategoryNamesForTeam',
+        (state: GlobalState, teamId: string) => getCategoriesForTeam(state, teamId),
+        (state: GlobalState) => getCurrentUserLocale(state),
+        (categories, locale) => {
+            const names = categories.
+                filter((c) => c.type === CategoryTypes.CUSTOM || c.type === CategoryTypes.MANAGED).
+                map((c) => c.display_name);
+            const unique = [...new Set(names)];
+            unique.sort((a, b) => a.localeCompare(b, locale, {numeric: true}));
+            return unique;
         },
     );
 }

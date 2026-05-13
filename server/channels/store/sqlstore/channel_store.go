@@ -644,7 +644,7 @@ func (s SqlChannelStore) CreateDirectChannel(rctx request.CTX, user *model.User,
 
 	channel.Header = ""
 	channel.Type = model.ChannelTypeDirect
-	channel.Shared = model.NewPointer(user.IsRemote() || otherUser.IsRemote())
+	channel.Shared = new(user.IsRemote() || otherUser.IsRemote())
 	channel.CreatorId = user.Id
 
 	cm1 := &model.ChannelMember{
@@ -1427,38 +1427,6 @@ func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds
 	}
 
 	return data, nil
-}
-
-func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, error) {
-	data := []struct {
-		Id                string
-		TotalMsgCount     int64
-		TotalMsgCountRoot int64
-		UpdateAt          int64
-	}{}
-	err := s.GetReplica().Select(&data, `SELECT Id, TotalMsgCount, TotalMsgCountRoot, UpdateAt
-			FROM Channels
-			WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = ?)
-				AND	(TeamId = ? OR TeamId = '')
-				AND	DeleteAt = 0
-				ORDER BY DisplayName`, userId, teamId)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get channels count with teamId=%s and userId=%s", teamId, userId)
-	}
-
-	counts := &model.ChannelCounts{
-		Counts:      make(map[string]int64),
-		CountsRoot:  make(map[string]int64),
-		UpdateTimes: make(map[string]int64),
-	}
-	for i := range data {
-		v := data[i]
-		counts.Counts[v.Id] = v.TotalMsgCount
-		counts.CountsRoot[v.Id] = v.TotalMsgCountRoot
-		counts.UpdateTimes[v.Id] = v.UpdateAt
-	}
-
-	return counts, nil
 }
 
 func (s SqlChannelStore) GetTeamChannels(teamId string) (model.ChannelList, error) {

@@ -104,7 +104,7 @@ describe('components/ListModal', () => {
         expect(baseElement).toMatchSnapshot();
 
         // Verify title bar button is present
-        expect(screen.getByRole('link', {name: 'Add Foo'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Add Foo'})).toBeInTheDocument();
     });
 
     test('should have called onHide when handleExit is called', async () => {

@@ -21,10 +21,12 @@ exports[`components/user_settings/display/ColorChooser should match, init 1`] = 
     />
     <span
       class="input-group-addon color-pad"
+      data-testid="color-togglerButton"
       id="choose-color-squareColorIcon"
     >
       <i
         class="color-icon"
+        data-testid="color-icon"
         id="choose-color-squareColorIconValue"
         style="background-color: rgb(255, 238, 192);"
       />

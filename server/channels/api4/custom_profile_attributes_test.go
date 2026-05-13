@@ -171,7 +171,7 @@ func TestPatchCPAField(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		patch := &model.PropertyFieldPatch{Name: model.NewPointer(celSafeName())}
+		patch := &model.PropertyFieldPatch{Name: new(celSafeName())}
 		patchedField, resp, err := client.PatchCPAField(context.Background(), model.NewId(), patch)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
@@ -193,7 +193,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
-		patch := &model.PropertyFieldPatch{Name: model.NewPointer(celSafeName())}
+		patch := &model.PropertyFieldPatch{Name: new(celSafeName())}
 		_, resp, err := th.Client.PatchCPAField(context.Background(), createdField.ID, patch)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
@@ -213,7 +213,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.NotNil(t, createdField)
 
 		newName := celSafeName()
-		patch := &model.PropertyFieldPatch{Name: model.NewPointer(fmt.Sprintf("  %s \t ", newName))} // name should be sanitized
+		patch := &model.PropertyFieldPatch{Name: new(fmt.Sprintf("  %s \t ", newName))} // name should be sanitized
 		patchedField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, patch)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)

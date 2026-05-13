@@ -6,6 +6,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled, {css} from 'styled-components';
 
+import {Button as MmButton} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
@@ -189,7 +190,7 @@ export const ModalNoticeWrapper = styled.div`
     margin: 15px 0 25px 0;
 `;
 
-export const Button = styled.button.attrs({className: 'btn btn-secondary'})`
+export const Button = styled(MmButton).attrs({emphasis: 'secondary'})`
     margin: -1px -2px;
 `;
 
