@@ -4735,6 +4735,7 @@
   "footer_pagination.count": "Showing {startCount, number}-{endCount, number} of {total, number}",
   "footer_pagination.next": "Next",
   "footer_pagination.prev": "Previous",
+  "formatting_bar.text_style.aria_label": "Text style",
   "formatting_bar.text_style.h1": "Heading 1",
   "formatting_bar.text_style.h2": "Heading 2",
   "formatting_bar.text_style.h3": "Heading 3",
