@@ -7,6 +7,7 @@ import type {BreadcrumbPath, Wiki} from '@mattermost/types/wikis';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
+import {getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
 
 import {PagePropsKeys} from 'utils/constants';
 import {isDraftPageId, getPageTitle} from 'utils/page_utils';
@@ -176,10 +177,21 @@ export const makeGetChannelWikis = () => createSelector(
     },
 );
 
-// TODO(boards-integration): migrate to read from entities.properties.fields.byObjectType["post"]["wikis"]
-export const getPageStatusField = (state: GlobalState) => {
-    return state.entities.wikiPages ?? null;
-};
+export const getPageStatusField = createSelector(
+    'getPageStatusField',
+    (state: GlobalState) => getPropertyGroupByName(state, 'pages'),
+    (state: GlobalState) => state.entities.properties.fields.byObjectType.post,
+    (group, fieldsByGroup) => {
+        if (!group || !fieldsByGroup) {
+            return null;
+        }
+        const groupFields = fieldsByGroup[group.id];
+        if (!groupFields) {
+            return null;
+        }
+        return Object.values(groupFields).find((field) => field.name === 'status') ?? null;
+    },
+);
 
 export const getPageStatus = (state: GlobalState, postId: string): string => {
     const page = getPage(state, postId);

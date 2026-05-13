@@ -8,13 +8,15 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
 import type {BreadcrumbPath, Wiki} from '@mattermost/types/wikis';
 
-import {PostTypes as PostActionTypes, WikiTypes} from 'mattermost-redux/action_types';
+import {PostTypes as PostActionTypes, PropertyTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {receivedNewPost} from 'mattermost-redux/actions/posts';
+import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isCollapsedThreadsEnabled, syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
 
 import {fetchPageDraftsForWiki} from 'actions/page_drafts';
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
@@ -950,14 +952,14 @@ export function unresolvePageComment(wikiId: string, pageId: string, commentId: 
 export function fetchPageStatusField(): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
-            const field = await Client4.getPageStatusField();
-
-            dispatch({
-                type: WikiTypes.RECEIVED_PAGE_STATUS_FIELD,
-                data: field,
-            });
-
-            return {data: field};
+            const result = await dispatch(fetchPropertyFields('pages', 'post', 'system'));
+            if (!result.error && result.data && result.data.length > 0 && !getPropertyGroupByName(getState(), 'pages')) {
+                dispatch({
+                    type: PropertyTypes.RECEIVED_PROPERTY_GROUP,
+                    data: {id: result.data[0].group_id, name: 'pages'},
+                });
+            }
+            return result;
         } catch (error) {
             handleApiError(error, dispatch, getState);
             return {error};

@@ -20,7 +20,7 @@ import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
 import type {Post, PostsState} from './posts';
 import type {PreferenceType} from './preferences';
-import type {SelectPropertyField, PropertiesState} from './properties';
+import type {PropertiesState} from './properties';
 import type {Recap} from './recaps';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
@@ -112,7 +112,6 @@ export type GlobalState = {
             publishedDraftTimestamps: Record<string, number>;
             deletedDraftTimestamps: Record<string, number>;
         };
-        wikiPages: SelectPropertyField | null;
         wikis: WikisState;
         activeEditors: {
             byPageId: Record<string, Record<string, {

@@ -49,23 +49,25 @@ func (s *Server) doSetupPageProperties() error {
 
 	expectedPropertiesMap := map[string]*model.PropertyField{
 		pagePropertyNameWiki: {
-			GroupID:         group.ID,
-			Name:            pagePropertyNameWiki,
-			Type:            model.PropertyFieldTypeText,
-			ObjectType:      model.PropertyFieldObjectTypePost,
-			TargetType:      string(model.PropertyFieldTargetLevelSystem),
-			Protected:       true,
-			PermissionField: model.NewPointer(model.PermissionLevelNone),
-			Attrs:           map[string]any{},
+			GroupID:          group.ID,
+			Name:             pagePropertyNameWiki,
+			Type:             model.PropertyFieldTypeText,
+			ObjectType:       model.PropertyFieldObjectTypePost,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			Protected:        true,
+			PermissionField:  model.NewPointer(model.PermissionLevelNone),
+			PermissionValues: model.NewPointer(model.PermissionLevelMember),
+			Attrs:            map[string]any{},
 		},
 		pagePropertyNameStatus: {
-			GroupID:         group.ID,
-			Name:            pagePropertyNameStatus,
-			Type:            model.PropertyFieldTypeSelect,
-			ObjectType:      model.PropertyFieldObjectTypePost,
-			TargetType:      string(model.PropertyFieldTargetLevelSystem),
-			Protected:       true,
-			PermissionField: model.NewPointer(model.PermissionLevelNone),
+			GroupID:          group.ID,
+			Name:             pagePropertyNameStatus,
+			Type:             model.PropertyFieldTypeSelect,
+			ObjectType:       model.PropertyFieldObjectTypePost,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			Protected:        true,
+			PermissionField:  model.NewPointer(model.PermissionLevelNone),
+			PermissionValues: model.NewPointer(model.PermissionLevelMember),
 			Attrs: map[string]any{
 				"options": []map[string]string{
 					{"id": "rough_draft", "name": model.PageStatusRoughDraft, "color": "light_grey"},
@@ -87,6 +89,7 @@ func (s *Server) doSetupPageProperties() error {
 			property.TargetType = expectedProperty.TargetType
 			property.Protected = expectedProperty.Protected
 			property.PermissionField = expectedProperty.PermissionField
+			property.PermissionValues = expectedProperty.PermissionValues
 			property.Attrs = expectedProperty.Attrs
 			propertiesToUpdate = append(propertiesToUpdate, property)
 		} else {
@@ -107,6 +110,7 @@ func (s *Server) doSetupPageProperties() error {
 			existing.TargetType = property.TargetType
 			existing.Protected = property.Protected
 			existing.PermissionField = property.PermissionField
+			existing.PermissionValues = property.PermissionValues
 			existing.Attrs = property.Attrs
 			propertiesToUpdate = append(propertiesToUpdate, existing)
 		}

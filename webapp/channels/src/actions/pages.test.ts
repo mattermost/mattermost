@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {WikiTypes} from 'mattermost-redux/action_types';
+import {PropertyTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 
 import * as Actions from 'actions/pages';
@@ -25,6 +25,11 @@ describe('actions/pages - Page Status', () => {
                 users: {
                     currentUserId: 'test_user_id',
                 },
+                properties: {
+                    fields: {byObjectType: {}, byId: {}},
+                    groups: {byId: {}, byName: {}},
+                    values: {byTargetId: {}},
+                },
             },
         });
         jest.clearAllMocks();
@@ -36,6 +41,8 @@ describe('actions/pages - Page Status', () => {
                 id: 'status_field_id',
                 name: 'status',
                 type: 'select',
+                group_id: 'pages_group_id',
+                object_type: 'post',
                 attrs: {
                     options: [
                         {id: 'rough_draft', name: 'Rough draft', color: 'light_grey'},
@@ -46,21 +53,27 @@ describe('actions/pages - Page Status', () => {
                 },
             };
 
-            (Client4.getPageStatusField as jest.Mock).mockResolvedValue(mockField);
+            (Client4.getPropertyFields as jest.Mock).
+                mockResolvedValueOnce([mockField]).
+                mockResolvedValue([]);
 
             await testStore.dispatch(Actions.fetchPageStatusField());
 
             const actions = testStore.getActions();
-            expect(actions).toHaveLength(1);
+            expect(actions).toHaveLength(2);
             expect(actions[0]).toEqual({
-                type: WikiTypes.RECEIVED_PAGE_STATUS_FIELD,
-                data: mockField,
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+                data: {fields: [mockField]},
+            });
+            expect(actions[1]).toEqual({
+                type: PropertyTypes.RECEIVED_PROPERTY_GROUP,
+                data: {id: 'pages_group_id', name: 'pages'},
             });
         });
 
         test('should handle error when fetching page status field fails', async () => {
             const error = new Error('Failed to fetch status field');
-            (Client4.getPageStatusField as jest.Mock).mockRejectedValue(error);
+            (Client4.getPropertyFields as jest.Mock).mockRejectedValueOnce(error);
 
             const result = await testStore.dispatch(Actions.fetchPageStatusField());
 

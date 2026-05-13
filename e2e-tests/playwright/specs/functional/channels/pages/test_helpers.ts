@@ -921,7 +921,6 @@ export async function navigateToWikiView(
     channelId: string,
 ) {
     await page.goto(buildWikiPageUrl(baseUrl, teamName, wikiId, undefined, channelId));
-    await page.waitForLoadState('networkidle');
     await waitForWikiViewLoad(page);
 }
 
@@ -1094,9 +1093,6 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
     // URL shape: /{team}/wiki/{wikiId}/{pageId}(?from=...)
     await page.waitForURL(/\/wiki\/[^/]+\/[^/]+(?:[?#]|$)/, {timeout: PAGE_LOAD_TIMEOUT});
 
-    // # Wait for navigation and network to settle after publish
-    await page.waitForLoadState('networkidle');
-
     // # Wait for page viewer to appear (means publish succeeded and page loaded)
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
     await pageViewer.waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT * 2});
@@ -1208,9 +1204,6 @@ export async function createChildPageThroughContextMenu(
     // # Wait for URL to change from draft to published page (navigation after publish)
     // URL shape: /{team}/wiki/{wikiId}/{pageId}(?from=...)
     await page.waitForURL(/\/wiki\/[^/]+\/[^/]+(?:[?#]|$)/, {timeout: PAGE_LOAD_TIMEOUT});
-
-    // # Wait for navigation and network to settle after publish
-    await page.waitForLoadState('networkidle');
 
     // # Wait for page viewer to appear (means publish succeeded and page loaded)
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
@@ -1549,8 +1542,7 @@ export async function publishCurrentPage(page: Page) {
     // Click publish button
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
     await publishButton.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    await page.locator('[data-testid="page-viewer-content"]').waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
 }
 
 /**

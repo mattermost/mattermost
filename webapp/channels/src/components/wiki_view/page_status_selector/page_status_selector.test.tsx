@@ -23,7 +23,7 @@ jest.mock('actions/pages', () => ({
 describe('components/wiki_view/page_status_selector/PageStatusSelector', () => {
     const mockStatusField = {
         id: 'status-field-id',
-        name: 'Status',
+        name: 'status',
         type: 'select' as FieldType,
         group_id: 'group-1',
         create_at: 1000,
@@ -31,14 +31,34 @@ describe('components/wiki_view/page_status_selector/PageStatusSelector', () => {
         delete_at: 0,
         target_id: '',
         target_type: '',
-        object_type: '',
+        object_type: 'post',
         created_by: '',
         updated_by: '',
-        options: [
-            {id: 'in-progress', value: 'In progress', color: '#1E90FF'},
-            {id: 'review', value: 'Review', color: '#FFD700'},
-            {id: 'done', value: 'Done', color: '#32CD32'},
-        ],
+        attrs: {
+            options: [
+                {id: 'in-progress', name: 'In progress', color: '#1E90FF'},
+                {id: 'review', name: 'Review', color: '#FFD700'},
+                {id: 'done', name: 'Done', color: '#32CD32'},
+            ],
+        },
+    };
+
+    const statusFieldsState = {
+        fields: {
+            byObjectType: {
+                post: {
+                    'group-1': {
+                        'status-field-id': mockStatusField,
+                    },
+                },
+            },
+            byId: {'status-field-id': mockStatusField},
+        },
+        groups: {
+            byId: {'group-1': {id: 'group-1', name: 'pages'}},
+            byName: {pages: {id: 'group-1', name: 'pages'}},
+        },
+        values: {byTargetId: {}},
     };
 
     const baseState = {
@@ -62,7 +82,7 @@ describe('components/wiki_view/page_status_selector/PageStatusSelector', () => {
                     } as any,
                 },
             }),
-            wikiPages: mockStatusField,
+            properties: statusFieldsState,
         },
     };
 
@@ -75,7 +95,7 @@ describe('components/wiki_view/page_status_selector/PageStatusSelector', () => {
             ...baseState,
             entities: {
                 ...baseState.entities,
-                wikiPages: null,
+                properties: {fields: {byObjectType: {}, byId: {}}},
             },
         };
 
@@ -102,7 +122,7 @@ describe('components/wiki_view/page_status_selector/PageStatusSelector', () => {
             ...baseState,
             entities: {
                 ...baseState.entities,
-                wikiPages: null,
+                properties: {fields: {byObjectType: {}, byId: {}}},
             },
         };
 

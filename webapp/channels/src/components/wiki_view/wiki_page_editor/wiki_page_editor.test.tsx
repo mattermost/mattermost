@@ -61,18 +61,36 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                     },
                 },
             },
-            wikiPages: {
-                id: 'status_field_id',
-                name: 'status',
-                type: 'select',
-                attrs: {
-                    options: [
-                        {id: 'rough_draft', name: 'rough_draft', color: 'light_grey'},
-                        {id: 'in_progress', name: 'in_progress', color: 'light_blue'},
-                        {id: 'in_review', name: 'in_review', color: 'dark_blue'},
-                        {id: 'done', name: 'done', color: 'green'},
-                    ],
+            properties: {
+                fields: {
+                    byObjectType: {
+                        post: {
+                            pages_group_id: {
+                                status_field_id: {
+                                    id: 'status_field_id',
+                                    name: 'status',
+                                    type: 'select',
+                                    group_id: 'pages_group_id',
+                                    object_type: 'post',
+                                    attrs: {
+                                        options: [
+                                            {id: 'rough_draft', name: 'rough_draft', color: 'light_grey'},
+                                            {id: 'in_progress', name: 'in_progress', color: 'light_blue'},
+                                            {id: 'in_review', name: 'in_review', color: 'dark_blue'},
+                                            {id: 'done', name: 'done', color: 'green'},
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    byId: {},
                 },
+                groups: {
+                    byId: {pages_group_id: {id: 'pages_group_id', name: 'pages'}},
+                    byName: {pages: {id: 'pages_group_id', name: 'pages'}},
+                },
+                values: {byTargetId: {}},
             } as any,
         },
     };
@@ -200,6 +218,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                     },
                     teams: initialState.entities?.teams,
                     channels: initialState.entities?.channels,
+                    properties: initialState.entities?.properties,
                 },
             };
 

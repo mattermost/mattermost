@@ -243,7 +243,6 @@ const state: GlobalState = {
             publishedDraftTimestamps: {},
             deletedDraftTimestamps: {},
         },
-        wikiPages: null,
         wikis: {
             byId: {},
             byTeam: {},

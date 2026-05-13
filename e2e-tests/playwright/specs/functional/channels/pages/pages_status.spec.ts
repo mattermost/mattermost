@@ -41,9 +41,6 @@ test(
         const pageName = 'Test Page';
         await createPageThroughUI(page, pageName, 'Test content');
 
-        // # Wait for page to load
-        await page.waitForLoadState('networkidle');
-
         // * Verify status is visible in page viewer
         const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
         await expect(statusDisplay).toBeVisible();
@@ -68,12 +65,10 @@ test('changes page status from in_progress to in_review', {tag: '@pages'}, async
     const pageName = 'Test Page';
     await createPageThroughUI(page, pageName, 'Test content');
 
-    await page.waitForLoadState('networkidle');
-
     // # Click Edit button to enter draft mode
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
     await editButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
 
     // # Change status to 'in_review' in draft mode
     const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
@@ -166,13 +161,11 @@ test('allows selection of all valid status values', {tag: '@pages'}, async ({pw,
     const pageName = 'Test Page';
     await createPageThroughUI(page, pageName, 'Test content');
 
-    await page.waitForLoadState('networkidle');
-
     for (const status of PAGE_STATUSES) {
         // # Edit page
         const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
         await editButton.click();
-        await page.waitForLoadState('networkidle');
+        await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
 
         // # Click status selector to open dropdown
         const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
@@ -191,7 +184,6 @@ test('allows selection of all valid status values', {tag: '@pages'}, async ({pw,
 
         // # Update page
         await publishCurrentPage(page);
-        await page.waitForLoadState('networkidle');
 
         // * Verify status changed to expected value
         const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
@@ -260,7 +252,6 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
 
     // # Create first page
     const page1 = await createPageThroughUI(page, 'Page 1', 'Content 1');
-    await page.waitForLoadState('networkidle');
 
     // # Edit and set status to 'rough_draft'
     await enterEditMode(page);
@@ -278,11 +269,10 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
 
     // # Navigate back to wiki root
     await page.goto(buildWikiPageUrl(pw.url, team.name, wiki.id, undefined, channel.id));
-    await page.waitForLoadState('networkidle');
+    await page.locator('[data-testid="wiki-view"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Create second page
     await createPageThroughUI(page, 'Page 2', 'Content 2');
-    await page.waitForLoadState('networkidle');
 
     // # Edit and set status to 'done'
     await enterEditMode(page);
@@ -305,7 +295,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
 
     // # Navigate back to page 1
     await page.goto(buildWikiPageUrl(pw.url, team.name, wiki.id, page1.id, channel.id));
-    await page.waitForLoadState('networkidle');
+    await page.locator('[data-testid="page-viewer-content"]').waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
 
     // * Verify page 1 still has status 'Rough draft'
     statusDisplay = page.locator('[data-testid="page-viewer-status"]');

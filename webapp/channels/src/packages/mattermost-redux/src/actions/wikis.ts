@@ -446,25 +446,6 @@ export function getPageBreadcrumb(wikiId: string, pageId: string): ActionFuncAsy
 
 // Page Status
 
-export function getPageStatusField(): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        try {
-            const field = await Client4.getPageStatusField();
-
-            dispatch({
-                type: WikiTypes.RECEIVED_PAGE_STATUS_FIELD,
-                data: field,
-            });
-
-            return {data: field};
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-    };
-}
-
 export function updatePageStatus(postId: string, status: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {

@@ -9,6 +9,8 @@ import {makeInitialPagesState} from 'tests/helpers/pages_state';
 
 import type {GlobalState} from 'types/store';
 
+import type {FieldType} from '@mattermost/types/properties';
+
 import {
     getPage,
     getPageAncestors,
@@ -16,6 +18,7 @@ import {
     getChannelPages,
     getPagesLoading,
     getPagesError,
+    getPageStatusField,
 } from './pages';
 
 describe('pages selectors', () => {
@@ -79,7 +82,6 @@ describe('pages selectors', () => {
                     [wikiId]: [pageId1, pageId2, pageId3],
                 },
             }),
-            wikiPages: null,
         },
         requests: {
             wiki: {
@@ -108,14 +110,6 @@ describe('pages selectors', () => {
             const page = getPage(initialState as GlobalState, pageId1);
 
             expect(page).toBe(initialState.entities!.pages.byId[pageId1]);
-        });
-
-        test('wikiPages slice should only hold the status field definition', () => {
-            const state = initialState as GlobalState;
-
-            // After the pages/wikiPages split, wikiPages stores the SelectPropertyField | null
-            // directly; byId/byWiki/timestamps now live in entities.pages.
-            expect(state.entities!.wikiPages).toBeNull();
         });
     });
 
@@ -150,7 +144,6 @@ describe('pages selectors', () => {
                         },
                         byWiki: {[wikiId]: [pageId3]},
                     }),
-                    wikiPages: null,
                 },
             } as any;
 
@@ -172,7 +165,6 @@ describe('pages selectors', () => {
                         },
                         byWiki: {[wikiId]: [pageId1, pageId2]},
                     }),
-                    wikiPages: null,
                 },
             } as any;
 
@@ -202,7 +194,6 @@ describe('pages selectors', () => {
                         },
                         byWiki: {[wikiId]: [pageId1, 'regularPost']},
                     }),
-                    wikiPages: null,
                 },
             } as any;
 
@@ -227,7 +218,6 @@ describe('pages selectors', () => {
                         },
                         byWiki: {[wikiId]: [pageId1, 'missing-page']},
                     }),
-                    wikiPages: null,
                 },
             } as any;
 
@@ -392,13 +382,93 @@ describe('pages selectors', () => {
                 expect(p).toBe(state.entities.pages.byId[p.id]);
             });
         });
+    });
 
-        test('wikiPages slice should not carry page caches', () => {
-            const state = initialState as GlobalState;
+    describe('getPageStatusField', () => {
+        const mockStatusField = {
+            id: 'status-field-id',
+            name: 'status',
+            type: 'select' as FieldType,
+            group_id: 'pages-group-id',
+            create_at: 1000,
+            update_at: 1000,
+            delete_at: 0,
+            target_id: '',
+            target_type: 'system',
+            object_type: 'post',
+            created_by: '',
+            updated_by: '',
+            attrs: {options: [{id: 'draft', name: 'Draft', color: '#ccc'}]},
+        };
 
-            // Legacy {pageSummaries, fullPages} caches were removed when pages got
-            // their own slice; wikiPages is now just the status field definition.
-            expect(state.entities.wikiPages).toBeNull();
+        const stateWithStatusField = (overrides: Record<string, unknown> = {}): GlobalState => ({
+            entities: {
+                pages: makeInitialPagesState({}),
+                properties: {
+                    fields: {
+                        byObjectType: {
+                            post: {
+                                'pages-group-id': {'status-field-id': mockStatusField},
+                            },
+                        },
+                        byId: {'status-field-id': mockStatusField},
+                    },
+                    groups: {
+                        byId: {'pages-group-id': {id: 'pages-group-id', name: 'pages'}},
+                        byName: {pages: {id: 'pages-group-id', name: 'pages'}},
+                    },
+                    values: {byTargetId: {}},
+                    ...overrides,
+                },
+            },
+        } as any);
+
+        test('returns the status field from the pages group', () => {
+            const field = getPageStatusField(stateWithStatusField());
+
+            expect(field).toEqual(mockStatusField);
+        });
+
+        test('returns null when properties state has no groups', () => {
+            const state = stateWithStatusField({
+                groups: {byId: {}, byName: {}},
+            });
+
+            expect(getPageStatusField(state)).toBeNull();
+        });
+
+        test('returns null when pages group has no fields', () => {
+            const state = stateWithStatusField({
+                fields: {byObjectType: {post: {}}, byId: {}},
+            });
+
+            expect(getPageStatusField(state)).toBeNull();
+        });
+
+        test('does not match a status field from a different group', () => {
+            const otherGroupField = {...mockStatusField, id: 'other-status-id', group_id: 'other-group-id'};
+            const state: GlobalState = {
+                entities: {
+                    pages: makeInitialPagesState({}),
+                    properties: {
+                        fields: {
+                            byObjectType: {
+                                post: {
+                                    'other-group-id': {'other-status-id': otherGroupField},
+                                },
+                            },
+                            byId: {'other-status-id': otherGroupField},
+                        },
+                        groups: {
+                            byId: {'pages-group-id': {id: 'pages-group-id', name: 'pages'}},
+                            byName: {pages: {id: 'pages-group-id', name: 'pages'}},
+                        },
+                        values: {byTargetId: {}},
+                    },
+                },
+            } as any;
+
+            expect(getPageStatusField(state)).toBeNull();
         });
     });
 });
