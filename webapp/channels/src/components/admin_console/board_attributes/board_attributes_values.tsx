@@ -3,6 +3,7 @@
 
 import {combine} from '@atlaskit/pragmatic-drag-and-drop/combine';
 import {draggable, dropTargetForElements, monitorForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import {setCustomNativeDragPreview} from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
@@ -295,6 +296,18 @@ const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) 
             draggable({
                 element: el,
                 getInitialData: () => ({kind: fieldKind, optionKey}),
+                onGenerateDragPreview: ({nativeSetDragImage}) => {
+                    setCustomNativeDragPreview({
+                        nativeSetDragImage,
+                        render: ({container}) => {
+                            const node = document.createElement('span');
+                            node.className = 'BoardAttributes__optionDragPreview';
+                            node.style.backgroundColor = resolveColor(option.color);
+                            node.textContent = option.name;
+                            container.appendChild(node);
+                        },
+                    });
+                },
             }),
             dropTargetForElements({
                 element: el,

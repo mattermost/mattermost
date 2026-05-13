@@ -3,6 +3,7 @@
 
 import {combine} from '@atlaskit/pragmatic-drag-and-drop/combine';
 import {draggable, dropTargetForElements, monitorForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import {setCustomNativeDragPreview} from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
 import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
@@ -65,6 +66,13 @@ export type TableMeta = {
     onRowClick?: (row: string) => void;
     onReorder?: (prev: number, next: number) => void;
     isRowDragDisabled?: (rowId: string) => boolean;
+
+    // Optional: returns a detached HTMLElement used as the native drag
+    // preview when a row is being dragged. If omitted, the browser uses the
+    // dragged row element itself, which can be visually noisy for wide
+    // tables. Consumers build their own preview DOM so styling stays
+    // scoped to the consuming screen (not the shared list-table primitive).
+    getRowDragPreview?: (rowId: string) => HTMLElement | undefined;
     disablePrevPage?: boolean;
     disableNextPage?: boolean;
     disablePaginationControls?: boolean;
@@ -149,6 +157,18 @@ function DraggableRow<T extends TableMandatoryTypes>({
                     rowId: row.original.id,
                     rowIndex: row.index,
                 }),
+                onGenerateDragPreview: ({nativeSetDragImage}) => {
+                    const previewEl = tableMeta.getRowDragPreview?.(row.original.id);
+                    if (!previewEl) {
+                        return;
+                    }
+                    setCustomNativeDragPreview({
+                        nativeSetDragImage,
+                        render: ({container}) => {
+                            container.appendChild(previewEl);
+                        },
+                    });
+                },
             }),
             dropTargetForElements({
                 element: rowEl,
@@ -188,7 +208,6 @@ function DraggableRow<T extends TableMandatoryTypes>({
             key={row.id}
             onClick={handleRowClick}
             className={classNames({clickable: Boolean(tableMeta.onRowClick)})}
-            style={{position: 'relative'}}
         >
             {row.getVisibleCells().map((cell, i) => (
                 <td
@@ -198,7 +217,7 @@ function DraggableRow<T extends TableMandatoryTypes>({
                     className={classNames(`${cell.column.id}`, {
                         [PINNED_CLASS]: cell.column.getCanPin(),
                     })}
-                    style={{width: cell.column.getSize()}}
+                    style={{width: cell.column.getSize(), position: 'relative'}}
                 >
                     {tableMeta.onReorder && i === 0 && (
                         tableMeta.isRowDragDisabled?.(row.original.id) === true ? (
@@ -219,9 +238,9 @@ function DraggableRow<T extends TableMandatoryTypes>({
                         )
                     )}
                     {cell.getIsPlaceholder() ? null : flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {closestEdge && <DropIndicator edge={closestEdge}/>}
                 </td>
             ))}
-            {closestEdge && <DropIndicator edge={closestEdge}/>}
         </tr>
     );
 }

@@ -15,6 +15,8 @@ table.adminConsoleListTable {
 
     width: 100%;
 
+    table-layout: fixed;
+
     thead {
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
@@ -122,8 +124,6 @@ table.adminConsoleListTable {
             font-size: 14px;
             font-weight: 400;
             line-height: 20px;
-
-
 
             &.clickable:hover {
                 background-color: $sysCenterChannelColorWith8Alpha;

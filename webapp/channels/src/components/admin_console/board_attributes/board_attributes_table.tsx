@@ -24,6 +24,8 @@ import {AdminConsoleListTable} from '../list_table';
 import {DangerText, BorderlessInput, LinkButton} from '../system_properties/controls';
 import type {SectionHook} from '../system_properties/section_utils';
 
+import './board_attributes_drag_preview.scss';
+
 const MAX_BOARD_ATTRIBUTES = 20;
 
 type FieldActions = {
@@ -262,6 +264,16 @@ export function BoardAttributesTable({
                 reorderField(collection.data[collection.order[prev]], next);
             },
             isRowDragDisabled: (rowId: string) => Boolean(collection.data[rowId]?.protected),
+            getRowDragPreview: (rowId: string) => {
+                const name = collection.data[rowId]?.name;
+                if (!name) {
+                    return undefined;
+                }
+                const node = document.createElement('div');
+                node.className = 'BoardAttributes__dragPreview';
+                node.textContent = name;
+                return node;
+            },
         },
         manualPagination: true,
     });
