@@ -15,4 +15,4 @@ When creating a pull request, follow `.github/PULL_REQUEST_TEMPLATE.md` exactly:
 
 This repository has a checked-in Cloud Agent environment under `.cursor/`. Docker is started by `.cursor/scripts/cloud-agent-start.sh`; if Docker is unavailable in Cloud, treat that as an environment failure rather than falling back to snapshot assumptions.
 
-The install hook clones `mattermost/enterprise` to `$HOME/enterprise` when `CURSOR_GH_TOKEN` is available, then symlinks it to `/enterprise` for builds. Use `ENTERPRISE_CHECKOUT_DIR` to override the clone location, and `ENTERPRISE_BRANCH` to force a branch.
+The environment declares `mattermost/enterprise` as a Cursor multi-repo dependency. The install hook discovers Cursor's enterprise checkout and symlinks it to `/enterprise` for builds; it does not clone enterprise itself.

@@ -6,7 +6,7 @@ These instructions apply to Cursor Cloud Agents after `.cursor/scripts/cloud-age
 
 - Docker must be available. If `docker info` fails, inspect `/tmp/docker-service-start.log` and `/tmp/dockerd.log`; do not assume a snapshot will provide Docker.
 - The image includes Go, Node/npm, Docker Compose, AWS CLI v2, and `agent-browser`.
-- The install hook attempts to clone `mattermost/enterprise` to `$HOME/enterprise`, then symlinks it to `/enterprise` for builds. Use `ENTERPRISE_CHECKOUT_DIR` or `ENTERPRISE_BRANCH` only when the default branch/path is wrong for the task.
+- Cursor should provide `mattermost/enterprise` through the multi-repo environment. The install hook discovers that checkout and symlinks it to `/enterprise` for builds; it does not clone enterprise itself.
 
 ## Running Mattermost
 
