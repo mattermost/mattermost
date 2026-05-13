@@ -2633,6 +2633,10 @@
     "translation": "api endpoint requires a license"
   },
   {
+    "id": "api.mark_all_as_read.disabled.app_error",
+    "translation": "Mark all as read feature is not enabled."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "Failed to marshal."
   },
@@ -5471,6 +5475,10 @@
     "translation": "No channel found."
   },
   {
+    "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
+    "translation": "Unable to get channels with unreads and mentions."
+  },
+  {
     "id": "app.channel.get_channels_member_count.existing.app_error",
     "translation": "Unable to find member count for given channels."
   },
@@ -7471,6 +7479,10 @@
   {
     "id": "app.pap.get_channel_members_to_remove.app_error",
     "translation": "Could not get channel members to remove."
+  },
+  {
+    "id": "app.pap.get_masked_visual_ast.app_error",
+    "translation": "Could not generate masked visual AST from expression."
   },
   {
     "id": "app.pap.get_policies_for_field_ids.app_error",

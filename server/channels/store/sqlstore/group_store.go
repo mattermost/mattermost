@@ -1188,7 +1188,7 @@ type groupWithSchemeAdmin struct {
 
 func (g groupWithSchemeAdmin) ToModel() *model.GroupWithSchemeAdmin {
 	if g.SyncableSchemeAdmin == nil {
-		g.SyncableSchemeAdmin = model.NewPointer(false)
+		g.SyncableSchemeAdmin = new(false)
 	}
 	res := &model.GroupWithSchemeAdmin{
 		Group:       *g.group.ToModel(),

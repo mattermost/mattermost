@@ -330,27 +330,80 @@ func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID, 
 			map[string]any{"channelId": channelID}, "", http.StatusRequestEntityTooLarge)
 	}
 
-	// Create an upload session — this constructs the file path server-side
-	us := &model.UploadSession{
-		Id:        model.NewId(),
-		Type:      model.UploadTypeAttachment,
-		UserId:    fi.CreatorId,
-		ChannelId: channelID,
-		Filename:  fi.Name,
-		FileSize:  fi.Size,
-		RemoteId:  rc.RemoteId,
-		ReqFileId: fi.Id,
+	// Idempotency: if a FileInfo with the sender's id already exists for
+	// this channel and creator, this is a retry of a previously successful
+	// receive (e.g. caller re-delivered the same payload after a transient
+	// ack failure). Reuse the existing record rather than insert a duplicate
+	// (which would violate the FileInfo PK and force the caller to retry
+	// indefinitely). The bind/upsert tail still runs below so that a partial
+	// prior receive (FileInfo persisted but lazy-bind or attachment record
+	// never committed) self-heals on retry.
+	var saved *model.FileInfo
+	if fi.Id != "" {
+		if existing, getErr := a.Srv().Store().FileInfo().Get(fi.Id); getErr == nil {
+			if existing.ChannelId != channelID || existing.CreatorId != fi.CreatorId {
+				return nil, fmt.Errorf("file %s already exists under different channel/creator", fi.Id)
+			}
+			saved = existing
+		} else if !isNotFoundError(getErr) {
+			return nil, fmt.Errorf("error checking for existing file %s: %w", fi.Id, getErr)
+		}
 	}
 
-	us, appErr := a.CreateUploadSession(rctx, us)
-	if appErr != nil {
-		return nil, fmt.Errorf("error creating upload session: %w", appErr)
+	if saved == nil {
+		// Create an upload session, which constructs the file path server-side.
+		us := &model.UploadSession{
+			Id:        model.NewId(),
+			Type:      model.UploadTypeAttachment,
+			UserId:    fi.CreatorId,
+			ChannelId: channelID,
+			Filename:  fi.Name,
+			FileSize:  fi.Size,
+			RemoteId:  rc.RemoteId,
+			ReqFileId: fi.Id,
+		}
+
+		var appErr *model.AppError
+		us, appErr = a.CreateUploadSession(rctx, us)
+		if appErr != nil {
+			return nil, fmt.Errorf("error creating upload session: %w", appErr)
+		}
+
+		saved, appErr = a.UploadData(rctx, us, data)
+		if appErr != nil {
+			return nil, fmt.Errorf("error uploading attachment data: %w", appErr)
+		}
 	}
 
-	// Upload the file data through the standard upload path
-	saved, appErr := a.UploadData(rctx, us, data)
-	if appErr != nil {
-		return nil, fmt.Errorf("error uploading attachment data: %w", appErr)
+	// Bind the FileInfo to its post. AttachToPost is atomic against the
+	// post-receive path's parallel call for the same id, so whichever
+	// arrives second sees PostId already set and is a no-op. The
+	// post-receive path does not strip unmatched FileIds for remote-origin
+	// posts, so Post.FileIds does not need to be touched here.
+	//
+	// On a successful bind, publish a post_edited event so connected clients
+	// re-render the post with the now-resolvable attachment without needing
+	// a channel reload. The event is skipped when the post is not yet
+	// present (file-then-post ordering): the post-receive path will publish
+	// its own posted event with correct metadata once it arrives.
+	if fi.PostId != "" {
+		if attachErr := a.Srv().Store().FileInfo().AttachToPost(rctx, saved.Id, fi.PostId, channelID, saved.CreatorId); attachErr == nil {
+			if post, perr := a.Srv().Store().Post().GetSingle(rctx, fi.PostId, false); perr == nil {
+				preparedPost := a.PreparePostForClient(rctx, post, &model.PreparePostForClientOpts{})
+				message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", channelID, "", nil, "")
+				if pubErr := a.publishWebsocketEventForPost(rctx, preparedPost, message); pubErr != nil {
+					rctx.Logger().Warn("ReceiveSharedChannelAttachmentSyncMsg: failed to publish post_edited event",
+						mlog.String("post_id", fi.PostId),
+						mlog.String("file_id", saved.Id),
+						mlog.Err(pubErr))
+				}
+			}
+		} else {
+			rctx.Logger().Debug("ReceiveSharedChannelAttachmentSyncMsg: AttachToPost did not bind",
+				mlog.String("post_id", fi.PostId),
+				mlog.String("file_id", saved.Id),
+				mlog.Err(attachErr))
+		}
 	}
 
 	// Save a SharedChannelAttachment record for cursor tracking

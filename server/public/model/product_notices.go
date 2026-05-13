@@ -85,8 +85,9 @@ func UnmarshalProductNoticeMessages(data io.Reader) (NoticeMessages, error) {
 // User role, i.e. who will see the notice. Defaults to "all"
 type NoticeAudience string
 
+//go:fix inline
 func NewNoticeAudience(s NoticeAudience) *NoticeAudience {
-	return &s
+	return new(s)
 }
 
 func (a *NoticeAudience) Matches(sysAdmin bool, teamAdmin bool) bool {
@@ -115,7 +116,8 @@ const (
 // Client type. Defaults to "all"
 type NoticeClientType string
 
-func NewNoticeClientType(s NoticeClientType) *NoticeClientType { return &s }
+//go:fix inline
+func NewNoticeClientType(s NoticeClientType) *NoticeClientType { return new(s) }
 
 func (c *NoticeClientType) Matches(other NoticeClientType) bool {
 	switch *c {
@@ -154,7 +156,8 @@ func NoticeClientTypeFromString(s string) (NoticeClientType, error) {
 // Instance type. Defaults to "both"
 type NoticeInstanceType string
 
-func NewNoticeInstanceType(n NoticeInstanceType) *NoticeInstanceType { return &n }
+//go:fix inline
+func NewNoticeInstanceType(n NoticeInstanceType) *NoticeInstanceType { return new(n) }
 func (t *NoticeInstanceType) Matches(isCloud bool) bool {
 	if *t == NoticeInstanceTypeBoth {
 		return true
@@ -177,7 +180,8 @@ const (
 // SKU. Defaults to "all"
 type NoticeSKU string
 
-func NewNoticeSKU(s NoticeSKU) *NoticeSKU { return &s }
+//go:fix inline
+func NewNoticeSKU(s NoticeSKU) *NoticeSKU { return new(s) }
 func (c *NoticeSKU) Matches(s string) bool {
 	switch *c {
 	case NoticeSKUAll:

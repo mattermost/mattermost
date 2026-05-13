@@ -1560,7 +1560,7 @@ func TestDeletePropertyField(t *testing.T) {
 func TestIsOptionsOnlyPatch(t *testing.T) {
 	t.Run("nil attrs is not options-only", func(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
-			Name: model.NewPointer("new name"),
+			Name: new("new name"),
 		}
 		require.False(t, isOptionsOnlyPatch(patch))
 	})
@@ -1593,7 +1593,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 
 	t.Run("name change with options is not options-only", func(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
-			Name: model.NewPointer("new name"),
+			Name: new("new name"),
 			Attrs: &model.StringInterface{
 				"options": []any{},
 			},

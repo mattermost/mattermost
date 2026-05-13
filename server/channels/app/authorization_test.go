@@ -654,7 +654,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 	require.Nil(t, err)
 
 	group, err := th.App.CreateGroup(&model.Group{
-		Name:           model.NewPointer(model.NewId()),
+		Name:           new(model.NewId()),
 		DisplayName:    model.NewId(),
 		Source:         model.GroupSourceCustom,
 		AllowReference: true,

@@ -19,6 +19,7 @@ package properties
 //                      then Alice querying Bob's values would only see Bananas)
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -639,6 +640,7 @@ func (h *AccessControlHook) getAccessMode(field *model.PropertyField) string {
 }
 
 // hasUnrestrictedFieldReadAccess checks if the given caller can read a PropertyField without restrictions.
+// Returns true if the caller has unrestricted read access (public field or source plugin).
 func (h *AccessControlHook) hasUnrestrictedFieldReadAccess(field *model.PropertyField, callerID string) bool {
 	accessMode := h.getAccessMode(field)
 
@@ -933,9 +935,17 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyFi
 }
 
 // filterSharedOnlyValue computes the intersection of caller and target values for shared_only fields.
+// Returns the filtered value or nil if there's no intersection.
+//   - select / multiselect: per-value intersection (a multi-value field may return a subset).
+//   - text / date / user / any other primitive type: binary — visible only if the caller's
+//     stored value equals the target's value exactly. Otherwise nil.
+//
+// The binary path is what protects scenarios like LDAP/SAML-synced text codenames whose
+// existence is itself controlled information: a caller who doesn't hold the same value
+// must not see the target's value through any read endpoint.
 func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
-		return value
+		return h.filterSharedOnlyScalarValue(field, value, callerID)
 	}
 
 	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
@@ -983,7 +993,36 @@ func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, va
 	}
 }
 
+// filterSharedOnlyScalarValue applies binary masking to a non-option field's value:
+// returns the value as-is if the caller's own stored value for the same field equals
+// the target's value, otherwise nil. Caller and target may legitimately store nothing,
+// in which case the value is hidden.
+func (h *AccessControlHook) filterSharedOnlyScalarValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+	if value == nil || len(value.Value) == 0 {
+		return nil
+	}
+
+	callerValues, err := h.getCallerValuesForField(field.GroupID, field.ID, callerID)
+	if err != nil || len(callerValues) == 0 {
+		return nil
+	}
+
+	for _, cv := range callerValues {
+		if bytes.Equal(cv.Value, value.Value) {
+			filtered := *value
+			return &filtered
+		}
+	}
+	return nil
+}
+
 // applyFieldReadAccessControl applies read access control to a single field.
+// Returns the field with options filtered based on the caller's access permissions.
+// - Public fields: returned as-is
+// - User-editable fields (PermissionValues=member): returned as-is so users can see all choices
+// - Source-only fields: returned with empty options if caller is not the source plugin
+// - Shared-only fields: returned with options filtered using filterSharedOnlyFieldOptions
+// - Unknown access modes: treated as source-only (secure default)
 func (h *AccessControlHook) applyFieldReadAccessControl(field *model.PropertyField, callerID string) *model.PropertyField {
 	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
 		return field

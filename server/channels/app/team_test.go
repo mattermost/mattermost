@@ -128,7 +128,7 @@ func TestAddUserToTeam(t *testing.T) {
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 
-		user = model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), AuthService: "notnil", AuthData: model.NewPointer("notnil")}
+		user = model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), AuthService: "notnil", AuthData: new("notnil")}
 		ruser, err = th.App.CreateUser(th.Context, &user)
 		require.Nil(t, err, "Error creating authservice user: %s", err)
 		defer func() {
@@ -417,7 +417,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	})
 
 	t.Run("group-constrained team", func(t *testing.T) {
-		th.BasicTeam.GroupConstrained = model.NewPointer(true)
+		th.BasicTeam.GroupConstrained = new(true)
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 
@@ -431,7 +431,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.NotNil(t, err, "Should return an error when trying to join a group-constrained team.")
 		require.Equal(t, "app.team.invite_token.group_constrained.error", err.Id)
 
-		th.BasicTeam.GroupConstrained = model.NewPointer(false)
+		th.BasicTeam.GroupConstrained = new(false)
 		_, err = th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 	})
@@ -1109,7 +1109,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewPointer(999) })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = new(999) })
 
 		tm1, appErr := th.App.JoinUserToTeam(th.Context, team, ruser1, "")
 		require.Nil(t, appErr)
@@ -1223,7 +1223,7 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	team := th.BasicTeam
-	mockID := model.NewPointer("x")
+	mockID := new("x")
 	team.SchemeId = mockID
 
 	updatedTeam, appErr := th.App.UpdateTeamScheme(th.BasicTeam)

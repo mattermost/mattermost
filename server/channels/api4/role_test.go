@@ -350,7 +350,7 @@ func TestPatchRole(t *testing.T) {
 
 	t.Run("system manager cannot patch system_guest", func(t *testing.T) {
 		license := model.NewTestLicense()
-		license.Features.GuestAccountsPermissions = model.NewPointer(true)
+		license.Features.GuestAccountsPermissions = new(true)
 		th.App.Srv().SetLicense(license)
 		t.Cleanup(func() {
 			th.App.Srv().SetLicense(nil)
@@ -394,7 +394,7 @@ func TestPatchRole(t *testing.T) {
 
 		t.Run("Check guest permissions editing without E20 license", func(t *testing.T) {
 			license := model.NewTestLicense()
-			license.Features.GuestAccountsPermissions = model.NewPointer(false)
+			license.Features.GuestAccountsPermissions = new(false)
 			th.App.Srv().SetLicense(license)
 
 			guestRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_guest")
@@ -406,7 +406,7 @@ func TestPatchRole(t *testing.T) {
 
 		t.Run("Check guest permissions editing with E20 license", func(t *testing.T) {
 			license := model.NewTestLicense()
-			license.Features.GuestAccountsPermissions = model.NewPointer(true)
+			license.Features.GuestAccountsPermissions = new(true)
 			th.App.Srv().SetLicense(license)
 			guestRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_guest")
 			require.NoError(t, err)

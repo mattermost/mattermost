@@ -424,7 +424,7 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 		Header:      invite.Header,
 		Purpose:     invite.Purpose,
 		CreatorId:   rc.CreatorId,
-		Shared:      model.NewPointer(true),
+		Shared:      new(true),
 	}
 
 	// check user perms?
@@ -453,7 +453,7 @@ func (scs *Service) getOrCreateUser(userID string, participantsMap map[string]*m
 	}
 
 	var rctx request.CTX = request.EmptyContext(scs.server.Log())
-	inviteUser.RemoteId = model.NewPointer(rc.RemoteId)
+	inviteUser.RemoteId = new(rc.RemoteId)
 	user, iErr := scs.insertSyncUser(rctx, inviteUser, nil, rc)
 	if iErr != nil {
 		return nil, fmt.Errorf("cannot create user `%q` for remote `%q`: %w", inviteUser.Id, rc.RemoteId, iErr)

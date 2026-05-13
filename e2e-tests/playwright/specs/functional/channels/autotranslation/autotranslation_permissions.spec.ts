@@ -3,6 +3,7 @@
 
 import {
     enableAutotranslationConfig,
+    disableAutotranslationConfig,
     hasAutotranslationLicense,
     expect,
     test,
@@ -224,41 +225,36 @@ test.describe('autotranslation configuration tests', () => {
                 'Skipping test - server does not have Entry or Advanced license',
             );
 
-            // Capture original config for restoration
-            const originalConfig = await adminClient.getConfig();
+            // Enable autotranslation
+            await enableAutotranslationConfig(adminClient, {
+                mockBaseUrl: process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010',
+                targetLanguages: ['en', 'es'],
+            });
 
-            try {
-                // Enable autotranslation
-                await enableAutotranslationConfig(adminClient, {
-                    mockBaseUrl: process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010',
-                    targetLanguages: ['en', 'es'],
-                });
+            const channelName = `autotranslation-perm-${pw.random.id()}`;
+            const created = await adminClient.createChannel({
+                team_id: team.id,
+                name: channelName,
+                display_name: 'Permission Test Channel',
+                type: 'O',
+            });
+            await adminClient.addToChannel(user.id, created.id);
 
-                const channelName = `autotranslation-perm-${pw.random.id()}`;
-                const created = await adminClient.createChannel({
-                    team_id: team.id,
-                    name: channelName,
-                    display_name: 'Permission Test Channel',
-                    type: 'O',
-                });
-                await adminClient.addToChannel(user.id, created.id);
+            const {channelsPage} = await pw.testBrowser.login(user);
+            await channelsPage.goto(team.name, channelName);
+            await channelsPage.toBeVisible();
 
-                const {channelsPage} = await pw.testBrowser.login(user);
-                await channelsPage.goto(team.name, channelName);
-                await channelsPage.toBeVisible();
-
-                const channelSettingsModal = await channelsPage.openChannelSettings();
-                const configTabVisible = await channelSettingsModal.configurationTab.isVisible();
-                if (configTabVisible) {
-                    const configurationTab = await channelSettingsModal.openConfigurationTab();
-                    await expect(
-                        configurationTab.container.getByTestId('channelTranslationToggle-button'),
-                    ).not.toBeVisible();
-                }
-            } finally {
-                // Restore original config to prevent state leakage
-                await adminClient.updateConfig(originalConfig as any);
+            const channelSettingsModal = await channelsPage.openChannelSettings();
+            const configTabVisible = await channelSettingsModal.configurationTab.isVisible();
+            if (configTabVisible) {
+                const configurationTab = await channelSettingsModal.openConfigurationTab();
+                await expect(
+                    configurationTab.container.getByTestId('channelTranslationToggle-button'),
+                ).not.toBeVisible();
             }
+
+            // Restore autotranslation to disabled via patchConfig (race-safe)
+            await disableAutotranslationConfig(adminClient);
         },
     );
 });

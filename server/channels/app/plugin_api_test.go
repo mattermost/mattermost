@@ -3095,8 +3095,8 @@ func TestPluginServeMetrics(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		prevEnable = cfg.MetricsSettings.Enable
 		prevAddress = cfg.MetricsSettings.ListenAddress
-		cfg.MetricsSettings.Enable = model.NewPointer(true)
-		cfg.MetricsSettings.ListenAddress = model.NewPointer(":30067")
+		cfg.MetricsSettings.Enable = new(true)
+		cfg.MetricsSettings.ListenAddress = new(":30067")
 	})
 	defer th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.MetricsSettings.Enable = prevEnable
