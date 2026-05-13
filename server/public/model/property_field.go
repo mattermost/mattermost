@@ -48,6 +48,7 @@ const (
 	PropertyFieldObjectTypeTemplate = "template"
 
 	PropertyFieldObjectTypeSystem = "system"
+	PropertyFieldObjectTypePage   = "page"
 
 	// NOTE: Temporarily using this until CPA is migrated to v2
 	ClassificationMarkingsPropertyGroupName = "classification_markings"
@@ -70,6 +71,7 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypeUser,
 	PropertyFieldObjectTypeTemplate,
 	PropertyFieldObjectTypeSystem,
+	PropertyFieldObjectTypePage,
 }
 
 type PropertyField struct {

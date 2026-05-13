@@ -66,14 +66,13 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	field.ObjectType = c.Params.ObjectType
 	field.GroupID = group.ID
 
-	// System-object fields attach to the system itself; canonicalize the
-	// target fields so clients can't submit inconsistent combinations.
-	// Permissions are likewise pinned to sysadmin: a system field's
-	// TargetType is "system", which makes member-level scope checks resolve
-	// to "any authenticated user" (see hasPropertyFieldScopeAccess), so
-	// honouring a member-level permission on a system field would expose
-	// the field's definition, options, and values to every logged-in user.
-	if field.ObjectType == model.PropertyFieldObjectTypeSystem {
+	// System and Page fields are always system-scoped. Canonicalize TargetType
+	// and pin all permission knobs to sysadmin so any client-supplied target_type
+	// cannot land in a lower-privilege branch of the scope switch below.
+	// (A system field's TargetType is "system", which makes member-level checks
+	// resolve to "any authenticated user" via hasPropertyFieldScopeAccess.)
+	if field.ObjectType == model.PropertyFieldObjectTypeSystem ||
+		field.ObjectType == model.PropertyFieldObjectTypePage {
 		field.TargetType = string(model.PropertyFieldTargetLevelSystem)
 		field.TargetID = ""
 		sysadmin := model.PermissionLevelSysadmin
@@ -137,7 +136,8 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	defaultLevel := model.PermissionLevelMember
 	if field.ObjectType == model.PropertyFieldObjectTypeTemplate ||
-		field.ObjectType == model.PropertyFieldObjectTypeSystem {
+		field.ObjectType == model.PropertyFieldObjectTypeSystem ||
+		field.ObjectType == model.PropertyFieldObjectTypePage {
 		defaultLevel = model.PermissionLevelSysadmin
 	}
 	if !isAdmin {
@@ -758,6 +758,21 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 			perm = model.PermissionCreatePost
 		}
 		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, perm)
+		if !hasPermission {
+			c.SetPermissionError(perm)
+			return false
+		}
+	case model.PropertyFieldObjectTypePage:
+		page, appErr := c.App.GetPage(c.AppContext, targetID)
+		if appErr != nil {
+			c.Err = appErr
+			return false
+		}
+		perm := model.PermissionReadChannel
+		if write {
+			perm = model.PermissionCreatePost
+		}
+		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), page.ChannelId, perm)
 		if !hasPermission {
 			c.SetPermissionError(perm)
 			return false

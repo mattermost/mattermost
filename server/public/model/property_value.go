@@ -19,6 +19,7 @@ const (
 	PropertyValueTargetTypeUser    = "user"
 	PropertyValueTargetTypeChannel = "channel"
 	PropertyValueTargetTypeSystem  = "system"
+	PropertyValueTargetTypePage    = "page"
 
 	// PropertyValueSystemTargetID is the canonical TargetID sentinel for
 	// values whose TargetType is "system". System-object values attach to

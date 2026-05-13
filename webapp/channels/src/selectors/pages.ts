@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Post} from '@mattermost/types/posts';
+import type {PropertyField, SelectPropertyField} from '@mattermost/types/properties';
 import type {BreadcrumbPath, Wiki} from '@mattermost/types/wikis';
 
 import {PostTypes} from 'mattermost-redux/constants/posts';
@@ -180,16 +181,17 @@ export const makeGetChannelWikis = () => createSelector(
 export const getPageStatusField = createSelector(
     'getPageStatusField',
     (state: GlobalState) => getPropertyGroupByName(state, 'pages'),
-    (state: GlobalState) => state.entities.properties.fields.byObjectType.post,
-    (group, fieldsByGroup) => {
-        if (!group || !fieldsByGroup) {
+    (state: GlobalState) => state.entities.properties.fields.byObjectType.page,
+    (pagesGroup, byObjectType) => {
+        if (!pagesGroup || !byObjectType) {
             return null;
         }
-        const groupFields = fieldsByGroup[group.id];
-        if (!groupFields) {
+        const fieldsInGroup = byObjectType[pagesGroup.id] as Record<string, PropertyField> | undefined;
+        if (!fieldsInGroup) {
             return null;
         }
-        return Object.values(groupFields).find((field) => field.name === 'status') ?? null;
+        const found = Object.values(fieldsInGroup).find((f) => f.name === 'status');
+        return (found?.type === 'select' ? found as SelectPropertyField : null) ?? null;
     },
 );
 

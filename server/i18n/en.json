@@ -8201,10 +8201,6 @@
     "translation": "Unable to get page group."
   },
   {
-    "id": "app.page.get_status_field.app_error",
-    "translation": "Unable to get page status field."
-  },
-  {
     "id": "app.page.get_version_history.app_error",
     "translation": "Unable to get page version history."
   },
@@ -10403,20 +10399,12 @@
     "translation": "Unable to update the webhook."
   },
   {
-    "id": "app.wiki.add.already_attached",
-    "translation": "Page is already attached to this wiki."
-  },
-  {
     "id": "app.wiki.add.channel_mismatch",
     "translation": "Page channel does not match wiki channel."
   },
   {
     "id": "app.wiki.add.not_a_page",
     "translation": "Post is not a page."
-  },
-  {
-    "id": "app.wiki.add_page.app_error",
-    "translation": "Unable to add page to wiki."
   },
   {
     "id": "app.wiki.create.channel_id_not_allowed.app_error",
@@ -10459,10 +10447,6 @@
     "translation": "Failed to delete wiki record."
   },
   {
-    "id": "app.wiki.delete_page.app_error",
-    "translation": "Unable to delete wiki page."
-  },
-  {
     "id": "app.wiki.delete_page.channel_not_found.app_error",
     "translation": "Channel not found for wiki page deletion."
   },
@@ -10503,32 +10487,16 @@
     "translation": "Unable to get wikis for user."
   },
   {
-    "id": "app.wiki.get_group.app_error",
-    "translation": "Unable to get wiki group."
-  },
-  {
     "id": "app.wiki.get_pages.app_error",
     "translation": "Unable to get wiki pages."
   },
   {
-    "id": "app.wiki.get_wiki_field.app_error",
-    "translation": "Unable to get wiki property field."
+    "id": "app.wiki.get_wiki_for_page.not_found",
+    "translation": "Wiki not found for page."
   },
   {
-    "id": "app.wiki.get_wiki_for_page.post_not_found",
-    "translation": "Post not found when getting wiki for page."
-  },
-  {
-    "id": "app.wiki.get_wiki_for_post.nil_post",
-    "translation": "Post cannot be nil."
-  },
-  {
-    "id": "app.wiki.get_wiki_for_post.not_found",
-    "translation": "Wiki not found for post."
-  },
-  {
-    "id": "app.wiki.marshal_wiki_id.app_error",
-    "translation": "Unable to marshal wiki ID."
+    "id": "app.wiki.get_wiki_for_page.page_not_found",
+    "translation": "Page not found when getting wiki for page."
   },
   {
     "id": "app.wiki.set_wiki_id_props.app_error",

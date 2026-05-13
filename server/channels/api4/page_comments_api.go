@@ -249,7 +249,7 @@ func resolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId, page) {
+	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, page) {
 		c.SetPermissionError(model.PermissionManageWiki)
 		return
 	}
@@ -298,7 +298,7 @@ func unresolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId, page) {
+	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, page) {
 		c.SetPermissionError(model.PermissionManageWiki)
 		return
 	}

@@ -16,7 +16,6 @@ import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isCollapsedThreadsEnabled, syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
 
 import {fetchPageDraftsForWiki} from 'actions/page_drafts';
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
@@ -428,11 +427,13 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             ]));
 
             return {data};
-        } catch (error: any) {
-            dispatch(batchActions([
-                {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
-                {type: WikiTypes.DELETED_PAGE, data: {id: pendingPageId, wikiId}},
-            ]));
+        } catch (error) {
+            if (!isFirstTimeDraft) {
+                dispatch(batchActions([
+                    {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
+                    {type: WikiTypes.DELETED_PAGE, data: {id: pendingPageId, wikiId}},
+                ]));
+            }
             dispatch(setGlobalItem(draftKey, draft));
 
             // Check if this is a conflict error (409 Conflict only, not 403)
@@ -611,9 +612,8 @@ function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiI
                 await Client4.movePageDraft(wikiId, draftId, newParentId || '');
             } catch (error) {
                 // Local state has been updated; next autosave will sync.
-                // Log error and return with serverSyncPending flag so callers know sync failed.
                 dispatch(logError(error));
-                return {data: true, serverSyncPending: true};
+                return {data: true};
             }
         }
 
@@ -952,11 +952,12 @@ export function unresolvePageComment(wikiId: string, pageId: string, commentId: 
 export function fetchPageStatusField(): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
-            const result = await dispatch(fetchPropertyFields('pages', 'post', 'system'));
-            if (!result.error && result.data && result.data.length > 0 && !getPropertyGroupByName(getState(), 'pages')) {
+            const result = await dispatch(fetchPropertyFields('pages', 'page', 'system'));
+            const fields = result.data;
+            if (fields && fields.length > 0) {
                 dispatch({
                     type: PropertyTypes.RECEIVED_PROPERTY_GROUP,
-                    data: {id: result.data[0].group_id, name: 'pages'},
+                    data: {id: fields[0].group_id, name: 'pages'},
                 });
             }
             return result;

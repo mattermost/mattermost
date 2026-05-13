@@ -117,7 +117,7 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 
 	// Use provided wikiID or fetch if not provided; wiki_id is required on all page comments.
 	if wikiID == "" {
-		fetchedWikiID, wikiErr := a.GetWikiIdForPost(rctx, page)
+		fetchedWikiID, wikiErr := a.GetWikiIdForPage(rctx, page.Id)
 		if wikiErr != nil {
 			return nil, model.NewAppError("CreatePageComment", "app.page_comment.create.wiki_lookup.app_error",
 				nil, "", http.StatusInternalServerError).Wrap(wikiErr)
@@ -230,12 +230,14 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		model.PagePropsParentCommentID: parentCommentID,
 	}
 
-	// Use provided wikiID or fetch if not provided
+	// Use provided wikiID or fetch if not provided (wiki_id is required on all page comments)
 	if wikiID == "" {
-		fetchedWikiID, wikiErr := a.GetWikiIdForPost(rctx, page)
-		if wikiErr == nil && fetchedWikiID != "" {
-			wikiID = fetchedWikiID
+		fetchedWikiID, wikiErr := a.GetWikiIdForPage(rctx, page.Id)
+		if wikiErr != nil {
+			return nil, model.NewAppError("CreatePageCommentReply", "app.page_comment.create.wiki_lookup.app_error",
+				nil, "", http.StatusInternalServerError).Wrap(wikiErr)
 		}
+		wikiID = fetchedWikiID
 	}
 	if wikiID != "" {
 		replyProps[model.PagePropsWikiID] = wikiID
@@ -311,19 +313,13 @@ func (a *App) TransformPageCommentReply(rctx request.CTX, post *model.Post, pare
 }
 
 // CanResolvePageComment checks if the user can resolve a comment.
-// page is optional - if provided, avoids a DB fetch.
-func (a *App) CanResolvePageComment(rctx request.CTX, session *model.Session, comment *model.Post, pageId string, page *model.Post) bool {
-	if comment.UserId == session.UserId {
-		return true
+func (a *App) CanResolvePageComment(rctx request.CTX, session *model.Session, comment *model.Post, page *model.Post) bool {
+	if page == nil {
+		return false
 	}
 
-	// Use provided page or fetch if not provided
-	if page == nil {
-		var err *model.AppError
-		page, err = a.GetSinglePost(rctx, pageId, false)
-		if err != nil {
-			return false
-		}
+	if comment.UserId == session.UserId {
+		return true
 	}
 
 	if page.UserId == session.UserId {

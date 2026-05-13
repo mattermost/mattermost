@@ -330,9 +330,8 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 
 	pageID := page.Id
 
-	// Use master context to avoid reading stale data from replicas in HA mode
-	// This is critical for conflict detection - we need the latest EditAt value
-	post, err := a.GetSinglePost(RequestContextWithMaster(rctx), pageID, false)
+	// GetPage always reads from master — see its implementation.
+	post, err := a.GetPage(rctx, pageID)
 	if err != nil {
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking",
 			"app.page.update.not_found.app_error", nil, "", err.StatusCode).Wrap(err)
@@ -465,7 +464,7 @@ func (a *App) finalizePageUpdate(rctx request.CTX, updatedPost *model.Post, titl
 
 	// Broadcast title update if title was changed
 	if title != "" {
-		wikiId, wikiErr := a.GetWikiIdForPost(rctx, updatedPost)
+		wikiId, wikiErr := a.GetWikiIdForPage(rctx, updatedPost.Id)
 		if wikiErr != nil {
 			rctx.Logger().Warn("Failed to get wiki ID for page, title broadcast skipped",
 				mlog.String("post_id", updatedPost.Id), mlog.Err(wikiErr))
@@ -496,6 +495,20 @@ func (a *App) DeletePage(rctx request.CTX, page *model.Post, wikiId string) *mod
 	// This prevents race conditions where a new child could be added between reparenting and deletion.
 	if err := a.Srv().Store().Page().DeletePage(pageID, userID, page.PageParentId); err != nil {
 		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Best-effort: clean up property values for the deleted page.
+	// Note: DeletePropertyValuesForTarget internally calls GetPage to resolve the WS broadcast
+	// channel, but the page is already soft-deleted at this point and will return ErrNotFound.
+	// The Warn log from that lookup is expected and non-fatal; clients handle page removal via
+	// the page_deleted event that follows below.
+	if group, err := a.GetPagePropertyGroup(); err == nil {
+		if appErr := a.DeletePropertyValuesForTarget(rctx, group.ID, model.PropertyValueTargetTypePage, pageID); appErr != nil {
+			rctx.Logger().Warn("DeletePage: failed to clean up property values", mlog.String("page_id", pageID), mlog.Err(appErr))
+		}
+	} else {
+		rctx.Logger().Warn("DeletePage: failed to get page property group — property values may be orphaned",
+			mlog.String("page_id", pageID), mlog.Err(err))
 	}
 
 	// CRITICAL: Invalidate cache across cluster BEFORE WebSocket broadcast.
@@ -594,7 +607,7 @@ func (a *App) GetPageActiveEditors(rctx request.CTX, pageId string) (*PageActive
 
 func (a *App) GetPageVersionHistory(rctx request.CTX, pageId string, offset, limit int) ([]*model.Post, *model.AppError) {
 	// Verify the page exists
-	if _, appErr := a.GetSinglePost(rctx, pageId, false); appErr != nil {
+	if _, appErr := a.GetPage(rctx, pageId); appErr != nil {
 		return nil, model.NewAppError("App.GetPageVersionHistory", "app.page.get_version_history.not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 	}
 
@@ -875,7 +888,7 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 		mlog.String("wiki_id", wikiId),
 		mlog.Bool("is_child_page", isChild))
 
-	if linkErr := a.AddPageToWiki(rctx, createdPage.Id, wikiId, createdPage); linkErr != nil {
+	if linkErr := a.AddPageToWiki(rctx, createdPage.Id, wikiId); linkErr != nil {
 		rctx.Logger().Error("Failed to link page to wiki",
 			mlog.String("page_id", createdPage.Id),
 			mlog.String("wiki_id", wikiId),

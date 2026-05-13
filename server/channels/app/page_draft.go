@@ -396,7 +396,7 @@ func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *mo
 		return nil
 	}
 
-	if err := a.SetPageStatus(rctx, page, statusValue); err != nil {
+	if err := a.SetPageStatus(rctx, page.Id, statusValue); err != nil {
 		rctx.Logger().Warn("Failed to set page status from draft props",
 			mlog.String("page_id", page.Id),
 			mlog.String("status", statusValue),
@@ -426,8 +426,8 @@ func (a *App) updatePageFromDraft(rctx request.CTX, page *model.Post, wikiId, pa
 		if _, parentErr := a.MovePage(rctx, page.Id, &parentId, wikiId, nil); parentErr != nil {
 			return nil, parentErr
 		}
-		// Use master context to avoid replica lag after parent change
-		updatedPost, err = a.GetSinglePost(RequestContextWithMaster(rctx), page.Id, false)
+		// GetPage always reads from master — see its implementation.
+		updatedPost, err = a.GetPage(rctx, page.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -770,15 +770,7 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 
 		// Attempt rollback based on whether this was a new page or an update
 		if isNewPage {
-			// For new pages: clean up PropertyValues then delete the newly created page
-			if group, grpErr := a.GetPagePropertyGroup(); grpErr == nil {
-				if pvErr := a.Srv().Store().PropertyValue().DeleteForTarget(group.ID, "post", savedPost.Id); pvErr != nil {
-					rctx.Logger().Warn("Failed to clean up PropertyValues during rollback", mlog.Err(pvErr))
-				}
-			} else {
-				rctx.Logger().Warn("Failed to get page property group during rollback — PropertyValues may be orphaned",
-					mlog.String("page_id", savedPost.Id), mlog.Err(grpErr))
-			}
+			// For new pages: delete the newly created page (DeletePage handles PropertyValue cleanup)
 			if rollbackErr := a.DeletePage(rctx, savedPost, opts.WikiId); rollbackErr != nil {
 				rctx.Logger().Error("CRITICAL: Failed to rollback page creation after draft deletion failure - data inconsistency",
 					mlog.String("page_id", savedPost.Id),

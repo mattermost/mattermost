@@ -367,3 +367,7 @@ channels/db/migrations/postgres/000184_add_page_parent_id_to_posts.down.sql
 channels/db/migrations/postgres/000184_add_page_parent_id_to_posts.up.sql
 channels/db/migrations/postgres/000185_add_page_parent_id_index.down.sql
 channels/db/migrations/postgres/000185_add_page_parent_id_index.up.sql
+channels/db/migrations/postgres/000186_propertyvalues_targetid_index.down.sql
+channels/db/migrations/postgres/000186_propertyvalues_targetid_index.up.sql
+channels/db/migrations/postgres/000187_propertyvalues_targetid_index_drop_old.down.sql
+channels/db/migrations/postgres/000187_propertyvalues_targetid_index_drop_old.up.sql
