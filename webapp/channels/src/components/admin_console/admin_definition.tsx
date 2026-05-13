@@ -32,7 +32,7 @@ import {
 
 import ContentFlaggingSettings, {searchableStrings as dataSpillageSearchableStrings} from 'components/admin_console/content_flagging/content_flagging_settings';
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
-import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
+import CustomProfileAttributes, {searchableStrings as customProfileAttributesSearchableStrings} from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
 import PluginManagement from 'components/admin_console/plugin_management';
 import SystemAnalytics from 'components/analytics/system_analytics';
 import {searchableStrings as systemAnalyticsSearchableStrings} from 'components/analytics/system_analytics/system_analytics';
@@ -4031,6 +4031,7 @@ const AdminDefinition: AdminDefinitionType = {
             ldap: {
                 url: 'authentication/ldap',
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
+                searchableStrings: customProfileAttributesSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAP')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
@@ -4064,6 +4065,7 @@ const AdminDefinition: AdminDefinitionType = {
             saml: {
                 url: 'authentication/saml',
                 title: defineMessage({id: 'admin.sidebar.saml', defaultMessage: 'SAML 2.0'}),
+                searchableStrings: customProfileAttributesSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('SAML')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
