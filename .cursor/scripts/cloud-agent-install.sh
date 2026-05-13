@@ -51,16 +51,18 @@ ensure_node() {
   fi
 }
 
-enterprise_target() {
-  if [ -n "${ENTERPRISE_DIR:-}" ]; then
-    realpath -m "$ENTERPRISE_DIR"
-  elif [ -n "${BUILD_ENTERPRISE_DIR:-}" ]; then
+enterprise_checkout_dir() {
+  realpath -m "${ENTERPRISE_CHECKOUT_DIR:-$HOME/enterprise}"
+}
+
+enterprise_build_dir() {
+  if [ -n "${BUILD_ENTERPRISE_DIR:-}" ]; then
     case "$BUILD_ENTERPRISE_DIR" in
       /*) realpath -m "$BUILD_ENTERPRISE_DIR" ;;
       *) realpath -m "$ROOT/server/$BUILD_ENTERPRISE_DIR" ;;
     esac
   else
-    realpath -m "$ROOT/../enterprise"
+    printf '%s\n' "/enterprise"
   fi
 }
 
@@ -91,7 +93,7 @@ sync_enterprise_repo() {
   fi
 
   local target repo_url branch
-  target="$(enterprise_target)"
+  target="$(enterprise_checkout_dir)"
   branch="$(enterprise_branch)"
   repo_url="https://github.com/mattermost/enterprise.git"
 
@@ -162,9 +164,6 @@ EOF
 
   if [ -d "$target/.git" ]; then
     sudo ln -sfnT "$target" /enterprise
-    if [ "$target" != "$HOME/enterprise" ]; then
-      ln -sfnT "$target" "$HOME/enterprise"
-    fi
     log "Enterprise checkout ready at $target"
   elif [ -L /enterprise ]; then
     sudo rm -f /enterprise
@@ -179,7 +178,7 @@ hydrate_go_dependencies() {
 
   if [ -d server ]; then
     local enterprise_dir
-    enterprise_dir="$(enterprise_target)"
+    enterprise_dir="$(enterprise_build_dir)"
     log "Hydrating Go workspace with BUILD_ENTERPRISE_DIR=$enterprise_dir"
     (
       cd server

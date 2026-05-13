@@ -19,6 +19,7 @@ ENV PATH=/home/ubuntu/.nvm/versions/node/v${NODE_VERSION}/bin:/usr/local/go/bin:
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     apt-transport-https \
+    acl \
     bash \
     build-essential \
     ca-certificates \

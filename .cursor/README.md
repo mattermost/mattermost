@@ -17,9 +17,9 @@ The Docker build context is `.cursor/` only. The Dockerfile intentionally does n
 ## Runtime Hooks
 
 - `cloud-agent-install.sh` runs after Cursor checks out the repo. It refreshes nvm, installs agent-browser browsers, clones or updates `mattermost/enterprise` with `CURSOR_GH_TOKEN`, runs `server` Go dependency hydration, installs webapp dependencies, and runs Playwright `npm ci`.
-- `cloud-agent-start.sh` materializes `.cursor/cursor.md` as `.cursor/AGENTS.md`, then starts Docker and waits until `docker info` and `docker compose version` succeed.
+- `cloud-agent-start.sh` materializes `.cursor/cursor.md` as `.cursor/AGENTS.md`, fixes current-session Docker socket access, then starts Docker and waits until `docker info` and `docker compose version` succeed.
 
-The enterprise checkout defaults to a sibling of this repository (`../enterprise`) so `server/Makefile`'s default `../../enterprise` path works. Override the path with `ENTERPRISE_DIR` or `BUILD_ENTERPRISE_DIR` when needed. The script checks out the current server branch in enterprise when that branch exists, falls back to `master`, and can be forced with `ENTERPRISE_BRANCH`. It also keeps `/enterprise` and `$HOME/enterprise` symlinks pointed at the checkout.
+The enterprise checkout defaults to `$HOME/enterprise` and is symlinked to `/enterprise` after cloning. This keeps the private enterprise repository outside the checked-out Mattermost workspace while still giving `server/Makefile` a stable build path. Override the checkout path with `ENTERPRISE_CHECKOUT_DIR` only when needed. The script checks out the current server branch in enterprise when that branch exists, falls back to `master`, and can be forced with `ENTERPRISE_BRANCH`.
 
 ## Useful Skips
 

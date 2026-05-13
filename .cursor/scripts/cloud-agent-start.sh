@@ -19,10 +19,27 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
+ensure_docker_socket_access() {
+  if [ ! -S /var/run/docker.sock ]; then
+    return 0
+  fi
+
+  sudo groupadd -f docker
+  sudo usermod -aG docker "$(id -un)"
+  sudo chgrp docker /var/run/docker.sock >/dev/null 2>&1 || true
+  sudo chmod g+rw /var/run/docker.sock >/dev/null 2>&1 || true
+
+  if command -v setfacl >/dev/null 2>&1; then
+    sudo setfacl -m "u:$(id -un):rw" /var/run/docker.sock >/dev/null 2>&1 || true
+  fi
+}
+
 if [ -f /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
   sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 >/dev/null 2>&1 || \
     log "Could not relax AppArmor user namespace restriction; openldap-based tests may need a larger host profile."
 fi
+
+ensure_docker_socket_access
 
 if docker info >/dev/null 2>&1; then
   log "Docker is already running."
@@ -41,10 +58,7 @@ if ! pgrep -x dockerd >/dev/null 2>&1; then
 fi
 
 for _ in {1..60}; do
-  if [ -S /var/run/docker.sock ]; then
-    sudo chgrp docker /var/run/docker.sock >/dev/null 2>&1 || true
-    sudo chmod g+rw /var/run/docker.sock >/dev/null 2>&1 || true
-  fi
+  ensure_docker_socket_access
 
   if docker info >/dev/null 2>&1; then
     log "Docker is ready."
