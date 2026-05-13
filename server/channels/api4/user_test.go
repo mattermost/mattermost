@@ -2985,7 +2985,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 	t.Run("user manager without bot permissions cannot deactivate bot accounts", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
@@ -3004,10 +3004,10 @@ func TestUpdateUserActive(t *testing.T) {
 		}()
 
 		// Give BasicUser the User Manager permission to edit users, but no bot permissions.
-		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
 
-		th.LoginBasic(t)
+		th.LoginBasic()
 
 		// A User Manager without bot permissions must be blocked.
 		// Because the caller has neither PermissionReadOthersBots nor
@@ -3025,7 +3025,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 	t.Run("user with bot management permissions can deactivate bot accounts via user active endpoint", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
@@ -3044,12 +3044,12 @@ func TestUpdateUserActive(t *testing.T) {
 		}()
 
 		// Assign both user-management and bot-management permissions to BasicUser.
-		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 
-		th.LoginBasic(t)
+		th.LoginBasic()
 
 		// A user with ManageOthersBots should be allowed.
 		_, err = th.Client.UpdateUserActive(context.Background(), bot.UserId, false)
