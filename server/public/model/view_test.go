@@ -11,6 +11,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func validKanbanProps() StringInterface {
+	kanban := &KanbanProps{
+		GroupBy: KanbanGroupBy{
+			FieldID: NewId(),
+			Columns: []KanbanColumn{
+				{ID: NewId(), Name: "Todo", OptionIDs: []string{NewId()}},
+				{ID: NewId(), Name: "Done", OptionIDs: []string{NewId()}},
+			},
+		},
+	}
+	props, _ := kanban.ToProps()
+	return props
+}
+
 func validView() *View {
 	return &View{
 		Id:        NewId(),
@@ -18,6 +32,7 @@ func validView() *View {
 		CreatorId: NewId(),
 		Type:      ViewTypeKanban,
 		Title:     "My Kanban",
+		Props:     validKanbanProps(),
 		CreateAt:  1,
 		UpdateAt:  1,
 	}
@@ -120,10 +135,10 @@ func TestViewIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"valid view with props",
+			"valid view with custom kanban props",
 			func() *View {
 				v := validView()
-				v.Props = StringInterface{"key": "value"}
+				v.Props = validKanbanProps()
 				return v
 			}(),
 			true,
@@ -277,4 +292,178 @@ func TestViewPatch(t *testing.T) {
 		(*patchProps)["key"] = "mutated"
 		assert.Equal(t, "value", v.Props["key"], "view Props must not be affected by patch mutation")
 	})
+}
+
+func TestKanbanPropsValidation(t *testing.T) {
+	t.Run("nil props rejected for kanban", func(t *testing.T) {
+		v := validView()
+		v.Props = nil
+		require.NotNil(t, v.IsValid())
+	})
+
+	t.Run("empty props rejected for kanban", func(t *testing.T) {
+		v := validView()
+		v.Props = StringInterface{}
+		require.NotNil(t, v.IsValid())
+	})
+
+	t.Run("missing field_id rejected", func(t *testing.T) {
+		kanban := &KanbanProps{
+			GroupBy: KanbanGroupBy{
+				FieldID: "",
+				Columns: []KanbanColumn{
+					{ID: NewId(), Name: "Todo", OptionIDs: []string{NewId()}},
+				},
+			},
+		}
+		props, _ := kanban.ToProps()
+		v := validView()
+		v.Props = props
+		require.NotNil(t, v.IsValid())
+	})
+
+	t.Run("invalid field_id rejected", func(t *testing.T) {
+		kanban := &KanbanProps{
+			GroupBy: KanbanGroupBy{
+				FieldID: "not-a-valid-id",
+				Columns: []KanbanColumn{
+					{ID: NewId(), Name: "Todo", OptionIDs: []string{NewId()}},
+				},
+			},
+		}
+		props, _ := kanban.ToProps()
+		v := validView()
+		v.Props = props
+		require.NotNil(t, v.IsValid())
+	})
+
+	t.Run("empty columns rejected", func(t *testing.T) {
+		kanban := &KanbanProps{
+			GroupBy: KanbanGroupBy{
+				FieldID: NewId(),
+				Columns: []KanbanColumn{},
+			},
+		}
+		props, _ := kanban.ToProps()
+		v := validView()
+		v.Props = props
+		require.NotNil(t, v.IsValid())
+	})
+
+	t.Run("too many columns rejected", func(t *testing.T) {
+		columns := make([]KanbanColumn, MaxKanbanColumns+1)
+		for i := range columns {
+			columns[i] = KanbanColumn{ID: NewId(), Name: "Col", OptionIDs: []string{NewId()}}
+		}
+		kanban := &KanbanProps{
+			GroupBy: KanbanGroupBy{
+				FieldID: NewId(),
+				Columns: columns,
+			},
+		}
+		props, _ := kanban.ToProps()
+		v := validView()
+		v.Props = props
+		require.NotNil(t, v.IsValid())
+	})
+
+	t.Run("max columns accepted", func(t *testing.T) {
+		columns := make([]KanbanColumn, MaxKanbanColumns)
+		for i := range columns {
+			columns[i] = KanbanColumn{ID: NewId(), Name: "Col", OptionIDs: []string{NewId()}}
+		}
+		kanban := &KanbanProps{
+			GroupBy: KanbanGroupBy{
+				FieldID: NewId(),
+				Columns: columns,
+			},
+		}
+		props, _ := kanban.ToProps()
+		v := validView()
+		v.Props = props
+		require.Nil(t, v.IsValid())
+	})
+
+	t.Run("column missing id rejected", func(t *testing.T) {
+		kanban := &KanbanProps{
+			GroupBy: KanbanGroupBy{
+				FieldID: NewId(),
+				Columns: []KanbanColumn{
+					{ID: "", Name: "Todo", OptionIDs: []string{NewId()}},
+				},
+			},
+		}
+		props, _ := kanban.ToProps()
+		v := validView()
+		v.Props = props
+		require.NotNil(t, v.IsValid())
+	})
+
+	t.Run("column empty name rejected", func(t *testing.T) {
+		kanban := &KanbanProps{
+			GroupBy: KanbanGroupBy{
+				FieldID: NewId(),
+				Columns: []KanbanColumn{
+					{ID: NewId(), Name: "", OptionIDs: []string{NewId()}},
+				},
+			},
+		}
+		props, _ := kanban.ToProps()
+		v := validView()
+		v.Props = props
+		require.NotNil(t, v.IsValid())
+	})
+
+	t.Run("column empty option_ids rejected", func(t *testing.T) {
+		kanban := &KanbanProps{
+			GroupBy: KanbanGroupBy{
+				FieldID: NewId(),
+				Columns: []KanbanColumn{
+					{ID: NewId(), Name: "Todo", OptionIDs: []string{}},
+				},
+			},
+		}
+		props, _ := kanban.ToProps()
+		v := validView()
+		v.Props = props
+		require.NotNil(t, v.IsValid())
+	})
+
+	t.Run("column with multiple option_ids accepted", func(t *testing.T) {
+		kanban := &KanbanProps{
+			GroupBy: KanbanGroupBy{
+				FieldID: NewId(),
+				Columns: []KanbanColumn{
+					{ID: NewId(), Name: "Todo", OptionIDs: []string{NewId(), NewId()}},
+				},
+			},
+		}
+		props, _ := kanban.ToProps()
+		v := validView()
+		v.Props = props
+		require.Nil(t, v.IsValid())
+	})
+}
+
+func TestKanbanPropsRoundTrip(t *testing.T) {
+	original := &KanbanProps{
+		GroupBy: KanbanGroupBy{
+			FieldID: NewId(),
+			Columns: []KanbanColumn{
+				{ID: NewId(), Name: "Todo", OptionIDs: []string{NewId()}},
+				{ID: NewId(), Name: "Done", OptionIDs: []string{NewId(), NewId()}},
+			},
+		},
+	}
+
+	props, err := original.ToProps()
+	require.NoError(t, err)
+
+	parsed, err := KanbanPropsFromProps(props)
+	require.NoError(t, err)
+
+	assert.Equal(t, original.GroupBy.FieldID, parsed.GroupBy.FieldID)
+	require.Len(t, parsed.GroupBy.Columns, 2)
+	assert.Equal(t, original.GroupBy.Columns[0].Name, parsed.GroupBy.Columns[0].Name)
+	assert.Equal(t, original.GroupBy.Columns[1].OptionIDs, parsed.GroupBy.Columns[1].OptionIDs)
 }

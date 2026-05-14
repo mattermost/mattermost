@@ -17,6 +17,17 @@ import (
 
 const maxListSize = 1000
 
+// rejectBoardChannelByID returns true and sets c.Err if the channel ID belongs
+// to a board channel. Board channels must use the /boards endpoints, not /channels.
+// Use this on write endpoints to give a clear error instead of a 404.
+func rejectBoardChannelByID(c *Context, channelId string) bool {
+	if _, err := c.App.GetBoardChannel(c.AppContext, channelId); err == nil {
+		c.Err = model.NewAppError("", "api.channel.board_channel.app_error", nil, "board channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
+		return true
+	}
+	return false
+}
+
 func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods(http.MethodPost)
@@ -26,6 +37,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("/group", api.APISessionRequired(createGroupChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.APISessionRequired(viewChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/mark_read", api.APISessionRequired(readMultipleChannels)).Methods(http.MethodPost)
+	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/direct/read", api.APISessionRequired(readAllMessages)).Methods(http.MethodPut)
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateChannelScheme)).Methods(http.MethodPut)
 	api.BaseRoutes.Channels.Handle("/stats/member_count", api.APISessionRequired(getChannelsMemberCount)).Methods(http.MethodPost)
 
@@ -37,6 +49,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchChannelsForTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.APISessionRequired(autocompleteChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.APISessionRequired(autocompleteChannelsForTeamForSearch)).Methods(http.MethodGet)
+	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/read", api.APISessionRequired(readAllInTeam)).Methods(http.MethodPut)
 	if api.srv.Config().FeatureFlags.ManagedChannelCategories {
 		api.BaseRoutes.ChannelsForTeam.Handle("/managed_categories", api.APISessionRequired(getManagedCategories)).Methods(http.MethodGet)
 	}
@@ -96,6 +109,12 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
+
+	if channel.IsBoard() {
+		c.SetInvalidParamWithDetails("type", "cannot create board channels via /channels endpoint")
+		return
+	}
+
 	license := c.App.Channels().License()
 	if !channel.IsGroupOrDirect() && model.SafeDereference(c.App.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(license) {
 		channel.Name = model.NewId()
@@ -335,6 +354,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
 	var patch *model.ChannelPatch
 	err := json.NewDecoder(r.Body).Decode(&patch)
 	if err != nil || patch == nil {
@@ -606,6 +626,44 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func readAllMessages(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.EnableShiftEscapeToMarkAllRead {
+		c.Err = model.NewAppError("readAllMessages", "api.mark_all_as_read.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventMarkMessagesRead, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	times, err := c.App.MarkAllDirectAndGroupMessagesViewed(c.AppContext, c.Params.UserId, c.AppContext.Session().Id, c.App.IsCRTEnabledForUser(c.AppContext, c.Params.UserId))
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+
+	resp := &model.ChannelViewResponse{
+		Status:            "OK",
+		LastViewedAtTimes: times,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
@@ -861,6 +919,11 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	filteredIDs := make([]string, len(channels))
+	for i, ch := range channels {
+		filteredIDs[i] = ch.Id
+	}
+
 	for _, channel := range channels {
 		if !c.App.HasPermissionToChannelMemberCount(c.AppContext, c.AppContext.Session().UserId, channel) {
 			c.SetPermissionError(model.PermissionListTeamChannels)
@@ -868,7 +931,7 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	channelsMemberCount, appErr := c.App.GetChannelsMemberCount(c.AppContext, channelIDs)
+	channelsMemberCount, appErr := c.App.GetChannelsMemberCount(c.AppContext, filteredIDs)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1813,6 +1876,13 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if view.ChannelId != "" && rejectBoardChannelByID(c, view.ChannelId) {
+		return
+	}
+	if view.PrevChannelId != "" && rejectBoardChannelByID(c, view.PrevChannelId) {
+		return
+	}
+
 	times, err := c.App.ViewChannel(c.AppContext, &view, c.Params.UserId, c.AppContext.Session().Id, view.CollapsedThreadsSupported)
 	if err != nil {
 		c.Err = err
@@ -1866,9 +1936,56 @@ func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func readAllInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.EnableShiftEscapeToMarkAllRead {
+		c.Err = model.NewAppError("readAllInTeam", "api.mark_all_as_read.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	c.RequireUserId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventMarkTeamRead, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	times, err := c.App.MarkTeamChannelsAndThreadsViewed(c.AppContext, c.Params.TeamId, c.Params.UserId, c.AppContext.Session().Id, c.App.IsCRTEnabledForUser(c.AppContext, c.Params.UserId))
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+
+	resp := &model.ChannelViewResponse{
+		Status:            "OK",
+		LastViewedAtTimes: times,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
+		return
+	}
+
+	if rejectBoardChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -1906,6 +2023,10 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	if rejectBoardChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	var schemeRoles model.SchemeRoles
 	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
 		c.SetInvalidParamWithErr("scheme_roles", jsonErr)
@@ -1935,6 +2056,10 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
+		return
+	}
+
+	if rejectBoardChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -1977,6 +2102,10 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 
 	c.RequireUserId().RequireChannelId()
 	if c.Err != nil {
+		return
+	}
+
+	if rejectBoardChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -2858,6 +2987,10 @@ func getDirectOrGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter
 func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
+		return
+	}
+
+	if rejectBoardChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
