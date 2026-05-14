@@ -56,7 +56,8 @@ const BookmarkItemDotMenu = ({
     const fileInfo = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
 
     const siteURL = getSiteURL();
-    const openInNewTab = bookmark.type === 'link' && bookmark.link_url && shouldOpenInNewTab(bookmark.link_url, siteURL);
+    const openInNewTab = (bookmark.type === 'link' || bookmark.type === 'board') && bookmark.link_url &&
+        shouldOpenInNewTab(bookmark.link_url, siteURL);
 
     let openIcon;
     if (bookmark.type === 'file') {
@@ -65,8 +66,8 @@ const BookmarkItemDotMenu = ({
         openIcon = openInNewTab ? <OpenInNewIcon size={18}/> : <BookOutlineIcon size={18}/>;
     }
 
-    const canEdit = useChannelBookmarkPermission(bookmark.channel_id, 'edit');
-    const canDelete = useChannelBookmarkPermission(bookmark.channel_id, 'delete');
+    const canEdit = useChannelBookmarkPermission(bookmark.channel_id, 'edit') && bookmark.type !== 'board';
+    const canDelete = useChannelBookmarkPermission(bookmark.channel_id, 'delete') && bookmark.type !== 'board';
     const canGetPublicLink = useCanGetPublicLink();
 
     const editLabel = formatMessage({id: 'channel_bookmarks.edit', defaultMessage: 'Edit'});
@@ -91,7 +92,7 @@ const BookmarkItemDotMenu = ({
 
     const copyLink = useCallback(() => {
         onBeforeAction?.();
-        if (bookmark.type === 'link' && bookmark.link_url) {
+        if ((bookmark.type === 'link' || bookmark.type === 'board') && bookmark.link_url) {
             copyToClipboard(bookmark.link_url);
         } else if (bookmark.type === 'file' && bookmark.file_id) {
             copyToClipboard(getFileDownloadUrl(bookmark.file_id));
@@ -164,7 +165,7 @@ const BookmarkItemDotMenu = ({
                     aria-label={editLabel}
                 />
             )}
-            {bookmark.type === 'link' && (
+            {(bookmark.type === 'link' || bookmark.type === 'board') && bookmark.link_url && (
                 <Menu.Item
                     key='channelBookmarksLinkCopy'
                     id='channelBookmarksLinkCopy'

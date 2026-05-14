@@ -24,7 +24,7 @@
             type: number
             format: int64
       responses:
-        "201":
+        "200":
           description: Channel Bookmarks retrieval successful
           content:
             application/json:
@@ -47,6 +47,9 @@
         Creates a new channel bookmark for this channel.
 
         __Minimum server version__: 9.5
+
+        `type` must be `link` or `file`. Requests with `type: board` receive HTTP 400
+        (`api.channel.bookmark.board.readonly.app_error`); board bookmarks are created by the boards lifecycle.
 
         ##### Permissions
         Must have the `add_bookmark_public_channel` or
@@ -92,6 +95,7 @@
                   description: |
                     * `link` for channel bookmarks that reference a link. `link_url` is requied
                     * `file` for channel bookmarks that reference a file. `file_id` is required
+                    * Sending `board` returns HTTP 400; board bookmarks are not created via this API.
         description: Channel Bookmark object to be created
         required: true
       responses:
@@ -118,6 +122,9 @@
         fields you want to update. Ommited fields will not be
         updated. The fields that can be updated are defined in the
         request body, all other provided fields will be ignored.
+
+        Updating a bookmark whose `type` is `board` returns HTTP 400
+        (`api.channel.bookmark.board.readonly.app_error`).
 
         __Minimum server version__: 9.5
 
@@ -198,6 +205,9 @@
         Archives a channel bookmark. This will set the `deleteAt` to
         the current timestamp in the database.
 
+        Deleting a bookmark whose `type` is `board` returns HTTP 400
+        (`api.channel.bookmark.board.readonly.app_error`).
+
         __Minimum server version__: 9.5
 
         ##### Permissions
@@ -244,6 +254,9 @@
         Updates the order of a channel bookmark, setting its new order
         from the parameters and updating the rest of the bookmarks of
         the channel to accomodate for this change.
+
+        Reordering a bookmark whose `type` is `board` returns HTTP 400
+        (`api.channel.bookmark.board.readonly.app_error`).
 
         __Minimum server version__: 9.5
 

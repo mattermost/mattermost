@@ -30,6 +30,7 @@ func TestChannelBookmarkStore(t *testing.T, rctx request.CTX, ss store.Store, s 
 	t.Run("UpdateSortOrderChannelBookmark", func(t *testing.T) { testUpdateSortOrderChannelBookmark(t, rctx, ss) })
 	t.Run("DeleteChannelBookmark", func(t *testing.T) { testDeleteChannelBookmark(t, rctx, ss) })
 	t.Run("GetChannelBookmark", func(t *testing.T) { testGetChannelBookmark(t, rctx, ss) })
+	t.Run("BoardBookmarkSaveAndGet", func(t *testing.T) { testBoardBookmarkSaveAndGet(t, rctx, ss, s) })
 }
 
 func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {

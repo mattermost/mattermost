@@ -35,7 +35,7 @@ const BookmarkIcon = ({
     fileInfo,
     size = 16,
 }: Props) => {
-    let icon = type === 'link' ? <BookOutlineIcon size={size}/> : <FileGenericOutlineIcon size={size}/>;
+    let icon = type === 'file' ? <FileGenericOutlineIcon size={size}/> : <BookOutlineIcon size={size}/>;
     const emojiName = emoji && trimmedEmojiName(emoji);
     const hasImageProxy = useSelector((state: GlobalState) => getConfig(state).HasImageProxy === 'true');
 

@@ -14,6 +14,7 @@ type ChannelBookmarkType string
 const (
 	ChannelBookmarkLink    ChannelBookmarkType = "link"
 	ChannelBookmarkFile    ChannelBookmarkType = "file"
+	ChannelBookmarkBoard   ChannelBookmarkType = "board"
 	BookmarkFileOwner                          = "bookmark"
 	MaxBookmarksPerChannel                     = 50
 	DisplayNameMaxRunes                        = 64
@@ -34,6 +35,7 @@ type ChannelBookmark struct {
 	ImageUrl    string              `json:"image_url,omitempty"`
 	Emoji       string              `json:"emoji,omitempty"`
 	Type        ChannelBookmarkType `json:"type"`
+	TargetId    string              `json:"target_id,omitempty"`
 	OriginalId  string              `json:"original_id,omitempty"`
 	ParentId    string              `json:"parent_id,omitempty"`
 }
@@ -48,6 +50,7 @@ func (o *ChannelBookmark) Auditable() map[string]any {
 		"owner_id":    o.OwnerId,
 		"file_id":     o.FileId,
 		"type":        o.Type,
+		"target_id":   o.TargetId,
 		"original_id": o.OriginalId,
 		"parent_id":   o.ParentId,
 	}
@@ -98,8 +101,27 @@ func (o *ChannelBookmark) IsValid() *AppError {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.display_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(o.Type == ChannelBookmarkFile || o.Type == ChannelBookmarkLink) {
+	if !(o.Type == ChannelBookmarkFile || o.Type == ChannelBookmarkLink || o.Type == ChannelBookmarkBoard) {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if (o.Type == ChannelBookmarkLink || o.Type == ChannelBookmarkFile) && o.TargetId != "" {
+		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.target_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if o.Type == ChannelBookmarkBoard {
+		if o.TargetId == "" || !IsValidId(o.TargetId) {
+			return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.board.target_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		}
+		if o.LinkUrl == "" || !strings.HasPrefix(o.LinkUrl, "/") || strings.Contains(o.LinkUrl, "://") || utf8.RuneCountInString(o.LinkUrl) > LinkMaxRunes {
+			return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.board.link_url.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		}
+		if o.FileId != "" {
+			return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.board.file_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		}
+		if o.ImageUrl != "" {
+			return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.board.image_url.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		}
 	}
 
 	if o.Type == ChannelBookmarkLink && o.FileId != "" {
@@ -172,6 +194,7 @@ func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWi
 			ImageUrl:    o.ImageUrl,
 			Emoji:       strings.Trim(o.Emoji, ":"),
 			Type:        o.Type,
+			TargetId:    o.TargetId,
 			OriginalId:  o.OriginalId,
 			ParentId:    o.ParentId,
 		},
@@ -281,6 +304,7 @@ type ChannelBookmarkAndFileInfo struct {
 	ImageUrl        string
 	Emoji           string
 	Type            ChannelBookmarkType
+	TargetId        string
 	OriginalId      string
 	ParentId        string
 	FileId          string
@@ -310,6 +334,7 @@ func (o *ChannelBookmarkAndFileInfo) ToChannelBookmarkWithFileInfo() *ChannelBoo
 			ImageUrl:    o.ImageUrl,
 			Emoji:       o.Emoji,
 			Type:        o.Type,
+			TargetId:    o.TargetId,
 			OriginalId:  o.OriginalId,
 			ParentId:    o.ParentId,
 		},

@@ -342,7 +342,12 @@ components:
           type: string
         type:
           type: string
-          enum: [link, file]
+          enum: [link, file, board]
+        target_id:
+          type: string
+          description: |
+            For bookmark types that reference another Mattermost entity (e.g. `board`),
+            the ULID of that entity. Omitted for `link` and `file` bookmarks.
         original_id:
           description: The ID of the original channel bookmark
           type: string
