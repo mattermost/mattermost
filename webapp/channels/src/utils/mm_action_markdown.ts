@@ -13,7 +13,15 @@ export function parseMmActionMarkdownHref(href: string): {actionId: string; quer
         return null;
     }
 
-    const actionId = url.host;
+    // `mmaction:foo` puts the id in pathname; `mmaction://foo` uses host (per URL parsing rules).
+    let actionId = url.host;
+    if (!actionId) {
+        actionId = decodeURIComponent(url.pathname.replace(/^\/+/, ''));
+    }
+    if (!actionId) {
+        return null;
+    }
+
     const query = Object.fromEntries(url.searchParams.entries());
 
     return {actionId, query};

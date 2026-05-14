@@ -101,10 +101,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             await channelsPage.goto(team.name, 'town-square');
             await channelsPage.toBeVisible();
 
-            const post = channelsPage.centerView.container
-                .getByTestId('postView')
-                .filter({hasText: marker})
-                .last();
+            const post = channelsPage.centerView.container.getByTestId('postView').filter({hasText: marker}).last();
             await expect(post).toBeVisible({timeout: 20000});
 
             const disabledButton = post.getByRole('button', {name: 'Disabled action'});
@@ -175,10 +172,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             await channelsPage.goto(team.name, 'town-square');
             await channelsPage.toBeVisible();
 
-            const post = channelsPage.centerView.container
-                .getByTestId('postView')
-                .filter({hasText: marker})
-                .last();
+            const post = channelsPage.centerView.container.getByTestId('postView').filter({hasText: marker}).last();
             await expect(post).toBeVisible({timeout: 20000});
             await expect(post.locator('.mm-blocks')).toBeVisible();
 
@@ -271,9 +265,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             await expect(threadPanel.getByText('(Only visible to you)', {exact: true})).toBeVisible({
                 timeout: 20000,
             });
-            await expect(
-                threadPanel.getByText(/Playwright mm_blocks integration OK \(user:/),
-            ).toBeVisible();
+            await expect(threadPanel.getByText(/Playwright mm_blocks integration OK \(user:/)).toBeVisible();
         },
     );
 
@@ -411,10 +403,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             await channelsPage.goto(team.name, 'town-square');
             await channelsPage.toBeVisible();
 
-            const post = channelsPage.centerView.container
-                .getByTestId('postView')
-                .filter({hasText: marker})
-                .last();
+            const post = channelsPage.centerView.container.getByTestId('postView').filter({hasText: marker}).last();
             await expect(post).toBeVisible({timeout: 20000});
 
             const author = post.locator('.post__header .user-popover');
@@ -618,7 +607,9 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
 
             const integrationEphemeral = threadPanel
                 .getByTestId('rhsPostView')
-                .filter({hasText: new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${user.id}\\)`)});
+                .filter({
+                    hasText: new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${user.id}\\)`),
+                });
             await expect(integrationEphemeral).toBeVisible({timeout: 20000});
             await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
         },
@@ -706,11 +697,18 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             await expect(channelSelect).toBeVisible({timeout: 20000});
             await channelSelect.click();
             await channelSelect.fill('Town');
-            await channelsPage.page.getByRole('option', {name: /Town Square/}).first().click();
+            await channelsPage.page
+                .getByRole('option', {name: /Town Square/})
+                .first()
+                .click();
 
             const integrationEphemeral = threadPanel
                 .getByTestId('rhsPostView')
-                .filter({hasText: new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${townSquare.id}\\)`)});
+                .filter({
+                    hasText: new RegExp(
+                        `Playwright mm_blocks static_select OK \\(selected_option: ${townSquare.id}\\)`,
+                    ),
+                });
             await expect(integrationEphemeral).toBeVisible({timeout: 20000});
             await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
         },
@@ -756,7 +754,10 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
                 text: marker,
                 props: {
                     mm_blocks: [
-                        {type: 'text', text: 'Tap the button; the integration should receive mm_blocks_actions.context.'},
+                        {
+                            type: 'text',
+                            text: 'Tap the button; the integration should receive mm_blocks_actions.context.',
+                        },
                         {
                             type: 'button',
                             text: 'Verify context',
@@ -846,10 +847,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             await channelsPage.goto(team.name, 'town-square');
             await channelsPage.toBeVisible();
 
-            const post = channelsPage.centerView.container
-                .getByTestId('postView')
-                .filter({hasText: marker})
-                .last();
+            const post = channelsPage.centerView.container.getByTestId('postView').filter({hasText: marker}).last();
             await expect(post).toBeVisible({timeout: 20000});
             await post.getByRole('button', {name: 'Go to Off-Topic'}).click();
 
@@ -897,7 +895,10 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
                 text: marker,
                 props: {
                     mm_blocks: [
-                        {type: 'text', text: 'Button merges action-level and block-level query into the integration URL.'},
+                        {
+                            type: 'text',
+                            text: 'Button merges action-level and block-level query into the integration URL.',
+                        },
                         {
                             type: 'button',
                             text: 'Run query merge',
@@ -1156,10 +1157,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             await channelsPage.goto(team.name, 'town-square');
             await channelsPage.toBeVisible();
 
-            const post = channelsPage.centerView.container
-                .getByTestId('postView')
-                .filter({hasText: marker})
-                .last();
+            const post = channelsPage.centerView.container.getByTestId('postView').filter({hasText: marker}).last();
             await expect(post).toBeVisible({timeout: 20000});
 
             const collapsible = post.locator('.mm-blocks-collapsible');
@@ -1219,10 +1217,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
             await channelsPage.goto(team.name, 'town-square');
             await channelsPage.toBeVisible();
 
-            const post = channelsPage.centerView.container
-                .getByTestId('postView')
-                .filter({hasText: marker})
-                .last();
+            const post = channelsPage.centerView.container.getByTestId('postView').filter({hasText: marker}).last();
             await expect(post).toBeVisible({timeout: 20000});
 
             const collapsible = post.locator('.mm-blocks-collapsible');

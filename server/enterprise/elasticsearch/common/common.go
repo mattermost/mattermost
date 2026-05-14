@@ -135,7 +135,7 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 		urlAccum = append(urlAccum, extractURLsFromMessage(s)...)
 	}
 	if len(urlAccum) > 0 {
-		searchPost.URLs = model.RemoveDuplicateStrings(urlAccum)
+		searchPost.URLs = model.RemoveDuplicateStringsNonSort(urlAccum)
 	}
 
 	if searchPost.Type == "" {
