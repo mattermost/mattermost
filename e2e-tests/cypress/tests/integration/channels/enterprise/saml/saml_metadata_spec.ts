@@ -40,7 +40,6 @@ describe('SystemConsole->SAML 2.0 - Get Metadata from Idp Flow', () => {
                 IdpMetadataURL: '',
                 IdpURL: testIdpURL,
                 IdpDescriptorURL: testIdpDescriptorURL,
-                IdpCertificateFile: '',
             },
         }).then((data) => {
             ({config} = data);
@@ -94,9 +93,8 @@ describe('SystemConsole->SAML 2.0 - Get Metadata from Idp Flow', () => {
             SamlSettings: {
                 Enable: true,
                 IdpMetadataURL: testSamlMetadataSuccessUrl,
-                IdpURL: '',
-                IdpDescriptorURL: '',
-                IdpCertificateFile: '',
+                IdpURL: testIdpURL,
+                IdpDescriptorURL: testIdpDescriptorURL,
             },
         });
 
