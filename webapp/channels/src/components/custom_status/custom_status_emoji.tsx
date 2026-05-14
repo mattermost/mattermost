@@ -5,6 +5,7 @@ import React, {memo, useMemo, useRef} from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
 import {useSelector} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
@@ -12,7 +13,6 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {isCustomStatusEnabled, isCustomStatusExpired, makeGetCustomStatus} from 'selectors/views/custom_status';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 

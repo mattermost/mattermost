@@ -251,11 +251,11 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 	if *cfg.MessageExportSettings.EnableExport != *appCfg.MessageExportSettings.EnableExport {
 		if *cfg.MessageExportSettings.EnableExport && model.SafeDereference(cfg.MessageExportSettings.ExportFromTimestamp) == int64(0) {
 			// When the feature is toggled on, use the current timestamp as the start time for future exports.
-			cfg.MessageExportSettings.ExportFromTimestamp = model.NewPointer(model.GetMillis())
+			cfg.MessageExportSettings.ExportFromTimestamp = new(model.GetMillis())
 		} else if !*cfg.MessageExportSettings.EnableExport {
 			// When the feature is disabled, reset the timestamp so that the timestamp will be set if
 			// the feature is re-enabled from the System Console in future.
-			cfg.MessageExportSettings.ExportFromTimestamp = model.NewPointer(int64(0))
+			cfg.MessageExportSettings.ExportFromTimestamp = new(int64(0))
 		}
 	}
 }

@@ -160,7 +160,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
 		Username:    model.NewUsername(),
-		AuthData:    model.NewPointer("1234"),
+		AuthData:    new("1234"),
 		AuthService: model.UserAuthServiceLdap,
 	})
 	s.Require().Nil(appErr)
@@ -1070,7 +1070,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
 		Username:    model.NewId(),
-		AuthData:    model.NewPointer("test.user.1"),
+		AuthData:    new("test.user.1"),
 		AuthService: model.UserAuthServiceLdap,
 	})
 	s.Require().Nil(appErr)
@@ -1078,7 +1078,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	samlUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       "success+devone@simulator.amazonses.com",
 		Username:    "dev.one",
-		AuthData:    model.NewPointer("dev.one"),
+		AuthData:    new("dev.one"),
 		AuthService: model.UserAuthServiceSaml,
 	})
 	s.Require().Nil(appErr)
@@ -1107,7 +1107,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, ldapUser.Id, &model.UserAuth{
-				AuthData:    model.NewPointer("test.user.1"),
+				AuthData:    new("test.user.1"),
 				AuthService: model.UserAuthServiceLdap,
 			})
 			s.Require().Nil(appErr)
@@ -1136,7 +1136,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, samlUser.Id, &model.UserAuth{
-				AuthData:    model.NewPointer("dev.one"),
+				AuthData:    new("dev.one"),
 				AuthService: model.UserAuthServiceSaml,
 			})
 			s.Require().Nil(appErr)
@@ -1806,7 +1806,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
 		Username:    model.NewUsername(),
-		AuthData:    model.NewPointer("existingauthdata"),
+		AuthData:    new("existingauthdata"),
 		AuthService: model.UserAuthServiceLdap,
 	})
 	s.Require().Nil(appErr)

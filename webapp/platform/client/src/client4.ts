@@ -2015,6 +2015,20 @@ export default class Client4 {
         );
     };
 
+    markAllInTeamAsRead = (userId: string, teamId: string) => {
+        return this.doFetch<ChannelViewResponse>(
+            `${this.getUserRoute(userId)}/teams/${teamId}/read`,
+            {method: 'put'},
+        );
+    };
+
+    markAllMessagesAsRead = (userId: string) => {
+        return this.doFetch<ChannelViewResponse>(
+            `${this.getChannelsRoute()}/members/${userId}/direct/read`,
+            {method: 'put'},
+        );
+    };
+
     autocompleteChannels = (teamId: string, name: string) => {
         return this.doFetch<Channel[]>(
             `${this.getTeamRoute(teamId)}/channels/autocomplete${buildQueryString({name})}`,
@@ -3483,6 +3497,13 @@ export default class Client4 {
         );
     };
 
+    markRecapsAsViewed = () => {
+        return this.doFetch<{recap_ids: string[]}>(
+            `${this.getRecapsRoute()}/mark_viewed`,
+            {method: 'post'},
+        );
+    };
+
     regenerateRecap = (recapId: string) => {
         return this.doFetch<Recap>(
             `${this.getRecapsRoute()}/${recapId}/regenerate`,
@@ -3870,13 +3891,6 @@ export default class Client4 {
     purgeElasticsearchIndexes = (indexes?: string[]) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/elasticsearch/purge_indexes${indexes && indexes.length > 0 ? '?index=' + indexes.join(',') : ''}`,
-            {method: 'post'},
-        );
-    };
-
-    purgeBleveIndexes = () => {
-        return this.doFetch<StatusOK>(
-            `${this.getBaseRoute()}/bleve/purge_indexes`,
             {method: 'post'},
         );
     };

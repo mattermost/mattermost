@@ -8,8 +8,7 @@ import styled from 'styled-components';
 
 import glyphMap, {CheckIcon, OpenInNewIcon} from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
-
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 export interface ProductMenuItemProps {
     destination: string;

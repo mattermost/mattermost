@@ -4,6 +4,7 @@
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {JobType, JobTypeBase, Job} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -96,8 +97,8 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                         />
                     </p>
                 </div>
-                <button
-                    className='btn btn-primary'
+                <Button
+                    emphasis='primary'
                     onClick={handleCreateJob}
                     disabled={isSubmitting}
                 >
@@ -115,7 +116,7 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                             />
                         )}
                     </span>
-                </button>
+                </Button>
             </div>
             <JobsTable
                 perPage={5}

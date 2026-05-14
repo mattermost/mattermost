@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {Permissions} from 'mattermost-redux/constants';
 
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
@@ -52,9 +54,11 @@ export default function ActionsMenuEmptyPopover({
                     </p>
                 </div>
                 <div className='visit-marketplace'>
-                    <button
+                    <Button
                         id='marketPlaceButton'
-                        className='btn btn-primary btn-sm visit-marketplace-button'
+                        emphasis='primary'
+                        size='sm'
+                        className='visit-marketplace-button'
                         onClick={onOpenMarketplace}
                     >
                         <ActionsMenuIcon name='icon-view-grid-plus-outline'/>
@@ -64,7 +68,7 @@ export default function ActionsMenuEmptyPopover({
                                 defaultMessage='Visit the Marketplace'
                             />
                         </span>
-                    </button>
+                    </Button>
                 </div>
             </SystemPermissionGate>
         </Popover>

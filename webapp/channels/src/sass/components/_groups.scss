@@ -735,76 +735,8 @@
     margin-top: 20px;
 }
 
-.AdminChannelDetails_archiveContainer .ArchiveButton {
-    padding: 9px 16px;
-}
-
 .AdminChannelDetails_archiveContainer .channel-icon__archive,
 .AdminChannelDetails_archiveContainer .channel-icon__unarchive {
     width: 16px;
     height: 16px;
-}
-
-$archived-color: #166de0;
-$unarchived-color: #f74343;
-
-.ArchiveButton___archived {
-    border-color: rgba($archived-color, 1);
-    color: rgba($archived-color, 1);
-
-    svg {
-        fill: rgba($archived-color, 1);
-    }
-}
-
-.ArchiveButton___unarchived {
-    border-color: rgba($unarchived-color, 1);
-    color: rgba($unarchived-color, 1);
-
-    svg {
-        fill: rgba($unarchived-color, 1);
-    }
-}
-
-.ArchiveButton {
-    border-width: 1px;
-    border-style: solid;
-    border-radius: 4px;
-    background-color: transparent;
-}
-
-.ArchiveButton___unarchived:hover {
-    background-color: rgba($unarchived-color, 0.06);
-    color: rgba($unarchived-color, 1);
-}
-
-.ArchiveButton___archived:hover {
-    background-color: rgba($archived-color, 0.06);
-    color: rgba($archived-color, 1);
-}
-
-.ArchiveButton:focus,
-.ArchiveButton:focus:active,
-.ArchiveButton:active {
-    outline: none;
-}
-
-.ArchiveButton___archived:focus {
-    color: rgba($archived-color, 1);
-}
-
-.ArchiveButton___unarchived:focus {
-    color: rgba($unarchived-color, 1);
-}
-
-.ArchiveButton___archived:focus:active {
-    background-color: rgba($archived-color, 0.12);
-}
-
-.ArchiveButton___unarchived:focus:active {
-    background-color: rgba($unarchived-color, 0.12);
-}
-
-.ArchiveButton:active {
-    box-shadow: none;
 }

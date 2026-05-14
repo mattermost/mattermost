@@ -66,7 +66,7 @@ export default function CreateGroupSyncablesMembershipsModal({user, onExited, on
         <ConfirmModalRedux
             title={title}
             message={message}
-            confirmButtonClass='btn btn-danger'
+            confirmButtonVariant='destructive'
             cancelButtonText={cancelGroupMembershipsButton}
             confirmButtonText={createGroupMembershipsButton}
             onConfirm={confirm}

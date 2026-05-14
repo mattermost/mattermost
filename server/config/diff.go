@@ -109,7 +109,7 @@ func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {
 	baseType := base.Type()
 	actualType := actual.Type()
 
-	if baseType.Kind() == reflect.Ptr {
+	if baseType.Kind() == reflect.Pointer {
 		base = reflect.Indirect(base)
 		actual = reflect.Indirect(actual)
 		baseType = base.Type()

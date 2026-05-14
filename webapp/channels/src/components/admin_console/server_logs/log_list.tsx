@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {ArrowDownIcon, ArrowUpIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {LogFilter, LogLevelEnum, LogObject} from '@mattermost/types/admin';
 import type {ChannelSearchOpts} from '@mattermost/types/channels';
 
@@ -206,15 +207,16 @@ export default class LogList extends React.PureComponent<Props, State> {
                         </span>
                     ),
                     options: (
-                        <button
+                        <Button
                             type='submit'
-                            className='btn btn-secondary btn-sm'
+                            emphasis='secondary'
+                            size='sm'
                         >
                             <FormattedMessage
                                 id='admin.logs.fullEvent'
                                 defaultMessage='Full Log event'
                             />
-                        </button>
+                        </Button>
                     ),
                 },
                 onClick: () => this.showFullLogEvent(log),
@@ -280,8 +282,10 @@ export default class LogList extends React.PureComponent<Props, State> {
         };
 
         const errorsButton: JSX.Element = (
-            <button
-                className='btn btn-tertiary btn-sm ml-2'
+            <Button
+                emphasis='tertiary'
+                size='sm'
+                className='ml-2'
                 onClick={this.showErrors}
             >
                 <FormattedMessage
@@ -289,7 +293,7 @@ export default class LogList extends React.PureComponent<Props, State> {
                     defaultMessage='Show last {n} errors'
                     values={{n: this.getErrorCount()}}
                 />
-            </button>
+            </Button>
         );
 
         const filterOptions: FilterOptions = {
