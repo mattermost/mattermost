@@ -36,6 +36,7 @@ describe('components/property_value_editor/TextEditor', () => {
             />,
         );
         expect(screen.getByRole('textbox')).toHaveValue('hello');
+        expect(screen.getByLabelText('Notes')).toHaveValue('hello');
     });
 
     test('renders an empty input when value is undefined', () => {
@@ -46,7 +47,7 @@ describe('components/property_value_editor/TextEditor', () => {
                 onChange={jest.fn()}
             />,
         );
-        expect(screen.getByRole('textbox')).toHaveValue('');
+        expect(screen.getByLabelText('Notes')).toHaveValue('');
     });
 
     test('calls onChange when the user types', () => {
@@ -59,7 +60,7 @@ describe('components/property_value_editor/TextEditor', () => {
             />,
         );
 
-        fireEvent.change(screen.getByRole('textbox'), {target: {value: 'updated'}});
+        fireEvent.change(screen.getByLabelText('Notes'), {target: {value: 'updated'}});
         expect(onChange).toHaveBeenCalledWith('updated');
     });
 
@@ -71,6 +72,6 @@ describe('components/property_value_editor/TextEditor', () => {
                 onChange={jest.fn()}
             />,
         );
-        expect(screen.getByRole('textbox')).toHaveValue('42');
+        expect(screen.getByLabelText('Notes')).toHaveValue('42');
     });
 });

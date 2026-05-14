@@ -44,20 +44,8 @@
     align-items: center;
     gap: 6px;
 
-    input[type='text'] {
+    .Input_container {
         flex: 1;
-        padding: 4px 8px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
-        background: var(--center-channel-bg);
-        color: var(--center-channel-color);
-        font-size: 12px;
-        line-height: 16px;
-
-        &:focus {
-            border-color: var(--button-bg);
-            outline: none;
-        }
     }
 }
 
@@ -105,18 +93,6 @@
 
 .manage-post-properties-modal__name {
     width: 100%;
-    padding: 6px 10px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
-    background: var(--center-channel-bg);
-    color: var(--center-channel-color);
-    font-size: 13px;
-    line-height: 18px;
-
-    &:focus {
-        border-color: var(--button-bg);
-        outline: none;
-    }
 }
 
 .manage-post-properties-modal__save {

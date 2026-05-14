@@ -93,6 +93,8 @@ describe('components/manage_post_properties_modal/ManagePostPropertiesModal', ()
 
         expect(screen.getByDisplayValue('Status')).toBeInTheDocument();
         expect(screen.getByDisplayValue('Priority')).toBeInTheDocument();
+        expect(screen.getByLabelText('Status')).toHaveValue('Status');
+        expect(screen.getByLabelText('Priority')).toHaveValue('Priority');
     });
 
     test('renaming a field and clicking save dispatches patchChannelPostPropertyField', () => {
@@ -106,7 +108,7 @@ describe('components/manage_post_properties_modal/ManagePostPropertiesModal', ()
             buildState(fields),
         );
 
-        const input = screen.getByDisplayValue('Status');
+        const input = screen.getByLabelText('Status');
         fireEvent.change(input, {target: {value: 'Stage'}});
         fireEvent.click(screen.getByRole('button', {name: /save f1/i}));
 
@@ -138,7 +140,7 @@ describe('components/manage_post_properties_modal/ManagePostPropertiesModal', ()
             buildState(fields),
         );
 
-        const input = screen.getByDisplayValue('Status');
+        const input = screen.getByLabelText('Status');
         fireEvent.change(input, {target: {value: '   '}});
 
         expect(screen.getByRole('button', {name: /save f1/i})).toBeDisabled();

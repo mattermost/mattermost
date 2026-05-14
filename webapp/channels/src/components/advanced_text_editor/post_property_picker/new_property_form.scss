@@ -7,15 +7,6 @@
     flex-direction: column;
     gap: 10px;
 
-    label {
-        display: block;
-        margin-bottom: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    input[type='text'],
     select {
         width: 100%;
         padding: 6px 10px;
@@ -31,12 +22,24 @@
             outline: none;
         }
     }
+
+    // The type-picker still uses a bare <label> for now (Slice 5 swaps the
+    // <select> for `LabeledSelect`).
+    > .new-property-form__field > label {
+        display: block;
+        margin-bottom: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        font-weight: 600;
+    }
 }
 
 .new-property-form__field {
     display: block;
 }
 
+// `optionsError` (the "at least one option" message) is the only consumer of
+// this class now; per-field errors flow through `Input`'s `customMessage`.
 .new-property-form__error {
     display: block;
     margin-top: 4px;
@@ -55,7 +58,7 @@
     align-items: center;
     gap: 6px;
 
-    input[type='text'] {
+    .Input_container {
         flex: 1;
     }
 

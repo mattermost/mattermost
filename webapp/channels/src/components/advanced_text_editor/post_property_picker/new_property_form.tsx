@@ -6,6 +6,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {FieldType, PropertyFieldOption} from '@mattermost/types/properties';
 
+import Input from 'components/widgets/inputs/input/input';
+
 import './new_property_form.scss';
 
 export type NewPropertyData = {
@@ -111,18 +113,16 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
     return (
         <div className='new-property-form'>
             <div className='new-property-form__field'>
-                <label htmlFor='new-property-name'>{nameLabel}</label>
-                <input
+                <Input
                     id='new-property-name'
                     type='text'
-                    aria-label={nameLabel}
+                    name='new-property-name'
+                    label={nameLabel}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    aria-invalid={Boolean(nameError)}
+                    hasError={Boolean(nameError)}
+                    customMessage={nameError ? {type: 'error', value: nameError} : null}
                 />
-                {nameError && (
-                    <span className='new-property-form__error'>{nameError}</span>
-                )}
             </div>
 
             <div className='new-property-form__field'>
@@ -158,8 +158,9 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
                             key={opt.id}
                             className='new-property-form__option-row'
                         >
-                            <input
+                            <Input
                                 type='text'
+                                useLegend={false}
                                 aria-label={formatMessage(
                                     {id: 'new_property_form.option_name', defaultMessage: 'Option name {n}'},
                                     {n: idx + 1},

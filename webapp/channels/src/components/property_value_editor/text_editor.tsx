@@ -4,6 +4,8 @@
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
+import Input from 'components/widgets/inputs/input/input';
+
 import type {PropertyValueEditorProps} from './types';
 
 function toDisplayString(value: unknown): string {
@@ -19,7 +21,7 @@ function toDisplayString(value: unknown): string {
 export default function TextEditor({field, value, onChange}: PropertyValueEditorProps) {
     const {formatMessage} = useIntl();
 
-    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         onChange(e.target.value);
     }, [onChange]);
 
@@ -29,9 +31,9 @@ export default function TextEditor({field, value, onChange}: PropertyValueEditor
     );
 
     return (
-        <input
+        <Input
             type='text'
-            className='property-value-editor property-value-editor--text'
+            useLegend={false}
             data-property-field-id={field.id}
             value={toDisplayString(value)}
             placeholder={placeholder}

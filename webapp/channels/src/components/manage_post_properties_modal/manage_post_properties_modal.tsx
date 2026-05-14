@@ -16,6 +16,7 @@ import {
 import {getPostPropertyFieldsForChannel} from 'mattermost-redux/selectors/entities/properties';
 
 import PropertyTypeIcon from 'components/property_value_editor/type_icon';
+import Input from 'components/widgets/inputs/input/input';
 
 import type {DispatchFunc, GlobalState} from 'types/store';
 
@@ -79,7 +80,7 @@ function FieldRow({field, onDeleteRequest}: {
     );
     const canSave = (nameDirty || optionsDirty) && nameValid && optionsValid;
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setDraftName(e.target.value);
     };
 
@@ -131,9 +132,10 @@ function FieldRow({field, onDeleteRequest}: {
                 <span className='manage-post-properties-modal__row-icon'>
                     <PropertyTypeIcon type={field.type}/>
                 </span>
-                <input
+                <Input
                     type='text'
-                    className='manage-post-properties-modal__name'
+                    useLegend={false}
+                    containerClassName='manage-post-properties-modal__name'
                     value={draftName}
                     aria-label={field.name}
                     onChange={handleChange}
@@ -166,8 +168,9 @@ function FieldRow({field, onDeleteRequest}: {
                             key={opt.id}
                             className='manage-post-properties-modal__option-row'
                         >
-                            <input
+                            <Input
                                 type='text'
+                                useLegend={false}
                                 aria-label={formatMessage(
                                     {id: 'manage_post_properties_modal.option_name', defaultMessage: 'Option name {n}'},
                                     {n: idx + 1},

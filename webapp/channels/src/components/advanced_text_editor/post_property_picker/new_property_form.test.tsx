@@ -44,6 +44,9 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
         ));
         fireEvent.click(screen.getByRole('button', {name: /^save/i}));
         expect(screen.getByText(/name is required/i)).toBeInTheDocument();
+
+        // The error renders via `Input.customMessage`, which marks the input as invalid.
+        expect(screen.getByRole('textbox', {name: /name/i})).toHaveAttribute('aria-invalid', 'true');
     });
 
     test('calls onSave with name and type for a text field', async () => {
