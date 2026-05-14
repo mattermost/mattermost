@@ -39,7 +39,7 @@ func TestAzureFileBackendPrefix(t *testing.T) {
 }
 
 // azuriteWellKnownAccount and azuriteWellKnownKey are Azurite's published
-// development credentials. They are not secrets — they are documented in the
+// development credentials. They are not secrets - they are documented in the
 // Azurite README and ship hardcoded in every Azurite distribution.
 const (
 	azuriteWellKnownAccount = "devstoreaccount1"

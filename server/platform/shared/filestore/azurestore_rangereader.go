@@ -104,7 +104,7 @@ func (r *azureRangeReader) Seek(offset int64, whence int) (int64, error) {
 }
 
 // ReadAt reads len(p) bytes starting at offset off. Each call issues a
-// dedicated ranged DownloadStream — calls do not affect the cursor that Read
+// dedicated ranged DownloadStream - calls do not affect the cursor that Read
 // uses, matching the io.ReaderAt contract. This is what the bulk-import
 // worker needs to feed zip.NewReader on Azure-backed deployments.
 func (r *azureRangeReader) ReadAt(p []byte, off int64) (int, error) {

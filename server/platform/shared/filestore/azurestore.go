@@ -346,7 +346,7 @@ func (b *AzureFileBackend) stageBlocks(ctx context.Context, bb *blockblob.Client
 // content. Routing every WriteFile through StageBlock + CommitBlockList keeps
 // AppendFile correct regardless of payload size.
 //
-// The caller's context governs the entire upload — no inner timeout is added.
+// The caller's context governs the entire upload - no inner timeout is added.
 // TryWriteFileContext (filesstore.go) relies on this to let long-running
 // callers like message-export bulk writes opt out of the per-operation
 // timeout that WriteFile applies by default.
@@ -358,7 +358,7 @@ func (b *AzureFileBackend) WriteFileContext(ctx context.Context, fr io.Reader, p
 	}
 
 	if len(blockIDs) == 0 {
-		// Empty input — still need to materialize an empty blob with a
+		// Empty input - still need to materialize an empty blob with a
 		// committed block list so AppendFile can target it.
 		id, idErr := newAzureBlockID()
 		if idErr != nil {
@@ -378,7 +378,7 @@ func (b *AzureFileBackend) WriteFileContext(ctx context.Context, fr io.Reader, p
 
 // AppendFile stages the new chunk as one or more blocks and commits the
 // existing committed block list plus the newly staged IDs. Each AppendFile
-// call uploads the new bytes exactly once — no re-download, no
+// call uploads the new bytes exactly once - no re-download, no
 // re-concatenate, no re-upload of the prior contents. The S3-style contract
 // is preserved: returns an error if the target blob does not yet exist;
 // returns the number of bytes appended (not the resulting total size).
@@ -595,7 +595,7 @@ func (r *readSeekNopCloser) Seek(offset int64, whence int) (int64, error) {
 func (r *readSeekNopCloser) Close() error { return nil }
 
 // newAzureBlockID returns a fresh base64-encoded 16-byte random block ID,
-// generated with github.com/google/uuid — the same library azblob uses
+// generated with github.com/google/uuid - the same library azblob uses
 // internally for the block IDs it produces in UploadStream. All committed
 // blocks in a single blob must share the same decoded length, so callers
 // must use this for both WriteFile and AppendFile staging.
