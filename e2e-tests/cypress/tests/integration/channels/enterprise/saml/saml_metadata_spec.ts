@@ -95,6 +95,8 @@ describe('SystemConsole->SAML 2.0 - Get Metadata from Idp Flow', () => {
                 IdpMetadataURL: testSamlMetadataSuccessUrl,
                 IdpURL: testIdpURL,
                 IdpDescriptorURL: testIdpDescriptorURL,
+                AssertionConsumerServiceURL: Cypress.config('baseUrl') + '/login/sso/saml',
+                ServiceProviderIdentifier: Cypress.config('baseUrl') + '/login/sso/saml',
             },
         });
 
@@ -122,7 +124,7 @@ describe('SystemConsole->SAML 2.0 - Get Metadata from Idp Flow', () => {
         }).as('setSamlIdpCertificateFromMetadata');
 
         // # Click on the Get SAML Metadata Button
-        cy.get('#getSamlMetadataFromIDPButton button').should('be.visible').and('be.enabled').click();
+        cy.get('#getSamlMetadataFromIDPButton button').scrollIntoView().should('be.visible').and('be.enabled').click();
 
         // * Verify that the metadata and certificate endpoints are called
         cy.wait('@getSamlMetadataFromIdp');
@@ -130,7 +132,7 @@ describe('SystemConsole->SAML 2.0 - Get Metadata from Idp Flow', () => {
 
         // * Verify that the IdP URL fields have been updated
         cy.findByTestId('SamlSettings.IdpURLinput').should('have.value', testFetchedIdpURL);
-        cy.findByTestId('SamlSettings.IdpDescriptorURL').should('have.value', testFetchedIdpDescriptorURL);
+        cy.findByTestId('SamlSettings.IdpDescriptorURLinput').should('have.value', testFetchedIdpDescriptorURL);
 
         // * Verify that the success message reflects the updated fields and certificate
         cy.get('#getSamlMetadataFromIDPButton').should('be.visible').contains(getSamlMetadataSuccessMessage);
