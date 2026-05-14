@@ -345,8 +345,7 @@ components:
           enum: [link, file, board]
         target_id:
           type: string
-          description: |
-            When present, the ULID of the Mattermost entity referenced by this bookmark for types that use this field.
+          description: ULID of a referenced Mattermost entity when the bookmark includes one.
         original_id:
           description: The ID of the original channel bookmark
           type: string
