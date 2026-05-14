@@ -177,6 +177,38 @@ describe('UserPropertyDotMenu', () => {
         expect(screen.getByText('Edit SAML link')).toBeInTheDocument();
     });
 
+    it('clears admin-managed by setting managed to empty string, not by removing the key', async () => {
+        const adminManagedField: UserPropertyField = {
+            ...baseField,
+            id: 'admin-managed-field',
+            attrs: {
+                ...baseField.attrs,
+                managed: 'admin',
+            },
+        };
+
+        renderComponent(adminManagedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${adminManagedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableToggle = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        await userEvent.click(editableToggle);
+
+        // The server PATCH uses merge semantics: omitted keys are preserved. Toggling off
+        // admin-managed must send managed: '' explicitly; deleting the key would silently
+        // leave the field admin-managed on the server.
+        expect(updateField).toHaveBeenCalledWith({
+            ...adminManagedField,
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+                managed: '',
+            },
+        });
+    });
+
     it('handles field duplication', async () => {
         renderComponent();
 

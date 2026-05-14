@@ -8,6 +8,23 @@ import (
 	"regexp"
 )
 
+const AccessControlPropertyGroupName = "access_control"
+
+// DeprecatedCPAPropertyGroupName is the old group name for custom profile attributes.
+// It was renamed to "access_control". The plugin API still accepts this name
+// for backward compatibility, but plugin authors should migrate to
+// AccessControlPropertyGroupName.
+const DeprecatedCPAPropertyGroupName = "custom_profile_attributes"
+
+// AccessControlGroupFieldLimit is the global cap on the number of
+// property fields that can exist in the access_control group across
+// all object types. Call sites read all fields/values in a single page
+// (PerPage = AccessControlGroupFieldLimit + 5) instead of paginating,
+// on the assumption that the result set is bounded by this limit. If the
+// limit is ever raised significantly or removed, every call site that uses
+// AccessControlGroupFieldLimit + 5 must be converted to paginate.
+const AccessControlGroupFieldLimit = 200
+
 var validPropertyGroupNameRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9_]*$`)
 
 const (

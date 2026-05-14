@@ -345,5 +345,11 @@ channels/db/migrations/postgres/000173_create_recaps_user_id_viewed_at_index.dow
 channels/db/migrations/postgres/000173_create_recaps_user_id_viewed_at_index.up.sql
 channels/db/migrations/postgres/000174_set_posts_statistics_targets.down.sql
 channels/db/migrations/postgres/000174_set_posts_statistics_targets.up.sql
-channels/db/migrations/postgres/000175_add_admin_to_permission_level.down.sql
-channels/db/migrations/postgres/000175_add_admin_to_permission_level.up.sql
+channels/db/migrations/postgres/000175_add_board_channel_types.down.sql
+channels/db/migrations/postgres/000175_add_board_channel_types.up.sql
+channels/db/migrations/postgres/000176_migrate_cpa_to_access_control.down.sql
+channels/db/migrations/postgres/000176_migrate_cpa_to_access_control.up.sql
+channels/db/migrations/postgres/000177_filter_attribute_view_by_object_type.down.sql
+channels/db/migrations/postgres/000177_filter_attribute_view_by_object_type.up.sql
+channels/db/migrations/postgres/000178_add_admin_to_permission_level.down.sql
+channels/db/migrations/postgres/000178_add_admin_to_permission_level.up.sql

@@ -30,10 +30,11 @@ func (a *App) GetMaskedVisualAST(rctx request.CTX, expression string, callerID s
 		return visualAST, nil
 	}
 
-	cpaGroupID, appErr := a.CpaGroupID()
+	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return nil, model.NewAppError("GetMaskedVisualAST", "app.pap.get_masked_visual_ast.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
+	cpaGroupID := cpaGroup.ID
 
 	// Embed callerID in context so GetPropertyFieldByName applies per-caller option filtering.
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
