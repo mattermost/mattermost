@@ -3,25 +3,25 @@
 // Legacy webhook attachment chrome (see layout/_webhooks.scss under `.post .attachment`); mm_blocks is not
 // inside `.attachment`, so we mirror `.attachment__content` + `.attachment__container` here for parity.
 .mm-blocks__attachment-content {
-    box-sizing: border-box;
-    max-width: 700px;
     width: 100%;
     min-width: 0;
+    max-width: 700px;
     min-height: 0;
+    box-sizing: border-box;
     border-width: 1px;
     border-style: solid;
     border-color: rgba(var(--center-channel-color-rgb), 0.16);
-    border-left: none;
     border-radius: 0 4px 4px 0;
+    border-left: none;
     margin: 5px 0;
 }
 
 .mm-blocks {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
     min-width: 0;
     min-height: 0;
+    flex-direction: column;
+    gap: 12px;
 
     p {
         margin: 0;
@@ -38,23 +38,23 @@
 
     // Same width/min-width behavior as `--border` / `attachment__container` for flex + nested scroll.
     .mm-blocks-container {
-        box-sizing: border-box;
-        min-width: 0;
         width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
     }
 
     // 700px cap only when the container shows a border (full border or attachment accent bar).
     .mm-blocks-container.attachment__container {
-        box-sizing: border-box;
-        max-width: 700px;
         width: 100%;
+        max-width: 700px;
+        box-sizing: border-box;
         padding: 12px;
-        border-left-width: 4px;
-        border-left-style: solid;
-        border-left-color: var(--sidebar-header-bg);
         border-top: none;
         border-right: none;
         border-bottom: none;
+        border-left-width: 4px;
+        border-left-style: solid;
+        border-left-color: var(--sidebar-header-bg);
     }
 
     .mm-blocks-container.attachment__container.mm-blocks-container--accent-default {
@@ -78,20 +78,20 @@
     }
 
     .attachment-actions {
+        position: relative;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 8px;
         padding-bottom: 4px;
-        position: relative;
+        gap: 8px;
 
         .btn {
             margin-top: 8px;
         }
 
         select.form-control {
-            margin-top: 8px;
             max-width: 22rem;
+            margin-top: 8px;
             text-overflow: ellipsis;
         }
     }
@@ -120,8 +120,8 @@
 
         &__frame {
             display: block;
-            max-width: 100%;
             overflow: hidden;
+            max-width: 100%;
             line-height: 0;
 
             // `SizeAwareImage` nests `inline-block` wrappers; cap them so percentage widths
@@ -172,27 +172,27 @@
     }
 
     .mm-blocks-divider {
+        width: 100%;
+        align-self: stretch;
         border: 0;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         margin: 8px 0;
-        width: 100%;
-        align-self: stretch;
     }
 
     .mm-blocks-divider--vertical {
+        width: 0;
+        flex-shrink: 0;
+        align-self: stretch;
         border-top: 0;
         border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         margin: 0 8px;
-        width: 0;
-        align-self: stretch;
-        flex-shrink: 0;
     }
 
     .mm-blocks-column-set {
         display: flex;
+        width: 100%;
         flex-wrap: wrap;
         gap: 12px;
-        width: 100%;
     }
 
     .mm-blocks-column {
@@ -210,11 +210,11 @@
 
     // `border: true` on the block (no accent_color).
     .mm-blocks-container--border {
-        max-width: 700px;
         width: 100%;
+        max-width: 700px;
+        padding: 8px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
-        padding: 8px;
     }
 
     .mm-blocks-container--bg-gray {
@@ -231,8 +231,8 @@
     // Nested scroll + flex: override min-height:auto on items (same idea as .mm-blocks-column min-width).
     .mm-blocks-container--flow-vertical {
         display: flex;
-        flex-direction: column;
         min-height: 0;
+        flex-direction: column;
 
         > * {
             min-height: 0;
@@ -247,11 +247,11 @@
 
     .mm-blocks-collapsible-header {
         display: flex;
-        align-items: center;
-        gap: 8px;
         width: 100%;
-        text-align: left;
+        align-items: center;
         padding: 8px 10px;
+        gap: 8px;
+        text-align: left;
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.04);
@@ -259,13 +259,13 @@
     }
 
     .mm-blocks-collapsible-header__body {
-        flex: 1 1 auto;
         min-width: 0;
+        flex: 1 1 auto;
     }
 
     .mm-blocks-collapsible-header__chevron {
-        flex-shrink: 0;
         display: flex;
+        flex-shrink: 0;
         align-items: center;
         justify-content: center;
         color: rgba(var(--center-channel-color-rgb), 0.56);
@@ -283,8 +283,8 @@
     // `max-height` + column flex: default flex-shrink:1 splits one viewport across siblings;
     // keep each child's main size from content (up to max-height) so the scrollport scrolls instead.
     .mm-blocks-container--max-height {
-        margin: 4px 0;
         flex-shrink: 0;
+        margin: 4px 0;
     }
 
     .mm-blocks-container--flow-vertical.mm-blocks-container--max-height > * {

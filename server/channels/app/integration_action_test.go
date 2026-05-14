@@ -1876,10 +1876,10 @@ func TestDoPostActionWithCookie_MmBlocksCookieMissingPost_Update(t *testing.T) {
 	defer ts.Close()
 
 	mmCookie := &model.MmBlocksActionCookie{
-		Kind:          model.MmBlocksActionCookieKind,
-		PostId:        missingPostID,
-		ChannelId:     th.BasicChannel.Id,
-		RootPostId:    missingPostID,
+		Kind:       model.MmBlocksActionCookieKind,
+		PostId:     missingPostID,
+		ChannelId:  th.BasicChannel.Id,
+		RootPostId: missingPostID,
 		Actions: map[string]map[string]any{
 			"apply_update": {
 				"type": "external",

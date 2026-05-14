@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"path"
@@ -400,9 +401,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 				response.Update.SetProps(originalProps)
 			case ephemeralInteractive && len(retain) > 0:
 				props := make(model.StringInterface)
-				for k, v := range retain {
-					props[k] = v
-				}
+				maps.Copy(props, retain)
 				response.Update.SetProps(props)
 			default:
 				response.Update.SetProps(originalProps)

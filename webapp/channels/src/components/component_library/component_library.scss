@@ -19,13 +19,13 @@
 
 .clJsonEditor {
     display: block;
-    box-sizing: border-box;
     width: 100%;
     max-width: 56rem;
-    margin-top: 8px;
+    box-sizing: border-box;
     padding: 10px 12px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
     border-radius: 4px;
+    margin-top: 8px;
     background: var(--center-channel-bg);
     color: var(--center-channel-color);
     font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
@@ -36,9 +36,9 @@
 
 .clJsonError {
     max-width: 56rem;
-    margin-bottom: 16px;
     padding: 10px 12px;
     border-radius: 4px;
+    margin-bottom: 16px;
     background: rgba(var(--error-text-color-rgb), 0.08);
     color: var(--error-text);
     font-size: 13px;
@@ -47,9 +47,9 @@
 
 .clJsonHint {
     max-width: 56rem;
-    margin-bottom: 16px;
     padding: 10px 12px;
     border-radius: 4px;
+    margin-bottom: 16px;
     background: rgba(var(--center-channel-color-rgb), 0.08);
     color: rgba(var(--center-channel-color-rgb), 0.72);
     font-size: 13px;
