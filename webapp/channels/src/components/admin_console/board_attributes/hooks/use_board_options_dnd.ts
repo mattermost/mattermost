@@ -15,6 +15,7 @@ type UseBoardOptionsDndOptions = {
     options: PropertyFieldOption[];
     setOptions: (next: PropertyFieldOption[]) => void;
     enabled: boolean;
+    onBeforeReorder?: () => void;
 };
 
 /**
@@ -22,9 +23,10 @@ type UseBoardOptionsDndOptions = {
  * specific field. Reorders options in place when a chip is dropped.
  * Safe to call unconditionally; no-ops when enabled is false.
  */
-export function useBoardOptionsDnd({fieldId, options, setOptions, enabled}: UseBoardOptionsDndOptions): void {
+export function useBoardOptionsDnd({fieldId, options, setOptions, enabled, onBeforeReorder}: UseBoardOptionsDndOptions): void {
     const optionsRef = useLatest(options);
     const setOptionsRef = useLatest(setOptions);
+    const onBeforeReorderRef = useLatest(onBeforeReorder);
 
     useEffect(() => {
         if (!enabled) {
@@ -56,6 +58,7 @@ export function useBoardOptionsDnd({fieldId, options, setOptions, enabled}: UseB
                     const next = [...current];
                     const [moved] = next.splice(sourceIndex, 1);
                     next.splice(dropIndex, 0, moved);
+                    onBeforeReorderRef.current?.();
                     setOptionsRef.current(next);
                 }
             },

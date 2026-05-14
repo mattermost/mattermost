@@ -13,6 +13,8 @@ import {supportsOptions, type BoardPropertyField, type PropertyFieldOption} from
 
 import * as Menu from 'components/menu';
 
+import {useFLIPAnimation} from 'hooks/use_flip_animation';
+
 import {ValidationWarningOptionsUnique, isOptionNameTaken} from './board_attributes_utils';
 import {useBoardOptionDnd} from './hooks/use_board_option_dnd';
 import {useBoardOptionsDnd} from './hooks/use_board_options_dnd';
@@ -77,6 +79,7 @@ type Props = {
 
 const BoardAttributesValues = ({field, updateField, warning}: Props) => {
     const {formatMessage} = useIntl();
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
     const isEditable =
         supportsOptions(field) &&
@@ -90,7 +93,12 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
         updateField({...field, attrs: {...field.attrs, options: next}});
     };
 
-    useBoardOptionsDnd({fieldId: field.id, options, setOptions, enabled: isEditable});
+    const {snapshot: snapshotChips} = useFLIPAnimation(() => {
+        const children = containerRef.current ? Array.from(containerRef.current.children) : [];
+        return children.filter((el) => el.tagName !== 'BUTTON') as HTMLElement[];
+    });
+
+    useBoardOptionsDnd({fieldId: field.id, options, setOptions, enabled: isEditable, onBeforeReorder: snapshotChips});
 
     if (!supportsOptions(field) || field.type === 'user' || field.type === 'multiuser') {
         return (
@@ -144,7 +152,10 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
 
     return (
         <>
-            <ValuesContainer data-testid='property-values-input'>
+            <ValuesContainer
+                ref={containerRef}
+                data-testid='property-values-input'
+            >
                 {options.map((option, index) => (
                     <EditableChip
                         key={option.id || `pending-${index}`}

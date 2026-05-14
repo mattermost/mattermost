@@ -4,7 +4,7 @@
 import {flexRender} from '@tanstack/react-table';
 import type {SortDirection, Table, Row} from '@tanstack/react-table';
 import classNames from 'classnames';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import type {AriaAttributes, KeyboardEvent, MouseEvent, ReactNode} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
@@ -13,6 +13,8 @@ import type {IndicatorsContainerProps, OnChangeValue} from 'react-select';
 import {DragVerticalIcon} from '@mattermost/compass-icons/components';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
+import {useFLIPAnimation} from 'hooks/use_flip_animation';
 
 import {useListTableDnd} from './hooks/use_list_table_dnd';
 import {useListTableRowDnd} from './hooks/use_list_table_row_dnd';
@@ -229,9 +231,23 @@ export function ListTable<TableType extends TableMandatoryTypes>(
         }
     }
 
+    const tbodyRef = useRef<HTMLTableSectionElement | null>(null);
+    const {snapshot} = useFLIPAnimation(
+        () => Array.from(tbodyRef.current?.querySelectorAll('tr[id]') ?? []) as HTMLElement[],
+    );
+    const onReorderWithFlip = useMemo(() => {
+        if (!tableMeta.onReorder) {
+            return undefined;
+        }
+        return (prev: number, next: number) => {
+            snapshot();
+            tableMeta.onReorder!(prev, next);
+        };
+    }, [tableMeta.onReorder, snapshot]);
+
     useListTableDnd({
         dragKind: `list-table-row:${tableMeta.tableId}`,
-        onReorder: tableMeta.onReorder,
+        onReorder: onReorderWithFlip,
     });
 
     const colCount = props.table.getAllColumns().length;
@@ -311,7 +327,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                         </tr>
                     ))}
                 </thead>
-                <tbody>
+                <tbody ref={tbodyRef}>
                     {props.table.getRowModel().rows.map((row) => (
                         <DraggableRow
                             key={row.original.id}
