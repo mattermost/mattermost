@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 
@@ -9,6 +9,13 @@ import NewPropertyForm from './new_property_form';
 
 function wrap(ui: React.ReactElement) {
     return <IntlProvider locale='en'>{ui}</IntlProvider>;
+}
+
+function pickType(label: RegExp | string) {
+    const combobox = screen.getByRole('combobox', {name: /type/i});
+    fireEvent.mouseDown(combobox);
+    fireEvent.focus(combobox);
+    fireEvent.click(screen.getByRole('option', {name: label}));
 }
 
 describe('components/advanced_text_editor/post_property_picker/NewPropertyForm', () => {
@@ -21,6 +28,31 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
         ));
         expect(screen.getByRole('textbox', {name: /name/i})).toBeInTheDocument();
         expect(screen.getByRole('combobox', {name: /type/i})).toBeInTheDocument();
+    });
+
+    test('renders each type option with its property-type icon when the menu opens', () => {
+        render(wrap(
+            <NewPropertyForm
+                onSave={jest.fn()}
+                onCancel={jest.fn()}
+            />,
+        ));
+
+        const combobox = screen.getByRole('combobox', {name: /type/i});
+        fireEvent.mouseDown(combobox);
+        fireEvent.focus(combobox);
+
+        for (const [label, type] of [
+            [/Text/, 'text'],
+            [/Date/, 'date'],
+            [/^Select$/, 'select'],
+            [/Multi-select/, 'multiselect'],
+            [/User/, 'user'],
+        ] as const) {
+            const option = screen.getByRole('option', {name: label});
+            expect(within(option).getByText(label)).toBeInTheDocument();
+            expect(option.querySelector(`[data-property-type='${type}']`)).not.toBeNull();
+        }
     });
 
     test('calls onCancel when cancel is clicked', () => {
@@ -77,7 +109,7 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
                 onCancel={jest.fn()}
             />,
         ));
-        fireEvent.change(screen.getByRole('combobox', {name: /type/i}), {target: {value: 'select'}});
+        pickType(/^Select$/);
         expect(screen.getByRole('button', {name: /add option/i})).toBeInTheDocument();
     });
 
@@ -89,7 +121,7 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
             />,
         ));
         fireEvent.change(screen.getByRole('textbox', {name: /name/i}), {target: {value: 'Priority'}});
-        fireEvent.change(screen.getByRole('combobox', {name: /type/i}), {target: {value: 'select'}});
+        pickType(/^Select$/);
         fireEvent.click(screen.getByRole('button', {name: /^save/i}));
         expect(screen.getByText(/at least one option/i)).toBeInTheDocument();
     });
@@ -101,7 +133,7 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
                 onCancel={jest.fn()}
             />,
         ));
-        fireEvent.change(screen.getByRole('combobox', {name: /type/i}), {target: {value: 'select'}});
+        pickType(/^Select$/);
         fireEvent.click(screen.getByRole('button', {name: /add option/i}));
 
         const optionInputs = screen.getAllByRole('textbox', {name: /option name/i});
@@ -122,7 +154,7 @@ describe('components/advanced_text_editor/post_property_picker/NewPropertyForm',
         ));
 
         fireEvent.change(screen.getByRole('textbox', {name: /name/i}), {target: {value: 'Status'}});
-        fireEvent.change(screen.getByRole('combobox', {name: /type/i}), {target: {value: 'select'}});
+        pickType(/^Select$/);
         fireEvent.click(screen.getByRole('button', {name: /add option/i}));
         fireEvent.change(screen.getAllByRole('textbox', {name: /option name/i})[0], {target: {value: 'Open'}});
         fireEvent.click(screen.getByRole('button', {name: /^save/i}));

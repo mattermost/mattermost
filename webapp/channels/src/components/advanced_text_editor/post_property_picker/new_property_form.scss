@@ -6,32 +6,6 @@
     min-width: 260px;
     flex-direction: column;
     gap: 10px;
-
-    select {
-        width: 100%;
-        padding: 6px 10px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
-        background: var(--center-channel-bg);
-        color: var(--center-channel-color);
-        font-size: 13px;
-        line-height: 18px;
-
-        &:focus {
-            border-color: var(--button-bg);
-            outline: none;
-        }
-    }
-
-    // The type-picker still uses a bare <label> for now (Slice 5 swaps the
-    // <select> for `LabeledSelect`).
-    > .new-property-form__field > label {
-        display: block;
-        margin-bottom: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        font-size: 12px;
-        font-weight: 600;
-    }
 }
 
 .new-property-form__field {

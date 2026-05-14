@@ -1,0 +1,82 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Visual structure is borrowed from the `Input` widget — the fieldset/legend
+// classes are shared so global rules in `input.scss` apply (focus ring, error
+// outline, legend float). Local rules below tweak just what `react-select`
+// needs.
+
+.LabeledSelect {
+    &.Input_container {
+        margin-top: 0;
+    }
+
+    .Input_wrapper {
+        padding: 0 1px;
+    }
+
+    .LabeledSelect__control {
+        min-height: 32px;
+        border: none;
+        background-color: transparent;
+        box-shadow: none;
+        cursor: pointer;
+    }
+
+    .LabeledSelect__control--is-focused {
+        border: none;
+        box-shadow: none;
+    }
+
+    .LabeledSelect__value-container {
+        padding: 0 4px;
+    }
+
+    .LabeledSelect__single-value {
+        color: var(--center-channel-color);
+    }
+
+    .LabeledSelect__placeholder {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    .LabeledSelect__menu {
+        z-index: 100;
+        background-color: var(--center-channel-bg);
+    }
+
+    .LabeledSelect__option {
+        cursor: pointer;
+    }
+
+    .LabeledSelect__option--is-focused {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    .LabeledSelect__option--is-selected {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+
+    .LabeledSelect__indicator {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        padding: 4px;
+    }
+}
+
+.LabeledSelect__option-row,
+.LabeledSelect__single-value-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.LabeledSelect__option-icon {
+    display: inline-flex;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+}
+
+.LabeledSelect__option-label {
+    line-height: 18px;
+}

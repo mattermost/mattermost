@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useLayoutEffect, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {FieldType, PropertyFieldOption} from '@mattermost/types/properties';
 
+import PropertyTypeIcon from 'components/property_value_editor/type_icon';
 import Input from 'components/widgets/inputs/input/input';
+import LabeledSelect from 'components/widgets/inputs/labeled_select';
+import type {LabeledSelectOption} from 'components/widgets/inputs/labeled_select';
 
 import './new_property_form.scss';
 
@@ -48,8 +51,11 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
         onLayoutChange?.();
     }, [needsOptions, options.length, Boolean(nameError), Boolean(optionsError), onLayoutChange]);
 
-    const handleTypeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        setType(e.target.value as FieldType);
+    const handleTypeChange = useCallback((next: LabeledSelectOption<FieldType> | Array<LabeledSelectOption<FieldType>> | null) => {
+        if (!next || Array.isArray(next)) {
+            return;
+        }
+        setType(next.value);
         setOptionsError('');
     }, []);
 
@@ -110,6 +116,16 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
     const typeLabel = formatMessage({id: 'new_property_form.type', defaultMessage: 'Type'});
     const addOptionLabel = formatMessage({id: 'new_property_form.add_option', defaultMessage: 'Add option'});
 
+    const typeOptions = useMemo<Array<LabeledSelectOption<FieldType>>>(() => [
+        {value: 'text', label: formatMessage({id: 'new_property_form.type.text', defaultMessage: 'Text'}), icon: <PropertyTypeIcon type='text'/>},
+        {value: 'date', label: formatMessage({id: 'new_property_form.type.date', defaultMessage: 'Date'}), icon: <PropertyTypeIcon type='date'/>},
+        {value: 'select', label: formatMessage({id: 'new_property_form.type.select', defaultMessage: 'Select'}), icon: <PropertyTypeIcon type='select'/>},
+        {value: 'multiselect', label: formatMessage({id: 'new_property_form.type.multiselect', defaultMessage: 'Multi-select'}), icon: <PropertyTypeIcon type='multiselect'/>},
+        {value: 'user', label: formatMessage({id: 'new_property_form.type.user', defaultMessage: 'User'}), icon: <PropertyTypeIcon type='user'/>},
+    ], [formatMessage]);
+
+    const selectedTypeOption = typeOptions.find((o) => o.value === type) ?? typeOptions[0];
+
     return (
         <div className='new-property-form'>
             <div className='new-property-form__field'>
@@ -126,29 +142,15 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
             </div>
 
             <div className='new-property-form__field'>
-                <label htmlFor='new-property-type'>{typeLabel}</label>
-                <select
-                    id='new-property-type'
+                <LabeledSelect<FieldType>
+                    inputId='new-property-type'
+                    label={typeLabel}
                     aria-label={typeLabel}
-                    value={type}
+                    value={selectedTypeOption}
+                    options={typeOptions}
                     onChange={handleTypeChange}
-                >
-                    <option value='text'>
-                        {formatMessage({id: 'new_property_form.type.text', defaultMessage: 'Text'})}
-                    </option>
-                    <option value='date'>
-                        {formatMessage({id: 'new_property_form.type.date', defaultMessage: 'Date'})}
-                    </option>
-                    <option value='select'>
-                        {formatMessage({id: 'new_property_form.type.select', defaultMessage: 'Select'})}
-                    </option>
-                    <option value='multiselect'>
-                        {formatMessage({id: 'new_property_form.type.multiselect', defaultMessage: 'Multi-select'})}
-                    </option>
-                    <option value='user'>
-                        {formatMessage({id: 'new_property_form.type.user', defaultMessage: 'User'})}
-                    </option>
-                </select>
+                    isSearchable={false}
+                />
             </div>
 
             {needsOptions && (
