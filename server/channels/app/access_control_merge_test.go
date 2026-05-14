@@ -174,6 +174,124 @@ func TestBuildCELFromConditions(t *testing.T) {
 	})
 }
 
+func TestNormalizeForComparison(t *testing.T) {
+	t.Run("strips whitespace outside string literals", func(t *testing.T) {
+		got, ok := normalizeForComparison(` a   ==  "b"  `)
+		require.True(t, ok)
+		assert.Equal(t, `a=="b"`, got)
+	})
+
+	t.Run("preserves whitespace inside string literals", func(t *testing.T) {
+		got, ok := normalizeForComparison(`a == "hello world"`)
+		require.True(t, ok)
+		assert.Equal(t, `a=="hello world"`, got)
+	})
+
+	t.Run("canonicalizes single quotes to double quotes", func(t *testing.T) {
+		single, ok := normalizeForComparison(`a == 'foo'`)
+		require.True(t, ok)
+		double, ok := normalizeForComparison(`a == "foo"`)
+		require.True(t, ok)
+		assert.Equal(t, single, double)
+	})
+
+	t.Run("preserves escape sequences inside string literals", func(t *testing.T) {
+		got, ok := normalizeForComparison(`a == "he said \"hi\""`)
+		require.True(t, ok)
+		assert.Equal(t, `a=="he said \"hi\""`, got)
+	})
+
+	t.Run("unbalanced quote returns ok=false", func(t *testing.T) {
+		_, ok := normalizeForComparison(`a == "unterminated`)
+		assert.False(t, ok)
+	})
+
+	t.Run("empty string normalizes to empty", func(t *testing.T) {
+		got, ok := normalizeForComparison("")
+		require.True(t, ok)
+		assert.Equal(t, "", got)
+	})
+}
+
+func TestIsVisualASTRepresentable(t *testing.T) {
+	t.Run("empty AST on empty expression is representable", func(t *testing.T) {
+		assert.True(t, isVisualASTRepresentable("", &model.VisualExpression{}))
+	})
+
+	t.Run("empty AST on 'true' is representable", func(t *testing.T) {
+		assert.True(t, isVisualASTRepresentable("true", &model.VisualExpression{}))
+	})
+
+	t.Run("simple equals condition round-trips cleanly", func(t *testing.T) {
+		ast := &model.VisualExpression{Conditions: []model.Condition{
+			{Attribute: "user.attributes.team", Operator: "==", Value: "Engineering", ValueType: model.LiteralValue},
+		}}
+		assert.True(t, isVisualASTRepresentable(`user.attributes.team == "Engineering"`, ast))
+	})
+
+	t.Run("simple AND chain of two conditions round-trips cleanly", func(t *testing.T) {
+		ast := &model.VisualExpression{Conditions: []model.Condition{
+			{Attribute: "user.attributes.team", Operator: "==", Value: "Engineering", ValueType: model.LiteralValue},
+			{Attribute: "user.attributes.role", Operator: "==", Value: "Admin", ValueType: model.LiteralValue},
+		}}
+		assert.True(t, isVisualASTRepresentable(
+			`user.attributes.team == "Engineering" && user.attributes.role == "Admin"`,
+			ast,
+		))
+	})
+
+	t.Run("|| in original but AST flattens to AND is NOT representable", func(t *testing.T) {
+		// Pretend the parser flattened `a == "X" || b == "Y"` into two AND-joined
+		// conditions. The round-trip would emit `&&`, mismatch detected.
+		ast := &model.VisualExpression{Conditions: []model.Condition{
+			{Attribute: "user.attributes.team", Operator: "==", Value: "X", ValueType: model.LiteralValue},
+			{Attribute: "user.attributes.role", Operator: "==", Value: "Y", ValueType: model.LiteralValue},
+		}}
+		assert.False(t, isVisualASTRepresentable(
+			`user.attributes.team == "X" || user.attributes.role == "Y"`,
+			ast,
+		))
+	})
+
+	t.Run("grouping in original is NOT representable when AST flattens it", func(t *testing.T) {
+		ast := &model.VisualExpression{Conditions: []model.Condition{
+			{Attribute: "user.attributes.a", Operator: "==", Value: "1", ValueType: model.LiteralValue},
+			{Attribute: "user.attributes.b", Operator: "==", Value: "2", ValueType: model.LiteralValue},
+			{Attribute: "user.attributes.c", Operator: "==", Value: "3", ValueType: model.LiteralValue},
+		}}
+		assert.False(t, isVisualASTRepresentable(
+			`(user.attributes.a == "1" && user.attributes.b == "2") || user.attributes.c == "3"`,
+			ast,
+		))
+	})
+
+	t.Run("hasAnyOf with multiple values is representable (|| within a single condition)", func(t *testing.T) {
+		// `("Alpha" in attr || "Bravo" in attr)` is the canonical serialization
+		// for a hasAnyOf condition. It contains || syntactically but the AST
+		// reduces it to one condition that round-trips identically.
+		ast := &model.VisualExpression{Conditions: []model.Condition{
+			{
+				Attribute:     "user.attributes.Programs",
+				Operator:      "hasAnyOf",
+				Value:         []any{"Alpha", "Bravo"},
+				ValueType:     model.LiteralValue,
+				AttributeType: "multiselect",
+			},
+		}}
+		assert.True(t, isVisualASTRepresentable(
+			`("Alpha" in user.attributes.Programs || "Bravo" in user.attributes.Programs)`,
+			ast,
+		))
+	})
+
+	t.Run("unbalanced quote in original is NOT representable", func(t *testing.T) {
+		ast := &model.VisualExpression{Conditions: []model.Condition{
+			{Attribute: "user.attributes.team", Operator: "==", Value: "X", ValueType: model.LiteralValue},
+		}}
+		assert.False(t, isVisualASTRepresentable(`user.attributes.team == "unterminated`, ast))
+	})
+}
+
 func TestExtractStringValues(t *testing.T) {
 	t.Run("slice of strings", func(t *testing.T) {
 		result := extractStringValues([]any{"Alpha", "Bravo", "Charlie"})

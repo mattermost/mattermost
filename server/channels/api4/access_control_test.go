@@ -1479,13 +1479,12 @@ func newParentPolicy(teamID string) *model.AccessControlPolicy {
 // fail-closed branch (unknown property field) so the masking always produces the
 // "--------" sentinel without requiring a real CPA setup.
 func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEVALUEMASKING", "true")
-	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEVALUEMASKING")
-	})
+	// SetupConfig sets FFs before route init via SetReadOnlyFF(false). Avoids
+	// os.Setenv which isn't parallel-safe.
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeBasedAccessControl = true
+		cfg.FeatureFlags.AttributeValueMasking = true
+	}).InitBasic(t)
 
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	require.True(t, ok, "SetLicense should return true")
@@ -1494,7 +1493,7 @@ func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
 	})
 
 	const sensitiveExpr = `user.attributes.f_unknown_field == "TF-Zulu"`
-	const maskedToken = "--------"
+	const expectedMaskedExpr = `user.attributes.f_unknown_field == "--------"`
 
 	// A condition referencing an unknown CPA field forces MaskPolicyExpressions
 	// down the fail-closed branch, which replaces the literal value with the
@@ -1542,10 +1541,8 @@ func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotEmpty(t, result.Rules)
-		require.Contains(t, result.Rules[0].Expression, maskedToken,
-			"get response must mask the raw CEL — got %q", result.Rules[0].Expression)
-		require.NotContains(t, result.Rules[0].Expression, "TF-Zulu",
-			"original value must not leak in the get response")
+		require.Equal(t, expectedMaskedExpr, result.Rules[0].Expression,
+			"get response must mask the raw CEL exactly")
 	})
 }
 

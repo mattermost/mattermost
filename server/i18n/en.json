@@ -7621,6 +7621,10 @@
     "translation": "Could not query for expression."
   },
   {
+    "id": "app.pap.save_policy.advanced_expression_blocked",
+    "translation": "This rule expression cannot be safely edited while restricted values are present."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
   },
