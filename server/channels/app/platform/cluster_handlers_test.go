@@ -66,7 +66,7 @@ func TestClearSessionCacheInvalidatesWebConnSession(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			th := Setup(t).InitBasic(t)
+			th := Setup(t).InitBasic()
 
 			s := httptest.NewServer(dummyWebsocketHandler(t))
 			defer s.Close()
