@@ -11,10 +11,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-const errExternallyManagedBookmarkReadonly = "api.channel.bookmark.board.readonly.app_error"
-
 func rejectExternallyManagedBookmarkWrite(op string) *model.AppError {
-	return model.NewAppError(op, errExternallyManagedBookmarkReadonly, nil,
+	return model.NewAppError(op, "api.channel.bookmark.board.readonly.app_error", nil,
 		"bookmark type is managed outside the channel bookmarks API", http.StatusBadRequest)
 }
 

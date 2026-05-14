@@ -273,7 +273,7 @@
   },
   {
     "id": "api.channel.bookmark.board.readonly.app_error",
-    "translation": "Board bookmarks are managed by the boards feature and cannot be created, updated, deleted, or reordered through the bookmarks API."
+    "translation": "Board bookmarks are managed by the boards feature and cannot be created, updated, or deleted through the bookmarks API."
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
