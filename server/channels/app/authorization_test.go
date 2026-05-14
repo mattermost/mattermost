@@ -2377,10 +2377,77 @@ func TestSessionHasPropertyFieldPermissionAdmin(t *testing.T) {
 			assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, regularUser, field, th.BasicUser2.Id))
 		})
 
+		t.Run("user-object value with channel-scoped field: falls back to channel admin", func(t *testing.T) {
+			// When ObjectType has no per-value admin notion (user/system/template),
+			// the check defers to the field's TargetType. A channel-scoped
+			// user-object field should require channel admin on the field's
+			// channel — not sysadmin.
+			field := &model.PropertyField{
+				GroupID:           groupID,
+				Name:              "values admin user-channel",
+				Type:              model.PropertyFieldTypeText,
+				ObjectType:        model.PropertyFieldObjectTypeUser,
+				TargetType:        string(model.PropertyFieldTargetLevelChannel),
+				TargetID:          th.BasicChannel.Id,
+				PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+				PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
+				PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+			}
+
+			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+				model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+			require.Nil(t, appErr)
+			t.Cleanup(func() {
+				_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+			})
+
+			channelAdmin := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+			channelMember := model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}
+
+			assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, channelAdmin, field, th.BasicUser2.Id))
+			assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, channelMember, field, th.BasicUser2.Id))
+		})
+
 		t.Run("unrestricted session bypasses value-target check", func(t *testing.T) {
 			field := fieldFor(model.PropertyFieldObjectTypeChannel)
 			local := model.Session{UserId: th.BasicUser2.Id, Local: true}
 			assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, local, field, th.BasicChannel.Id))
 		})
 	})
+}
+
+// Member-level scope access on post-object values follows post-edit
+// permission rather than mere channel membership: a value is an attribute
+// of the post, so writing it should require the same authority as editing
+// the post itself.
+func TestSessionHasPermissionToSetPropertyFieldValues_PostMember(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	// BasicUser2 is a channel member but not the post's author.
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	field := &model.PropertyField{
+		GroupID:           groupID,
+		Name:              "post values member",
+		Type:              model.PropertyFieldTypeText,
+		ObjectType:        model.PropertyFieldObjectTypePost,
+		TargetType:        string(model.PropertyFieldTargetLevelSystem),
+		PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+		PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+		PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+	}
+
+	post := th.CreatePost(t, th.BasicChannel) // authored by BasicUser
+
+	authorSession := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+	nonAuthorSession := model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}
+
+	// Author can edit their own post → can set its value.
+	assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, authorSession, field, post.Id))
+	// Channel member who is not the author and lacks edit_others_posts cannot.
+	assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, nonAuthorSession, field, post.Id))
 }

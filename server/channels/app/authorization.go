@@ -629,8 +629,9 @@ func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID stri
 // hasPropertyFieldValueAdmin reports whether the user administers the
 // value's target. For channel/post-object fields, this is channel admin on
 // the value's channel (or the post's channel). For user/system/template
-// fields there is no per-object admin concept, so the check falls back to
-// system admin.
+// fields the value's target has no admin concept, so the check defers to
+// the field's TargetType (sysadmin / team admin / channel admin) via the
+// field-level dispatch.
 func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
 	switch field.ObjectType {
 	case model.PropertyFieldObjectTypeChannel:
@@ -652,30 +653,24 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 	case model.PropertyFieldObjectTypeUser,
 		model.PropertyFieldObjectTypeSystem,
 		model.PropertyFieldObjectTypeTemplate:
-		return a.HasPermissionTo(userID, model.PermissionManageSystem)
+		return a.hasPropertyFieldPermissionLevel(rctx, userID, field, model.PermissionLevelAdmin)
 	}
 	return false
 }
 
-// hasPropertyFieldValueScopeAccess reports whether the user is a member of
-// the value's target. For channel-object fields this is membership in the
-// value's channel; for post-object fields it is membership in the post's
-// channel. User/system/template fields have no per-object membership and
-// return true for any authenticated user.
+// hasPropertyFieldValueScopeAccess reports whether the user can write the
+// value's target as a regular member. For channel-object fields this is
+// membership in the value's channel — checked via HasPermissionToChannel so
+// sysadmins and team admins cascade through. For post-object fields the
+// value is an attribute of that post: the author can write their own
+// value, and admin-tier writers (channel/team/system admin) cascade through
+// the field's admin-level check. User/system/template fields have no
+// per-object membership and defer to the field's TargetType-based scope.
 func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
 	switch field.ObjectType {
 	case model.PropertyFieldObjectTypeChannel:
-		member, err := a.Srv().Store().Channel().GetMember(rctx, valueTargetID, userID)
-		if err != nil {
-			rctx.Logger().Warn("Failed to get channel member for property value scope check",
-				mlog.String("channel_id", valueTargetID),
-				mlog.String("user_id", userID),
-				mlog.String("field_id", field.ID),
-				mlog.Err(err),
-			)
-			return false
-		}
-		return member != nil
+		ok, _ := a.HasPermissionToChannel(rctx, userID, valueTargetID, model.PermissionReadChannel)
+		return ok
 	case model.PropertyFieldObjectTypePost:
 		post, err := a.Srv().Store().Post().GetSingle(rctx, valueTargetID, false)
 		if err != nil {
@@ -687,21 +682,20 @@ func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, 
 			)
 			return false
 		}
-		member, err := a.Srv().Store().Channel().GetMember(rctx, post.ChannelId, userID)
-		if err != nil {
-			rctx.Logger().Warn("Failed to get channel member for property value scope check",
-				mlog.String("channel_id", post.ChannelId),
-				mlog.String("user_id", userID),
-				mlog.String("field_id", field.ID),
-				mlog.Err(err),
-			)
-			return false
+		if post.UserId == userID {
+			// Author can write their own value, but must still be allowed to
+			// edit the post itself — guests removed from the channel, or
+			// posts past an edit time limit, should not get a free pass.
+			ok, _ := a.HasPermissionToChannel(rctx, userID, post.ChannelId, model.PermissionEditPost)
+			return ok
 		}
-		return member != nil
+		// Non-authors cascade through the admin-tier check: channel admin
+		// on the post's channel, team admin on its team, or sysadmin.
+		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
 	case model.PropertyFieldObjectTypeUser,
 		model.PropertyFieldObjectTypeSystem,
 		model.PropertyFieldObjectTypeTemplate:
-		return true
+		return a.hasPropertyFieldScopeAccess(rctx, userID, field)
 	}
 	return false
 }
