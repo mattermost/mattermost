@@ -1557,9 +1557,38 @@ func TestHasPermissionToSetPropertyFieldValues(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, th.App.HasPermissionToSetPropertyFieldValues(th.Context, tc.userID, tc.field))
+			objectType, valueTargetID := valueCheckDefaultsForFieldTarget(tc.field, th.BasicChannel.Id)
+			if tc.field != nil && tc.field.ObjectType == "" {
+				tc.field.ObjectType = objectType
+			}
+			assert.Equal(t, tc.expected, th.App.HasPermissionToSetPropertyFieldValues(th.Context, tc.userID, tc.field, valueTargetID))
 		})
 	}
+}
+
+// valueCheckDefaultsForFieldTarget infers a sensible (ObjectType,
+// valueTargetID) pair for table-driven value-perm tests written against the
+// legacy field-target dispatch. Under the new dispatch (which uses
+// ObjectType + the value's target), this preserves the original pass/fail by
+// aligning the value's target with the field's scope: channel-target fields
+// become channel-object values on the field's channel; team-target fields
+// reuse the basic channel (the team has no equivalent ObjectType, and the
+// only members-vs-non-members distinction in our test fixtures aligns);
+// system-target fields become user-object values, which fall through the
+// "any authenticated user" branch.
+func valueCheckDefaultsForFieldTarget(field *model.PropertyField, basicChannelID string) (objectType string, valueTargetID string) {
+	if field == nil {
+		return "", ""
+	}
+	switch field.TargetType {
+	case string(model.PropertyFieldTargetLevelChannel):
+		return model.PropertyFieldObjectTypeChannel, field.TargetID
+	case string(model.PropertyFieldTargetLevelTeam):
+		return model.PropertyFieldObjectTypeChannel, basicChannelID
+	case string(model.PropertyFieldTargetLevelSystem):
+		return model.PropertyFieldObjectTypeUser, ""
+	}
+	return "", ""
 }
 
 func TestHasPermissionToManagePropertyFieldOptions(t *testing.T) {
@@ -2072,7 +2101,11 @@ func TestSessionHasPermissionToSetPropertyFieldValues(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, tc.session, tc.field))
+			objectType, valueTargetID := valueCheckDefaultsForFieldTarget(tc.field, th.BasicChannel.Id)
+			if tc.field != nil && tc.field.ObjectType == "" {
+				tc.field.ObjectType = objectType
+			}
+			assert.Equal(t, tc.expected, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, tc.session, tc.field, valueTargetID))
 		})
 	}
 }
@@ -2222,86 +2255,132 @@ func TestSessionHasPropertyFieldPermissionAdmin(t *testing.T) {
 
 	groupID := registerTestPropertyGroup(t, th)
 
-	// BasicUser2 is in the team but not the channel — add them so the
-	// channel-target denial case is "member of the channel, but not an admin"
-	// rather than "not a member at all".
+	// BasicUser2 is in the team but not the channel — add them so denial
+	// cases land at "in the channel, but not an admin" rather than "not a
+	// member at all".
 	require.NotEqual(t, th.BasicUser.Id, th.BasicUser2.Id)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 	require.Nil(t, appErr)
 
-	adminField := func(target model.PropertyFieldTargetLevel, targetID string) *model.PropertyField {
-		return &model.PropertyField{
-			GroupID:           groupID,
-			Name:              "admin only " + string(target),
-			Type:              model.PropertyFieldTypeText,
-			ObjectType:        model.PropertyFieldObjectTypePost,
-			TargetType:        string(target),
-			TargetID:          targetID,
-			PermissionField:   model.NewPointer(model.PermissionLevelAdmin),
-			PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
-			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
+	t.Run("field-level admin resolves against field target", func(t *testing.T) {
+		// Edit and ManageOptions operate on the field definition; admin
+		// means admin of the field's TargetType+TargetID.
+		fieldFor := func(target model.PropertyFieldTargetLevel, targetID string) *model.PropertyField {
+			return &model.PropertyField{
+				GroupID:           groupID,
+				Name:              "admin only " + string(target),
+				Type:              model.PropertyFieldTypeText,
+				ObjectType:        model.PropertyFieldObjectTypeUser,
+				TargetType:        string(target),
+				TargetID:          targetID,
+				PermissionField:   model.NewPointer(model.PermissionLevelAdmin),
+				PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
+				PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
+			}
 		}
-	}
+		fieldOps := func(t *testing.T, session model.Session, field *model.PropertyField, want bool) {
+			t.Helper()
+			assert.Equal(t, want, th.App.SessionHasPermissionToEditPropertyField(th.Context, session, field))
+			assert.Equal(t, want, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, session, field))
+		}
 
-	assertAllAccess := func(t *testing.T, session model.Session, field *model.PropertyField, want bool) {
-		t.Helper()
-		assert.Equal(t, want, th.App.SessionHasPermissionToEditPropertyField(th.Context, session, field))
-		assert.Equal(t, want, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session, field))
-		assert.Equal(t, want, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, session, field))
-	}
-
-	t.Run("channel target", func(t *testing.T) {
-		field := adminField(model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id)
-
-		// Promote BasicUser to channel_admin so they hold manage_channel_roles.
-		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
-			model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
-		require.Nil(t, appErr)
-		t.Cleanup(func() {
-			_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+		t.Run("channel target", func(t *testing.T) {
+			field := fieldFor(model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id)
+			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+				model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+			require.Nil(t, appErr)
+			t.Cleanup(func() {
+				_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+			})
+			fieldOps(t, model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}, field, true)
+			fieldOps(t, model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}, field, false)
 		})
 
-		channelAdmin := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
-		channelMember := model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}
-		stranger := th.CreateUser(t)
-		strangerSession := model.Session{UserId: stranger.Id, Roles: model.SystemUserRoleId}
-
-		assertAllAccess(t, channelAdmin, field, true)
-		assertAllAccess(t, channelMember, field, false)
-		assertAllAccess(t, strangerSession, field, false)
-	})
-
-	t.Run("team target", func(t *testing.T) {
-		field := adminField(model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id)
-
-		// Promote BasicUser to team_admin so they hold manage_team.
-		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id,
-			model.TeamUserRoleId+" "+model.TeamAdminRoleId)
-		require.Nil(t, appErr)
-		t.Cleanup(func() {
-			_, _ = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.TeamUserRoleId)
+		t.Run("team target", func(t *testing.T) {
+			field := fieldFor(model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id)
+			_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id,
+				model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+			require.Nil(t, appErr)
+			t.Cleanup(func() {
+				_, _ = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.TeamUserRoleId)
+			})
+			fieldOps(t, model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}, field, true)
+			fieldOps(t, model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}, field, false)
 		})
 
-		teamAdmin := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
-		teamMember := model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}
-
-		assertAllAccess(t, teamAdmin, field, true)
-		assertAllAccess(t, teamMember, field, false)
+		t.Run("system target", func(t *testing.T) {
+			field := fieldFor(model.PropertyFieldTargetLevelSystem, "")
+			sysadmin := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId}
+			fieldOps(t, sysadmin, field, true)
+			fieldOps(t, model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}, field, false)
+		})
 	})
 
-	t.Run("system target", func(t *testing.T) {
-		field := adminField(model.PropertyFieldTargetLevelSystem, "")
+	t.Run("value-level admin resolves against value target", func(t *testing.T) {
+		// Use a system-target field so the dispatch is purely driven by
+		// ObjectType + the value's TargetID — the channel classification
+		// shape: one global field, per-channel values.
+		fieldFor := func(objectType string) *model.PropertyField {
+			return &model.PropertyField{
+				GroupID:           groupID,
+				Name:              "values admin " + objectType,
+				Type:              model.PropertyFieldTypeText,
+				ObjectType:        objectType,
+				TargetType:        string(model.PropertyFieldTargetLevelSystem),
+				PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+				PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
+				PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+			}
+		}
 
-		sysadmin := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId}
-		regularUser := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+		t.Run("channel-object value: admin of the value's channel passes", func(t *testing.T) {
+			field := fieldFor(model.PropertyFieldObjectTypeChannel)
+			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+				model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+			require.Nil(t, appErr)
+			t.Cleanup(func() {
+				_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+			})
 
-		assertAllAccess(t, sysadmin, field, true)
-		assertAllAccess(t, regularUser, field, false)
-	})
+			channelAdmin := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+			channelMember := model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}
 
-	t.Run("unrestricted session bypasses admin check", func(t *testing.T) {
-		field := adminField(model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id)
-		local := model.Session{UserId: th.BasicUser2.Id, Local: true}
-		assertAllAccess(t, local, field, true)
+			assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, channelAdmin, field, th.BasicChannel.Id))
+			assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, channelMember, field, th.BasicChannel.Id))
+		})
+
+		t.Run("post-object value: post-lookup yields the post's channel admin", func(t *testing.T) {
+			field := fieldFor(model.PropertyFieldObjectTypePost)
+			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+				model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+			require.Nil(t, appErr)
+			t.Cleanup(func() {
+				_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+			})
+
+			post := th.CreatePost(t, th.BasicChannel)
+
+			channelAdmin := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+			channelMember := model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}
+
+			assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, channelAdmin, field, post.Id))
+			assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, channelMember, field, post.Id))
+		})
+
+		t.Run("user-object value: no per-user admin, falls back to sysadmin", func(t *testing.T) {
+			field := fieldFor(model.PropertyFieldObjectTypeUser)
+
+			sysadmin := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId}
+			regularUser := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+
+			assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, sysadmin, field, th.BasicUser2.Id))
+			assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, regularUser, field, th.BasicUser2.Id))
+		})
+
+		t.Run("unrestricted session bypasses value-target check", func(t *testing.T) {
+			field := fieldFor(model.PropertyFieldObjectTypeChannel)
+			local := model.Session{UserId: th.BasicUser2.Id, Local: true}
+			assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, local, field, th.BasicChannel.Id))
+		})
 	})
 }

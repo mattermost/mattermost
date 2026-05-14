@@ -505,9 +505,12 @@ func (a *App) SessionHasPermissionToEditPropertyField(rctx request.CTX, session 
 	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, *field.PermissionField)
 }
 
-// SessionHasPermissionToSetPropertyFieldValues checks if the session has permission to set values on objects.
+// SessionHasPermissionToSetPropertyFieldValues checks if the session has
+// permission to set the given value on the field. The valueTargetID is the
+// specific object the value is attached to (the channel/post/user/team ID
+// for that ObjectType); admin and member levels are evaluated against it.
 // Returns false if the field is nil or if PermissionValues is nil (legacy fields).
-func (a *App) SessionHasPermissionToSetPropertyFieldValues(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+func (a *App) SessionHasPermissionToSetPropertyFieldValues(rctx request.CTX, session model.Session, field *model.PropertyField, valueTargetID string) bool {
 	if field == nil {
 		return false
 	}
@@ -517,7 +520,7 @@ func (a *App) SessionHasPermissionToSetPropertyFieldValues(rctx request.CTX, ses
 	if session.IsUnrestricted() {
 		return true
 	}
-	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, *field.PermissionValues)
+	return a.hasPropertyFieldValuePermissionLevel(rctx, session.UserId, field, valueTargetID, *field.PermissionValues)
 }
 
 // SessionHasPermissionToManagePropertyFieldOptions checks if the session has permission to manage field options.
@@ -550,16 +553,19 @@ func (a *App) HasPermissionToEditPropertyField(rctx request.CTX, userID string, 
 	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionField)
 }
 
-// HasPermissionToSetPropertyFieldValues checks if the user has permission to set values on objects.
+// HasPermissionToSetPropertyFieldValues checks if the user has permission to
+// set the given value on the field. The valueTargetID is the specific object
+// the value is attached to (the channel/post/user/team ID for that
+// ObjectType); admin and member levels are evaluated against it.
 // Returns false if the field is nil, userID is empty, or if PermissionValues is nil (legacy fields).
-func (a *App) HasPermissionToSetPropertyFieldValues(rctx request.CTX, userID string, field *model.PropertyField) bool {
+func (a *App) HasPermissionToSetPropertyFieldValues(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
 	if field == nil || userID == "" {
 		return false
 	}
 	if field.PermissionValues == nil {
 		return false
 	}
-	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionValues)
+	return a.hasPropertyFieldValuePermissionLevel(rctx, userID, field, valueTargetID, *field.PermissionValues)
 }
 
 // HasPermissionToManagePropertyFieldOptions checks if the user has permission to manage field options.
@@ -596,6 +602,106 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 			hasPermission, _ := a.HasPermissionToChannel(rctx, userID, field.TargetID, model.PermissionManageChannelRoles)
 			return hasPermission
 		}
+	}
+	return false
+}
+
+// hasPropertyFieldValuePermissionLevel evaluates a permission level against
+// the value's specific target rather than the field's target. The "admin"
+// and "member" levels dispatch on field.ObjectType against valueTargetID —
+// so a value on a channel-object field is gated by the user's role on that
+// channel, regardless of how the field itself is scoped. "sysadmin" and
+// "none" behave identically to the field-level dispatch.
+func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string, level model.PermissionLevel) bool {
+	switch level {
+	case model.PermissionLevelNone:
+		return false
+	case model.PermissionLevelSysadmin:
+		return a.HasPermissionTo(userID, model.PermissionManageSystem)
+	case model.PermissionLevelMember:
+		return a.hasPropertyFieldValueScopeAccess(rctx, userID, field, valueTargetID)
+	case model.PermissionLevelAdmin:
+		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	}
+	return false
+}
+
+// hasPropertyFieldValueAdmin reports whether the user administers the
+// value's target. For channel/post-object fields, this is channel admin on
+// the value's channel (or the post's channel). For user/system/template
+// fields there is no per-object admin concept, so the check falls back to
+// system admin.
+func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
+	switch field.ObjectType {
+	case model.PropertyFieldObjectTypeChannel:
+		ok, _ := a.HasPermissionToChannel(rctx, userID, valueTargetID, model.PermissionManageChannelRoles)
+		return ok
+	case model.PropertyFieldObjectTypePost:
+		post, err := a.Srv().Store().Post().GetSingle(rctx, valueTargetID, false)
+		if err != nil {
+			rctx.Logger().Warn("Failed to look up post for property value admin check",
+				mlog.String("post_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		ok, _ := a.HasPermissionToChannel(rctx, userID, post.ChannelId, model.PermissionManageChannelRoles)
+		return ok
+	case model.PropertyFieldObjectTypeUser,
+		model.PropertyFieldObjectTypeSystem,
+		model.PropertyFieldObjectTypeTemplate:
+		return a.HasPermissionTo(userID, model.PermissionManageSystem)
+	}
+	return false
+}
+
+// hasPropertyFieldValueScopeAccess reports whether the user is a member of
+// the value's target. For channel-object fields this is membership in the
+// value's channel; for post-object fields it is membership in the post's
+// channel. User/system/template fields have no per-object membership and
+// return true for any authenticated user.
+func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
+	switch field.ObjectType {
+	case model.PropertyFieldObjectTypeChannel:
+		member, err := a.Srv().Store().Channel().GetMember(rctx, valueTargetID, userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to get channel member for property value scope check",
+				mlog.String("channel_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		return member != nil
+	case model.PropertyFieldObjectTypePost:
+		post, err := a.Srv().Store().Post().GetSingle(rctx, valueTargetID, false)
+		if err != nil {
+			rctx.Logger().Warn("Failed to look up post for property value scope check",
+				mlog.String("post_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		member, err := a.Srv().Store().Channel().GetMember(rctx, post.ChannelId, userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to get channel member for property value scope check",
+				mlog.String("channel_id", post.ChannelId),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		return member != nil
+	case model.PropertyFieldObjectTypeUser,
+		model.PropertyFieldObjectTypeSystem,
+		model.PropertyFieldObjectTypeTemplate:
+		return true
 	}
 	return false
 }
