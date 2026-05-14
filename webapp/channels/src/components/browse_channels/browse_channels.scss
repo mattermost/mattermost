@@ -192,6 +192,22 @@
                         }
                     }
 
+                    // Recommended indicator mirrors the membership indicator
+                    // pattern: same line, same separator dots, same text-
+                    // and-icon shape — distinguished only by colour
+                    // (--button-bg blue) and icon (lightbulb). Used in place
+                    // of the Joined indicator when the user matches the
+                    // channel's membership policy but has not joined.
+                    #recommendedIndicatorContainer {
+                        display: flex;
+                        align-items: center;
+
+                        span,
+                        svg {
+                            color: var(--button-bg);
+                        }
+                    }
+
                     span {
                         margin: 0 4px;
                         font-size: 12px;

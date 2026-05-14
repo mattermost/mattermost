@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 const attributeViewRefreshInterval = 30 * time.Second
@@ -683,8 +684,38 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 // BuildAccessControlSubject creates a fully populated Subject with user attributes and system role
 // for use in AccessEvaluation calls. It also ensures the materialized attribute view is
 // refreshed periodically (at most once per attributeViewRefreshInterval).
+//
+// The Subject (sans Role) is cached cluster-wide in
+// Channels.accessControlSubjectCache to amortize repeated reads from
+// hot ABAC paths (Browse Channels recommendations, public-channel
+// advisory checks, etc.). The cache key is the userID — Role is applied
+// to the returned Subject after the read since roles can change without
+// CPA values changing, and we don't want a role flip to require a
+// cache-wide invalidation.
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string) (*model.Subject, *model.AppError) {
+	// Refresh the materialized view BEFORE the cache lookup so the existing
+	// 30s cadence is preserved on cache-hit paths. A successful refresh also
+	// purges the local Subject cache (see refreshAttributeViewIfStale): that
+	// is the safety net that catches CPA value mutations from any path that
+	// bypasses the App-layer invalidation hooks (LDAP/SAML attribute syncs,
+	// direct SQL imports, enterprise jobs we don't see here). The refresh
+	// itself is gated to at most once per attributeViewRefreshInterval, so
+	// the cache stays warm for the bulk of calls inside that window.
 	a.refreshAttributeViewIfStale(rctx)
+
+	if cached, ok := a.lookupCachedAccessControlSubject(rctx, userID); ok {
+		// Deep-clone the cached snapshot before applying per-call Role.
+		// In today's cache implementations (LRU msgpacks the value, Redis
+		// roundtrips bytes) `cached` is already a fresh struct from the
+		// codec, so a shallow copy would technically be safe — but the
+		// Cache interface contract doesn't promise serialization, and
+		// callers may end up mutating `Subject.Attributes` (a map) in
+		// downstream evaluation. Deep-clone defensively so nothing can
+		// silently corrupt the cached snapshot for later requests.
+		out := cloneAccessControlSubject(cached)
+		out.Role = roles
+		return out, nil
+	}
 
 	groupID, err := a.CpaGroupID()
 	if err != nil {
@@ -695,12 +726,15 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(storeErr, &nfErr) {
-			return &model.Subject{
+			emptySubject := &model.Subject{
 				ID:         userID,
 				Type:       "user",
-				Role:       roles,
 				Attributes: map[string]any{},
-			}, nil
+			}
+			a.storeCachedAccessControlSubject(rctx, userID, emptySubject)
+			out := cloneAccessControlSubject(emptySubject)
+			out.Role = roles
+			return out, nil
 		}
 
 		rctx.Logger().Warn("Failed to get subject for access control subject",
@@ -711,8 +745,233 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.get_subject.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
+	// Persist the role-less snapshot so concurrent callers with different
+	// `roles` strings don't see each other's role bleed through. Deep-clone
+	// before storing so any caller mutation on the returned `subject`
+	// can't reach into the cached value.
+	cacheCopy := cloneAccessControlSubject(subject)
+	cacheCopy.Role = ""
+	a.storeCachedAccessControlSubject(rctx, userID, cacheCopy)
+
 	subject.Role = roles
 	return subject, nil
+}
+
+// cloneAccessControlSubject returns a deep copy of the Subject. The
+// `Attributes` map and any nested map/slice values are cloned so callers
+// can mutate the returned subject without leaking changes back into the
+// cache or shared evaluation paths. Returns nil if the input is nil.
+//
+// Today's cache implementations serialize on Set / deserialize on Get,
+// which makes shallow copies safe in practice — this helper is the
+// belt-and-braces guard for that being implementation-specific behavior
+// rather than an interface guarantee.
+func cloneAccessControlSubject(in *model.Subject) *model.Subject {
+	if in == nil {
+		return nil
+	}
+	out := *in
+	if in.Attributes != nil {
+		out.Attributes = make(map[string]any, len(in.Attributes))
+		for k, v := range in.Attributes {
+			out.Attributes[k] = cloneAccessControlSubjectValue(v)
+		}
+	}
+	return &out
+}
+
+// cloneAccessControlSubjectValue copies a single attribute value. Strings,
+// numbers and booleans are scalars and copy by value; maps and slices are
+// recursively cloned so a mutation on the returned subject's attributes
+// never reaches the cached snapshot. Anything outside those known shapes
+// (e.g. a custom struct from a future evaluator) is returned as-is — the
+// Subject is encoded to msgpack/JSON on the cache boundary, so non-clonable
+// types would not have round-tripped through the cache anyway.
+func cloneAccessControlSubjectValue(v any) any {
+	switch t := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(t))
+		for k, vv := range t {
+			out[k] = cloneAccessControlSubjectValue(vv)
+		}
+		return out
+	case []any:
+		out := make([]any, len(t))
+		for i, vv := range t {
+			out[i] = cloneAccessControlSubjectValue(vv)
+		}
+		return out
+	case []string:
+		out := make([]string, len(t))
+		copy(out, t)
+		return out
+	default:
+		return v
+	}
+}
+
+// lookupCachedAccessControlSubject returns a previously cached Subject for
+// the given user, or (nil, false) on miss. Cache hit/miss telemetry is
+// emitted through the standard MemCache counters so the entry shows up
+// alongside other caches in operator dashboards under cache_name="AccessControlSubject".
+func (a *App) lookupCachedAccessControlSubject(rctx request.CTX, userID string) (*model.Subject, bool) {
+	c := a.Srv().ch.accessControlSubjectCache
+	if c == nil {
+		return nil, false
+	}
+	var subject model.Subject
+	err := c.Get(userID, &subject)
+	if err == nil {
+		if metrics := a.Srv().GetMetrics(); metrics != nil {
+			metrics.IncrementMemCacheHitCounter(c.Name())
+		}
+		return &subject, true
+	}
+	if metrics := a.Srv().GetMetrics(); metrics != nil {
+		metrics.IncrementMemCacheMissCounter(c.Name())
+	}
+	if err != cache.ErrKeyNotFound {
+		rctx.Logger().Warn("Failed to read access control subject cache",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+	}
+	return nil, false
+}
+
+// storeCachedAccessControlSubject writes a Subject snapshot to the cluster
+// cache. Failures are logged at warn level and otherwise tolerated — a
+// cache-write failure must never fail a user-visible request, so callers
+// continue with the freshly-built Subject from the store.
+func (a *App) storeCachedAccessControlSubject(rctx request.CTX, userID string, subject *model.Subject) {
+	c := a.Srv().ch.accessControlSubjectCache
+	if c == nil || subject == nil {
+		return
+	}
+	if err := c.SetWithDefaultExpiry(userID, subject); err != nil {
+		rctx.Logger().Warn("Failed to write access control subject cache",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+	}
+}
+
+// PurgeAccessControlSubjectCache drops every cached Subject locally and
+// broadcasts a cluster-wide purge so all nodes flush their copies. Used for
+// schema-level changes whose blast radius is unbounded by user id, e.g.
+// CPA field deletion (every Subject that referenced the field is now stale).
+// The cluster broadcast carries an empty payload, which the handler treats
+// as a "purge all" signal.
+func (a *App) PurgeAccessControlSubjectCache() {
+	c := a.Srv().ch.accessControlSubjectCache
+	if c == nil {
+		return
+	}
+	if err := c.Purge(); err != nil {
+		mlog.Warn("Failed to purge access control subject cache", mlog.Err(err))
+	}
+	if metrics := a.Srv().GetMetrics(); metrics != nil {
+		metrics.IncrementMemCacheInvalidationCounter(c.Name())
+	}
+	if cluster := a.Srv().Platform().Cluster(); cluster != nil && c.GetInvalidateClusterEvent() != model.ClusterEventNone {
+		cluster.SendClusterMessage(&model.ClusterMessage{
+			Event:    c.GetInvalidateClusterEvent(),
+			SendType: model.ClusterSendBestEffort,
+			Data:     nil,
+		})
+	}
+}
+
+// purgeLocalAccessControlSubjectCache drops every cached Subject on THIS
+// node only when the underlying cache is per-node (LRU). Used by
+// refreshAttributeViewIfStale: each node runs its own 30s refresh
+// independently and self-invalidates its local snapshot — a cluster
+// broadcast would cause redundant cross-node purges (one per node per
+// refresh cycle).
+//
+// On Redis-backed deployments the cache is genuinely shared across all
+// nodes (single store, single key namespace), so calling Cache.Purge()
+// would Scan-and-delete cluster-wide and produce N purges every 30s where
+// N = node count, defeating the TTL and thrashing the cache. We
+// deliberately skip the purge for Redis: out-of-band attribute mutations
+// fall back on the standard 5-minute TTL safety net plus the targeted
+// App-layer invalidations at every CPA-value mutation site, which are
+// already correct on Redis (a single Remove/broadcast is visible to
+// every node). Operators trading 30s vs 5min staleness for Redis
+// deployments still get the targeted-invalidation upper bound on every
+// path that goes through the App layer.
+func (a *App) purgeLocalAccessControlSubjectCache() {
+	ch := a.Srv().ch
+	c := ch.accessControlSubjectCache
+	if c == nil {
+		return
+	}
+	if ch.accessControlSubjectCacheType == model.CacheTypeRedis {
+		// Skip: Cache.Purge() on a Redis-backed cache is cluster-wide
+		// because the underlying store is shared. See the function
+		// comment above for the staleness contract on Redis.
+		return
+	}
+	if err := c.Purge(); err != nil {
+		mlog.Warn("Failed to purge local access control subject cache", mlog.Err(err))
+	}
+	if metrics := a.Srv().GetMetrics(); metrics != nil {
+		metrics.IncrementMemCacheInvalidationCounter(c.Name())
+	}
+}
+
+// InvalidateAccessControlSubjectCacheForUser removes a single user's cached
+// Subject and broadcasts the invalidation cluster-wide so other nodes drop
+// their copy too. Safe to call on a server with no cache configured.
+//
+// Callers are everything that mutates a user's CPA values (UpsertPropertyValue,
+// UpsertPropertyValues, UpdatePropertyValue, UpdatePropertyValues,
+// DeletePropertyValue, DeletePropertyValuesForTarget) or removes the user
+// (PermanentDeleteUser).
+func (a *App) InvalidateAccessControlSubjectCacheForUser(userID string) {
+	c := a.Srv().ch.accessControlSubjectCache
+	if c == nil || userID == "" {
+		return
+	}
+	if err := c.Remove(userID); err != nil {
+		mlog.Warn("Failed to invalidate access control subject cache",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+	}
+	if metrics := a.Srv().GetMetrics(); metrics != nil {
+		metrics.IncrementMemCacheInvalidationCounter(c.Name())
+	}
+	if cluster := a.Srv().Platform().Cluster(); cluster != nil && c.GetInvalidateClusterEvent() != model.ClusterEventNone {
+		cluster.SendClusterMessage(&model.ClusterMessage{
+			Event:    c.GetInvalidateClusterEvent(),
+			SendType: model.ClusterSendBestEffort,
+			Data:     []byte(userID),
+		})
+	}
+}
+
+// handleClusterInvalidateAccessControlSubject drops a single user's cached
+// Subject in response to a cluster invalidation message broadcast from
+// another node. An empty payload is treated as a "purge all" signal so that
+// administrative operations can flush the entire cache cluster-wide if needed.
+func (ch *Channels) handleClusterInvalidateAccessControlSubject(msg *model.ClusterMessage) {
+	if ch.accessControlSubjectCache == nil {
+		return
+	}
+	userID := string(msg.Data)
+	if userID == "" {
+		if err := ch.accessControlSubjectCache.Purge(); err != nil {
+			ch.srv.Log().Warn("Failed to purge access control subject cache from cluster message", mlog.Err(err))
+		}
+		return
+	}
+	if err := ch.accessControlSubjectCache.Remove(userID); err != nil {
+		ch.srv.Log().Warn("Failed to invalidate access control subject cache from cluster message",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+	}
 }
 
 // refreshAttributeViewIfStale refreshes the materialized AttributeView if the last
@@ -736,4 +995,13 @@ func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
 	}
 
 	ch.attributeViewRefreshLast = time.Now()
+
+	// The materialized view we just refreshed is the single source of truth
+	// that BuildAccessControlSubject reads from on cache misses. Anything
+	// that mutated property_value rows via paths that don't go through the
+	// App-layer invalidation hooks (LDAP/SAML sync jobs, direct SQL imports,
+	// enterprise CPA jobs) will now be visible. Drop this node's cached
+	// Subjects so the next read picks up those changes. Local-only on
+	// purpose — see purgeLocalAccessControlSubjectCache for the rationale.
+	a.purgeLocalAccessControlSubjectCache()
 }

@@ -292,6 +292,20 @@
             white-space: nowrap;
         }
 
+        // Recommended tag: AlertTag (primary variant) inherited styling —
+        // light --button-bg-rgb tint background with --button-bg text.
+        // Pinned to the end of the row's primary column with a small
+        // left-margin so it never collides with the slug/desc text and
+        // mirrors the BotTag/GuestTag spacing already used here. The tag
+        // is mutually exclusive with BotTag/GuestTag (connect mapper
+        // gates it on public + non-member rows; the DM tags only fire on
+        // DM rows), so we never render both.
+        .switch-channel-suggestion__recommended-tag {
+            flex: 0 0 auto;
+            margin-bottom: 0;
+            margin-left: 8px;
+        }
+
         .badge {
             position: unset;
             display: flex;

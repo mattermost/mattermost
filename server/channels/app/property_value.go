@@ -47,6 +47,15 @@ func (a *App) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) 
 	if err != nil {
 		return nil, model.NewAppError("CreatePropertyValue", "app.property_value.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// First-time CPA value writes for a user need the same invalidation
+	// hook as Update/Upsert: a stale empty Subject may already be cached
+	// for this user (BuildAccessControlSubject caches the
+	// no-attributes-found result), and skipping invalidation here would
+	// keep that empty Subject visible to ABAC for the full TTL window.
+	if createdValue != nil && createdValue.TargetType == model.PropertyValueTargetTypeUser {
+		a.InvalidateAccessControlSubjectCacheForUser(createdValue.TargetID)
+	}
 	return createdValue, nil
 }
 
@@ -60,6 +69,8 @@ func (a *App) CreatePropertyValues(rctx request.CTX, values []*model.PropertyVal
 	if err != nil {
 		return nil, model.NewAppError("CreatePropertyValues", "app.property_value.create_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.invalidateAccessControlSubjectCacheForValues(createdValues)
 	return createdValues, nil
 }
 
@@ -100,6 +111,13 @@ func (a *App) UpdatePropertyValue(rctx request.CTX, groupID string, value *model
 	if err != nil {
 		return nil, model.NewAppError("UpdatePropertyValue", "app.property_value.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Mirror the invalidation hook on UpsertPropertyValue: any user-targeted
+	// CPA value change must drop that user's cached Subject so the next ABAC
+	// evaluation picks up the new attributes.
+	if updatedValue != nil && updatedValue.TargetType == model.PropertyValueTargetTypeUser {
+		a.InvalidateAccessControlSubjectCacheForUser(updatedValue.TargetID)
+	}
 	return updatedValue, nil
 }
 
@@ -113,6 +131,8 @@ func (a *App) UpdatePropertyValues(rctx request.CTX, groupID string, values []*m
 	if err != nil {
 		return nil, model.NewAppError("UpdatePropertyValues", "app.property_value.update_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.invalidateAccessControlSubjectCacheForValues(updatedValues)
 	return updatedValues, nil
 }
 
@@ -125,6 +145,14 @@ func (a *App) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) 
 	upsertedValue, err := a.Srv().propertyService.UpsertPropertyValue(rctx, value)
 	if err != nil {
 		return nil, model.NewAppError("UpsertPropertyValue", "app.property_value.upsert.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// CPA values participate in ABAC subject building; mutating one for a
+	// user must drop that user's cached Subject so the next ABAC evaluation
+	// sees the new attributes. Other property targets (channel/post/etc.)
+	// don't feed into Subject and are intentionally skipped.
+	if upsertedValue != nil && upsertedValue.TargetType == model.PropertyValueTargetTypeUser {
+		a.InvalidateAccessControlSubjectCacheForUser(upsertedValue.TargetID)
 	}
 	return upsertedValue, nil
 }
@@ -141,6 +169,12 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 	if err != nil {
 		return nil, model.NewAppError("UpsertPropertyValues", "app.property_value.upsert_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Drop cached ABAC Subjects for any user whose CPA values just changed.
+	// We deliberately key off the value.TargetType ("user") rather than the
+	// caller's objectType param because some PSAv1 callers leave objectType
+	// empty even when mutating user-scoped CPA values.
+	a.invalidateAccessControlSubjectCacheForValues(result)
 
 	// Only publish websocket events for PSAv2 properties (those with an ObjectType)
 	if objectType != "" {
@@ -175,6 +209,10 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 		return model.NewAppError("DeletePropertyValue", "app.property_value.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if value.TargetType == model.PropertyValueTargetTypeUser {
+		a.InvalidateAccessControlSubjectCacheForUser(value.TargetID)
+	}
+
 	teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, value.TargetType, value.TargetID)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to resolve broadcast params for property value deletion", mlog.Err(appErr))
@@ -207,6 +245,10 @@ func (a *App) DeletePropertyValuesForTarget(rctx request.CTX, groupID, targetTyp
 		return model.NewAppError("DeletePropertyValuesForTarget", "app.property_value.delete_for_target.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if targetType == model.PropertyValueTargetTypeUser {
+		a.InvalidateAccessControlSubjectCacheForUser(targetID)
+	}
+
 	teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, targetType, targetID)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to resolve broadcast params for property value deletion", mlog.Err(appErr))
@@ -221,11 +263,38 @@ func (a *App) DeletePropertyValuesForTarget(rctx request.CTX, groupID, targetTyp
 	return nil
 }
 
+// invalidateAccessControlSubjectCacheForValues drops cached ABAC Subjects
+// for every distinct user-targeted PropertyValue in the batch. Other target
+// types are skipped because they don't feed into Subject construction.
+func (a *App) invalidateAccessControlSubjectCacheForValues(values []*model.PropertyValue) {
+	if len(values) == 0 {
+		return
+	}
+	seen := make(map[string]struct{}, len(values))
+	for _, v := range values {
+		if v == nil || v.TargetType != model.PropertyValueTargetTypeUser || v.TargetID == "" {
+			continue
+		}
+		if _, ok := seen[v.TargetID]; ok {
+			continue
+		}
+		seen[v.TargetID] = struct{}{}
+		a.InvalidateAccessControlSubjectCacheForUser(v.TargetID)
+	}
+}
+
 // DeletePropertyValuesForField deletes all property values for a field and broadcasts a property_values_updated event.
 func (a *App) DeletePropertyValuesForField(rctx request.CTX, groupID, fieldID string) *model.AppError {
 	if err := a.Srv().propertyService.DeletePropertyValuesForField(rctx, groupID, fieldID); err != nil {
 		return model.NewAppError("DeletePropertyValuesForField", "app.property_value.delete_for_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Field deletion can affect every cached Subject that referenced this
+	// field — we don't have the per-user blast radius without scanning, so
+	// take the safe path and purge the entire Subject cache cluster-wide.
+	// This is rare (admins delete fields infrequently); the cost is one
+	// cluster broadcast and a cold cache for active users on next read.
+	a.PurgeAccessControlSubjectCache()
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
 	message.Add("field_id", fieldID)
