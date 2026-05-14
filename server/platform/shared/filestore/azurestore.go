@@ -172,12 +172,17 @@ func (b *AzureFileBackend) TestConnection() error {
 }
 
 // MakeContainer creates the configured container. Mirrors S3FileBackend.MakeBucket
-// so callers can opt into container provisioning explicitly.
+// so callers can opt into container provisioning explicitly. An already-existing
+// container is treated as success so that concurrent boots (two nodes racing
+// through TestConnection plus MakeContainer) both converge cleanly.
 func (b *AzureFileBackend) MakeContainer() error {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
 	if _, err := b.newContainerClient().Create(ctx, nil); err != nil {
+		if bloberror.HasCode(err, bloberror.ContainerAlreadyExists) {
+			return nil
+		}
 		return pkgerr.Wrapf(err, "unable to create azure container %q", b.container)
 	}
 	return nil

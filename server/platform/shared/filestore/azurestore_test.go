@@ -76,6 +76,17 @@ func TestAzureFileBackendAppendRefusesNonBlockBlob(t *testing.T) {
 	require.Equal(t, original, got)
 }
 
+// TestAzureFileBackendMakeContainerIdempotent ensures that calling
+// MakeContainer twice on the same backend is a no-op the second time.
+// Two nodes can race through TestConnection plus MakeContainer at boot;
+// the loser must converge instead of returning an error.
+func TestAzureFileBackendMakeContainerIdempotent(t *testing.T) {
+	be := newAzuriteBackend(t)
+
+	require.NoError(t, be.MakeContainer())
+	require.NoError(t, be.MakeContainer())
+}
+
 type nopReadSeekCloser struct {
 	*bytes.Reader
 }
