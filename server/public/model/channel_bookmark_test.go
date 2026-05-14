@@ -759,3 +759,10 @@ func TestChannelBookmarkIsValidBoard(t *testing.T) {
 		require.NotNil(t, b.IsValid())
 	})
 }
+
+func TestIsExternallyManagedChannelBookmarkType(t *testing.T) {
+	assert.True(t, IsExternallyManagedChannelBookmarkType(ChannelBookmarkBoard))
+	assert.False(t, IsExternallyManagedChannelBookmarkType(ChannelBookmarkLink))
+	assert.False(t, IsExternallyManagedChannelBookmarkType(ChannelBookmarkFile))
+	assert.False(t, IsExternallyManagedChannelBookmarkType(ChannelBookmarkType("unknown")))
+}

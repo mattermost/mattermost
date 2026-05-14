@@ -38,6 +38,17 @@ func isValidChannelBookmarkType(t ChannelBookmarkType) bool {
 	return slices.Contains(validChannelBookmarkTypes, t)
 }
 
+// channelBookmarkTypesExternallyManaged lists bookmark kinds whose create/update/delete
+// are not performed through the channel bookmarks API (other subsystems own them).
+var channelBookmarkTypesExternallyManaged = []ChannelBookmarkType{
+	ChannelBookmarkBoard,
+}
+
+// IsExternallyManagedChannelBookmarkType reports whether the bookmark type is owned outside the channel bookmarks API.
+func IsExternallyManagedChannelBookmarkType(t ChannelBookmarkType) bool {
+	return slices.Contains(channelBookmarkTypesExternallyManaged, t)
+}
+
 type ChannelBookmark struct {
 	Id          string              `json:"id"`
 	CreateAt    int64               `json:"create_at"`

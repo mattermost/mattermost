@@ -11,11 +11,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-const errBoardBookmarkReadonly = "api.channel.bookmark.board.readonly.app_error"
+const errExternallyManagedBookmarkReadonly = "api.channel.bookmark.board.readonly.app_error"
 
-func rejectBoardWrite(op string) *model.AppError {
-	return model.NewAppError(op, errBoardBookmarkReadonly, nil,
-		"board-type bookmarks are managed by the boards lifecycle", http.StatusBadRequest)
+func rejectExternallyManagedBookmarkWrite(op string) *model.AppError {
+	return model.NewAppError(op, errExternallyManagedBookmarkReadonly, nil,
+		"bookmark type is managed outside the channel bookmarks API", http.StatusBadRequest)
 }
 
 func (api *API) InitChannelBookmarks() {
@@ -53,8 +53,8 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channelBookmark", channelBookmark)
 
-	if channelBookmark.Type == model.ChannelBookmarkBoard {
-		c.Err = rejectBoardWrite("createChannelBookmark")
+	if model.IsExternallyManagedChannelBookmarkType(channelBookmark.Type) {
+		c.Err = rejectExternallyManagedBookmarkWrite("createChannelBookmark")
 		return
 	}
 
@@ -146,8 +146,8 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	if originalChannelBookmark.Type == model.ChannelBookmarkBoard {
-		c.Err = rejectBoardWrite("updateChannelBookmark")
+	if model.IsExternallyManagedChannelBookmarkType(originalChannelBookmark.Type) {
+		c.Err = rejectExternallyManagedBookmarkWrite("updateChannelBookmark")
 		return
 	}
 	patchedBookmark := originalChannelBookmark.Clone()
@@ -325,8 +325,8 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 		c.SetInvalidParam("channel_id")
 		return
 	}
-	if existingBookmark.Type == model.ChannelBookmarkBoard {
-		c.Err = rejectBoardWrite("updateChannelBookmarkSortOrder")
+	if model.IsExternallyManagedChannelBookmarkType(existingBookmark.Type) {
+		c.Err = rejectExternallyManagedBookmarkWrite("updateChannelBookmarkSortOrder")
 		return
 	}
 
@@ -434,8 +434,8 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel_id")
 		return
 	}
-	if oldBookmark.Type == model.ChannelBookmarkBoard {
-		c.Err = rejectBoardWrite("deleteChannelBookmark")
+	if model.IsExternallyManagedChannelBookmarkType(oldBookmark.Type) {
+		c.Err = rejectExternallyManagedBookmarkWrite("deleteChannelBookmark")
 		return
 	}
 	auditRec.AddEventPriorState(oldBookmark)
