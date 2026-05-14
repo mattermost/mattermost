@@ -737,7 +737,7 @@ func (s SqlChannelStore) SaveBoardChannel(rctx request.CTX, channel *model.Chann
 		return nil, nil, store.NewErrInvalidInput("View", "nil", "view is required for board channels")
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "begin_transaction")
 	}
