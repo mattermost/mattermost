@@ -1739,11 +1739,28 @@ func TestBoardChannelBookmarkAPIReadonly(t *testing.T) {
 		CheckErrorID(t, err, "api.channel.bookmark.board.readonly.app_error")
 	})
 
-	t.Run("sort_order on board bookmark is rejected", func(t *testing.T) {
-		_, resp, err := th.Client.UpdateChannelBookmarkSortOrder(context.Background(), th.BasicChannel.Id, saved.Id, int64(0))
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-		CheckErrorID(t, err, "api.channel.bookmark.board.readonly.app_error")
+	t.Run("sort_order on board bookmark succeeds", func(t *testing.T) {
+		other := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link next to board",
+			LinkUrl:     "https://example.com",
+			Type:        model.ChannelBookmarkLink,
+		}
+		_, resp, err := th.Client.CreateChannelBookmark(context.Background(), other)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		bookmarks, resp, err := th.Client.UpdateChannelBookmarkSortOrder(context.Background(), th.BasicChannel.Id, saved.Id, int64(1))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		var boardOrder int64 = -1
+		for _, b := range bookmarks {
+			if b.Id == saved.Id {
+				boardOrder = b.SortOrder
+				break
+			}
+		}
+		require.Equal(t, int64(1), boardOrder)
 	})
 
 	t.Run("DELETE board bookmark is rejected", func(t *testing.T) {

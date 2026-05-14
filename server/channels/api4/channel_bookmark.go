@@ -316,20 +316,6 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	existingBookmark, gbErr := c.App.GetBookmark(c.Params.ChannelBookmarkId, false)
-	if gbErr != nil {
-		c.Err = gbErr
-		return
-	}
-	if existingBookmark.ChannelId != c.Params.ChannelId {
-		c.SetInvalidParam("channel_id")
-		return
-	}
-	if model.IsExternallyManagedChannelBookmarkType(existingBookmark.Type) {
-		c.Err = rejectExternallyManagedBookmarkWrite("updateChannelBookmarkSortOrder")
-		return
-	}
-
 	bookmarks, appErr := c.App.UpdateChannelBookmarkSortOrder(c.Params.ChannelBookmarkId, c.Params.ChannelId, newSortOrder, connectionID)
 	if appErr != nil {
 		c.Err = appErr
