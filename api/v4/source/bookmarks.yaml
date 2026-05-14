@@ -48,9 +48,6 @@
 
         __Minimum server version__: 9.5
 
-        `type` must be `link` or `file`. Requests with `type: board` receive HTTP 400
-        (`api.channel.bookmark.board.readonly.app_error`); board bookmarks are created by the boards lifecycle.
-
         ##### Permissions
         Must have the `add_bookmark_public_channel` or
         `add_bookmark_private_channel` depending on the channel
@@ -93,9 +90,8 @@
                   type: string
                   enum: [link, file]
                   description: |
-                    * `link` for channel bookmarks that reference a link. `link_url` is requied
-                    * `file` for channel bookmarks that reference a file. `file_id` is required
-                    * Sending `board` returns HTTP 400; board bookmarks are not created via this API.
+                    Bookmark type. Permitted values are the enum entries above; required companion
+                    fields depend on the type (see other property descriptions).
         description: Channel Bookmark object to be created
         required: true
       responses:
@@ -123,8 +119,7 @@
         updated. The fields that can be updated are defined in the
         request body, all other provided fields will be ignored.
 
-        Updating a bookmark whose `type` is `board` returns HTTP 400
-        (`api.channel.bookmark.board.readonly.app_error`).
+        Bookmarks the server treats as read-only for this API return HTTP 400.
 
         __Minimum server version__: 9.5
 
@@ -177,8 +172,8 @@
                   type: string
                   enum: [link, file]
                   description: |
-                    * `link` for channel bookmarks that reference a link. `link_url` is requied
-                    * `file` for channel bookmarks that reference a file. `file_id` is required
+                    Bookmark type. Permitted values are the enum entries above; required companion
+                    fields depend on the type (see other property descriptions).
         description: Channel Bookmark object to be updated
         required: true
       responses:
@@ -205,8 +200,7 @@
         Archives a channel bookmark. This will set the `deleteAt` to
         the current timestamp in the database.
 
-        Deleting a bookmark whose `type` is `board` returns HTTP 400
-        (`api.channel.bookmark.board.readonly.app_error`).
+        Bookmarks the server treats as read-only for this API return HTTP 400.
 
         __Minimum server version__: 9.5
 
@@ -255,8 +249,7 @@
         from the parameters and updating the rest of the bookmarks of
         the channel to accomodate for this change.
 
-        Reordering a bookmark whose `type` is `board` returns HTTP 400
-        (`api.channel.bookmark.board.readonly.app_error`).
+        Bookmarks the server treats as read-only for this API return HTTP 400.
 
         __Minimum server version__: 9.5
 

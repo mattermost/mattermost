@@ -346,8 +346,7 @@ components:
         target_id:
           type: string
           description: |
-            For bookmark types that reference another Mattermost entity (e.g. `board`),
-            the ULID of that entity. Omitted for `link` and `file` bookmarks.
+            When present, the ULID of the Mattermost entity referenced by this bookmark for types that use this field.
         original_id:
           description: The ID of the original channel bookmark
           type: string
