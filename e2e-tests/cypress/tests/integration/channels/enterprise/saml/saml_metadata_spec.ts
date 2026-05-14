@@ -130,7 +130,7 @@ describe('SystemConsole->SAML 2.0 - Get Metadata from Idp Flow', () => {
 
         // * Verify that the IdP URL fields have been updated
         cy.findByTestId('SamlSettings.IdpURLinput').should('have.value', testFetchedIdpURL);
-        cy.findByTestId('SamlSettings.IdpDescriptorURLinput').should('have.value', testFetchedIdpDescriptorURL);
+        cy.findByTestId('SamlSettings.IdpDescriptorURL').should('have.value', testFetchedIdpDescriptorURL);
 
         // * Verify that the success message reflects the updated fields and certificate
         cy.get('#getSamlMetadataFromIDPButton').should('be.visible').contains(getSamlMetadataSuccessMessage);
