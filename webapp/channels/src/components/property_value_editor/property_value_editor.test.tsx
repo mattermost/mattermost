@@ -55,7 +55,10 @@ describe('components/property_value_editor/PropertyValueEditor', () => {
                 onChange={jest.fn()}
             />,
         ));
-        expect((screen.getByLabelText('Due') as HTMLInputElement).type).toBe('date');
+
+        // The date editor renders a react-day-picker calendar grid.
+        expect(screen.getByRole('grid')).toBeInTheDocument();
+        expect(screen.getByLabelText('Due')).toHaveAttribute('data-property-field-id', 'f1');
     });
 
     test('routes select fields to a single-select combobox', () => {
