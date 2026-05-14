@@ -583,7 +583,10 @@ func (a *App) HasPermissionToManagePropertyFieldOptions(rctx request.CTX, userID
 // hasPropertyFieldPermissionLevel checks if the user has the specified permission level for the field.
 // "admin" resolves against the field's target: manage_system on system targets,
 // manage_team on team targets, manage_channel_roles on channel targets — i.e.
-// the permission that the corresponding built-in admin role grants.
+// the permission that the corresponding built-in admin role grants. Note this
+// is a stricter check than hasTargetAccess (which uses manage_*_channel_properties
+// for channel writes): hasTargetAccess is the outer "may write anything here"
+// gate, and PermissionLevelAdmin is the inner "is a channel admin" tier above it.
 func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, field *model.PropertyField, level model.PermissionLevel) bool {
 	switch level {
 	case model.PermissionLevelNone:
@@ -627,11 +630,11 @@ func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID stri
 }
 
 // hasPropertyFieldValueAdmin reports whether the user administers the
-// value's target. For channel/post-object fields, this is channel admin on
-// the value's channel (or the post's channel). For user/system/template
-// fields the value's target has no admin concept, so the check defers to
-// the field's TargetType (sysadmin / team admin / channel admin) via the
-// field-level dispatch.
+// value's target. For channel/post-object fields, this is channel admin
+// (manage_channel_roles) on the value's channel (or the post's channel).
+// For user/system/template fields the value's target has no admin concept,
+// so the check defers to the field's TargetType (sysadmin / team admin /
+// channel admin) via the field-level dispatch.
 func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
 	switch field.ObjectType {
 	case model.PropertyFieldObjectTypeChannel:
@@ -683,9 +686,6 @@ func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, 
 			return false
 		}
 		if post.UserId == userID {
-			// Author can write their own value, but must still be allowed to
-			// edit the post itself — guests removed from the channel, or
-			// posts past an edit time limit, should not get a free pass.
 			ok, _ := a.HasPermissionToChannel(rctx, userID, post.ChannelId, model.PermissionEditPost)
 			return ok
 		}
@@ -700,40 +700,20 @@ func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, 
 	return false
 }
 
-// hasPropertyFieldScopeAccess checks if the user has access to the property field's scope.
-// For system-level properties, any authenticated user has access.
-// For channel-level properties, the user must be a member of the channel.
+// hasPropertyFieldScopeAccess checks if the user has access to the property
+// field's scope. System-level properties are open to any authenticated user.
+// Team- and channel-level properties go through HasPermissionToTeam /
+// HasPermissionToChannel so sysadmins (and team-admins for channel scopes)
+// cascade through — matching the value-level scope check.
 func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field *model.PropertyField) bool {
 	switch field.TargetType {
 	case string(model.PropertyFieldTargetLevelSystem):
-		// System-level property: any authenticated user
 		return true
 	case string(model.PropertyFieldTargetLevelTeam):
-		// Team-level property: must be team member
-		member, err := a.Srv().Store().Team().GetMember(rctx, field.TargetID, userID)
-		if err != nil {
-			rctx.Logger().Warn("Failed to get team member for property field scope check",
-				mlog.String("team_id", field.TargetID),
-				mlog.String("user_id", userID),
-				mlog.String("field_id", field.ID),
-				mlog.Err(err),
-			)
-			return false
-		}
-		return member != nil
+		return a.HasPermissionToTeam(rctx, userID, field.TargetID, model.PermissionViewTeam)
 	case string(model.PropertyFieldTargetLevelChannel):
-		// Channel-level property: must be channel member
-		member, err := a.Srv().Store().Channel().GetMember(rctx, field.TargetID, userID)
-		if err != nil {
-			rctx.Logger().Warn("Failed to get channel member for property field scope check",
-				mlog.String("channel_id", field.TargetID),
-				mlog.String("user_id", userID),
-				mlog.String("field_id", field.ID),
-				mlog.Err(err),
-			)
-			return false
-		}
-		return member != nil
+		ok, _ := a.HasPermissionToChannel(rctx, userID, field.TargetID, model.PermissionReadChannel)
+		return ok
 	}
 	return false
 }
