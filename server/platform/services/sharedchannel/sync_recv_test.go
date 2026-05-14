@@ -237,7 +237,7 @@ func TestUpsertSyncUserStatus(t *testing.T) {
 		remoteID := model.NewId()
 		user := &model.User{
 			Id:       model.NewId(),
-			RemoteId: model.NewPointer(remoteID),
+			RemoteId: new(remoteID),
 		}
 
 		scs, mockApp, status, remoteCluster := setup(remoteID, user)
@@ -285,7 +285,7 @@ func TestUpsertSyncUserStatus(t *testing.T) {
 		anotherRemoteID := model.NewId()
 		user := &model.User{
 			Id:       model.NewId(),
-			RemoteId: model.NewPointer(anotherRemoteID),
+			RemoteId: new(anotherRemoteID),
 		}
 
 		scs, mockApp, status, remoteCluster := setup(remoteID, user)
