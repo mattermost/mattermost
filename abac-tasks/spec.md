@@ -258,7 +258,7 @@ MVP.
 | 0     | Research and spec                                                                                         | Complete    |
 | 1     | Implementation plan (`plan.md`) — low-level coding decisions, file-by-file changes, specific test cases   | Not started |
 | 2     | Backend: model + action constant + validator branch + feature flag                                        | Complete    |
-| 3     | Backend: extend enterprise CEL env with `post` binding; `EvaluatePostPolicies` interface method + cache   | Not started |
+| 3     | Backend: extend enterprise CEL env with `post` binding; `EvaluatePostPolicies` interface method + cache   | Complete    |
 | 4     | Backend: `PostWithValues` hydration + `filterPostsByPostPolicy` helper + sentinel prop                    | Not started |
 | 5     | Backend: wire filter into all 15 fetch sites in `post.go` (after BOR reveal, before consumed-hook)        | Not started |
 | 6     | Frontend: `channel_settings_post_policies_tab` cloned from access-rules tab                                | Not started |

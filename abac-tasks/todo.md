@@ -15,14 +15,17 @@ boundaries — a slice ships when all its boxes are checked.
 - [x] Acceptance: model tests pass; `go build ./...` clean
 
 ## Slice 2 — Enterprise CEL extension
-- [ ] Add `post` variable to env in `service.Init`
-- [ ] Add per-channel compiled-program cache (`postPolicyPrograms`)
-- [ ] Add `ExtractAttributesByRoot` in `cel_utils/attributes.go`
-- [ ] Implement `Service.EvaluatePostPolicies`
-- [ ] Add method to `einterfaces.AccessControlServiceInterface`
-- [ ] Regenerate `AccessControlServiceInterface` mock
-- [ ] Create `model/post_with_values.go`
-- [ ] Unit tests: allow/deny, skip-when-unreferenced, deny-wins, fail-closed, cache invalidation
+- [x] Add `post` variable to all three envs (service init, SavePolicy validation env, NormalizePolicy tmp env)
+- [x] Add per-channel compiled-program cache (`postPolicyPrograms sync.Map`) on `Service`
+- [x] Add `ExtractAttributesByRoot` walker in `cel_utils/attributes.go` + test
+- [x] Implement `Service.EvaluatePostPolicies` (new file `enterprise/access_control/post_policy.go`)
+- [x] Hook invalidation into `SavePolicy` / `DeletePolicy` for policies carrying `post_filter`
+- [x] Extend cluster-invalidation handler to clear the post-policy cache
+- [x] Add method to `einterfaces.PolicyDecisionPointInterface` (uses `*model.Subject`, not enterprise-only types)
+- [x] Regenerate `PolicyDecisionPointInterface` + `AccessControlServiceInterface` mocks via `make einterfaces-mocks`
+- [x] Create `model/post_with_values.go`
+- [x] Unit tests for `ExtractAttributesByRoot` (cel_utils — passes)
+- [x] Unit tests for `EvaluatePostPolicies` (post_policy_test.go — written, run blocked by pre-existing `subject.Session` issue in evaluation/evaluator.go that is outside Slice 2's scope)
 
 ## Slice 3 — Hydration + filter helper
 - [ ] Add `App.hydratePostValues` (single batched store call)

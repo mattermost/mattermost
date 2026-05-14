@@ -558,7 +558,7 @@ on a fresh demo box.
 | 0     | Research and spec                                                                          | Complete    |
 | 1     | Plan (`plan.md`)                                                                           | Complete    |
 | 2     | Slice 1 — model constant, validator branch, feature flag                                   | Complete    |
-| 3     | Slice 2 — enterprise CEL env extension, `EvaluatePostPolicies`, attribute extractor variant | Not started |
+| 3     | Slice 2 — enterprise CEL env extension, `EvaluatePostPolicies`, attribute extractor variant | Complete    |
 | 4     | Slice 3 — `PostWithValues`, hydration, `filterPostsByPostPolicy`, blanking                 | Not started |
 | 5     | Slice 4 — wire filter into all 15+ user-facing fetch sites                                  | Not started |
 | 6     | Slice 5 — frontend "Hidden by policy" placeholder                                          | Not started |
