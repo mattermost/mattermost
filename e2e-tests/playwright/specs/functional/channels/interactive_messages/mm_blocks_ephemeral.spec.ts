@@ -688,11 +688,9 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 .first()
                 .click();
 
-            const integrationEphemeral = threadPanel
-                .getByTestId('rhsPostView')
-                .filter({
-                    hasText: new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${user.id}\\)`),
-                });
+            const integrationEphemeral = threadPanel.getByTestId('rhsPostView').filter({
+                hasText: new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${user.id}\\)`),
+            });
             await expect(integrationEphemeral).toBeVisible({timeout: 20000});
             await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
         },
@@ -785,13 +783,9 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 .first()
                 .click();
 
-            const integrationEphemeral = threadPanel
-                .getByTestId('rhsPostView')
-                .filter({
-                    hasText: new RegExp(
-                        `Playwright mm_blocks static_select OK \\(selected_option: ${townSquare.id}\\)`,
-                    ),
-                });
+            const integrationEphemeral = threadPanel.getByTestId('rhsPostView').filter({
+                hasText: new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${townSquare.id}\\)`),
+            });
             await expect(integrationEphemeral).toBeVisible({timeout: 20000});
             await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
         },
