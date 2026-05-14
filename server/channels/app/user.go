@@ -613,11 +613,11 @@ func (a *App) GetUserByAuthData(authData *string) (*model.User, *model.AppError)
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetUserByAuthData", MissingAuthAccountError, nil, "", http.StatusBadRequest).Wrap(err)
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetUserByAuthData", MissingAuthAccountError, nil, "", http.StatusNotFound).Wrap(err)
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetUserByAuthData", "app.user.get_by_auth.other.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
