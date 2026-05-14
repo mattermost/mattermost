@@ -849,7 +849,7 @@ func (s *Server) doSetupBoardsProperties() error {
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
 			return fmt.Errorf("failed to update boards property fields: %w", err)
 		}
 	}
