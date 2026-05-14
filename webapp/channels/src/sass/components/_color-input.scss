@@ -1,4 +1,5 @@
 @use "utils/functions";
+@use "utils/variables";
 
 .color-input {
     position: relative;
@@ -43,7 +44,7 @@
 
 .color-popover {
     position: absolute;
-    z-index: 12;
+    z-index: variables.$z-index-popover;
     top: 100%;
     right: 0;
     padding-top: 8px;
