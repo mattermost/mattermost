@@ -59,12 +59,15 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 
 	var serviceURL string
 	if settings.AzureEndpoint == "" {
-		// vhost-style production endpoint
+		// vhost-style production endpoint (Azure commercial cloud).
 		serviceURL = fmt.Sprintf("%s://%s.blob.core.windows.net/", scheme, settings.AzureStorageAccount)
 	} else {
-		// path-style endpoint (Azurite, Azure Government, sovereign clouds, custom hosts).
-		// The account name is appended to the path because Azure's signing scheme
-		// requires the canonicalized resource to include the account.
+		// Path-style endpoint where the account is part of the URL path
+		// rather than the hostname. This covers Azurite and custom hosts
+		// (reverse proxies, gateways) that expose Azure Blob Storage
+		// without per-account DNS. Sovereign clouds (Azure Government,
+		// Azure China) use vhost-style URLs and are not supported via
+		// this setting; they require their own endpoint plumbing.
 		serviceURL = fmt.Sprintf("%s://%s/%s/", scheme, strings.Trim(settings.AzureEndpoint, "/"), settings.AzureStorageAccount)
 	}
 
