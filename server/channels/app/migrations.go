@@ -753,7 +753,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
 			// Another server may have won the race and updated these fields
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Both servers write the same expected values, so tolerate the
@@ -854,7 +854,7 @@ func (s *Server) doSetupBoardsProperties() error {
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
 			// Another server may have won the race and updated these fields
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Both servers write the same expected values, so tolerate the

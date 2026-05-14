@@ -1149,6 +1149,7 @@ type PropertyFieldStore interface {
 	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
+	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 	CountLinkedFields(fieldID string) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)

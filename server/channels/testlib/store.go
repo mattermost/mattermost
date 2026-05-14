@@ -146,11 +146,13 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	groupsByName := map[string]*model.PropertyGroup{}
 
-	cpaGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.CustomProfileAttributesPropertyGroupName, Version: model.PropertyGroupVersionV1}
+	accessControlGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2}
+	contentFlaggingGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1}
 	managedCategoryGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2}
 	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2}
 
-	groupsByName[cpaGroup.Name] = cpaGroup
+	groupsByName[accessControlGroup.Name] = accessControlGroup
+	groupsByName[contentFlaggingGroup.Name] = contentFlaggingGroup
 	groupsByName[managedCategoryGroup.Name] = managedCategoryGroup
 	groupsByName[boardsGroup.Name] = boardsGroup
 
@@ -177,7 +179,8 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 			return nil
 		},
 	)
-	propertyGroupStore.On("Get", model.CustomProfileAttributesPropertyGroupName).Return(cpaGroup, nil)
+	propertyGroupStore.On("Get", model.AccessControlPropertyGroupName).Return(accessControlGroup, nil)
+	propertyGroupStore.On("Get", model.ContentFlaggingGroupName).Return(contentFlaggingGroup, nil)
 	propertyGroupStore.On("Get", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
 	propertyGroupStore.On("Get", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
 
