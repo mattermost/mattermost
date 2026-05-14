@@ -604,11 +604,10 @@ func testBoardBookmarkSaveAndGet(t *testing.T, _ request.CTX, ss store.Store, s 
 	linkSaved, err := ss.ChannelBookmark().Save(linkBookmark, true)
 	require.NoError(t, err)
 
-	sentinel := model.NewId()
 	var count int
 	err = s.GetMaster().Get(&count,
-		"SELECT COUNT(*) FROM channelbookmarks WHERE id = ? AND targetid = ?",
-		linkSaved.Id, sentinel)
+		"SELECT COUNT(*) FROM channelbookmarks WHERE id = ? AND targetid IS NULL",
+		linkSaved.Id)
 	require.NoError(t, err)
-	assert.Equal(t, 0, count, "NULL targetid must not match a concrete target id lookup")
+	assert.Equal(t, 1, count, "link bookmarks must persist SQL NULL for targetid")
 }
