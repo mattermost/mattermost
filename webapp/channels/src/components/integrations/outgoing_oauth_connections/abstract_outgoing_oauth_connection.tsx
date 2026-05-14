@@ -9,6 +9,7 @@ import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import {AlertOutlineIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -501,7 +502,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             errors={[props.serverError, storedError]}
                         />
                         <Link
-                            className='btn btn-tertiary'
+                            className={buttonClassNames({emphasis: 'tertiary'})}
                             to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}
                         >
                             <FormattedMessage
@@ -510,7 +511,6 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </Link>
                         <SpinnerButton
-                            className='btn btn-primary'
                             type='submit'
                             spinning={isSubmitting}
                             spinningText={intl.formatMessage(props.loading)}
@@ -615,8 +615,9 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
     }
 
     const validateButton = (
-        <button
-            className='btn btn-tertiary btn-sm'
+        <Button
+            emphasis='tertiary'
+            size='sm'
             type='button'
             onClick={onClick}
             id='validateConnection'
@@ -625,7 +626,7 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
                 id={'add_outgoing_oauth_connection.validate'}
                 defaultMessage={'Validate Connection'}
             />
-        </button>
+        </Button>
     );
 
     return validateButton;

@@ -81,6 +81,23 @@ jobs:
         run: make modules-tidy
       - name: Check modules
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
+  check-go-fix:
+    name: Check go fix
+    needs: go
+    runs-on: ubuntu-22.04
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run setup-go-work
+        run: make setup-go-work
+      - name: Run go fix
+        run: go fix ./...
+      - name: Check go fix
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please run 'go fix ./...' and commit the changes"; git diff; exit 1; fi
   check-style:
     name: check-style
     needs: go

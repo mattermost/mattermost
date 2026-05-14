@@ -8,6 +8,7 @@ import type {IntlShape} from 'react-intl';
 import {FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -544,7 +545,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     gitlabOption = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_oauth?email=' +
                                     encodeURIComponent(user.email) +
@@ -568,7 +569,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     googleOption = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_oauth?email=' +
                                     encodeURIComponent(user.email) +
@@ -592,7 +593,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     office365Option = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_oauth?email=' +
                                     encodeURIComponent(user.email) +
@@ -616,7 +617,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     openidOption = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_oauth?email=' +
                                     encodeURIComponent(user.email) +
@@ -640,7 +641,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     ldapOption = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_ldap?email=' +
                                     encodeURIComponent(user.email)
@@ -660,7 +661,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     samlOption = (
                         <div className='pb-3'>
                             <Link
-                                className='btn btn-primary'
+                                className={buttonClassNames({emphasis: 'primary'})}
                                 to={
                                     '/claim/email_to_oauth?email=' +
                                     encodeURIComponent(user.email) +
@@ -696,7 +697,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 emailOption = (
                     <div className='pb-3'>
                         <Link
-                            className='btn btn-primary'
+                            className={buttonClassNames({emphasis: 'primary'})}
                             to={link}
                         >
                             <FormattedMessage

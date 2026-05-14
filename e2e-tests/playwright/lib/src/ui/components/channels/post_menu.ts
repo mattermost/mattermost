@@ -34,10 +34,13 @@ export default class PostMenu {
 
     /**
      * Clicks on the reply button from the post menu.
+     * Uses expect.toPass to handle transient DOM detachments caused by
+     * the virtualized message list re-rendering while the click is in flight.
      */
     async reply() {
-        await this.replyButton.waitFor();
-        await this.replyButton.click();
+        await expect(async () => {
+            await this.replyButton.click({timeout: 5000});
+        }).toPass({timeout: 30000});
     }
 
     /**

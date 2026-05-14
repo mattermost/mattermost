@@ -326,17 +326,28 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	require.Len(t, preferences, 3)
 
-	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-	assert.Equal(t, "hide", preferences[0].Name)
-	assert.Equal(t, "false", preferences[0].Value)
-	assert.Equal(t, model.PreferenceCategorySystemNotice, preferences[1].Category)
-	assert.Equal(t, user1.Id, preferences[2].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
-	assert.Equal(t, user1.Id, preferences[2].Name)
-	assert.Equal(t, "0", preferences[2].Value)
+	prefByCategory := make(map[string]model.Preference, len(preferences))
+	for _, p := range preferences {
+		prefByCategory[p.Category] = p
+	}
+	require.Len(t, prefByCategory, 3, "default user preferences should use distinct categories")
+
+	nextSteps, ok := prefByCategory[model.PreferenceRecommendedNextSteps]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceRecommendedNextSteps)
+	assert.Equal(t, user1.Id, nextSteps.UserId)
+	assert.Equal(t, "hide", nextSteps.Name)
+	assert.Equal(t, "false", nextSteps.Value)
+
+	_, ok = prefByCategory[model.PreferenceCategorySystemNotice]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceCategorySystemNotice)
+
+	tutorial, ok := prefByCategory[model.PreferenceCategoryTutorialSteps]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceCategoryTutorialSteps)
+	assert.Equal(t, user1.Id, tutorial.UserId)
+	assert.Equal(t, user1.Id, tutorial.Name)
+	assert.Equal(t, "0", tutorial.Value)
 
 	preference := model.Preference{
 		Name:     user1.Id,
@@ -3084,8 +3095,8 @@ func TestPluginServeMetrics(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		prevEnable = cfg.MetricsSettings.Enable
 		prevAddress = cfg.MetricsSettings.ListenAddress
-		cfg.MetricsSettings.Enable = model.NewPointer(true)
-		cfg.MetricsSettings.ListenAddress = model.NewPointer(":30067")
+		cfg.MetricsSettings.Enable = new(true)
+		cfg.MetricsSettings.ListenAddress = new(":30067")
 	})
 	defer th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.MetricsSettings.Enable = prevEnable
@@ -3410,30 +3421,34 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
+		// Register a property group first so the version check can look it up
+		group, err := api.RegisterPropertyGroup("testgroup" + model.NewId())
+		require.NoError(t, err)
+
 		// Create 20 property fields
-		groupID := model.NewId()
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
 				UpdateAt: model.GetMillis(),
 			}
 
-			created, err := api.CreatePropertyField(field)
+			var created *model.PropertyField
+			created, err = api.CreatePropertyField(field)
 			require.NoError(t, err)
 			createdFields = append(createdFields, created)
 		}
 
 		// Delete one field
-		err := api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
 
 		// Should now be able to create another field
 		newField := &model.PropertyField{
-			GroupID:  groupID,
+			GroupID:  group.ID,
 			Name:     "new_field",
 			Type:     model.PropertyFieldTypeText,
 			CreateAt: model.GetMillis(),
@@ -3450,12 +3465,14 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		// Register a property group first so the version check can look it up
+		group, err := api.RegisterPropertyGroup("testgroup" + model.NewId())
+		require.NoError(t, err)
 
 		// Create and delete 5 fields
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("deleted_field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3465,14 +3482,14 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 			created, err := api.CreatePropertyField(field)
 			require.NoError(t, err)
 
-			err = api.DeletePropertyField(groupID, created.ID)
+			err = api.DeletePropertyField(group.ID, created.ID)
 			require.NoError(t, err)
 		}
 
 		// Should be able to create multiple active fields
 		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("active_field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3502,7 +3519,6 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 		created, err := api.CreatePropertyField(field)
 		require.Error(t, err) // Should fail due to invalid GroupID
 		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "group_id")
 
 		// Test with nil field - should fail gracefully
 		created, err = api.CreatePropertyField(nil)
@@ -3520,13 +3536,14 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		group, groupErr := api.RegisterPropertyGroup(model.NewId())
+		require.NoError(t, groupErr)
 
 		// Create 5 fields
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3539,18 +3556,18 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		}
 
 		// Count active fields
-		count, err := api.CountPropertyFields(groupID, false)
+		count, err := api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Delete 2 fields
-		err = api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
-		err = api.DeletePropertyField(groupID, createdFields[1].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[1].ID)
 		require.NoError(t, err)
 
 		// Count should now be 3
-		count, err = api.CountPropertyFields(groupID, false)
+		count, err = api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})
@@ -3560,13 +3577,14 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		group, groupErr := api.RegisterPropertyGroup(model.NewId())
+		require.NoError(t, groupErr)
 
 		// Create 5 fields
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3579,23 +3597,23 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		}
 
 		// Count all fields
-		count, err := api.CountPropertyFields(groupID, true)
+		count, err := api.CountPropertyFields(group.ID, true)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Delete 2 fields
-		err = api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
-		err = api.DeletePropertyField(groupID, createdFields[1].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[1].ID)
 		require.NoError(t, err)
 
 		// Count all should still be 5
-		count, err = api.CountPropertyFields(groupID, true)
+		count, err = api.CountPropertyFields(group.ID, true)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Count active should be 3
-		count, err = api.CountPropertyFields(groupID, false)
+		count, err = api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})
@@ -3699,6 +3717,10 @@ func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
 	api := th.SetupPluginAPI()
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -3706,8 +3728,8 @@ func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
 		appErr := th.App.Srv().RemoveLicense()
 		require.Nil(t, appErr)
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
-	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = false })
 
 	categoryName := "Operations"
 	channel := &model.Channel{

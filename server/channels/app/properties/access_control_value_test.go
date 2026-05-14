@@ -94,7 +94,7 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-value-create")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_value_create", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -561,6 +561,76 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 		assert.Nil(t, retrieved)
 	})
 
+	t.Run("shared_only text - binary masking: caller sees value only if it matches their own", func(t *testing.T) {
+		// Create shared_only text field — the LDAP/SAML codename use case.
+		field := &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "shared-only-text",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsProtected:  true,
+			},
+		}
+		field, err := th.service.CreatePropertyField(rctxTestPlugin, field)
+		require.NoError(t, err)
+
+		// User 1 has "TF-Zulu"
+		zuluValue, jsonErr := json.Marshal("TF-Zulu")
+		require.NoError(t, jsonErr)
+		value1 := &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   userID1,
+			Value:      zuluValue,
+		}
+		value1, err = th.service.CreatePropertyValue(rctxTestPlugin, value1)
+		require.NoError(t, err)
+
+		// User 2 also has "TF-Zulu" — should see user 1's value.
+		zuluValue2, jsonErr := json.Marshal("TF-Zulu")
+		require.NoError(t, jsonErr)
+		_, err = th.service.CreatePropertyValue(rctxTestPlugin, &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   userID2,
+			Value:      zuluValue2,
+		})
+		require.NoError(t, err)
+
+		retrieved, err := th.service.GetPropertyValue(rctxUser2, th.CPAGroupID, value1.ID)
+		require.NoError(t, err)
+		require.NotNil(t, retrieved, "caller holding the same text value must see the target's value")
+		assert.Equal(t, value1.ID, retrieved.ID)
+		assert.Equal(t, json.RawMessage(zuluValue), retrieved.Value)
+
+		// User 3 has "TF-Alpha" — must NOT see user 1's "TF-Zulu".
+		userID3 := model.NewId()
+		alphaValue, jsonErr := json.Marshal("TF-Alpha")
+		require.NoError(t, jsonErr)
+		_, err = th.service.CreatePropertyValue(rctxTestPlugin, &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   userID3,
+			Value:      alphaValue,
+		})
+		require.NoError(t, err)
+
+		retrieved, err = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, userID3), th.CPAGroupID, value1.ID)
+		require.NoError(t, err)
+		assert.Nil(t, retrieved, "caller with a different text value must not see the target's value (binary masking)")
+
+		// User 4 has no stored value — must NOT see user 1's value.
+		userID4 := model.NewId()
+		retrieved, err = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, userID4), th.CPAGroupID, value1.ID)
+		require.NoError(t, err)
+		assert.Nil(t, retrieved, "caller with no stored value must not see the target's value")
+	})
+
 	t.Run("shared_only value - caller with no values sees nothing", func(t *testing.T) {
 		// Create shared_only field
 		field := &model.PropertyField{
@@ -599,7 +669,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without filtering", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-value-read")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_value_read", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -1064,7 +1134,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("rejects values across multiple groups", func(t *testing.T) {
 		// Register a second group
-		group2, err := th.service.RegisterPropertyGroup("test-group-create-values-2")
+		group2, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_group_create_values_2", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		// Create fields in both groups
@@ -1124,7 +1194,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("rejects mixed groups before checking access control", func(t *testing.T) {
 		// Register a third group
-		group3, err := th.service.RegisterPropertyGroup("test-group-create-values-3")
+		group3, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_group_create_values_3", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		// Create public field in CPA group
@@ -1186,7 +1256,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
 		// Register a non-CPA group
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-bulk")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_bulk", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		// Create two fields in non-CPA group
@@ -1234,7 +1304,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("mixed CPA and non-CPA groups are rejected before access control", func(t *testing.T) {
 		// Register a non-CPA group
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-mixed")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_mixed", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		// Create protected field in CPA group via plugin API

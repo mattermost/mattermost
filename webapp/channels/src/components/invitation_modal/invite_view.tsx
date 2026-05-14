@@ -6,6 +6,7 @@ import React, {useEffect, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -92,7 +93,7 @@ export default function InviteView(props: Props) {
     });
 
     const copyButton = (
-        <button
+        <Button
             onClick={copyText.onClick}
             data-testid='InviteView__copyInviteLink'
             aria-label={
@@ -101,7 +102,7 @@ export default function InviteView(props: Props) {
                     defaultMessage: 'team invite link {inviteURL}',
                 }, {inviteURL})
             }
-            className='btn btn-secondary'
+            emphasis='secondary'
             aria-live='polite'
         >
             {!copyText.copiedRecently && (
@@ -122,7 +123,7 @@ export default function InviteView(props: Props) {
                     />
                 </>
             )}
-        </button>
+        </Button>
     );
 
     const errorProperties = {
@@ -274,17 +275,17 @@ export default function InviteView(props: Props) {
             </Modal.Body>
             <Modal.Footer className={classNames('InviteView__footer', props.footerClass, {'InviteView__footer-guest': props.inviteType === InviteType.GUEST})}>
                 {props.inviteType === InviteType.MEMBER && copyButton}
-                <button
+                <Button
                     disabled={!isInviteValid}
                     onClick={props.invite}
-                    className={'btn btn-primary'}
+                    emphasis='primary'
                     data-testid={'inviteButton'}
                 >
                     <FormattedMessage
                         id='invite_modal.invite'
                         defaultMessage='Invite'
                     />
-                </button>
+                </Button>
             </Modal.Footer>
         </>
     );

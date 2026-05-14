@@ -324,7 +324,7 @@ func (ss *SqlStore) initConnection() error {
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
 	if ss.metrics != nil {
-		ss.metrics.RegisterDBCollector(ss.masterX.DB.DB, "master")
+		ss.metrics.RegisterDBCollector(ss.masterX.DB().DB, "master")
 	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
@@ -436,7 +436,7 @@ func (ss *SqlStore) SetMasterX(db *sql.DB) {
 }
 
 func (ss *SqlStore) GetInternalMasterDB() *sql.DB {
-	return ss.GetMaster().DB.DB
+	return ss.GetMaster().DB().DB
 }
 
 func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
@@ -479,6 +479,11 @@ func (ss *SqlStore) analyticsContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), time.Duration(*ss.settings.AnalyticsQueryTimeout)*time.Second)
 }
 
+// noTimeoutContext should only be used with queries that expect no client-side timeout.
+func (ss *SqlStore) noTimeoutContext() context.Context {
+	return context.Background()
+}
+
 func (ss *SqlStore) monitorReplicas() {
 	t := time.NewTicker(time.Duration(*ss.settings.ReplicaMonitorIntervalSeconds) * time.Second)
 	defer func() {
@@ -500,8 +505,8 @@ func (ss *SqlStore) monitorReplicas() {
 					mlog.Warn("Failed to setup connection. Skipping..", mlog.String("db", name), mlog.Err(err))
 					return
 				}
-				if ss.metrics != nil && r.Load() != nil && r.Load().DB != nil {
-					ss.metrics.UnregisterDBCollector(r.Load().DB.DB, name)
+				if ss.metrics != nil && r.Load() != nil && r.Load().db != nil {
+					ss.metrics.UnregisterDBCollector(r.Load().DB().DB, name)
 				}
 				ss.setDB(r, handle, name)
 			}
@@ -521,17 +526,17 @@ func (ss *SqlStore) setDB(replica *atomic.Pointer[sqlxDBWrapper], handle *sql.DB
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace))
 	if ss.metrics != nil {
-		ss.metrics.RegisterDBCollector(replica.Load().DB.DB, name)
+		ss.metrics.RegisterDBCollector(replica.Load().DB().DB, name)
 	}
 }
 
 func (ss *SqlStore) GetInternalReplicaDB() *sql.DB {
 	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
-		return ss.GetMaster().DB.DB
+		return ss.GetMaster().DB().DB
 	}
 
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
-	return ss.ReplicaXs[rrNum].Load().DB.DB
+	return ss.ReplicaXs[rrNum].Load().DB().DB
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {

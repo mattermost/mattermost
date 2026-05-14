@@ -444,7 +444,8 @@ func (s *SqlPropertyFieldStore) buildConflictSubquery(level string, objectType, 
 // new fields.
 func (s *SqlPropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
 	// Legacy properties (PSAv1) use old uniqueness via DB constraint
-	if field.IsPSAv1() {
+	// FIXME: explicitly excluding templates from the shortcircuit, should be removed after CPA is fully migrated to v2
+	if field.IsPSAv1() && field.ObjectType != model.PropertyFieldObjectTypeTemplate {
 		return "", nil
 	}
 
@@ -492,7 +493,7 @@ func (s *SqlPropertyFieldStore) checkSystemLevelConflict(field *model.PropertyFi
 	args = append(args, channelArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
-	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
+	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
 		return "", errors.Wrap(err, "property_field_check_conflict_system")
 	}
 
@@ -546,7 +547,7 @@ func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyFiel
 	args = append(args, channelArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
-	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
+	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
 		return "", errors.Wrap(err, "property_field_check_conflict_team")
 	}
 
@@ -590,7 +591,7 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 	args = append(args, teamArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
-	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
+	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
 		return "", errors.Wrap(err, "property_field_check_conflict_channel")
 	}
 

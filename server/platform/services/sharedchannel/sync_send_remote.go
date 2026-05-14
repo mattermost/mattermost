@@ -338,6 +338,12 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
 	}
 
+	// Shared-channel state posts are never synced to remotes. Drop them before
+	// PreparePostForClient and before reaction/ack/post-user collection so we do not query stores
+	// for posts that will be removed later. Cursor is still derived from GetPostsSinceForSync above,
+	// which includes these rows, so sync cursors advance the same as before.
+	stripSharedChannelStatePostsForSync(sd)
+
 	// Populate metadata for all posts before syncing
 	for i, post := range sd.posts {
 		if post != nil {
@@ -704,6 +710,20 @@ func (scs *Service) fetchPostAttachmentsForSync(sd *syncData) error {
 		}
 	}
 	return merr.ErrorOrNil()
+}
+
+func stripSharedChannelStatePostsForSync(sd *syncData) {
+	if len(sd.posts) == 0 {
+		return
+	}
+	out := make([]*model.Post, 0, len(sd.posts))
+	for _, p := range sd.posts {
+		if p != nil && p.Type == model.PostTypeSharedChannelState {
+			continue
+		}
+		out = append(out, p)
+	}
+	sd.posts = out
 }
 
 // filterPostsForSync removes any posts that do not need to sync.
@@ -1261,31 +1281,6 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 		mlog.String("remote", rc.Name),
 		mlog.String("channel_id", msg.ChannelId),
 	)
-
-	// Get the SharedChannelRemote record for this channel and remote
-	scr, getErr := scs.server.GetStore().SharedChannel().GetRemoteByIds(msg.ChannelId, rc.RemoteId)
-	if getErr != nil {
-		logger.LogM(mlog.MlvlSharedChannelServiceError, "Failed to get shared channel remote",
-			mlog.String("remote", rc.Name),
-			mlog.String("channel_id", msg.ChannelId),
-			mlog.Err(getErr),
-		)
-		return
-	}
-
-	// Get channel details for posting the system message
-	channel, channelErr := scs.server.GetStore().Channel().Get(msg.ChannelId, true)
-	if channelErr != nil {
-		logger.LogM(mlog.MlvlSharedChannelServiceError, "Failed to get channel details",
-			mlog.String("remote", rc.Name),
-			mlog.String("channel_id", msg.ChannelId),
-			mlog.Err(channelErr),
-		)
-		return
-	}
-
-	// Post a system message to notify users that the channel is no longer shared with this remote
-	scs.postUnshareNotification(msg.ChannelId, scr.CreatorId, channel, rc)
 
 	if err := scs.UninviteRemoteFromChannel(msg.ChannelId, rc.RemoteId); err != nil {
 		logger.LogM(mlog.MlvlSharedChannelServiceError, "Failed to uninvite remote from shared channel", mlog.Err(err))
