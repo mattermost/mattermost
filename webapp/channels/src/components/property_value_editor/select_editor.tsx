@@ -3,10 +3,18 @@
 
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import type {StylesConfig} from 'react-select';
-import ReactSelect from 'react-select';
+import {components as rsComponents} from 'react-select';
+import type {
+    MultiValueGenericProps,
+    OptionProps,
+    SingleValueProps,
+} from 'react-select';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
+
+import LabeledSelect from 'components/widgets/inputs/labeled_select';
+import type {LabeledSelectOption} from 'components/widgets/inputs/labeled_select';
+import Tag from 'components/widgets/tag/tag';
 
 import type {PropertyValueEditorProps} from './types';
 
@@ -14,41 +22,61 @@ export type Props = PropertyValueEditorProps & {
     multi: boolean;
 };
 
-type SelectOption = {label: string; value: string};
+// Locally-extended option type — keep `LabeledSelectOption` itself free of
+// property-feature concerns by carrying the optional `color` here.
+type PropertySelectOption = LabeledSelectOption<string> & {color?: string};
 
-const selectStyles: StylesConfig<SelectOption, true> = {
-    valueContainer: (baseStyles) => ({
-        ...baseStyles,
-        height: 'auto',
-        minHeight: '38px',
-        flexWrap: 'wrap',
-        whiteSpace: 'normal',
-    }),
-    multiValue: (baseStyles) => ({
-        ...baseStyles,
-        margin: '2px',
-    }),
-    control: (baseStyles) => ({
-        ...baseStyles,
-        height: 'auto',
-        minHeight: '38px',
-    }),
-    multiValueLabel: (baseStyles) => ({
-        ...baseStyles,
-        padding: '2px 6px',
-    }),
-    menuPortal: (baseStyles) => ({
-        ...baseStyles,
-        zIndex: 9999,
-    }),
-};
+// Component overrides are typed against `LabeledSelectOption<string>` (the
+// option type LabeledSelect forwards to react-select) and read `color` off the
+// option via the locally-extended `PropertySelectOption` shape. This avoids
+// an `as any` cast at the `components` prop site.
+function PropertyOption(props: OptionProps<LabeledSelectOption<string>, boolean>) {
+    const data = props.data as PropertySelectOption;
+    return (
+        <rsComponents.Option {...props}>
+            <Tag
+                text={data.label}
+                color={data.color}
+                size='sm'
+            />
+        </rsComponents.Option>
+    );
+}
+
+function PropertySingleValue(props: SingleValueProps<LabeledSelectOption<string>, boolean>) {
+    const data = props.data as PropertySelectOption;
+    return (
+        <rsComponents.SingleValue {...props}>
+            <Tag
+                text={data.label}
+                color={data.color}
+                size='sm'
+            />
+        </rsComponents.SingleValue>
+    );
+}
+
+// Render the chip label as a colored Tag; keep the default MultiValueContainer
+// and MultiValueRemove so the per-chip × continues to work.
+function PropertyMultiValueLabel(props: MultiValueGenericProps<LabeledSelectOption<string>, boolean>) {
+    const data = props.data as PropertySelectOption;
+    return (
+        <rsComponents.MultiValueLabel {...props}>
+            <Tag
+                text={data.label}
+                color={data.color}
+                size='sm'
+            />
+        </rsComponents.MultiValueLabel>
+    );
+}
 
 function getOptions(field: PropertyValueEditorProps['field']): PropertyFieldOption[] {
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
 }
 
-function toOption(opt: PropertyFieldOption): SelectOption {
-    return {label: opt.name, value: opt.id};
+function toOption(opt: PropertyFieldOption): PropertySelectOption {
+    return {value: opt.id, label: opt.name, color: opt.color};
 }
 
 export default function SelectEditor({field, value, onChange, multi}: Props) {
@@ -66,13 +94,13 @@ export default function SelectEditor({field, value, onChange, multi}: Props) {
         return opts.find((o) => o.value === id) ?? null;
     }, [multi, opts, value]);
 
-    const handleChange = useCallback((next: unknown) => {
+    const handleChange = useCallback((next: PropertySelectOption | PropertySelectOption[] | null) => {
         if (multi) {
-            const arr = (next as SelectOption[] | null) ?? [];
+            const arr = (next as PropertySelectOption[] | null) ?? [];
             onChange(arr.map((o) => o.value));
             return;
         }
-        const single = next as SelectOption | null;
+        const single = next as PropertySelectOption | null;
         onChange(single?.value ?? '');
     }, [multi, onChange]);
 
@@ -95,25 +123,23 @@ export default function SelectEditor({field, value, onChange, multi}: Props) {
             className={`property-value-editor property-value-editor--${multi ? 'multiselect' : 'select'}`}
             data-property-field-id={field.id}
         >
-            <ReactSelect
-                isMulti={multi || undefined}
+            <LabeledSelect<string>
                 inputId={`property-value-editor-${field.id}`}
                 aria-label={field.name}
-                className='react-select'
-                classNamePrefix='react-select'
-                options={opts}
-                isClearable={true}
-                isSearchable={false}
-                menuPlacement='auto'
-                menuPortalTarget={typeof document === 'undefined' ? null : document.body}
                 placeholder={formatMessage({
                     id: 'property_value_editor.select.placeholder',
                     defaultMessage: 'Select',
                 })}
-                components={{IndicatorSeparator: null}}
-                styles={selectStyles}
-                value={selectedValue as SelectOption[]}
+                value={selectedValue}
+                options={opts}
                 onChange={handleChange}
+                isMulti={multi}
+                isSearchable={false}
+                components={{
+                    Option: PropertyOption,
+                    SingleValue: PropertySingleValue,
+                    MultiValueLabel: PropertyMultiValueLabel,
+                }}
             />
         </div>
     );
