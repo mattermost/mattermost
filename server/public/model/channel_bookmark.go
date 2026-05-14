@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 	"unicode/utf8"
 )
@@ -20,6 +21,22 @@ const (
 	DisplayNameMaxRunes                        = 64
 	LinkMaxRunes                               = 1024
 )
+
+var validChannelBookmarkTypes = []ChannelBookmarkType{
+	ChannelBookmarkLink,
+	ChannelBookmarkFile,
+	ChannelBookmarkBoard,
+}
+
+// channelBookmarkTypesWithoutTargetID are bookmark kinds that must leave TargetId empty.
+var channelBookmarkTypesWithoutTargetID = []ChannelBookmarkType{
+	ChannelBookmarkLink,
+	ChannelBookmarkFile,
+}
+
+func isValidChannelBookmarkType(t ChannelBookmarkType) bool {
+	return slices.Contains(validChannelBookmarkTypes, t)
+}
 
 type ChannelBookmark struct {
 	Id          string              `json:"id"`
@@ -101,11 +118,11 @@ func (o *ChannelBookmark) IsValid() *AppError {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.display_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(o.Type == ChannelBookmarkFile || o.Type == ChannelBookmarkLink || o.Type == ChannelBookmarkBoard) {
+	if !isValidChannelBookmarkType(o.Type) {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if (o.Type == ChannelBookmarkLink || o.Type == ChannelBookmarkFile) && o.TargetId != "" {
+	if slices.Contains(channelBookmarkTypesWithoutTargetID, o.Type) && o.TargetId != "" {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.target_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
