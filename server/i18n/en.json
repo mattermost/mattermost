@@ -6709,6 +6709,10 @@
     "translation": "There are no members for the direct channel"
   },
   {
+    "id": "app.import.import_direct_channel.save_member.error",
+    "translation": "Failed to save channel member while reconciling group channel membership"
+  },
+  {
     "id": "app.import.import_direct_channel.update_header_failed.error",
     "translation": "Failed to update direct channel header"
   },
