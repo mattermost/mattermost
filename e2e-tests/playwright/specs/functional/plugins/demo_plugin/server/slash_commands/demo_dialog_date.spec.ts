@@ -63,18 +63,19 @@ test('should open /dialog date and post submit confirmation after selecting date
     // Click day 20 — reliably available in any month
     await channelsPage.page.getByRole('grid').getByText('20', {exact: true}).click();
 
-    // 8. Select date and time using the Meeting Date & Time picker
-    // The datetime picker renders a date-part button whose accessible name is
-    // 'Date Select date' (label 'Date' + placeholder 'Select date' from datetime_input.tsx).
-    // Note: 'Select date' (no article) differs from the date-only field's 'Select a date'.
-    await dialog
-        .getByRole('button', {name: /Select date/i})
-        .first()
-        .click();
+    // 8. Select date and time using the Meeting Date & Time picker.
+    // The datetime field renders via DateTimeInput which wraps its date part in
+    // <div class="dateTime__date"> — a class unique to DateTimeInput and absent
+    // from the date-only "Meeting Date" field (AppsFormDateField → DatePicker directly).
+    // Scoping by that wrapper is more reliable than accessible-name matching on the
+    // role="button" div, whose name includes a CSS icon-font glyph that browsers
+    // include in accname but which is invisible to textContent inspection.
+    await dialog.locator('.dateTime__date').getByRole('button').click();
     await expect(channelsPage.page.getByRole('grid')).toBeVisible();
     await channelsPage.page.getByRole('grid').getByText('22', {exact: true}).click();
 
-    // Select a time from the time picker
+    // Select a time from the time picker.  The time button carries aria-label="Time"
+    // (set explicitly in DateTimeInput), so the name-based locator is reliable here.
     await dialog
         .getByRole('button', {name: /Time|Select a time/i})
         .first()
