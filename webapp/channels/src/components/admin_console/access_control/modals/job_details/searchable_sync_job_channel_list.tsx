@@ -13,7 +13,9 @@ import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifyi
 import LoadingScreen from 'components/loading_screen';
 import QuickInput from 'components/quick_input';
 
+import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getChannelIconComponent} from 'utils/channel_utils';
+import {compassIconForName} from 'utils/compass_icon_resolver';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -22,6 +24,13 @@ import type {ChannelMembersSyncResults} from '../user_sync/user_sync_modal';
 export type SyncResults = {
     [channelId: string]: ChannelMembersSyncResults;
 };
+
+function ChannelRowIcon({channel}: {channel: Channel}) {
+    const overrideName = useChannelIconOverrideName(channel);
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+    const IconComponent = OverrideIcon ?? getChannelIconComponent(channel);
+    return <IconComponent size={18}/>;
+}
 
 interface Props extends WrappedComponentProps {
     channels: Channel[];
@@ -81,8 +90,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
     const createChannelRow = (channel: Channel) => {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
 
-        const ChannelIcon = getChannelIconComponent(channel);
-        const channelTypeIcon = <ChannelIcon size={18}/>;
+        const channelTypeIcon = <ChannelRowIcon channel={channel}/>;
 
         const team = props.teams[channel.team_id];
 

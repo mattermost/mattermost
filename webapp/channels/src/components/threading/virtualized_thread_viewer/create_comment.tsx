@@ -13,7 +13,9 @@ import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/post
 import AdvancedCreateComment from 'components/advanced_create_comment';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
 
+import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getArchiveIconComponent} from 'utils/channel_utils';
+import {compassIconForName} from 'utils/compass_icon_resolver';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -40,6 +42,8 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         }
         return getChannel(state, rootPost.channel_id);
     });
+    const overrideName = useChannelIconOverrideName(channel ?? undefined);
+
     if (!channel || threadIsLimited) {
         return null;
     }
@@ -69,15 +73,23 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     }
 
     if (channelIsArchived) {
-        const ArchiveIcon = getArchiveIconComponent(channelType);
+        const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+        const IconComponent = OverrideIcon ?? getArchiveIconComponent(channelType);
+
+        // When an override icon wins, strip archive chrome so the plugin icon stands on its own.
+        const archiveIconEl = OverrideIcon ? (
+            <IconComponent size={20}/>
+        ) : (
+            <IconComponent
+                size={20}
+                color={'rgba(var(--center-channel-color-rgb), 0.75)'}
+            />
+        );
         return (
             <div className='channel-archived-warning__container'>
                 <BasicSeparator/>
                 <div className='channel-archived-warning__content'>
-                    <ArchiveIcon
-                        size={20}
-                        color={'rgba(var(--center-channel-color-rgb), 0.75)'}
-                    />
+                    {archiveIconEl}
                     <FormattedMessage
                         id='createComment.threadFromArchivedChannelMessage'
                         defaultMessage='You are viewing a thread from an <strong>archived channel</strong>. New messages cannot be posted.'

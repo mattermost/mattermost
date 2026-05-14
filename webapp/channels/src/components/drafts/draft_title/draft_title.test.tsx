@@ -15,6 +15,7 @@ describe('components/drafts/draft_actions', () => {
     const channel = {
         type: 'O',
         display_name: 'Test Channel',
+        delete_at: 0,
     } as Channel;
 
     const baseProps = {
@@ -32,6 +33,7 @@ describe('components/drafts/draft_actions', () => {
                 {...baseProps}
             />,
         );
+        expect(container.querySelector('i.icon')).toHaveClass('icon-globe');
         expect(container).toMatchSnapshot();
     });
 
@@ -46,6 +48,7 @@ describe('components/drafts/draft_actions', () => {
                 {...props}
             />,
         );
+        expect(container.querySelector('i.icon')).toHaveClass('icon-globe');
         expect(container).toMatchSnapshot();
     });
 
@@ -53,6 +56,7 @@ describe('components/drafts/draft_actions', () => {
         const channel = {
             type: Constants.PRIVATE_CHANNEL,
             display_name: 'Test Channel',
+            delete_at: 0,
         } as Channel;
         const props = {
             ...baseProps,
@@ -64,6 +68,7 @@ describe('components/drafts/draft_actions', () => {
                 {...props}
             />,
         );
+        expect(container.querySelector('i.icon')).toHaveClass('icon-lock-outline');
         expect(container).toMatchSnapshot();
     });
 
@@ -71,6 +76,7 @@ describe('components/drafts/draft_actions', () => {
         const channel = {
             type: Constants.DM_CHANNEL,
             display_name: 'Test Channel',
+            delete_at: 0,
         } as Channel;
         const props = {
             ...baseProps,
@@ -89,6 +95,7 @@ describe('components/drafts/draft_actions', () => {
         const channel = {
             type: Constants.DM_CHANNEL,
             display_name: 'Test Channel',
+            delete_at: 0,
         } as Channel;
         const props = {
             ...baseProps,
@@ -112,6 +119,7 @@ describe('components/drafts/draft_actions', () => {
         const channel = {
             type: 'G',
             display_name: 'Test Channel',
+            delete_at: 0,
         } as Channel;
 
         const props = {
@@ -131,6 +139,7 @@ describe('components/drafts/draft_actions', () => {
         const channel = {
             type: Constants.OPEN_CHANNEL,
             display_name: 'Test Channel',
+            delete_at: 0,
         } as Channel;
 
         const props = {
@@ -144,6 +153,7 @@ describe('components/drafts/draft_actions', () => {
                 {...props}
             />,
         );
+        expect(container.querySelector('i.icon')).toHaveClass('icon-globe');
         expect(container).toMatchSnapshot();
     });
 
@@ -151,6 +161,7 @@ describe('components/drafts/draft_actions', () => {
         const channel = {
             type: Constants.OPEN_CHANNEL,
             display_name: 'Test Channel',
+            delete_at: 0,
         } as Channel;
 
         const props = {
@@ -164,6 +175,7 @@ describe('components/drafts/draft_actions', () => {
                 {...props}
             />,
         );
+        expect(container.querySelector('i.icon')).toHaveClass('icon-globe');
         expect(container).toMatchSnapshot();
     });
 
@@ -171,6 +183,7 @@ describe('components/drafts/draft_actions', () => {
         const channel = {
             type: 'G',
             display_name: 'Test Channel',
+            delete_at: 0,
         } as Channel;
 
         const props = {
@@ -186,5 +199,70 @@ describe('components/drafts/draft_actions', () => {
             />,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    describe('channel icon override', () => {
+        const stateWithOverride = (overrides: any[]) => ({
+            plugins: {components: {ChannelIconOverride: overrides}},
+        } as any);
+
+        it('renders icon-shield-outline for open channel when matcher matches', () => {
+            const openChannel = {
+                id: 'channel-1',
+                type: Constants.OPEN_CHANNEL,
+                display_name: 'Test Channel',
+                delete_at: 0,
+            } as Channel;
+
+            const {container} = renderWithContext(
+                <DraftTitle
+                    {...baseProps}
+                    channel={openChannel}
+                />,
+                stateWithOverride([{id: '1', pluginId: 'p', matcher: () => true, iconName: 'shield-outline'}]),
+            );
+            const icon = container.querySelector('i');
+            expect(icon).toHaveClass('icon-shield-outline');
+            expect(icon).not.toHaveClass('icon-globe');
+        });
+
+        it('falls back to icon-globe for open channel when matcher returns false', () => {
+            const openChannel = {
+                id: 'channel-1',
+                type: Constants.OPEN_CHANNEL,
+                display_name: 'Test Channel',
+                delete_at: 0,
+            } as Channel;
+
+            const {container} = renderWithContext(
+                <DraftTitle
+                    {...baseProps}
+                    channel={openChannel}
+                />,
+                stateWithOverride([{id: '1', pluginId: 'p', matcher: () => false, iconName: 'shield-outline'}]),
+            );
+            const icon = container.querySelector('i');
+            expect(icon).toHaveClass('icon-globe');
+            expect(icon).not.toHaveClass('icon-shield-outline');
+        });
+
+        it('falls back to icon-lock-outline for private channel when matcher returns false', () => {
+            const privateChannel = {
+                id: 'channel-1',
+                type: Constants.PRIVATE_CHANNEL,
+                display_name: 'Test Channel',
+                delete_at: 0,
+            } as Channel;
+
+            const {container} = renderWithContext(
+                <DraftTitle
+                    {...baseProps}
+                    channel={privateChannel}
+                />,
+                stateWithOverride([{id: '1', pluginId: 'p', matcher: () => false, iconName: 'shield-outline'}]),
+            );
+            const icon = container.querySelector('i');
+            expect(icon).toHaveClass('icon-lock-outline');
+        });
     });
 });

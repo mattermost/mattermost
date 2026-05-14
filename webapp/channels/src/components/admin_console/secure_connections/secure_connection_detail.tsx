@@ -23,7 +23,9 @@ import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getChannelIconComponent} from 'utils/channel_utils';
+import {compassIconForName} from 'utils/compass_icon_resolver';
 
 import type {GlobalState} from 'types/store';
 
@@ -425,7 +427,9 @@ const TabsWrapper = styled.div`
 
 const ChannelIcon = ({channelId}: {channelId: string}) => {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
-    const IconComponent = getChannelIconComponent(channel);
+    const overrideName = useChannelIconOverrideName(channel ?? undefined);
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+    const IconComponent = OverrideIcon ?? getChannelIconComponent(channel);
 
     return (
         <ChannelIconWrapper>

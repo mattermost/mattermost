@@ -18,7 +18,9 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import SectionNotice from 'components/section_notice';
 import ChannelsInput from 'components/widgets/inputs/channels_input';
 
+import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getChannelIconComponent} from 'utils/channel_utils';
+import {compassIconForName} from 'utils/compass_icon_resolver';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -268,7 +270,9 @@ const ChannelLabel = ({channel, bold}: {channel: Channel; bold?: boolean}) => {
 };
 
 const ChannelIcon = ({channel, size = 16, ...otherProps}: {channel: Channel} & IconProps) => {
-    const Icon = getChannelIconComponent(channel);
+    const overrideName = useChannelIconOverrideName(channel);
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+    const Icon = OverrideIcon ?? getChannelIconComponent(channel);
 
     return (
         <Icon

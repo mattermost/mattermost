@@ -9,6 +9,10 @@ import SidebarBaseChannel from 'components/sidebar/sidebar_channel/sidebar_base_
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
+function makeOverrideState(overrides: any[] = []) {
+    return {plugins: {components: {ChannelIconOverride: overrides}}} as any;
+}
+
 jest.mock('components/tours/onboarding_tour', () => ({
     ChannelsAndDirectMessagesTour: () => null,
 }));
@@ -16,11 +20,12 @@ jest.mock('components/tours/onboarding_tour', () => ({
 jest.mock('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     const React = require('react');
 
-    return ({label, channelLeaveHandler}: {label: string; channelLeaveHandler?: (callback: () => void) => void}) => {
+    return ({label, icon, channelLeaveHandler}: {label: string; icon?: JSX.Element | null; channelLeaveHandler?: (callback: () => void) => void}) => {
         const [isOpen, setIsOpen] = React.useState(false);
 
         return (
             <div>
+                {icon}
                 <button
                     aria-label='Channel options'
                     onClick={() => setIsOpen(true)}
@@ -215,5 +220,24 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             expect(openModalMock).toHaveBeenCalledTimes(1);
         });
         expect(leaveChannelMock).not.toHaveBeenCalled();
+    });
+
+    test('renders override icon when matcher matches', () => {
+        const {container} = renderWithContext(
+            <SidebarBaseChannel {...baseProps}/>,
+            makeOverrideState([{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}]),
+        );
+        const icon = container.querySelector('i');
+        expect(icon).toHaveClass('icon', 'icon-shield-outline');
+        expect(icon).not.toHaveClass('icon-globe');
+    });
+
+    test('renders fallback icon when matcher returns false', () => {
+        const {container} = renderWithContext(
+            <SidebarBaseChannel {...baseProps}/>,
+            makeOverrideState([{id: '1', pluginId: 'mbe', matcher: () => false, iconName: 'shield-outline'}]),
+        );
+        const icon = container.querySelector('i');
+        expect(icon).toHaveClass('icon', 'icon-globe');
     });
 });
