@@ -25,7 +25,7 @@ test('should show Demo Plugin User Attributes link in profile popover and close 
     await profileImage.click();
 
     const popover = channelsPage.page.getByRole('dialog', {
-        name: new RegExp(`${user.username}'s profile popover`),
+        name: `${user.username}'s profile popover`,
     });
     await expect(popover).toBeVisible();
 
@@ -58,7 +58,7 @@ test('should open Root Modal from user profile popover Action button', async ({p
 
     // 5. Confirm profile popover is visible with Demo Plugin Action button
     const popover = channelsPage.page.getByRole('dialog', {
-        name: new RegExp(`${user.username}'s profile popover`),
+        name: `${user.username}'s profile popover`,
     });
     await expect(popover).toBeVisible();
     await expect(popover.getByText('Demo Plugin: User Attributes')).toBeVisible();

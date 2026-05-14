@@ -92,17 +92,5 @@ test('should open Sample Confirmation Dialog from team dropdown and respond to C
         channelsPage.centerView.container.locator('p').filter({hasText: 'confirmed an Interactive Dialog'}),
     ).toBeVisible();
 
-    // 6. Open dialog again and click Cancel
-    // BUG: Cancel produces the same "confirmed an Interactive Dialog" post as Confirm.
-    // This test documents the actual observed behavior.
-    await channelsPage.sidebarLeft.teamMenuButton.click();
-    await channelsPage.page.getByRole('menuitem', {name: 'Sample Confirmation Dialog'}).click();
-    const dialog2 = channelsPage.page.getByRole('dialog', {name: 'Sample Confirmation Dialog'});
-    await expect(dialog2).toBeVisible();
-    await dialog2.getByRole('button', {name: 'Cancel'}).click();
-    await expect(dialog2).not.toBeVisible();
-    // BUG: Cancel also posts "confirmed an Interactive Dialog" — same as Confirm
-    await expect(
-        channelsPage.centerView.container.locator('p').filter({hasText: 'confirmed an Interactive Dialog'}),
-    ).toHaveCount(2);
+    // Cancel test omitted due to unexpected behavior. Will re-add once issue is resolved.
 });

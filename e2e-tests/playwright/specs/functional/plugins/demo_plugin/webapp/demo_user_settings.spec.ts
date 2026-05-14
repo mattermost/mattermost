@@ -39,24 +39,24 @@ test('should show demo plugin settings sections and save changes with alert conf
     await expect(editButtons).toHaveCount(2);
 
     // 8. Expand Section 1, select Option 2, save
-    // Use persistent page.on handler — Save triggers a native browser alert() synchronously,
-    // which closes the page context before async waitForEvent resolvers can fire.
+    // page.on captures the synchronous alert() that fires during Save click
     const alerts: string[] = [];
-    channelsPage.page.on('dialog', async (dialog) => {
+    const dialogHandler = async (dialog: {message: () => string; accept: () => Promise<void>}) => {
         alerts.push(dialog.message());
         await dialog.accept();
-    });
+    };
+    channelsPage.page.on('dialog', dialogHandler);
 
     await editButtons.first().click();
     await settingsDialog.getByRole('radio', {name: 'Option 2'}).first().click();
-    await channelsPage.page.getByTestId('saveSetting').evaluate((el: HTMLButtonElement) => el.click());
-    await channelsPage.page.waitForTimeout(500);
+    await channelsPage.page.getByTestId('saveSetting').click();
     expect(alerts[0]).toBe('saving {setting1}: 2');
 
     // 9. Expand Section 2, select Option 1, save
     await editButtons.nth(1).click();
     await settingsDialog.getByRole('radio', {name: 'Option 1'}).first().click();
-    await channelsPage.page.getByTestId('saveSetting').evaluate((el: HTMLButtonElement) => el.click());
-    await channelsPage.page.waitForTimeout(500);
+    await channelsPage.page.getByTestId('saveSetting').click();
     expect(alerts[1]).toBe('saving {setting3}: 1');
+
+    channelsPage.page.off('dialog', dialogHandler);
 });
