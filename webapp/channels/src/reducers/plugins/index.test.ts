@@ -118,3 +118,71 @@ describe('user settings', () => {
         expect(nextState.userSettings).toEqual({});
     });
 });
+
+describe('components — REMOVED_PLUGIN_COMPONENT_BY_ID', () => {
+    it('warns and returns unchanged state when id field is empty', () => {
+        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        const state = getBaseState();
+        const nextState = pluginReducers(state, {
+            type: ActionTypes.REMOVED_PLUGIN_COMPONENT_BY_ID,
+            name: 'ChannelTypeOption',
+            pluginId: 'test_plugin',
+            id: '',
+        });
+
+        expect(nextState).toBe(state);
+        expect(consoleSpy).toHaveBeenCalled();
+        consoleSpy.mockRestore();
+    });
+
+    it('cross-bucket isolation: removal targets only the named bucket', () => {
+        const channelTypeEntry = {id: 'option-a', pluginId: 'plugin-x'};
+        const channelHeaderEntry = {id: 'btn-a', pluginId: 'plugin-x'};
+
+        // Seed both buckets
+        let state = getBaseState();
+        state = pluginReducers(state, {
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'ChannelTypeOption',
+            data: channelTypeEntry,
+        });
+        state = pluginReducers(state, {
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'ChannelHeaderButton',
+            data: channelHeaderEntry,
+        });
+
+        // Remove from ChannelHeaderButton bucket only
+        const nextState = pluginReducers(state, {
+            type: ActionTypes.REMOVED_PLUGIN_COMPONENT_BY_ID,
+            name: 'ChannelHeaderButton',
+            pluginId: 'plugin-x',
+            id: 'btn-a',
+        });
+
+        expect(nextState.components.ChannelHeaderButton).toHaveLength(0);
+        expect(nextState.components.ChannelTypeOption).toHaveLength(1);
+        expect(nextState.components.ChannelTypeOption[0]).toMatchObject(channelTypeEntry);
+    });
+
+    it('no-match preserves state identity', () => {
+        const entry = {id: 'foo', pluginId: 'plugin-y'};
+        let state = getBaseState();
+        state = pluginReducers(state, {
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'ChannelTypeOption',
+            data: entry,
+        });
+
+        // Dispatch with an id that does not match
+        const nextState = pluginReducers(state, {
+            type: ActionTypes.REMOVED_PLUGIN_COMPONENT_BY_ID,
+            name: 'ChannelTypeOption',
+            pluginId: 'plugin-y',
+            id: 'bar',
+        });
+
+        expect(nextState).toBe(state);
+    });
+});

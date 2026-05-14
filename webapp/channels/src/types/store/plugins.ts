@@ -8,7 +8,7 @@ import type {WebSocketClient} from '@mattermost/client';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import type {PluginAnalyticsRow} from '@mattermost/types/admin';
 import type {Board} from '@mattermost/types/boards';
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership, CreateResult, NewChannelFormState} from '@mattermost/types/channels';
 import type {FileInfo} from '@mattermost/types/files';
 import type {CommandArgs} from '@mattermost/types/integrations';
 import type {ClientPluginManifest} from '@mattermost/types/plugins';
@@ -70,6 +70,7 @@ export type PluginsState = {
         ChannelToast: ChannelToastComponent[];
         SidebarChannelLinkLabel: SidebarChannelLinkLabelComponent[];
         SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuAction[];
+        ChannelTypeOption: ChannelTypeOptionComponent[];
         FilesWillUploadHook: FilesWillUploadHook[];
         DesktopNotificationHooks: DesktopNotificationHook[];
         MessageWillFormat: MessageWillFormatHook[];
@@ -417,6 +418,28 @@ export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
     text: PluggableText;
     action: (teamId: string) => void;
     icon: React.ReactNode;
+};
+
+export type ChannelTypeOptionComponent = PluginComponent & {
+    label: PluggableText;
+    description: PluggableText;
+    icon: React.ReactNode;
+
+    /** Called with the full Redux state so plugins can read their own plugin-scoped state. */
+    isAvailable: (state: GlobalState) => boolean;
+
+    /**
+     * Optional component rendered inline when this option is selected in the channel-creation modal.
+     * Receives the current form state and setters for the user-editable fields.
+     * `teamId` and `type` are owned by the modal and are not exposed via setFormState.
+     */
+    extraContent?: React.ComponentType<{
+        formState: NewChannelFormState;
+        setFormState: (next: Partial<Pick<NewChannelFormState, 'displayName' | 'url' | 'purpose' | 'managedCategoryName'>>) => void;
+        setCanCreate: (v: boolean) => void;
+    }>;
+
+    onCreate: (formState: NewChannelFormState) => Promise<CreateResult>;
 };
 
 export type PostMessageAttachmentComponent = PluginComponent & {

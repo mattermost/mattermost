@@ -29,7 +29,7 @@ import {
 } from 'actions/websocket_actions';
 import store from 'stores/redux_store';
 
-import {ActionTypes} from 'utils/constants';
+import Constants, {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
 import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
 import {generateId} from 'utils/utils';
@@ -68,6 +68,7 @@ import type {
     PluggableText,
     SidebarBrowseOrAddChannelMenuAction,
     AIActionMenuItemComponent,
+    ChannelTypeOptionComponent,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1299,6 +1300,89 @@ export default class PluginRegistry {
         });
 
         return id;
+    });
+
+    /**
+     * Register a channel-type option in the "Create a new channel" modal.
+     *
+     * When the user selects this option, the modal calls `onCreate` with the current form state and
+     * awaits one of four outcomes:
+     *   - `{status: 'created', channel}` – plugin created the channel; modal closes with the new channel.
+     *   - `{status: 'deferred'}` – plugin will finish asynchronously; modal closes immediately.
+     *   - `{status: 'error', message}` – creation failed; modal surfaces the message.
+     *   - `{status: 'cancelled'}` – plugin aborted; modal stays open without showing an error.
+     *
+     * `isAvailable(state)` receives the full Redux state and gates whether this option appears. Plugins
+     * may read their own plugin-scoped state (e.g. `state['plugins-<pluginId>']`) to decide visibility.
+     *
+     * `extraContent`, if provided, renders inline inside the modal when this option is selected. It
+     * receives `formState`, `setFormState` (writable fields only: displayName, url, purpose,
+     * managedCategoryName), and `setCanCreate` to block or unblock the submit button.
+     *
+     * `id` is caller-supplied and must be unique within the plugin. Re-registering the same `id` from
+     * the same plugin replaces the prior registration (safe for hot-reload scenarios).
+     *
+     * The ids `'O'` and `'P'` are reserved for the built-in open and private channel types and
+     * must not be used by plugins. Attempting to register with either value throws an `Error`.
+     *
+     * Returns the caller-supplied `id`.
+     */
+    registerChannelTypeOption = reArg([
+        'id',
+        'label',
+        'description',
+        'icon',
+        'isAvailable',
+        'extraContent',
+        'onCreate',
+    ], ({
+        id,
+        label,
+        description,
+        icon,
+        isAvailable,
+        extraContent,
+        onCreate,
+    }: {
+        id: string;
+        label: ReactResolvable;
+        description: ReactResolvable;
+        icon: ReactResolvable;
+        isAvailable: ChannelTypeOptionComponent['isAvailable'];
+        extraContent?: ChannelTypeOptionComponent['extraContent'];
+        onCreate: ChannelTypeOptionComponent['onCreate'];
+    }) => {
+        if (id === Constants.OPEN_CHANNEL || id === Constants.PRIVATE_CHANNEL) {
+            throw new Error(
+                `registerChannelTypeOption: id '${id}' is reserved. Plugin channel-type ids must not be '${Constants.OPEN_CHANNEL}' or '${Constants.PRIVATE_CHANNEL}'.`,
+            );
+        }
+        dispatchPluginComponentWithData('ChannelTypeOption', {
+            id,
+            pluginId: this.id,
+            label: resolveReactElement(label),
+            description: resolveReactElement(description),
+            icon: resolveReactElement(icon),
+            isAvailable,
+            extraContent,
+            onCreate,
+        });
+
+        return id;
+    });
+
+    /**
+     * Remove a single channel-type option registered by this plugin.
+     * Only removes the entry matching `id` for this plugin; options from other plugins are unaffected.
+     * Unregistering an id that is not currently registered is a no-op; no error is thrown.
+     */
+    unregisterChannelTypeOption = reArg(['id'], ({id}: {id: string}) => {
+        store.dispatch({
+            type: ActionTypes.REMOVED_PLUGIN_COMPONENT_BY_ID,
+            name: 'ChannelTypeOption',
+            pluginId: this.id,
+            id,
+        });
     });
 
     /**

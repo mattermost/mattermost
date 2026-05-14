@@ -4,17 +4,18 @@
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {shallowEqual, useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Board} from '@mattermost/types/boards';
-import type {ChannelType, Channel} from '@mattermost/types/channels';
+import type {ChannelType, Channel, NewChannelFormState} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
 import {Client4} from 'mattermost-redux/client';
+import {logError} from 'mattermost-redux/actions/errors';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
@@ -45,7 +46,9 @@ import type {TextboxElement} from 'components/textbox';
 import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import Input from 'components/widgets/inputs/input/input';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
+import type {PluginOptionButtonProps} from 'components/widgets/public-private-selector/public-private-selector';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {ModalIdentifiers} from 'utils/constants';
@@ -66,6 +69,10 @@ export function getChannelTypeFromPermissions(canCreatePublicChannel: boolean, c
     }
 
     return channelType as ChannelType;
+}
+
+function isBuiltInType(t: string): boolean {
+    return t === Constants.OPEN_CHANNEL || t === Constants.PRIVATE_CHANNEL;
 }
 
 const enum ServerErrorId {
@@ -89,7 +96,7 @@ const NewChannelModal = () => {
     const showManagedCategorySelector = useSelector(areManagedCategoriesEnabled);
     const dispatch = useDispatch();
 
-    const [type, setType] = useState(getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel));
+    const [type, setType] = useState<string>(getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel));
     const [displayName, setDisplayName] = useState('');
     const [url, setURL] = useState('');
     const [purpose, setPurpose] = useState('');
@@ -146,10 +153,34 @@ const NewChannelModal = () => {
 
     const [canCreateFromPluggable, setCanCreateFromPluggable] = useState(true);
     const [actionFromPluggable, setActionFromPluggable] = useState<((currentTeamId: string, channelId: string) => Promise<Board>) | undefined>(undefined);
+    const [pluginCanCreate, setPluginCanCreate] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const availableOptions = useSelector(
+        (state: GlobalState) => (state.plugins.components.ChannelTypeOption || []).filter((o) => o.isAvailable(state)),
+        shallowEqual,
+    );
+
+    const activePluginOption = availableOptions.find((o) => o.id === type);
 
     const handleURLChange = useCallback((newURL: string) => {
         setURL(newURL);
         setURLError('');
+    }, []);
+
+    const mergeFormState = useCallback((next: Partial<Pick<NewChannelFormState, 'displayName' | 'url' | 'purpose' | 'managedCategoryName'>>) => {
+        if (next.displayName !== undefined) {
+            setDisplayName(next.displayName);
+        }
+        if (next.url !== undefined) {
+            setURL(next.url);
+        }
+        if (next.purpose !== undefined) {
+            setPurpose(next.purpose);
+        }
+        if (next.managedCategoryName !== undefined) {
+            setManagedCategoryName(next.managedCategoryName);
+        }
     }, []);
 
     const handleOnModalConfirm = async () => {
@@ -157,69 +188,128 @@ const NewChannelModal = () => {
             return;
         }
 
-        const channel: Channel = {
-            team_id: currentTeamId,
-            name: url,
-            display_name: displayName,
-            purpose,
-            header: '',
-            type,
-            create_at: 0,
-            creator_id: '',
-            delete_at: 0,
-            group_constrained: false,
-            id: '',
-            last_post_at: 0,
-            last_root_post_at: 0,
-            scheme_id: '',
-            update_at: 0,
-            default_category_name: defaultCategoryName,
-            managed_category_name: managedCategoryName,
-            ...(classificationEnabled && selectedClassificationId && bannerText ? {
+        if (isBuiltInType(type)) {
+            const channel: Channel = {
+                team_id: currentTeamId,
+                name: url,
+                display_name: displayName,
+                purpose,
+                header: '',
+                type: type as ChannelType,
+                create_at: 0,
+                creator_id: '',
+                delete_at: 0,
+                group_constrained: false,
+                id: '',
+                last_post_at: 0,
+                last_root_post_at: 0,
+                scheme_id: '',
+                update_at: 0,
+                default_category_name: defaultCategoryName,
+                managed_category_name: managedCategoryName,
+                ...(classificationEnabled && selectedClassificationId && bannerText ? {
 
-                // Leave banner_info disabled: the classification banner renders
-                // off the property value, not banner_info.enabled.
-                banner_info: {
-                    text: bannerText,
-                    background_color: selectedClassificationLevel?.color || '',
-                },
-            } : {}),
-        };
+                    // Leave banner_info disabled: the classification banner renders
+                    // off the property value, not banner_info.enabled.
+                    banner_info: {
+                        enabled: true,
+                        text: bannerText,
+                        background_color: selectedClassificationLevel?.color || '',
+                    },
+                } : {}),
+            };
 
-        try {
-            const {data: newChannel, error} = await dispatch(createChannel(channel, ''));
-            if (error) {
-                onCreateChannelError(error);
-                return;
-            }
-
-            if (classificationEnabled && selectedClassificationId && classification.channelField && bannerText) {
-                try {
-                    await Client4.patchPropertyValues(
-                        CLASSIFICATIONS_GROUP_NAME,
-                        CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-                        newChannel!.id,
-                        [{field_id: classification.channelField.id, value: selectedClassificationId}],
-                    );
-                } catch {
-                    // Classification save failure should not block channel creation
+            try {
+                const {data: newChannel, error} = await dispatch(createChannel(channel, ''));
+                if (error) {
+                    onCreateChannelError(error);
+                    return;
                 }
+
+                if (classificationEnabled && selectedClassificationId && classification.channelField && bannerText) {
+                    try {
+                        await Client4.patchPropertyValues(
+                            CLASSIFICATIONS_GROUP_NAME,
+                            CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+                            newChannel!.id,
+                            [{field_id: classification.channelField.id, value: selectedClassificationId}],
+                        );
+                    } catch {
+                        // Classification save failure should not block channel creation
+                    }
+                }
+
+                handleOnModalCancel();
+
+                // If template selected, create a new board from this template
+                if (canCreateFromPluggable && createBoardFromChannelPlugin) {
+                    try {
+                        addBoardToChannel(newChannel!.id);
+                    } catch (e: any) {
+                        // eslint-disable-next-line no-console
+                        console.log(e.message);
+                    }
+                }
+                dispatch(switchToChannel(newChannel!));
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error('NewChannelModal builtin creation failed', e);
+                dispatch(logError({message: String(e)}));
+                onCreateChannelError({message: formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'})});
             }
+        } else if (activePluginOption) {
+            const formState: NewChannelFormState = {
+                teamId: currentTeamId,
+                displayName,
+                url,
+                purpose,
+                type,
+                managedCategoryName,
+            };
 
-            handleOnModalCancel();
-
-            // If template selected, create a new board from this template
-            if (canCreateFromPluggable && createBoardFromChannelPlugin) {
-                try {
-                    addBoardToChannel(newChannel!.id);
-                } catch (e: any) {
+            setIsSubmitting(true);
+            try {
+                const result = await activePluginOption.onCreate(formState);
+                const genericError = formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'});
+                const logMalformed = (reason: string) => {
+                    const msg = `ChannelTypeOption ${activePluginOption.pluginId}:${activePluginOption.id} ${reason}`;
                     // eslint-disable-next-line no-console
-                    console.log(e.message);
+                    console.error(msg, result);
+                    dispatch(logError({message: msg}));
+                    setServerError(genericError);
+                };
+
+                if (result.status === 'created' && !result.channel) {
+                    logMalformed('returned malformed result');
+                } else if (result.status === 'error' && typeof result.message !== 'string') {
+                    logMalformed('returned malformed result');
+                } else {
+                    switch (result.status) {
+                    case 'created':
+                        dispatch(switchToChannel(result.channel));
+                        handleOnModalCancel();
+                        break;
+                    case 'deferred':
+                        handleOnModalCancel();
+                        break;
+                    case 'error':
+                        setServerError(result.message);
+                        break;
+                    case 'cancelled':
+                        break;
+                    default: {
+                        logMalformed('returned unrecognized status');
+                    }
+                    }
                 }
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error(`ChannelTypeOption ${activePluginOption.pluginId}:${activePluginOption.id} onCreate threw`, e);
+                dispatch(logError({message: String(e)}));
+                setServerError(formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'}));
+            } finally {
+                setIsSubmitting(false);
             }
-            dispatch(switchToChannel(newChannel!));
-        } catch (e) {
-            onCreateChannelError({message: formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'})});
         }
     };
 
@@ -288,10 +378,14 @@ const NewChannelModal = () => {
         }
     };
 
-    const handleOnTypeChange = useCallback((channelType: ChannelType) => {
+    const handleOnTypeChange = useCallback((channelType: string) => {
+        if (isSubmitting) {
+            return;
+        }
         setType(channelType);
         setServerError('');
-    }, []);
+        setPluginCanCreate(true);
+    }, [isSubmitting]);
 
     const handleOnPurposeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         e.preventDefault();
@@ -307,8 +401,26 @@ const NewChannelModal = () => {
         e.stopPropagation();
     };
 
+    const hasValidType = isBuiltInType(type) || Boolean(activePluginOption);
+    const pluginCreateGate = isBuiltInType(type) ? canCreateFromPluggable : pluginCanCreate;
     const classificationValid = !classificationEnabled || (Boolean(selectedClassificationId) && bannerText.trim().length > 0);
-    const canCreate = displayName && !urlError && type && !purposeError && !serverError && canCreateFromPluggable && !channelInputError && classificationValid;
+    const canCreate = displayName && !urlError && hasValidType && !purposeError && !serverError && pluginCreateGate && !channelInputError && classificationValid && !isSubmitting;
+
+    const pluginOptions: PluginOptionButtonProps[] = availableOptions.map((o) => ({
+        id: o.id,
+        label: o.label,
+        description: o.description,
+        icon: o.icon,
+    }));
+
+    const formState: NewChannelFormState = {
+        teamId: currentTeamId ?? '',
+        displayName,
+        url,
+        purpose,
+        type,
+        managedCategoryName,
+    };
 
     const newBoardInfoIcon = (
         <WithTooltip
@@ -333,12 +445,18 @@ const NewChannelModal = () => {
         </WithTooltip>
     );
 
+    const confirmButtonText = isSubmitting ? (
+        <LoadingSpinner
+            text={formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'})}
+        />
+    ) : formatMessage({id: 'channel_modal.createNew', defaultMessage: 'Create channel'});
+
     return (
         <GenericModal
             id='new-channel-modal'
             className='new-channel-modal'
             modalHeaderText={formatMessage({id: 'channel_modal.modalTitle', defaultMessage: 'Create a new channel'})}
-            confirmButtonText={formatMessage({id: 'channel_modal.createNew', defaultMessage: 'Create channel'})}
+            confirmButtonText={confirmButtonText}
             cancelButtonText={formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'})}
             errorText={serverError}
             isConfirmDisabled={!canCreate}
@@ -372,6 +490,7 @@ const NewChannelModal = () => {
                         description: formatMessage({id: 'channel_modal.type.private.description', defaultMessage: 'Only invited members'}),
                         disabled: !canCreatePrivateChannel,
                     }}
+                    pluginOptions={pluginOptions}
                     onChange={handleOnTypeChange}
                 />
                 {showDefaultCategorySelector && (
@@ -396,6 +515,13 @@ const NewChannelModal = () => {
                             menuPortalTargetId='new-channel-modal'
                         />
                     </div>
+                )}
+                {activePluginOption?.extraContent && (
+                    <activePluginOption.extraContent
+                        formState={formState}
+                        setFormState={mergeFormState}
+                        setCanCreate={setPluginCanCreate}
+                    />
                 )}
                 <div className='new-channel-modal-purpose-container'>
                     <Input
@@ -423,7 +549,7 @@ const NewChannelModal = () => {
                             </span>
                         </div>
                     )}
-                    {createBoardFromChannelPlugin &&
+                    {createBoardFromChannelPlugin && isBuiltInType(type) &&
                         <Pluggable
                             pluggableName='CreateBoardFromTemplate'
                             setCanCreate={setCanCreateFromPluggable}

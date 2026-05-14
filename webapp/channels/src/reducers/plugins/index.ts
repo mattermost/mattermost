@@ -222,6 +222,7 @@ const initialComponents: PluginsState['components'] = {
     Global: [],
     SidebarChannelLinkLabel: [],
     SidebarBrowseOrAddChannelMenu: [],
+    ChannelTypeOption: [],
     MessageWillBePosted: [],
     MessageWillBeUpdated: [],
     SlashCommandWillBePosted: [],
@@ -235,7 +236,7 @@ function components(state: PluginsState['components'] = initialComponents, actio
             const pluggableType = action.name as keyof PluginsState['components'];
             const nextState = {...state};
             const currentArray = nextState[pluggableType] || [];
-            const nextArray = [...currentArray];
+            let nextArray = [...currentArray];
             let actionData = action.data;
             if (action.name === 'PostDropdownMenu' && actionData.parentMenuId) {
                 // Remove the menu from nextArray to rebuild it later.
@@ -246,6 +247,10 @@ function components(state: PluginsState['components'] = initialComponents, actio
                     return state;
                 }
                 actionData = buildMenu(menu[0], actionData);
+            } else if (action.name === 'ChannelTypeOption') {
+                // Replace an existing entry with the same (pluginId, id) so re-registration on hot-reload
+                // does not accumulate duplicates.
+                nextArray = nextArray.filter((c) => !(c.pluginId === actionData.pluginId && c.id === actionData.id));
             }
             nextArray.push(actionData);
             nextArray.sort(sortComponents);
@@ -256,6 +261,21 @@ function components(state: PluginsState['components'] = initialComponents, actio
     }
     case ActionTypes.REMOVED_PLUGIN_COMPONENT:
         return removePluginComponent(state, action);
+    case ActionTypes.REMOVED_PLUGIN_COMPONENT_BY_ID: {
+        // Scoped removal: removes only the entry matching (name, pluginId, id).
+        if (action.name && action.pluginId && action.id) {
+            const pluggableType = action.name as keyof PluginsState['components'];
+            const componentList = state[pluggableType] || [];
+            const nextArray = componentList.filter((c) => !(c.pluginId === action.pluginId && c.id === action.id));
+            if (nextArray.length === componentList.length) {
+                return state;
+            }
+            return {...state, [pluggableType]: nextArray};
+        }
+        // eslint-disable-next-line no-console
+        console.warn(`REMOVED_PLUGIN_COMPONENT_BY_ID: missing or empty field(s) — name: '${action.name}', pluginId: '${action.pluginId}', id: '${action.id}'`);
+        return state;
+    }
     case ActionTypes.REMOVED_WEBAPP_PLUGIN:
         return removePluginComponents(state, action);
 
