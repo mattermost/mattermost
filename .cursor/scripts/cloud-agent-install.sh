@@ -63,123 +63,52 @@ ensure_node() {
   fi
 }
 
-enterprise_checkout_dir() {
-  realpath -m "${ENTERPRISE_CHECKOUT_DIR:-$HOME/enterprise}"
-}
-
 enterprise_build_dir() {
-  if [ -n "${BUILD_ENTERPRISE_DIR:-}" ]; then
-    case "$BUILD_ENTERPRISE_DIR" in
-      /*) realpath -m "$BUILD_ENTERPRISE_DIR" ;;
-      *) realpath -m "$ROOT/server/$BUILD_ENTERPRISE_DIR" ;;
-    esac
-  else
-    printf '%s\n' "/enterprise"
-  fi
+  case "$BUILD_ENTERPRISE_DIR" in
+    /*) realpath -m "$BUILD_ENTERPRISE_DIR" ;;
+    *) realpath -m "$ROOT/server/$BUILD_ENTERPRISE_DIR" ;;
+  esac
 }
 
-enterprise_branch() {
-  if [ -n "${ENTERPRISE_BRANCH:-}" ]; then
-    printf '%s\n' "$ENTERPRISE_BRANCH"
-    return 0
+find_enterprise_checkout() {
+  local candidates=()
+  if [ -n "${ENTERPRISE_CHECKOUT_DIR:-}" ]; then
+    candidates+=("$ENTERPRISE_CHECKOUT_DIR")
+  fi
+  if [ -n "${ENTERPRISE_DIR:-}" ]; then
+    candidates+=("$ENTERPRISE_DIR")
   fi
 
-  local branch
-  branch="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
-  if [ -n "$branch" ] && [ "$branch" != "HEAD" ]; then
-    printf '%s\n' "$branch"
-  else
-    printf '%s\n' "master"
-  fi
-}
-
-sync_enterprise_repo() {
-  if is_true "${CLOUD_AGENT_SKIP_ENTERPRISE:-false}"; then
-    log "Skipping enterprise checkout because CLOUD_AGENT_SKIP_ENTERPRISE is set."
-    return 0
-  fi
-
-  if [ -z "${CURSOR_GH_TOKEN:-}" ]; then
-    log "Skipping enterprise checkout because CURSOR_GH_TOKEN is not set."
-    return 0
-  fi
-
-  local target repo_url branch
-  target="$(enterprise_checkout_dir)"
-  branch="$(enterprise_branch)"
-  repo_url="https://github.com/mattermost/enterprise.git"
-
-  (
-    tmp_dir="$(mktemp -d)"
-    trap 'rm -rf "$tmp_dir"' EXIT
-
-    askpass="$tmp_dir/git-askpass.sh"
-    cat >"$askpass" <<'EOF'
-#!/usr/bin/env bash
-case "$1" in
-  *Username*) printf '%s\n' "x-access-token" ;;
-  *Password*) printf '%s\n' "${CURSOR_GH_TOKEN:?CURSOR_GH_TOKEN is required}" ;;
-  *) printf '%s\n' "${CURSOR_GH_TOKEN:?CURSOR_GH_TOKEN is required}" ;;
-esac
-EOF
-    chmod 700 "$askpass"
-
-    while IFS='=' read -r name _; do
-      case "$name" in
-        GIT_CONFIG_COUNT | GIT_CONFIG_KEY_* | GIT_CONFIG_PARAMETERS | GIT_CONFIG_VALUE_*) unset "$name" ;;
-      esac
-    done < <(env)
-
-    export GIT_ASKPASS="$askpass"
-    export GIT_TERMINAL_PROMPT=0
-    export GIT_CONFIG_GLOBAL=/dev/null
-    export GIT_CONFIG_NOSYSTEM=1
-    export GIT_CONFIG_SYSTEM=/dev/null
-    export XDG_CONFIG_HOME="$tmp_dir/xdg"
-
-    git_isolated() {
-      git -c credential.helper= -c core.askPass="$askpass" -c credential.useHttpPath=true "$@"
-    }
-
-    sync_branch() {
-      local requested_branch="$1"
-      if git_isolated -C "$target" ls-remote --exit-code --heads origin "$requested_branch" >/dev/null 2>&1; then
-        git_isolated -C "$target" fetch origin "$requested_branch"
-        git_isolated -C "$target" checkout "$requested_branch" || git_isolated -C "$target" checkout -b "$requested_branch" "origin/$requested_branch"
-        git_isolated -C "$target" pull --ff-only origin "$requested_branch"
-      else
-        log "Enterprise branch $requested_branch was not found; using master."
-        git_isolated -C "$target" fetch origin master
-        git_isolated -C "$target" checkout master || git_isolated -C "$target" checkout -b master origin/master
-        git_isolated -C "$target" pull --ff-only origin master
-      fi
-    }
-
-    mkdir -p "$(dirname "$target")"
-    if [ -e "$target" ]; then
-      if [ -d "$target/.git" ]; then
-        git_isolated -C "$target" remote set-url origin "$repo_url"
-        if git_isolated -C "$target" diff --quiet && git_isolated -C "$target" diff --cached --quiet; then
-          sync_branch "$branch"
-        else
-          log "Skipping enterprise pull because $target has local changes."
-        fi
-      else
-        log "$target exists and is not a git checkout."
-        exit 1
-      fi
-    else
-      git_isolated clone "$repo_url" "$target"
-      sync_branch "$branch"
-    fi
+  candidates+=(
+    "$ROOT/../enterprise"
+    "$ROOT/../../enterprise"
+    "$HOME/enterprise"
   )
 
-  if [ -d "$target/.git" ]; then
-    sudo ln -sfnT "$target" /enterprise
-    log "Enterprise checkout ready at $target"
-  elif [ -L /enterprise ]; then
-    sudo rm -f /enterprise
+  local candidate
+  for candidate in "${candidates[@]}"; do
+    if git -C "$candidate" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      realpath -m "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+verify_enterprise_checkout() {
+  if is_true "${CLOUD_AGENT_SKIP_ENTERPRISE:-false}"; then
+    log "Skipping enterprise verification because CLOUD_AGENT_SKIP_ENTERPRISE is set."
+    return 0
   fi
+
+  local target
+  if ! target="$(find_enterprise_checkout)"; then
+    log "Enterprise checkout not found. Ensure the Cursor multi-repo environment includes github.com/mattermost/enterprise."
+    return 1
+  fi
+
+  log "Enterprise checkout ready at $target."
 }
 
 hydrate_go_dependencies() {
@@ -189,17 +118,29 @@ hydrate_go_dependencies() {
   fi
 
   if [ -d server ]; then
-    local enterprise_dir
-    enterprise_dir="$(enterprise_build_dir)"
-    log "Hydrating Go workspace with BUILD_ENTERPRISE_DIR=$enterprise_dir"
-    (
-      cd server
-      BUILD_ENTERPRISE_DIR="$enterprise_dir" make setup-go-work
-      go mod download
-      if [ -f public/go.mod ]; then
-        (cd public && go mod download)
-      fi
-    )
+    if [ -n "${BUILD_ENTERPRISE_DIR:-}" ]; then
+      local enterprise_dir
+      enterprise_dir="$(enterprise_build_dir)"
+      log "Hydrating Go workspace with BUILD_ENTERPRISE_DIR=$enterprise_dir"
+      (
+        cd server
+        BUILD_ENTERPRISE_DIR="$enterprise_dir" make setup-go-work
+        go mod download
+        if [ -f public/go.mod ]; then
+          (cd public && go mod download)
+        fi
+      )
+    else
+      log "Hydrating Go workspace with server/Makefile default enterprise path."
+      (
+        cd server
+        make setup-go-work
+        go mod download
+        if [ -f public/go.mod ]; then
+          (cd public && go mod download)
+        fi
+      )
+    fi
   fi
 }
 
@@ -229,7 +170,7 @@ hydrate_playwright_dependencies() {
 
 ensure_go
 ensure_node
-sync_enterprise_repo
+verify_enterprise_checkout
 hydrate_go_dependencies
 hydrate_webapp_dependencies
 hydrate_playwright_dependencies

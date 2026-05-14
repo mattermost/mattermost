@@ -69,6 +69,7 @@ RUN apt-get update && \
     rsync \
     sudo \
     tar \
+    tmux \
     unzip \
     vim \
     xmlsec1 \
