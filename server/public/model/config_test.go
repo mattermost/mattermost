@@ -296,6 +296,59 @@ func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
 	}
 }
 
+func TestFileSettingsAzureRequestTimeoutBounds(t *testing.T) {
+	cases := []struct {
+		name         string
+		value        int64
+		configSetter func(*Config, *int64)
+		errID        string
+	}{
+		{"AzureRequestTimeoutMilliseconds zero", 0, func(cfg *Config, v *int64) { cfg.FileSettings.AzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.azure_timeout.app_error"},
+		{"AzureRequestTimeoutMilliseconds negative", -1, func(cfg *Config, v *int64) { cfg.FileSettings.AzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.azure_timeout.app_error"},
+		{"AzureRequestTimeoutMilliseconds above ceiling", maxAzureRequestTimeoutMilliseconds + 1, func(cfg *Config, v *int64) { cfg.FileSettings.AzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.azure_timeout.app_error"},
+		{"ExportAzureRequestTimeoutMilliseconds zero", 0, func(cfg *Config, v *int64) { cfg.FileSettings.ExportAzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.export_azure_timeout.app_error"},
+		{"ExportAzureRequestTimeoutMilliseconds above ceiling", maxAzureRequestTimeoutMilliseconds + 1, func(cfg *Config, v *int64) { cfg.FileSettings.ExportAzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.export_azure_timeout.app_error"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			tc.configSetter(cfg, NewPointer(tc.value))
+
+			err := cfg.FileSettings.isValid()
+			require.NotNil(t, err)
+			assert.Equal(t, tc.errID, err.Id)
+		})
+	}
+}
+
+func TestFileSettingsAzurePathPrefixTraversal(t *testing.T) {
+	cases := []struct {
+		name         string
+		configSetter func(*Config, *string)
+	}{
+		{
+			"AzurePathPrefix",
+			func(cfg *Config, value *string) { cfg.FileSettings.AzurePathPrefix = value },
+		},
+		{
+			"ExportAzurePathPrefix",
+			func(cfg *Config, value *string) { cfg.FileSettings.ExportAzurePathPrefix = value },
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			tc.configSetter(cfg, NewPointer("../escape"))
+
+			err := cfg.FileSettings.isValid()
+			require.NotNil(t, err)
+			assert.Equal(t, "model.config.is_valid.directory_traversal.app_error", err.Id)
+		})
+	}
+}
+
 func TestConfigDefaultSignatureAlgorithm(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()

@@ -948,8 +948,26 @@ func (s *Server) Start() error {
 
 	err := s.FileBackend().TestConnection()
 	if err != nil {
-		if _, ok := err.(*filestore.S3FileBackendNoBucketError); ok {
-			err = s.FileBackend().(*filestore.S3FileBackend).MakeBucket()
+		var noBucket *filestore.FileBackendNoBucketError
+		if errors.As(err, &noBucket) {
+			// Each backend exposes its own provisioning entry point, so
+			// dispatch by capability rather than concrete type. New
+			// backends opt in by implementing this interface; backends
+			// that do not are reported with the original error so the
+			// missing-bucket condition surfaces in logs instead of being
+			// silently swallowed.
+			type bucketMaker interface {
+				MakeBucket() error
+			}
+			type containerMaker interface {
+				MakeContainer() error
+			}
+			switch b := s.FileBackend().(type) {
+			case bucketMaker:
+				err = b.MakeBucket()
+			case containerMaker:
+				err = b.MakeContainer()
+			}
 		}
 		if err != nil {
 			mlog.Error("Problem with file storage settings", mlog.Err(err))

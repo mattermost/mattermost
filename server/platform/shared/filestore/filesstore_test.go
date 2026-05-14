@@ -123,11 +123,17 @@ func (s *FileBackendTestSuite) SetupTest() {
 	require.NoError(s.T(), err)
 	s.backend = backend
 
-	// This is needed to create the bucket if it doesn't exist.
+	// This is needed to create the bucket / container if it doesn't exist.
 	err = s.backend.TestConnection()
-	if _, ok := err.(*S3FileBackendNoBucketError); ok {
-		s3Backend := s.backend.(*S3FileBackend)
-		s.NoError(s3Backend.MakeBucket())
+	if _, ok := err.(*FileBackendNoBucketError); ok {
+		switch b := s.backend.(type) {
+		case *S3FileBackend:
+			s.NoError(b.MakeBucket())
+		case *AzureFileBackend:
+			s.NoError(b.MakeContainer())
+		default:
+			s.NoError(err)
+		}
 	} else {
 		s.NoError(err)
 	}
@@ -699,7 +705,7 @@ func BenchmarkFileStore(b *testing.B) {
 
 	// Create bucket if it doesn't exist
 	err = s3Backend.TestConnection()
-	if _, ok := err.(*S3FileBackendNoBucketError); ok {
+	if _, ok := err.(*FileBackendNoBucketError); ok {
 		require.NoError(b, s3Backend.(*S3FileBackend).MakeBucket())
 	} else {
 		require.NoError(b, err)
@@ -851,7 +857,7 @@ func BenchmarkS3WriteFile(b *testing.B) {
 
 		// This is needed to create the bucket if it doesn't exist.
 		err = backend.TestConnection()
-		if _, ok := err.(*S3FileBackendNoBucketError); ok {
+		if _, ok := err.(*FileBackendNoBucketError); ok {
 			require.NoError(b, backend.(*S3FileBackend).MakeBucket())
 		} else {
 			require.NoError(b, err)

@@ -2373,16 +2373,16 @@
     "translation": "Unable to access the file storage."
   },
   {
+    "id": "api.file.test_connection_auth.app_error",
+    "translation": "Unable to authenticate against the file storage backend. Verify your credentials and authentication settings."
+  },
+  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
-    "translation": "Email settings has unset values."
+    "translation": "Email settings have unset values."
   },
   {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Unable to connect to S3. Verify your Amazon S3 connection authorization parameters and authentication settings."
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Ensure your Amazon S3 bucket is available, and verify your bucket permissions."
+    "id": "api.file.test_connection_no_bucket.app_error",
+    "translation": "The configured bucket or container does not exist. Verify your file storage configuration and permissions."
   },
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
@@ -11043,6 +11043,10 @@
     "translation": "Workers must be between 1 and 64."
   },
   {
+    "id": "model.config.is_valid.azure_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "Cache type must be either lru or redis."
   },
@@ -11117,6 +11121,10 @@
   {
     "id": "model.config.is_valid.directory.app_error",
     "translation": "Invalid Local Storage Directory. Must be a non-empty string."
+  },
+  {
+    "id": "model.config.is_valid.directory_traversal.app_error",
+    "translation": "Path traversal sequences (\"..\") are not allowed in {{.Setting}}. Found \"{{.Value}}\"."
   },
   {
     "id": "model.config.is_valid.directory_whitespace.app_error",
@@ -11223,8 +11231,12 @@
     "translation": "Invalid value for RetentionDays. Value should be greater than 0"
   },
   {
+    "id": "model.config.is_valid.export_azure_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Invalid driver name for file settings. Must be 'local' or 'amazons3'."
+    "translation": "Invalid driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'."
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
