@@ -112,11 +112,10 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 	}
 
-	// Masking is attribute-based, not role-based. Callers may save changes to a
-	// policy even when masked values are present, provided they do not remove any
-	// condition row that contains values they cannot see. Merge-on-save re-injects
-	// hidden values into submitted conditions; a missing masked condition is blocked.
-	if a.Config().FeatureFlags.AttributeBasedAccessControl && a.Config().FeatureFlags.AttributeValueMasking {
+	// ABAC is gated at route registration; only check masking here. Masking is
+	// attribute-based: edits are allowed with masked values present as long as
+	// the caller doesn't drop a condition holding values they couldn't see.
+	if a.Config().FeatureFlags.AttributeValueMasking {
 		session := rctx.Session()
 		if session == nil {
 			return nil, model.NewAppError("CreateOrUpdateAccessControlPolicy", "api.context.session_expired.app_error", nil, "session required for masking validation", http.StatusUnauthorized)
@@ -216,7 +215,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		if storedExpr == "" || storedExpr == "true" {
 			continue
 		}
-		mergedExpr, appErr := a.mergeExpressionWithMaskedValues(rctx, rule.Expression, storedExpr, callerID)
+		mergedExpr, appErr := a.mergeExpressionWithMaskedValues(rctx, policy.ID, rule.Expression, storedExpr, callerID)
 		if appErr != nil {
 			return appErr
 		}
@@ -260,9 +259,26 @@ func (a *App) expressionHasMaskedValuesForCaller(rctx request.CTX, storedExpr, c
 	return false, nil
 }
 
-// mergeExpressionWithMaskedValues re-injects hidden values from storedExpr into submittedExpr.
-// Returns HTTP 403 if the caller removed a condition that contained values they cannot see.
-func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, submittedExpr, storedExpr, callerID string) (string, *model.AppError) {
+// mergeExpressionWithMaskedValues re-injects hidden values into submittedExpr and
+// returns 403 if the caller dropped a condition with values they cannot see.
+//
+// Two fail-closed shortcuts before the merge:
+//  1. Caller has no masked values on storedExpr → return submitted as-is.
+//  2. storedExpr isn't faithfully representable by the Visual AST (|| or grouping
+//     would flatten into ANDs on rebuild) → accept only no-op saves (e.g., rename),
+//     reject real edits. Role-neutral: masking is attribute-based, so a sysadmin
+//     without the values lands here too.
+//
+// Stopgap until the canonical CEL AST walker refactor.
+func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, policyID, submittedExpr, storedExpr, callerID string) (string, *model.AppError) {
+	hasMasked, appErr := a.expressionHasMaskedValuesForCaller(rctx, storedExpr, callerID)
+	if appErr != nil {
+		return "", appErr
+	}
+	if !hasMasked {
+		return submittedExpr, nil
+	}
+
 	submittedAST, appErr := a.ExpressionToVisualAST(rctx, submittedExpr)
 	if appErr != nil {
 		return "", appErr
@@ -271,6 +287,25 @@ func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, submittedExpr, s
 	storedAST, appErr := a.ExpressionToVisualAST(rctx, storedExpr)
 	if appErr != nil {
 		return "", appErr
+	}
+
+	if !isVisualASTRepresentable(storedExpr, storedAST) {
+		masked, maskErr := a.GetMaskedExpression(rctx, storedExpr, callerID)
+		if maskErr != nil {
+			return "", maskErr
+		}
+		if normalizedEqual(submittedExpr, masked) {
+			// no-op edit (e.g., rename) — keep stored expression as-is
+			return storedExpr, nil
+		}
+		rctx.Logger().Info("save refused: stored rule not representable by Visual AST",
+			mlog.String("policy_id", policyID),
+			mlog.String("caller_id", callerID),
+		)
+		return "", model.NewAppError("mergeExpressionWithMaskedValues",
+			"app.pap.save_policy.advanced_expression_blocked", nil,
+			"this rule expression cannot be safely edited while restricted values are present",
+			http.StatusForbidden)
 	}
 
 	cpaGroupID, appErr := a.CpaGroupID()
@@ -401,7 +436,8 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		return appErr
 	}
 
-	if a.Config().FeatureFlags.AttributeBasedAccessControl && a.Config().FeatureFlags.AttributeValueMasking {
+	// ABAC is gated at route registration; only check masking here.
+	if a.Config().FeatureFlags.AttributeValueMasking {
 		session := rctx.Session()
 		if session != nil {
 			callerID := session.UserId

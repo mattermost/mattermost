@@ -445,6 +445,64 @@ func buildCELFromConditions(conditions []model.Condition) string {
 	return strings.Join(parts, " && ")
 }
 
+// isVisualASTRepresentable reports whether buildCELFromConditions(ast) round-trips
+// back to originalExpr. False means merging would silently rewrite the shape
+// (typically || or grouping that the AST flattens into ANDs). Stopgap until the
+// canonical AST walker lands.
+func isVisualASTRepresentable(originalExpr string, ast *model.VisualExpression) bool {
+	if ast == nil || len(ast.Conditions) == 0 {
+		return originalExpr == "" || originalExpr == "true"
+	}
+	return normalizedEqual(originalExpr, buildCELFromConditions(ast.Conditions))
+}
+
+// normalizedEqual compares two CEL expressions modulo whitespace and quote style.
+// Unbalanced quotes on either side count as not-equal (fail-closed).
+func normalizedEqual(a, b string) bool {
+	na, okA := normalizeForComparison(a)
+	if !okA {
+		return false
+	}
+	nb, okB := normalizeForComparison(b)
+	if !okB {
+		return false
+	}
+	return na == nb
+}
+
+// normalizeForComparison strips whitespace outside string literals and rewrites
+// single quotes to double. String contents are preserved verbatim. Returns
+// ok=false on unbalanced quotes.
+func normalizeForComparison(s string) (string, bool) {
+	var b strings.Builder
+	b.Grow(len(s))
+	var quote byte // 0 outside string literal; '"' or '\'' inside
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case quote == 0 && (c == '"' || c == '\''):
+			quote = c
+			b.WriteByte('"')
+		case quote != 0 && c == '\\' && i+1 < len(s):
+			// keep escapes verbatim
+			b.WriteByte(c)
+			b.WriteByte(s[i+1])
+			i++
+		case quote != 0 && c == quote:
+			b.WriteByte('"')
+			quote = 0
+		case quote == 0 && (c == ' ' || c == '\t' || c == '\n' || c == '\r'):
+			// drop whitespace outside strings
+		default:
+			b.WriteByte(c)
+		}
+	}
+	if quote != 0 {
+		return "", false
+	}
+	return b.String(), true
+}
+
 // conditionToCEL converts a single Condition to its CEL string representation.
 func conditionToCEL(cond model.Condition) string {
 	attr := cond.Attribute
