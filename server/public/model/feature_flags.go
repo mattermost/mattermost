@@ -73,6 +73,11 @@ type FeatureFlags struct {
 	// Requires AttributeBasedAccessControl to also be enabled.
 	PermissionPolicies bool
 
+	// Enable ABAC-style post-content policies that filter post bodies on
+	// fetch based on CEL expressions over post and user attributes.
+	// Requires AttributeBasedAccessControl to also be enabled.
+	PostPolicy bool
+
 	ContentFlagging bool
 
 	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
@@ -139,6 +144,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
 	f.PermissionPolicies = false
+	f.PostPolicy = false
 	f.ContentFlagging = true
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true

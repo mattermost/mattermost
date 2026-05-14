@@ -102,6 +102,7 @@ const (
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
 	PostPropsExpireAt                 = "expire_at"
 	PostPropsReadDurationSeconds      = "read_duration"
+	PostPropsHiddenByPolicy           = "hidden_by_policy"
 
 	PostPriorityUrgent = "urgent"
 

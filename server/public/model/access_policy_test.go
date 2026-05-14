@@ -494,6 +494,20 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, "model.access_policy.is_valid.rules_imports.app_error", err.Id)
 	})
+
+	t.Run("valid channel-scoped post_filter policy", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionPostFilter},
+				Expression: "post.attributes.secretlevel == \"L1\" && user.attributes.rank == \"R1\"",
+			}},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_3())
+	})
 }
 
 func TestInheritV0_3(t *testing.T) {

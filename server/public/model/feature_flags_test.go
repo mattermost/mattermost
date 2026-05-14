@@ -25,6 +25,14 @@ func TestFeatureFlagsSetDefaults(t *testing.T) {
 		m = f.ToMap()
 		require.Equal(t, "true", m["ClassificationMarkings"])
 	})
+
+	t.Run("PostPolicy should default to false", func(t *testing.T) {
+		f2 := &FeatureFlags{}
+		f2.SetDefaults()
+		require.False(t, f2.PostPolicy)
+		m := f2.ToMap()
+		require.Equal(t, "false", m["PostPolicy"])
+	})
 }
 
 func TestFeatureFlagsToMap(t *testing.T) {
