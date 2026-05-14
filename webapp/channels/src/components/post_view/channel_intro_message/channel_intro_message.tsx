@@ -25,6 +25,8 @@ import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
 import UserProfile from 'components/user_profile';
 
+import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
+import {compassIconForName} from 'utils/compass_icon_resolver';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 import * as Utils from 'utils/utils';
@@ -523,6 +525,13 @@ function createDefaultIntroMessage(
     );
 }
 
+function ChannelIntroIcon({channel, isPrivate}: {channel: Channel; isPrivate: boolean}) {
+    const overrideName = useChannelIconOverrideName(channel);
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+    const IconComponent = OverrideIcon ?? (isPrivate ? LockOutlineIcon : GlobeIcon);
+    return <IconComponent size={14}/>;
+}
+
 function createStandardIntroMessage(
     channel: Channel,
     centeredIntro: string,
@@ -688,7 +697,10 @@ function createStandardIntroMessage(
                 {channel.display_name}
             </h2>
             <div className='channel-intro__created'>
-                {isPrivate ? <LockOutlineIcon size={14}/> : <GlobeIcon size={14}/>}
+                <ChannelIntroIcon
+                    channel={channel}
+                    isPrivate={isPrivate}
+                />
                 {createMessage}
             </div>
             <p className='channel-intro__text'>

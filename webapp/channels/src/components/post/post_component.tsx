@@ -7,6 +7,7 @@ import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {Channel} from '@mattermost/types/channels';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
@@ -43,8 +44,10 @@ import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
+import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getHistory} from 'utils/browser_history';
 import {getArchiveIconComponent} from 'utils/channel_utils';
+import {compassIconForName} from 'utils/compass_icon_resolver';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -137,9 +140,41 @@ export type Props = {
     burnOnReadSkipConfirmation?: boolean;
     preventClickInteraction?: boolean;
     permissionPoliciesEnabled: boolean;
+    channel?: Channel;
 };
 
 const preventInteractionStyle: React.CSSProperties = {pointerEvents: 'none'};
+
+type ArchivedChannelIconProps = {channel?: Channel; channelType?: string};
+const ArchivedChannelIcon = ({channel, channelType}: ArchivedChannelIconProps) => {
+    const {formatMessage} = useIntl();
+    const overrideName = useChannelIconOverrideName(channel);
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+    const IconComponent = OverrideIcon ?? getArchiveIconComponent(channelType);
+
+    // When an override icon wins, strip archive chrome so the plugin icon stands on its own.
+    if (OverrideIcon) {
+        return (
+            <span className='search-channel__archived'>
+                <IconComponent/>
+            </span>
+        );
+    }
+
+    return (
+        <WithTooltip
+            id='channelArchivedTooltip'
+            title={formatMessage({
+                id: 'search_item.channelArchived',
+                defaultMessage: 'Archived',
+            })}
+        >
+            <span className='search-channel__archived'>
+                <IconComponent className='icon icon__archive channel-header-archived-icon svg-text-color'/>
+            </span>
+        </WithTooltip>
+    );
+};
 
 function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
@@ -753,20 +788,10 @@ function PostComponent(props: Props) {
                         </span>
                         }
                         {props.channelIsArchived &&
-                        <WithTooltip
-                            id='channelArchivedTooltip'
-                            title={formatMessage({
-                                id: 'search_item.channelArchived',
-                                defaultMessage: 'Archived',
-                            })}
-                        >
-                            <span className='search-channel__archived'>
-                                {(() => {
-                                    const ArchiveIcon = getArchiveIconComponent(props.channelType);
-                                    return <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>;
-                                })()}
-                            </span>
-                        </WithTooltip>
+                        <ArchivedChannelIcon
+                            channel={props.channel}
+                            channelType={props.channelType}
+                        />
                         }
                         {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>

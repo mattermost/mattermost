@@ -29,7 +29,9 @@ import SwitchChannelProvider from 'components/suggestion/switch_channel_provider
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
+import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getArchiveIconComponent} from 'utils/channel_utils';
+import {compassIconForName} from 'utils/compass_icon_resolver';
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
@@ -53,7 +55,7 @@ export const makeSelectedChannelOption = (channel: Channel): ChannelOption => ({
     details: channel,
 });
 
-const FormattedOption = (props: ChannelOption & {className: string; isSingleValue?: boolean}) => {
+export const FormattedOption = (props: ChannelOption & {className: string; isSingleValue?: boolean}) => {
     const {details} = props;
 
     const {formatMessage} = useIntl();
@@ -67,6 +69,7 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
     const isPartOfOnlyOneTeam = useSelector((state: GlobalState) => getMyTeams(state).length === 1);
 
     const channelIsArchived = details.delete_at > 0;
+    const overrideName = useChannelIconOverrideName(details);
 
     let icon;
     const iconProps = {
@@ -74,13 +77,17 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
         color: 'rgba(var(--center-channel-color-rgb), 0.75)',
     };
 
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+
     if (channelIsArchived) {
-        const ArchiveIcon = getArchiveIconComponent(details.type);
+        const ArchiveIcon = OverrideIcon ?? getArchiveIconComponent(details.type);
         icon = <ArchiveIcon {...iconProps}/>;
     } else if (details.type === Constants.OPEN_CHANNEL) {
-        icon = <GlobeIcon {...iconProps}/>;
+        const OpenIcon = OverrideIcon ?? GlobeIcon;
+        icon = <OpenIcon {...iconProps}/>;
     } else if (details.type === Constants.PRIVATE_CHANNEL) {
-        icon = <LockOutlineIcon {...iconProps}/>;
+        const PrivateIcon = OverrideIcon ?? LockOutlineIcon;
+        icon = <PrivateIcon {...iconProps}/>;
     } else if (details.type === Constants.THREADS) {
         icon = <MessageTextOutlineIcon {...iconProps}/>;
     } else if (details.type === Constants.GM_CHANNEL) {

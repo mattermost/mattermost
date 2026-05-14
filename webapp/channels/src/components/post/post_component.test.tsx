@@ -3,6 +3,20 @@
 
 import React from 'react';
 
+jest.mock('utils/compass_icon_resolver', () => ({
+    compassIconForName: jest.fn(),
+}));
+
+jest.mock('utils/channel_utils', () => ({
+    ...jest.requireActual('utils/channel_utils'),
+    getArchiveIconComponent: jest.fn(() => (props: Record<string, unknown>) => (
+        <span
+            data-is-default-archive='true'
+            {...props}
+        />
+    )),
+}));
+
 import {PostPriority} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -11,6 +25,7 @@ import {Posts} from 'mattermost-redux/constants';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
+import {compassIconForName} from 'utils/compass_icon_resolver';
 import {Locations} from 'utils/constants';
 import * as PopoutWindows from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
@@ -721,6 +736,96 @@ describe('PostComponent', () => {
             renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
+        });
+    });
+
+    describe('plugin channel icon override', () => {
+        const mockedCompassIconForName = jest.mocked(compassIconForName);
+
+        afterEach(() => {
+            mockedCompassIconForName.mockReset();
+        });
+
+        test('renders override SVG icon for archived channel in search view when plugin matches', () => {
+            const StubIcon = ({size, color}: {size?: number; color?: string}) => (
+                <span
+                    data-testid='stub-override-icon'
+                    data-size={size}
+                    data-color={color}
+                />
+            );
+            mockedCompassIconForName.mockReturnValue(StubIcon as any);
+
+            const props = {
+                ...baseProps,
+                channelIsArchived: true,
+                channelType: 'O' as any,
+                channel,
+                location: Locations.SEARCH,
+                isMentionSearch: true,
+            };
+
+            const state = {
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => true,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(<PostComponent {...props}/>, state);
+            const overrideIcon = screen.getByTestId('stub-override-icon');
+            expect(overrideIcon).toBeInTheDocument();
+
+            // Override branch passes no props — no size, no color, no archive classes
+            expect(overrideIcon).not.toHaveAttribute('data-size');
+            expect(overrideIcon).not.toHaveAttribute('data-color');
+            expect(overrideIcon).not.toHaveClass('channel-header-archived-icon');
+            expect(overrideIcon).not.toHaveClass('svg-text-color');
+
+            // No "Archived" tooltip when override wins
+            expect(screen.queryByText('Archived')).not.toBeInTheDocument();
+
+            // Default archive icon is absent when override wins
+            expect(document.querySelector('[data-is-default-archive]')).not.toBeInTheDocument();
+        });
+
+        test('renders default SVG archive icon when no plugin matcher matches', () => {
+            mockedCompassIconForName.mockReturnValue(null);
+
+            const props = {
+                ...baseProps,
+                channelIsArchived: true,
+                channelType: 'O' as any,
+                channel,
+                location: Locations.SEARCH,
+                isMentionSearch: true,
+            };
+
+            const state = {
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => false,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, state);
+            expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
+            expect(container.querySelector('.search-channel__archived')).toBeInTheDocument();
+
+            // Default archive icon is present in the fallback path
+            expect(document.querySelector('[data-is-default-archive]')).toBeInTheDocument();
         });
     });
 });

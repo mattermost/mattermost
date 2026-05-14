@@ -16,8 +16,10 @@ import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
 import {PAGE_SIZE} from 'components/admin_console/team_channel_settings/abstract_list';
 
+import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getHistory} from 'utils/browser_history';
 import {getChannelIconComponent} from 'utils/channel_utils';
+import {compassIconForName} from 'utils/compass_icon_resolver';
 
 import AdminChannelSharedIndicator from './admin_channel_shared_indicator';
 
@@ -58,6 +60,18 @@ const messages = defineMessages({
         defaultMessage: 'Attribute Based',
     },
 });
+
+function ChannelRowIcon({channel, className, 'data-testid': testId}: {channel: ChannelWithTeamData; className?: string; 'data-testid'?: string}) {
+    const overrideName = useChannelIconOverrideName(channel);
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+    const IconComponent = OverrideIcon ?? getChannelIconComponent(channel);
+    return (
+        <IconComponent
+            className={className}
+            data-testid={testId}
+        />
+    );
+}
 
 export default class ChannelList extends React.PureComponent<ChannelListProps, ChannelListState> {
     constructor(props: ChannelListProps) {
@@ -187,9 +201,9 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
         channelsToDisplay = channelsToDisplay.slice(startCount - 1, endCount);
 
         return channelsToDisplay.map((channel) => {
-            const ChannelIconComponent = getChannelIconComponent(channel);
             const iconToDisplay = (
-                <ChannelIconComponent
+                <ChannelRowIcon
+                    channel={channel}
                     className='channel-icon'
                     data-testid={`${channel.name}-archive-icon`}
                 />

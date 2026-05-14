@@ -15,7 +15,9 @@ import type {Column, Row} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
 
+import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getChannelIconComponent} from 'utils/channel_utils';
+import {compassIconForName} from 'utils/compass_icon_resolver';
 import {Constants} from 'utils/constants';
 
 import './channel_list.scss';
@@ -45,6 +47,19 @@ type State = {
     page: number;
 }
 const PAGE_SIZE = 10;
+
+function ChannelRowIcon({channel, className, 'data-testid': testId}: {channel: ChannelWithTeamData; className?: string; 'data-testid'?: string}) {
+    const overrideName = useChannelIconOverrideName(channel);
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+    const IconComponent = OverrideIcon ?? getChannelIconComponent(channel);
+    return (
+        <IconComponent
+            className={className}
+            data-testid={testId}
+        />
+    );
+}
+
 export default class ChannelList extends React.PureComponent<Props, State> {
     private pageLoaded = 0;
     public constructor(props: Props) {
@@ -185,9 +200,9 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         }
 
         return channelsToDisplay.map((channel) => {
-            const ChannelIconComponent = getChannelIconComponent(channel);
             const iconToDisplay = (
-                <ChannelIconComponent
+                <ChannelRowIcon
+                    channel={channel}
                     className='channel-icon'
                     data-testid={`${channel.name}-archive-icon`}
                 />

@@ -10,6 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {batchGetProfilesInGroupChannel, getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
 import Avatar from 'components/widgets/users/avatar';
 
 import {Constants} from 'utils/constants';
@@ -70,11 +71,7 @@ function DraftTitle({
         );
     }
 
-    let icon = <i className='icon icon-globe'/>;
-
-    if (channel.type === Constants.PRIVATE_CHANNEL) {
-        icon = <i className='icon icon-lock-outline'/>;
-    }
+    let icon: React.ReactNode = <ChannelTypeIcon channel={channel}/>;
 
     if (channel.type === Constants.DM_CHANNEL && teammate) {
         icon = (

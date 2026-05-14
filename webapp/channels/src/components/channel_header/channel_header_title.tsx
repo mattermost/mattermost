@@ -14,7 +14,9 @@ import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 
+import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getArchiveIconComponent} from 'utils/channel_utils';
+import {compassIconForName} from 'utils/compass_icon_resolver';
 import {Constants} from 'utils/constants';
 
 import ChannelHeaderTitleDirect from './channel_header_title_direct';
@@ -35,6 +37,7 @@ const ChannelHeaderTitle = ({
     remoteNames,
 }: Props) => {
     const channel = useSelector(getCurrentChannel);
+    const overrideName = useChannelIconOverrideName(channel ?? undefined);
 
     if (!channel) {
         return null;
@@ -46,13 +49,20 @@ const ChannelHeaderTitle = ({
 
     let archivedIcon;
     if (channelIsArchived) {
-        const ArchiveIcon = getArchiveIconComponent(channel.type);
-        archivedIcon = (
-            <ArchiveIcon
-                className='icon icon__archive channel-header-archived-icon svg-text-color'
-                data-testid='channel-header-archive-icon'
-            />
-        );
+        const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+        const IconComponent = OverrideIcon ?? getArchiveIconComponent(channel.type);
+
+        // When an override icon wins, strip archive chrome so the plugin icon stands on its own.
+        if (OverrideIcon) {
+            archivedIcon = <IconComponent data-testid='channel-header-archive-icon'/>;
+        } else {
+            archivedIcon = (
+                <IconComponent
+                    className='icon icon__archive channel-header-archived-icon svg-text-color'
+                    data-testid='channel-header-archive-icon'
+                />
+            );
+        }
     }
 
     let sharedIcon;

@@ -71,6 +71,7 @@ export type PluginsState = {
         SidebarChannelLinkLabel: SidebarChannelLinkLabelComponent[];
         SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuAction[];
         ChannelTypeOption: ChannelTypeOptionComponent[];
+        ChannelIconOverride: ChannelIconOverrideRegistration[];
         FilesWillUploadHook: FilesWillUploadHook[];
         DesktopNotificationHooks: DesktopNotificationHook[];
         MessageWillFormat: MessageWillFormatHook[];
@@ -418,6 +419,11 @@ export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
     text: PluggableText;
     action: (teamId: string) => void;
     icon: React.ReactNode;
+};
+
+export type ChannelIconOverrideRegistration = PluginComponent & {
+    matcher: (channel: Channel, state: GlobalState) => boolean;
+    iconName: IconGlyphTypes;
 };
 
 export type ChannelTypeOptionComponent = PluginComponent & {

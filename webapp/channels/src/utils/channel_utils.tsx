@@ -106,6 +106,26 @@ export function getChannelIconComponent(channel?: Channel) {
     return GlobeIcon;
 }
 
+/**
+ * Returns the appropriate channel icon CSS class name based on channel state and type.
+ * Handles archived channels (with lock for private), private channels, and public channels.
+ * If channel is undefined, returns 'icon-globe' (matching getChannelIconComponent(undefined) behavior).
+ *
+ * @param channel - The channel object
+ * @returns The appropriate icon class name
+ */
+export function getChannelIconClassName(channel?: Channel): string {
+    if (isArchivedChannel(channel)) {
+        return getArchiveIconClassName(channel?.type);
+    }
+
+    if (channel?.type === Constants.PRIVATE_CHANNEL) {
+        return 'icon-lock-outline';
+    }
+
+    return 'icon-globe';
+}
+
 type JoinPrivateChannelPromptResult = {
     data: {
         join: boolean;
