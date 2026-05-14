@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import {flexRender} from '@tanstack/react-table';
 import type {SortDirection, Table, Row} from '@tanstack/react-table';
 import classNames from 'classnames';
@@ -18,6 +17,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import {useListTableDnd} from './hooks/use_list_table_dnd';
 import {useListTableRowDnd} from './hooks/use_list_table_row_dnd';
 import {Pagination} from './pagination';
+import {RowDropIndicator} from './row_drop_indicator';
 
 import './list_table.scss';
 
@@ -152,7 +152,7 @@ function DraggableRow<T extends TableMandatoryTypes>({
                     className={classNames(`${cell.column.id}`, {
                         [PINNED_CLASS]: cell.column.getCanPin(),
                     })}
-                    style={{width: cell.column.getSize(), position: 'relative'}}
+                    style={{width: cell.column.getSize()}}
                 >
                     {tableMeta.onReorder && i === 0 && (
                         tableMeta.isRowDragDisabled?.(row.original.id) === true ? (
@@ -173,9 +173,14 @@ function DraggableRow<T extends TableMandatoryTypes>({
                         )
                     )}
                     {cell.getIsPlaceholder() ? null : flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    {closestEdge && <DropIndicator edge={closestEdge}/>}
                 </td>
             ))}
+            {closestEdge && rowElement && (
+                <RowDropIndicator
+                    rowElement={rowElement}
+                    edge={closestEdge}
+                />
+            )}
         </tr>
     );
 }
