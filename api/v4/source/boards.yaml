@@ -1,0 +1,73 @@
+  "/api/v4/boards":
+    post:
+      tags:
+        - boards
+      summary: Create a board channel
+      description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
+        Create a new board channel. Boards are channels with a kanban view backed
+        by linked properties (status and assignee by default), and live alongside
+        regular channels but cannot be created or modified through the
+        `/api/v4/channels` endpoints.
+
+        The request body is a `Channel` object whose `type` must be `BO`
+        (open board) or `BP` (private board). `team_id` and `display_name` are
+        required.
+
+        This endpoint is gated behind the `IntegratedBoards` feature flag. When
+        the flag is off, the route is not registered and requests return `404`.
+
+        ##### Permissions
+        Must have `create_public_channel` for type `BO`, or
+        `create_private_channel` for type `BP`, on the target team.
+      operationId: CreateBoard
+      requestBody:
+        required: true
+        description: Board channel to be created
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - team_id
+                - type
+                - display_name
+              properties:
+                team_id:
+                  type: string
+                  description: The team ID the board belongs to
+                type:
+                  type: string
+                  enum: [BO, BP]
+                  description: |
+                    The board channel type.
+                    * `BO` - open board (visible to all team members)
+                    * `BP` - private board (visible to invited members)
+                display_name:
+                  type: string
+                  description: Human-readable name shown in the UI. Must not be empty.
+                name:
+                  type: string
+                  description: URL-safe channel name. Auto-generated if omitted.
+                header:
+                  type: string
+                purpose:
+                  type: string
+      responses:
+        "201":
+          description: Board channel creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Channel"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
