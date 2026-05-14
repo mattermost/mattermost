@@ -108,18 +108,6 @@
     gap: 4px;
 }
 
-.rhs-post-properties-panel .property-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 1px 8px;
-    border-radius: 12px;
-    background: rgba(var(--center-channel-color-rgb), 0.08);
-    color: var(--center-channel-color);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 16px;
-}
-
 .rhs-post-properties-panel__editor {
     min-width: 240px;
     padding: 12px;
