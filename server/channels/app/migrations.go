@@ -844,13 +844,25 @@ func (s *Server) doSetupBoardsProperties() error {
 
 	for _, property := range propertiesToCreate {
 		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
-			return fmt.Errorf("failed to create boards property: %q, error: %w", property.Name, err)
+			// Another server may have won the race and created this field
+			// concurrently (e.g. parallel tests sharing a database pool).
+			// Tolerate that but propagate any other error.
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", property.Name); retryErr != nil {
+				return fmt.Errorf("failed to create boards property: %q, error: %w", property.Name, err)
+			}
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
 		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
-			return fmt.Errorf("failed to update boards property fields: %w", err)
+			// Another server may have won the race and updated these fields
+			// concurrently (e.g. parallel tests sharing a database pool).
+			// Both servers write the same expected values, so tolerate the
+			// conflict but propagate any other error.
+			var conflictErr *store.ErrConflict
+			if !errors.As(err, &conflictErr) {
+				return fmt.Errorf("failed to update boards property fields: %w", err)
+			}
 		}
 	}
 
