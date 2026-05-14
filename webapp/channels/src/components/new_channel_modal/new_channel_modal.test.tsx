@@ -616,6 +616,22 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         expect(screen.queryAllByRole('button').filter((b) => b.classList.contains('public-private-selector-button'))).toHaveLength(2);
     });
 
+    test('isAvailable throw - option dropped, modal renders, error logged', () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        renderWithContext(<NewChannelModal/>, stateWithOption({isAvailable: () => {
+            throw new Error('boom');
+        }}));
+
+        expect(screen.getByText('Public Channel')).toBeInTheDocument();
+        expect(screen.getByText('Private Channel')).toBeInTheDocument();
+        expect(screen.queryByText('Plugin Channel')).not.toBeInTheDocument();
+        expect(consoleSpy).toHaveBeenCalledWith(
+            expect.stringContaining('test-plugin:plugin-option'),
+            expect.any(Error),
+        );
+        consoleSpy.mockRestore();
+    });
+
     test('CreateResult: created - modal closes and switchToChannel dispatched', async () => {
         const onCreate = jest.fn().mockResolvedValue({status: 'created', channel: mockChannel});
         renderWithContext(<NewChannelModal/>, stateWithOption({onCreate}));

@@ -157,7 +157,15 @@ const NewChannelModal = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const availableOptions = useSelector(
-        (state: GlobalState) => (state.plugins.components.ChannelTypeOption || []).filter((o) => o.isAvailable(state)),
+        (state: GlobalState) => (state.plugins.components.ChannelTypeOption || []).filter((o) => {
+            try {
+                return o.isAvailable(state);
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error(`ChannelTypeOption ${o.pluginId}:${o.id} isAvailable threw`, e);
+                return false;
+            }
+        }),
         shallowEqual,
     );
 
@@ -303,9 +311,10 @@ const NewChannelModal = () => {
                     }
                 }
             } catch (e) {
+                const msg = `ChannelTypeOption ${activePluginOption.pluginId}:${activePluginOption.id} onCreate threw`;
                 // eslint-disable-next-line no-console
-                console.error(`ChannelTypeOption ${activePluginOption.pluginId}:${activePluginOption.id} onCreate threw`, e);
-                dispatch(logError({message: String(e)}));
+                console.error(msg, e);
+                dispatch(logError({message: `${msg}: ${String(e)}`}));
                 setServerError(formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'}));
             } finally {
                 setIsSubmitting(false);
