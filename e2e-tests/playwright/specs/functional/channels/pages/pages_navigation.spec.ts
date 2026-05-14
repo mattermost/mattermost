@@ -391,7 +391,7 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
     await expect(fullscreenButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await fullscreenButton.click();
 
-    // * Verify hierarchy panel is hidden in fullscreen
+    // * Hierarchy panel is hidden in fullscreen — the hamburger button replaces it
     await expect(hierarchyPanel).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // * Verify body has fullscreen-mode class
@@ -575,3 +575,150 @@ test('deep-links to a wiki page with no ?from= param', {tag: '@pages'}, async ({
     // * Verify URL did NOT get a ?from= silently appended (no channel was force-selected)
     await expect(page).toHaveURL(new RegExp(`/${team.name}/wiki/${wiki.id}/${rootPage.id}$`));
 });
+
+/**
+ * @objective Bug A2: Verify a control exists to reopen the hierarchy panel in fullscreen mode
+ *
+ * The desired behavior: when fullscreen hides the hierarchy panel, a hamburger/toggle button
+ * should appear so the user can reopen the panel. Currently the button is absent because
+ * wiki_view.tsx:543 does not account for the fullscreen case.
+ *
+ * Fix: change the render condition from `isPanesPanelCollapsed && wikiId` to
+ * `(isPanesPanelCollapsed || isFullscreen) && wikiId` in wiki_view.tsx:543.
+ */
+test('shows hamburger button to reopen tree in fullscreen mode', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki and page through UI
+    await createWikiThroughUI(page, uniqueName('Fullscreen Hamburger Wiki'));
+    await createPageThroughUI(page, 'Hamburger Test Page', 'Hamburger test content');
+
+    // # Enter fullscreen
+    const fullscreenButton = page.locator('[data-testid="wiki-page-fullscreen-button"]');
+    await expect(fullscreenButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await fullscreenButton.click();
+
+    // * Verify in fullscreen mode
+    await expect(async () => {
+        const bodyClassList = await page.evaluate(() => document.body.className);
+        expect(bodyClassList).toContain('fullscreen-mode');
+    }).toPass({timeout: SHORT_WAIT});
+
+    // * Verify hierarchy panel is hidden in fullscreen (current bug state)
+    const hierarchyPanel = getHierarchyPanel(page);
+    await expect(hierarchyPanel).not.toBeVisible({timeout: WEBSOCKET_WAIT});
+
+    // * Verify a control exists to reopen the hierarchy panel
+    const reopenControl = page
+        .locator(
+            '[data-testid="hierarchy-open-button"], .pages-panel-toggle, [aria-label*="open"], [aria-label*="navigation"]',
+        )
+        .first();
+    await expect(reopenControl).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Click the reopen control
+    await reopenControl.click();
+
+    // * Verify hierarchy panel becomes visible after clicking the reopen control
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
+});
+
+/**
+ * @objective Bug A13: Verify that a copied page link navigates to the page, not the channel.
+ *
+ * NOTE: This test will fail until wiki_view.tsx replaces `currentTeam?.name || 'team'` with
+ * `getTeamNameFromPath(location.pathname)`. Currently the copied link may contain the literal
+ * string "team" instead of the actual team name, routing to the channel view instead.
+ */
+test('copied page link navigates to the page not the channel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki and page through UI
+    await createWikiThroughUI(page, uniqueName('Copy Link Wiki'));
+    await createPageThroughUI(page, 'Copy Link Page', 'Copy link page content');
+
+    // # Grant clipboard permissions so we can read the copied URL
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    // # Open the page actions menu (3-dot / copy link button)
+    const actionsMenu = page
+        .locator('[data-testid="wiki-page-actions-menu"], [data-testid="page-header-menu"]')
+        .first();
+    await expect(actionsMenu).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await actionsMenu.click();
+
+    // # Click the "Copy link" menu item
+    const copyLinkItem = page
+        .locator('[data-testid="copy-link"], button:text("Copy link"), [role="menuitem"]:text("Copy link")')
+        .first();
+    await expect(copyLinkItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await copyLinkItem.click();
+
+    // # Read the URL from the clipboard
+    const copiedUrl = await page.evaluate(() => navigator.clipboard.readText());
+
+    // * Verify the copied URL contains /wiki/ (not a bare channel path)
+    expect(copiedUrl).toContain('/wiki/');
+
+    // # Navigate to the copied URL
+    await page.goto(copiedUrl);
+    await page.waitForLoadState('networkidle');
+
+    // * Verify the URL still points at a wiki page
+    expect(page.url()).toContain('/wiki/');
+
+    // * Verify the page content is visible
+    const viewer = getPageViewerContent(page);
+    await expect(viewer).toContainText('Copy link page content', {timeout: PAGE_LOAD_TIMEOUT});
+});
+
+/**
+ * @objective Bug B12: Verify Ctrl+\ (Cmd+\ on Mac) collapses and expands the LHS sidebar
+ * from within the wiki view without being swallowed by the TipTap editor's keydown handler.
+ */
+test(
+    'ctrl+backslash collapses and expands LHS sidebar from within wiki view',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+
+        // # Create a channel and wiki
+        const channelName = uniqueName('sidebar-toggle');
+        const channel = await createTestChannel(adminClient, team.id, channelName);
+
+        const {page: browserPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        const wikiName = uniqueName('sidebar-wiki');
+        await createWikiThroughUI(browserPage, wikiName);
+
+        const pageName = uniqueName('sidebar-page');
+        await createPageThroughUI(browserPage, pageName, 'Sidebar toggle page content');
+
+        // * Assert the LHS sidebar is initially visible
+        const lhsSidebar = browserPage.locator('#SidebarContainer, .sidebar--left, [data-testid="lhs"]').first();
+        await expect(lhsSidebar).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Click inside the wiki editor/viewer area to focus within wiki view
+        const wikiArea = getPageViewerContent(browserPage);
+        await wikiArea.click();
+
+        // # Press Ctrl+\ (Cmd+\ on Mac) to collapse the LHS sidebar
+        const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+        await browserPage.keyboard.press(`${modifier}+\\`);
+        await browserPage.waitForTimeout(SHORT_WAIT);
+
+        // * Assert the LHS sidebar is collapsed (not visible)
+        await expect(lhsSidebar).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Press Ctrl+\ again to expand the LHS sidebar
+        await browserPage.keyboard.press(`${modifier}+\\`);
+        await browserPage.waitForTimeout(SHORT_WAIT);
+
+        // * Assert the LHS sidebar is visible again
+        await expect(lhsSidebar).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    },
+);

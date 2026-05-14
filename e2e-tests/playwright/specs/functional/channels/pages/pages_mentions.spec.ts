@@ -13,6 +13,8 @@ import {
     getPageViewerContent,
     selectMentionFromDropdown,
     clickPageEditButton,
+    selectTextInEditor,
+    openInlineCommentModal,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
     SHORT_WAIT,
@@ -455,4 +457,92 @@ test('handles mention removal and addition correctly', {tag: '@pages'}, async ({
     secondUserNotifications = await pw.waitForNotification(secondMentionedPage);
     expect(secondUserNotifications.length).toBeGreaterThan(secondUserInitialCount);
     expect(secondUserNotifications.length).toBeGreaterThanOrEqual(1);
+});
+
+/**
+ * @objective Verify that an @-mention inside a page inline comment badges the recipient's Threads view
+ * and causes the page comment thread to appear in their Threads inbox.
+ *
+ * @precondition
+ * Two users must be members of the same team and channel.
+ *
+ * NOTE: This test will fail until processPostMentions is wired for PostTypePageComment.
+ * The mention-notification path from CreatePageComment → CreatePost does not currently fire
+ * processPostMentions for page comment posts, so the Threads badge and inbox entry are
+ * never populated for the mentioned user.
+ */
+test('at-mention in page comment badges the recipient threads view', {tag: '@pages'}, async ({pw}) => {
+    const {team, user: commenterUser, adminClient} = await pw.initSetup();
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    // # Create a second user who will be mentioned in the comment
+    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
+
+    // # Add mentioned user to the channel so they can be @-mentioned and receive notifications
+    await adminClient.addToChannel(mentionedUser.id, channel.id);
+
+    // # Login as the commenter and navigate to the channel
+    const {page: commenterPage} = await loginAndNavigateToChannel(pw, commenterUser, team.name, channel.name);
+
+    const pageTitle = uniqueName('Comment Mention Page');
+
+    // # Create a wiki and a page, then publish it
+    await createWikiThroughUI(commenterPage, uniqueName('Comment Mention Wiki'));
+    const newPageButton = getNewPageButton(commenterPage);
+    await newPageButton.click();
+    await fillCreatePageModal(commenterPage, pageTitle);
+
+    const editor = await getEditorAndWait(commenterPage);
+    await typeInEditor(commenterPage, 'Review this section.');
+
+    await publishPage(commenterPage);
+
+    // * Verify page is published
+    const pageContent = getPageViewerContent(commenterPage);
+    await expect(pageContent).toBeVisible();
+
+    // # Enter edit mode to add an inline comment with @-mention
+    await clickPageEditButton(commenterPage);
+    await expect(editor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Select text in the editor so the formatting bar bubble appears
+    await selectTextInEditor(commenterPage);
+
+    // # Open the inline comment RHS
+    const createCommentContainer = await openInlineCommentModal(commenterPage);
+
+    // # Type the @-mention in the comment input (type, not fill, to trigger dropdown)
+    const commentTextArea = createCommentContainer.locator('textarea, [contenteditable="true"]').first();
+    await commentTextArea.click();
+    await commentTextArea.type(`@${mentionedUser.username}`);
+
+    // # Select the mentioned user from the dropdown
+    await selectMentionFromDropdown(commenterPage, mentionedUser.username);
+
+    // # Submit the comment
+    await commentTextArea.press('Control+Enter');
+    await commenterPage.waitForTimeout(WEBSOCKET_WAIT);
+
+    // # Publish the page with the comment
+    await publishPage(commenterPage);
+    await expect(pageContent).toBeVisible();
+
+    // # Wait for notification to propagate
+    await commenterPage.waitForTimeout(WEBSOCKET_WAIT);
+
+    // # Login as the mentioned user
+    const {page: mentionedPage} = await loginAndNavigateToChannel(pw, mentionedUser, team.name, channel.name);
+
+    // * Assert: mentioned user sees a badge/unread indicator in their Threads view
+    const threadsBadge = mentionedPage
+        .locator('.sidebar-item .badge, [data-testid="threads-badge"], .mentions-count, [aria-label*="mentions"]')
+        .first();
+    await expect(threadsBadge).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Navigate to the Threads inbox
+    await mentionedPage.locator('a[href*="/threads"]').click();
+    await mentionedPage.waitForLoadState('networkidle');
+
+    // * Assert: the page comment thread appears in the Threads inbox
+    await expect(mentionedPage.locator('body')).toContainText(pageTitle, {timeout: ELEMENT_TIMEOUT});
 });

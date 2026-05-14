@@ -701,12 +701,7 @@ test.skip(
 
         // * Verify conflict modal appears
         const conflictModal = user2Page.locator('[data-testid="conflict-warning-modal"]').first();
-        await pw.waitUntil(
-            async () => {
-                return await conflictModal.isVisible();
-            },
-            {timeout: HIERARCHY_TIMEOUT},
-        );
+        await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
         // # Click View Their Changes button and wait for new tab
         const viewChangesButton = conflictModal.getByRole('button', {name: /View.*Changes/i});
@@ -800,12 +795,7 @@ test(
 
         // * Verify conflict modal appears
         const conflictModal = user2Page.locator('[data-testid="conflict-warning-modal"]').first();
-        await pw.waitUntil(
-            async () => {
-                return await conflictModal.isVisible();
-            },
-            {timeout: HIERARCHY_TIMEOUT},
-        );
+        await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
         // # Select "Continue editing my draft" option
         const continueOption = conflictModal.getByRole('button', {name: 'Continue editing my draft'});
@@ -902,12 +892,7 @@ test(
 
         // * Verify conflict modal appears
         const conflictModal = user2Page.locator('[data-testid="conflict-warning-modal"]').first();
-        await pw.waitUntil(
-            async () => {
-                return await conflictModal.isVisible();
-            },
-            {timeout: HIERARCHY_TIMEOUT},
-        );
+        await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
         // # Click "Back to editing" button
         const backButton = conflictModal.getByRole('button', {name: /Back to editing/i});
@@ -931,5 +916,199 @@ test(
         await expect(editorAfter).toContainText('additional changes');
 
         await user2Page.close();
+    },
+);
+
+/**
+ * @objective Verify "Continue editing" after conflict does not re-trigger conflict on next publish
+ *
+ * NOTE: This test will fail until onContinueEditing updates ORIGINAL_PAGE_EDIT_AT to
+ * conflictPage.update_at in hooks.ts. Currently a no-op, so every subsequent publish
+ * re-detects the same conflict.
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ */
+test(
+    'continue editing after conflict does not re-trigger conflict on next publish',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
+
+        // # User 1 creates wiki and page
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
+
+        const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
+        const pageTitle = 'Continue Editing Loop Test';
+        const originalContent = 'Original content';
+        const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
+
+        // # User 1 enters edit mode
+        const pageNode1 = getPageTreeNodeByTitle(page1, pageTitle);
+        await pageNode1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNode1.click();
+        await page1.waitForLoadState('networkidle');
+        await expect(getPageViewerContent(page1)).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await enterEditMode(page1);
+
+        // # User 1 makes a change and publishes
+        const editor1 = await getEditorAndWait(page1);
+        await editor1.click();
+        await editor1.pressSequentially(' - User 1 changes');
+        await publishPage(page1);
+
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+
+        const {page: user2Page} = await pw.testBrowser.login(user2);
+
+        // # User 2 navigates to page and enters edit mode
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
+        await user2Page.goto(wikiPageUrl);
+        await user2Page.waitForLoadState('networkidle');
+
+        const user2HierarchyPanel = getHierarchyPanel(user2Page);
+        await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+
+        const pageNode2 = getPageTreeNodeByTitle(user2Page, pageTitle);
+        await pageNode2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNode2.click();
+        await expect(getPageViewerContent(user2Page)).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await enterEditMode(user2Page);
+
+        // # User 2 makes a different change
+        const editor2 = await getEditorAndWait(user2Page);
+        await editor2.click();
+        await editor2.clear();
+        await editor2.pressSequentially('User 2 draft changes');
+        await waitForAutoSave(user2Page);
+
+        // # User 2 tries to publish — should get conflict modal (User 1 already published)
+        const publishButton2 = getPublishButton(user2Page);
+        await publishButton2.click();
+        await user2Page.waitForLoadState('networkidle');
+
+        // * Verify conflict modal appears (first conflict)
+        const conflictModal = user2Page.locator('[data-testid="conflict-warning-modal"]').first();
+        await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+
+        // # User 2 clicks "Continue editing my draft" option then confirms "Continue editing"
+        const continueOption = conflictModal.getByRole('button', {name: 'Continue editing my draft'});
+        await continueOption.click();
+        await user2Page.waitForTimeout(SHORT_WAIT);
+
+        const continueButton = conflictModal.getByRole('button', {name: 'Continue editing', exact: true});
+        await continueButton.click();
+        await user2Page.waitForTimeout(SHORT_WAIT);
+
+        // * Verify modal closes and User 2 is still in edit mode
+        await expect(conflictModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(publishButton2).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # User 2 immediately publishes again without making any new edits
+        await publishButton2.click();
+        await user2Page.waitForLoadState('networkidle');
+
+        // * After fix: conflict modal should NOT reappear — ORIGINAL_PAGE_EDIT_AT was updated
+        // by onContinueEditing to the conflicting page's update_at, so the baseline is now current.
+        await expect(conflictModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        await user2Page.close();
+    },
+);
+
+/**
+ * @objective Verify "Review and merge" stays on the conflict modal and shows an inline diff
+ * instead of navigating away to the published page.
+ *
+ * NOTE: This test will fail until onViewChanges is fixed to show an inline diff panel
+ * instead of calling history.push. Currently navigates away from the page on click.
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ */
+test(
+    'review and merge shows inline diff inside modal not navigation away',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
+
+        // # User A creates wiki and page, publishes it
+        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
+
+        const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
+        const pageTitle = 'Review And Merge Test Page';
+        const originalContent = 'Original content';
+        const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
+
+        // # User A enters edit mode and opens page
+        const pageNode1 = getPageTreeNodeByTitle(page1, pageTitle);
+        await pageNode1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNode1.click();
+        await page1.waitForLoadState('networkidle');
+        await expect(getPageViewerContent(page1)).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await enterEditMode(page1);
+
+        // # Create User B and add to channel
+        const {user: userB} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+
+        const {page: userBPage} = await pw.testBrowser.login(userB);
+
+        // # User B navigates to the page and enters edit mode
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
+        await userBPage.goto(wikiPageUrl);
+        await userBPage.waitForLoadState('networkidle');
+
+        const userBHierarchyPanel = getHierarchyPanel(userBPage);
+        await userBHierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+
+        const pageNodeB = getPageTreeNodeByTitle(userBPage, pageTitle);
+        await pageNodeB.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNodeB.click();
+        await expect(getPageViewerContent(userBPage)).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await enterEditMode(userBPage);
+
+        // # User B types their draft content
+        const userBDraftText = 'User B draft text';
+        const editorB = await getEditorAndWait(userBPage);
+        await editorB.click();
+        await editorB.clear();
+        await editorB.pressSequentially(userBDraftText);
+        await waitForAutoSave(userBPage);
+
+        // # User A simultaneously edits and publishes an update
+        const editor1 = await getEditorAndWait(page1);
+        await editor1.click();
+        await editor1.clear();
+        await editor1.pressSequentially('User A update');
+        await publishPage(page1);
+
+        // # User B tries to publish — gets conflict modal
+        const publishButtonB = getPublishButton(userBPage);
+        await publishButtonB.click();
+        await userBPage.waitForLoadState('networkidle');
+
+        const conflictModal = userBPage.locator('[data-testid="conflict-warning-modal"]').first();
+        await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+
+        // # User B clicks "Review and merge" option
+        const urlBefore = userBPage.url();
+        const reviewAndMergeOption = conflictModal.getByRole('button', {name: /Review and merge|Review changes/i});
+        await reviewAndMergeOption.click();
+        await userBPage.waitForTimeout(SHORT_WAIT);
+
+        // * After fix: URL must not change and modal must remain visible
+        await expect(conflictModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(userBPage).toHaveURL(urlBefore, {timeout: ELEMENT_TIMEOUT});
+
+        // * After fix: diff panel shows both versions simultaneously
+        const diffPanel = userBPage.locator('[data-testid="conflict-diff-panel"], .conflict-diff-panel').first();
+        await expect(diffPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(diffPanel).toContainText('User B draft text');
+        await expect(diffPanel).toContainText('User A update');
+
+        await userBPage.close();
     },
 );

@@ -2290,7 +2290,7 @@ export async function addReplyToCommentThread(page: Page, rhs: Locator, replyTex
 }
 
 /**
- * Opens the Wiki RHS via the toggle comments button (shows Page Comments and All Threads tabs)
+ * Opens the Wiki RHS via the toggle comments button (shows Page Comments and Wiki Threads tabs)
  * This is different from clicking a comment marker which opens a single thread view
  * @param page - Playwright page object
  * @returns The Wiki RHS locator
@@ -2310,12 +2310,12 @@ export async function openWikiRHSViaToggleButton(page: Page): Promise<Locator> {
  * Switches to a specific tab in the Wiki RHS
  * @param page - Playwright page object
  * @param rhs - Wiki RHS locator
- * @param tabName - Name of the tab ('Page Comments' or 'All Threads')
+ * @param tabName - Name of the tab ('Page Comments' or 'Wiki Threads')
  */
 export async function switchToWikiRHSTab(
     page: Page,
     rhs: Locator,
-    tabName: 'Page Comments' | 'All Threads',
+    tabName: 'Page Comments' | 'Wiki Threads',
 ): Promise<void> {
     const tab = rhs.getByText(tabName, {exact: true});
     await expect(tab).toBeVisible();

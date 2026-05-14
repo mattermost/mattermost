@@ -6,6 +6,7 @@ import {
     createWikiThroughUI,
     getNewPageButton,
     fillCreatePageModal,
+    getEditor,
     getEditorAndWait,
     typeInEditor,
     selectTextInEditor,
@@ -1028,4 +1029,53 @@ test('divider persists after publish', {tag: '@pages'}, async ({pw, sharedPagesS
     const pageContent = getPageViewerContent(page);
     const hrElement = pageContent.locator('hr');
     await expect(hrElement).toBeVisible({timeout: ELEMENT_TIMEOUT});
+});
+
+// ============================================================================
+// Bug A12: Tab/Shift+Tab in bullet list indents/outdents instead of shifting focus
+// ============================================================================
+
+/**
+ * @objective Verify Tab indents a bullet list item and Shift+Tab outdents it,
+ *            and that focus stays in the editor throughout.
+ */
+test('tab indents bullet list item and shift-tab outdents it', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki and new draft page
+    await createWikiThroughUI(page, uniqueName('Tab Indent Wiki'));
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Tab Indent Test');
+
+    // # Open editor and create a bullet list item by typing "- " (TipTap auto-converts to bullet)
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await page.keyboard.type('- List item');
+    await page.waitForTimeout(UI_MICRO_WAIT);
+
+    // # Press Tab to indent the bullet
+    await page.keyboard.press('Tab');
+    await page.waitForTimeout(UI_MICRO_WAIT);
+
+    // * Assert the bullet is now nested (ul > li > ul > li structure)
+    const editorLocator = getEditor(page);
+    const nestedItem = editorLocator.locator('ul li ul li').first();
+    await expect(nestedItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Assert focus stayed in the editor (Tab did not shift focus away)
+    await expect(editorLocator).toBeFocused();
+
+    // # Press Shift+Tab to outdent back to top level
+    await page.keyboard.press('Shift+Tab');
+    await page.waitForTimeout(UI_MICRO_WAIT);
+
+    // * Assert the nested list is gone (back to top-level bullet)
+    const nestedItemCount = await editorLocator.locator('ul li ul li').count();
+    expect(nestedItemCount).toBe(0);
+
+    // * Assert focus is still in the editor after outdenting
+    await expect(editorLocator).toBeFocused();
 });

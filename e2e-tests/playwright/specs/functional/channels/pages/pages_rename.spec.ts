@@ -21,6 +21,7 @@ import {
     uniqueName,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
+    ELEMENT_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -318,4 +319,54 @@ test('verifies content is not replaced with title after rename', {tag: '@pages'}
     expect(contentText).toContain('very long piece of content');
     expect(contentText).toContain('multiple sentences');
     expect(contentText).toContain('accidentally replaced');
+});
+
+/**
+ * @objective Verify that the page header 3-dot menu does not expose a redundant "Rename" option
+ * since the page title is directly editable inline.
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ */
+test('page header 3-dot menu does not have a Rename option', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('No Rename Menu Channel'));
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    await createWikiThroughUI(page, uniqueName('No Rename Menu Wiki'));
+
+    // # Create a page and publish it
+    const pageTitle = 'Page Without Rename Option';
+    await createPageThroughUI(page, pageTitle, 'Content for rename menu test');
+    await publishCurrentPage(page);
+
+    // # Wait for the page viewer to be visible after publish
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // # Open the page header 3-dot actions menu
+    const actionsMenuButton = page
+        .locator(
+            '[data-testid="page-actions-menu"], [data-testid="wiki-page-actions-menu-button"], [aria-label*="actions"], [aria-label*="Actions"]',
+        )
+        .first();
+    await actionsMenuButton.click();
+
+    // * Assert "Rename" is NOT present in the menu
+    const renameOption = page.locator(
+        '[data-testid="rename-page"], [role="menuitem"]:text("Rename"), button:text("Rename")',
+    );
+    await expect(renameOption).not.toBeVisible();
+
+    // # Close the menu
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // * Assert the inline page title is directly editable instead
+    const inlineTitle = page
+        .locator('[data-testid="page-viewer-title"], [data-testid="page-title"], .wiki-page-title, h1.page-title')
+        .first();
+    await inlineTitle.click();
+    await expect(inlineTitle.locator('input, [contenteditable="true"]')).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });

@@ -347,7 +347,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, pageHydrated, activeTab, focusedInl
                 </Tab>
                 <Tab
                     eventKey='all_threads'
-                    title={formatMessage({id: 'wiki_rhs.tab.all_threads', defaultMessage: 'All Threads'})}
+                    title={formatMessage({id: 'wiki_rhs.tab.all_threads', defaultMessage: 'Wiki Threads'})}
                     tabClassName='WikiRHS__tab'
                 >
                     <div

@@ -20,6 +20,7 @@ import {
     fillCreatePageModal,
     typeInEditor,
     publishPage,
+    enterEditMode,
     getEditorAndWait,
     selectTextInEditor,
     clickPageEditButton,
@@ -2132,3 +2133,109 @@ test(
         await expect(imageAfterReload).toBeVisible({timeout: ELEMENT_TIMEOUT});
     },
 );
+
+/**
+ * @objective Bug A25: Verify Ctrl+A (Cmd+A on Mac) selects all content within the editor
+ * only, not the entire browser page. Fix: intercept Ctrl+A in handleKeyDown and call
+ * editor.commands.selectAll() + e.preventDefault().
+ */
+test('ctrl+a selects within editor only, not whole app', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    // # Log in and navigate to the channel
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create a wiki and a new draft page
+    const wikiName = uniqueName('wiki-a25');
+    await createWikiThroughUI(page, wikiName);
+
+    const pageName = uniqueName('page-a25');
+    await createPageThroughUI(page, pageName);
+    await enterEditMode(page);
+
+    // # Type several paragraphs of content
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await page.keyboard.type('First paragraph of content here.');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('Second paragraph of content here.');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('Third paragraph of content here.');
+
+    // # Click at the beginning of the editor (cursor near top)
+    await editor.click({position: {x: 5, y: 5}});
+    await page.waitForTimeout(UI_MICRO_WAIT);
+
+    // # Press Ctrl+A (Cmd+A on Mac)
+    await pressModifierKey(page, 'a');
+
+    // * Assert that the selection is contained within .ProseMirror
+    const selectionContained = await page.evaluate(() => {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+            return false;
+        }
+        const range = selection.getRangeAt(0);
+        const editorEl = document.querySelector('.ProseMirror');
+        return editorEl ? editorEl.contains(range.commonAncestorContainer) : false;
+    });
+    expect(selectionContained).toBe(true);
+
+    // * Assert that the selected text contains editor content but not surrounding UI
+    const selectedText = await page.evaluate(() => {
+        const selection = window.getSelection();
+        return selection ? selection.toString() : '';
+    });
+
+    expect(selectedText).toContain('First paragraph of content here.');
+    expect(selectedText).toContain('Third paragraph of content here.');
+});
+
+/**
+ * @objective Bug A28: Verify that adding a new block at the bottom of a long page
+ * automatically scrolls the new block into view. Fix: add editor.commands.scrollIntoView()
+ * in the TipTap onUpdate callback after onContentChange.
+ */
+test('new block added at bottom of long page scrolls into view', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, channel} = sharedPagesSetup;
+
+    // # Log in and navigate to the channel
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create a wiki and a new draft page
+    const wikiName = uniqueName('wiki-a28');
+    await createWikiThroughUI(page, wikiName);
+
+    const pageName = uniqueName('page-a28');
+    await createPageThroughUI(page, pageName);
+    await enterEditMode(page);
+
+    // # Fill the editor with enough content to make the page scrollable
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    for (let i = 1; i <= 30; i++) {
+        await page.keyboard.type(`Paragraph ${i} content here.`);
+        await page.keyboard.press('Enter');
+    }
+
+    // # Scroll the page back to the top
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(UI_MICRO_WAIT);
+
+    // # Press Enter to add a new block at the bottom (cursor is at the end)
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('New block at the bottom.');
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // * Assert the new block/cursor is in the viewport
+    const cursorInView = await page.evaluate(() => {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+            return false;
+        }
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        return rect.top >= 0 && rect.bottom <= window.innerHeight;
+    });
+    expect(cursorInView).toBe(true);
+});

@@ -11,6 +11,7 @@ import {
     createWikiThroughUI,
     getNewPageButton,
     fillCreatePageModal,
+    getEditor,
     getEditorAndWait,
     publishPage,
     loginAndNavigateToChannel,
@@ -1207,5 +1208,98 @@ test(
         await page.keyboard.press('End');
         await page.keyboard.type(' Editor still works after AI action.');
         await expect(editor).toContainText('Editor still works after AI action.');
+    },
+);
+
+/**
+ * @objective Verify AI extract handwriting inserts text inline in the current editor
+ * instead of creating a new draft page.
+ *
+ * @precondition
+ * AI plugin is enabled with vision-capable agent.
+ *
+ * @bug A31
+ * handleImageAIAction (use_image_ai.tsx:356) currently calls createPageAction() which
+ * always opens a new draft page. The fix should call editor.commands.insertContent()
+ * to place the extracted nodes at the current cursor position.
+ */
+test(
+    'AI extract inserts text inline in editor not as a new draft page',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient, channel} = sharedPagesSetup;
+
+        // # Configure AI plugin if enabled
+        if (!shouldSkipAITests()) {
+            await configureAIPlugin(adminClient);
+        }
+
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Check AI availability before proceeding
+        const hasAIPlugin = await checkAIPluginAvailability(page);
+        if (!hasAIPlugin) {
+            test.skip(true, 'AI plugin not configured - skipping inline insert test');
+            return;
+        }
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, uniqueName('Inline Insert Wiki'));
+
+        // # Create new draft page
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Inline Insert Test');
+
+        // # Wait for editor
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+
+        // # Upload image using MINIMAL_PNG_BASE64 pattern (already defined in file)
+        await uploadImageIntoEditor(page);
+        await page.waitForTimeout(WEBSOCKET_WAIT);
+
+        // # Select the image to trigger the AI bubble menu
+        await selectImageInEditor(page);
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
+
+        // # Open the AI menu
+        const menuButton = getImageAIMenuButton(page);
+        await expect(menuButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Check if vision is available
+        const isDisabled = await menuButton.isDisabled();
+        if (isDisabled) {
+            test.skip(true, 'Vision capability not available - skipping inline insert test');
+            return;
+        }
+
+        await menuButton.click();
+        await page.waitForTimeout(UI_MICRO_WAIT * 2);
+
+        // # Click "Extract handwriting" from the AI bubble menu
+        const extractOption = page.locator('text=Extract handwriting');
+        await expect(extractOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await extractOption.click();
+
+        // # Wait for extraction to complete
+        await page.waitForTimeout(WEBSOCKET_WAIT);
+
+        // * Post-fix: extracted text should appear inline in the current editor
+        const editorLocator = getEditor(page);
+        await expect(editorLocator).toContainText(/extracted|handwriting|text/i, {timeout: 15000});
+
+        // * Post-fix: no new draft page should have been created — URL must not change to /pages/new
+        const currentUrl = page.url();
+        expect(currentUrl).not.toContain('/pages/new');
+
+        // * Post-fix: the hierarchy page count should not have increased (no navigation away)
+        // Verify we are still on the same page by checking the editor is still present
+        await expect(editorLocator).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Post-fix: "Go to draft" should not be the primary (or only) action presented
+        const goToDraftButton = page.locator('button:has-text("Go to draft"), button:has-text("Go to page")');
+        const goToDraftCount = await goToDraftButton.count();
+        expect(goToDraftCount).toBe(0);
     },
 );

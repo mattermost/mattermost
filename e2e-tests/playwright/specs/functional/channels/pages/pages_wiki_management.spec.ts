@@ -627,3 +627,33 @@ test(
         expect(accessibleComment!.message).toBe(inlineCommentText);
     },
 );
+
+/**
+ * @objective Verify the "add wiki" entry point has a meaningful label identifying it as "Add wiki"
+ * @jira_ticket MM-A30
+ */
+test(
+    'add wiki button has visible label or tooltip identifying it as Add wiki',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+
+        // # Create a fresh channel that has no wiki yet
+        const channelName = uniqueName('no-wiki-channel');
+        const channel = await createTestChannel(adminClient, team.id, channelName);
+
+        // # Navigate to the channel
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Locate the button/tab that adds a wiki to a channel with no wiki yet
+        const addWikiButton = page
+            .locator(
+                '[data-testid="wiki-tab-add"], button[aria-label*="wiki" i], button:text-is("Add wiki"), .wiki-tab-add-button, [aria-label="Add content"]',
+            )
+            .first();
+
+        // * Verify the add-wiki entry point is visible and mentions "wiki" via accessible name or text
+        await expect(addWikiButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(addWikiButton).toHaveAccessibleName(/wiki/i);
+    },
+);

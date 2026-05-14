@@ -23,33 +23,64 @@ import {
 } from './test_helpers';
 
 /**
- * @objective Verify default page status is set to 'in_progress' when creating a new page without selecting status
+ * @objective Verify publishing a page without selecting a status does NOT auto-flip it to "In progress"
+ * @bug EnrichPagesWithProperties defaults status="In progress" when no property value row exists (A11)
  */
-test(
-    'displays default in_progress status for newly published pages',
-    {tag: '@pages'},
-    async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
+test('does not auto-flip status to In progress on first publish', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
 
-        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-        // # Create wiki through UI
-        await createWikiThroughUI(page, uniqueName('Status Wiki'));
+    // # Create wiki through UI
+    await createWikiThroughUI(page, uniqueName('Status Wiki'));
 
-        // # Create and publish a page
-        const pageName = 'Test Page';
-        await createPageThroughUI(page, pageName, 'Test content');
+    // # Create and publish a page WITHOUT touching the status selector
+    const pageName = 'Test Page';
+    await createPageThroughUI(page, pageName, 'Test content');
 
-        // * Verify status is visible in page viewer
-        const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
-        await expect(statusDisplay).toBeVisible();
+    // * Verify status display is visible in page viewer
+    const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    await expect(statusDisplay).toBeVisible();
 
-        // * Verify default status
-        const statusText = await statusDisplay.textContent();
-        expect(statusText?.trim()).toBe(DEFAULT_PAGE_STATUS);
-    },
-);
+    // * Verify status was NOT silently set to "In progress" by the server
+    const statusText = await statusDisplay.textContent();
+    expect(statusText?.trim()).not.toBe('In progress');
+
+    // # Create a second page and explicitly set "Rough draft" before publishing
+    await createWikiThroughUI(page, uniqueName('Rough Draft Wiki'));
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Rough Draft Page');
+    await page.waitForLoadState('networkidle');
+
+    const editor = getEditor(page);
+    await editor.click();
+    await editor.fill('Content with explicit rough draft status');
+
+    await waitForAutoSave(page);
+
+    // # Explicitly select "Rough draft" before publishing
+    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    await expect(statusSelector).toBeVisible();
+    await statusSelector.click();
+
+    const statusMenu = page.locator('.selectable-select-property__menu');
+    await expect(statusMenu).toBeVisible();
+
+    const roughDraftOption = page.locator('.selectable-select-property__option', {hasText: 'Rough draft'});
+    const autoSaveDone = startWatchForAutoSave(page);
+    await roughDraftOption.click();
+    await autoSaveDone;
+
+    await publishCurrentPage(page);
+
+    // * Verify status is still "Rough draft" after publish (not overwritten by server default)
+    const roughDraftStatus = page.locator('[data-testid="page-viewer-status"]');
+    await expect(roughDraftStatus).toBeVisible();
+    const roughDraftText = await roughDraftStatus.textContent();
+    expect(roughDraftText?.trim()).toBe('Rough draft');
+});
 
 /**
  * @objective Verify user can change page status in draft mode and it persists after publishing
@@ -579,3 +610,169 @@ test('persists status when updating existing page through draft', {tag: '@pages'
 
     expect(statusLabel).toBe('Rough draft');
 });
+
+/**
+ * @objective Verify that publishing a child page whose parent is still a draft shows a LOCAL error,
+ *            not a global top-of-page error banner (A27)
+ * @bug hooks.ts dispatches logError with LogErrorBarMode.Always, forcing a global banner instead of
+ *      scoping the error to the page/editor area.
+ */
+test(
+    'shows local error when publishing child of unpublished parent, not global banner',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
+
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, uniqueName('Parent Draft Wiki'));
+
+        // # Create a parent page but do NOT publish it — leave as draft
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Parent Draft Page');
+        await page.waitForLoadState('networkidle');
+
+        const editor = getEditor(page);
+        await editor.click();
+        await editor.fill('Parent page content — draft only');
+
+        await waitForAutoSave(page);
+
+        // # Without publishing the parent, create a child page via the hierarchy panel context menu
+        // Right-click the parent node in the hierarchy panel and select "New subpage"
+        const parentNode = page.locator('[data-testid="hierarchy-item"]', {hasText: 'Parent Draft Page'});
+        await parentNode.hover();
+        await parentNode.click({button: 'right'});
+
+        const newSubpageOption = page.locator('[data-testid="context-menu-new-subpage"], [role="menuitem"]', {
+            hasText: /new subpage|add subpage|create subpage/i,
+        });
+        await newSubpageOption.click();
+
+        await fillCreatePageModal(page, 'Child Page');
+        await page.waitForLoadState('networkidle');
+
+        const childEditor = getEditor(page);
+        await childEditor.click();
+        await childEditor.fill('Child page content');
+
+        await waitForAutoSave(page);
+
+        // # Attempt to publish the child page (parent is still a draft — should fail)
+        await publishCurrentPage(page);
+
+        // * Assert: an error message is visible near the page/editor (local scope)
+        // TODO: verify exact selector for inline error after fix ships — use broad selector for now
+        const localError = page.locator('.page-error, [data-testid="page-publish-error"], .wiki-page-error');
+        await expect(localError).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
+
+        // * Assert: the global top-of-page error banner is NOT shown
+        // The bug causes hooks.ts to dispatch logError with LogErrorBarMode.Always which renders this banner
+        const globalErrorBar = page.locator('.error-bar, .alert-bar, [data-testid="error-bar"]');
+        await expect(globalErrorBar).not.toBeVisible();
+    },
+);
+
+/**
+ * @objective Verify the status indicator dot reflects the selected status color, not always blue
+ * @bug A26 — .PageViewer__status-indicator has background-color: var(--button-bg) hardcoded
+ */
+test(
+    'status indicator color reflects selected status not always blue',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Status Color Channel'));
+
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, uniqueName('Color Wiki'));
+
+        // # Create a page and enter edit mode
+        const pageName = uniqueName('Color Test Page');
+        await getNewPageButton(page).click();
+        await fillCreatePageModal(page, pageName);
+        await page.waitForLoadState('networkidle');
+
+        const editor = getEditor(page);
+        await editor.click();
+        await editor.fill('Content for color test');
+
+        // # Set status to "Done" (color: green)
+        const statusSelector = page.locator('.page-status-wrapper, [data-testid="page-status-selector"]');
+        await statusSelector.click();
+        await page.locator('[role="option"], .PageStatus__option', {hasText: /^Done$/}).click();
+
+        // # Publish the page
+        await waitForAutoSave(page);
+        await publishCurrentPage(page);
+        await page.waitForLoadState('networkidle');
+
+        // * Assert: status indicator dot is visible in page viewer
+        const statusDot = page.locator('.PageViewer__status-indicator');
+        await expect(statusDot).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
+
+        // TODO: Verify exact assertion method after fix ships — if fix emits inline style.backgroundColor
+        // instead of data-color attribute, adjust accordingly.
+
+        // * Post-fix: the dot should carry data-color="green" for Done status
+        // Currently the attribute won't exist — test documents the expected behavior and will fail until fixed
+        const dataColor = await statusDot.getAttribute('data-color');
+        expect(dataColor).toBe('green');
+
+        // * The dot must NOT resolve to the blue brand color (var(--button-bg))
+        // A different computed color means the fix is in place
+        const bgColor = await statusDot.evaluate((el) => getComputedStyle(el).backgroundColor);
+        const buttonBgColor = await page.evaluate(() =>
+            getComputedStyle(document.documentElement).getPropertyValue('--button-bg').trim(),
+        );
+        // If the fix ships with a specific green hex/rgb, bgColor will differ from buttonBgColor
+        expect(bgColor).not.toBe(buttonBgColor);
+    },
+);
+
+/**
+ * @objective Verify a new draft page shows only the status selector, not a separate hardcoded "Draft" badge
+ * @bug B1 — wiki_page_editor.tsx renders a hardcoded "Draft" badge alongside PageStatusSelector simultaneously
+ */
+test(
+    'new page shows only status selector not a separate Draft badge',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Draft Badge Channel'));
+
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, uniqueName('Draft Badge Wiki'));
+
+        // # Create a new page but do NOT publish it (leave as draft)
+        await getNewPageButton(page).click();
+        await fillCreatePageModal(page, uniqueName('Draft Badge Page'));
+        await page.waitForLoadState('networkidle');
+
+        const editor = getEditor(page);
+        await editor.click();
+        await editor.fill('Draft badge test content');
+
+        // # Wait for auto-save so the page is persisted as a draft
+        await waitForAutoSave(page);
+
+        // * Assert: there is NO separate hardcoded "Draft" badge rendered alongside the status selector
+        // This will FAIL currently because wiki_page_editor.tsx renders both simultaneously
+        const separateDraftBadge = page.locator('.draft-badge, [data-testid="draft-badge"], .wiki-draft-badge');
+        await expect(separateDraftBadge).toHaveCount(0);
+
+        // * Assert: the status selector wrapper is visible (single source of draft state)
+        const statusWrapper = page.locator('.page-status-wrapper, [data-testid="page-status-selector"]');
+        await expect(statusWrapper).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
+
+        // * Assert: the status selector shows "Rough draft" as the default draft state
+        await expect(statusWrapper).toContainText('Rough draft');
+    },
+);

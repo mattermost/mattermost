@@ -540,7 +540,7 @@ const WikiView = () => {
                 </div>
             ) : (
                 <>
-                    {isPanesPanelCollapsed && wikiId && (
+                    {(isPanesPanelCollapsed || isFullscreen) && wikiId && (
                         <button
                             className='WikiView__hamburgerButton btn btn-icon btn-sm'
                             onClick={handleOpenPagesPanel}

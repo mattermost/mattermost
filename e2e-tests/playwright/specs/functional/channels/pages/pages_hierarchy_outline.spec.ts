@@ -418,3 +418,90 @@ test(
         }).toPass({timeout: SHORT_WAIT});
     },
 );
+
+/**
+ * @objective Verify outline is populated from editor content before publishing (Bug A1)
+ *
+ * NOTE: This test will fail until togglePageOutline reads live editor content in edit mode.
+ * Currently the outline stays empty because togglePageOutline skips the server fetch when
+ * there is no published pageContent.
+ */
+test(
+    'populates outline from heading typed in edit mode before publishing',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
+
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, uniqueName('Outline Edit Mode Wiki'));
+
+        // # Open new page modal and fill title (do NOT publish yet)
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Draft Outline Page');
+
+        // # Type a heading in the editor while still in draft/edit mode
+        const editor = getEditor(page);
+        await editor.click();
+        await addHeadingToEditor(page, 2, 'Summary Section');
+
+        // # Show the outline before publishing
+        await showPageOutlineViaRightClick(page, 'Draft Outline Page');
+
+        // * Verify outline contains the heading typed in edit mode (before publish)
+        await verifyOutlineHeadingVisible(page, 'Summary Section', HIERARCHY_TIMEOUT);
+    },
+);
+
+/**
+ * @objective Verify a persistent outline toggle button exists in the page header (Bug B10)
+ *
+ * NOTE: This test will fail until a dedicated outline toggle button is added to the page
+ * header. Currently the only way to show/hide the outline is through a context menu.
+ */
+test('page header has a persistent outline toggle button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'));
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Create wiki through UI
+    await createWikiThroughUI(page, uniqueName('Outline Toggle Wiki'));
+
+    // # Create a page with a heading and publish it
+    await createPageThroughUI(page, 'Toggle Page');
+    const editor = getEditor(page);
+    await editor.click();
+    await addHeadingToEditor(page, 2, 'Toggle Section');
+    await publishCurrentPage(page);
+
+    // * Assert a dedicated persistent toggle button for the outline is visible in the page header
+    const outlineToggle = page
+        .locator(
+            '[data-testid="outline-toggle"], [aria-label*="outline"], [aria-label*="Outline"], .outline-toggle-button, button:text("Outline")',
+        )
+        .first();
+    await expect(outlineToggle).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Ensure the outline panel is shown before toggling
+    await showPageOutlineViaRightClick(page, 'Toggle Page');
+    const outlinePanel = await getPageOutlineInHierarchy(page, 'Toggle Page');
+    await expect(outlinePanel).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+
+    // # Click the toggle button to collapse the outline
+    await outlineToggle.click();
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // * Verify the outline panel is no longer visible (collapsed)
+    await expect(outlinePanel).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Click the toggle button again to expand the outline
+    await outlineToggle.click();
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // * Verify the outline panel is visible again
+    await expect(outlinePanel).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+});

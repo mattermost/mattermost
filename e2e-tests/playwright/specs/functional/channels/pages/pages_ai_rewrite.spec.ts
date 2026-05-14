@@ -30,6 +30,7 @@ import {
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
     waitForAutoSave,
+    pressModifierKey,
 } from './test_helpers';
 
 /**
@@ -711,3 +712,57 @@ test(
         await expect(editor).toContainText('Additional text.');
     },
 );
+
+/**
+ * @objective Verify AI rewrite button is NOT visible or functional in read-only view mode
+ *
+ * @precondition
+ * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
+ */
+test('does not expose AI rewrite in read-only view mode', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+
+    // # Configure AI plugin if enabled
+    if (!shouldSkipAITests()) {
+        await configureAIPlugin(adminClient);
+    }
+
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('AI Readonly Test Channel'));
+
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+
+    // # Check if AI plugin is available
+    const hasAIPlugin = await checkAIPluginAvailability(page);
+    if (!hasAIPlugin) {
+        test.skip(true, 'AI plugin not configured - skipping AI rewrite read-only test');
+        return;
+    }
+
+    // # Create wiki and page with content
+    await createWikiThroughUI(page, uniqueName('AI Readonly Test Wiki'));
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'AI Readonly Test Page');
+
+    // # Add content and publish so the page enters read-only view mode
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await page.keyboard.type('This is published page content for read-only view mode testing.');
+    await publishPage(page);
+
+    // # Wait for page to be in view mode
+    const pageViewer = getPageViewerContent(page);
+    await expect(pageViewer).toBeVisible({timeout: EDITOR_LOAD_WAIT});
+
+    // # Select text in the read-only viewer
+    const viewer = getPageViewerContent(page);
+    await viewer.click();
+    await pressModifierKey(page, 'A');
+
+    // # Wait briefly for any formatting bar to appear
+    await waitForFormattingBar(page);
+
+    // * Verify AI rewrite button is NOT present in read-only view mode
+    const aiRewriteButton = getAIRewriteButton(page);
+    await expect(aiRewriteButton).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+});

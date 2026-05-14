@@ -7609,7 +7609,7 @@
   "wiki_rhs.reply.submit": "Send reply",
   "wiki_rhs.submit_error": "Failed to send reply. Please try again.",
   "wiki_rhs.submitting_comment": "Submitting comment...",
-  "wiki_rhs.tab.all_threads": "All Threads",
+  "wiki_rhs.tab.all_threads": "Wiki Threads",
   "wiki_rhs.tab.page_comments": "Page Comments",
   "wiki_rhs.thread_count": "{count, plural, one {# thread} other {# threads}}",
   "wiki_tab.copy_link": "Copy link",
