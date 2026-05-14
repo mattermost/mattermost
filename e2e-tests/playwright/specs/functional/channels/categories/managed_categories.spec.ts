@@ -1,11 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
 async function skipIfNoEnterpriseLicense(adminClient: any) {
     const license = await adminClient.getClientLicenseOld();
-    test.skip(license.IsLicensed !== 'true', 'Skipping test - server does not have an enterprise license');
+    const enterpriseSkus = ['enterprise', 'advanced', 'entry'];
+    test.skip(
+        license.IsLicensed !== 'true' || !enterpriseSkus.includes(license.SkuShortName),
+        'Skipping test - server does not have an enterprise license',
+    );
 }
 
 async function enableManagedCategories(adminClient: any) {
@@ -22,6 +26,32 @@ async function disableManagedCategories(adminClient: any) {
             EnableManagedChannelCategories: false,
         },
     });
+}
+
+/**
+ * Creates a uniquely-named team and user per test and adds the user to the team.
+ */
+async function setupManagedCategoriesTest(pw: any) {
+    const {adminClient, adminUser} = await pw.getAdminClient();
+    const suffix = getRandomId();
+
+    // Guard against UseAnonymousURLs=true left by anonymous_urls tests running on the same
+    // server shard. When active, newly created channels receive obfuscated slugs instead of
+    // human-readable names, breaking sidebar-item selectors (e.g. #sidebarItem_managed-assign-…).
+    await adminClient.patchConfig({PrivacySettings: {UseAnonymousURLs: false}});
+
+    const team = await adminClient.createTeam({
+        name: `mgd-${suffix}`,
+        display_name: `Managed ${suffix}`,
+        type: 'O',
+    });
+    const user = await pw.createNewUserProfile(adminClient, {
+        prefix: 'mgd-user',
+        disableTutorial: true,
+        disableOnboarding: true,
+    });
+    await adminClient.addToTeam(team.id, user.id);
+    return {adminClient, adminUser, team, user};
 }
 
 async function createChannelWithManagedCategory(
@@ -52,7 +82,7 @@ test.describe('Managed Channel Categories', () => {
             await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
             // # Initialize setup with admin user and enterprise license
-            const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -109,7 +139,7 @@ test.describe('Managed Channel Categories', () => {
             await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
             // # Initialize setup and create a channel with a managed category
-            const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -122,8 +152,18 @@ test.describe('Managed Channel Categories', () => {
             await channelsPage.goto(team.name, channel.name);
             await channelsPage.toBeVisible();
 
-            // * Verify the managed category is visible in the sidebar
+            // * Verify the managed category is visible in the sidebar.
+            // Use waitUntil because fetchManagedCategories is async (two API calls:
+            // getPropertyFields then getManagedCategories) and may take a moment.
             const sidebar = channelsPage.sidebarLeft.container;
+            await pw.waitUntil(
+                async () =>
+                    sidebar
+                        .getByText('Removable')
+                        .isVisible()
+                        .catch(() => false),
+                {timeout: 15000},
+            );
             await expect(sidebar.getByText('Removable')).toBeVisible();
 
             // # Open channel settings and click the clear button to remove the category
@@ -161,7 +201,7 @@ test.describe('Managed Channel Categories', () => {
             await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', false);
 
             // # Initialize setup and disable managed categories
-            const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await disableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -189,7 +229,7 @@ test.describe('Managed Channel Categories', () => {
         await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
         // # Initialize setup and enable managed categories
-        const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+        const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
         await enableManagedCategories(adminClient);
         await adminClient.addToTeam(team.id, adminUser.id);
@@ -235,7 +275,7 @@ test.describe('Managed Channel Categories', () => {
             await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
             // # Initialize setup and create a channel with a managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -251,6 +291,7 @@ test.describe('Managed Channel Categories', () => {
             // * Verify the managed category is visible and positioned above CHANNELS
             const sidebar = channelsPage.sidebarLeft.container;
             const managedCategory = sidebar.getByText('Alpha Priority');
+            await pw.waitUntil(async () => managedCategory.isVisible().catch(() => false), {timeout: 15000});
             await expect(managedCategory).toBeVisible();
 
             const channelsHeader = sidebar.getByText('CHANNELS', {exact: true});
@@ -274,7 +315,7 @@ test.describe('Managed Channel Categories', () => {
             await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
             // # Initialize setup and create a channel with a managed category (without adding the user)
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -299,7 +340,7 @@ test.describe('Managed Channel Categories', () => {
         await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
         // # Initialize setup and create two channels with the same managed category
-        const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+        const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
         await enableManagedCategories(adminClient);
         await adminClient.addToTeam(team.id, adminUser.id);
@@ -319,8 +360,8 @@ test.describe('Managed Channel Categories', () => {
         });
 
         // # Assign both to the same managed category and add user
-        await adminClient.patchChannel(channelB.id, {managed_category_name: 'Sorted Category'});
-        await adminClient.patchChannel(channelA.id, {managed_category_name: 'Sorted Category'});
+        await adminClient.patchChannel(channelB.id, {managed_category_name: 'Sorted Category'} as any);
+        await adminClient.patchChannel(channelA.id, {managed_category_name: 'Sorted Category'} as any);
 
         await adminClient.addToChannel(user.id, channelA.id);
         await adminClient.addToChannel(user.id, channelB.id);
@@ -355,7 +396,7 @@ test.describe('Managed Channel Categories', () => {
         await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
         // # Initialize setup and create a channel with a managed category
-        const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+        const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
         await enableManagedCategories(adminClient);
         await adminClient.addToTeam(team.id, adminUser.id);
@@ -367,6 +408,16 @@ test.describe('Managed Channel Categories', () => {
         const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
+
+        const sidebar = channelsPage.sidebarLeft.container;
+        await pw.waitUntil(
+            async () =>
+                sidebar
+                    .getByText('No Favorites')
+                    .isVisible()
+                    .catch(() => false),
+            {timeout: 15000},
+        );
 
         // * Verify the favorite button is visible but disabled
         const favoriteButton = channelsPage.page.locator('#toggleFavorite');
@@ -381,7 +432,7 @@ test.describe('Managed Channel Categories', () => {
         await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
         // # Initialize setup and create a channel with a managed category
-        const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+        const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
         await enableManagedCategories(adminClient);
         await adminClient.addToTeam(team.id, adminUser.id);
@@ -397,6 +448,7 @@ test.describe('Managed Channel Categories', () => {
         // # Right-click on the managed category header
         const sidebar = channelsPage.sidebarLeft.container;
         const categoryHeader = sidebar.getByText('No Menu');
+        await pw.waitUntil(async () => categoryHeader.isVisible().catch(() => false), {timeout: 15000});
         await expect(categoryHeader).toBeVisible();
 
         await categoryHeader.click({button: 'right'});
@@ -417,7 +469,7 @@ test.describe('Managed Channel Categories', () => {
             await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
             // # Initialize setup and create a channel with a managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -435,6 +487,17 @@ test.describe('Managed Channel Categories', () => {
             const channelItem = sidebar.locator(`#sidebarItem_${channel.name}`);
             await expect(channelItem).toBeVisible();
 
+            // Wait for managed-category data to load before opening the menu so
+            // that isInManagedCategory is already true when the menu renders.
+            await pw.waitUntil(
+                async () =>
+                    sidebar
+                        .getByText('Context Menu')
+                        .isVisible()
+                        .catch(() => false),
+                {timeout: 15000},
+            );
+
             await channelItem.hover();
             const menuButton = channelItem.getByRole('button', {name: /Channel options/});
             await menuButton.click();
@@ -442,11 +505,7 @@ test.describe('Managed Channel Categories', () => {
             // * Verify the Favorite menu item is visible but disabled
             const favoriteMenuItem = channelsPage.page.getByRole('menuitem', {name: /Favorite/i});
             await expect(favoriteMenuItem).toBeVisible();
-
-            const isDisabled = await favoriteMenuItem.evaluate((el) => {
-                return el.classList.contains('Mui-disabled') || el.getAttribute('aria-disabled') === 'true';
-            });
-            expect(isDisabled).toBe(true);
+            await expect(favoriteMenuItem).toHaveAttribute('aria-disabled', 'true');
         },
     );
 
@@ -460,7 +519,7 @@ test.describe('Managed Channel Categories', () => {
             await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
             // # Initialize setup and create a channel with a managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -478,6 +537,15 @@ test.describe('Managed Channel Categories', () => {
             const channelItem = sidebar.locator(`#sidebarItem_${channel.name}`);
             await expect(channelItem).toBeVisible();
 
+            await pw.waitUntil(
+                async () =>
+                    sidebar
+                        .getByText('No Move')
+                        .isVisible()
+                        .catch(() => false),
+                {timeout: 15000},
+            );
+
             await channelItem.hover();
             const menuButton = channelItem.getByRole('button', {name: /Channel options/});
             await menuButton.click();
@@ -485,11 +553,7 @@ test.describe('Managed Channel Categories', () => {
             // * Verify the Move To menu item is visible but disabled
             const moveToMenuItem = channelsPage.page.getByRole('menuitem', {name: /Move to/i});
             await expect(moveToMenuItem).toBeVisible();
-
-            const isDisabled = await moveToMenuItem.evaluate((el) => {
-                return el.classList.contains('Mui-disabled') || el.getAttribute('aria-disabled') === 'true';
-            });
-            expect(isDisabled).toBe(true);
+            await expect(moveToMenuItem).toHaveAttribute('aria-disabled', 'true');
         },
     );
 
@@ -504,7 +568,7 @@ test.describe('Managed Channel Categories', () => {
             await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
             // # Initialize setup and create two channels with the same managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -553,7 +617,7 @@ test.describe('Managed Channel Categories', () => {
             await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
             // # Initialize setup and create a channel without a managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -576,7 +640,7 @@ test.describe('Managed Channel Categories', () => {
             await expect(sidebar.getByText('Realtime Ops')).not.toBeVisible();
 
             // # Admin assigns a managed category to the channel via API
-            await adminClient.patchChannel(channel.id, {managed_category_name: 'Realtime Ops'});
+            await adminClient.patchChannel(channel.id, {managed_category_name: 'Realtime Ops'} as any);
 
             // * Verify the managed category appears in real-time
             await pw.waitUntil(
@@ -605,7 +669,7 @@ test.describe('Managed Channel Categories', () => {
             await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
             // # Initialize setup
-            const {adminUser, adminClient} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
 
             // # Log in and navigate to the System Console
@@ -635,7 +699,7 @@ test.describe('Managed Channel Categories', () => {
             await pw.skipIfFeatureFlagNotSet('ManagedChannelCategories', true);
 
             // # Initialize setup and create a channel with a managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);

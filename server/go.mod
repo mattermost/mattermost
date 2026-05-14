@@ -1,11 +1,10 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.25.9
+go 1.26.2
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Masterminds/semver/v3 v3.4.0
-	github.com/anthonynsimon/bild v0.14.0
 	github.com/avct/uasurfer v0.0.0-20250915105040-a942f6fb6edc
 	github.com/aws/aws-sdk-go-v2 v1.41.5
 	github.com/aws/aws-sdk-go-v2/config v1.32.13
@@ -14,6 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.36.3
 	github.com/bep/imagemeta v0.12.0
 	github.com/blang/semver/v4 v4.0.0
+	github.com/boxes-ltd/imaging v1.7.5
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a

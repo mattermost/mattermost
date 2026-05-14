@@ -503,6 +503,12 @@ func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post, fileIDs mode
 	attachedIds := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, post.UserId, fileIDs)
 
 	if len(fileIDs) != len(attachedIds) {
+		// Remote-origin posts have a concurrent file-receive path that
+		// performs its own binding; stripping here can clobber a binding
+		// that path just made.
+		if post.GetRemoteID() != "" {
+			return fileIDs, nil
+		}
 		post.FileIds = attachedIds
 		if _, err := a.Srv().Store().Post().Overwrite(rctx, post); err != nil {
 			return nil, model.NewAppError("attachFilesToPost", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -874,7 +880,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	}
 
 	if receivedUpdatedPost.IsRemote() {
-		oldPost.RemoteId = model.NewPointer(*receivedUpdatedPost.RemoteId)
+		oldPost.RemoteId = new(*receivedUpdatedPost.RemoteId)
 	}
 
 	var rejectionReason string

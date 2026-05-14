@@ -487,7 +487,7 @@ func TestFileStoreSet(t *testing.T) {
 		defer tearDown()
 
 		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = model.NewPointer("invalid")
+		newCfg.ServiceSettings.SiteURL = new("invalid")
 
 		_, _, err := configStore.Set(newCfg)
 		if assert.Error(t, err) {
@@ -503,7 +503,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		newReadOnlyConfig := readOnlyConfig.Clone()
 		newReadOnlyConfig.ServiceSettings = model.ServiceSettings{
-			SiteURL: model.NewPointer("http://test"),
+			SiteURL: new("http://test"),
 		}
 		_, _, err := configStore.Set(newReadOnlyConfig)
 		if assert.Error(t, err) {
@@ -562,7 +562,7 @@ func TestFileStoreSet(t *testing.T) {
 		callback := func(oldCfg, newCfg *model.Config) {
 			require.NotEqual(t, oldCfg, newCfg)
 			expectedConfig := minimalConfig.Clone()
-			expectedConfig.ServiceSettings.SiteURL = model.NewPointer("http://override")
+			expectedConfig.ServiceSettings.SiteURL = new("http://override")
 			require.Equal(t, minimalConfig, oldCfg)
 			require.Equal(t, expectedConfig, newCfg)
 			called <- true
@@ -908,7 +908,7 @@ func TestFileStoreLoad(t *testing.T) {
 		callback := func(oldCfg, newCfg *model.Config) {
 			require.NotEqual(t, oldCfg, newCfg)
 			expectedConfig := minimalConfig.Clone()
-			expectedConfig.ServiceSettings.SiteURL = model.NewPointer("http://override")
+			expectedConfig.ServiceSettings.SiteURL = new("http://override")
 			require.Equal(t, minimalConfig, oldCfg)
 			require.Equal(t, expectedConfig, newCfg)
 			called <- true
@@ -931,7 +931,7 @@ func TestFileStoreSave(t *testing.T) {
 
 	newCfg := &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: model.NewPointer("http://new"),
+			SiteURL: new("http://new"),
 		},
 	}
 
