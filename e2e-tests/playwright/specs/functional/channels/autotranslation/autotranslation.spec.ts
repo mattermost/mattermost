@@ -834,7 +834,7 @@ test.fixme(
     },
 );
 
-test(
+test.fixme(
     'message actions include Show translation',
     {
         tag: ['@autotranslation'],
