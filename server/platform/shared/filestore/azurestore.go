@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
@@ -450,7 +449,7 @@ func (b *AzureFileBackend) ListDirectory(p string) ([]string, error) {
 	defer cancel()
 
 	pager := b.newContainerClient().NewListBlobsHierarchyPager("/", &container.ListBlobsHierarchyOptions{
-		Prefix: to.Ptr(prefix),
+		Prefix: &prefix,
 	})
 
 	var entries []string
@@ -490,7 +489,7 @@ func (b *AzureFileBackend) ListDirectoryRecursively(p string) ([]string, error) 
 	defer cancel()
 
 	pager := b.newContainerClient().NewListBlobsFlatPager(&container.ListBlobsFlatOptions{
-		Prefix: to.Ptr(prefix),
+		Prefix: &prefix,
 	})
 
 	var entries []string
