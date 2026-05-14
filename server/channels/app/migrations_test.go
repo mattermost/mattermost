@@ -385,4 +385,42 @@ func TestDoSetupBoardsProperties(t *testing.T) {
 		require.NoError(t, sysErr)
 		require.Equal(t, boardsPropertyMigrationVersion, data.Value)
 	})
+
+	t.Run("concurrent runs tolerate create and update conflicts", func(t *testing.T) {
+		// Reproduce the CI failure: parallel test setup runs multiple servers
+		// against the same database pool entry. Without tolerance, the first
+		// run inserts "assignee" and "status"; concurrent runs hit either a
+		// unique-constraint violation on CreatePropertyField or an
+		// ErrConflict on UpdatePropertyFields and mlog.Fatal out.
+		th := Setup(t)
+
+		_, err := th.Store.System().PermanentDeleteByName(boardsPropertySetupDoneKey)
+		require.NoError(t, err)
+
+		const runners = 5
+		errs := make([]error, runners)
+		var wg sync.WaitGroup
+		wg.Add(runners)
+		for i := range runners {
+			go func() {
+				defer wg.Done()
+				errs[i] = th.Server.doSetupBoardsProperties()
+			}()
+		}
+		wg.Wait()
+
+		for i, err := range errs {
+			require.NoError(t, err, "runner %d must not fail on concurrent setup", i)
+		}
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 2)
+
+		data, sysErr := th.Store.System().GetByName(boardsPropertySetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, boardsPropertyMigrationVersion, data.Value)
+	})
 }
