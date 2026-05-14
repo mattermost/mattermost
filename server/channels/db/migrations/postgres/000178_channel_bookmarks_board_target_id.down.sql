@@ -1,3 +1,3 @@
-DROP INDEX CONCURRENTLY IF EXISTS idx_channelbookmarks_targetid;
+DROP INDEX CONCURRENTLY IF EXISTS idx_channelbookmarks_type_targetid;
 ALTER TABLE channelbookmarks DROP COLUMN IF EXISTS targetid;
 -- NOTE: PostgreSQL cannot remove a value from an ENUM type; the 'board' value remains on rollback.
