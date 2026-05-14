@@ -89,6 +89,9 @@ type FeatureFlags struct {
 	// Mobile clients should use the direct SSO callback flow with srv parameter verification.
 	MobileSSOCodeExchange bool
 
+	// Enable the SHIFT+ESC combo to mark _all_ chats, messages, and channels as read
+	EnableShiftEscapeToMarkAllRead bool
+
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
@@ -153,6 +156,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	// DEPRECATED: Disabled by default - mobile clients use direct SSO callback flow
 	f.MobileSSOCodeExchange = false
+	f.EnableShiftEscapeToMarkAllRead = false
 
 	f.AutoTranslation = true
 
