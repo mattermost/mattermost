@@ -50,6 +50,12 @@ export type LabeledSelectProps<T extends string = string> = {
     components?: ReactSelectProps<LabeledSelectOption<T>, boolean>['components'];
     styles?: StylesConfig<LabeledSelectOption<T>, boolean>;
 
+    // Forwarded to react-select. Use menuPortalTarget=document.body when the
+    // select is mounted inside a narrow popover so the menu can size to its
+    // own content (without it, the menu inherits the popover's width).
+    menuPortalTarget?: HTMLElement | null;
+    menuPlacement?: 'auto' | 'top' | 'bottom';
+
     className?: string;
     'aria-label'?: string;
 };
@@ -74,6 +80,11 @@ const baseStyles: StylesConfig<LabeledSelectOption, boolean> = {
     menu: (provided) => ({
         ...provided,
         zIndex: 100,
+        minWidth: 180,
+    }),
+    menuPortal: (provided) => ({
+        ...provided,
+        zIndex: 9999,
     }),
 };
 
@@ -137,6 +148,8 @@ function LabeledSelect<T extends string = string>(props: LabeledSelectProps<T>) 
         required,
         components: callerComponents,
         styles: callerStyles,
+        menuPortalTarget,
+        menuPlacement,
         className,
         'aria-label': ariaLabel,
     } = props;
@@ -197,6 +210,8 @@ function LabeledSelect<T extends string = string>(props: LabeledSelectProps<T>) 
                         placeholder={focused ? '' : placeholderText}
                         components={mergedComponents}
                         styles={{...(baseStyles as unknown as StylesConfig<LabeledSelectOption<T>, boolean>), ...(callerStyles || {})}}
+                        menuPortalTarget={menuPortalTarget}
+                        menuPlacement={menuPlacement}
                     />
                 </div>
             </div>

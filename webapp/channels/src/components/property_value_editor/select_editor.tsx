@@ -140,6 +140,8 @@ export default function SelectEditor({field, value, onChange, multi}: Props) {
                     SingleValue: PropertySingleValue,
                     MultiValueLabel: PropertyMultiValueLabel,
                 }}
+                menuPortalTarget={typeof document === 'undefined' ? null : document.body}
+                menuPlacement='auto'
             />
         </div>
     );
