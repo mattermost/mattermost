@@ -594,10 +594,6 @@ func testBoardBookmarkSaveAndGet(t *testing.T, _ request.CTX, ss store.Store, s 
 	assert.Equal(t, boardChannelID, loaded.TargetId)
 	assert.Equal(t, linkPath, loaded.LinkUrl)
 
-	if s.DriverName() != model.DatabaseDriverPostgres {
-		return
-	}
-
 	linkBookmark := &model.ChannelBookmark{
 		ChannelId:   channelID,
 		OwnerId:     userID,
