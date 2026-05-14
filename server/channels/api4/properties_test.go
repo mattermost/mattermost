@@ -163,16 +163,16 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionOptions)
 	})
 
-	t.Run("admin can set a channel-scoped permission id on a channel-target field", func(t *testing.T) {
-		permID := model.PermissionLevel(model.PermissionManageChannelRoles.Id)
+	t.Run("admin can set permission level=admin on a channel-target field", func(t *testing.T) {
+		adminLevel := model.PermissionLevelAdmin
 		field := &model.PropertyField{
 			Name:              model.NewId(),
 			Type:              model.PropertyFieldTypeText,
 			TargetType:        "channel",
 			TargetID:          th.BasicChannel.Id,
-			PermissionField:   &permID,
-			PermissionValues:  &permID,
-			PermissionOptions: &permID,
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
 		}
 
 		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
@@ -180,44 +180,11 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 
 		require.NotNil(t, createdField.PermissionField)
-		require.Equal(t, permID, *createdField.PermissionField)
+		require.Equal(t, model.PermissionLevelAdmin, *createdField.PermissionField)
 		require.NotNil(t, createdField.PermissionValues)
-		require.Equal(t, permID, *createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelAdmin, *createdField.PermissionValues)
 		require.NotNil(t, createdField.PermissionOptions)
-		require.Equal(t, permID, *createdField.PermissionOptions)
-	})
-
-	t.Run("permission id with mismatched scope is rejected", func(t *testing.T) {
-		// manage_channel_roles is channel-scoped; using it on a team-target field must 400.
-		permID := model.PermissionLevel(model.PermissionManageChannelRoles.Id)
-		field := &model.PropertyField{
-			Name:             model.NewId(),
-			Type:             model.PropertyFieldTypeText,
-			TargetType:       "team",
-			TargetID:         th.BasicTeam.Id,
-			PermissionField:  &permID,
-			PermissionValues: &permID,
-		}
-
-		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
-	t.Run("unknown permission id is rejected", func(t *testing.T) {
-		bogus := model.PermissionLevel("not_a_real_permission")
-		field := &model.PropertyField{
-			Name:             model.NewId(),
-			Type:             model.PropertyFieldTypeText,
-			TargetType:       "channel",
-			TargetID:         th.BasicChannel.Id,
-			PermissionField:  &bogus,
-			PermissionValues: &bogus,
-		}
-
-		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		require.Equal(t, model.PermissionLevelAdmin, *createdField.PermissionOptions)
 	})
 
 	t.Run("invalid group name should fail", func(t *testing.T) {

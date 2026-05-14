@@ -723,8 +723,8 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.NoError(t, pf.IsValid())
 		})
 
-		t.Run("non-protected field with admin or member field permission is valid", func(t *testing.T) {
-			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember} {
+		t.Run("non-protected field with non-none field permission is valid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember, PermissionLevelAdmin} {
 				pf := baseField()
 				pf.Protected = false
 				pf.PermissionField = new(level)
@@ -759,22 +759,15 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.Error(t, pf.IsValid())
 		})
 
-		t.Run("protected field with field=admin is invalid", func(t *testing.T) {
-			pf := baseField()
-			pf.Protected = true
-			pf.PermissionField = new(PermissionLevelSysadmin)
-			pf.PermissionValues = new(PermissionLevelMember)
-			pf.PermissionOptions = new(PermissionLevelMember)
-			require.Error(t, pf.IsValid())
-		})
-
-		t.Run("protected field with field=member is invalid", func(t *testing.T) {
-			pf := baseField()
-			pf.Protected = true
-			pf.PermissionField = new(PermissionLevelMember)
-			pf.PermissionValues = new(PermissionLevelMember)
-			pf.PermissionOptions = new(PermissionLevelMember)
-			require.Error(t, pf.IsValid())
+		t.Run("protected field with non-none field permission is invalid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember, PermissionLevelAdmin} {
+				pf := baseField()
+				pf.Protected = true
+				pf.PermissionField = new(level)
+				pf.PermissionValues = new(PermissionLevelMember)
+				pf.PermissionOptions = new(PermissionLevelMember)
+				require.Error(t, pf.IsValid(), "should be invalid with field permission %s", level)
+			}
 		})
 
 		t.Run("invalid permission_field value is rejected", func(t *testing.T) {
@@ -799,77 +792,42 @@ func TestPropertyField_IsValid(t *testing.T) {
 		})
 	})
 
-	t.Run("permission id levels", func(t *testing.T) {
-		baseChannelField := func() *PropertyField {
-			return &PropertyField{
+	t.Run("admin permission level", func(t *testing.T) {
+		baseField := func(target PropertyFieldTargetLevel) *PropertyField {
+			pf := &PropertyField{
 				ID:         NewId(),
 				GroupID:    NewId(),
 				Name:       "test field",
 				Type:       PropertyFieldTypeText,
 				ObjectType: PropertyFieldObjectTypePost,
-				TargetType: string(PropertyFieldTargetLevelChannel),
-				TargetID:   NewId(),
+				TargetType: string(target),
 				CreateAt:   GetMillis(),
 				UpdateAt:   GetMillis(),
 			}
+			if target != PropertyFieldTargetLevelSystem {
+				pf.TargetID = NewId()
+			}
+			return pf
 		}
 
-		t.Run("channel-scoped permission id on channel-target field is valid", func(t *testing.T) {
-			pf := baseChannelField()
-			pf.PermissionField = new(PermissionLevel(PermissionManageChannelRoles.Id))
-			pf.PermissionValues = new(PermissionLevel(PermissionManageChannelRoles.Id))
-			pf.PermissionOptions = new(PermissionLevel(PermissionManageChannelRoles.Id))
-			require.NoError(t, pf.IsValid())
-		})
+		for _, target := range []PropertyFieldTargetLevel{
+			PropertyFieldTargetLevelSystem,
+			PropertyFieldTargetLevelTeam,
+			PropertyFieldTargetLevelChannel,
+		} {
+			t.Run("admin is valid on "+string(target)+" target", func(t *testing.T) {
+				pf := baseField(target)
+				pf.PermissionField = new(PermissionLevelAdmin)
+				pf.PermissionValues = new(PermissionLevelAdmin)
+				pf.PermissionOptions = new(PermissionLevelAdmin)
+				require.NoError(t, pf.IsValid())
+			})
+		}
 
-		t.Run("team-scoped permission id on team-target field is valid", func(t *testing.T) {
-			pf := baseChannelField()
-			pf.TargetType = string(PropertyFieldTargetLevelTeam)
-			pf.PermissionField = new(PermissionLevel(PermissionManageTeam.Id))
-			pf.PermissionValues = new(PermissionLevel(PermissionManageTeam.Id))
-			pf.PermissionOptions = new(PermissionLevel(PermissionManageTeam.Id))
-			require.NoError(t, pf.IsValid())
-		})
-
-		t.Run("system-scoped permission id on system-target field is valid", func(t *testing.T) {
-			pf := baseChannelField()
-			pf.TargetType = string(PropertyFieldTargetLevelSystem)
-			pf.TargetID = ""
-			pf.PermissionField = new(PermissionLevel(PermissionManageSystem.Id))
-			pf.PermissionValues = new(PermissionLevel(PermissionManageSystem.Id))
-			pf.PermissionOptions = new(PermissionLevel(PermissionManageSystem.Id))
-			require.NoError(t, pf.IsValid())
-		})
-
-		t.Run("channel-scoped permission id on team-target field is rejected", func(t *testing.T) {
-			pf := baseChannelField()
-			pf.TargetType = string(PropertyFieldTargetLevelTeam)
-			pf.PermissionField = new(PermissionLevel(PermissionManageChannelRoles.Id))
-			require.Error(t, pf.IsValid())
-		})
-
-		t.Run("team-scoped permission id on channel-target field is rejected", func(t *testing.T) {
-			pf := baseChannelField()
-			pf.PermissionField = new(PermissionLevel(PermissionManageTeam.Id))
-			require.Error(t, pf.IsValid())
-		})
-
-		t.Run("system-scoped permission id on channel-target field is rejected", func(t *testing.T) {
-			pf := baseChannelField()
-			pf.PermissionField = new(PermissionLevel(PermissionManageSystem.Id))
-			require.Error(t, pf.IsValid())
-		})
-
-		t.Run("unknown permission id is rejected", func(t *testing.T) {
-			pf := baseChannelField()
-			pf.PermissionField = new(PermissionLevel("not_a_real_permission"))
-			require.Error(t, pf.IsValid())
-		})
-
-		t.Run("PSAv1 field still rejects permission id", func(t *testing.T) {
-			pf := baseChannelField()
+		t.Run("PSAv1 field rejects admin permission level", func(t *testing.T) {
+			pf := baseField(PropertyFieldTargetLevelChannel)
 			pf.ObjectType = ""
-			pf.PermissionField = new(PermissionLevel(PermissionManageChannelRoles.Id))
+			pf.PermissionField = new(PermissionLevelAdmin)
 			require.Error(t, pf.IsValid())
 		})
 	})
