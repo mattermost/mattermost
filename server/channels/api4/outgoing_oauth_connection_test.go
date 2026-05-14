@@ -942,7 +942,7 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		body := &bytes.Buffer{}
-		body.Write([]byte(`{/}`))
+		body.WriteString(`{/}`)
 
 		req, err := http.NewRequest("PUT", "/", body)
 		if err != nil {
@@ -990,7 +990,7 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		body := &bytes.Buffer{}
-		body.Write([]byte(`{"Id": "` + model.NewId() + `", "name": "changed name"}`))
+		body.WriteString(`{"Id": "` + model.NewId() + `", "name": "changed name"}`)
 
 		req, err := http.NewRequest("PUT", "/", body)
 		if err != nil {
@@ -1133,7 +1133,7 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		body := &bytes.Buffer{}
-		body.Write([]byte(`{/}`))
+		body.WriteString(`{/}`)
 
 		req, err := http.NewRequest("POST", "/", body)
 		if err != nil {

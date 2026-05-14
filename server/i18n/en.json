@@ -5847,6 +5847,10 @@
     "translation": "Failed to write CSV headers."
   },
   {
+    "id": "app.compile_csv_chunks.write_error",
+    "translation": "Failed to write CSV data."
+  },
+  {
     "id": "app.compile_report_chunks.unsupported_format",
     "translation": "Unsupported report format."
   },
