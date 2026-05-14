@@ -2382,7 +2382,7 @@
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
-    "translation": "Email settings has unset values."
+    "translation": "Email settings have unset values."
   },
   {
     "id": "api.file.test_connection_no_bucket.app_error",
