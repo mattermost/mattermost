@@ -115,16 +115,23 @@ func (b *AzureFileBackend) DriverName() string {
 
 // prefix joins the configured pathPrefix and the caller-supplied path.
 // Using a plain path.Join, a value like "foo/../../secret" can escape
-// the prefix entirely, so we compute the join and, if the result no longer
-// has the prefix in front, fall back to joining with path.Base
-// This may drop any intermediate directories the caller intended.
+// the prefix entirely, so we compute the join and verify the result is
+// the prefix directory itself or a descendant of it. The descendant check
+// requires a path-separator boundary so a prefix of "mattermost" does not
+// match a sibling like "mattermost-evil/...". If the joined path escapes,
+// we fall back to joining the prefix with path.Base, which may drop any
+// intermediate directories the caller intended.
 func (b *AzureFileBackend) prefix(p string) string {
 	joined := path.Join(b.pathPrefix, p)
-	if b.pathPrefix == "" || strings.HasPrefix(joined, b.pathPrefix) {
+	if b.pathPrefix == "" {
 		return joined
 	}
 
-	return path.Join(b.pathPrefix, path.Base(p))
+	cleanPrefix := strings.TrimSuffix(path.Clean(b.pathPrefix), "/")
+	if joined == cleanPrefix || strings.HasPrefix(joined, cleanPrefix+"/") {
+		return joined
+	}
+	return path.Join(cleanPrefix, path.Base(p))
 }
 
 func (b *AzureFileBackend) newBlobClient(p string) *blob.Client {
