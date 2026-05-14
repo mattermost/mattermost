@@ -1859,6 +1859,138 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 	})
 }
 
+func TestDoPostActionWithCookie_MmBlocksCookieMissingPost_Update(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	const missingPostID = "nonexistent_post_for_mm_blocks_update"
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"update": {"message": "PLAYWRIGHT_MM_BLOCKS_UPDATED"}}`))
+	}))
+	defer ts.Close()
+
+	mmCookie := &model.MmBlocksActionCookie{
+		Kind:          model.MmBlocksActionCookieKind,
+		PostId:        missingPostID,
+		ChannelId:     th.BasicChannel.Id,
+		RootPostId:    missingPostID,
+		Actions: map[string]map[string]any{
+			"apply_update": {
+				"type": "external",
+				"url":  ts.URL,
+			},
+		},
+	}
+
+	_, _, err := th.App.DoPostActionWithCookie(th.Context, missingPostID, "apply_update", th.BasicUser.Id, "", nil, mmCookie, nil, "")
+	require.Nil(t, err)
+}
+
+func TestDoPostActionWithCookie_LegacyCookieMissingPost_Update(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	const missingPostID = "nonexistent_post_for_legacy_attachment_update"
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"update": {"message": "ephemeral_attachment_updated"}}`))
+	}))
+	defer ts.Close()
+
+	cookie := &model.PostActionCookie{
+		PostId:    missingPostID,
+		ChannelId: th.BasicChannel.Id,
+		Type:      model.PostActionTypeButton,
+		Integration: &model.PostActionIntegration{
+			URL: ts.URL,
+		},
+	}
+
+	_, _, err := th.App.DoPostActionWithCookie(th.Context, missingPostID, "action_id", th.BasicUser.Id, "", cookie, nil, nil, "")
+	require.Nil(t, err)
+}
+
+func TestDoPostActionWithCookie_MmBlocksExternalForwardsSelectedOption(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	var gotJSON string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, readErr := io.ReadAll(r.Body)
+		require.NoError(t, readErr)
+		gotJSON = string(body)
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	defer ts.Close()
+
+	root := model.Post{
+		Message:   "mm_blocks static_select host post",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			"mm_blocks": []any{
+				map[string]any{
+					"type":        "static_select",
+					"action_id":   "mm_blocks_sel_act",
+					"placeholder": "Choose",
+					"options": []any{
+						map[string]any{"text": "Alpha", "value": "opt_alpha"},
+						map[string]any{"text": "Beta", "value": "opt_beta"},
+					},
+				},
+			},
+			"mm_blocks_actions": map[string]any{
+				"mm_blocks_sel_act": map[string]any{
+					"type":    "external",
+					"url":     ts.URL,
+					"context": map[string]any{"track": "mm_blocks_select"},
+				},
+			},
+		},
+	}
+
+	post, _, appErr := th.App.CreatePostAsUser(th.Context, &root, "", true)
+	require.Nil(t, appErr)
+
+	_, _, err := th.App.DoPostActionWithCookie(
+		th.Context,
+		post.Id,
+		"mm_blocks_sel_act",
+		th.BasicUser.Id,
+		"opt_beta",
+		nil,
+		nil,
+		nil,
+		model.PostActionIntegrationFormatMmBlock,
+	)
+	require.Nil(t, err)
+
+	var req model.PostActionIntegrationRequest
+	require.NoError(t, json.Unmarshal([]byte(gotJSON), &req))
+	assert.Equal(t, model.PostActionTypeButton, req.Type)
+	sel, ok := req.Context["selected_option"]
+	require.True(t, ok)
+	assert.Equal(t, "opt_beta", sel)
+	_, ok = req.Context["track"]
+	require.True(t, ok)
+}
+
 func TestDoPluginRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

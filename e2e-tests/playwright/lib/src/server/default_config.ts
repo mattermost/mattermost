@@ -129,7 +129,7 @@ const defaultServerConfig: AdminConfig = {
         EnableClientPerformanceDebugging: false,
         EnableSecurityFixAlert: true,
         EnableInsecureOutgoingConnections: false,
-        AllowedUntrustedInternalConnections: '',
+        AllowedUntrustedInternalConnections: 'localhost,127.0.0.1',
         EnableMultifactorAuthentication: false,
         EnforceMultifactorAuthentication: false,
         EnableUserAccessTokens: false,
@@ -790,6 +790,7 @@ const defaultServerConfig: AdminConfig = {
         IntegratedBoards: false,
         CJKSearch: false,
         ManagedChannelCategories: false,
+        MmBlocksEnabled: true,
     },
     ImportSettings: {
         Directory: './import',

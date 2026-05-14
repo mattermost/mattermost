@@ -102,6 +102,7 @@ func TestAddMmBlocksActionCookies_ReplacesWithEncryptedString(t *testing.T) {
 	p := &Post{}
 	p.Id = "postid"
 	p.ChannelId = "chid"
+	p.UserId = "userid1"
 	p.SetProps(StringInterface{
 		PostPropsMmBlocksActions: map[string]any{
 			"a1": map[string]any{

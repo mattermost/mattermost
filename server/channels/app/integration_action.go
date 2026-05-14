@@ -336,14 +336,12 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		upstreamRequest.TeamName = team.Name
 	}
 
-	if upstreamRequest.Type == model.PostActionTypeSelect {
-		if selectedOption != "" {
-			if upstreamRequest.Context == nil {
-				upstreamRequest.Context = map[string]any{}
-			}
-			upstreamRequest.DataSource = datasource
-			upstreamRequest.Context["selected_option"] = selectedOption
+	if selectedOption != "" {
+		if upstreamRequest.Context == nil {
+			upstreamRequest.Context = map[string]any{}
 		}
+		upstreamRequest.Context["selected_option"] = selectedOption
+		upstreamRequest.DataSource = datasource
 	}
 
 	clientTriggerId, _, appErr := upstreamRequest.GenerateTriggerId(a.AsymmetricSigningKey())
@@ -389,9 +387,26 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 	if response.Update != nil {
 		response.Update.Id = postID
 
+		var nfPost *store.ErrNotFound
+		// Ephemeral (and other client-only) interactive posts are not in the DB; the action cookie
+		// carries channel/root metadata. Same pattern as legacy PostActionCookie (see TestDoPostActionWithCookieEdgeCases).
+		postMissingFromDB := result.NErr != nil && errors.As(result.NErr, &nfPost)
+		ephemeralInteractive := postMissingFromDB && (mmBlocksCookie != nil || legacyCookie != nil)
+
 		// Restore the post attributes and Props that need to be preserved
 		if response.Update.GetProps() == nil {
-			response.Update.SetProps(originalProps)
+			switch {
+			case originalProps != nil:
+				response.Update.SetProps(originalProps)
+			case ephemeralInteractive && len(retain) > 0:
+				props := make(model.StringInterface)
+				for k, v := range retain {
+					props[k] = v
+				}
+				response.Update.SetProps(props)
+			default:
+				response.Update.SetProps(originalProps)
+			}
 		} else {
 			for key, value := range retain {
 				response.Update.AddProp(key, value)
@@ -403,7 +418,24 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
+		if ephemeralInteractive {
+			switch {
+			case mmBlocksCookie != nil:
+				response.Update.ChannelId = mmBlocksCookie.ChannelId
+				if response.Update.RootId == "" && mmBlocksCookie.RootPostId != "" && mmBlocksCookie.RootPostId != postID {
+					response.Update.RootId = mmBlocksCookie.RootPostId
+				}
+			case legacyCookie != nil:
+				response.Update.ChannelId = legacyCookie.ChannelId
+				if response.Update.RootId == "" && legacyCookie.RootPostId != "" && legacyCookie.RootPostId != postID {
+					response.Update.RootId = legacyCookie.RootPostId
+				}
+				if response.Update.UserId == "" {
+					response.Update.UserId = userID
+				}
+			}
+			a.UpdateEphemeralPost(rctx, userID, response.Update)
+		} else if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
 			return "", "", appErr
 		}
 	}

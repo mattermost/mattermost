@@ -93,6 +93,21 @@ func TestPostActionCookies(t *testing.T) {
 			ExpectedSuccess:    true,
 			ExpectedStatusCode: http.StatusOK,
 		},
+		"hyphen and underscore in action ID": {
+			Action: model.PostAction{
+				Id:   "e2e_mm-blocks_primary",
+				Name: "Test-action",
+				Type: model.PostActionTypeButton,
+				Integration: &model.PostActionIntegration{
+					URL: server.URL,
+					Context: map[string]any{
+						"test-key": "test-value",
+					},
+				},
+			},
+			ExpectedSuccess:    true,
+			ExpectedStatusCode: http.StatusOK,
+		},
 		"Empty ID": {
 			Action: model.PostAction{
 				Id:   "",

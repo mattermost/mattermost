@@ -23,7 +23,7 @@ import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
-import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
+import {comparePosts, isPermalink, isPostEphemeral, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
 export function removeUnneededMetadata(post: Post) {
     if (!post.metadata) {
@@ -473,6 +473,23 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     }
 }
 
+// Integration action `update` payloads deserialize as a partial Post (often create_at=0).
+// Thread RHS order uses create_at via comparePosts; zero makes the ephemeral sort as oldest (above the root).
+// Ephemeral updates may omit user_id; keep the displayed author from the post already in state.
+function restoreEphemeralIdentityFieldsForEdit(incoming: Post, stored: Post): Post {
+    const out: Post = {...incoming};
+    if (!out.create_at && stored.create_at) {
+        out.create_at = stored.create_at;
+    }
+    if (!out.root_id && stored.root_id) {
+        out.root_id = stored.root_id;
+    }
+    if (!out.user_id && stored.user_id) {
+        out.user_id = stored.user_id;
+    }
+    return out;
+}
+
 function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: number) {
     let currentState = nextState;
 
@@ -481,73 +498,79 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
         return currentState;
     }
 
+    const storedPost = currentState[post.id];
+    let mergedPost = post;
+    if (storedPost && isPostEphemeral(storedPost)) {
+        mergedPost = restoreEphemeralIdentityFieldsForEdit(post, storedPost);
+    }
+
     // If post is a permalink and not nested (it links directly to the original message),
     // and is missing embedded metadata, then update state with new post metadata
-    if (!nestedPermalinkLevel && isPermalink(post) && currentState[post.id] && !currentState[post.id].metadata && post.metadata) {
-        currentState[post.id] = {...currentState[post.id], ...post.metadata};
+    if (!nestedPermalinkLevel && isPermalink(mergedPost) && currentState[mergedPost.id] && !currentState[mergedPost.id].metadata && mergedPost.metadata) {
+        currentState[mergedPost.id] = {...currentState[mergedPost.id], ...mergedPost.metadata};
     }
 
     // Posts that don't have CRT fields specified should maintain existing state.
     // This happens when posts are returned via GetPostsByIds (e.g. translation
     // supplement) which doesn't JOIN the Threads/ThreadMemberships tables.
-    if (post.update_at > 0 && currentState[post.id]) {
-        if (post.is_following == null) {
-            post.is_following = currentState[post.id].is_following;
+    if (mergedPost.update_at > 0 && currentState[mergedPost.id]) {
+        if (mergedPost.is_following == null) {
+            mergedPost.is_following = currentState[mergedPost.id].is_following;
         }
-        if (post.participants == null && currentState[post.id].participants) {
-            post.participants = currentState[post.id].participants;
+        if (mergedPost.participants == null && currentState[mergedPost.id].participants) {
+            mergedPost.participants = currentState[mergedPost.id].participants;
         }
-        if (!post.last_reply_at && currentState[post.id].last_reply_at) {
-            post.last_reply_at = currentState[post.id].last_reply_at;
+        if (!mergedPost.last_reply_at && currentState[mergedPost.id].last_reply_at) {
+            mergedPost.last_reply_at = currentState[mergedPost.id].last_reply_at;
         }
     }
 
-    if (post.delete_at > 0) {
+    if (mergedPost.delete_at > 0) {
         // We've received a deleted post, so mark the post as deleted if we already have it
-        if (currentState[post.id]) {
-            currentState[post.id] = {
-                ...removeUnneededMetadata(post),
+        if (currentState[mergedPost.id]) {
+            currentState[mergedPost.id] = {
+                ...removeUnneededMetadata(mergedPost),
                 state: Posts.POST_DELETED,
                 file_ids: [],
                 has_reactions: false,
             };
         }
-    } else if (post.metadata && post.metadata.embeds) {
-        post.metadata.embeds.forEach((embed) => {
+    } else if (mergedPost.metadata && mergedPost.metadata.embeds) {
+        mergedPost.metadata.embeds.forEach((embed) => {
             if (embed.type === 'permalink') {
                 if (embed.data && 'post_id' in embed.data && embed.data.post) {
                     currentState = handlePostReceived(currentState, embed.data.post, nestedPermalinkLevel ? nestedPermalinkLevel + 1 : 1);
 
                     if (isPermalink(embed.data.post)) {
-                        currentState[post.id] = removeUnneededMetadata(post);
+                        currentState[mergedPost.id] = removeUnneededMetadata(mergedPost);
                     }
                 }
             }
         });
 
-        currentState[post.id] = post;
+        currentState[mergedPost.id] = mergedPost;
     } else {
-        currentState[post.id] = removeUnneededMetadata(post);
+        currentState[mergedPost.id] = removeUnneededMetadata(mergedPost);
     }
 
     // Delete any pending post that existed for this post
-    if (post.pending_post_id && post.id !== post.pending_post_id && currentState[post.pending_post_id]) {
-        Reflect.deleteProperty(currentState, post.pending_post_id);
+    if (mergedPost.pending_post_id && mergedPost.id !== mergedPost.pending_post_id && currentState[mergedPost.pending_post_id]) {
+        Reflect.deleteProperty(currentState, mergedPost.pending_post_id);
     }
 
-    const rootPost: Post = currentState[post.root_id];
-    if (post.root_id && rootPost) {
+    const rootPost: Post = currentState[mergedPost.root_id];
+    if (mergedPost.root_id && rootPost) {
         const participants = rootPost.participants || [];
         const nextRootPost = {...rootPost};
-        if (!participants.find((user: UserProfile) => user.id === post.user_id)) {
-            nextRootPost.participants = [...participants, {id: post.user_id}];
+        if (!participants.find((user: UserProfile) => user.id === mergedPost.user_id)) {
+            nextRootPost.participants = [...participants, {id: mergedPost.user_id}];
         }
 
-        if (post.reply_count) {
-            nextRootPost.reply_count = post.reply_count;
+        if (mergedPost.reply_count) {
+            nextRootPost.reply_count = mergedPost.reply_count;
         }
 
-        currentState[post.root_id] = nextRootPost;
+        currentState[mergedPost.root_id] = nextRootPost;
     }
 
     return currentState;
