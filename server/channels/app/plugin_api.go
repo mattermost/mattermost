@@ -1753,3 +1753,27 @@ func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) erro
 	}
 	return nil
 }
+
+func (api *PluginAPI) EvaluateUserExpression(userID string, expression string) (*model.AccessDecision, error) {
+	resp, appErr := api.app.EvaluateExpression(api.ctx, model.EvaluateExpressionRequest{
+		Expression: expression,
+		UserIDs:    []string{userID},
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if len(resp.ExpressionErrors) > 0 {
+		return nil, fmt.Errorf("CEL expression error: %s", resp.ExpressionErrors[0].Message)
+	}
+
+	if len(resp.Results) == 0 {
+		return nil, fmt.Errorf("no evaluation result for user %s", userID)
+	}
+
+	if resp.Results[0].Error != "" {
+		return nil, fmt.Errorf("evaluation error: %s", resp.Results[0].Error)
+	}
+
+	return &model.AccessDecision{Decision: resp.Results[0].Decision}, nil
+}

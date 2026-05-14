@@ -7593,6 +7593,10 @@
     "translation": "Unable to delete access control policy."
   },
   {
+    "id": "app.pap.evaluate_expression.app_error",
+    "translation": "Failed to evaluate expression."
+  },
+  {
     "id": "app.pap.expression_to_visual_ast.app_error",
     "translation": "Could not genereate visual AST from expression."
   },

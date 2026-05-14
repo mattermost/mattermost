@@ -45,6 +45,36 @@ func (_m *AccessControlServiceInterface) AccessEvaluation(rctx request.CTX, acce
 	return r0, r1
 }
 
+// AccessEvaluationWithExpression provides a mock function with given fields: rctx, accessRequest, expression
+func (_m *AccessControlServiceInterface) AccessEvaluationWithExpression(rctx request.CTX, accessRequest model.AccessRequest, expression string) (model.AccessDecision, *model.AppError) {
+	ret := _m.Called(rctx, accessRequest, expression)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AccessEvaluationWithExpression")
+	}
+
+	var r0 model.AccessDecision
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, model.AccessRequest, string) (model.AccessDecision, *model.AppError)); ok {
+		return rf(rctx, accessRequest, expression)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, model.AccessRequest, string) model.AccessDecision); ok {
+		r0 = rf(rctx, accessRequest, expression)
+	} else {
+		r0 = ret.Get(0).(model.AccessDecision)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, model.AccessRequest, string) *model.AppError); ok {
+		r1 = rf(rctx, accessRequest, expression)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CheckExpression provides a mock function with given fields: rctx, expression
 func (_m *AccessControlServiceInterface) CheckExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, *model.AppError) {
 	ret := _m.Called(rctx, expression)

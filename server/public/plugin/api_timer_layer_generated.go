@@ -1706,3 +1706,10 @@ func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlo
 	api.apiImpl.LogAuditRecWithLevel(rec, level)
 	api.recordTime(startTime, "LogAuditRecWithLevel", true)
 }
+
+func (api *apiTimerLayer) EvaluateUserExpression(userID string, expression string) (*model.AccessDecision, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.EvaluateUserExpression(userID, expression)
+	api.recordTime(startTime, "EvaluateUserExpression", _returnsB == nil)
+	return _returnsA, _returnsB
+}

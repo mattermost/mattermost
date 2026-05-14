@@ -1199,6 +1199,36 @@ func (_m *API) EnsureBotUser(bot *model.Bot) (string, error) {
 	return r0, r1
 }
 
+// EvaluateUserExpression provides a mock function with given fields: userID, expression
+func (_m *API) EvaluateUserExpression(userID string, expression string) (*model.AccessDecision, error) {
+	ret := _m.Called(userID, expression)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EvaluateUserExpression")
+	}
+
+	var r0 *model.AccessDecision
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*model.AccessDecision, error)); ok {
+		return rf(userID, expression)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.AccessDecision); ok {
+		r0 = rf(userID, expression)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AccessDecision)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, expression)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ExecuteSlashCommand provides a mock function with given fields: commandArgs
 func (_m *API) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
 	ret := _m.Called(commandArgs)

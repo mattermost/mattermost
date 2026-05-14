@@ -13,4 +13,5 @@ import (
 // an action on a resource based on the resource policy.
 type PolicyDecisionPointInterface interface {
 	AccessEvaluation(rctx request.CTX, accessRequest model.AccessRequest) (model.AccessDecision, *model.AppError)
+	AccessEvaluationWithExpression(rctx request.CTX, accessRequest model.AccessRequest, expression string) (model.AccessDecision, *model.AppError)
 }

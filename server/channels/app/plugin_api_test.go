@@ -3864,3 +3864,121 @@ func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {
 		assert.Equal(t, originalName, createdChannel.Name, "channel name should not be overridden")
 	})
 }
+
+func TestPluginAPIEvaluateUserExpression(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// PluginAPI holds a concrete *App, so we can't substitute a true mock App.
+	// Instead, we drive each branch of EvaluateUserExpression by mocking the
+	// AccessControlService that App.EvaluateExpression delegates to.
+
+	enableABAC := func(th *TestHelper) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	}
+
+	t.Run("propagates app-level error from EvaluateExpression", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableABAC(th)
+		api := th.SetupPluginAPI()
+
+		// With AccessControl unset, App.EvaluateExpression returns an AppError
+		// before reaching CheckExpression. The wrapper must propagate it as-is.
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = nil
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		decision, err := api.EvaluateUserExpression(th.BasicUser.Id, "true")
+		require.Error(t, err)
+		assert.Nil(t, decision)
+
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.pap.evaluate_expression.app_error", appErr.Id)
+	})
+
+	t.Run("success path returns the user's decision", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableABAC(th)
+		api := th.SetupPluginAPI()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("CheckExpression", mock.Anything, "true").Return([]model.CELExpressionError{}, nil)
+		mockACS.On("AccessEvaluationWithExpression", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Subject.ID == th.BasicUser.Id
+		}), "true").Return(model.AccessDecision{Decision: true}, nil)
+		th.App.Srv().ch.AccessControl = mockACS
+
+		decision, err := api.EvaluateUserExpression(th.BasicUser.Id, "true")
+		require.NoError(t, err)
+		require.NotNil(t, decision)
+		assert.True(t, decision.Decision)
+	})
+
+	t.Run("returns error when CEL compilation reports expression errors", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableABAC(th)
+		api := th.SetupPluginAPI()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("CheckExpression", mock.Anything, "user.attributes.dept ==").Return([]model.CELExpressionError{
+			{Line: 1, Column: 22, Message: "invalid field"},
+		}, nil)
+		th.App.Srv().ch.AccessControl = mockACS
+
+		decision, err := api.EvaluateUserExpression(th.BasicUser.Id, "user.attributes.dept ==")
+		require.Error(t, err)
+		assert.Nil(t, decision)
+		assert.Contains(t, err.Error(), "CEL expression error")
+		assert.Contains(t, err.Error(), "invalid field")
+
+		// AccessEvaluationWithExpression must not be called when the expression is invalid.
+		mockACS.AssertNotCalled(t, "AccessEvaluationWithExpression", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("returns error for unknown user (per-user error from PDP path)", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableABAC(th)
+		api := th.SetupPluginAPI()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("CheckExpression", mock.Anything, "true").Return([]model.CELExpressionError{}, nil)
+		th.App.Srv().ch.AccessControl = mockACS
+
+		// App.EvaluateExpression always emits exactly one result per requested
+		// user, so an unknown ID hits Results[0].Error="user not found" rather
+		// than the Results-empty branch.
+		fakeUserID := model.NewId()
+		decision, err := api.EvaluateUserExpression(fakeUserID, "true")
+		require.Error(t, err)
+		assert.Nil(t, decision)
+		assert.Contains(t, err.Error(), "evaluation error")
+		assert.Contains(t, err.Error(), "user not found")
+	})
+
+	t.Run("returns error when per-user PDP evaluation fails", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableABAC(th)
+		api := th.SetupPluginAPI()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("CheckExpression", mock.Anything, "true").Return([]model.CELExpressionError{}, nil)
+		mockACS.On("AccessEvaluationWithExpression", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Subject.ID == th.BasicUser.Id
+		}), "true").Return(model.AccessDecision{}, model.NewAppError("AccessEvaluationWithExpression", "test.evaluation.error", nil, "evaluation failed", http.StatusInternalServerError))
+		th.App.Srv().ch.AccessControl = mockACS
+
+		decision, err := api.EvaluateUserExpression(th.BasicUser.Id, "true")
+		require.Error(t, err)
+		assert.Nil(t, decision)
+		assert.Contains(t, err.Error(), "evaluation error")
+	})
+
+	// Note: the `len(resp.Results) == 0` branch in EvaluateUserExpression is
+	// defensive and unreachable through the current App.EvaluateExpression
+	// implementation (which always emits one result per requested user when
+	// there are no expression errors). It is exercised only by direct unit
+	// testing of the response shape, which would require mocking *App itself.
+}
