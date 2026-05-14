@@ -678,12 +678,12 @@ func TestS3TestConnection(t *testing.T) {
 		config.FileSettings.AmazonS3Bucket = new("Wrong_bucket")
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_no_bucket.app_error")
 
 		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_no_bucket.app_error")
 	})
 
 	t.Run("with incorrect credentials", func(t *testing.T) {
@@ -691,7 +691,7 @@ func TestS3TestConnection(t *testing.T) {
 		*configCopy.FileSettings.AmazonS3AccessKeyId = "invalidaccesskey"
 		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &configCopy)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_auth.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_auth.app_error")
 	})
 
 	t.Run("empty file settings", func(t *testing.T) {

@@ -646,6 +646,10 @@ func (c *Client4) bookmarkRoute(channelId, bookmarkId string) clientRoute {
 	return c.bookmarksRoute(channelId).Join(bookmarkId)
 }
 
+func (c *Client4) boardsRoute() clientRoute {
+	return newClientRoute("boards")
+}
+
 func (c *Client4) viewsRoute(channelId string) clientRoute {
 	return c.channelRoute(channelId).Join("views")
 }
@@ -2777,6 +2781,18 @@ func (c *Client4) GetAllChannelsWithCount(ctx context.Context, page int, perPage
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.channelsRoute(), channel)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
+// CreateBoard creates a board channel. The channel.Type must be ChannelTypeOpenBoard
+// or ChannelTypePrivateBoard. Requires the IntegratedBoards feature flag to be enabled
+// on the server; otherwise the route is not registered and returns 404.
+func (c *Client4) CreateBoard(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.boardsRoute(), channel)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

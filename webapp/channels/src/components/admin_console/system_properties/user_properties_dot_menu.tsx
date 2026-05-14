@@ -146,7 +146,10 @@ const DotMenu = ({
         const newAttrs = {...field.attrs};
 
         if (field.attrs.managed === 'admin') {
-            Reflect.deleteProperty(newAttrs, 'managed');
+            // Server PATCH merges attrs and preserves keys absent from the body, so we
+            // assign '' rather than deleting the key — otherwise managed='admin' would
+            // silently persist on the server.
+            newAttrs.managed = '';
         } else {
             newAttrs.managed = 'admin';
         }
