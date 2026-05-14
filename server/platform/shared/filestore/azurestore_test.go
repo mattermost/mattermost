@@ -6,6 +6,7 @@ package filestore
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -53,10 +54,7 @@ const (
 // backend must refuse the append rather than silently destroy the
 // existing content.
 func TestAzureFileBackendAppendRefusesNonBlockBlob(t *testing.T) {
-	settings := azuriteSettings(t)
-	be, err := NewAzureFileBackend(settings)
-	require.NoError(t, err)
-	require.NoError(t, be.TestConnection())
+	be := newAzuriteBackend(t)
 
 	path := "append-refusal-test.bin"
 	t.Cleanup(func() { _ = be.RemoveFile(path) })
@@ -65,7 +63,7 @@ func TestAzureFileBackendAppendRefusesNonBlockBlob(t *testing.T) {
 	// Put Blob REST endpoint and leaves the committed-block list empty.
 	original := []byte("planted-by-another-tool")
 	bb := be.newBlockBlobClient(path)
-	_, err = bb.Upload(context.Background(), nopReadSeekCloser{bytes.NewReader(original)}, nil)
+	_, err := bb.Upload(context.Background(), nopReadSeekCloser{bytes.NewReader(original)}, nil)
 	require.NoError(t, err)
 
 	_, err = be.AppendFile(bytes.NewReader([]byte("would-overwrite")), path)
@@ -83,6 +81,24 @@ type nopReadSeekCloser struct {
 }
 
 func (nopReadSeekCloser) Close() error { return nil }
+
+// newAzuriteBackend builds an Azure backend pointed at the Azurite emulator
+// and ensures the container exists. Standalone Azure tests should use this
+// instead of calling NewAzureFileBackend + TestConnection directly; the
+// shared FileBackendTestSuite handles provisioning itself in SetupTest.
+func newAzuriteBackend(t *testing.T) *AzureFileBackend {
+	t.Helper()
+	be, err := NewAzureFileBackend(azuriteSettings(t))
+	require.NoError(t, err)
+
+	var noBucket *FileBackendNoBucketError
+	if err := be.TestConnection(); errors.As(err, &noBucket) {
+		require.NoError(t, be.MakeContainer())
+	} else {
+		require.NoError(t, err)
+	}
+	return be
+}
 
 func azuriteSettings(t *testing.T) FileBackendSettings {
 	t.Helper()
