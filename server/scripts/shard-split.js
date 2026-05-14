@@ -48,7 +48,6 @@ const HEAVY_MS = 600000; // 600s (10 min): packages above this get test-level sp
 const KNOWN_HEAVY_PKGS = new Set([
     "github.com/mattermost/mattermost/server/v8/channels/api4",
     "github.com/mattermost/mattermost/server/v8/channels/app",
-    "github.com/mattermost/mattermost/server/v8/channels/store/sqlstore",
 ]);
 
 if (isNaN(SHARD_INDEX) || isNaN(SHARD_TOTAL) || SHARD_TOTAL < 1) {
@@ -121,10 +120,16 @@ const hasTestTiming = Object.keys(testTimes).length > 0;
 // Split at test level for packages above HEAVY_MS (requires per-test timing)
 // AND for the KNOWN_HEAVY_PKGS list (which uses go test -list discovery
 // to enumerate tests when no timing cache exists).
+//
+// Both checks gate on allPkgs membership so stale entries from the cached
+// pkgTimes (renamed/deleted packages from a prior run) can't end up in
+// heavyPkgs — otherwise the post-discovery fallback would emit them as
+// whole-package items for nonexistent packages.
+const allPkgsSet = new Set(allPkgs);
 const heavyPkgs = new Set();
 if (hasTestTiming) {
     for (const [pkg, ms] of Object.entries(pkgTimes)) {
-        if (ms > HEAVY_MS) heavyPkgs.add(pkg);
+        if (ms > HEAVY_MS && allPkgsSet.has(pkg)) heavyPkgs.add(pkg);
     }
 }
 for (const pkg of allPkgs) {
