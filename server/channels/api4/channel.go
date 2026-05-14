@@ -17,17 +17,6 @@ import (
 
 const maxListSize = 1000
 
-// rejectBoardChannelByID returns true and sets c.Err if the channel ID belongs
-// to a board channel. Board channels must use the /boards endpoints, not /channels.
-// Use this on write endpoints to give a clear error instead of a 404.
-func rejectBoardChannelByID(c *Context, channelId string) bool {
-	if _, err := c.App.GetBoardChannel(c.AppContext, channelId); err == nil {
-		c.Err = model.NewAppError("", "api.channel.board_channel.app_error", nil, "board channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
-		return true
-	}
-	return false
-}
-
 func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods(http.MethodPost)
@@ -109,12 +98,6 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
-
-	if channel.IsBoard() {
-		c.SetInvalidParamWithDetails("type", "cannot create board channels via /channels endpoint")
-		return
-	}
-
 	license := c.App.Channels().License()
 	if !channel.IsGroupOrDirect() && model.SafeDereference(c.App.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(license) {
 		channel.Name = model.NewId()
@@ -354,7 +337,6 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-
 	var patch *model.ChannelPatch
 	err := json.NewDecoder(r.Body).Decode(&patch)
 	if err != nil || patch == nil {
@@ -919,11 +901,6 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	filteredIDs := make([]string, len(channels))
-	for i, ch := range channels {
-		filteredIDs[i] = ch.Id
-	}
-
 	for _, channel := range channels {
 		if !c.App.HasPermissionToChannelMemberCount(c.AppContext, c.AppContext.Session().UserId, channel) {
 			c.SetPermissionError(model.PermissionListTeamChannels)
@@ -931,7 +908,7 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	channelsMemberCount, appErr := c.App.GetChannelsMemberCount(c.AppContext, filteredIDs)
+	channelsMemberCount, appErr := c.App.GetChannelsMemberCount(c.AppContext, channelIDs)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1876,13 +1853,6 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if view.ChannelId != "" && rejectBoardChannelByID(c, view.ChannelId) {
-		return
-	}
-	if view.PrevChannelId != "" && rejectBoardChannelByID(c, view.PrevChannelId) {
-		return
-	}
-
 	times, err := c.App.ViewChannel(c.AppContext, &view, c.Params.UserId, c.AppContext.Session().Id, view.CollapsedThreadsSupported)
 	if err != nil {
 		c.Err = err
@@ -1985,10 +1955,6 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if rejectBoardChannelByID(c, c.Params.ChannelId) {
-		return
-	}
-
 	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
@@ -2023,10 +1989,6 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if rejectBoardChannelByID(c, c.Params.ChannelId) {
-		return
-	}
-
 	var schemeRoles model.SchemeRoles
 	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
 		c.SetInvalidParamWithErr("scheme_roles", jsonErr)
@@ -2056,10 +2018,6 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
-		return
-	}
-
-	if rejectBoardChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -2102,10 +2060,6 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 
 	c.RequireUserId().RequireChannelId()
 	if c.Err != nil {
-		return
-	}
-
-	if rejectBoardChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -2987,10 +2941,6 @@ func getDirectOrGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter
 func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
-		return
-	}
-
-	if rejectBoardChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 

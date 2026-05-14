@@ -769,36 +769,6 @@ func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID st
 	return r0, r1
 }
 
-// GetBoardChannel provides a mock function with given fields: id
-func (_m *ChannelStore) GetBoardChannel(id string) (*model.Channel, error) {
-	ret := _m.Called(id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetBoardChannel")
-	}
-
-	var r0 *model.Channel
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.Channel, error)); ok {
-		return rf(id)
-	}
-	if rf, ok := ret.Get(0).(func(string) *model.Channel); ok {
-		r0 = rf(id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Channel)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetByName provides a mock function with given fields: teamID, name, allowFromCache
 func (_m *ChannelStore) GetByName(teamID string, name string, allowFromCache bool) (*model.Channel, error) {
 	ret := _m.Called(teamID, name, allowFromCache)
@@ -2695,45 +2665,6 @@ func (_m *ChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChanne
 	}
 
 	return r0, r1
-}
-
-// SaveBoardChannel provides a mock function with given fields: rctx, channel, maxChannelsPerTeam, view
-func (_m *ChannelStore) SaveBoardChannel(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, view *model.View) (*model.Channel, *model.View, error) {
-	ret := _m.Called(rctx, channel, maxChannelsPerTeam, view)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SaveBoardChannel")
-	}
-
-	var r0 *model.Channel
-	var r1 *model.View
-	var r2 error
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, int64, *model.View) (*model.Channel, *model.View, error)); ok {
-		return rf(rctx, channel, maxChannelsPerTeam, view)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, int64, *model.View) *model.Channel); ok {
-		r0 = rf(rctx, channel, maxChannelsPerTeam, view)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Channel)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.Channel, int64, *model.View) *model.View); ok {
-		r1 = rf(rctx, channel, maxChannelsPerTeam, view)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.View)
-		}
-	}
-
-	if rf, ok := ret.Get(2).(func(request.CTX, *model.Channel, int64, *model.View) error); ok {
-		r2 = rf(rctx, channel, maxChannelsPerTeam, view)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
 }
 
 // SaveDirectChannel provides a mock function with given fields: rctx, channel, member1, member2

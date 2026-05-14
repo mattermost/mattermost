@@ -20,23 +20,10 @@ func setupViewTest(t *testing.T) *TestHelper {
 	return th
 }
 
-func makeTestViewForAPI(t *testing.T) *model.View {
-	t.Helper()
-	kanban := &model.KanbanProps{
-		GroupBy: model.KanbanGroupBy{
-			FieldID: model.NewId(),
-			Columns: []model.KanbanColumn{
-				{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
-				{ID: model.NewId(), Name: "Done", OptionIDs: []string{model.NewId()}},
-			},
-		},
-	}
-	props, err := kanban.ToProps()
-	require.NoError(t, err)
+func makeTestViewForAPI() *model.View {
 	return &model.View{
 		Title: "Test Kanban",
 		Type:  model.ViewTypeKanban,
-		Props: props,
 	}
 }
 
@@ -45,7 +32,7 @@ func TestCreateView(t *testing.T) {
 	th := setupViewTest(t)
 
 	t.Run("creates a view in a public channel", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, resp, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
@@ -57,7 +44,7 @@ func TestCreateView(t *testing.T) {
 	})
 
 	t.Run("creates a view in a private channel", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, resp, err := th.Client.CreateView(context.Background(), th.BasicPrivateChannel.Id, view)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
@@ -69,7 +56,7 @@ func TestCreateView(t *testing.T) {
 		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 		require.Nil(t, appErr)
 
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, resp, err := th.Client.CreateView(context.Background(), dm.Id, view)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
@@ -84,7 +71,7 @@ func TestCreateView(t *testing.T) {
 	})
 
 	t.Run("empty title returns 400", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		view.Title = ""
 		_, resp, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.Error(t, err)
@@ -92,7 +79,7 @@ func TestCreateView(t *testing.T) {
 	})
 
 	t.Run("whitespace-only title returns 400", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		view.Title = "   "
 		_, resp, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.Error(t, err)
@@ -100,7 +87,7 @@ func TestCreateView(t *testing.T) {
 	})
 
 	t.Run("oversized title returns 400", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		view.Title = strings.Repeat("a", model.ViewTitleMaxRunes+1)
 		_, resp, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.Error(t, err)
@@ -112,7 +99,7 @@ func TestCreateView(t *testing.T) {
 		appErr := th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		_, resp, err := th.Client.CreateView(context.Background(), channel.Id, view)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
@@ -122,7 +109,7 @@ func TestCreateView(t *testing.T) {
 		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 		defer th.AddPermissionToRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		_, resp, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
@@ -130,7 +117,7 @@ func TestCreateView(t *testing.T) {
 
 	t.Run("unauthenticated returns 401", func(t *testing.T) {
 		client := th.CreateClient()
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		_, resp, err := client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -140,13 +127,13 @@ func TestCreateView(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
 		for i := range model.MaxViewsPerChannel {
-			view := makeTestViewForAPI(t)
+			view := makeTestViewForAPI()
 			_, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
 			require.NoError(t, err, "failed to create view %d", i)
 		}
 
 		// The next one should fail
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		_, resp, err := th.Client.CreateView(context.Background(), channel.Id, view)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
@@ -160,10 +147,10 @@ func TestGetViewsForChannel(t *testing.T) {
 	t.Run("lists views for channel", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
-		v1 := makeTestViewForAPI(t)
+		v1 := makeTestViewForAPI()
 		_, _, err := th.Client.CreateView(context.Background(), channel.Id, v1)
 		require.NoError(t, err)
-		v2 := makeTestViewForAPI(t)
+		v2 := makeTestViewForAPI()
 		v2.Title = "Second View"
 		_, _, err = th.Client.CreateView(context.Background(), channel.Id, v2)
 		require.NoError(t, err)
@@ -199,7 +186,7 @@ func TestGetViewsForChannel(t *testing.T) {
 
 		// Create 3 views
 		for i := range 3 {
-			v := makeTestViewForAPI(t)
+			v := makeTestViewForAPI()
 			v.Title = "Paginated View"
 			v.SortOrder = i
 			_, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
@@ -226,9 +213,9 @@ func TestGetViewsForChannel(t *testing.T) {
 	t.Run("excludes deleted views by default", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
-		created, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI(t))
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI())
 		require.NoError(t, err)
-		_, _, err = th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI(t))
+		_, _, err = th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI())
 		require.NoError(t, err)
 
 		resp, err := th.Client.DeleteView(context.Background(), channel.Id, created.Id)
@@ -243,7 +230,7 @@ func TestGetViewsForChannel(t *testing.T) {
 
 	t.Run("deleted channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		_, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI(t))
+		_, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI())
 		require.NoError(t, err)
 
 		appErr := th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
@@ -258,7 +245,7 @@ func TestGetViewsForChannel(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
 		for i := range 3 {
-			v := makeTestViewForAPI(t)
+			v := makeTestViewForAPI()
 			v.Title = "Count View"
 			v.SortOrder = i
 			_, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
@@ -274,7 +261,7 @@ func TestGetViewsForChannel(t *testing.T) {
 
 	t.Run("out-of-bounds page returns empty list", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		_, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI(t))
+		_, _, err := th.Client.CreateView(context.Background(), channel.Id, makeTestViewForAPI())
 		require.NoError(t, err)
 
 		views, resp, err := th.Client.GetViewsForChannel(context.Background(), channel.Id, model.ViewQueryOpts{PerPage: 1, Page: 999})
@@ -289,7 +276,7 @@ func TestGetView(t *testing.T) {
 	th := setupViewTest(t)
 
 	t.Run("gets a view by ID", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
@@ -307,7 +294,7 @@ func TestGetView(t *testing.T) {
 	})
 
 	t.Run("wrong channel returns 404", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
@@ -318,7 +305,7 @@ func TestGetView(t *testing.T) {
 	})
 
 	t.Run("deleted view returns 404", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
@@ -333,7 +320,7 @@ func TestGetView(t *testing.T) {
 
 	t.Run("deleted channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
 		require.NoError(t, err)
 
@@ -347,7 +334,7 @@ func TestGetView(t *testing.T) {
 
 	t.Run("permission denied for non-member", func(t *testing.T) {
 		channel := th.CreatePrivateChannel(t)
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.SystemAdminClient.CreateView(context.Background(), channel.Id, view)
 		require.NoError(t, err)
 
@@ -365,7 +352,7 @@ func TestUpdateView(t *testing.T) {
 	th := setupViewTest(t)
 
 	t.Run("updates a view", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
@@ -385,7 +372,7 @@ func TestUpdateView(t *testing.T) {
 	})
 
 	t.Run("wrong channel returns 404", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
@@ -397,7 +384,7 @@ func TestUpdateView(t *testing.T) {
 	})
 
 	t.Run("invalid patch returns 400", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
@@ -408,7 +395,7 @@ func TestUpdateView(t *testing.T) {
 
 	t.Run("deleted channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
 		require.NoError(t, err)
 
@@ -425,7 +412,7 @@ func TestUpdateView(t *testing.T) {
 		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 		defer th.AddPermissionToRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.SystemAdminClient.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
@@ -441,7 +428,7 @@ func TestDeleteView(t *testing.T) {
 	th := setupViewTest(t)
 
 	t.Run("deletes a view", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
@@ -462,7 +449,7 @@ func TestDeleteView(t *testing.T) {
 	})
 
 	t.Run("wrong channel returns 404", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
@@ -474,7 +461,7 @@ func TestDeleteView(t *testing.T) {
 
 	t.Run("deleted channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
 		require.NoError(t, err)
 
@@ -490,7 +477,7 @@ func TestDeleteView(t *testing.T) {
 		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 		defer th.AddPermissionToRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.SystemAdminClient.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
@@ -508,7 +495,7 @@ func TestUpdateViewSortOrder(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 		var created []*model.View
 		for i := range 3 {
-			v := makeTestViewForAPI(t)
+			v := makeTestViewForAPI()
 			v.Title = "Sort View"
 			v.SortOrder = i
 			c, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
@@ -527,7 +514,7 @@ func TestUpdateViewSortOrder(t *testing.T) {
 
 	t.Run("negative sort order returns 400", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		v := makeTestViewForAPI(t)
+		v := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
 		require.NoError(t, err)
 
@@ -538,7 +525,7 @@ func TestUpdateViewSortOrder(t *testing.T) {
 
 	t.Run("out of bounds returns 400", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		v := makeTestViewForAPI(t)
+		v := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
 		require.NoError(t, err)
 
@@ -549,7 +536,7 @@ func TestUpdateViewSortOrder(t *testing.T) {
 
 	t.Run("non-existent view returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		v := makeTestViewForAPI(t)
+		v := makeTestViewForAPI()
 		_, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
 		require.NoError(t, err)
 
@@ -560,7 +547,7 @@ func TestUpdateViewSortOrder(t *testing.T) {
 
 	t.Run("deleted channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		v := makeTestViewForAPI(t)
+		v := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
 		require.NoError(t, err)
 
@@ -577,7 +564,7 @@ func TestUpdateViewSortOrder(t *testing.T) {
 		defer th.AddPermissionToRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
 		channel := th.CreatePublicChannel(t)
-		v := makeTestViewForAPI(t)
+		v := makeTestViewForAPI()
 		created, _, err := th.SystemAdminClient.CreateView(context.Background(), channel.Id, v)
 		require.NoError(t, err)
 
@@ -588,13 +575,13 @@ func TestUpdateViewSortOrder(t *testing.T) {
 
 	t.Run("wrong channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		v := makeTestViewForAPI(t)
+		v := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, v)
 		require.NoError(t, err)
 
 		otherChannel := th.CreatePublicChannel(t)
 		// Create a view in otherChannel so the store has views to search through
-		_, _, err = th.Client.CreateView(context.Background(), otherChannel.Id, makeTestViewForAPI(t))
+		_, _, err = th.Client.CreateView(context.Background(), otherChannel.Id, makeTestViewForAPI())
 		require.NoError(t, err)
 
 		_, resp, err := th.Client.UpdateViewSortOrder(context.Background(), otherChannel.Id, created.Id, 0)
@@ -616,7 +603,7 @@ func TestGetPostsForView(t *testing.T) {
 
 	t.Run("returns all post types", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
 		require.NoError(t, err)
 
@@ -639,7 +626,7 @@ func TestGetPostsForView(t *testing.T) {
 	})
 
 	t.Run("wrong channel for view returns 404", func(t *testing.T) {
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
 		require.NoError(t, err)
 
@@ -657,7 +644,7 @@ func TestGetPostsForView(t *testing.T) {
 
 	t.Run("no channel read permission returns 403", func(t *testing.T) {
 		channel := th.CreatePrivateChannel(t)
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.SystemAdminClient.CreateView(context.Background(), channel.Id, view)
 		require.NoError(t, err)
 
@@ -678,7 +665,7 @@ func TestGetPostsForView(t *testing.T) {
 
 	t.Run("deleted channel returns 404", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
 		require.NoError(t, err)
 
@@ -692,7 +679,7 @@ func TestGetPostsForView(t *testing.T) {
 
 	t.Run("pagination works", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		view := makeTestViewForAPI(t)
+		view := makeTestViewForAPI()
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
 		require.NoError(t, err)
 
@@ -739,7 +726,7 @@ func TestViewFeatureFlagOff(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = false
 	}).InitBasic(t)
 
-	view := makeTestViewForAPI(t)
+	view := makeTestViewForAPI()
 
 	t.Run("create returns 404 when flag is off", func(t *testing.T) {
 		_, resp, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)

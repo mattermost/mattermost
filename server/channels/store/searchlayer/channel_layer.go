@@ -219,11 +219,6 @@ func (c *SearchChannelStore) SaveDirectChannel(rctx request.CTX, directchannel *
 	return channel, err
 }
 
-func (c *SearchChannelStore) SaveBoardChannel(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, view *model.View) (*model.Channel, *model.View, error) {
-	// Board channels are not indexed — they must stay invisible to channel search/autocomplete.
-	return c.ChannelStore.SaveBoardChannel(rctx, channel, maxChannelsPerTeam, view)
-}
-
 func (c *SearchChannelStore) Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {
 	var channelList model.ChannelListWithTeamData
 	var err error

@@ -408,8 +408,6 @@ tags:
     description: Endpoints for creating, getting and interacting with channel bookmarks.
   - name: views
     description: Endpoints for creating, getting and interacting with channel views.
-  - name: boards
-    description: Endpoints for creating and managing board channels (kanban-backed channels with linked properties). Gated behind the `IntegratedBoards` feature flag.
   - name: preferences
     description: Endpoints for saving and modifying user preferences.
   - name: status
