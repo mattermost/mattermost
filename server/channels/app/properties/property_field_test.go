@@ -13,63 +13,39 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRequiresAccessControlFailsClosed(t *testing.T) {
-	th := Setup(t)
+func TestHooksOnlyScopeToManagedGroups(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := th.Context
 
-	// Use an unregistered group — this means any call to
-	// requiresAccessControl will fail to look up the group.
-	// The service must return an error rather than silently bypassing
-	// access control.
-	unregisteredGroupID := model.NewId()
+	// Operations on an unmanaged group should bypass the access control
+	// hook entirely and proceed directly to the store layer.
+	unmanagedGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "unmanaged_group", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
 
-	t.Run("CreatePropertyField returns error when group lookup fails", func(t *testing.T) {
+	t.Run("CreatePropertyField on unmanaged group bypasses hooks", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID:    unregisteredGroupID,
-			Name:       "test-field",
+			GroupID:    unmanagedGroup.ID,
+			Name:       "test-field-" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
-		_, err := th.service.CreatePropertyField(rctx, field)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
+		result, err := th.service.CreatePropertyField(rctx, field)
+		require.NoError(t, err)
+		assert.NotEmpty(t, result.ID)
 	})
 
-	t.Run("GetPropertyField returns error when group lookup fails", func(t *testing.T) {
-		_, err := th.service.GetPropertyField(rctx, unregisteredGroupID, model.NewId())
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
-	})
-
-	t.Run("GetPropertyFields returns error when group lookup fails", func(t *testing.T) {
-		_, err := th.service.GetPropertyFields(rctx, unregisteredGroupID, []string{model.NewId()})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
-	})
-
-	t.Run("UpdatePropertyField returns error when group lookup fails", func(t *testing.T) {
-		field := &model.PropertyField{
-			ID:         model.NewId(),
-			GroupID:    unregisteredGroupID,
-			Name:       "test-field",
+	t.Run("GetPropertyField on unmanaged group bypasses hooks", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    unmanagedGroup.ID,
+			Name:       "get-field-" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
-		}
-		_, err := th.service.UpdatePropertyField(rctx, unregisteredGroupID, field)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
-	})
-
-	t.Run("DeletePropertyField returns error when group lookup fails", func(t *testing.T) {
-		err := th.service.DeletePropertyField(rctx, unregisteredGroupID, model.NewId())
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
-	})
-
-	t.Run("SearchPropertyFields returns error when group lookup fails", func(t *testing.T) {
-		_, err := th.service.SearchPropertyFields(rctx, unregisteredGroupID, model.PropertyFieldSearchOpts{})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		result, err := th.service.GetPropertyField(rctx, unmanagedGroup.ID, field.ID)
+		require.NoError(t, err)
+		assert.Equal(t, field.ID, result.ID)
 	})
 }
 
@@ -616,18 +592,14 @@ func TestUpdatePropertyField(t *testing.T) {
 			},
 		})
 
-		// Update non-name fields (Type, Attrs)
-		field.Type = model.PropertyFieldTypeSelect
+		// Update non-name fields (Attrs only)
 		field.Attrs = map[string]any{
-			"options": []any{
-				map[string]any{"name": "a"},
-				map[string]any{"name": "b"},
-			},
+			"key": "updated",
 		}
 
-		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
+		result, _, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
-		assert.Equal(t, model.PropertyFieldTypeSelect, result.Type)
+		assert.Equal(t, "updated", result.Attrs["key"])
 	})
 
 	t.Run("updating name to non-conflicting value should succeed", func(t *testing.T) {
@@ -644,7 +616,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Update name to non-conflicting value
 		field.Name = "NewUniqueName"
-		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
+		result, _, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, "NewUniqueName", result.Name)
 	})
@@ -674,7 +646,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Try to update system-level to name that conflicts with team-level
 		systemField.Name = "ExistingTeamProp"
-		result, err := th.service.UpdatePropertyField(rctx, groupID, systemField)
+		result, _, err := th.service.UpdatePropertyField(rctx, groupID, systemField)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -712,7 +684,7 @@ func TestUpdatePropertyField(t *testing.T) {
 		// Update DM property to same name as regular channel property - should succeed
 		// because DM channels have no team, so they don't conflict with team channels
 		dmField.Name = "ChannelProp"
-		result, err := th.service.UpdatePropertyField(rctx, groupID, dmField)
+		result, _, err := th.service.UpdatePropertyField(rctx, groupID, dmField)
 		require.NoError(t, err)
 		assert.Equal(t, "ChannelProp", result.Name)
 	})
@@ -742,7 +714,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Try to update team-level to name that conflicts with system-level
 		teamField.Name = "ExistingSystemProp"
-		result, err := th.service.UpdatePropertyField(rctx, groupID, teamField)
+		result, _, err := th.service.UpdatePropertyField(rctx, groupID, teamField)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -781,7 +753,7 @@ func TestUpdatePropertyField(t *testing.T) {
 		channel2Field.TargetType = string(model.PropertyFieldTargetLevelSystem)
 		channel2Field.TargetID = ""
 
-		result, err := th.service.UpdatePropertyField(rctx, groupID, channel2Field)
+		result, _, err := th.service.UpdatePropertyField(rctx, groupID, channel2Field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -823,7 +795,7 @@ func TestUpdatePropertyField(t *testing.T) {
 		// We only verify an error occurs without checking the specific error type.
 		channel2Field.TargetID = channel1.Id
 
-		result, err := th.service.UpdatePropertyField(rctx, groupID, channel2Field)
+		result, _, err := th.service.UpdatePropertyField(rctx, groupID, channel2Field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 	})
@@ -842,7 +814,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Update name should succeed without conflict check
 		field.Name = "UpdatedLegacyProp"
-		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
+		result, _, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, "UpdatedLegacyProp", result.Name)
 	})
@@ -860,8 +832,8 @@ func TestUpdatePropertyField(t *testing.T) {
 		})
 
 		// Update with same name should succeed (no actual change to name)
-		field.Type = model.PropertyFieldTypeSelect // Change something else
-		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
+		field.Attrs = map[string]any{"key": "changed"} // Change something else
+		result, _, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, "SameName", result.Name)
 	})
@@ -1024,7 +996,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		linked.Type = model.PropertyFieldTypeText
-		_, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1046,7 +1018,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		linked.Attrs[model.PropertyFieldAttributeOptions] = []any{
 			map[string]any{"id": model.NewId(), "name": "Different"},
 		}
-		_, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1066,7 +1038,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		linked.Name = "NewName-" + model.NewId()
-		result, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.NoError(t, err)
 		assert.Equal(t, linked.Name, result.Name)
 	})
@@ -1100,7 +1072,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		}
 		source.Attrs[model.PropertyFieldAttributeOptions] = newOptions
 
-		result, propagated, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{source})
+		result, propagated, _, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{source})
 		require.NoError(t, err)
 		require.Len(t, result, 1)     // only the requested source field
 		require.Len(t, propagated, 2) // 2 linked fields
@@ -1112,8 +1084,8 @@ func TestLinkedPropertyFields(t *testing.T) {
 		require.NoError(t, err)
 
 		for _, linked := range []*model.PropertyField{updatedLinked1, updatedLinked2} {
-			opts := extractOptionIDs(linked.Attrs[model.PropertyFieldAttributeOptions])
-			expectedOpts := extractOptionIDs(newOptions)
+			opts := extractOptionIDList(linked.Attrs[model.PropertyFieldAttributeOptions])
+			expectedOpts := extractOptionIDList(newOptions)
 			assert.Equal(t, expectedOpts, opts)
 		}
 	})
@@ -1131,7 +1103,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		source.Type = model.PropertyFieldTypeMultiselect
-		_, err := th.service.UpdatePropertyField(rctx, group.ID, source)
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, source)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1192,14 +1164,14 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// Unlink by clearing LinkedFieldID
 		linked.LinkedFieldID = nil
-		result, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.NoError(t, err)
 		assert.Nil(t, result.LinkedFieldID)
 		assert.Equal(t, source.Type, result.Type)
 
 		// Verify options are preserved after unlinking
-		sourceOpts := extractOptionIDs(source.Attrs[model.PropertyFieldAttributeOptions])
-		resultOpts := extractOptionIDs(result.Attrs[model.PropertyFieldAttributeOptions])
+		sourceOpts := extractOptionIDList(source.Attrs[model.PropertyFieldAttributeOptions])
+		resultOpts := extractOptionIDList(result.Attrs[model.PropertyFieldAttributeOptions])
 		require.NotEmpty(t, sourceOpts, "source should have options")
 		assert.Equal(t, sourceOpts, resultOpts, "options should be preserved after unlinking")
 	})
@@ -1251,7 +1223,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		// Attempt to set LinkedFieldID on update — should be rejected
 		source := createSourceField(t, "LinkAttemptSource-"+model.NewId())
 		regular.LinkedFieldID = &source.ID
-		_, err := th.service.UpdatePropertyField(rctx, group.ID, regular)
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, regular)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1274,7 +1246,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// Attempt to change the link target — should be rejected
 		linked.LinkedFieldID = &source2.ID
-		_, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1353,7 +1325,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			map[string]any{"id": optCID, "name": "Option C", "color": "green"},
 		}
 
-		result, propagated, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{source})
+		result, propagated, _, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{source})
 		require.NoError(t, err)
 		require.Len(t, result, 1)     // only the requested source field
 		require.Len(t, propagated, 1) // 1 linked field
@@ -1362,7 +1334,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		updatedLinked, err := th.service.GetPropertyField(rctx, group.ID, linked.ID)
 		require.NoError(t, err)
 
-		linkedOptIDs := extractOptionIDs(updatedLinked.Attrs[model.PropertyFieldAttributeOptions])
+		linkedOptIDs := extractOptionIDList(updatedLinked.Attrs[model.PropertyFieldAttributeOptions])
 		assert.Equal(t, []string{optAID, optCID}, linkedOptIDs, "option B should be removed from linked field")
 
 		// Verify option content (names, colors) was propagated correctly
@@ -1374,12 +1346,10 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, "green", linkedOpts[1]["color"])
 	})
 
-	// FIXME: remove this test once CPA is fully migrated to v2 — template
-	// fields should then only be created on v2 groups.
-	t.Run("template field creation is allowed on v1 group", func(t *testing.T) {
+	t.Run("template field creation is rejected on v1 group", func(t *testing.T) {
 		v1Group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
 
-		template, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 			GroupID:    v1Group.ID,
 			ObjectType: model.PropertyFieldObjectTypeTemplate,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -1391,8 +1361,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 		})
-		require.NoError(t, err)
-		assert.Equal(t, model.PropertyFieldObjectTypeTemplate, template.ObjectType)
+		require.Error(t, err)
 	})
 
 	t.Run("cross-group linking is rejected", func(t *testing.T) {

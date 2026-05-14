@@ -351,7 +351,7 @@ func (u UserSlice) FilterWithoutID(ids []string) UserSlice {
 func (u *User) DeepCopy() *User {
 	copyUser := *u
 	if u.AuthData != nil {
-		copyUser.AuthData = NewPointer(*u.AuthData)
+		copyUser.AuthData = new(*u.AuthData)
 	}
 	if u.Props != nil {
 		copyUser.Props = CopyStringMap(u.Props)
@@ -701,7 +701,7 @@ func (u *User) Sanitize(options map[string]bool) {
 			u.AuthService = ""
 		}
 		if !options["authdata"] {
-			u.AuthData = NewPointer("")
+			u.AuthData = new("")
 		}
 	}
 }
@@ -709,11 +709,11 @@ func (u *User) Sanitize(options map[string]bool) {
 // Remove any input data from the user object that is not user controlled
 func (u *User) SanitizeInput(isAdmin bool) {
 	if !isAdmin {
-		u.AuthData = NewPointer("")
+		u.AuthData = new("")
 		u.AuthService = ""
 		u.EmailVerified = false
 	}
-	u.RemoteId = NewPointer("")
+	u.RemoteId = new("")
 	u.CreateAt = 0
 	u.UpdateAt = 0
 	u.DeleteAt = 0
@@ -736,7 +736,7 @@ func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.LastPasswordUpdate = 0
 
 	if !asAdmin {
-		u.AuthData = NewPointer("")
+		u.AuthData = new("")
 		u.NotifyProps = StringMap{}
 		u.FailedAttempts = 0
 	}

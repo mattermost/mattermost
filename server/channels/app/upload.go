@@ -302,7 +302,7 @@ func (a *App) UploadData(rctx request.CTX, us *model.UploadSession, rd io.Reader
 	info.CreatorId = us.UserId
 	info.ChannelId = us.ChannelId
 	info.Path = us.Path
-	info.RemoteId = model.NewPointer(us.RemoteId)
+	info.RemoteId = new(us.RemoteId)
 	if us.ReqFileId != "" {
 		info.Id = us.ReqFileId
 	}

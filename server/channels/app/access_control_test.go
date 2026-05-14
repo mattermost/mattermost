@@ -611,7 +611,7 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 
 		mockAccessControl.On("GetPolicy", th.Context, parentID).Return(&model.AccessControlPolicy{Type: model.AccessControlPolicyTypeParent}, nil)
 
-		privateChannel.Shared = model.NewPointer(true)
+		privateChannel.Shared = new(true)
 		_, err := th.App.Srv().Store().Channel().Update(th.Context, privateChannel)
 		require.NoError(t, err)
 
@@ -817,7 +817,7 @@ func TestUpdateChannelBlocksTypeConversionWhenPolicyEnforced(t *testing.T) {
 	require.True(t, ok, "SetLicense should return true")
 	t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 	})
 
 	mockACS := &mocks.AccessControlServiceInterface{}
@@ -1193,7 +1193,7 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 		})
 
 		// Mark channel as shared
-		sharedChannel.Shared = model.NewPointer(true)
+		sharedChannel.Shared = new(true)
 		_, err := th.App.Srv().Store().Channel().Update(th.Context, sharedChannel)
 		require.NoError(t, err)
 
@@ -1436,7 +1436,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 		})
 
 		// Mark channel as shared
-		sharedChannel.Shared = model.NewPointer(true)
+		sharedChannel.Shared = new(true)
 		_, err := th.App.Srv().Store().Channel().Update(th.Context, sharedChannel)
 		require.NoError(t, err)
 
@@ -1947,7 +1947,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
 			cfg.FeatureFlags.PermissionPolicies = true
 		})
 
@@ -1960,7 +1960,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 			cfg.FeatureFlags.PermissionPolicies = false
 		})
 
@@ -1982,7 +1982,7 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		channels, appErr := th.App.GetRecommendedPublicChannelsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
@@ -1995,7 +1995,7 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		th.App.Srv().ch.AccessControl = nil
@@ -2009,7 +2009,7 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		mockACS := &mocks.AccessControlServiceInterface{}
