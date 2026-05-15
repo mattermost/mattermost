@@ -41,7 +41,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         }
         return getChannel(state, rootPost.channel_id);
     });
-    const overrideName = useChannelIconOverrideName(channel ?? undefined);
+    const overrideName = useChannelIconOverrideName(channel);
 
     if (!channel || threadIsLimited) {
         return null;

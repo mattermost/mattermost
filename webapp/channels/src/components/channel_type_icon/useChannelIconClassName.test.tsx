@@ -41,6 +41,14 @@ describe('hooks/useChannelIconClassName', () => {
         expect(result.current).toBe('icon-globe');
     });
 
+    it('returns icon-globe when channel is null', () => {
+        const {result} = renderHookWithContext(
+            () => useChannelIconClassName(null),
+            {plugins: {components: {ChannelIconOverride: []}}} as any,
+        );
+        expect(result.current).toBe('icon-globe');
+    });
+
     it('returns the override icon class when a matcher matches', () => {
         const channel = makeChannel({type: 'O'});
         const {result} = renderHookWithContext(

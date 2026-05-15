@@ -62,7 +62,7 @@ export function findNextUnreadChannelId(curChannelId: string, allChannelIds: str
 }
 
 export function isArchivedChannel(channel?: Channel) {
-    return Boolean(channel && channel.delete_at !== 0);
+    return Boolean(channel?.delete_at);
 }
 
 /**

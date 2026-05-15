@@ -30,6 +30,14 @@ describe('hooks/useChannelIconOverrideName', () => {
         expect(result.current).toBeNull();
     });
 
+    it('returns null when channel is null', () => {
+        const {result} = renderHookWithContext(
+            () => useChannelIconOverrideName(null),
+            {plugins: {components: {ChannelIconOverride: []}}} as any,
+        );
+        expect(result.current).toBeNull();
+    });
+
     it('returns null for a channel with no overrides', () => {
         const {result} = renderHookWithContext(
             () => useChannelIconOverrideName(makeChannel({type: 'O'})),
