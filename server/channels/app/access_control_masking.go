@@ -32,10 +32,11 @@ func (a *App) GetMaskedVisualAST(rctx request.CTX, expression string, callerID s
 		return visualAST, nil
 	}
 
-	cpaGroupID, appErr := a.CpaGroupID()
+	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return nil, model.NewAppError("GetMaskedVisualAST", "app.pap.get_masked_visual_ast.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
+	cpaGroupID := cpaGroup.ID
 
 	// Embed callerID in context so GetPropertyFieldByName applies per-caller option filtering.
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
@@ -616,10 +617,11 @@ const maskedTokenValue = "--------"
 // validatePolicyExpressionValues checks that all submitted literal values are held by the caller.
 // Returns the same generic error for every rejection to prevent value enumeration.
 func (a *App) validatePolicyExpressionValues(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) *model.AppError {
-	cpaGroupID, appErr := a.CpaGroupID()
+	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return model.NewAppError("validatePolicyExpressionValues", "app.pap.validate_expression_values.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
+	cpaGroupID := cpaGroup.ID
 
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
 
@@ -739,10 +741,11 @@ func (a *App) GetMaskedExpression(rctx request.CTX, expression string, callerID 
 		return "", appErr
 	}
 
-	cpaGroupID, appErr := a.CpaGroupID()
+	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return "", appErr
 	}
+	cpaGroupID := cpaGroup.ID
 
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
 	fieldsByName := a.fetchConditionFields(rctxWithCaller, visualAST.Conditions, cpaGroupID)
@@ -824,7 +827,7 @@ func replaceHiddenValuesWithToken(condition *model.Condition, visibleNames map[s
 // MaskPolicyExpressions masks non-held literal values in all policy rule expressions, in place.
 // Fails closed (sets a rule to "true") if its expression cannot be parsed or masked.
 func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) {
-	cpaGroupID, appErr := a.CpaGroupID()
+	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		rctx.Logger().Warn("MaskPolicyExpressions: failed to resolve CPA group, masking all rules closed",
 			mlog.Err(appErr),
@@ -837,6 +840,7 @@ func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessContro
 		}
 		return
 	}
+	cpaGroupID := cpaGroup.ID
 
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
 

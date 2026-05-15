@@ -1832,7 +1832,7 @@ func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string
 	// remove any previously created tokens for user
 	appErr := a.InvalidatePasswordRecoveryTokensForUser(userID)
 	if appErr != nil {
-		rctx.Logger().Warn("Error while deleting additional user tokens.", mlog.Err(err))
+		rctx.Logger().Warn("Error while deleting additional user tokens.", mlog.Err(appErr))
 	}
 
 	token := model.NewToken(model.TokenTypePasswordRecovery, string(jsonData))

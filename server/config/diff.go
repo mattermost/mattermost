@@ -40,6 +40,8 @@ var configSensitivePaths = map[string]bool{
 	"LdapSettings.BindPassword":                              true,
 	"FileSettings.PublicLinkSalt":                            true,
 	"FileSettings.AmazonS3SecretAccessKey":                   true,
+	"FileSettings.AzureAccessKey":                            true,
+	"FileSettings.ExportAzureAccessKey":                      true,
 	"SqlSettings.DataSource":                                 true,
 	"SqlSettings.AtRestEncryptKey":                           true,
 	"SqlSettings.DataSourceReplicas":                         true,

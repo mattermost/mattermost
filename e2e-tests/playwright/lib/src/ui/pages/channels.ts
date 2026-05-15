@@ -38,6 +38,7 @@ export default class ChannelsPage {
     readonly findChannelsModal;
     readonly newChannelModal;
     readonly browseChannelsModal;
+    readonly directChannelsModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
     public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
@@ -77,6 +78,9 @@ export default class ChannelsPage {
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.newChannelModal = new NewChannelModal(page.getByRole('dialog', {name: 'Create a new channel'}));
         this.browseChannelsModal = new BrowseChannelsModal(page.getByRole('dialog', {name: 'Browse Channels'}));
+        this.directChannelsModal = new components.DirectChannelsModal(
+            page.getByRole('dialog', {name: 'Direct Messages'}),
+        );
         this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
         this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
         this.teamSettingsModal = new components.TeamSettingsModal(page.getByRole('dialog', {name: 'Team Settings'}));
@@ -240,6 +244,13 @@ export default class ChannelsPage {
         await this.browseChannelsModal.toBeVisible();
 
         return this.browseChannelsModal;
+    }
+
+    async openDirectChannelsModal() {
+        await this.sidebarLeft.openDirectMessageButton.click();
+        await this.directChannelsModal.toBeVisible();
+
+        return this.directChannelsModal;
     }
 
     async openCreateTeamForm(): Promise<CreateTeamForm> {
