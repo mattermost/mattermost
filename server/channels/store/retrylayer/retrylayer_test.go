@@ -74,6 +74,7 @@ func genStore() *mocks.Store {
 	mock.On("Recap").Return(&mocks.RecapStore{})
 	mock.On("TemporaryPost").Return(&mocks.TemporaryPostStore{})
 	mock.On("View").Return(&mocks.ViewStore{})
+	mock.On("ChannelJoinRequest").Return(&mocks.ChannelJoinRequestStore{})
 	return mock
 }
 
