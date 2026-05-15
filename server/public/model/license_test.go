@@ -447,7 +447,7 @@ func TestLicenseHasSharedChannels(t *testing.T) {
 			"licensed for shared channels",
 			License{
 				Features: &Features{
-					SharedChannels: NewPointer(true),
+					SharedChannels: new(true),
 				},
 				SkuShortName: "other",
 			},

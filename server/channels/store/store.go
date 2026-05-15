@@ -196,10 +196,12 @@ type ChannelStore interface {
 	Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error)
 	CreateDirectChannel(rctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error)
 	SaveDirectChannel(rctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
+	SaveBoardChannel(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, view *model.View) (*model.Channel, *model.View, error)
 	Update(rctx request.CTX, channel *model.Channel) (*model.Channel, error)
 	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamID string) error
 	ClearSidebarOnTeamLeave(userID, teamID string) error
 	Get(id string, allowFromCache bool) (*model.Channel, error)
+	GetBoardChannel(id string) (*model.Channel, error)
 	GetMany(ids []string, allowFromCache bool) (model.ChannelList, error)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamID, name string)
@@ -286,6 +288,8 @@ type ChannelStore interface {
 	GetMembersInfoByChannelIds(channelIDs []string) (map[string][]*model.User, error)
 	GetChannelUnread(channelID, userID string) (*model.ChannelUnread, error)
 	GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error)
+	GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, teamID string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error)
+	GetDirectMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error)
 	ClearCaches()
 	ClearMembersForUserCache()
 	GetChannelsByScheme(schemeID string, offset int, limit int) (model.ChannelList, error)
@@ -329,6 +333,7 @@ type ChannelStore interface {
 type ChannelMemberHistoryStore interface {
 	LogJoinEvent(userID string, channelID string, joinTime int64) error
 	LogLeaveEvent(userID string, channelID string, leaveTime int64) error
+	GetEverMembersInChannel(channelID string, userIDs []string) ([]string, error)
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelID []string) ([]*model.ChannelMemberHistoryResult, error)
 	GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error)
 	PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
@@ -755,7 +760,7 @@ type FileInfoStore interface {
 	Upsert(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error)
 	Get(id string) (*model.FileInfo, error)
 	GetFromMaster(id string) (*model.FileInfo, error)
-	GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
+	GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error)
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postID string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetForUser(userID string) ([]*model.FileInfo, error)
@@ -1144,6 +1149,7 @@ type PropertyFieldStore interface {
 	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
+	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 	CountLinkedFields(fieldID string) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)

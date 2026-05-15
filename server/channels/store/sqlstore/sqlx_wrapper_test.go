@@ -46,7 +46,10 @@ func TestSqlX(t *testing.T) {
 
 			query := `SELECT pg_sleep(:timeout);`
 			arg := struct{ Timeout int }{Timeout: 2}
-			_, err = tx.NamedQuery(query, arg)
+			rows, err := tx.NamedQuery(query, arg)
+			if rows != nil {
+				defer rows.Close()
+			}
 			require.Equal(t, context.DeadlineExceeded, err)
 			require.NoError(t, tx.Commit())
 		}

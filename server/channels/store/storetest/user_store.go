@@ -1678,10 +1678,10 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, rctx request.CTX, ss sto
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        model.NewPointer("n_" + model.NewId()),
+		Name:        new("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer("ri_" + model.NewId()),
+		RemoteId:    new("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -2430,7 +2430,7 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, rctx request.CTX, s
 
 	resetAuthDataToID := func() {
 		_, err = ss.User().UpdateAuthData(
-			user.Id, model.UserAuthServiceSaml, model.NewPointer("some-id"), "", false)
+			user.Id, model.UserAuthServiceSaml, new("some-id"), "", false)
 		require.NoError(t, err)
 	}
 	resetAuthDataToID()
@@ -3725,21 +3725,21 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
 
 	g1 := &model.Group{
-		Name:        model.NewPointer(NewTestID()),
+		Name:        new(NewTestID()),
 		DisplayName: NewTestID(),
 		Description: NewTestID(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer(NewTestID()),
+		RemoteId:    new(NewTestID()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewPointer(NewTestID()),
+		Name:        new(NewTestID()),
 		DisplayName: NewTestID(),
 		Description: NewTestID(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer(NewTestID()),
+		RemoteId:    new(NewTestID()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -3861,21 +3861,21 @@ func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Stor
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
 
 	g1 := &model.Group{
-		Name:        model.NewPointer(NewTestID()),
+		Name:        new(NewTestID()),
 		DisplayName: NewTestID(),
 		Description: NewTestID(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewPointer(NewTestID()),
+		RemoteId:    new(NewTestID()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewPointer(NewTestID()),
+		Name:        new(NewTestID()),
 		DisplayName: NewTestID(),
 		Description: NewTestID(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewPointer(NewTestID()),
+		RemoteId:    new(NewTestID()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -5000,10 +5000,10 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        model.NewPointer("n_" + model.NewId()),
+		Name:        new("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer("ri_" + model.NewId()),
+		RemoteId:    new("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -5320,10 +5320,10 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        model.NewPointer("n_" + id),
+			Name:        new("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewPointer("ri_" + id),
+			RemoteId:    new("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
@@ -5359,7 +5359,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	requireNUsers(1)
 
 	// update team to be group-constrained
-	team.GroupConstrained = model.NewPointer(true)
+	team.GroupConstrained = new(true)
 	team, err = ss.Team().Update(team)
 	require.NoError(t, err)
 
@@ -5441,10 +5441,10 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 		id = model.NewId()
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        model.NewPointer("n_" + id),
+			Name:        new("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewPointer("ri_" + id),
+			RemoteId:    new("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
@@ -5480,7 +5480,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 	requireNUsers(1)
 
 	// update team to be group-constrained
-	channel.GroupConstrained = model.NewPointer(true)
+	channel.GroupConstrained = new(true)
 	_, nErr = ss.Channel().Update(rctx, channel)
 	require.NoError(t, nErr)
 
@@ -7448,7 +7448,7 @@ func testUserStoreSearchTeamContentFlaggingReviewers(t *testing.T, rctx request.
 		CommonReviewerIds: []string{},
 		TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
 			teamId: {
-				Enabled:     model.NewPointer(true),
+				Enabled:     new(true),
 				ReviewerIds: []string{u1.Id, u2.Id},
 			},
 		},

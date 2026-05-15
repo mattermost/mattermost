@@ -108,7 +108,7 @@ describe('propertiesReducer', () => {
             expect(state.fields.byId.f2).toBeUndefined();
         });
 
-        test('RECEIVED_PROPERTY_FIELDS skips soft-deleted fields but keeps valid ones', () => {
+        test('RECEIVED_PROPERTY_FIELDS caches soft-deleted fields in byId but excludes from byObjectType', () => {
             const validField = makeField({id: 'f1', object_type: 'post'});
             const deletedField = makeField({id: 'f2', object_type: 'post', delete_at: 999});
 
@@ -118,7 +118,9 @@ describe('propertiesReducer', () => {
             });
 
             expect(state.fields.byId.f1).toBe(validField);
-            expect(state.fields.byId.f2).toBeUndefined();
+            expect(state.fields.byId.f2).toBe(deletedField);
+            expect(state.fields.byObjectType.post?.['group-1']?.f1).toBe(validField);
+            expect(state.fields.byObjectType.post?.['group-1']?.f2).toBeUndefined();
         });
 
         test('RECEIVED_PROPERTY_FIELDS returns same state ref when all fields are invalid', () => {

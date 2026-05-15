@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -653,7 +654,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 	require.Nil(t, err)
 
 	group, err := th.App.CreateGroup(&model.Group{
-		Name:           model.NewPointer(model.NewId()),
+		Name:           new(model.NewId()),
 		DisplayName:    model.NewId(),
 		Source:         model.GroupSourceCustom,
 		AllowReference: true,
@@ -724,7 +725,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 		configComplianceEnabled bool
 		channelDeleted          bool
 		canReadChannel          bool
-		channelIsOpen           bool
+		channelType             model.ChannelType
 		canReadPublicChannel    bool
 		expected                bool
 		isAdmin                 bool
@@ -734,7 +735,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: true,
 			channelDeleted:          true,
 			canReadChannel:          true,
-			channelIsOpen:           true,
+			channelType:             model.ChannelTypeOpen,
 			canReadPublicChannel:    true,
 			expected:                true,
 		},
@@ -743,7 +744,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: true,
 			channelDeleted:          false,
 			canReadChannel:          true,
-			channelIsOpen:           false,
+			channelType:             model.ChannelTypePrivate,
 			canReadPublicChannel:    true,
 			expected:                true,
 		},
@@ -752,7 +753,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: false,
 			channelDeleted:          false,
 			canReadChannel:          false,
-			channelIsOpen:           false,
+			channelType:             model.ChannelTypePrivate,
 			canReadPublicChannel:    true,
 			expected:                false,
 		},
@@ -761,7 +762,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: true,
 			channelDeleted:          false,
 			canReadChannel:          false,
-			channelIsOpen:           true,
+			channelType:             model.ChannelTypeOpen,
 			canReadPublicChannel:    true,
 			expected:                false,
 		},
@@ -770,7 +771,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: false,
 			channelDeleted:          false,
 			canReadChannel:          false,
-			channelIsOpen:           true,
+			channelType:             model.ChannelTypeOpen,
 			canReadPublicChannel:    false,
 			expected:                false,
 		},
@@ -779,7 +780,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: false,
 			channelDeleted:          false,
 			canReadChannel:          false,
-			channelIsOpen:           true,
+			channelType:             model.ChannelTypeOpen,
 			canReadPublicChannel:    true,
 			expected:                true,
 		},
@@ -788,10 +789,37 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: false,
 			channelDeleted:          false,
 			canReadChannel:          false,
-			channelIsOpen:           false,
+			channelType:             model.ChannelTypePrivate,
 			canReadPublicChannel:    false,
 			expected:                true,
 			isAdmin:                 true,
+		},
+		{
+			name:                    "Can read open board if team permissions and compliance disabled",
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelType:             model.ChannelTypeOpenBoard,
+			canReadPublicChannel:    true,
+			expected:                true,
+		},
+		{
+			name:                    "Cannot read open board if compliance enabled",
+			configComplianceEnabled: true,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelType:             model.ChannelTypeOpenBoard,
+			canReadPublicChannel:    true,
+			expected:                false,
+		},
+		{
+			name:                    "Cannot read private board if not member",
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelType:             model.ChannelTypePrivateBoard,
+			canReadPublicChannel:    false,
+			expected:                false,
 		},
 	}
 
@@ -813,9 +841,30 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			}
 
 			var channel *model.Channel
-			if tc.channelIsOpen {
+			switch tc.channelType {
+			case model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard:
+				kanban := &model.KanbanProps{
+					GroupBy: model.KanbanGroupBy{
+						FieldID: model.NewId(),
+						Columns: []model.KanbanColumn{
+							{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
+						},
+					},
+				}
+				viewProps, _ := kanban.ToProps()
+				view := &model.View{CreatorId: th.SystemAdminUser.Id, Type: model.ViewTypeKanban, Title: "Board", Props: viewProps}
+				ch, _, storeErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
+					TeamId:      team.Id,
+					DisplayName: "Board " + model.NewId(),
+					Name:        "board-" + model.NewId(),
+					Type:        tc.channelType,
+					CreatorId:   th.SystemAdminUser.Id,
+				}, -1, view)
+				require.NoError(t, storeErr)
+				channel = ch
+			case model.ChannelTypeOpen:
 				channel = th.CreateChannel(t, team)
-			} else {
+			default:
 				channel = th.CreatePrivateChannel(t, team)
 			}
 			if tc.canReadChannel {
@@ -1154,8 +1203,9 @@ func TestHasPermissionToEditPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	testCases := []struct {
 		name     string
@@ -1292,8 +1342,9 @@ func TestHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	// Create a user that is not a member of any channel for the non-member test case
 	nonMember := th.CreateUser(t)
@@ -1515,8 +1566,9 @@ func TestHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	testCases := []struct {
 		name     string
@@ -1653,8 +1705,9 @@ func TestSessionHasPermissionToEditPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	testCases := []struct {
 		name     string
@@ -1805,8 +1858,9 @@ func TestSessionHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	// Create a user that is not a member of any channel for the non-member test case
 	nonMember := th.CreateUser(t)
@@ -2027,8 +2081,9 @@ func TestSessionHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	testCases := []struct {
 		name     string

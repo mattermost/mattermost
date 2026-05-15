@@ -1609,6 +1609,22 @@ func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, a
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetBoardChannel(id string) (*model.Channel, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetBoardChannel(id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetBoardChannel", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetByName(teamID string, name string, allowFromCache bool) (*model.Channel, error) {
 	start := time.Now()
 
@@ -2722,6 +2738,22 @@ func (s *TimerLayerChannelStore) Save(rctx request.CTX, channel *model.Channel, 
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) SaveBoardChannel(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, view *model.View) (*model.Channel, *model.View, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.ChannelStore.SaveBoardChannel(rctx, channel, maxChannelsPerTeam, view)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.SaveBoardChannel", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
 func (s *TimerLayerChannelStore) SaveDirectChannel(rctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
 	start := time.Now()
 
@@ -3214,6 +3246,22 @@ func (s *TimerLayerChannelMemberHistoryStore) GetChannelsLeftSince(userID string
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.GetChannelsLeftSince", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelMemberHistoryStore) GetEverMembersInChannel(channelID string, userIDs []string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.ChannelMemberHistoryStore.GetEverMembersInChannel(channelID, userIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.GetEverMembersInChannel", success, elapsed)
 	}
 	return result, err
 }
@@ -4207,10 +4255,10 @@ func (s *TimerLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) GetByIds(ids []string, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
+func (s *TimerLayerFileInfoStore) GetByIds(ids []string, includeDeleted bool, allowFromCache bool, readFromMaster bool) ([]*model.FileInfo, error) {
 	start := time.Now()
 
-	result, err := s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache)
+	result, err := s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache, readFromMaster)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
