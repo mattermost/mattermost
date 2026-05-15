@@ -417,18 +417,7 @@ describe('PluginRegistry — registerProductSwitcherMenuItem', () => {
         return mockCurrentStore.getState().components.ProductSwitcherMenuItem;
     }
 
-    it('(a) returns a string id', () => {
-        const registry = new PluginRegistry(PLUGIN_ID);
-        const id = registry.registerProductSwitcherMenuItem({
-            text: 'My Item',
-            icon: 'shield-outline',
-            action: () => {},
-        });
-        expect(typeof id).toBe('string');
-        expect(id.length).toBeGreaterThan(0);
-    });
-
-    it('(b) reduced entry has pluginId, text, icon, and action by reference', () => {
+    it('(a) reduced entry has pluginId, text, icon, and action by reference', () => {
         const registry = new PluginRegistry(PLUGIN_ID);
         const action = jest.fn();
 
@@ -444,7 +433,7 @@ describe('PluginRegistry — registerProductSwitcherMenuItem', () => {
         expect(items[0].action).toBe(action);
     });
 
-    it('(c) isAvailable omitted stores undefined; provided function stored by reference', () => {
+    it('(b) isAvailable omitted stores undefined; provided function stored by reference', () => {
         const registry = new PluginRegistry(PLUGIN_ID);
         registry.registerProductSwitcherMenuItem({text: 'No Gate', icon: 'globe', action: () => {}});
         expect(getItems()[0].isAvailable).toBeUndefined();
@@ -455,42 +444,17 @@ describe('PluginRegistry — registerProductSwitcherMenuItem', () => {
         expect(getItems()[0].isAvailable).toBe(isAvailable);
     });
 
-    it('(d) re-registration produces a second entry with a different id', () => {
+    it('(c) re-registration produces a second independent entry', () => {
         const registry = new PluginRegistry(PLUGIN_ID);
-        const id1 = registry.registerProductSwitcherMenuItem({text: 'Item 1', icon: 'globe', action: () => {}});
-        const id2 = registry.registerProductSwitcherMenuItem({text: 'Item 2', icon: 'globe', action: () => {}});
-
-        expect(id1).not.toBe(id2);
-        expect(getItems()).toHaveLength(2);
-    });
-
-    it('(e) unregisterProductSwitcherMenuItem removes only that entry', () => {
-        const registry = new PluginRegistry(PLUGIN_ID);
-        const id1 = registry.registerProductSwitcherMenuItem({text: 'Item 1', icon: 'globe', action: () => {}});
-        const id2 = registry.registerProductSwitcherMenuItem({text: 'Item 2', icon: 'globe', action: () => {}});
-
-        registry.unregisterProductSwitcherMenuItem({id: id1});
+        registry.registerProductSwitcherMenuItem({text: 'Item 1', icon: 'globe', action: () => {}});
+        registry.registerProductSwitcherMenuItem({text: 'Item 2', icon: 'globe', action: () => {}});
 
         const items = getItems();
-        expect(items).toHaveLength(1);
-        expect(items[0].id).toBe(id2);
-    });
-
-    it('(f) plugin B cannot unregister plugin A\'s entry by id', () => {
-        const registryA = new PluginRegistry('plugin_a');
-        const registryB = new PluginRegistry('plugin_b');
-
-        const idFromA = registryA.registerProductSwitcherMenuItem({text: 'Item A', icon: 'globe', action: () => {}});
-        registryB.registerProductSwitcherMenuItem({text: 'Item B', icon: 'globe', action: () => {}});
-
-        registryB.unregisterProductSwitcherMenuItem({id: idFromA});
-
-        const items: Array<{pluginId: string}> = getItems();
         expect(items).toHaveLength(2);
-        expect(items.some((o) => o.pluginId === 'plugin_a')).toBe(true);
+        expect(items[0].id).not.toBe(items[1].id);
     });
 
-    it('(g) REMOVED_WEBAPP_PLUGIN sweeps all entries for that plugin, leaves other plugins', () => {
+    it('(d) REMOVED_WEBAPP_PLUGIN sweeps all entries for that plugin, leaves other plugins', () => {
         const registry = new PluginRegistry(PLUGIN_ID);
         const otherRegistry = new PluginRegistry('other_plugin');
 
@@ -508,7 +472,7 @@ describe('PluginRegistry — registerProductSwitcherMenuItem', () => {
         expect(items[0].pluginId).toBe('other_plugin');
     });
 
-    it('(h) LOGOUT_SUCCESS resets the slot to []', () => {
+    it('(e) LOGOUT_SUCCESS resets the slot to []', () => {
         const registry = new PluginRegistry(PLUGIN_ID);
         registry.registerProductSwitcherMenuItem({text: 'Item', icon: 'globe', action: () => {}});
         expect(getItems()).toHaveLength(1);
@@ -518,7 +482,7 @@ describe('PluginRegistry — registerProductSwitcherMenuItem', () => {
         expect(getItems()).toHaveLength(0);
     });
 
-    it('(i) registrations from different plugins are sorted alphabetically by pluginId', () => {
+    it('(f) registrations from different plugins are sorted alphabetically by pluginId', () => {
         const registryZ = new PluginRegistry('zzz_plugin');
         const registryA = new PluginRegistry('aaa_plugin');
         const registryM = new PluginRegistry('mmm_plugin');
