@@ -106,7 +106,7 @@ func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 	}
 
 	if role.Id == "" {
-		transaction, terr := s.GetMaster().Beginx()
+		transaction, terr := s.GetMaster().Begin()
 		if terr != nil {
 			return nil, errors.Wrap(terr, "begin_transaction")
 		}
