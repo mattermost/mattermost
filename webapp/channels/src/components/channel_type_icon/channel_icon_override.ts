@@ -4,9 +4,12 @@
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import type {Channel} from '@mattermost/types/channels';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+
 import {getChannelIconClassName} from 'utils/channel_utils';
 
 import type {GlobalState} from 'types/store';
+import type {ChannelIconOverrideRegistration} from 'types/store/plugins';
 
 // Tracks plugin ids that have already logged a matcher error to avoid spamming the console.
 const loggedMatcherErrors = new Set<string>();
@@ -24,27 +27,14 @@ export function clearLoggedMatcherErrors(pluginId?: string): void {
     }
 }
 
-/**
- * Returns the IconGlyphTypes name of the first matching plugin override, or null.
- *
- * If `channel` is present, iterates `state.plugins.components.ChannelIconOverride` in array order
- * (sorted alphabetically by pluginId via the reducer). The first matcher returning true wins.
- * Matcher throws are caught, logged once per pluginId, and treated as no-match.
- *
- * Note: Do not use createSelector here — this is a per-row call over a short override list.
- */
-export function getChannelIconOverrideForChannel(
+function iterateMatchersForChannel(
+    channel: Channel,
+    overrides: ChannelIconOverrideRegistration[],
     state: GlobalState,
-    channel?: Channel,
 ): IconGlyphTypes | null {
-    if (!channel) {
-        return null;
-    }
-    const overrides = state.plugins.components.ChannelIconOverride ?? [];
     for (const entry of overrides) {
         try {
-            const matched = entry.matcher(state, channel);
-            if (matched === true) {
+            if (entry.matcher(state, channel) === true) {
                 return entry.iconName;
             }
         } catch (err) {
@@ -61,6 +51,63 @@ export function getChannelIconOverrideForChannel(
     return null;
 }
 
+const EMPTY_OVERRIDE_MAP: Readonly<Record<string, IconGlyphTypes>> = Object.freeze({});
+
+const selectAllChannels = (state: GlobalState) => state.entities?.channels?.channels ?? {};
+const selectChannelIconOverrides = (state: GlobalState) => state.plugins.components.ChannelIconOverride;
+const selectFullState = (state: GlobalState) => state;
+
+/**
+ * Returns a map of channelId → icon name for all cached channels that have a plugin override.
+ * Computed once per state-ref-changing dispatch for channels in state.entities.channels.channels.
+ * For synthetic/search/admin channel objects not in the store, use the wrapper functions below.
+ */
+export const getAllChannelIconOverrideNames = createSelector(
+    'getAllChannelIconOverrideNames',
+    selectAllChannels,
+    selectChannelIconOverrides,
+    selectFullState,
+    (channels, overrides, state): Readonly<Record<string, IconGlyphTypes>> => {
+        if (!overrides?.length) {
+            return EMPTY_OVERRIDE_MAP;
+        }
+        const result: Record<string, IconGlyphTypes> = {};
+        for (const channelId of Object.keys(channels)) {
+            const name = iterateMatchersForChannel(channels[channelId], overrides, state);
+            if (name !== null) {
+                result[channelId] = name;
+            }
+        }
+        return result;
+    },
+);
+
+/**
+ * Returns the IconGlyphTypes name of the first matching plugin override, or null.
+ *
+ * If the passed channel is the same reference as the cached store entry, looks up the
+ * memoized override map (computed once per dispatch). Otherwise falls back to per-channel
+ * matcher iteration — this preserves correct behavior for synthetic/search/admin channel
+ * objects that aren't the same ref as the store entry.
+ */
+export function getChannelIconOverrideForChannel(
+    state: GlobalState,
+    channel?: Channel | null,
+): IconGlyphTypes | null {
+    if (!channel) {
+        return null;
+    }
+    const overrides = state.plugins.components.ChannelIconOverride;
+    if (!overrides?.length) {
+        return null;
+    }
+    const channelCache = state.entities?.channels?.channels;
+    if (channelCache && channelCache[channel.id] === channel) {
+        return getAllChannelIconOverrideNames(state)[channel.id] ?? null;
+    }
+    return iterateMatchersForChannel(channel, overrides, state);
+}
+
 /**
  * Returns the icon CSS class name for a channel, consulting plugin overrides first.
  *
@@ -71,11 +118,11 @@ export function getChannelIconOverrideForChannel(
  */
 export function getChannelIconClassNameForChannel(
     state: GlobalState,
-    channel?: Channel,
+    channel?: Channel | null,
 ): string {
-    const overrideName = getChannelIconOverrideForChannel(state, channel);
+    const overrideName = getChannelIconOverrideForChannel(state, channel ?? undefined);
     if (overrideName) {
         return `icon-${overrideName}`;
     }
-    return getChannelIconClassName(channel);
+    return getChannelIconClassName(channel ?? undefined);
 }
