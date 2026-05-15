@@ -305,6 +305,12 @@
         min-width: 0;
         flex: 0 auto;
     }
+
+    .channel-header__decorator-left {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+    }
 }
 
 .channel-header__info {

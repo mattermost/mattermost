@@ -7,6 +7,12 @@ jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
     compassIconForName: jest.fn(),
 }));
 
+jest.mock('components/channel_decorator_renderer/channel_decorator_renderer', () => {
+    return ({registration}: {registration: {id: string}}) => (
+        <div data-testid={`decorator-${registration.id}`}/>
+    );
+});
+
 jest.mock('utils/channel_utils', () => ({
     ...jest.requireActual('utils/channel_utils'),
     getArchiveIconComponent: jest.fn(() => (props: Record<string, unknown>) => (
@@ -250,6 +256,101 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
             expect(archiveIcon).toHaveAttribute('data-is-default-archive', 'true');
             expect(archiveIcon).toHaveClass('channel-header-archived-icon', 'svg-text-color');
             expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('left_of_channel_name decorator slot', () => {
+        const channelId = 'channel_id';
+
+        // The selector (getChannelDecoratorsForSlot) reads state.entities.channels.channels[channelId]
+        // to run matchers, so we include the channel in the Redux state alongside the plugin decorators.
+        const makeDecoratorState = (
+            channel: ReturnType<typeof TestHelper.getChannelMock>,
+            matchers: Array<{id: string; matcher: () => boolean}>,
+        ) => ({
+            entities: {
+                channels: {
+                    channels: {[channel.id]: channel},
+                },
+            },
+            plugins: {
+                components: {
+                    ChannelDecorator: matchers.map(({id, matcher}) => ({
+                        id,
+                        pluginId: 'test-plugin',
+                        slot: 'left_of_channel_name',
+                        matcher: () => matcher(),
+                        component: () => null,
+                    })),
+                },
+            },
+        } as any);
+
+        test('no decorator registered — decorator span not rendered', () => {
+            const channel = TestHelper.getChannelMock({id: channelId, type: 'O'});
+            (getCurrentChannel as jest.Mock).mockReturnValue(channel);
+
+            renderWithContext(<ChannelHeaderTitle/>, makeDecoratorState(channel, []));
+
+            expect(document.querySelector('.channel-header__decorator-left')).not.toBeInTheDocument();
+        });
+
+        test('one decorator, matcher returns true — decorator rendered in normal branch', () => {
+            const channel = TestHelper.getChannelMock({id: channelId, type: 'O'});
+            (getCurrentChannel as jest.Mock).mockReturnValue(channel);
+
+            renderWithContext(
+                <ChannelHeaderTitle/>,
+                makeDecoratorState(channel, [{id: 'dec-1', matcher: () => true}]),
+            );
+
+            expect(document.querySelector('.channel-header__decorator-left')).toBeInTheDocument();
+            expect(screen.getByTestId('decorator-dec-1')).toBeInTheDocument();
+        });
+
+        test('one decorator, matcher returns false — decorator not rendered', () => {
+            const channel = TestHelper.getChannelMock({id: channelId, type: 'O'});
+            (getCurrentChannel as jest.Mock).mockReturnValue(channel);
+
+            renderWithContext(
+                <ChannelHeaderTitle/>,
+                makeDecoratorState(channel, [{id: 'dec-1', matcher: () => false}]),
+            );
+
+            expect(document.querySelector('.channel-header__decorator-left')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('decorator-dec-1')).not.toBeInTheDocument();
+        });
+
+        test('two decorators, both match — both rendered in normal branch', () => {
+            const channel = TestHelper.getChannelMock({id: channelId, type: 'O'});
+            (getCurrentChannel as jest.Mock).mockReturnValue(channel);
+
+            renderWithContext(
+                <ChannelHeaderTitle/>,
+                makeDecoratorState(channel, [
+                    {id: 'dec-1', matcher: () => true},
+                    {id: 'dec-2', matcher: () => true},
+                ]),
+            );
+
+            expect(document.querySelector('.channel-header__decorator-left')).toBeInTheDocument();
+            expect(screen.getByTestId('decorator-dec-1')).toBeInTheDocument();
+            expect(screen.getByTestId('decorator-dec-2')).toBeInTheDocument();
+        });
+
+        test('decorator rendered in bot DM branch when matcher returns true', () => {
+            const channel = TestHelper.getChannelMock({id: channelId, type: 'D'});
+            const botUser = TestHelper.getUserMock({id: 'bot_id', username: 'bot', is_bot: true});
+            (getCurrentChannel as jest.Mock).mockReturnValue(channel);
+
+            renderWithContext(
+                <ChannelHeaderTitle dmUser={botUser}/>,
+                makeDecoratorState(channel, [{id: 'dec-bot', matcher: () => true}]),
+            );
+
+            expect(document.querySelector('.channel-header__bot')).toBeInTheDocument();
+            expect(document.querySelector('.channel-header__decorator-left')).toBeInTheDocument();
+            expect(screen.getByTestId('decorator-dec-bot')).toBeInTheDocument();
         });
     });
 });

@@ -14,7 +14,7 @@ import type {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 
 import CenterMessageLock from 'components/center_message_lock';
 import PostComponent from 'components/post';
-import ChannelIntroMessage from 'components/post_view/channel_intro_message/';
+import ChannelDecoratorIntroSlot from 'components/post_view/channel_intro_message/channel_decorator_intro_slot';
 import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
 import DateSeparator from 'components/post_view/date_separator';
 import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
@@ -128,7 +128,7 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
 
         if (listId === CHANNEL_INTRO_MESSAGE) {
             return (
-                <ChannelIntroMessage/>
+                <ChannelDecoratorIntroSlot channelId={this.props.channelId}/>
             );
         }
 
