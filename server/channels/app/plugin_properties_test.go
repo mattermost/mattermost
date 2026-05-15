@@ -9,14 +9,16 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // cleanupCPAFields deletes all existing CPA fields to ensure a clean state
 func cleanupCPAFields(t *testing.T, th *TestHelper) {
 	t.Helper()
 
-	cpaID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+	require.Nil(t, groupErr)
+	cpaID := cpaGroup.ID
 
 	fields, searchErr := th.App.Srv().Store().PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
 		GroupID: cpaID,
@@ -32,6 +34,11 @@ func cleanupCPAFields(t *testing.T, th *TestHelper) {
 
 func TestPluginProperties(t *testing.T) {
 	th := Setup(t).InitBasic(t)
+
+	// Subtests that exercise the access_control group require an
+	// Enterprise license because LicenseCheckHook gates that group.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
 
 	t.Run("test property field methods", func(t *testing.T) {
 		groupName := model.NewId()
@@ -457,8 +464,9 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin-created CPA field gets source_plugin_id", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaID, err := th.App.CpaGroupID()
-		require.Nil(t, err)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+		require.Nil(t, groupErr)
+		cpaID := cpaGroup.ID
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -476,9 +484,11 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				// Create a CPA field
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "CPA Test Field",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "cpa_test_field",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 				}
 
 				createdField, err := p.API.CreatePropertyField(field)
@@ -521,8 +531,9 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin can update its own protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaID, err := th.App.CpaGroupID()
-		require.Nil(t, err)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+		require.Nil(t, groupErr)
+		cpaID := cpaGroup.ID
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -540,9 +551,11 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				// Create a protected CPA field
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Protected Field",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "protected_field",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -554,13 +567,13 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Try to update the protected field (should succeed since we created it)
-				createdField.Name = "Updated Protected Field"
+				createdField.Name = "updated_protected_field"
 				updatedField, err := p.API.UpdatePropertyField("` + cpaID + `", createdField)
 				if err != nil {
 					return fmt.Errorf("failed to update own protected field: %w", err)
 				}
 
-				if updatedField.Name != "Updated Protected Field" {
+				if updatedField.Name != "updated_protected_field" {
 					return fmt.Errorf("field name not updated correctly")
 				}
 
@@ -585,8 +598,9 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin cannot update another plugin's protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaID, err := th.App.CpaGroupID()
-		require.Nil(t, err)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+		require.Nil(t, groupErr)
+		cpaID := cpaGroup.ID
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
@@ -607,9 +621,11 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				// Create a protected CPA field
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Plugin1 Protected Field",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "plugin1_protected_field",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -650,7 +666,7 @@ func TestPluginProperties(t *testing.T) {
 
 				var plugin1Field *model.PropertyField
 				for _, field := range fields {
-					if field.Name == "Plugin1 Protected Field" {
+					if field.Name == "plugin1_protected_field" {
 						plugin1Field = field
 						break
 					}
@@ -685,8 +701,9 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin can delete its own protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaID, err := th.App.CpaGroupID()
-		require.Nil(t, err)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+		require.Nil(t, groupErr)
+		cpaID := cpaGroup.ID
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -704,9 +721,11 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				// Create a protected CPA field
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Field To Delete",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "field_to_delete",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -744,8 +763,9 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin cannot delete another plugin's protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaID, err := th.App.CpaGroupID()
-		require.Nil(t, err)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+		require.Nil(t, groupErr)
+		cpaID := cpaGroup.ID
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
@@ -765,9 +785,11 @@ func TestPluginProperties(t *testing.T) {
 
 			func (p *MyPlugin) OnActivate() error {
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Plugin1 Field To Keep",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "plugin1_field_to_keep",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -808,7 +830,7 @@ func TestPluginProperties(t *testing.T) {
 
 				var plugin1Field *model.PropertyField
 				for _, field := range fields {
-					if field.Name == "Plugin1 Field To Keep" {
+					if field.Name == "plugin1_field_to_keep" {
 						plugin1Field = field
 						break
 					}
@@ -842,8 +864,9 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin can update values for its own protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaID, err := th.App.CpaGroupID()
-		require.Nil(t, err)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+		require.Nil(t, groupErr)
+		cpaID := cpaGroup.ID
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -861,9 +884,11 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				// Create a protected CPA field
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Protected Field With Values",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "protected_field_with_values",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -921,8 +946,9 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin cannot update values for another plugin's protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaID, err := th.App.CpaGroupID()
-		require.Nil(t, err)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+		require.Nil(t, groupErr)
+		cpaID := cpaGroup.ID
 
 		testTargetID := model.NewId()
 
@@ -944,9 +970,11 @@ func TestPluginProperties(t *testing.T) {
 
 			func (p *MyPlugin) OnActivate() error {
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Plugin1 Field With Protected Values",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "plugin1_field_with_protected_values",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -1001,7 +1029,7 @@ func TestPluginProperties(t *testing.T) {
 
 				var plugin1Field *model.PropertyField
 				for _, field := range fields {
-					if field.Name == "Plugin1 Field With Protected Values" {
+					if field.Name == "plugin1_field_with_protected_values" {
 						plugin1Field = field
 						break
 					}
@@ -1043,8 +1071,9 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin can modify non-protected CPA fields from other plugins", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaID, err := th.App.CpaGroupID()
-		require.Nil(t, err)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
+		require.Nil(t, groupErr)
+		cpaID := cpaGroup.ID
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
@@ -1064,9 +1093,11 @@ func TestPluginProperties(t *testing.T) {
 
 			func (p *MyPlugin) OnActivate() error {
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Non-Protected Field",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "non_protected_field",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					// Note: protected is not set
 				}
 
@@ -1105,7 +1136,7 @@ func TestPluginProperties(t *testing.T) {
 
 				var plugin1Field *model.PropertyField
 				for _, field := range fields {
-					if field.Name == "Non-Protected Field" {
+					if field.Name == "non_protected_field" {
 						plugin1Field = field
 						break
 					}
@@ -1116,7 +1147,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Update it (should succeed since it's not protected)
-				plugin1Field.Name = "Modified By Plugin2"
+				plugin1Field.Name = "modified_by_plugin2"
 				_, err = p.API.UpdatePropertyField("` + cpaID + `", plugin1Field)
 				if err != nil {
 					return fmt.Errorf("failed to update non-protected field: %w", err)
@@ -1136,12 +1167,15 @@ func TestPluginProperties(t *testing.T) {
 		require.NoError(t, activationErrors[1])
 
 		// Verify the field was actually updated
-		rctx := th.emptyContextWithCallerID(anonymousCallerId)
-		updatedFields, appErr := th.App.ListCPAFields(rctx)
+		updatedFields, appErr := th.App.SearchPropertyFields(request.TestContext(t), cpaID, model.PropertyFieldSearchOpts{
+			GroupID:    cpaID,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			PerPage:    model.AccessControlGroupFieldLimit + 5,
+		})
 		require.Nil(t, appErr)
 		var fieldWasUpdated bool
 		for _, field := range updatedFields {
-			if field.Name == "Modified By Plugin2" {
+			if field.Name == "modified_by_plugin2" {
 				fieldWasUpdated = true
 				break
 			}

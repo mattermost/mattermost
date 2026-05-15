@@ -447,7 +447,7 @@ func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
 		var rowErr error
 		rowsAffected, rowErr = sqlResult.RowsAffected()
 		if rowErr != nil {
-			return errors.Wrap(err, "unable to delete jobs")
+			return errors.Wrap(rowErr, "unable to delete jobs")
 		}
 
 		time.Sleep(jobsCleanupDelay)

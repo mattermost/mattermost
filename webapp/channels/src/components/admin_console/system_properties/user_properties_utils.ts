@@ -86,15 +86,7 @@ export const useUserPropertyFields = () => {
             // update
             await Promise.all(process.edit.map(async (pendingItem) => {
                 const {id, name, type, attrs} = pendingItem;
-                let patch = {name, type, attrs};
-
-                // clear options if not select/multiselect
-                if (type !== 'select' && type !== 'multiselect') {
-                    const attrs = {...patch.attrs};
-                    Reflect.deleteProperty(attrs, 'options');
-
-                    patch = {...patch, attrs};
-                }
+                const patch = {name, type, attrs};
 
                 return Client4.patchCustomProfileAttributeField(id, patch).
                     then((nextItem) => {

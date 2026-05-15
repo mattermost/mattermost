@@ -33,6 +33,12 @@ func desanitize(actual, target *model.Config) {
 	if *target.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting {
 		target.FileSettings.AmazonS3SecretAccessKey = actual.FileSettings.AmazonS3SecretAccessKey
 	}
+	if target.FileSettings.AzureAccessKey != nil && *target.FileSettings.AzureAccessKey == model.FakeSetting {
+		target.FileSettings.AzureAccessKey = actual.FileSettings.AzureAccessKey
+	}
+	if target.FileSettings.ExportAzureAccessKey != nil && *target.FileSettings.ExportAzureAccessKey == model.FakeSetting {
+		target.FileSettings.ExportAzureAccessKey = actual.FileSettings.ExportAzureAccessKey
+	}
 
 	if *target.EmailSettings.SMTPPassword == model.FakeSetting {
 		target.EmailSettings.SMTPPassword = actual.EmailSettings.SMTPPassword
