@@ -311,13 +311,17 @@ export class GroupDetails extends React.PureComponent<Props, State> {
     };
 
     onChangeRoles = (id: string, type: string, schemeAdmin: boolean) => {
-        const {groupTeams = [], groupChannels = []} = this.state;
+        const {
+            rolesToChange: prevRolesToChange = {},
+            groupTeams = [],
+            groupChannels = [],
+        } = this.state;
         let listToUpdate;
         let getId: (item: any) => string;
         let stateKey;
 
         const key = `${id}/${type}`;
-        const rolesToChange = {...(this.state.rolesToChange ?? {}), [key]: schemeAdmin};
+        const rolesToChange = {...prevRolesToChange, [key]: schemeAdmin};
 
         if (
             this.syncableTypeFromEntryType(type) === SyncableType.Team
