@@ -24,6 +24,7 @@ import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import MessageWithAdditionalContent from 'components/message_with_additional_content';
+import PostDecoratorRenderer from 'components/post_decorator_renderer/post_decorator_renderer';
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
@@ -45,6 +46,7 @@ import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
+import {usePostDecorators} from 'hooks/usePostDecorators';
 import {getHistory} from 'utils/browser_history';
 import {getArchiveIconComponent} from 'utils/channel_utils';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
@@ -196,6 +198,8 @@ function PostComponent(props: Props) {
     const [burnOnReadRevealError, setBurnOnReadRevealError] = useState<string | null>(null);
 
     const {locale} = useIntl();
+
+    const postHeaderBadgeDecorators = usePostDecorators(post, 'post_header_badge');
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
@@ -834,6 +838,13 @@ function PostComponent(props: Props) {
                                         timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                     />
                                 }
+                                {postHeaderBadgeDecorators.length > 0 && postHeaderBadgeDecorators.map((reg) => (
+                                    <PostDecoratorRenderer
+                                        key={reg.id}
+                                        registration={reg}
+                                        post={post}
+                                    />
+                                ))}
                                 {priority}
                                 {burnOnReadBadge}
                                 {burnOnReadTimerChip}
