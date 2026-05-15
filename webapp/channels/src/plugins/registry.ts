@@ -1485,9 +1485,7 @@ export default class PluginRegistry {
      * opens a modal. The menu will close automatically after `action` is invoked.
      *
      * Items from multiple plugins are sorted alphabetically by `pluginId` in the menu.
-     *
-     * @returns Auto-generated unique id for this registration. Store it and pass to
-     * `unregisterProductSwitcherMenuItem` during plugin cleanup.
+     * All registered items are removed automatically when the plugin unregisters.
      */
     registerProductSwitcherMenuItem = reArg(['text', 'icon', 'action', 'isAvailable'], ({
         text,
@@ -1500,30 +1498,13 @@ export default class PluginRegistry {
         action: ProductSwitcherMenuItemRegistration['action'];
         isAvailable?: ProductSwitcherMenuItemRegistration['isAvailable'];
     }) => {
-        const id = generateId();
         dispatchPluginComponentWithData('ProductSwitcherMenuItem', {
-            id,
+            id: generateId(),
             pluginId: this.id,
             text,
             icon: resolveReactElement(icon),
             action,
             isAvailable,
-        });
-        return id;
-    });
-
-    /**
-     * Remove a product-switcher menu item registered by this plugin.
-     * Pass the id returned by `registerProductSwitcherMenuItem`.
-     * Removal is scoped to this plugin: only entries with a matching (pluginId, id) pair are removed.
-     * Unregistering an id that is not currently registered is a no-op.
-     */
-    unregisterProductSwitcherMenuItem = reArg(['id'], ({id}: {id: string}) => {
-        store.dispatch({
-            type: ActionTypes.REMOVED_PLUGIN_COMPONENT_BY_ID,
-            name: 'ProductSwitcherMenuItem',
-            pluginId: this.id,
-            id,
         });
     });
 
