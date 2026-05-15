@@ -145,6 +145,39 @@ func TestChannelIsValid(t *testing.T) {
 	require.NotNil(t, o.IsValid())
 }
 
+func TestChannelIsValidBoard(t *testing.T) {
+	t.Run("rejects non-board type", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpen, TeamId: NewId(), DisplayName: "Board"}
+		err := c.IsValidBoard()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid_board.type.app_error", err.Id)
+	})
+
+	t.Run("rejects missing team_id", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpenBoard, DisplayName: "Board"}
+		err := c.IsValidBoard()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid_board.team_id.app_error", err.Id)
+	})
+
+	t.Run("rejects empty display name", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpenBoard, TeamId: NewId()}
+		err := c.IsValidBoard()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid_board.display_name.app_error", err.Id)
+	})
+
+	t.Run("accepts valid open board", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpenBoard, TeamId: NewId(), DisplayName: "Board"}
+		require.Nil(t, c.IsValidBoard())
+	})
+
+	t.Run("accepts valid private board", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypePrivateBoard, TeamId: NewId(), DisplayName: "Board"}
+		require.Nil(t, c.IsValidBoard())
+	})
+}
+
 func TestChannelBannerBackgroundColorValidation(t *testing.T) {
 	o := Channel{
 		Id:       NewId(),

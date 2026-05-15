@@ -33,6 +33,24 @@ type SqlChannelStore struct {
 	channelMembersForTeamWithSchemeSelectQuery sq.SelectBuilder
 }
 
+// messageChannelTypes is the allow-list of channel types that participate in
+// regular messaging. Lookups, lists, and search use this so that any newly
+// introduced non-message channel type (e.g. boards) is excluded by default.
+var messageChannelTypes = []model.ChannelType{
+	model.ChannelTypeOpen,
+	model.ChannelTypePrivate,
+	model.ChannelTypeDirect,
+	model.ChannelTypeGroup,
+}
+
+// teamMessageChannelTypes is messageChannelTypes minus direct channels, used
+// for team-scoped queries where direct channels don't belong.
+var teamMessageChannelTypes = []model.ChannelType{
+	model.ChannelTypeOpen,
+	model.ChannelTypePrivate,
+	model.ChannelTypeGroup,
+}
+
 type channelMember struct {
 	ChannelId          string
 	UserId             string
@@ -609,6 +627,10 @@ func (s SqlChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChann
 		return nil, store.NewErrInvalidInput("Channel", "Type", channel.Type)
 	}
 
+	if channel.IsBoard() {
+		return nil, store.NewErrInvalidInput("Channel", "Type", channel.Type)
+	}
+
 	var newChannel *model.Channel
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
@@ -704,6 +726,42 @@ func (s SqlChannelStore) SaveDirectChannel(rctx request.CTX, directChannel *mode
 	}
 
 	return newChannel, nil
+}
+
+func (s SqlChannelStore) SaveBoardChannel(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, view *model.View) (_ *model.Channel, _ *model.View, err error) {
+	if channel.DeleteAt != 0 {
+		return nil, nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
+	}
+	if !channel.IsBoard() {
+		return nil, nil, store.NewErrInvalidInput("Channel", "Type", channel.Type)
+	}
+	if view == nil {
+		return nil, nil, store.NewErrInvalidInput("View", "nil", "view is required for board channels")
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	newChannel, err := s.saveChannelT(transaction, channel, maxChannelsPerTeam)
+	if err != nil {
+		return newChannel, nil, err
+	}
+
+	// Do NOT call upsertPublicChannelT — boards must not appear in PublicChannels
+
+	view.ChannelId = newChannel.Id
+	if vErr := s.stores.view.(*SqlViewStore).saveViewT(transaction, view); vErr != nil {
+		return nil, nil, vErr
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return newChannel, view, nil
 }
 
 func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
@@ -838,18 +896,26 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 }
 
 func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, error) {
+	query := s.getQueryBuilder().
+		Select(
+			"Channels.TeamId TeamId",
+			"Channels.Id ChannelId",
+			"(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount",
+			"(Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) MsgCountRoot",
+			"ChannelMembers.MentionCount MentionCount",
+			"ChannelMembers.MentionCountRoot MentionCountRoot",
+			"COALESCE(ChannelMembers.UrgentMentionCount, 0) UrgentMentionCount",
+			"ChannelMembers.NotifyProps NotifyProps",
+		).
+		From("Channels, ChannelMembers").
+		Where(sq.Expr("Id = ChannelId")).
+		Where(sq.Eq{"Id": channelId}).
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Eq{"Channels.Type": messageChannelTypes})
+
 	var unreadChannel model.ChannelUnread
-	err := s.GetReplica().Get(&unreadChannel,
-		`SELECT
-				Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, (Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) MsgCountRoot, ChannelMembers.MentionCount MentionCount, ChannelMembers.MentionCountRoot MentionCountRoot, COALESCE(ChannelMembers.UrgentMentionCount, 0) UrgentMentionCount, ChannelMembers.NotifyProps NotifyProps
-			FROM
-				Channels, ChannelMembers
-			WHERE
-				Id = ChannelId
-                AND Id = ?
-                AND UserId = ?
-                AND DeleteAt = 0`,
-		channelId, userId)
+	err := s.GetReplica().GetBuilder(&unreadChannel, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("channelId=%s,userId=%s", channelId, userId))
@@ -895,7 +961,10 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, erro
 //nolint:unparam
 func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	ch := model.Channel{}
-	query := s.tableSelectQuery.Where(sq.Eq{"Id": id})
+	query := s.tableSelectQuery.Where(sq.And{
+		sq.Eq{"Id": id},
+		sq.Eq{"Type": messageChannelTypes},
+	})
 
 	err := s.GetReplica().GetBuilder(&ch, query)
 	if err != nil {
@@ -908,12 +977,33 @@ func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, er
 	return &ch, nil
 }
 
+func (s SqlChannelStore) GetBoardChannel(id string) (*model.Channel, error) {
+	ch := model.Channel{}
+	query := s.tableSelectQuery.Where(sq.And{
+		sq.Eq{"Id": id},
+		sq.Eq{"Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}},
+	})
+
+	err := s.GetReplica().GetBuilder(&ch, query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Channel", id)
+		}
+		return nil, errors.Wrapf(err, "failed to find board channel with id = %s", id)
+	}
+
+	return &ch, nil
+}
+
 //nolint:unparam
 func (s SqlChannelStore) GetMany(ids []string, allowFromCache bool) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
 		Select(channelSliceColumns(true)...).
 		From("Channels").
-		Where(sq.Eq{"Id": ids})
+		Where(sq.And{
+			sq.Eq{"Id": ids},
+			sq.Eq{"Type": messageChannelTypes},
+		})
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "getmany_tosql")
@@ -1081,6 +1171,7 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, opts *model.C
 				sq.Eq{"cm.UserId": userId},
 			},
 		).
+		Where(sq.Eq{"ch.Type": messageChannelTypes}).
 		OrderBy("ch.DisplayName")
 
 	if teamId != "" {
@@ -1135,6 +1226,7 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 		Where(
 			sq.Eq{"ChannelMembers.UserId": userId},
 		).
+		Where(sq.Eq{"Channels.Type": messageChannelTypes}).
 		OrderBy("Channels.Id ASC")
 
 	if fromChannelID != "" {
@@ -1434,7 +1526,7 @@ func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds
 
 func (s SqlChannelStore) GetTeamChannels(teamId string) (model.ChannelList, error) {
 	data := model.ChannelList{}
-	query := s.tableSelectQuery.Where(sq.And{sq.Eq{"TeamId": teamId}, sq.NotEq{"Type": model.ChannelTypeDirect}}).OrderBy("DisplayName")
+	query := s.tableSelectQuery.Where(sq.And{sq.Eq{"TeamId": teamId}, sq.Eq{"Type": teamMessageChannelTypes}}).OrderBy("DisplayName")
 
 	err := s.GetReplica().SelectBuilder(&data, query)
 	if err != nil {
@@ -1462,6 +1554,7 @@ func (s SqlChannelStore) getByNames(teamId string, names []string, allowFromCach
 	if len(names) > 0 {
 		cond := sq.And{
 			sq.Eq{"Name": names},
+			sq.Eq{"Type": messageChannelTypes},
 		}
 		if !includeArchivedChannels {
 			cond = append(cond, sq.Eq{"DeleteAt": 0})
@@ -1506,6 +1599,7 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 		Select(channelSliceColumns(true)...).
 		From("Channels").
 		Where(sq.Eq{"Name": name}).
+		Where(sq.Eq{"Type": messageChannelTypes}).
 		Where(sq.Or{
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"TeamId": ""},
@@ -1538,6 +1632,7 @@ func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Ch
 			sq.Or{sq.Eq{"TeamId": teamId}, sq.Eq{"TeamId": ""}},
 			sq.Eq{"Name": name},
 			sq.NotEq{"DeleteAt": 0},
+			sq.Eq{"Type": messageChannelTypes},
 		})
 
 	if err := s.GetReplica().GetBuilder(&channel, query); err != nil {
@@ -1561,6 +1656,7 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 			sq.Eq{"TeamId": ""},
 		}).
 		Where(sq.NotEq{"DeleteAt": 0}).
+		Where(sq.Eq{"Type": messageChannelTypes}).
 		OrderBy("DisplayName").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
@@ -2897,7 +2993,7 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userIDs []strin
 
 func (s SqlChannelStore) GetAll(teamId string) ([]*model.Channel, error) {
 	data := []*model.Channel{}
-	query := s.tableSelectQuery.Where(sq.And{sq.Eq{"TeamId": teamId}, sq.NotEq{"Type": model.ChannelTypeDirect}}).OrderBy("Name")
+	query := s.tableSelectQuery.Where(sq.And{sq.Eq{"TeamId": teamId}, sq.Eq{"Type": teamMessageChannelTypes}}).OrderBy("Name")
 
 	if err := s.GetReplica().SelectBuilder(&data, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with teamId=%s", teamId)
@@ -2911,6 +3007,7 @@ func (s SqlChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bo
 		Select(channelSliceColumns(true)...).
 		From("Channels").
 		Where(sq.Eq{"Id": channelIds}).
+		Where(sq.Eq{"Type": messageChannelTypes}).
 		OrderBy("Name")
 
 	if !includeDeleted {
@@ -2941,6 +3038,7 @@ func (s SqlChannelStore) GetChannelsWithTeamDataByIds(channelIDs []string, inclu
 		From("Channels c").
 		LeftJoin("Teams t ON c.TeamId = t.Id").
 		Where(sq.Eq{"c.Id": channelIDs}).
+		Where(sq.Eq{"c.Type": messageChannelTypes}).
 		OrderBy("c.Name")
 
 	if !includeDeleted {
@@ -3146,7 +3244,8 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 			sq.Expr("c.TeamId = t.id"),
 			sq.Expr("t.id = tm.TeamId"),
 			sq.Eq{"tm.UserId": userID},
-		})
+		}).
+		Where(sq.Eq{"c.Type": messageChannelTypes})
 
 	// Always filter out soft-deleted team memberships - users removed from
 	// a team should not see channels from that team regardless of includeDeleted
@@ -3201,6 +3300,7 @@ func (s SqlChannelStore) buildAutocompleteInTeamQuery(teamID, userID, term strin
 	query := s.getQueryBuilder().Select(channelSliceColumns(true, "c")...).
 		From("Channels c").
 		Where(sq.Eq{"c.TeamId": teamID}).
+		Where(sq.Eq{"c.Type": messageChannelTypes}).
 		Limit(model.ChannelSearchDefaultLimit)
 
 	if !includeDeleted {
@@ -3263,6 +3363,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 				},
 			},
 			sq.Eq{"CM.UserId": userID},
+			sq.Eq{"C.Type": messageChannelTypes},
 		})
 
 	if !includeDeleted {
@@ -4211,6 +4312,7 @@ func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime int64, startChann
 				sq.Gt{"Id": startChannelID},
 			},
 		}).
+		Where(sq.Eq{"Type": messageChannelTypes}).
 		OrderBy("CreateAt ASC", "Id ASC").
 		Limit(uint64(limit))
 
