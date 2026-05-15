@@ -75,17 +75,17 @@ func (a *App) RequestJoinChannel(rctx request.CTX, userID, channelID, message st
 		return false, nil, appErr
 	}
 
-	if appErr := a.requestJoinChannelGuard(rctx, user, channel); appErr != nil {
-		return false, nil, appErr
+	if guardErr := a.requestJoinChannelGuard(rctx, user, channel); guardErr != nil {
+		return false, nil, guardErr
 	}
 
-	if _, err := a.Srv().Store().Channel().GetMember(rctx, channel.Id, user.Id); err == nil {
+	_, memberErr := a.Srv().Store().Channel().GetMember(rctx, channel.Id, user.Id)
+	if memberErr == nil {
 		return false, nil, model.NewAppError("RequestJoinChannel", "api.channel.discoverable_join_request.already_member.app_error", nil, "channel_id="+channel.Id, http.StatusBadRequest)
-	} else {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
-			return false, nil, model.NewAppError("RequestJoinChannel", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+	}
+	var nfErr *store.ErrNotFound
+	if !errors.As(memberErr, &nfErr) {
+		return false, nil, model.NewAppError("RequestJoinChannel", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(memberErr)
 	}
 
 	enforced, appErr := a.ChannelAccessControlled(rctx, channel.Id)

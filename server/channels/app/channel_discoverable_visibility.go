@@ -5,7 +5,6 @@ package app
 
 import (
 	"context"
-	"net/http"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -361,10 +360,4 @@ func (a *App) IsDiscoverableSelfAddBlocked(rctx request.CTX, channel *model.Chan
 		return false
 	}
 	return true
-}
-
-// requireDiscoverableJoinFlow returns the canonical 403 a self-add caller sees
-// when they try to bypass the discoverable request flow.
-func requireDiscoverableJoinFlow(channelID string) *model.AppError {
-	return model.NewAppError("addUserToChannel", "api.channel.discoverable_join_request.discoverable_requires_approval.app_error", nil, "channel_id="+channelID, http.StatusForbidden)
 }
