@@ -251,3 +251,82 @@ describe('PluginRegistry — registerChannelIconOverride', () => {
         consoleSpy.mockRestore();
     });
 });
+
+describe('PluginRegistry — registerChannelDecorator', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    let store: ReturnType<typeof createStore<ReturnType<typeof pluginsReducer>, any, any, any>>;
+    let registry: PluginRegistry;
+
+    beforeEach(() => {
+        store = createStore(pluginsReducer);
+        mockCurrentStore = store;
+        registry = new PluginRegistry(PLUGIN_ID);
+    });
+
+    function getDecorators() {
+        return mockCurrentStore.getState().components.ChannelDecorator;
+    }
+
+    it('(a) valid registration adds entry to ChannelDecorator list', () => {
+        registry.registerChannelDecorator({
+            slot: 'left_of_channel_name',
+            matcher: () => true,
+            component: () => null,
+        });
+
+        const decorators = getDecorators();
+        expect(decorators).toHaveLength(1);
+        expect(decorators[0].pluginId).toBe(PLUGIN_ID);
+        expect(decorators[0].slot).toBe('left_of_channel_name');
+    });
+
+    it('(b) invalid slot emits console.warn and does NOT add entry', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        registry.registerChannelDecorator({
+            slot: 'bad_slot' as any,
+            matcher: () => true,
+            component: () => null,
+        });
+
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        expect(warnSpy.mock.calls[0][0]).toContain('bad_slot');
+        expect(getDecorators()).toHaveLength(0);
+        warnSpy.mockRestore();
+    });
+
+    it('(c) unregisterChannelDecorator removes only the matching entry', () => {
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        const id1 = registry.registerChannelDecorator({
+            slot: 'left_of_channel_name',
+            matcher: () => true,
+            component: () => null,
+        });
+
+        otherRegistry.registerChannelDecorator({
+            slot: 'left_of_channel_name',
+            matcher: () => false,
+            component: () => null,
+        });
+
+        registry.unregisterChannelDecorator({id: id1});
+
+        const decorators = getDecorators();
+        expect(decorators).toHaveLength(1);
+        expect(decorators[0].pluginId).toBe('other_plugin');
+    });
+
+    it('(d) unregistering an unknown id is a no-op', () => {
+        registry.registerChannelDecorator({
+            slot: 'left_of_channel_name',
+            matcher: () => true,
+            component: () => null,
+        });
+
+        registry.unregisterChannelDecorator({id: 'nonexistent-id'});
+
+        expect(getDecorators()).toHaveLength(1);
+    });
+});

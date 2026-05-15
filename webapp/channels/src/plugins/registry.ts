@@ -27,6 +27,8 @@ import {
     registerPluginReconnectHandler,
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
+import {clearLoggedDecoratorErrors} from 'selectors/channel_decorator';
+import {clearLoggedMatcherErrors} from 'selectors/channel_icon_override';
 import store from 'stores/redux_store';
 
 import {compassIconForName} from 'components/channel_type_icon';
@@ -73,9 +75,12 @@ import type {
     AIActionMenuItemComponent,
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
+    ChannelDecoratorRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
+
+const VALID_CHANNEL_DECORATOR_SLOTS = new Set<string>(['left_of_channel_name', 'intro', 'above_composer', 'mount_overlay']);
 
 type DPluginComponentProp = {component: React.ComponentType<unknown>};
 function dispatchPluginComponentAction(name: keyof PluginsState['components'], pluginId: string, component: React.ComponentType<any>, id = generateId()) {
@@ -1395,6 +1400,62 @@ export default class PluginRegistry {
             iconName,
         });
         return id;
+    });
+
+    /**
+     * Register a React component to render at a specific slot on channels matched by the
+     * provided predicate. The matcher receives the full Redux state so predicates can read
+     * plugin-owned slices (e.g., state['plugins-<pluginId>']).
+     *
+     * Slots:
+     *   'left_of_channel_name' — adornment rendered between the favorite-star and the channel
+     *     name in the channel header. Multiple registrations render side-by-side.
+     *   'intro' — replaces the entire built-in channel intro area (SVG, title, welcome text).
+     *     First-matching registration wins; other registrations for the same channel are ignored.
+     *   'above_composer' — rendered above the message input in both the center-channel
+     *     composer and the thread/RHS composer. Multiple registrations stack vertically.
+     *   'mount_overlay' — absolute overlay covering the full channel view on channel mount.
+     *     Plugin is responsible for logic of when to show. Multiple registrations stack.
+     *
+     * Store the returned id and pass it to unregisterChannelDecorator in uninitialize().
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerChannelDecorator = reArg(['slot', 'matcher', 'component'], ({slot, matcher, component}: {
+        slot: ChannelDecoratorRegistration['slot'];
+        matcher: ChannelDecoratorRegistration['matcher'];
+        component: ChannelDecoratorRegistration['component'];
+    }) => {
+        if (!VALID_CHANNEL_DECORATOR_SLOTS.has(slot)) {
+            // eslint-disable-next-line no-console
+            console.warn(`registerChannelDecorator: plugin '${this.id}' supplied unknown slot '${slot}' — registration ignored.`);
+            return generateId();
+        }
+        const id = generateId();
+        dispatchPluginComponentWithData('ChannelDecorator', {
+            id,
+            pluginId: this.id,
+            slot,
+            matcher,
+            component,
+        });
+        return id;
+    });
+
+    /**
+     * Remove a channel decorator registered by this plugin.
+     * Pass the id returned by registerChannelDecorator.
+     * Removal is scoped to this plugin: only entries with a matching (pluginId, id) pair are removed.
+     * Unregistering an unknown id is a no-op.
+     */
+    unregisterChannelDecorator = reArg(['id'], ({id}: {id: string}) => {
+        clearLoggedDecoratorErrors(this.id);
+        store.dispatch({
+            type: ActionTypes.REMOVED_PLUGIN_COMPONENT_BY_ID,
+            name: 'ChannelDecorator',
+            pluginId: this.id,
+            id,
+        });
     });
 
     /**

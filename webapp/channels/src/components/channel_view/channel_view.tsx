@@ -14,6 +14,8 @@ import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
 
+import {ChannelDecoratorAboveComposer} from './channel_decorator_above_composer';
+import {ChannelDecoratorMountOverlay} from './channel_decorator_mount_overlay';
 import InputLoading from './input_loading';
 
 import type {PropsFromRedux} from './index';
@@ -206,6 +208,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     data-testid='post-create'
                     className='post-create__container AdvancedTextEditor__ctr'
                 >
+                    <ChannelDecoratorAboveComposer channelId={this.props.channelId}/>
                     <AdvancedCreatePost/>
                 </div>
             );
@@ -231,6 +234,10 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     focusedPostId={this.state.focusedPostId}
                 />
                 {createPost}
+                <ChannelDecoratorMountOverlay
+                    key={this.props.channelId}
+                    channelId={this.props.channelId}
+                />
             </div>
         );
     }
