@@ -3,12 +3,13 @@
 
 import React, {useRef} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector, shallowEqual} from 'react-redux';
 import styled from 'styled-components';
 
-import {
+import glyphMap, {
     ProductsIcon,
 } from '@mattermost/compass-icons/components';
+import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {isFreeEdition as isFreeEditionSelector} from 'mattermost-redux/selectors/entities/general';
 
@@ -25,6 +26,8 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
+
+import type {GlobalState} from 'types/store';
 
 import ProductBranding from './product_branding';
 import ProductBrandingFreeEdition from './product_branding_team_edition';
@@ -69,6 +72,38 @@ export const ProductMenuButton = styled.button.attrs(() => ({
     }
 `;
 
+const SwitcherActionItem = styled.button`
+    height: 40px;
+    width: 270px;
+    padding-left: 16px;
+    padding-right: 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    appearance: none;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    text-align: left;
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        text-decoration: none;
+        color: inherit;
+    }
+`;
+
+const SwitcherMenuItemText = styled.span`
+    margin-left: 8px;
+    flex-grow: 1;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+`;
+
 const ProductMenu = (): JSX.Element => {
     const {formatMessage} = useIntl();
     const products = useProducts();
@@ -77,6 +112,26 @@ const ProductMenu = (): JSX.Element => {
     const menuRef = useRef<HTMLDivElement>(null);
     const currentProductID = useCurrentProductId();
     const isFreeEdition = useSelector(isFreeEditionSelector);
+    const visibleSwitcherItems = useSelector(
+        (state: GlobalState) => {
+            if (!isSwitcherOpen(state)) {
+                return [];
+            }
+            return (state.plugins.components.ProductSwitcherMenuItem ?? []).filter((item) => {
+                if (item.isAvailable === undefined) {
+                    return true;
+                }
+                try {
+                    return Boolean(item.isAvailable(state));
+                } catch (e) {
+                    // eslint-disable-next-line no-console
+                    console.error(`ProductSwitcherMenuItem ${item.pluginId}:${item.id} isAvailable threw`, e);
+                    return false;
+                }
+            });
+        },
+        shallowEqual,
+    );
 
     const handleClick = () => dispatch(setProductMenuSwitcherOpen(!switcherOpen));
 
@@ -153,6 +208,37 @@ const ProductMenu = (): JSX.Element => {
                         onClick={handleClick}
                     />
                     {productItems}
+                    {visibleSwitcherItems.length > 0 && (
+                        <Menu.Group>
+                            {visibleSwitcherItems.map((item) => {
+                                const Icon = typeof item.icon === 'string' ? glyphMap[item.icon as IconGlyphTypes] : null;
+                                return (
+                                    <SwitcherActionItem
+                                        key={item.id}
+                                        id={`product-switcher-menu-item-${item.id}`}
+                                        role='menuitem'
+                                        onClick={() => {
+                                            try {
+                                                item.action();
+                                            } catch (e) {
+                                                // eslint-disable-next-line no-console
+                                                console.error(`ProductSwitcherMenuItem ${item.pluginId}:${item.id} action threw`, e);
+                                            }
+                                            handleClick();
+                                        }}
+                                    >
+                                        {Icon ? (
+                                            <Icon
+                                                size={24}
+                                                color={'var(--button-bg)'}
+                                            />
+                                        ) : item.icon}
+                                        <SwitcherMenuItemText>{item.text}</SwitcherMenuItemText>
+                                    </SwitcherActionItem>
+                                );
+                            })}
+                        </Menu.Group>
+                    )}
                     <ProductMenuList
                         isMessaging={isChannels(currentProductID)}
                         onClick={handleClick}
