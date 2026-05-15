@@ -51,6 +51,17 @@ export default class SystemProperties {
         return this.container.locator(`input[value="${value}"]`);
     }
 
+    displayNameInput(nth: number): Locator {
+        return this.container.getByTestId('property-display-name-input').nth(nth);
+    }
+
+    displayNameInputNear(identifierValue: string): Locator {
+        return this.container
+            .locator('tr')
+            .filter({has: this.nameInputByValue(identifierValue)})
+            .getByTestId('property-display-name-input');
+    }
+
     typeSelector(nth: number): Locator {
         return this.container.getByTestId('fieldTypeSelectorMenuButton').nth(nth);
     }
@@ -71,6 +82,10 @@ export default class SystemProperties {
      */
     lastNameInput(): Locator {
         return this.container.getByTestId('property-field-input').last();
+    }
+
+    lastDisplayNameInput(): Locator {
+        return this.container.getByTestId('property-display-name-input').last();
     }
 
     lastTypeSelector(): Locator {
@@ -209,7 +224,11 @@ export default class SystemProperties {
 
     // ── Validation ──────────────────────────────────────────────────────
 
-    validationMessage(text: string): Locator {
+    identifierValidationError(): Locator {
+        return this.container.getByTestId('property-field-validation-error');
+    }
+
+    validationMessage(text: string | RegExp): Locator {
         return this.container.getByText(text);
     }
 }
