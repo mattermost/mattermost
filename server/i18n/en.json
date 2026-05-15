@@ -10739,6 +10739,10 @@
     "translation": "Invalid creator id."
   },
   {
+    "id": "model.channel.is_valid.discoverable.app_error",
+    "translation": "Only private channels can be marked as discoverable."
+  },
+  {
     "id": "model.channel.is_valid.display_name.app_error",
     "translation": "Invalid display name."
   },
@@ -10829,6 +10833,50 @@
   {
     "id": "model.channel_bookmark.is_valid.update_at.app_error",
     "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason.app_error",
+    "translation": "Denial reason is too long."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason_status.app_error",
+    "translation": "Denial reason can only be set on a denied join request."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.id.app_error",
+    "translation": "Invalid Id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.message.app_error",
+    "translation": "Join request message is too long."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewed_by.app_error",
+    "translation": "Invalid reviewer id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewer.app_error",
+    "translation": "An approved or denied join request must record the reviewer and review time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.status.app_error",
+    "translation": "Invalid join request status."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.user_id.app_error",
+    "translation": "Invalid user id."
   },
   {
     "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",

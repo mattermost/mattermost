@@ -1326,6 +1326,22 @@ func (a *App) getAddEditFileAttachmentPermissionMigration() (permissionsMap, err
 	}, nil
 }
 
+func (a *App) getAddDiscoverableChannelPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.ChannelAdminRoleId),
+				isRole(model.TeamAdminRoleId),
+				isRole(model.SystemAdminRoleId),
+			),
+			Add: []string{
+				model.PermissionManagePrivateChannelDiscoverability.Id,
+				model.PermissionManageChannelJoinRequests.Id,
+			},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1388,6 +1404,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
 		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
+		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

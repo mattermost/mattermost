@@ -102,6 +102,7 @@ type Store interface {
 	Recap() RecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
+	ChannelJoinRequest() ChannelJoinRequestStore
 }
 
 type RetentionPolicyStore interface {
@@ -1330,6 +1331,19 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
+}
+
+// ChannelJoinRequestStore persists user requests to join discoverable private
+// channels. Rows are never deleted; status transitions are recorded with
+// reviewer and timestamps so the table doubles as an audit trail.
+type ChannelJoinRequestStore interface {
+	Save(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
+	Get(id string) (*model.ChannelJoinRequest, error)
+	GetPendingForChannelAndUser(channelId, userId string) (*model.ChannelJoinRequest, error)
+	GetForChannel(channelId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error)
+	GetForUser(userId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error)
+	Update(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
+	CountPending(channelId string) (int64, error)
 }
 
 type RecapStore interface {

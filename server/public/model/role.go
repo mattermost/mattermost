@@ -932,6 +932,8 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManageChannelAccessRules.Id,
 			PermissionManagePublicChannelAutoTranslation.Id,
 			PermissionManagePrivateChannelAutoTranslation.Id,
+			PermissionManagePrivateChannelDiscoverability.Id,
+			PermissionManageChannelJoinRequests.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

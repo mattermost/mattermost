@@ -26,6 +26,7 @@ type TimerLayer struct {
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
 	ChannelBookmarkStore            store.ChannelBookmarkStore
+	ChannelJoinRequestStore         store.ChannelJoinRequestStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
 	CommandStore                    store.CommandStore
@@ -104,6 +105,10 @@ func (s *TimerLayer) Channel() store.ChannelStore {
 
 func (s *TimerLayer) ChannelBookmark() store.ChannelBookmarkStore {
 	return s.ChannelBookmarkStore
+}
+
+func (s *TimerLayer) ChannelJoinRequest() store.ChannelJoinRequestStore {
+	return s.ChannelJoinRequestStore
 }
 
 func (s *TimerLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
@@ -338,6 +343,11 @@ type TimerLayerChannelStore struct {
 
 type TimerLayerChannelBookmarkStore struct {
 	store.ChannelBookmarkStore
+	Root *TimerLayer
+}
+
+type TimerLayerChannelJoinRequestStore struct {
+	store.ChannelJoinRequestStore
 	Root *TimerLayer
 }
 
@@ -3218,6 +3228,118 @@ func (s *TimerLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, chan
 	return result, err
 }
 
+func (s *TimerLayerChannelJoinRequestStore) CountPending(channelId string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ChannelJoinRequestStore.CountPending(channelId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelJoinRequestStore.CountPending", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelJoinRequestStore) Get(id string) (*model.ChannelJoinRequest, error) {
+	start := time.Now()
+
+	result, err := s.ChannelJoinRequestStore.Get(id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelJoinRequestStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelJoinRequestStore) GetForChannel(channelId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.ChannelJoinRequestStore.GetForChannel(channelId, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelJoinRequestStore.GetForChannel", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
+func (s *TimerLayerChannelJoinRequestStore) GetForUser(userId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.ChannelJoinRequestStore.GetForUser(userId, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelJoinRequestStore.GetForUser", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
+func (s *TimerLayerChannelJoinRequestStore) GetPendingForChannelAndUser(channelId string, userId string) (*model.ChannelJoinRequest, error) {
+	start := time.Now()
+
+	result, err := s.ChannelJoinRequestStore.GetPendingForChannelAndUser(channelId, userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelJoinRequestStore.GetPendingForChannelAndUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelJoinRequestStore) Save(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error) {
+	start := time.Now()
+
+	result, err := s.ChannelJoinRequestStore.Save(req)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelJoinRequestStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelJoinRequestStore) Update(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error) {
+	start := time.Now()
+
+	result, err := s.ChannelJoinRequestStore.Update(req)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelJoinRequestStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (int64, error) {
 	start := time.Now()
 
@@ -3250,22 +3372,6 @@ func (s *TimerLayerChannelMemberHistoryStore) GetChannelsLeftSince(userID string
 	return result, err
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) GetEverMembersInChannel(channelID string, userIDs []string) ([]string, error) {
-	start := time.Now()
-
-	result, err := s.ChannelMemberHistoryStore.GetEverMembersInChannel(channelID, userIDs)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.GetEverMembersInChannel", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelMemberHistoryStore) GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error) {
 	start := time.Now()
 
@@ -3278,6 +3384,22 @@ func (s *TimerLayerChannelMemberHistoryStore) GetChannelsWithActivityDuring(star
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.GetChannelsWithActivityDuring", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelMemberHistoryStore) GetEverMembersInChannel(channelID string, userIDs []string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.ChannelMemberHistoryStore.GetEverMembersInChannel(channelID, userIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.GetEverMembersInChannel", success, elapsed)
 	}
 	return result, err
 }
@@ -14558,6 +14680,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
 	newStore.ChannelBookmarkStore = &TimerLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
+	newStore.ChannelJoinRequestStore = &TimerLayerChannelJoinRequestStore{ChannelJoinRequestStore: childStore.ChannelJoinRequest(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &TimerLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &TimerLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
 	newStore.CommandStore = &TimerLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
