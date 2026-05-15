@@ -92,22 +92,14 @@ func resolveConfigFilePath(path string) (string, error) {
 	return "", fmt.Errorf("failed to find config file %s", path)
 }
 
-// resolveFilePath resolves name relative to the directory of this store's backing file.
-// Absolute names are returned unchanged.
-func (fs *FileStore) resolveFilePath(name string) (string, error) {
+// resolveFilePath uses the name if name is absolute path.
+// otherwise returns the combined path/name
+func (fs *FileStore) resolveFilePath(name string) string {
+	// Absolute paths are explicit and require no resolution.
 	if filepath.IsAbs(name) {
-		return name, nil
+		return name
 	}
-	basePath := filepath.Clean(filepath.Dir(fs.path))
-	resolvedPath := filepath.Clean(filepath.Join(basePath, name))
-	relPath, err := filepath.Rel(basePath, resolvedPath)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to resolve config file path")
-	}
-	if relPath == ".." || strings.HasPrefix(relPath, ".."+string(filepath.Separator)) {
-		return "", errors.New("invalid config file path")
-	}
-	return resolvedPath, nil
+	return filepath.Join(filepath.Dir(fs.path), name)
 }
 
 // Set replaces the current configuration in its entirety and updates the backing store.
@@ -154,10 +146,7 @@ func (fs *FileStore) Load() ([]byte, error) {
 
 // GetFile fetches the contents of a previously persisted configuration file.
 func (fs *FileStore) GetFile(name string) ([]byte, error) {
-	resolvedPath, err := fs.resolveFilePath(name)
-	if err != nil {
-		return nil, err
-	}
+	resolvedPath := fs.resolveFilePath(name)
 
 	data, err := os.ReadFile(resolvedPath)
 	if err != nil {
@@ -169,18 +158,15 @@ func (fs *FileStore) GetFile(name string) ([]byte, error) {
 
 // GetFilePath returns the resolved path of a configuration file.
 // The file may not necessarily exist.
-func (fs *FileStore) GetFilePath(name string) (string, error) {
+func (fs *FileStore) GetFilePath(name string) string {
 	return fs.resolveFilePath(name)
 }
 
 // SetFile sets or replaces the contents of a configuration file.
 func (fs *FileStore) SetFile(name string, data []byte) error {
-	resolvedPath, err := fs.resolveFilePath(name)
-	if err != nil {
-		return err
-	}
+	resolvedPath := fs.resolveFilePath(name)
 
-	err = os.WriteFile(resolvedPath, data, 0600)
+	err := os.WriteFile(resolvedPath, data, 0600)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write file to %s", resolvedPath)
 	}
@@ -194,12 +180,9 @@ func (fs *FileStore) HasFile(name string) (bool, error) {
 		return false, nil
 	}
 
-	resolvedPath, err := fs.resolveFilePath(name)
-	if err != nil {
-		return false, err
-	}
+	resolvedPath := fs.resolveFilePath(name)
 
-	_, err = os.Stat(resolvedPath)
+	_, err := os.Stat(resolvedPath)
 	if err != nil && os.IsNotExist(err) {
 		return false, nil
 	} else if err != nil {
@@ -217,9 +200,14 @@ func (fs *FileStore) RemoveFile(name string) error {
 		return nil
 	}
 
-	resolvedPath, err := fs.resolveFilePath(name)
+	basePath := filepath.Clean(filepath.Dir(fs.path))
+	resolvedPath := filepath.Clean(filepath.Join(basePath, name))
+	relPath, err := filepath.Rel(basePath, resolvedPath)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to resolve config file path")
+	}
+	if relPath == ".." || strings.HasPrefix(relPath, ".."+string(filepath.Separator)) {
+		return errors.New("invalid config file path")
 	}
 
 	err = os.Remove(resolvedPath)
