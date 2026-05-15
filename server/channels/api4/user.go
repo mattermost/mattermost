@@ -2580,6 +2580,15 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		newProps[model.SessionPropMobileVersion] = mobileVersion
 	}
 
+	voipDeviceID := receivedProps[model.SessionPropVoIPDeviceId]
+	if voipDeviceID != "" {
+		if _, token, ok := strings.Cut(voipDeviceID, ":"); !ok || token == "" {
+			c.SetInvalidParam(model.SessionPropVoIPDeviceId)
+			return
+		}
+		newProps[model.SessionPropVoIPDeviceId] = voipDeviceID
+	}
+
 	if deviceId != "" {
 		attachDeviceId(c, w, r, deviceId)
 	}

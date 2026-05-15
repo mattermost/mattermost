@@ -1469,6 +1469,18 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 }
 
 func (api *PluginAPI) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
+	if notification != nil {
+		api.ctx.Logger().LogM(mlog.MlvlNotificationDebug, "Plugin requested push notification",
+			mlog.String("type", model.NotificationTypePush),
+			mlog.String("plugin_id", api.id),
+			mlog.String("user_id", userID),
+			mlog.String("channel_id", notification.ChannelId),
+			mlog.String("post_id", notification.PostId),
+			mlog.String("push_type", notification.Type),
+			mlog.String("push_sub_type", notification.SubType),
+		)
+	}
+
 	// Ignoring skipSessionId because it's only used internally to clear push notifications
 	return api.app.sendPushNotificationToAllSessions(api.ctx, notification, userID, "")
 }

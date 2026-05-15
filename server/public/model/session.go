@@ -29,6 +29,7 @@ const (
 	SessionPropLastRemovedDeviceId        = "last_removed_device_id"
 	SessionPropDeviceNotificationDisabled = "device_notification_disabled"
 	SessionPropMobileVersion              = "mobile_version"
+	SessionPropVoIPDeviceId               = "voip_device_id"
 	SessionTypeUserAccessToken            = "UserAccessToken"
 	SessionTypeCloudKey                   = "CloudKey"
 	SessionTypeRemoteclusterToken         = "RemoteClusterToken"

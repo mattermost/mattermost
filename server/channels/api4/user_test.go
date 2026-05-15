@@ -4490,6 +4490,7 @@ func TestAttachDeviceId(t *testing.T) {
 	resetSession := func(session *model.Session) {
 		session.AddProp(model.SessionPropDeviceNotificationDisabled, "")
 		session.AddProp(model.SessionPropMobileVersion, "")
+		session.AddProp(model.SessionPropVoIPDeviceId, "")
 		err := th.Server.Store().Session().UpdateProps(session)
 		require.NoError(t, err)
 		th.App.ClearSessionCacheForUser(session.UserId)
@@ -4543,10 +4544,26 @@ func TestAttachDeviceId(t *testing.T) {
 		assert.Equal(t, session.Props, updatedSession.Props)
 		assert.Equal(t, session.Props, storeSession.Props)
 	})
+	t.Run("Invalid VoIP device id will return an error and no changes in the session", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetSession(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropVoIPDeviceId: "apple_voip_rn-v2"})
+		assert.Error(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+		assert.Equal(t, session.Props, updatedSession.Props)
+		assert.Equal(t, session.Props, storeSession.Props)
+	})
 	t.Run("Will update props", func(t *testing.T) {
 		session, _ := th.App.GetSession(client.AuthToken)
 		defer resetSession(session)
-		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropDeviceNotificationDisabled: "true", model.SessionPropMobileVersion: "2.19.0"})
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{
+			model.SessionPropDeviceNotificationDisabled: "true",
+			model.SessionPropMobileVersion:              "2.19.0",
+			model.SessionPropVoIPDeviceId:               "apple_voip_rn-v2:abcd",
+		})
 		assert.NoError(t, err)
 
 		updatedSession, _ := th.App.GetSession(client.AuthToken)
@@ -4556,6 +4573,8 @@ func TestAttachDeviceId(t *testing.T) {
 		assert.Equal(t, "true", storeSession.Props[model.SessionPropDeviceNotificationDisabled])
 		assert.Equal(t, "2.19.0", updatedSession.Props[model.SessionPropMobileVersion])
 		assert.Equal(t, "2.19.0", storeSession.Props[model.SessionPropMobileVersion])
+		assert.Equal(t, "apple_voip_rn-v2:abcd", updatedSession.Props[model.SessionPropVoIPDeviceId])
+		assert.Equal(t, "apple_voip_rn-v2:abcd", storeSession.Props[model.SessionPropVoIPDeviceId])
 	})
 }
 

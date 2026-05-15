@@ -118,7 +118,13 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		return nil
 	}
 
-	sessions, appErr := a.getMobileAppSessions(userID)
+	var sessions []*model.Session
+	var appErr *model.AppError
+	if msg != nil && msg.SubType == model.PushSubTypeCalls {
+		sessions, appErr = a.getMobileAppSessionsForCallsPush(rctx, userID)
+	} else {
+		sessions, appErr = a.getMobileAppSessions(userID)
+	}
 	if appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to send mobile app sessions",
@@ -129,6 +135,13 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			mlog.Err(appErr),
 		)
 		return appErr
+	}
+	if msg != nil && msg.SubType == model.PushSubTypeCalls {
+		rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Fetched mobile app sessions for Calls push",
+			mlog.String("type", model.NotificationTypePush),
+			mlog.String("user_id", userID),
+			mlog.Int("session_count", len(sessions)),
+		)
 	}
 
 	if msg == nil {
@@ -166,6 +179,41 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		tmpMessage := msg.DeepCopy()
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		tmpMessage.AckId = model.NewId()
+		if tmpMessage.SubType == model.PushSubTypeCalls {
+			rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Preparing Calls push notification for mobile session",
+				mlog.String("type", model.NotificationTypePush),
+				mlog.String("user_id", session.UserId),
+				mlog.String("session_id", session.Id),
+				mlog.Bool("has_voip_device_id", session.Props[model.SessionPropVoIPDeviceId] != ""),
+				mlog.String("platform", tmpMessage.Platform),
+			)
+		}
+
+		sentVoIP, err := a.sendCallsVoIPPushNotification(rctx, tmpMessage, session)
+		if err != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError, tmpMessage.Platform)
+			rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to send Calls VoIP push notification",
+				mlog.String("type", model.NotificationTypePush),
+				mlog.String("status", model.NotificationStatusNotSent),
+				mlog.String("reason", model.NotificationReasonPushProxySendError),
+				mlog.String("push_type", tmpMessage.Type),
+				mlog.String("user_id", session.UserId),
+				mlog.String("session_id", session.Id),
+				mlog.Err(err),
+			)
+			continue
+		}
+		if sentVoIP {
+			rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Calls VoIP push notification sent",
+				mlog.String("type", model.NotificationTypePush),
+				mlog.String("push_type", tmpMessage.Type),
+				mlog.String("user_id", session.UserId),
+				mlog.String("session_id", session.Id),
+				mlog.String("status", model.PushSendSuccess),
+			)
+			continue
+		}
+
 		signature, err := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
 			AckId:    tmpMessage.AckId,
 			DeviceId: tmpMessage.DeviceId,
@@ -601,6 +649,28 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 	}
 
 	return sessions, nil
+}
+
+func (a *App) getMobileAppSessionsForCallsPush(rctx request.CTX, userID string) ([]*model.Session, *model.AppError) {
+	sessions, err := a.Srv().Store().Session().GetSessions(rctx, userID)
+	if err != nil {
+		return nil, model.NewAppError("getMobileAppSessionsForCallsPush", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	activeSessions := make([]*model.Session, 0, len(sessions))
+	for _, session := range sessions {
+		if session.IsExpired() {
+			continue
+		}
+
+		hasActiveDeviceID := session.DeviceId != "" && session.DeviceId != session.Props[model.SessionPropLastRemovedDeviceId]
+		hasVoIPDeviceID := session.Props[model.SessionPropVoIPDeviceId] != ""
+		if hasActiveDeviceID || hasVoIPDeviceID {
+			activeSessions = append(activeSessions, session)
+		}
+	}
+
+	return activeSessions, nil
 }
 
 func (a *App) ShouldSendPushNotification(rctx request.CTX, user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
