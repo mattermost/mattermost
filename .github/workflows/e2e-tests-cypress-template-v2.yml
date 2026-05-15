@@ -332,7 +332,7 @@ jobs:
           server-image: ${{ env.SERVER_IMAGE }}
           pr-number: ${{ inputs.pr_number }}
           ref-branch: ${{ inputs.ref_branch }}
-          context-name: ${{ inputs.context_name }}
+          commit-status-context: ${{ inputs.context_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
