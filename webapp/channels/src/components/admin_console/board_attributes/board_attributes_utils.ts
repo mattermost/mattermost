@@ -120,7 +120,7 @@ export const useBoardPropertyFields = () => {
                 }
 
                 const {id, name, type, attrs} = pendingItem;
-                let patch: BoardPropertyFieldPatch = {name, type, attrs};
+                let patch: BoardPropertyFieldPatch = {name, type, attrs: stripPendingFromAttrs(attrs)};
 
                 // clear options if not select/multiselect
                 if (type !== 'select' && type !== 'multiselect') {
@@ -146,7 +146,7 @@ export const useBoardPropertyFields = () => {
                 return Client4.createPropertyField(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, {
                     name,
                     type,
-                    attrs,
+                    attrs: stripPendingFromAttrs(attrs),
                     target_type: TARGET_TYPE_SYSTEM,
                     target_id: '',
                 }).
@@ -404,12 +404,30 @@ export const isDeletePending = <T extends {delete_at: number; create_at: number}
 
 export const newPendingId = () => `${PENDING}${generateId()}`;
 
+export const isPendingId = (id: string) => id.startsWith(PENDING);
+
+// Pending ids are a frontend-only convention so unsaved chips can be uniquely
+// keyed (for React keys, FLIP animations, DnD lookups). The server doesn't
+// know about them — clear them out before send so the server treats those
+// options as creates rather than failing to find a matching record.
+export const stripPendingOptionIds = (options?: PropertyFieldOption[]) =>
+    options?.map((o) => (isPendingId(o.id) ? {...o, id: ''} : o));
+
+const stripPendingFromAttrs = <A extends BoardPropertyField['attrs']>(attrs: A): A => {
+    if (!attrs?.options) {
+        return attrs;
+    }
+    return {...attrs, options: stripPendingOptionIds(attrs.options)};
+};
+
 export const newPendingBoardField = (patch: BoardPropertyFieldPatch & Pick<BoardPropertyField, 'name'>): BoardPropertyField => {
     const attrs = {...patch.attrs};
 
     if (attrs.options) {
-        // clear option ids
-        attrs.options = patch.attrs?.options?.map((option) => ({...option, id: ''}));
+        // Give each option a pending id so chips remain individually keyable
+        // (React key, FLIP, DnD). `stripPendingFromAttrs` on save replaces
+        // these with '' before hitting the server.
+        attrs.options = patch.attrs?.options?.map((option) => ({...option, id: newPendingId()}));
     }
 
     return {

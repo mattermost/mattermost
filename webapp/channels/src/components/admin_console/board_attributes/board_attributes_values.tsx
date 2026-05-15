@@ -15,7 +15,7 @@ import * as Menu from 'components/menu';
 
 import {useFLIPAnimation} from 'hooks/use_flip_animation';
 
-import {ValidationWarningOptionsUnique, isOptionNameTaken} from './board_attributes_utils';
+import {ValidationWarningOptionsUnique, isOptionNameTaken, newPendingId} from './board_attributes_utils';
 import {useBoardOptionDnd} from './hooks/use_board_option_dnd';
 import {useBoardOptionsDnd} from './hooks/use_board_options_dnd';
 
@@ -93,12 +93,13 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
         updateField({...field, attrs: {...field.attrs, options: next}});
     };
 
-    const {snapshot: snapshotChips} = useFLIPAnimation(() => {
-        const children = containerRef.current ? Array.from(containerRef.current.children) : [];
-        return children.filter((el) => el.tagName !== 'BUTTON') as HTMLElement[];
+    const chipKeys = options.map((option) => option.id);
+    useFLIPAnimation({
+        items: chipKeys,
+        getElement: (key) => containerRef.current?.querySelector<HTMLElement>(`[data-flip-key="${key}"]`) ?? null,
     });
 
-    useBoardOptionsDnd({fieldId: field.id, options, setOptions, enabled: isEditable, onBeforeReorder: snapshotChips});
+    useBoardOptionsDnd({fieldId: field.id, options, setOptions, enabled: isEditable});
 
     if (!supportsOptions(field) || field.type === 'user' || field.type === 'multiuser') {
         return (
@@ -147,7 +148,7 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
     };
 
     const handleAdd = () => {
-        setOptions([...options, {id: '', name: generateDefaultName()}]);
+        setOptions([...options, {id: newPendingId(), name: generateDefaultName()}]);
     };
 
     return (
@@ -156,13 +157,12 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
                 ref={containerRef}
                 data-testid='property-values-input'
             >
-                {options.map((option, index) => (
+                {options.map((option) => (
                     <EditableChip
-                        key={option.id || `pending-${index}`}
+                        key={option.id}
                         option={option}
                         options={options}
                         setOptions={setOptions}
-                        index={index}
                         fieldId={field.id}
                     />
                 ))}
@@ -199,11 +199,10 @@ type ChipProps = {
     option: PropertyFieldOption;
     options: PropertyFieldOption[];
     setOptions: (next: PropertyFieldOption[]) => void;
-    index: number;
     fieldId: string;
 };
 
-const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) => {
+const EditableChip = ({option, options, setOptions, fieldId}: ChipProps) => {
     const {formatMessage} = useIntl();
     const [editValue, setEditValue] = useState(option.name);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -220,7 +219,7 @@ const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) 
         setEditValue(option.name);
     }, [option.name]);
 
-    const optionKey = option.id || `pending-${index}`;
+    const optionKey = option.id;
     const {closestEdge} = useBoardOptionDnd({
         fieldId,
         optionKey,
@@ -287,7 +286,10 @@ const EditableChip = ({option, options, setOptions, index, fieldId}: ChipProps) 
     };
 
     return (
-        <ChipDropZone ref={setDropZoneElement}>
+        <ChipDropZone
+            ref={setDropZoneElement}
+            data-flip-key={option.id}
+        >
             <ChipShell
                 ref={setChipElement}
                 $invalid={isInvalid}

@@ -75,7 +75,14 @@ export function useListTableRowDnd({
                 onDrop: () => setClosestEdge(null),
             }),
         );
-    }, [rowElement, handleElement, enabled, dragKind, rowId, rowIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // `getDragPreview` is intentionally omitted: callers pass a fresh closure
+    // every render, and re-registering the draggable/dropTarget on every
+    // render would tear down PDND state mid-interaction. The closure is
+    // captured once on registration, which is fine because the preview is
+    // generated lazily at drag-start.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rowElement, handleElement, enabled, dragKind, rowId, rowIndex]);
 
     return {closestEdge};
 }

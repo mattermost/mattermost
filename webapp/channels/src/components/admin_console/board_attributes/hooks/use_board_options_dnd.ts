@@ -15,7 +15,6 @@ type UseBoardOptionsDndOptions = {
     options: PropertyFieldOption[];
     setOptions: (next: PropertyFieldOption[]) => void;
     enabled: boolean;
-    onBeforeReorder?: () => void;
 };
 
 /**
@@ -23,10 +22,9 @@ type UseBoardOptionsDndOptions = {
  * specific field. Reorders options in place when a chip is dropped.
  * Safe to call unconditionally; no-ops when enabled is false.
  */
-export function useBoardOptionsDnd({fieldId, options, setOptions, enabled, onBeforeReorder}: UseBoardOptionsDndOptions): void {
+export function useBoardOptionsDnd({fieldId, options, setOptions, enabled}: UseBoardOptionsDndOptions): void {
     const optionsRef = useLatest(options);
     const setOptionsRef = useLatest(setOptions);
-    const onBeforeReorderRef = useLatest(onBeforeReorder);
 
     useEffect(() => {
         if (!enabled) {
@@ -44,12 +42,8 @@ export function useBoardOptionsDnd({fieldId, options, setOptions, enabled, onBef
                 const targetKey = target.data.optionKey as string;
                 const edge = extractClosestEdge(target.data);
                 const current = optionsRef.current;
-                const sourceIndex = current.findIndex(
-                    (o, i) => (o.id || `pending-${i}`) === sourceKey,
-                );
-                const targetIndex = current.findIndex(
-                    (o, i) => (o.id || `pending-${i}`) === targetKey,
-                );
+                const sourceIndex = current.findIndex((o) => o.id === sourceKey);
+                const targetIndex = current.findIndex((o) => o.id === targetKey);
                 if (sourceIndex === -1 || targetIndex === -1) {
                     return;
                 }
@@ -58,7 +52,6 @@ export function useBoardOptionsDnd({fieldId, options, setOptions, enabled, onBef
                     const next = [...current];
                     const [moved] = next.splice(sourceIndex, 1);
                     next.splice(dropIndex, 0, moved);
-                    onBeforeReorderRef.current?.();
                     setOptionsRef.current(next);
                 }
             },
