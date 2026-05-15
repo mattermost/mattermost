@@ -12,6 +12,7 @@ import {patchChannel, updateChannelPrivacy} from 'mattermost-redux/actions/chann
 import {General} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {areManagedCategoriesEnabled, getChannelManagedCategoryName, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
+import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -26,6 +27,7 @@ import {
 import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
 import CategorySelector from 'components/category_selector/category_selector';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
+import DiscoverableChannelToggle from 'components/discoverable_channel_toggle/discoverable_channel_toggle';
 import type {TextboxElement} from 'components/textbox';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
@@ -88,6 +90,14 @@ function ChannelSettingsInfoTab({
     });
     const canManageChannelRoles = useSelector((state: GlobalState) => haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ROLES));
 
+    const discoverableChannelsEnabled = useSelector(isDiscoverableChannelsEnabled);
+    const canManageDiscoverability = useSelector((state: GlobalState) => {
+        if (!discoverableChannelsEnabled || isDMorGroupChannel) {
+            return false;
+        }
+        return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_DISCOVERABILITY);
+    });
+
     const showDefaultCategorySelector = useSelector(isChannelCategorySortingEnabled);
     const showDefaultCategoryField = showDefaultCategorySelector && !isDMorGroupChannel;
 
@@ -138,6 +148,14 @@ function ChannelSettingsInfoTab({
     const [channelPurpose, setChannelPurpose] = useState(channel.purpose ?? '');
     const [channelHeader, setChannelHeader] = useState(channel?.header ?? '');
     const [channelType, setChannelType] = useState<ChannelType>(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
+    const [discoverable, setDiscoverable] = useState<boolean>(Boolean(channel?.discoverable));
+    const [serverDiscoverable, setServerDiscoverable] = useState<boolean>(Boolean(channel?.discoverable));
+
+    useEffect(() => {
+        const next = Boolean(channel?.discoverable);
+        setDiscoverable(next);
+        setServerDiscoverable(next);
+    }, [channel?.id, channel?.discoverable]);
 
     // UI Feedback: errors, states
     const [formError, setFormError] = useState('');
@@ -168,11 +186,12 @@ function ChannelSettingsInfoTab({
             channelHeader.trim() !== channel.header ||
             channelType !== channel.type ||
             (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '') ||
-            managedCategoryName !== serverManagedCategoryName
+            managedCategoryName !== serverManagedCategoryName ||
+            discoverable !== serverDiscoverable
         ) : false;
 
         setAreThereUnsavedChanges?.(unsavedChanges);
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, setAreThereUnsavedChanges]);
+    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, serverDiscoverable, setAreThereUnsavedChanges]);
 
     const handleURLChange = useCallback((newURL: string) => {
         if (internalUrlError) {
@@ -310,6 +329,14 @@ function ChannelSettingsInfoTab({
             updated.managed_category_name = managedCategoryName ?? '';
         }
 
+        // The server only accepts `discoverable` on private channels, and the
+        // toggle is hidden otherwise — but a stale `discoverable=true` from a
+        // converted-to-public channel must NOT be re-submitted here, so we
+        // also gate the patch on the post-save channel type.
+        if (canManageDiscoverability && channelType === Constants.PRIVATE_CHANNEL && discoverable !== serverDiscoverable) {
+            updated.discoverable = discoverable;
+        }
+
         if (Object.keys(updated).length === 0) {
             // Return true if no changes were made
             return true;
@@ -331,9 +358,12 @@ function ChannelSettingsInfoTab({
         setChannelHeader(data?.header ?? updated.header ?? channel.header);
         setServerDefaultCategoryName(defaultCategoryName);
         setServerManagedCategoryName(managedCategoryName);
+        const nextDiscoverable = Boolean(data?.discoverable ?? (channelType === Constants.PRIVATE_CHANNEL && discoverable));
+        setDiscoverable(nextDiscoverable);
+        setServerDiscoverable(nextDiscoverable);
 
         return true;
-    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName]);
+    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, canManageDiscoverability, discoverable, serverDiscoverable]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
@@ -376,6 +406,7 @@ function ChannelSettingsInfoTab({
         setChannelType(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
         setDefaultCategoryName(serverDefaultCategoryName);
         setManagedCategoryName(serverManagedCategoryName);
+        setDiscoverable(serverDiscoverable);
 
         // Clear errors
         setUrlError('');
@@ -408,11 +439,12 @@ function ChannelSettingsInfoTab({
                 unsavedChanges = unsavedChanges || channelType !== channel.type;
                 unsavedChanges = unsavedChanges || (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '');
                 unsavedChanges = unsavedChanges || managedCategoryName !== serverManagedCategoryName;
+                unsavedChanges = unsavedChanges || discoverable !== serverDiscoverable;
             }
         }
 
         return unsavedChanges || saveChangesPanelState === 'saved';
-    }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName]);
+    }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, serverDiscoverable]);
 
     return (
         <div className='ChannelSettingsModal__infoTab'>
@@ -478,6 +510,14 @@ function ChannelSettingsInfoTab({
                         tooltip: channelTypeLockTooltip,
                     }}
                     onChange={handleChannelTypeChange}
+                />
+            )}
+            {/* Discoverable toggle: only meaningful for private, non-DM/GM channels and gated on the new permission */}
+            {canManageDiscoverability && channelType === Constants.PRIVATE_CHANNEL && (
+                <DiscoverableChannelToggle
+                    id='channelSettingsDiscoverableToggle'
+                    checked={discoverable}
+                    onChange={setDiscoverable}
                 />
             )}
             {/* Default Sidebar Category Selector */}

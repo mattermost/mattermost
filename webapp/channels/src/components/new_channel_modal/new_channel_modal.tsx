@@ -17,8 +17,9 @@ import {createChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
+import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
-import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {haveICurrentChannelPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {switchToChannel} from 'actions/views/channel';
@@ -26,6 +27,7 @@ import {closeModal} from 'actions/views/modals';
 
 import CategorySelector from 'components/category_selector/category_selector';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
+import DiscoverableChannelToggle from 'components/discoverable_channel_toggle/discoverable_channel_toggle';
 import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 
@@ -69,9 +71,21 @@ const NewChannelModal = () => {
     const canCreatePrivateChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PRIVATE_CHANNEL) : false));
     const showDefaultCategorySelector = useSelector(isChannelCategorySortingEnabled);
     const showManagedCategorySelector = useSelector(areManagedCategoriesEnabled);
+    const discoverableChannelsEnabled = useSelector(isDiscoverableChannelsEnabled);
+
+    // The channel doesn't exist yet, so we mirror the server check in
+    // createChannel: team-scope grants only — channel-scope grants kick in
+    // once the channel is created.
+    const canMarkDiscoverable = useSelector((state: GlobalState) => {
+        if (!discoverableChannelsEnabled || !currentTeamId) {
+            return false;
+        }
+        return haveITeamPermission(state, currentTeamId, Permissions.MANAGE_PRIVATE_CHANNEL_DISCOVERABILITY);
+    });
     const dispatch = useDispatch();
 
     const [type, setType] = useState(getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel));
+    const [discoverable, setDiscoverable] = useState(false);
     const [displayName, setDisplayName] = useState('');
     const [url, setURL] = useState('');
     const [purpose, setPurpose] = useState('');
@@ -118,6 +132,13 @@ const NewChannelModal = () => {
             default_category_name: defaultCategoryName,
             managed_category_name: managedCategoryName,
         };
+
+        // Server rejects `discoverable=true` on non-private channels, so we
+        // only attach the field when the toggle is actually on and the user
+        // had the permission to flip it.
+        if (type === Constants.PRIVATE_CHANNEL && canMarkDiscoverable && discoverable) {
+            channel.discoverable = true;
+        }
 
         try {
             const {data: newChannel, error} = await dispatch(createChannel(channel, ''));
@@ -210,6 +231,13 @@ const NewChannelModal = () => {
 
     const handleOnTypeChange = useCallback((channelType: ChannelType) => {
         setType(channelType);
+
+        // Discoverable only applies to private channels; reset the toggle
+        // when the user switches away so we don't quietly send `true` on
+        // re-selecting Private later.
+        if (channelType !== Constants.PRIVATE_CHANNEL) {
+            setDiscoverable(false);
+        }
         setServerError('');
     }, []);
 
@@ -293,6 +321,13 @@ const NewChannelModal = () => {
                     }}
                     onChange={handleOnTypeChange}
                 />
+                {canMarkDiscoverable && type === Constants.PRIVATE_CHANNEL && (
+                    <DiscoverableChannelToggle
+                        id='newChannelModalDiscoverableToggle'
+                        checked={discoverable}
+                        onChange={setDiscoverable}
+                    />
+                )}
                 {showDefaultCategorySelector && (
                     <div className='new-channel-modal-managed-category'>
                         <CategorySelector
