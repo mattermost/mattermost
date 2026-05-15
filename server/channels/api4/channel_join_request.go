@@ -20,18 +20,18 @@ func (api *API) initChannelJoinRequestRoutes() {
 		return
 	}
 
-	api.BaseRoutes.Channel.Handle("/discoverable_join_request", api.APISessionRequired(requestJoinChannel)).Methods(http.MethodPost)
-	api.BaseRoutes.Channel.Handle("/discoverable_join_request", api.APISessionRequired(getMyChannelJoinRequest)).Methods(http.MethodGet)
-	api.BaseRoutes.Channel.Handle("/discoverable_join_request", api.APISessionRequired(withdrawMyChannelJoinRequest)).Methods(http.MethodDelete)
+	api.BaseRoutes.Channel.Handle("/join_request", api.APISessionRequired(requestJoinChannel)).Methods(http.MethodPost)
+	api.BaseRoutes.Channel.Handle("/join_request", api.APISessionRequired(getMyChannelJoinRequest)).Methods(http.MethodGet)
+	api.BaseRoutes.Channel.Handle("/join_request", api.APISessionRequired(withdrawMyChannelJoinRequest)).Methods(http.MethodDelete)
 
-	api.BaseRoutes.Channel.Handle("/discoverable_join_requests", api.APISessionRequired(getChannelJoinRequests)).Methods(http.MethodGet)
-	api.BaseRoutes.Channel.Handle("/discoverable_join_requests/count", api.APISessionRequired(countPendingChannelJoinRequests)).Methods(http.MethodGet)
-	api.BaseRoutes.Channel.Handle("/discoverable_join_requests/{request_id:[A-Za-z0-9]+}", api.APISessionRequired(patchChannelJoinRequest)).Methods(http.MethodPatch)
+	api.BaseRoutes.Channel.Handle("/join_requests", api.APISessionRequired(getChannelJoinRequests)).Methods(http.MethodGet)
+	api.BaseRoutes.Channel.Handle("/join_requests/count", api.APISessionRequired(countPendingChannelJoinRequests)).Methods(http.MethodGet)
+	api.BaseRoutes.Channel.Handle("/join_requests/{request_id:[A-Za-z0-9]+}", api.APISessionRequired(patchChannelJoinRequest)).Methods(http.MethodPatch)
 
-	api.BaseRoutes.User.Handle("/discoverable_join_requests", api.APISessionRequired(getMyChannelJoinRequests)).Methods(http.MethodGet)
+	api.BaseRoutes.User.Handle("/channel_join_requests", api.APISessionRequired(getMyChannelJoinRequests)).Methods(http.MethodGet)
 }
 
-// channelJoinRequestBody is the POST body shape for /discoverable_join_request.
+// channelJoinRequestBody is the POST body shape for /channels/{id}/join_request.
 type channelJoinRequestBody struct {
 	Message string `json:"message"`
 }

@@ -50,7 +50,7 @@ func TestRequestJoinChannelAPI_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 
 	body := []byte(`{"message":"hi"}`)
-	resp, err := th.Client.DoAPIPost(context.Background(), "/channels/"+channel.Id+"/discoverable_join_request", string(body))
+	resp, err := th.Client.DoAPIPost(context.Background(), "/channels/"+channel.Id+"/join_request", string(body))
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	require.Equal(t, http.StatusCreated, resp.StatusCode)
@@ -68,7 +68,7 @@ func TestRequestJoinChannelAPI_FeatureDisabled(t *testing.T) {
 
 	channel := th.CreatePrivateChannel(t)
 	body := []byte(`{"message":"hi"}`)
-	resp, err := th.Client.DoAPIPost(context.Background(), "/channels/"+channel.Id+"/discoverable_join_request", string(body))
+	resp, err := th.Client.DoAPIPost(context.Background(), "/channels/"+channel.Id+"/join_request", string(body))
 	defer closeBodyOrNil(resp)
 	require.Error(t, err)
 	require.NotNil(t, resp)
