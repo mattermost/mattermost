@@ -221,6 +221,46 @@ func TestRegisterPluginForSharedChannels(t *testing.T) {
 		require.Equal(t, id1, id2)
 	})
 
+	t.Run("re-registering a soft-deleted SiteURL restores the row and pings the remote (MM-68838)", func(t *testing.T) {
+		pluginID := "com.test.restore-" + model.NewId()
+		siteURL := "nats://restore-" + model.NewId()
+
+		// 1. Initial registration.
+		id1, err := th.App.RegisterPluginForSharedChannels(th.Context, model.RegisterPluginOpts{
+			Displayname: "restore test plugin",
+			PluginID:    pluginID,
+			CreatorID:   th.BasicUser.Id,
+			SiteURL:     siteURL,
+		})
+		require.NoError(t, err)
+
+		// 2. Unregister soft-deletes the row.
+		require.NoError(t, th.App.UnregisterPluginRemoteForSharedChannels(pluginID, id1))
+
+		rcDeleted, err := th.App.Srv().Store().RemoteCluster().Get(id1, true)
+		require.NoError(t, err)
+		require.NotZero(t, rcDeleted.DeleteAt, "row should be soft-deleted after unregister")
+
+		// 3. Re-register the same SiteURL. The restore path must run.
+		id2, err := th.App.RegisterPluginForSharedChannels(th.Context, model.RegisterPluginOpts{
+			Displayname: "restore test plugin",
+			PluginID:    pluginID,
+			CreatorID:   th.BasicUser.Id,
+			SiteURL:     siteURL,
+		})
+		require.NoError(t, err)
+		require.Equal(t, id1, id2, "restore path must reuse the existing remoteID")
+
+		// 4. The row must be restored (DeleteAt cleared). PingNow is called
+		// inside the restore branch; the actual ping fails in unit tests
+		// because no plugin process is loaded to answer OnSharedChannelsPing,
+		// so we cannot assert on LastPingAt here. The presence of the call
+		// is what fixes MM-68838 (offline-for-PingFreq window on restart).
+		rcRestored, err := th.App.Srv().Store().RemoteCluster().Get(id2, false)
+		require.NoError(t, err)
+		require.Zero(t, rcRestored.DeleteAt, "row should be restored after re-register")
+	})
+
 	t.Run("multi-remote registration returns distinct remoteIDs", func(t *testing.T) {
 		pluginID := "com.test.multi-" + model.NewId()
 

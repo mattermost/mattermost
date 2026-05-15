@@ -59,6 +59,16 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 		if _, err = a.Srv().Store().RemoteCluster().Update(rc); err != nil {
 			return "", err
 		}
+
+		// Ping the plugin remote immediately so the restored row's
+		// LastPingAt is refreshed before sync attempts. Without this,
+		// rc.IsOnline() returns false until the next pingLoop iteration
+		// (up to PingFreq), causing transient sync failures on the
+		// restore path. Mirrors the new-connection branch below.
+		rcService, _ := a.GetRemoteClusterService()
+		if rcService != nil {
+			rcService.PingNow(rc)
+		}
 		return rc.RemoteId, nil
 	}
 
