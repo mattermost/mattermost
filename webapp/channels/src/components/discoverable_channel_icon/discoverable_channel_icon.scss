@@ -3,23 +3,39 @@
 
 .DiscoverableChannelIcon {
     position: relative;
-    display: inline-flex;
+    display: inline-block;
     flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
     line-height: 0;
+    vertical-align: middle;
 
-    &__lock {
-        position: absolute;
-        right: -2px;
-        bottom: -2px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid var(--center-channel-bg);
-        border-radius: 999px;
-        background: var(--center-channel-bg);
-        color: var(--center-channel-color);
-        line-height: 0;
+    // The shared SVG layout rules in this app add a default margin and may
+    // override `right`/`bottom` placement on icons, so override both with
+    // !important to win specificity and force the diagonal layout.
+    > svg.DiscoverableChannelIcon__globe,
+    > svg.DiscoverableChannelIcon__lock {
+        position: absolute !important;
+        margin: 0 !important;
+        color: currentcolor;
+    }
+
+    > svg.DiscoverableChannelIcon__globe {
+        top: 0 !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: 0 !important;
+        opacity: 0.7;
+    }
+
+    // Lock sits in the front-right of the diagonal stack. A small halo in
+    // the background color separates the lock outline from the globe
+    // strokes behind it so the depth reads cleanly at the 18px row size
+    // without obscuring the globe entirely.
+    > svg.DiscoverableChannelIcon__lock {
+        top: auto !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        left: auto !important;
+        filter: drop-shadow(0 0 0.6px var(--center-channel-bg))
+            drop-shadow(0 0 0.6px var(--center-channel-bg));
     }
 }

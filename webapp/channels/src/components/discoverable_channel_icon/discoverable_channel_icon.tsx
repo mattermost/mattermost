@@ -12,25 +12,31 @@ type Props = {
     className?: string;
 };
 
-// Composite icon for discoverable private channels: a globe (anyone in the
-// team can find it) with a small lock badge in the corner (membership still
-// requires admin approval). Compass-icons doesn't ship a combined glyph, so
-// the lock is positioned absolutely over the globe via SCSS.
+// Composite icon for discoverable private channels: a globe in the back
+// (anyone in the team can find this channel) and an equally-sized lock in
+// the front (membership is still gated). Compass-icons does not ship a
+// combined glyph, so the two glyphs are stacked diagonally — globe in the
+// top-left, lock offset toward the bottom-right — via SCSS.
 function DiscoverableChannelIcon({size = 18, className}: Props) {
-    const badgeSize = Math.max(8, Math.round(size * 0.6));
+    // Globe and lock are rendered at the same glyph size and stacked
+    // diagonally inside the requested footprint so the offset reads as
+    // depth rather than two icons fighting for the same pixels. The lock
+    // is drawn last so it lands on top of the globe.
+    const glyphSize = Math.round(size * 0.66);
     return (
         <span
             className={`DiscoverableChannelIcon${className ? ` ${className}` : ''}`}
             style={{width: size, height: size}}
             aria-hidden={true}
         >
-            <GlobeIcon size={size}/>
-            <span
+            <GlobeIcon
+                className='DiscoverableChannelIcon__globe'
+                size={glyphSize}
+            />
+            <LockIcon
                 className='DiscoverableChannelIcon__lock'
-                style={{width: badgeSize, height: badgeSize}}
-            >
-                <LockIcon size={Math.round(badgeSize * 0.85)}/>
-            </span>
+                size={glyphSize}
+            />
         </span>
     );
 }
