@@ -289,8 +289,11 @@ func (a *App) CancelPendingChannelJoinRequestsOnConvert(rctx request.CTX, channe
 		return
 	}
 
-	const pageSize = 200
-	for {
+	const (
+		pageSize      = 200
+		maxIterations = 50 // hard cap at ~10k requests per channel
+	)
+	for range maxIterations {
 		opts := model.GetChannelJoinRequestsOpts{
 			Status:  model.ChannelJoinRequestStatusPending,
 			Page:    0,
@@ -307,11 +310,13 @@ func (a *App) CancelPendingChannelJoinRequestsOnConvert(rctx request.CTX, channe
 		if len(rows) == 0 {
 			return
 		}
+		failed := 0
 		for _, row := range rows {
 			row.Status = model.ChannelJoinRequestStatusWithdrawn
 			row.Message = ""
 			updated, updateErr := a.Srv().Store().ChannelJoinRequest().Update(row)
 			if updateErr != nil {
+				failed++
 				rctx.Logger().Warn("CancelPendingChannelJoinRequestsOnConvert: failed to withdraw pending request",
 					mlog.String("channel_id", channel.Id),
 					mlog.String("request_id", row.Id),
@@ -321,14 +326,30 @@ func (a *App) CancelPendingChannelJoinRequestsOnConvert(rctx request.CTX, channe
 			}
 			a.broadcastChannelJoinRequestUpdated(rctx, channel, updated)
 		}
-		// We rely on the loop terminating via len < pageSize because the
-		// status filter changes per row mutation; if for some reason rows
-		// remain pending (mutation failure logged above), break to avoid an
-		// infinite loop.
+		// If every row in the batch failed to update, the next iteration
+		// would re-fetch the same rows and loop forever. Break out and
+		// surface the situation in the log — the operator can re-run the
+		// cleanup manually after addressing the underlying store error.
+		if failed == len(rows) {
+			rctx.Logger().Warn("CancelPendingChannelJoinRequestsOnConvert: every row in batch failed to update, aborting to avoid infinite loop",
+				mlog.String("channel_id", channel.Id),
+				mlog.Int("failed", failed),
+			)
+			return
+		}
+		// Standard exit when the last page is partial: every remaining
+		// pending row was successfully withdrawn (or logged as failed).
 		if len(rows) < pageSize {
 			return
 		}
 	}
+	// maxIterations safety net — this should be effectively unreachable
+	// because the per-batch all-failed check above already aborts on
+	// systemic update failures. Fire a higher-severity log if we hit it.
+	rctx.Logger().Error("CancelPendingChannelJoinRequestsOnConvert: hit maxIterations, aborting",
+		mlog.String("channel_id", channel.Id),
+		mlog.Int("max_iterations", maxIterations),
+	)
 }
 
 // IsDiscoverableSelfAddBlocked reports whether a user trying to self-add to

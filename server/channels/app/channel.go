@@ -848,20 +848,15 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 		return channel, err
 	}
 
-	// When a discoverable private channel becomes public, any pending
-	// requests are nonsensical (the user can join without approval). Cancel
-	// them — the WS broadcast inside the helper updates the requester's My
-	// Pending Requests list in real-time.
-	if wasDiscoverable && channel.Type == model.ChannelTypeOpen {
-		a.Srv().Go(func() {
-			a.CancelPendingChannelJoinRequestsOnConvert(rctx, channel)
-		})
-	}
-
 	postErr := a.postChannelPrivacyMessage(rctx, user, channel)
 	if postErr != nil {
 		if channel.Type == model.ChannelTypeOpen {
 			channel.Type = model.ChannelTypePrivate
+			// Restore the discoverable flag we eagerly cleared above so
+			// the rollback fully undoes the conversion. Without this the
+			// caller would see a private channel with discoverable=false
+			// (and would have to re-toggle it).
+			channel.Discoverable = wasDiscoverable
 		} else {
 			channel.Type = model.ChannelTypeOpen
 		}
@@ -870,6 +865,19 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 			a.Log().Error("Failed to revert channel privacy after posting an update message failed", mlog.Err(err))
 		}
 		return channel, postErr
+	}
+
+	// Now that the conversion is fully committed, cancel pending join
+	// requests for the formerly discoverable private channel — the WS
+	// broadcast inside the helper updates each requester's My Pending
+	// Requests list in real-time. Doing this after the privacy-message
+	// step ensures a transient post failure (which triggers the rollback
+	// above) cannot leave requests cancelled against a still-private
+	// channel.
+	if wasDiscoverable && channel.Type == model.ChannelTypeOpen {
+		a.Srv().Go(func() {
+			a.CancelPendingChannelJoinRequestsOnConvert(rctx, channel)
+		})
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)

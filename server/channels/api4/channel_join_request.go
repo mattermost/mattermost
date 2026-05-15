@@ -55,7 +55,7 @@ func requestJoinChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var body channelJoinRequestBody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		c.SetInvalidParamWithErr("message", err)
+		c.SetInvalidParamWithErr("body", err)
 		return
 	}
 
