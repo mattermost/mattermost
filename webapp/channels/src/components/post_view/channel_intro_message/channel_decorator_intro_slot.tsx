@@ -21,7 +21,6 @@ const ChannelDecoratorIntroSlot = ({channelId}: Props) => {
     if (firstMatch && channel) {
         return (
             <ChannelDecoratorRenderer
-                key={`${firstMatch.id}:${channelId}`}
                 registration={firstMatch}
                 channel={channel}
             />

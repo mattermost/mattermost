@@ -92,7 +92,7 @@ const ChannelHeaderTitle = ({
                     <span className='channel-header__decorator-left'>
                         {leftDecorators.map((reg) => (
                             <ChannelDecoratorRenderer
-                                key={`${reg.id}:${channel.id}`}
+                                key={reg.id}
                                 registration={reg}
                                 channel={channel}
                             />
@@ -124,7 +124,7 @@ const ChannelHeaderTitle = ({
                 <span className='channel-header__decorator-left'>
                     {leftDecorators.map((reg) => (
                         <ChannelDecoratorRenderer
-                            key={`${reg.id}:${channel.id}`}
+                            key={reg.id}
                             registration={reg}
                             channel={channel}
                         />
