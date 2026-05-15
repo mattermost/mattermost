@@ -11,6 +11,7 @@ export default class ChannelsSidebarLeft {
     readonly findChannelButton;
     readonly scheduledPostBadge;
     readonly unreadChannelFilter;
+    readonly openDirectMessageButton;
 
     constructor(container: Locator) {
         this.container = container;
@@ -20,6 +21,7 @@ export default class ChannelsSidebarLeft {
         this.findChannelButton = container.getByRole('button', {name: 'Find Channels'});
         this.scheduledPostBadge = container.locator('span.scheduledPostBadge');
         this.unreadChannelFilter = container.locator('.SidebarFilters_filterButton');
+        this.openDirectMessageButton = container.getByRole('button', {name: 'Write a direct message'});
     }
 
     async toBeVisible() {
