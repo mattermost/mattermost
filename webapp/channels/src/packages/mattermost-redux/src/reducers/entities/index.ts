@@ -9,6 +9,7 @@ import apps from './apps';
 import bots from './bots';
 import channelBookmarks from './channel_bookmarks';
 import channelCategories from './channel_categories';
+import channelJoinRequests from './channel_join_requests';
 import channels from './channels';
 import cloud from './cloud';
 import contentFlagging from './content_flagging';
@@ -58,6 +59,7 @@ export default combineReducers({
     bots,
     threads,
     channelCategories,
+    channelJoinRequests,
     apps,
     cloud,
     usage,

@@ -37,6 +37,8 @@ const values = {
     MANAGE_PRIVATE_CHANNEL_BANNER: 'manage_private_channel_banner',
     MANAGE_CHANNEL_ACCESS_RULES: 'manage_channel_access_rules',
     MANAGE_TEAM_ACCESS_RULES: 'manage_team_access_rules',
+    MANAGE_PRIVATE_CHANNEL_DISCOVERABILITY: 'manage_private_channel_discoverability',
+    MANAGE_CHANNEL_JOIN_REQUESTS: 'manage_channel_join_requests',
     DELETE_PRIVATE_CHANNEL: 'delete_private_channel',
     EDIT_OTHER_USERS: 'edit_other_users',
     READ_CHANNEL: 'read_channel',

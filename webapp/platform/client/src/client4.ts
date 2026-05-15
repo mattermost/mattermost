@@ -14,6 +14,9 @@ import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch, Updat
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 import type {
     Channel,
+    ChannelJoinRequest,
+    ChannelJoinRequestList,
+    ChannelJoinRequestStatus,
     ChannelMemberCountsByGroup,
     ChannelMembership,
     ChannelModeration,
@@ -24,6 +27,7 @@ import type {
     ChannelViewResponse,
     ChannelWithTeamData,
     ChannelSearchOpts,
+    GetChannelJoinRequestsOptions,
     ServerChannel,
 } from '@mattermost/types/channels';
 import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
@@ -336,6 +340,16 @@ export default class Client4 {
     }
     getChannelBookmarkRoute(channelId: string, bookmarkId: string) {
         return `${this.getChannelRoute(channelId)}/bookmarks/${bookmarkId}`;
+    }
+
+    getChannelJoinRequestRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/join_request`;
+    }
+    getChannelJoinRequestsRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/join_requests`;
+    }
+    getChannelJoinRequestEntryRoute(channelId: string, requestId: string) {
+        return `${this.getChannelJoinRequestsRoute(channelId)}/${requestId}`;
     }
 
     getChannelCategoriesRoute(userId: string, teamId: string) {
@@ -2119,6 +2133,64 @@ export default class Client4 {
         return this.doFetch<ChannelBookmark[]>(
             `${this.getChannelBookmarksRoute(channelId)}/${channelBookmarkId}/sort_order`,
             {method: 'post', body: JSON.stringify(newOrder), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    //  Channel Join Request Routes (discoverable private channels)
+
+    // requestJoinChannel returns either a created ChannelJoinRequest or, when
+    // the channel has an ABAC policy that the user satisfies, a thin
+    // {status: 'approved'} payload. Callers must inspect the shape.
+    requestJoinChannel = (channelId: string, message?: string) => {
+        return this.doFetch<ChannelJoinRequest | {status: ChannelJoinRequestStatus}>(
+            this.getChannelJoinRequestRoute(channelId),
+            {method: 'post', body: JSON.stringify({message: message ?? ''})},
+        );
+    };
+
+    getMyChannelJoinRequest = (channelId: string) => {
+        return this.doFetch<ChannelJoinRequest>(
+            this.getChannelJoinRequestRoute(channelId),
+            {method: 'get'},
+        );
+    };
+
+    withdrawChannelJoinRequest = (channelId: string) => {
+        return this.doFetch<ChannelJoinRequest>(
+            this.getChannelJoinRequestRoute(channelId),
+            {method: 'delete'},
+        );
+    };
+
+    getChannelJoinRequests = (channelId: string, opts: GetChannelJoinRequestsOptions = {}) => {
+        return this.doFetch<ChannelJoinRequestList>(
+            `${this.getChannelJoinRequestsRoute(channelId)}${buildQueryString({status: opts.status, page: opts.page, per_page: opts.per_page})}`,
+            {method: 'get'},
+        );
+    };
+
+    patchChannelJoinRequest = (
+        channelId: string,
+        requestId: string,
+        patch: {status: ChannelJoinRequestStatus; denial_reason?: string},
+    ) => {
+        return this.doFetch<ChannelJoinRequest>(
+            this.getChannelJoinRequestEntryRoute(channelId, requestId),
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        );
+    };
+
+    countPendingChannelJoinRequests = (channelId: string) => {
+        return this.doFetch<{count: number}>(
+            `${this.getChannelJoinRequestsRoute(channelId)}/count`,
+            {method: 'get'},
+        );
+    };
+
+    getMyChannelJoinRequests = (opts: GetChannelJoinRequestsOptions = {}) => {
+        return this.doFetch<ChannelJoinRequestList>(
+            `${this.getUserRoute('me')}/channel_join_requests${buildQueryString({status: opts.status, page: opts.page, per_page: opts.per_page})}`,
+            {method: 'get'},
         );
     };
 

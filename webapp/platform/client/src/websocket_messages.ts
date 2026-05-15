@@ -3,7 +3,7 @@
 
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
-import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest, ChannelMembership, ChannelType} from '@mattermost/types/channels';
 import type {Limits, Subscription} from '@mattermost/types/cloud';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Draft} from '@mattermost/types/drafts';
@@ -266,6 +266,16 @@ export type ChannelBookmarkSorted = BaseWebSocketMessage<WebSocketEvents.Channel
 
 export type ChannelAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelAccessControlUpdated, {
     channel: JsonEncodedValue<Channel>;
+}>;
+
+// Channel join request messages (discoverable private channels)
+
+export type ChannelJoinRequestCreated = BaseWebSocketMessage<WebSocketEvents.ChannelJoinRequestCreated, {
+    request: JsonEncodedValue<ChannelJoinRequest>;
+}>;
+
+export type ChannelJoinRequestUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelJoinRequestUpdated, {
+    request: JsonEncodedValue<ChannelJoinRequest>;
 }>;
 
 // Team and team member messages

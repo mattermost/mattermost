@@ -9,6 +9,7 @@ import AppsTypes from './apps';
 import BotTypes from './bots';
 import ChannelBookmarkTypes from './channel_bookmarks';
 import ChannelCategoryTypes from './channel_categories';
+import ChannelJoinRequestTypes from './channel_join_requests';
 import ChannelTypes from './channels';
 import CloudTypes from './cloud';
 import ContentFlaggingTypes from './content_flagging';
@@ -67,6 +68,7 @@ export {
     DraftTypes,
     PlaybookType,
     ChannelBookmarkTypes,
+    ChannelJoinRequestTypes,
     ScheduledPostTypes,
     SharedChannelTypes,
     ContentFlaggingTypes,

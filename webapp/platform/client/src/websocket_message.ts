@@ -49,6 +49,9 @@ export type WebSocketMessage = (
 
     Messages.ChannelAccessControlUpdated |
 
+    Messages.ChannelJoinRequestCreated |
+    Messages.ChannelJoinRequestUpdated |
+
     Messages.Team |
     Messages.UpdateTeamScheme |
     Messages.UserAddedToTeam |

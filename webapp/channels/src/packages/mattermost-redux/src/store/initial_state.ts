@@ -76,6 +76,11 @@ const state: GlobalState = {
         channelBookmarks: {
             byChannelId: {},
         },
+        channelJoinRequests: {
+            pendingByMe: {},
+            pendingByChannel: {},
+            pendingCounts: {},
+        },
         posts: {
             posts: {},
             postsReplies: {},

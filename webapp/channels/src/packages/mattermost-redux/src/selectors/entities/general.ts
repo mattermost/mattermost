@@ -30,6 +30,10 @@ export function isPermissionPoliciesEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPermissionPolicies === 'true';
 }
 
+export function isDiscoverableChannelsEnabled(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'DiscoverableChannels') === 'true';
+}
+
 export type PasswordConfig = {
     minimumLength: number;
     requireLowercase: boolean;

@@ -139,6 +139,21 @@ export type GetChannelJoinRequestsOptions = {
     per_page?: number;
 };
 
+export type ChannelJoinRequestsState = {
+
+    // The currently authenticated user's pending request keyed by channel id.
+    // A `null` entry signals that the lookup succeeded and there is no
+    // pending request, distinguishing "no request" from "not yet fetched".
+    pendingByMe: Record<string, ChannelJoinRequest | null>;
+
+    // Admin queue for each channel, keyed by channel id then request id, so
+    // approve/deny updates can mutate a single entry in place.
+    pendingByChannel: Record<string, Record<string, ChannelJoinRequest>>;
+
+    // Pending join-request count per channel for the admin badge.
+    pendingCounts: Record<string, number>;
+};
+
 export type ChannelMembership = {
     channel_id: string;
     user_id: string;
