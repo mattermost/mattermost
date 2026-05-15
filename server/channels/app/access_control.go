@@ -308,10 +308,11 @@ func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, policyID, submit
 			http.StatusForbidden)
 	}
 
-	cpaGroupID, appErr := a.CpaGroupID()
+	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return "", model.NewAppError("mergeExpressionWithMaskedValues", "app.pap.merge_expression.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
+	cpaGroupID := cpaGroup.ID
 
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
 
