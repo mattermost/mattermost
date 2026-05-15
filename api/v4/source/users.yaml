@@ -1560,7 +1560,10 @@
       parameters:
         - name: value
           in: query
-          description: The user's AuthData as stored in `Users.AuthData`.
+          description: >
+            The user's AuthData as stored in `Users.AuthData`. Must be
+            URL-encoded; in particular, Base64 `+` characters must be sent
+            as `%2B` so they are not decoded as spaces.
           required: true
           schema:
             type: string
