@@ -17,6 +17,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
+func celSafeName() string {
+	return "f_" + model.NewId()
+}
+
 func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
@@ -2640,7 +2644,7 @@ func TestRedactSimulationAttributesForCaller(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
-	cpaGroupID, gErr := th.App.CpaGroupID()
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	require.Nil(t, gErr)
 
 	// Two CPA fields: one hidden (the realistic non-plugin path) and
@@ -2648,24 +2652,24 @@ func TestRedactSimulationAttributesForCaller(t *testing.T) {
 	// covered by TestCPAFieldIsProtectedForChannelAdmin below because
 	// they require `protected: true` (and therefore a plugin caller)
 	// to create through the normal app path.
-	hiddenField, hErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		GroupID: cpaGroupID,
-		Name:    celSafeName(),
-		Type:    model.PropertyFieldTypeText,
-		Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
-	})
-	require.NoError(t, hErr)
-	createdHidden, hAppErr := th.App.CreateCPAField(rctx, hiddenField)
+	createdHidden, hAppErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
+	}, false, "")
 	require.Nil(t, hAppErr)
 
-	visibleField, vErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		GroupID: cpaGroupID,
-		Name:    celSafeName(),
-		Type:    model.PropertyFieldTypeText,
-		Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet},
-	})
-	require.NoError(t, vErr)
-	createdVisible, vAppErr := th.App.CreateCPAField(rctx, visibleField)
+	createdVisible, vAppErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet},
+	}, false, "")
 	require.Nil(t, vAppErr)
 
 	hiddenName := createdHidden.Name
@@ -2796,7 +2800,7 @@ func TestRedactSimulationAttributesForCaller(t *testing.T) {
 		// Most common shape: a deny chip alone, no Decision Details
 		// panel ever opened. Both the top-level Attributes map and
 		// every blame's evaluation tree are nil. The redactor must
-		// return immediately without paying for ListCPAFields.
+		// return immediately without paying for SearchPropertyFields.
 		resp := &model.PolicySimulationResponse{
 			Results: []model.PolicySimulationUserResult{{
 				User: &model.User{Id: model.NewId()},

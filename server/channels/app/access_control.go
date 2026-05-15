@@ -380,13 +380,25 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 // and the evaluation-tree walker likewise records `user.attributes.<name>`
 // on each leaf — so matching by name is correct for both.
 func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (map[string]struct{}, error) {
-	fields, appErr := a.ListCPAFields(rctx)
+	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return nil, appErr
 	}
+
+	propertyFields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
+		PerPage: model.AccessControlGroupFieldLimit + 5,
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	protected := map[string]struct{}{}
-	for _, f := range fields {
-		if f == nil {
+	for _, pf := range propertyFields {
+		if pf == nil {
+			continue
+		}
+		f, err := model.NewCPAFieldFromPropertyField(pf)
+		if err != nil {
 			continue
 		}
 		if cpaFieldIsProtectedForChannelAdmin(f) {
