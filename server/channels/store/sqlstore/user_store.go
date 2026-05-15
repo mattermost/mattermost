@@ -1884,7 +1884,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() (err error) {
 		var transaction *sqlxTxWrapper
 		var err error
 
-		if transaction, err = us.GetMaster().Beginx(); err != nil {
+		if transaction, err = us.GetMaster().Begin(); err != nil {
 			return errors.Wrap(err, "begin_transaction")
 		}
 		defer finalizeTransactionX(transaction, &err)
@@ -2131,7 +2131,7 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 }
 
 func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
-	transaction, err := us.GetMaster().Beginx()
+	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -2200,7 +2200,7 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
 }
 
 func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err error) {
-	transaction, err := us.GetMaster().Beginx()
+	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}

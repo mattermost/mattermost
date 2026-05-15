@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
@@ -14,6 +14,7 @@ import * as Menu from 'components/menu';
 import Toggle from 'components/toggle';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {slugifyForCEL} from 'utils/properties';
 
 import AttributeModal from './attribute_modal';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
@@ -114,18 +115,13 @@ const DotMenu = ({
     updateField,
     deleteField,
 }: Props) => {
-    const {formatMessage} = useIntl();
     const {promptDelete} = useUserPropertyFieldDelete();
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
     const isProtected = Boolean(field.attrs?.protected);
 
     const handleDuplicate = () => {
-        const name = formatMessage({
-            id: 'admin.system_properties.user_properties.dotmenu.duplicate.name_copy',
-            defaultMessage: '{fieldName} (copy)',
-        }, {fieldName: field.name});
-
+        const name = `${slugifyForCEL(field.name)}_copy`;
         createField({...field, attrs: {...field.attrs}, name});
     };
 

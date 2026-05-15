@@ -6,11 +6,14 @@ import React from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 
+import {Client4} from 'mattermost-redux/client';
+
 import ModalController from 'components/modal_controller';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import DotMenu from './user_properties_dot_menu';
+import {useUserPropertyFields} from './user_properties_utils';
 
 describe('UserPropertyDotMenu', () => {
     const baseField: UserPropertyField = {
@@ -36,6 +39,7 @@ describe('UserPropertyDotMenu', () => {
     const updateField = jest.fn();
     const deleteField = jest.fn();
     const createField = jest.fn();
+    const getFields = jest.spyOn(Client4, 'getCustomProfileAttributeFields');
 
     const renderComponent = (field: UserPropertyField = baseField, dotMenuProps?: Partial<ComponentProps<typeof DotMenu>>) => {
         return renderWithContext(
@@ -54,6 +58,11 @@ describe('UserPropertyDotMenu', () => {
             ),
         );
     };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        getFields.mockReset();
+    });
 
     it('renders dot menu button', () => {
         renderComponent();
@@ -221,11 +230,63 @@ describe('UserPropertyDotMenu', () => {
 
         // Wait for createField to be called
         await waitFor(() => {
-            // Verify createField was called with the correct parameters
+            // Verify createField was called with the slugified snake_case name
+            // ('Test Field' -> 'test_field') plus the _copy suffix.
             expect(createField).toHaveBeenCalledWith(expect.objectContaining({
                 id: baseField.id,
-                name: 'Test Field (copy)',
+                name: 'test_field_copy',
             }));
+        });
+    });
+
+    it('duplicate produces _2 suffix when base name is already taken', async () => {
+        const existingCopy = {
+            ...baseField,
+            id: 'copy-id',
+            name: 'test_field_copy',
+            attrs: {
+                ...baseField.attrs,
+                sort_order: 1,
+            },
+        };
+        getFields.mockResolvedValueOnce([baseField, existingCopy]);
+
+        const Harness = () => {
+            const [fields, readIO,, itemOps] = useUserPropertyFields();
+
+            if (readIO.loading || !fields.data[baseField.id]) {
+                return null;
+            }
+
+            return (
+                <div>
+                    <DotMenu
+                        field={fields.data[baseField.id]}
+                        canCreate={true}
+                        createField={itemOps.create}
+                        updateField={itemOps.update}
+                        deleteField={itemOps.delete}
+                    />
+                    {fields.order.map((id) => (
+                        <span
+                            key={id}
+                            data-testid={`field-name-${id}`}
+                        >
+                            {fields.data[id].name}
+                        </span>
+                    ))}
+                </div>
+            );
+        };
+
+        renderWithContext(<Harness/>);
+
+        const menuButton = await screen.findByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        await userEvent.click(menuButton);
+        await userEvent.click(screen.getByText(/Duplicate attribute/));
+
+        await waitFor(() => {
+            expect(screen.getByText('test_field_copy_2')).toBeInTheDocument();
         });
     });
 
