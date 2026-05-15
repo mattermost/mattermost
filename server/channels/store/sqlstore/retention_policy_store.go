@@ -77,7 +77,7 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 		return nil, err
 	}
 
-	txn, err := s.GetMaster().Beginx()
+	txn, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 		return nil, err
 	}
 
-	txn, err := s.GetMaster().Beginx()
+	txn, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -807,7 +807,7 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) 
 	return count, nil
 }
 
-func scanRetentionIdsForDeletion(rows *sql.Rows) ([]*model.RetentionIdsForDeletion, error) {
+func scanRetentionIdsForDeletion(rows rowScanner) ([]*model.RetentionIdsForDeletion, error) {
 	idsForDeletion := []*model.RetentionIdsForDeletion{}
 	for rows.Next() {
 		var row model.RetentionIdsForDeletion
@@ -1014,7 +1014,7 @@ func genericRetentionPoliciesDeletion(
 	}
 
 	if r.StoreDeletedIds {
-		txn, err := s.GetMaster().Beginx()
+		txn, err := s.GetMaster().Begin()
 		if err != nil {
 			return 0, err
 		}
@@ -1023,7 +1023,7 @@ func genericRetentionPoliciesDeletion(
 		primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
 
 		query = fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s) RETURNING %s.%s", r.Table, primaryKeysStr, query, r.Table, r.PrimaryKeys[0])
-		var rows *sql.Rows
+		var rows *sqlxRows
 		rows, err = txn.Query(query, args...)
 		if err != nil {
 			return 0, errors.Wrap(err, "failed to delete "+r.Table)
