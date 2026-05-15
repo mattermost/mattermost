@@ -76,6 +76,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername)).Methods(http.MethodGet)
 	api.BaseRoutes.UserByEmail.Handle("", api.APISessionRequired(getUserByEmail)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/auth_data", api.APISessionRequired(getUserByAuthData)).Methods(http.MethodGet)
 
 	api.BaseRoutes.User.Handle("/sessions", api.APISessionRequired(getSessions)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/sessions/revoke", api.APISessionRequired(revokeSession)).Methods(http.MethodPost)
@@ -458,6 +459,61 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getUserByAuthData(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+	authData := r.URL.Query().Get("value")
+	if authData == "" {
+		c.SetInvalidParam("value")
+		return
+	}
+	if len(authData) > model.UserAuthDataMaxLength {
+		c.SetInvalidParam("value")
+		return
+	}
+	user, err := c.App.GetUserByAuthData(&authData)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	canSee, err2 := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, user.Id)
+	if err2 != nil {
+		c.Err = err2
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PermissionViewMembers)
+		return
+	}
+
+	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
+	if err != nil && err.StatusCode != http.StatusNotFound {
+		c.Err = err
+		return
+	}
+
+	if userTermsOfService != nil {
+		user.TermsOfServiceId = userTermsOfService.TermsOfServiceId
+		user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
+	}
+
+	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
+
+	if c.HandleEtag(etag, "Get User", w, r) {
+		return
+	}
+
+	c.App.SanitizeProfile(user, c.IsSystemAdmin())
+	w.Header().Set(model.HeaderEtagServer, etag)
+	if jerr := json.NewEncoder(w).Encode(user); jerr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(jerr))
 	}
 }
 

@@ -99,15 +99,19 @@ func createTestUsers(t *testing.T, rctx request.CTX, ss store.Store) ([]*model.U
 	groupID := group.ID
 
 	fieldA, err := ss.PropertyField().Create(&model.PropertyField{
-		GroupID: groupID,
-		Name:    testPropertyA,
-		Type:    model.PropertyFieldTypeText,
+		GroupID:    groupID,
+		Name:       testPropertyA,
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 	})
 	require.NoError(t, err)
 	fieldB, err := ss.PropertyField().Create(&model.PropertyField{
-		GroupID: groupID,
-		Name:    testPropertyB,
-		Type:    model.PropertyFieldTypeText,
+		GroupID:    groupID,
+		Name:       testPropertyB,
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 	})
 	require.NoError(t, err)
 	attrs := map[string]any{
@@ -117,10 +121,12 @@ func createTestUsers(t *testing.T, rctx request.CTX, ss store.Store) ([]*model.U
 		},
 	}
 	fieldC, err := ss.PropertyField().Create(&model.PropertyField{
-		GroupID: groupID,
-		Name:    "test_property_c",
-		Type:    model.PropertyFieldTypeSelect,
-		Attrs:   attrs,
+		GroupID:    groupID,
+		Name:       "test_property_c",
+		Type:       model.PropertyFieldTypeSelect,
+		Attrs:      attrs,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 	})
 	require.NoError(t, err)
 
