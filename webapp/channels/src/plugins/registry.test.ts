@@ -332,6 +332,76 @@ describe('PluginRegistry — registerChannelIntro', () => {
     });
 });
 
+describe('PluginRegistry — registerPostDecorator', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    let store: ReturnType<typeof createStore<ReturnType<typeof pluginsReducer>, any, any, any>>;
+    let registry: PluginRegistry;
+
+    beforeEach(() => {
+        store = createStore(pluginsReducer);
+        mockCurrentStore = store;
+        registry = new PluginRegistry(PLUGIN_ID);
+    });
+
+    function getDecorators() {
+        return mockCurrentStore.getState().components.PostDecorator;
+    }
+
+    it('(a) valid registration adds entry to PostDecorator list', () => {
+        registry.registerPostDecorator({
+            slot: 'post_header_badge',
+            matcher: () => true,
+            component: () => null,
+        });
+
+        const decorators = getDecorators();
+        expect(decorators).toHaveLength(1);
+        expect(decorators[0].pluginId).toBe(PLUGIN_ID);
+        expect(decorators[0].slot).toBe('post_header_badge');
+    });
+
+    it('(b) invalid slot emits console.warn and does NOT add entry', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        registry.registerPostDecorator({
+            slot: 'bad_slot' as any,
+            matcher: () => true,
+            component: () => null,
+        });
+
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        expect(warnSpy.mock.calls[0][0]).toContain('bad_slot');
+        expect(getDecorators()).toHaveLength(0);
+        warnSpy.mockRestore();
+    });
+
+    it('(c) REMOVED_WEBAPP_PLUGIN sweeps all post decorators for that plugin', () => {
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerPostDecorator({
+            slot: 'post_header_badge',
+            matcher: () => true,
+            component: () => null,
+        });
+
+        otherRegistry.registerPostDecorator({
+            slot: 'post_header_badge',
+            matcher: () => false,
+            component: () => null,
+        });
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const decorators = getDecorators();
+        expect(decorators).toHaveLength(1);
+        expect(decorators[0].pluginId).toBe('other_plugin');
+    });
+});
+
 describe('PluginRegistry — registerComposerPlaceholder', () => {
     const PLUGIN_ID = 'test_plugin';
 

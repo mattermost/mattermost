@@ -829,3 +829,89 @@ describe('PostComponent', () => {
         });
     });
 });
+
+jest.mock('components/post_decorator_renderer/post_decorator_renderer', () => ({
+    __esModule: true,
+    default: () => <div data-testid='post-decorator'/>,
+}));
+
+describe('PostComponent — post_header_badge decorator render site', () => {
+    const currentTeam = TestHelper.getTeamMock();
+    const channel = TestHelper.getChannelMock({team_id: currentTeam.id});
+
+    const baseProps: Props = {
+        center: false,
+        currentTeam,
+        currentUserId: 'currentUserId',
+        displayName: '',
+        hasReplies: false,
+        isBot: false,
+        isCollapsedThreadsEnabled: true,
+        isFlagged: false,
+        isMobileView: false,
+        isPostAcknowledgementsEnabled: false,
+        isPostPriorityEnabled: false,
+        permissionPoliciesEnabled: false,
+        location: Locations.CENTER,
+        post: TestHelper.getPostMock({channel_id: channel.id}),
+        recentEmojis: [],
+        replyCount: 0,
+        team: currentTeam,
+        pluginActions: [],
+        burnOnReadDurationMinutes: 10,
+        actions: {
+            markPostAsUnread: jest.fn(),
+            emitShortcutReactToLastPostFrom: jest.fn(),
+            selectPost: jest.fn(),
+            selectPostFromRightHandSideSearch: jest.fn(),
+            removePost: jest.fn(),
+            closeRightHandSide: jest.fn(),
+            selectPostCard: jest.fn(),
+            setRhsExpanded: jest.fn(),
+            revealBurnOnReadPost: jest.fn(),
+            savePreferences: jest.fn(),
+            openModal: jest.fn(),
+            closeModal: jest.fn(),
+            highlightPostInChannelPopout: jest.fn(),
+        },
+        isChannelAutotranslated: false,
+    };
+
+    it('renders a matching post_header_badge decorator in the badges area', () => {
+        const state = {
+            plugins: {
+                components: {
+                    PostDecorator: [{
+                        id: 'dec-1',
+                        pluginId: 'test-plugin',
+                        slot: 'post_header_badge',
+                        matcher: () => true,
+                        component: () => null,
+                    }],
+                },
+            },
+        } as any;
+
+        renderWithContext(<PostComponent {...baseProps}/>, state);
+        expect(screen.getByTestId('post-decorator')).toBeInTheDocument();
+    });
+
+    it('does not render a non-matching post_header_badge decorator', () => {
+        const state = {
+            plugins: {
+                components: {
+                    PostDecorator: [{
+                        id: 'dec-1',
+                        pluginId: 'test-plugin',
+                        slot: 'post_header_badge',
+                        matcher: () => false,
+                        component: () => null,
+                    }],
+                },
+            },
+        } as any;
+
+        renderWithContext(<PostComponent {...baseProps}/>, state);
+        expect(screen.queryByTestId('post-decorator')).not.toBeInTheDocument();
+    });
+});
