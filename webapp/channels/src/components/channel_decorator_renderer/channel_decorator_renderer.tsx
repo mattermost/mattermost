@@ -26,7 +26,10 @@ export default function ChannelDecoratorRenderer({registration, channel}: Props)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Component = registration.component as React.ComponentType<any>;
     return (
-        <PluggableErrorBoundary pluginId={registration.pluginId}>
+        <PluggableErrorBoundary
+            key={`${registration.id}:${channel.id}`}
+            pluginId={registration.pluginId}
+        >
             <Component
                 channel={channel}
                 theme={theme}
