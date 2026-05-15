@@ -34,7 +34,7 @@ func requireQueryTimeout(t *testing.T, err error) {
 	var pqErr *pq.Error
 	switch {
 	case errors.As(err, &pqErr):
-		require.Equal(t, pq.ErrorCode("57014"), pqErr.Code)
+		require.Equal(t, "57014", string(pqErr.Code))
 	case errors.Is(err, driver.ErrBadConn):
 		// client-side short-circuit; see comment above
 	default:
