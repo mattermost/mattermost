@@ -385,6 +385,10 @@ func (c *Client4) testS3Route() clientRoute {
 	return newClientRoute("file").Join("s3_test")
 }
 
+func (c *Client4) testFileStoreRoute() clientRoute {
+	return newClientRoute("file").Join("test")
+}
+
 func (c *Client4) databaseRoute() clientRoute {
 	return newClientRoute("database")
 }
@@ -4393,8 +4397,24 @@ func (c *Client4) TestSiteURL(ctx context.Context, siteURL string) (*Response, e
 }
 
 // TestS3Connection will attempt to connect to the AWS S3.
+//
+// Deprecated: use TestFileStoreConnection instead. The underlying endpoint
+// is kept for backwards compatibility but now routes through the same
+// backend-agnostic handler as TestFileStoreConnection.
 func (c *Client4) TestS3Connection(ctx context.Context, config *Config) (*Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.testS3Route(), config)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// TestFileStoreConnection attempts to connect to the configured file storage
+// backend (Amazon S3, Azure Blob Storage, or local), based on the FileSettings
+// in the supplied config.
+func (c *Client4) TestFileStoreConnection(ctx context.Context, config *Config) (*Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.testFileStoreRoute(), config)
 	if err != nil {
 		return BuildResponse(r), err
 	}

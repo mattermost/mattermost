@@ -69,7 +69,7 @@ func TestDesanitize(t *testing.T) {
 	}
 
 	actualClone := actual.Clone()
-	desanitize(actual, target)
+	Desanitize(actual, target)
 	assert.Equal(t, actualClone, actual, "actual should not have been changed")
 
 	// Verify the settings that should have been left untouched in target

@@ -176,6 +176,10 @@
     "translation": "failed to add user to group-teams and group-channels"
   },
   {
+    "id": "api.admin.test_azure.missing_azure_field",
+    "translation": "An Azure Blob Storage setting is missing or invalid."
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "It appears your Mattermost email is setup correctly!"
   },
@@ -2385,8 +2389,12 @@
     "translation": "The configured bucket or container does not exist. Verify your file storage configuration and permissions."
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "id": "api.file.test_connection_settings_nil.app_error",
     "translation": "File storage settings has unset values."
+  },
+  {
+    "id": "api.file.test_connection_unsupported_driver.app_error",
+    "translation": "Unsupported file storage driver \"{{.Driver}}\". Supported values are \"local\", \"amazons3\", and \"azureblob\"."
   },
   {
     "id": "api.file.upload_file.abac_denied.app_error",
