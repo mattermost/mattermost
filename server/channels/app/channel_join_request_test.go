@@ -279,10 +279,18 @@ func TestUpdateChannelPrivacy_CancelsPendingRequestsOnConvertToPublic(t *testing
 	require.NotNil(t, req)
 
 	channel.Type = model.ChannelTypeOpen
-	_, appErr = th.App.UpdateChannelPrivacy(th.Context, channel, th.BasicUser)
+	converted, appErr := th.App.UpdateChannelPrivacy(th.Context, channel, th.BasicUser)
 	require.Nil(t, appErr)
 
-	// The conversion side-effect is dispatched on a goroutine; poll for
+	// Discoverable must be reset on convert-to-public — the model invariant
+	// (Channel.IsValid) rejects (type=O, discoverable=true), so leaving it
+	// true would also break the next channel save.
+	assert.False(t, converted.Discoverable, "Discoverable must be reset to false after convert-to-public")
+	persisted, getErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, getErr)
+	assert.False(t, persisted.Discoverable, "Discoverable must be persisted as false after convert-to-public")
+
+	// The cancellation side-effect is dispatched on a goroutine; poll for
 	// the withdrawn state instead of sleeping.
 	require.Eventually(t, func() bool {
 		row, err := th.App.Srv().Store().ChannelJoinRequest().Get(req.Id)
