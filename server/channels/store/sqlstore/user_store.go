@@ -1281,6 +1281,27 @@ func (us SqlUserStore) GetByRemoteID(remoteID string) (*model.User, error) {
 	return &user, nil
 }
 
+func (us SqlUserStore) GetByAuthData(authData *string) (*model.User, error) {
+	if authData == nil || *authData == "" {
+		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")
+	}
+
+	query := us.usersQuery.Where("Users.AuthData = ?", authData)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_auth_data_tosql")
+	}
+
+	user := model.User{}
+	if err := us.GetReplica().Get(&user, queryString, args...); err == sql.ErrNoRows {
+		return nil, store.NewErrNotFound("User", fmt.Sprintf("authData=%s", *authData))
+	} else if err != nil {
+		return nil, errors.Wrapf(err, "failed to find User with authData=%s", *authData)
+	}
+	return &user, nil
+}
+
 func (us SqlUserStore) GetByAuth(authData *string, authService string) (*model.User, error) {
 	if authData == nil || *authData == "" {
 		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")
