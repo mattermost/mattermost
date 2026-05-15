@@ -10,6 +10,8 @@ import {getCustomProfileAttributeValues} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
+import {getUserPropertyFieldLabel} from 'utils/properties';
+
 import type {GlobalState} from 'types/store';
 
 import ProfilePopoverPhone from './profile_popover_phone';
@@ -83,7 +85,7 @@ const ProfilePopoverCustomAttributes = ({
                         id={`user-popover__custom_attributes-title-${attribute.id}`}
                         className='user-popover__subtitle'
                     >
-                        {attribute.name}
+                        {getUserPropertyFieldLabel(attribute)}
                     </strong>
                     {(attribute.type === 'multiselect' || attribute.type === 'select') && (
                         <ProfilePopoverSelectAttribute

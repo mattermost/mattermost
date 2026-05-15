@@ -401,7 +401,7 @@ func createDirectChannel(members []string) imports.LineImportData {
 
 	for _, m := range members {
 		p = append(p, &imports.DirectChannelMemberImportData{
-			Username: model.NewPointer(m),
+			Username: new(m),
 		})
 	}
 

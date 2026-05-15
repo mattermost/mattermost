@@ -5,6 +5,7 @@ package properties
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -43,10 +44,8 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 		return nil, err
 	}
 
-	// FIXME: Legacy properties (PSAv1) skip conflict check, but
-	// template fields still need it because they can have linked
-	// dependents.
-	if field.IsPSAv1() && field.ObjectType != model.PropertyFieldObjectTypeTemplate {
+	// Legacy properties (PSAv1) skip the conflict check.
+	if field.IsPSAv1() {
 		return ps.fieldStore.Create(field)
 	}
 
@@ -182,7 +181,15 @@ func (ps *PropertyService) getPropertyFieldFromMaster(groupID, id string) (*mode
 }
 
 func (ps *PropertyService) getPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	return ps.fieldStore.GetMany(context.Background(), groupID, ids)
+	fields, err := ps.fieldStore.GetMany(context.Background(), groupID, ids)
+	if err != nil {
+		var resultsMismatchErr *store.ErrResultsMismatch
+		if errors.As(err, &resultsMismatchErr) {
+			return nil, fmt.Errorf("%w: %w", ErrFieldNotFound, err)
+		}
+		return nil, err
+	}
+	return fields, nil
 }
 
 func (ps *PropertyService) getPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
@@ -195,6 +202,10 @@ func (ps *PropertyService) countActivePropertyFieldsForGroup(groupID string) (in
 
 func (ps *PropertyService) countAllPropertyFieldsForGroup(groupID string) (int64, error) {
 	return ps.fieldStore.CountForGroup(groupID, true)
+}
+
+func (ps *PropertyService) countActivePropertyFieldsForGroupObjectType(groupID, objectType string) (int64, error) {
+	return ps.fieldStore.CountForGroupObjectType(groupID, objectType, false)
 }
 
 func (ps *PropertyService) countActivePropertyFieldsForTarget(groupID, targetType, targetID string) (int64, error) {
@@ -213,25 +224,25 @@ func (ps *PropertyService) searchPropertyFields(groupID string, opts model.Prope
 	return ps.fieldStore.SearchPropertyFields(opts)
 }
 
-func (ps *PropertyService) updatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	fields, _, err := ps.updatePropertyFields(groupID, []*model.PropertyField{field})
+func (ps *PropertyService) updatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, []string, error) {
+	fields, _, clearedIDs, err := ps.updatePropertyFields(rctx, groupID, []*model.PropertyField{field})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return fields[0], nil
+	return fields[0], clearedIDs, nil
 }
 
-func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, err error) {
+func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
 	if len(fields) == 0 {
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 
 	// Fetch existing fields to compare for changes that require conflict check
 	ids := make([]string, len(fields))
 	for i, f := range fields {
 		if f == nil {
-			return nil, nil, fmt.Errorf("field at index %d is nil", i)
+			return nil, nil, nil, fmt.Errorf("field at index %d is nil", i)
 		}
 		ids[i] = f.ID
 	}
@@ -241,7 +252,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 	// TOCTOU window that a replica read would leave open.
 	existingFields, err := ps.fieldStore.GetMany(store.WithMaster(context.Background()), groupID, ids)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get existing fields for update: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to get existing fields for update: %w", err)
 	}
 
 	// Build a map of existing fields by ID for quick lookup
@@ -253,7 +264,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 	// Enforce version match between field and group for each field
 	for _, field := range fields {
 		if err := ps.enforceFieldGroupVersionMatch("UpdatePropertyFields", groupID, field); err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 	}
 
@@ -264,16 +275,14 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			continue
 		}
 
-		// FIXME: Legacy properties (PSAv1) skip conflict check, but
-		// template fields still need it because they can have linked
-		// dependents.
-		if field.IsPSAv1() && field.ObjectType != model.PropertyFieldObjectTypeTemplate {
+		// Legacy properties (PSAv1) skip the conflict check.
+		if field.IsPSAv1() {
 			continue
 		}
 
 		// Block type changes on linked fields
 		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && field.Type != existing.Type {
-			return nil, nil, model.NewAppError(
+			return nil, nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.linked_type_change.app_error",
 				nil,
@@ -284,7 +293,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 
 		// Block options changes on linked fields
 		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && optionsChanged(existing.Attrs, field.Attrs) {
-			return nil, nil, model.NewAppError(
+			return nil, nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.linked_options_change.app_error",
 				nil,
@@ -308,7 +317,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		newIsLinked := field.LinkedFieldID != nil
 
 		if !existingIsLinked && newIsLinked {
-			return nil, nil, model.NewAppError(
+			return nil, nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.cannot_link_existing.app_error",
 				nil,
@@ -320,7 +329,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		// Block changing link target. To re-link, unlink first then create a
 		// new linked field.
 		if existingIsLinked && newIsLinked && *field.LinkedFieldID != *existing.LinkedFieldID {
-			return nil, nil, model.NewAppError(
+			return nil, nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.cannot_change_link_target.app_error",
 				nil,
@@ -333,11 +342,11 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		if field.Type != existing.Type {
 			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
 			if cErr != nil {
-				return nil, nil, fmt.Errorf("failed to count linked fields: %w", cErr)
+				return nil, nil, nil, fmt.Errorf("failed to count linked fields: %w", cErr)
 			}
 
 			if count > 0 {
-				return nil, nil, model.NewAppError(
+				return nil, nil, nil, model.NewAppError(
 					"UpdatePropertyFields",
 					"app.property_field.update.type_change_with_dependents.app_error",
 					nil,
@@ -357,11 +366,11 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			existing.ObjectType != field.ObjectType {
 			conflictLevel, cErr := ps.fieldStore.CheckPropertyNameConflict(field, field.ID)
 			if cErr != nil {
-				return nil, nil, fmt.Errorf("failed to check property name conflict: %w", cErr)
+				return nil, nil, nil, fmt.Errorf("failed to check property name conflict: %w", cErr)
 			}
 
 			if conflictLevel != "" {
-				return nil, nil, model.NewAppError(
+				return nil, nil, nil, model.NewAppError(
 					"UpdatePropertyFields",
 					"app.property_field.update.name_conflict.app_error",
 					map[string]any{"Name": field.Name, "ConflictLevel": string(conflictLevel)},
@@ -384,7 +393,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 	// options to linked dependents automatically via a JOIN-based UPDATE.
 	all, uErr := ps.fieldStore.Update(groupID, fields, expectedUpdateAts)
 	if uErr != nil {
-		return nil, nil, uErr
+		return nil, nil, nil, uErr
 	}
 
 	// Partition the returned fields into requested vs propagated by matching
@@ -405,7 +414,18 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		}
 	}
 
-	return requested, propagated, nil
+	// Run post-hooks. prev is parallel to requested. Hooks may transform
+	// either the requested or propagated bucket (e.g. attr redaction); the
+	// dispatcher enforces cardinality preservation on both buckets so a buggy
+	// hook that drops fields surfaces an error rather than silently truncating
+	// the broadcast. cleared IDs are unioned across hooks.
+	prev := make([]*model.PropertyField, 0, len(requested))
+	for _, r := range requested {
+		prev = append(prev, existingByID[r.ID])
+	}
+	requested, propagated, clearedFieldIDs = ps.runPostUpdatePropertyFields(rctx, groupID, prev, requested, propagated)
+
+	return requested, propagated, clearedFieldIDs, nil
 }
 
 func (ps *PropertyService) deletePropertyField(groupID, id string) error {
@@ -438,167 +458,112 @@ func (ps *PropertyService) deletePropertyField(groupID, id string) error {
 	return ps.fieldStore.Delete(groupID, id)
 }
 
-// Public routing methods
+// Public methods
 
 func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(field.GroupID)
+	field, err := ps.runPreCreatePropertyField(rctx, field)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.CreatePropertyField(callerID, field)
 	}
 
 	return ps.createPropertyField(field)
 }
 
 func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
+	field, err := ps.getPropertyField(groupID, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyField: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyField(callerID, groupID, id)
-	}
-
-	return ps.getPropertyField(groupID, id)
+	return ps.runPostGetPropertyField(rctx, field)
 }
 
 func (ps *PropertyService) GetPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
+	fields, err := ps.getPropertyFields(groupID, ids)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFields: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyFields(callerID, groupID, ids)
-	}
-
-	return ps.getPropertyFields(groupID, ids)
+	return ps.runPostGetPropertyFields(rctx, fields)
 }
 
 func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
+	field, err := ps.getPropertyFieldByName(groupID, targetID, name)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFieldByName: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyFieldByName(callerID, groupID, targetID, name)
-	}
-
-	return ps.getPropertyFieldByName(groupID, targetID, name)
+	return ps.runPostGetPropertyField(rctx, field)
 }
 
 func (ps *PropertyService) CountActivePropertyFieldsForGroup(rctx request.CTX, groupID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
-	if err != nil {
+	if err := ps.runPreCountPropertyFields(rctx, groupID); err != nil {
 		return 0, fmt.Errorf("CountActivePropertyFieldsForGroup: %w", err)
 	}
-
-	if requiresAC {
-		return ps.propertyAccess.CountActivePropertyFieldsForGroup(groupID)
-	}
-
 	return ps.countActivePropertyFieldsForGroup(groupID)
 }
 
 func (ps *PropertyService) CountAllPropertyFieldsForGroup(rctx request.CTX, groupID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
-	if err != nil {
+	if err := ps.runPreCountPropertyFields(rctx, groupID); err != nil {
 		return 0, fmt.Errorf("CountAllPropertyFieldsForGroup: %w", err)
 	}
-
-	if requiresAC {
-		return ps.propertyAccess.CountAllPropertyFieldsForGroup(groupID)
-	}
-
 	return ps.countAllPropertyFieldsForGroup(groupID)
 }
 
 func (ps *PropertyService) CountActivePropertyFieldsForTarget(rctx request.CTX, groupID, targetType, targetID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
-	if err != nil {
+	if err := ps.runPreCountPropertyFields(rctx, groupID); err != nil {
 		return 0, fmt.Errorf("CountActivePropertyFieldsForTarget: %w", err)
 	}
-
-	if requiresAC {
-		return ps.propertyAccess.CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
-	}
-
 	return ps.countActivePropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
 func (ps *PropertyService) CountAllPropertyFieldsForTarget(rctx request.CTX, groupID, targetType, targetID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
-	if err != nil {
+	if err := ps.runPreCountPropertyFields(rctx, groupID); err != nil {
 		return 0, fmt.Errorf("CountAllPropertyFieldsForTarget: %w", err)
 	}
-
-	if requiresAC {
-		return ps.propertyAccess.CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
-	}
-
 	return ps.countAllPropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
 func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
+	fields, err := ps.searchPropertyFields(groupID, opts)
 	if err != nil {
 		return nil, fmt.Errorf("SearchPropertyFields: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.SearchPropertyFields(callerID, groupID, opts)
-	}
-
-	return ps.searchPropertyFields(groupID, opts)
+	return ps.runPostGetPropertyFields(rctx, fields)
 }
 
-func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
+// UpdatePropertyField updates a single field. It returns the updated field and
+// the IDs of fields whose dependent property values were cleared as a side
+// effect (e.g. by TypeChangeValueCleanupHook on a type change). Hooks may
+// cascade clears to other fields, so the slice is not necessarily limited to
+// the updated field's own ID. The caller is expected to publish any
+// value-cleanup WS events.
+func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, []string, error) {
+	field, err := ps.runPreUpdatePropertyField(rctx, groupID, field)
 	if err != nil {
-		return nil, fmt.Errorf("UpdatePropertyField: %w", err)
+		return nil, nil, fmt.Errorf("UpdatePropertyField: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.UpdatePropertyField(callerID, groupID, field)
-	}
-
-	return ps.updatePropertyField(groupID, field)
+	return ps.updatePropertyField(rctx, groupID, field)
 }
 
-func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, err error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
+// UpdatePropertyFields updates a batch of fields and returns the requested set,
+// any linked-property propagated fields, and the IDs of fields whose dependent
+// property values were cleared as a side effect. The caller is expected to
+// publish any value-cleanup WS events.
+func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
+	fields, err = ps.runPreUpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {
-		return nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)
+		return nil, nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.UpdatePropertyFields(callerID, groupID, fields)
-	}
-
-	return ps.updatePropertyFields(groupID, fields)
+	return ps.updatePropertyFields(rctx, groupID, fields)
 }
 
 func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id string) error {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
-	if err != nil {
+	if err := ps.runPreDeletePropertyField(rctx, groupID, id); err != nil {
 		return fmt.Errorf("DeletePropertyField: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.DeletePropertyField(callerID, groupID, id)
 	}
 
 	return ps.deletePropertyField(groupID, id)
@@ -667,9 +632,9 @@ func optionsChanged(oldAttrs, newAttrs model.StringInterface) bool {
 	return false
 }
 
-// extractOptionIDs extracts the "id" field from each option in the given options value
+// extractOptionIDList extracts the "id" field from each option in the given options value
 // using direct type assertions (no JSON marshaling).
-func extractOptionIDs(options any) []string {
+func extractOptionIDList(options any) []string {
 	if options == nil {
 		return nil
 	}

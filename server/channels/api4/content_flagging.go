@@ -227,9 +227,9 @@ func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings, as
 	}
 
 	if asReviewer {
-		config.NotifyReporterOnRemoval = model.NewPointer(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentRemoved], model.TargetReporter))
+		config.NotifyReporterOnRemoval = new(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentRemoved], model.TargetReporter))
 
-		config.NotifyReporterOnDismissal = model.NewPointer(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentDismissed], model.TargetReporter))
+		config.NotifyReporterOnDismissal = new(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentDismissed], model.TargetReporter))
 	}
 
 	return config

@@ -77,7 +77,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), channelPolicy)
@@ -123,7 +123,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(channelPolicy, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := channelAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy)
@@ -162,7 +162,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		}
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := channelAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy)
@@ -200,7 +200,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		}
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := channelAdminClient.CreateAccessControlPolicy(context.Background(), parentPolicy)
@@ -222,7 +222,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 
 		// Set the mock on the app
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := client.CreateAccessControlPolicy(context.Background(), samplePolicy)
@@ -246,7 +246,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 
 		// Set the mock on the app
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
@@ -275,7 +275,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		permissionPolicy := &model.AccessControlPolicy{
@@ -321,7 +321,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), permissionPolicy)
@@ -344,7 +344,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 			Return(nil, model.NewAppError("SavePolicy", "should.not.be.called", nil, "", http.StatusInternalServerError)).Maybe()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		townSquare, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, th.BasicTeam.Id, false)
@@ -400,7 +400,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicy.ID).Return(samplePolicy, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := th.Client.GetAccessControlPolicy(context.Background(), samplePolicy.ID)
@@ -418,7 +418,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicy.ID).Return(samplePolicy, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := client.GetAccessControlPolicy(context.Background(), samplePolicy.ID)
@@ -461,7 +461,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(channelPolicy, nil)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		resp, err := th.Client.DeleteAccessControlPolicy(context.Background(), samplePolicyID)
@@ -487,7 +487,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockAccessControlService.On("DeletePolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		resp, err := client.DeleteAccessControlPolicy(context.Background(), samplePolicyID)
@@ -513,7 +513,7 @@ func TestCheckExpression(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := th.Client.CheckExpression(context.Background(), "true")
@@ -530,7 +530,7 @@ func TestCheckExpression(t *testing.T) {
 		mockAccessControlService.On("CheckExpression", mock.AnythingOfType("*request.Context"), "true").Return([]model.CELExpressionError{}, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		errors, resp, err := client.CheckExpression(context.Background(), "true")
@@ -554,7 +554,7 @@ func TestCheckExpression(t *testing.T) {
 		}, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		errors, resp, err := client.CheckExpression(context.Background(), "true")
@@ -654,7 +654,7 @@ func TestTestExpression(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := th.Client.TestExpression(context.Background(), model.QueryExpressionParams{})
@@ -671,7 +671,7 @@ func TestTestExpression(t *testing.T) {
 		mockAccessControlService.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", model.SubjectSearchOptions{}).Return([]*model.User{}, int64(0), nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		usersResp, resp, err := client.TestExpression(context.Background(), model.QueryExpressionParams{
@@ -701,7 +701,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := th.Client.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{})
@@ -720,7 +720,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		}).Return([]*model.AccessControlPolicy{}, int64(0), nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		policiesResp, resp, err := client.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{
@@ -738,7 +738,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{
@@ -762,7 +762,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		policiesResp, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{
@@ -793,7 +793,7 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
@@ -888,7 +888,7 @@ func TestAssignAccessPolicy(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		resp, err := th.Client.AssignAccessControlPolicies(context.Background(), model.NewId(), []string{model.NewId()})
@@ -926,7 +926,7 @@ func TestAssignAccessPolicy(t *testing.T) {
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(child, nil).Once()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		resp, err := client.AssignAccessControlPolicies(context.Background(), samplePolicy.ID, []string{privateCh.Id})
@@ -965,7 +965,7 @@ func TestUnassignAccessPolicy(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		resp, err := th.Client.UnassignAccessControlPolicies(context.Background(), samplePolicy.ID, []string{model.NewId()})
@@ -999,7 +999,7 @@ func TestUnassignAccessPolicy(t *testing.T) {
 		mockAccessControlService.On("DeletePolicy", mock.AnythingOfType("*request.Context"), child.ID).Return(nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		resp, err := client.UnassignAccessControlPolicies(context.Background(), samplePolicy.ID, []string{child.ID})
@@ -1038,7 +1038,7 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		_, resp, err := th.Client.GetChannelsForAccessControlPolicy(context.Background(), samplePolicy.ID, "", 1000)
@@ -1055,7 +1055,7 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicy.ID).Return(samplePolicy, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		channelsResp, resp, err := client.GetChannelsForAccessControlPolicy(context.Background(), samplePolicy.ID, "", 1000)
@@ -1095,7 +1095,7 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
@@ -1355,7 +1355,7 @@ func TestSetActiveStatus(t *testing.T) {
 		require.True(t, ok, "SetLicense should return true")
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
@@ -1372,7 +1372,7 @@ func TestSetActiveStatus(t *testing.T) {
 
 	t.Run("SetActiveStatus with channel admin for their channel", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -1433,7 +1433,7 @@ func TestSetActiveStatus(t *testing.T) {
 		// of a policy for a channel they don't have permissions on, even if they attempt to
 		// use a policy ID that matches a channel they control.
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -1499,7 +1499,7 @@ func setupTeamAdminABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServic
 	th.App.Srv().Channels().AccessControl = mockACS
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 	})
 
 	th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
@@ -2261,7 +2261,7 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		teamA := th.BasicTeam

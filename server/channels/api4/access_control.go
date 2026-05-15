@@ -14,6 +14,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
+// shouldRedactExpressions reports whether raw CEL expressions should be masked for this caller.
+// Returns true when both ABAC and attribute-value masking are enabled. Callers reading raw expressions
+// in a policy must also receive redacted raw expressions.
+func shouldRedactExpressions(c *Context) bool {
+	return c.App.Config().FeatureFlags.AttributeBasedAccessControl &&
+		c.App.Config().FeatureFlags.AttributeValueMasking
+}
+
 func (api *API) InitAccessControlPolicy() {
 	if !api.srv.Config().FeatureFlags.AttributeBasedAccessControl {
 		return
@@ -1166,7 +1174,16 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	visualAST, appErr := c.App.ExpressionToVisualAST(c.AppContext, cel.Expression)
+	var visualAST *model.VisualExpression
+	var appErr *model.AppError
+
+	// Masking is attribute-based, not permission-based: all admins receive a
+	// filtered AST based on what they themselves hold, regardless of role.
+	if shouldRedactExpressions(c) {
+		visualAST, appErr = c.App.GetMaskedVisualAST(c.AppContext, cel.Expression, c.AppContext.Session().UserId)
+	} else {
+		visualAST, appErr = c.App.ExpressionToVisualAST(c.AppContext, cel.Expression)
+	}
 	if appErr != nil {
 		c.Err = appErr
 		return
