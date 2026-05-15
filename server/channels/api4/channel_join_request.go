@@ -107,9 +107,10 @@ func getMyChannelJoinRequest(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	if req == nil {
-		// Mirror REST conventions: not-found instead of an explicit `null`
-		// so clients can distinguish "no pending request" from "service down".
-		w.WriteHeader(http.StatusNotFound)
+		// Return an AppError-shaped 404 (rather than a bare WriteHeader) so
+		// the JSON body carries a `status_code` that clients can introspect
+		// to distinguish "no pending request" from a transport failure.
+		c.Err = model.NewAppError("getMyChannelJoinRequest", "app.channel.join_request.not_found.app_error", nil, "channel_id="+c.Params.ChannelId, http.StatusNotFound)
 		return
 	}
 
