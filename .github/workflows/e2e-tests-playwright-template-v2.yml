@@ -96,35 +96,17 @@ permissions:
   contents: read
   statuses: write
   id-token: write
-  pull-requests: write
 
 env:
   SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
 
 jobs:
-  update-initial-status:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      statuses: write
-    steps:
-      - name: ci/set-initial-status
-        uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: ${{ inputs.context_name }}
-          description: "tests running, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
-          status: pending
-
   dispatch-begin:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
       id-token: write
-      pull-requests: write
+      statuses: write
     outputs:
       composite-identity-json: ${{ steps.composite-identity.outputs.composite-identity-json }}
       workers-matrix: ${{ steps.matrix.outputs.workers }}
@@ -186,10 +168,10 @@ jobs:
           total-reports-expected: ${{ inputs.workers }}
           retest-on-fail: ${{ inputs.retest_on_fail }}
           playwright-project: ${{ inputs.playwright_project }}
-          post-pr-comment: 'true'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          context-name: ${{ inputs.context_name }}
-          server-image: ${{ env.SERVER_IMAGE }}
+          commit-status-context: ${{ inputs.context_name }}
+          image-tag: ${{ inputs.server_image_tag }}
+          image-aliases: ${{ inputs.server_image_aliases }}
 
   workers:
     name: dispatch-run-${{ matrix.worker_index }}
@@ -286,7 +268,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      pull-requests: write
+      statuses: write
     outputs:
       commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
@@ -308,7 +290,6 @@ jobs:
           pr-number: ${{ inputs.pr_number }}
           ref-branch: ${{ inputs.ref_branch }}
           context-name: ${{ inputs.context_name }}
-          post-pr-comment: 'true'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
@@ -322,45 +303,3 @@ jobs:
           SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
         run: |
           [ "$SUMMARY_OUTCOME" = "success" ]
-
-  update-success-status:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      statuses: write
-    if: always() && needs.report.result == 'success'
-    needs:
-      - dispatch-begin
-      - report
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: ${{ inputs.context_name }}
-          description: ${{ needs.report.outputs.commit_status_description }}
-          status: success
-          target_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-  update-failure-status:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      statuses: write
-    if: always() && needs.report.result != 'success'
-    needs:
-      - dispatch-begin
-      - report
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: ${{ inputs.context_name }}
-          description: ${{ needs.report.outputs.commit_status_description }}
-          status: failure
-          target_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
