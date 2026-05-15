@@ -10,7 +10,7 @@ import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
 import {FileDownloadTypes} from '@mattermost/types/files';
@@ -41,6 +41,7 @@ import {
     AppsTypes,
     CloudTypes,
     ChannelBookmarkTypes,
+    ChannelJoinRequestTypes,
     PropertyTypes,
     ScheduledPostTypes,
     ContentFlaggingTypes,
@@ -546,6 +547,14 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.ChannelAccessControlUpdated:
         dispatch(handleChannelAccessControlUpdatedEvent(msg));
+        break;
+
+    case WebSocketEvents.ChannelJoinRequestCreated:
+        dispatch(handleChannelJoinRequestCreated(msg));
+        break;
+
+    case WebSocketEvents.ChannelJoinRequestUpdated:
+        dispatch(handleChannelJoinRequestUpdated(msg));
         break;
 
     case WebSocketEvents.DirectAdded:
@@ -2159,6 +2168,48 @@ function handleChannelBookmarkSorted(msg: WebSocketMessages.ChannelBookmarkSorte
     return {
         type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
         data: {channelId: msg.broadcast.channel_id, bookmarks},
+    };
+}
+
+// Server only delivers channel_join_request_created to channel admins, so this
+// handler updates the per-channel queue and pending count for them. The
+// requester gets the per-user variant of the *updated* event instead, so we
+// don't try to touch pendingByMe here.
+function handleChannelJoinRequestCreated(msg: WebSocketMessages.ChannelJoinRequestCreated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        const request = JSON.parse(msg.data.request) as ChannelJoinRequest;
+        doDispatch({
+            type: ChannelJoinRequestTypes.RECEIVED_CHANNEL_JOIN_REQUEST,
+            data: request,
+        });
+    };
+}
+
+// channel_join_request_updated fans out to channel admins (queue view) and
+// the requester (My Pending Requests). The same handler covers both because
+// updating pendingByMe is a no-op when the request belongs to someone else.
+function handleChannelJoinRequestUpdated(msg: WebSocketMessages.ChannelJoinRequestUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        const request = JSON.parse(msg.data.request) as ChannelJoinRequest;
+        doDispatch({
+            type: ChannelJoinRequestTypes.RECEIVED_CHANNEL_JOIN_REQUEST,
+            data: request,
+        });
+
+        const currentUserId = getCurrentUserId(doGetState());
+        if (request.user_id === currentUserId) {
+            if (request.status === 'pending') {
+                doDispatch({
+                    type: ChannelJoinRequestTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST,
+                    data: {channelId: request.channel_id, request},
+                });
+            } else {
+                doDispatch({
+                    type: ChannelJoinRequestTypes.CLEARED_MY_CHANNEL_JOIN_REQUEST,
+                    data: {channelId: request.channel_id},
+                });
+            }
+        }
     };
 }
 
