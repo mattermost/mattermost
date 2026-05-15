@@ -20,7 +20,7 @@ export const ChannelDecoratorAboveComposer = ({channelId}: {channelId: string}) 
         <>
             {matches.map((reg) => (
                 <ChannelDecoratorRenderer
-                    key={`${reg.id}:${channelId}`}
+                    key={reg.id}
                     registration={reg}
                     channel={channel}
                 />
