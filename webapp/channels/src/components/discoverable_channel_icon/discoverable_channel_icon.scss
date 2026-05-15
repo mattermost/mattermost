@@ -1,0 +1,25 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.DiscoverableChannelIcon {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+
+    &__lock {
+        position: absolute;
+        right: -2px;
+        bottom: -2px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--center-channel-bg);
+        border-radius: 999px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        line-height: 0;
+    }
+}

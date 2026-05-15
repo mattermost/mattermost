@@ -5,7 +5,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {AccountOutlineIcon, CheckIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
+import {AccountOutlineIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
@@ -13,6 +13,7 @@ import type {Channel} from '@mattermost/types/channels';
 import {withdrawChannelJoinRequest} from 'mattermost-redux/actions/channel_join_requests';
 import {hasPendingJoinRequest} from 'mattermost-redux/selectors/entities/channel_join_requests';
 
+import DiscoverableChannelIcon from 'components/discoverable_channel_icon/discoverable_channel_icon';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
@@ -54,6 +55,7 @@ function resolveMode(channel: Channel, isMember: boolean, hasPending: boolean): 
         }
         return 'request';
     }
+
     // Non-member, non-discoverable public (or archived) channel — fall back
     // to the legacy primary Join button so existing flows are unchanged.
     return 'join';
@@ -78,26 +80,26 @@ function BrowseChannelRow({
         [channel, isMember, hasPending],
     );
 
-    const ChannelIcon = getChannelIconComponent(channel);
-    const channelTypeIcon = <ChannelIcon size={18}/>;
-    const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
-
-    const discoverablePill = channel.type === Constants.PRIVATE_CHANNEL && channel.discoverable ? (
+    // Discoverable private channels get a globe-with-lock composite icon so
+    // they read as "browseable but membership is gated" without needing a
+    // separate textual pill.
+    const isDiscoverablePrivate = channel.type === Constants.PRIVATE_CHANNEL && channel.discoverable;
+    const channelTypeIcon = isDiscoverablePrivate ? (
         <WithTooltip
             title={formatMessage({
                 id: 'more_channels.discoverable.tooltip',
                 defaultMessage: 'This private channel is discoverable. Members must be added or approved.',
             })}
         >
-            <span className='more-modal__discoverable-pill'>
-                <LockOutlineIcon size={12}/>
-                <FormattedMessage
-                    id='more_channels.discoverable.pill'
-                    defaultMessage='Discoverable'
-                />
+            <span>
+                <DiscoverableChannelIcon size={18}/>
             </span>
         </WithTooltip>
-    ) : null;
+    ) : (() => {
+        const ChannelIcon = getChannelIconComponent(channel);
+        return <ChannelIcon size={18}/>;
+    })();
+    const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
 
     const handleRowClick = useCallback((e: React.MouseEvent) => {
         if (mode === 'member' || mode === 'abac' || mode === 'join') {
@@ -335,7 +337,6 @@ function BrowseChannelRow({
             <div className='more-modal__details'>
                 <div className='style--none more-modal__name'>
                     {channelTypeIcon}
-                    {discoverablePill}
                     <span id='channelName'>{channel.display_name}</span>
                     {channel.shared ? (
                         <SharedChannelIndicator

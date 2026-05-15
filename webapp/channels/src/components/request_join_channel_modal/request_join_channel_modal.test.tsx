@@ -87,6 +87,7 @@ describe('RequestJoinChannelModal', () => {
 
         expect(screen.getByText('Withdraw join request')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Withdraw'})).toBeInTheDocument();
+
         // The character counter should not render in the pending state.
         expect(screen.queryByText('0/500 characters')).not.toBeInTheDocument();
     });

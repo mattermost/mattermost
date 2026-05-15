@@ -5479,7 +5479,6 @@
   "more_channels.count_one": "1 Result",
   "more_channels.count_zero": "0 Results",
   "more_channels.create": "Create New Channel",
-  "more_channels.discoverable.pill": "Discoverable",
   "more_channels.discoverable.tooltip": "This private channel is discoverable. Members must be added or approved.",
   "more_channels.hide_joined": "Hide Joined",
   "more_channels.hide_joined_channels": "Hide joined channels",

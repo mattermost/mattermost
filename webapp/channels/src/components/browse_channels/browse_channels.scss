@@ -268,20 +268,6 @@
             display: flex;
             align-items: center;
             gap: 6px;
-
-            .more-modal__discoverable-pill {
-                display: inline-flex;
-                align-items: center;
-                padding: 2px 6px;
-                border-radius: 10px;
-                background: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.72);
-                font-size: 11px;
-                font-weight: 600;
-                gap: 2px;
-                letter-spacing: 0.02em;
-                text-transform: uppercase;
-            }
         }
 
         .more-modal__row:hover,
@@ -302,6 +288,14 @@
 
         .more-modal__actions .more-modal__requested-pill,
         .more-modal__actions .more-modal__withdraw-confirm-text {
+            visibility: visible;
+        }
+
+        // The inline withdraw confirm replaces the hover-only Withdraw icon
+        // button entirely. Its buttons need to stay visible regardless of
+        // hover state so the user can actually press Keep request / Withdraw
+        // once the confirm appears.
+        .more-modal__actions .more-modal__withdraw-confirm button {
             visibility: visible;
         }
 
