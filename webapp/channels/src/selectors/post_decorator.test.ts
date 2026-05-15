@@ -92,9 +92,8 @@ describe('selectors/getPostDecoratorsForSlot', () => {
         it('ignores registrations for a different slot', () => {
             const post = makePost();
 
-            // There's only one slot for post decorators currently, so we simulate a wrong slot by
-            // registering with a cast
-            const reg = makeRegistration({slot: 'post_header_badge', matcher: () => false});
+            // There's only one slot in the union currently, so cast to simulate a wrong slot.
+            const reg = makeRegistration({slot: 'wrong_slot' as PostDecoratorSlot, matcher: () => true});
             const state = makeState([reg]);
             const result = getPostDecoratorsForSlot(state, post, 'post_header_badge');
             expect(result).toEqual([]);
