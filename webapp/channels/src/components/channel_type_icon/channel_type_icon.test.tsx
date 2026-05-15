@@ -92,22 +92,25 @@ describe('components/ChannelTypeIcon', () => {
 
     it('falls back to core icon when matcher throws', () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-        const channel = makeChannel({type: 'O'});
-        const throwingMatcher = () => {
-            throw new Error('boom');
-        };
-        const {container} = renderWithContext(
-            <ChannelTypeIcon channel={channel}/>,
-            makeState([{
-                id: '1',
-                pluginId: `bad-plugin-component-${Date.now()}`,
-                matcher: throwingMatcher,
-                iconName: 'shield-outline',
-            }]),
-        );
-        const el = container.querySelector('i');
-        expect(el).toHaveClass('icon', 'icon-globe');
-        consoleSpy.mockRestore();
+        try {
+            const channel = makeChannel({type: 'O'});
+            const throwingMatcher = () => {
+                throw new Error('boom');
+            };
+            const {container} = renderWithContext(
+                <ChannelTypeIcon channel={channel}/>,
+                makeState([{
+                    id: '1',
+                    pluginId: `bad-plugin-component-${Date.now()}`,
+                    matcher: throwingMatcher,
+                    iconName: 'shield-outline',
+                }]),
+            );
+            const el = container.querySelector('i');
+            expect(el).toHaveClass('icon', 'icon-globe');
+        } finally {
+            consoleSpy.mockRestore();
+        }
     });
 
     it('appends extra className prop', () => {
