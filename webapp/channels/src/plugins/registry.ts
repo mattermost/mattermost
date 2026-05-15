@@ -28,6 +28,7 @@ import {
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
 import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
+import {clearLoggedSuffixErrors} from 'selectors/composer_placeholder_suffix';
 import store from 'stores/redux_store';
 
 import {compassIconForName} from 'components/channel_type_icon';
@@ -75,6 +76,7 @@ import type {
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
     ChannelIntroRegistration,
+    ComposerPlaceholderSuffixRegistration,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1425,6 +1427,43 @@ export default class PluginRegistry {
         const id = generateId();
         dispatchPluginComponentWithData('ChannelIntro', {id, pluginId: this.id, matcher, component});
         return id;
+    });
+
+    /**
+     * Register a plain-string suffix appended to the composer placeholder for matching channels.
+     *
+     * `matcher` receives (channel, state) where state is the full Redux state; plugins can read
+     * state['plugins-<pluginId>'] slices. `text` may be a static string or a function called with
+     * (channel, state, intl) — use the function form to access i18n via intl.formatMessage().
+     * Across plugins, suffixes are appended in pluginId alphabetical order; within one plugin,
+     * registration order is preserved.
+     */
+    registerComposerPlaceholderSuffix = reArg(['matcher', 'text'], ({matcher, text}: {
+        matcher: ComposerPlaceholderSuffixRegistration['matcher'];
+        text: ComposerPlaceholderSuffixRegistration['text'];
+    }) => {
+        const id = generateId();
+        dispatchPluginComponentWithData('ComposerPlaceholderSuffix', {
+            id,
+            pluginId: this.id,
+            matcher,
+            text,
+        });
+        return id;
+    });
+
+    /**
+     * Remove a composer placeholder suffix registered by this plugin.
+     * Pass the id returned by registerComposerPlaceholderSuffix.
+     */
+    unregisterComposerPlaceholderSuffix = reArg(['id'], ({id}: {id: string}) => {
+        clearLoggedSuffixErrors(this.id);
+        store.dispatch({
+            type: ActionTypes.REMOVED_PLUGIN_COMPONENT_BY_ID,
+            name: 'ComposerPlaceholderSuffix',
+            pluginId: this.id,
+            id,
+        });
     });
 
     /**
