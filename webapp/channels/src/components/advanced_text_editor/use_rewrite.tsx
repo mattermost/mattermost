@@ -19,6 +19,7 @@ import {RewriteAction} from './rewrite_action';
 
 const useRewrite = (
     draft: PostDraft,
+    rootId: string,
     handleDraftChange: ((draft: PostDraft, options: {instant?: boolean; show?: boolean}) => void),
     textboxRef: React.RefObject<TextboxClass>,
     focusTextbox: (keepFocus?: boolean) => void,
@@ -55,7 +56,7 @@ const useRewrite = (
             setLastAction(action);
         }
 
-        const promise = Client4.getAIRewrittenMessage(selectedAgentId, draft.message, action, prompt, draft.rootId);
+        const promise = Client4.getAIRewrittenMessage(selectedAgentId, draft.message, action, prompt, rootId);
         currentPromiseRef.current = promise;
 
         try {
@@ -83,7 +84,7 @@ const useRewrite = (
                 currentPromiseRef.current = undefined;
             }
         }
-    }, [draft, handleDraftChange, isProcessing, selectedAgentId, setServerError]);
+    }, [draft, rootId, handleDraftChange, isProcessing, selectedAgentId, setServerError]);
 
     const resetState = useCallback(() => {
         setOriginalMessage('');

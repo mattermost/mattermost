@@ -196,7 +196,7 @@ function DraftRow({
     }, [connectionId, dispatch, handleOnDelete, item]);
 
     // TODO LOL verify the types and handled it better
-    const {onSubmitCheck: prioritySubmitCheck} = usePriority(item as any, noop, noop, false);
+    const {onSubmitCheck: prioritySubmitCheck} = usePriority(item as any, channelId, rootId, noop, noop, false);
     const [handleOnSend] = useSubmit(
         item as any,
         postError,

@@ -108,6 +108,7 @@ describe('useRewrite', () => {
         return renderHookWithContext(
             () => useRewrite(
                 {...draft, ...overrides},
+                '',
                 mockHandleDraftChange,
                 mockTextboxRef,
                 mockFocusTextbox,
@@ -531,6 +532,7 @@ describe('useRewrite', () => {
             const {result, rerender} = renderHookWithContext(
                 () => useRewrite(
                     currentDraft,
+                    '',
                     mockHandleDraftChange,
                     mockTextboxRef,
                     mockFocusTextbox,

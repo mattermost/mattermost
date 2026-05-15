@@ -30,6 +30,8 @@ import type {PostDraft} from 'types/store/draft';
  * to toggle BoR mode on/off for the current draft.
  *
  * @param draft - The current post draft
+ * @param channelId - The current channel id (from editor props)
+ * @param rootId - The current thread root id (from editor props)
  * @param handleDraftChange - Callback to update the draft
  * @param focusTextbox - Callback to refocus the text editor
  * @param shouldShowPreview - Whether the preview mode is active
@@ -38,13 +40,13 @@ import type {PostDraft} from 'types/store/draft';
  */
 const useBurnOnRead = (
     draft: PostDraft,
+    channelId: string,
+    rootId: string,
     handleDraftChange: (draft: PostDraft, options: {instant?: boolean; show?: boolean}) => void,
     focusTextbox: (keepFocus?: boolean) => void,
     shouldShowPreview: boolean,
     showIndividualCloseButton = true,
 ) => {
-    const rootId = draft.rootId;
-    const channelId = draft.channelId;
     const isEnabled = useSelector(isBurnOnReadEnabled);
     const durationMinutes = useSelector(getBurnOnReadDurationMinutes);
     const canSend = useSelector(canUserSendBurnOnRead);

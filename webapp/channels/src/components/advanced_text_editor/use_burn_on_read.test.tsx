@@ -107,6 +107,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -127,6 +129,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -150,6 +154,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -169,6 +175,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -187,6 +195,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -205,6 +215,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -223,6 +235,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -241,6 +255,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -262,6 +278,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -281,6 +299,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -300,6 +320,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -325,6 +347,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     draftWithRootId,
+                    'channel-id',
+                    'root-post-id',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -344,6 +368,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -364,6 +390,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -387,6 +415,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     draftWithBoR,
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -410,6 +440,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     draftWithBoRAndRootId,
+                    'channel-id',
+                    'root-post-id',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -430,6 +462,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,
@@ -449,6 +483,8 @@ describe('useBurnOnRead', () => {
             const {result} = renderHook(
                 () => useBurnOnRead(
                     createMockDraft(),
+                    'channel-id',
+                    '',
                     mockHandleDraftChange,
                     mockFocusTextbox,
                     false,

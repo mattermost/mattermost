@@ -240,12 +240,16 @@ const AdvancedTextEditor = ({
         GlobalActions.emitLocalUserTypingEvent(channelId, rootId);
     }, [channelId, rootId]);
 
+    // Local React `draft` state always represents the editor's currently-rendered channel/root,
+    // so `setDraft` pins `channelId`/`rootId` to the props. Storage operations still honor the
+    // passed-in draft's ids so the channel-switch cleanup can flush the previous channel's draft
+    // to the previous channel's storage key.
     const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
         if (saveDraftFrame.current) {
             clearTimeout(saveDraftFrame.current);
         }
 
-        setDraft(draftToChange);
+        setDraft({...draftToChange, channelId, rootId});
 
         const saveDraft = () => {
             let prefix = StoragePrefixes.DRAFT;
@@ -278,7 +282,7 @@ const AdvancedTextEditor = ({
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
-    }, [dispatch]);
+    }, [dispatch, channelId, rootId, storageKey]);
 
     const applyMarkdown = useCallback((params: ApplyMarkdownOptions) => {
         if (showPreview) {
@@ -316,7 +320,7 @@ const AdvancedTextEditor = ({
     const {
         rewriteMenuProps,
         isProcessing: rewriteIsProcessing,
-    } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
+    } = useRewrite(draft, rootId, handleDraftChange, textboxRef, focusTextbox, setServerError);
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
 
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
@@ -347,11 +351,11 @@ const AdvancedTextEditor = ({
         additionalControl: priorityAdditionalControl,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
-    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
+    } = usePriority(draft, channelId, rootId, handleDraftChange, focusTextbox, showPreview, false);
     const {
         labels: burnOnReadLabels,
         additionalControl: burnOnReadAdditionalControl,
-    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
+    } = useBurnOnRead(draft, channelId, rootId, handleDraftChange, focusTextbox, showPreview, false);
     const [handleSubmit, errorClass] = useSubmit(
         draft,
         postError,

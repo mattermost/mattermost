@@ -5,6 +5,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
@@ -17,6 +18,10 @@ import useSubmit from './use_submit';
 
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: ''})),
+}));
+
+jest.mock('actions/views/create_comment', () => ({
+    onSubmit: jest.fn(() => ({type: 'MOCK_ON_SUBMIT'})),
 }));
 
 describe('useSubmit', () => {
@@ -264,6 +269,52 @@ describe('useSubmit', () => {
         expect(openModal).not.toHaveBeenCalledWith(expect.objectContaining({
             modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
         }));
+    });
+
+    it('should submit with the editor prop channelId/rootId even when the draft argument has stale ids', async () => {
+        // Simulates the `/msg @user` race: the draft state still holds the previous channel's
+        // ids while the editor has already re-rendered for the destination channel. The submit
+        // must follow the editor's props, not the stale local draft.
+        const staleDraft: PostDraft = {
+            ...mockDraft,
+            channelId: 'previous_channel_id',
+            rootId: '',
+        };
+
+        const handleDraftChangeSpy: typeof mockHandleDraftChange = jest.fn();
+
+        const {result} = renderHookWithContext(() => useSubmit(
+            staleDraft,
+            mockPostError,
+            'channel_id',
+            '',
+            mockServerError,
+            mockLastBlurAt,
+            mockFocusTextbox,
+            mockSetServerError,
+            mockSetShowPreview,
+            handleDraftChangeSpy,
+            mockPrioritySubmitCheck,
+            mockAfterOptimisticSubmit,
+            mockAfterSubmit,
+            false,
+            false,
+            'post_id',
+        ), getBaseState());
+
+        const [handleSubmit] = result.current;
+        await handleSubmit(staleDraft);
+
+        expect(onSubmit).toHaveBeenCalled();
+        const submittedDraft = (onSubmit as jest.Mock).mock.calls.at(-1)![0];
+        expect(submittedDraft.channelId).toBe('channel_id');
+        expect(submittedDraft.rootId).toBe('');
+
+        // The post-submit clear targets the channel actually posted to (the editor's props).
+        expect(handleDraftChangeSpy).toHaveBeenCalledWith(
+            expect.objectContaining({channelId: 'channel_id', rootId: ''}),
+            expect.objectContaining({instant: true}),
+        );
     });
 });
 

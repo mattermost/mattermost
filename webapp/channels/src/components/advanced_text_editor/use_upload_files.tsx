@@ -134,7 +134,7 @@ const useUploadFiles = (
     }, [handleDraftChange, setServerError, storedDrafts]);
 
     const removePreview = useCallback((clientId: string) => {
-        handleUploadError(null, clientId, draft.channelId, draft.rootId);
+        handleUploadError(null, clientId, channelId, postId);
 
         const modifiedDraft = {...draft};
         let index = draft.fileInfos.findIndex((info) => info.id === clientId);
@@ -157,7 +157,7 @@ const useUploadFiles = (
 
         handleDraftChange(modifiedDraft, {instant: true});
         handleFileUploadChange();
-    }, [draft, fileUploadRef, handleDraftChange, handleUploadError, handleFileUploadChange]);
+    }, [draft, fileUploadRef, handleDraftChange, handleUploadError, handleFileUploadChange, channelId, postId]);
 
     let attachmentPreview = null;
     if (!isDisabled && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
