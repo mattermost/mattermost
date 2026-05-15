@@ -5,12 +5,17 @@ import React from 'react';
 
 import {getFileUrl} from 'mattermost-redux/utils/file_utils';
 
+import FilePreviewModal from 'components/file_preview_modal';
+
+import {ModalIdentifiers} from 'utils/constants';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import FilePreview from './file_preview';
 
 describe('FilePreview', () => {
     const onRemove = jest.fn();
+    const openModal = jest.fn();
     const fileInfos = [
         {
             width: 100,
@@ -20,7 +25,7 @@ describe('FilePreview', () => {
             type: 'image/png',
             extension: 'png',
             has_preview_image: true,
-            user_id: '',
+            user_id: 'user_id_1',
             channel_id: 'channel_id',
             create_at: 0,
             update_at: 0,
@@ -60,6 +65,9 @@ describe('FilePreview', () => {
         uploadsInProgress,
         onRemove,
         uploadsProgressPercent,
+        actions: {
+            openModal,
+        },
     };
 
     test('should match snapshot', () => {
@@ -107,6 +115,28 @@ describe('FilePreview', () => {
         }
         await user.click(removeLink);
         expect(newOnRemove).toHaveBeenCalled();
+    });
+
+    test('should call openModal when image thumbnail is clicked', async () => {
+        openModal.mockClear();
+        renderWithContext(
+            <FilePreview {...baseProps}/>,
+        );
+
+        const user = userEvent.setup();
+        const thumb = screen.getByLabelText(/file thumbnail.*test_filename/i);
+        await user.click(thumb);
+
+        expect(openModal).toHaveBeenCalledTimes(1);
+        expect(openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+            dialogType: FilePreviewModal,
+            dialogProps: {
+                post: {user_id: 'user_id_1', channel_id: 'channel_id'},
+                fileInfos,
+                startIndex: 0,
+            },
+        });
     });
 
     test('should not render an SVG when SVGs are disabled', () => {
