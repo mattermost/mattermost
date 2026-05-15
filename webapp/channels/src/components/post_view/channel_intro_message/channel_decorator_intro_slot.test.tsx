@@ -82,6 +82,27 @@ describe('components/post_view/ChannelDecoratorIntroSlot', () => {
         expect(screen.queryByTestId('decorator-intro-dec')).not.toBeInTheDocument();
     });
 
+    test('intro decorator match with missing channel entity — renders ChannelIntroMessage', () => {
+        const state = makeStateWithChannel(channelId, [{
+            id: 'intro-dec',
+            pluginId: 'test-plugin',
+            slot: 'intro',
+            matcher: () => true,
+            component: () => null,
+        }]);
+
+        // Remove the channel from state to simulate the stale-selector race window
+        delete state.entities.channels.channels[channelId];
+
+        renderWithContext(
+            <ChannelDecoratorIntroSlot channelId={channelId}/>,
+            state,
+        );
+
+        expect(screen.getByTestId('channel-intro-message')).toBeInTheDocument();
+        expect(screen.queryByTestId('decorator-intro-dec')).not.toBeInTheDocument();
+    });
+
     test('multiple intro decorators — only the first (array-order) renders', () => {
         // The selector enforces first-match-wins for the intro slot; the array is ordered
         // alphabetically by pluginId by the reducer. This test verifies the slot component
