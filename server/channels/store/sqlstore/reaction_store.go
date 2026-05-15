@@ -30,7 +30,7 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, e
 	if err := reaction.IsValid(); err != nil {
 		return nil, err
 	}
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -68,7 +68,7 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, e
 func (s *SqlReactionStore) Delete(reaction *model.Reaction) (re *model.Reaction, err error) {
 	reaction.PreUpdate()
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -252,7 +252,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 }
 
 func (s *SqlReactionStore) permanentDeleteReactions(userId string) ([]string, error) {
-	txn, err := s.GetMaster().Beginx()
+	txn, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -289,7 +289,7 @@ func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
 		return err
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return err
 	}
@@ -312,7 +312,7 @@ func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
 }
 
 func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
-	txn, err := s.GetMaster().Beginx()
+	txn, err := s.GetMaster().Begin()
 	if err != nil {
 		return 0, err
 	}

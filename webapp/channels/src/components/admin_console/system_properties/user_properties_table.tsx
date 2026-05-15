@@ -3,17 +3,19 @@
 
 import {createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import {PlusIcon} from '@mattermost/compass-icons/components';
+import {InformationOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {supportsOptions, type UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
 import LoadingScreen from 'components/loading_screen';
 
 import Constants from 'utils/constants';
+import {CPA_FIELD_NAME_RESERVED_WORDS, filterCELIdentifier, slugifyForCEL} from 'utils/properties';
 
 import {DangerText, BorderlessInput, LinkButton} from './controls';
 import {useIsFieldOrphaned} from './orphaned_fields_utils';
@@ -22,10 +24,12 @@ import DotMenu from './user_properties_dot_menu';
 import OrphanedFieldDeleteButton from './user_properties_orphaned_delete_button';
 import SelectType from './user_properties_type_menu';
 import type {UserPropertyFields} from './user_properties_utils';
-import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
+import {isCreatePending, useUserPropertyFields, ValidationWarningNameInvalidCEL, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
 import UserPropertyValues from './user_properties_values';
 
 import {AdminConsoleListTable} from '../list_table';
+
+const columnHelper = createColumnHelper<UserPropertyField>();
 
 type FieldActions = {
     createField: (field: UserPropertyField) => void;
@@ -104,18 +108,149 @@ export function UserPropertiesTable({
 }: Props & FieldActions) {
     const {formatMessage} = useIntl();
     const data = collectionToArray(collection);
-    const col = createColumnHelper<UserPropertyField>();
+
+    const autoFillActiveRef = useRef<Set<string>>(new Set());
+    const nameOverridesRef = useRef<Record<string, string>>({});
+    const [, forceNameUpdate] = useState(0);
+
+    const computeAutoFillSlug = useCallback((displayName: string): string | null => {
+        let slug = slugifyForCEL(displayName);
+
+        // slugifyForCEL returns '_copy' when the input normalizes to empty;
+        // treat that as "nothing to auto-fill" rather than writing '_copy'
+        // into the Name field.
+        if (slug === '_copy' || CPA_FIELD_NAME_RESERVED_WORDS.has(slug)) {
+            return null;
+        }
+        const runes = [...slug];
+        if (runes.length > Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH) {
+            slug = runes.slice(0, Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH).join('');
+        }
+        return slug;
+    }, []);
+
+    const handleDisplayNameChange = useCallback((rowId: string, value: string) => {
+        if (!autoFillActiveRef.current.has(rowId)) {
+            return;
+        }
+        const slug = computeAutoFillSlug(value);
+        if (slug === null) {
+            return;
+        }
+        if (nameOverridesRef.current[rowId] !== slug) {
+            nameOverridesRef.current = {...nameOverridesRef.current, [rowId]: slug};
+            forceNameUpdate((n) => n + 1);
+        }
+    }, [computeAutoFillSlug]);
+
+    // Returns the auto-filled name slug if auto-fill is active for this row,
+    // or null if auto-fill is inactive or the slug is invalid/reserved.
+    const getAutoFillSlug = useCallback((rowId: string, displayNameValue: string): string | null => {
+        if (!autoFillActiveRef.current.has(rowId)) {
+            return null;
+        }
+        return computeAutoFillSlug(displayNameValue);
+    }, [computeAutoFillSlug]);
+
+    // This callback only fires from manual user edits to the Name <input> (the
+    // DOM onChange event). Auto-fill updates via liveValue → useEffect → setValue
+    // bypass the onChange handler entirely, so this comparison is always between
+    // what the user manually typed and the expected slug derived from the
+    // *committed* display_name. This invariant is what makes the deactivation
+    // check correct — do not refactor liveValue to go through onChange.
+    const handleNameChange = useCallback((rowId: string, value: string, currentField: UserPropertyField) => {
+        const displayName = currentField.attrs?.display_name ?? '';
+        const expectedSlug = slugifyForCEL(displayName);
+        if (value !== expectedSlug) {
+            autoFillActiveRef.current.delete(rowId);
+            if (Object.prototype.hasOwnProperty.call(nameOverridesRef.current, rowId)) {
+                const next = {...nameOverridesRef.current};
+                Reflect.deleteProperty(next, rowId);
+                nameOverridesRef.current = next;
+            }
+        }
+    }, []);
+
+    // Activate auto-fill for newly created pending rows with empty names
+    useEffect(() => {
+        for (const field of data) {
+            if (isCreatePending(field) && field.name === '' && !autoFillActiveRef.current.has(field.id)) {
+                autoFillActiveRef.current.add(field.id);
+            }
+        }
+    }, [data]);
+
     const columns = useMemo<Array<ColumnDef<UserPropertyField, any>>>(() => {
         return [
-            col.accessor('name', {
+            columnHelper.accessor((row) => row.attrs?.display_name ?? '', {
+                id: 'display_name',
+                size: 200,
+                header: () => (
+                    <ColHeaderLeft>
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.table.display_name_header'
+                            defaultMessage='Display Name'
+                        />
+                    </ColHeaderLeft>
+                ),
+                cell: ({getValue, row}) => {
+                    const toDelete = row.original.delete_at !== 0;
+                    const isProtected = Boolean(row.original.attrs?.protected);
+
+                    return (
+                        <EditCell
+                            strong={true}
+                            value={getValue()}
+                            label={formatMessage({
+                                id: 'admin.system_properties.user_properties.table.display_name.input.label',
+                                defaultMessage: 'Display Name',
+                            })}
+                            testid='property-display-name-input'
+                            deleted={toDelete}
+                            disabled={isProtected}
+                            maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
+                            autoFocus={isCreatePending(row.original) && !supportsOptions(row.original)}
+                            onChange={(value: string) => {
+                                handleDisplayNameChange(row.original.id, value);
+                            }}
+                            setValue={(value: string) => {
+                                const slug = getAutoFillSlug(row.original.id, value);
+                                updateField({
+                                    ...row.original,
+                                    ...(slug === null ? {} : {name: slug}),
+                                    attrs: {
+                                        ...row.original.attrs,
+                                        display_name: value.trim() || undefined,
+                                    },
+                                });
+                            }}
+                        />
+                    );
+                },
+                enableHiding: false,
+                enableSorting: false,
+            }),
+            columnHelper.accessor('name', {
                 size: 180,
                 header: () => {
                     return (
                         <ColHeaderLeft>
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.table.property'
-                                defaultMessage='Attribute'
-                            />
+                            <NameHeaderLabel>
+                                <FormattedMessage
+                                    id='admin.system_properties.user_properties.table.name'
+                                    defaultMessage='Name'
+                                />
+                                <WithTooltip
+                                    title={formatMessage({
+                                        id: 'admin.system_properties.user_properties.table.identifier.tooltip',
+                                        defaultMessage: 'Common Expression Language (CEL) identifier used in policies. Only letters, digits, and underscores allowed. Must start with a letter or underscore. Reserved CEL words are not allowed.',
+                                    })}
+                                >
+                                    <InfoIconWrapper>
+                                        <InformationOutlineIcon size={14}/>
+                                    </InfoIconWrapper>
+                                </WithTooltip>
+                            </NameHeaderLabel>
                         </ColHeaderLeft>
                     );
                 },
@@ -150,18 +285,30 @@ export function UserPropertiesTable({
                                 defaultMessage='Attribute name already taken.'
                             />
                         );
+                    } else if (warningId === ValidationWarningNameInvalidCEL) {
+                        warning = (
+                            <DangerText data-testid='property-field-validation-error'>
+                                <FormattedMessage
+                                    id='admin.system_properties.user_properties.table.validation.name_invalid_cel'
+                                    defaultMessage='Identifier must start with a letter or underscore and contain only letters, numbers, and underscores. Reserved CEL words are not allowed.'
+                                />
+                            </DangerText>
+                        );
                     }
 
                     return (
                         <>
                             <EditCell
-                                strong={true}
                                 value={getValue()}
+                                liveValue={nameOverridesRef.current[row.original.id]}
                                 label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Attribute Name'})}
                                 deleted={toDelete}
                                 disabled={isProtected}
                                 testid='property-field-input'
-                                autoFocus={isCreatePending(row.original) && !supportsOptions(row.original)}
+                                sanitize={filterCELIdentifier}
+                                onChange={(value: string) => {
+                                    handleNameChange(row.original.id, value, row.original);
+                                }}
                                 setValue={(value: string) => {
                                     updateField({...row.original, name: value.trim()});
                                 }}
@@ -174,7 +321,7 @@ export function UserPropertiesTable({
                 enableHiding: false,
                 enableSorting: false,
             }),
-            col.accessor('type', {
+            columnHelper.accessor('type', {
                 size: 100,
                 header: () => {
                     return (
@@ -197,7 +344,7 @@ export function UserPropertiesTable({
                 enableHiding: false,
                 enableSorting: false,
             }),
-            col.display({
+            columnHelper.display({
                 id: 'options',
                 size: 300,
                 header: () => (
@@ -220,7 +367,7 @@ export function UserPropertiesTable({
                 enableHiding: false,
                 enableSorting: false,
             }),
-            col.display({
+            columnHelper.display({
                 id: 'actions',
                 size: 40,
                 header: () => {
@@ -248,7 +395,8 @@ export function UserPropertiesTable({
                 enableSorting: false,
             }),
         ];
-    }, [createField, updateField, deleteField, collection.warnings, canCreate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [createField, updateField, deleteField, collection.warnings, canCreate, handleDisplayNameChange, getAutoFillSlug, handleNameChange, formatMessage]);
 
     const table = useReactTable<UserPropertyField>({
         data,
@@ -339,6 +487,19 @@ const ColHeaderRight = styled.div`
     text-align: right;
 `;
 
+const NameHeaderLabel = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+`;
+
+const InfoIconWrapper = styled.span`
+    display: inline-flex;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
+`;
+
 const ActionsRoot = styled.div`
     text-align: right;
 `;
@@ -376,9 +537,12 @@ const ActionsCell = ({field, canCreate, createField, updateField, deleteField}: 
 
 type EditCellProps = {
     value: string;
+    liveValue?: string;
     label?: string;
     testid?: string;
     setValue: (value: string) => void;
+    onChange?: (value: string) => void;
+    sanitize?: (value: string) => string;
     autoFocus?: boolean;
     disabled?: boolean;
     deleted?: boolean;
@@ -392,6 +556,12 @@ const EditCell = (props: EditCellProps) => {
     useEffect(() => {
         setValue(props.value);
     }, [props.value]);
+
+    useEffect(() => {
+        if (props.liveValue !== undefined) {
+            setValue(props.liveValue);
+        }
+    }, [props.liveValue]);
 
     return (
         <>
@@ -411,7 +581,12 @@ const EditCell = (props: EditCellProps) => {
                 }}
                 value={value}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setValue(e.target.value);
+                    let next = e.target.value;
+                    if (props.sanitize) {
+                        next = props.sanitize(next);
+                    }
+                    setValue(next);
+                    props.onChange?.(next);
                 }}
                 onBlur={() => {
                     if (value !== props.value) {

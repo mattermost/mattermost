@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
@@ -1417,6 +1418,7 @@ func (s *Server) doPermissionsMigrations() error {
 			return err
 		}
 		if err := s.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
+			mlog.Error("Failed to run permissions migration", mlog.String("key", migration.Key), mlog.Err(err))
 			return err
 		}
 	}

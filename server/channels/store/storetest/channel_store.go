@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -37,9 +36,6 @@ type SqlXExecutor interface {
 	NamedExec(query string, arg any) (sql.Result, error)
 	Exec(query string, args ...any) (sql.Result, error)
 	ExecRaw(query string, args ...any) (sql.Result, error)
-	NamedQuery(query string, arg any) (*sqlx.Rows, error)
-	QueryRowX(query string, args ...any) *sqlx.Row
-	QueryX(query string, args ...any) (*sqlx.Rows, error)
 	Select(dest any, query string, args ...any) error
 }
 
