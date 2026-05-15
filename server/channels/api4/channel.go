@@ -850,21 +850,8 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		} else if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-			// Non-members may still GET a discoverable private channel they
-			// would qualify for, so the Browse Channels modal can show
-			// metadata + Request to Join. The new behavior is gated on the
-			// feature flag so the existing 403 contract for non-members is
-			// preserved when the discoverable feature is off.
-			if c.App.Config().FeatureFlags.DiscoverableChannels {
-				if sanitized, sanitizedErr := serveDiscoverableChannelOr404(c, channel); sanitizedErr != nil {
-					c.Err = sanitizedErr
-					return
-				} else if sanitized != nil {
-					if err := json.NewEncoder(w).Encode(sanitized); err != nil {
-						c.Logger.Warn("Error while writing response", mlog.Err(err))
-					}
-					return
-				}
+			if served := serveDiscoverableNonMember(c, w, channel); served {
+				return
 			}
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
@@ -904,6 +891,56 @@ func sanitizeDiscoverableChannel(channel *model.Channel) *model.Channel {
 		UpdateAt:       channel.UpdateAt,
 		DeleteAt:       channel.DeleteAt,
 	}
+}
+
+// discoverableNonMemberView returns a sanitized non-member view of `channel`
+// when the calling user qualifies under the discoverable visibility rules,
+// or (nil, nil) when the channel must remain hidden — the caller should
+// emit its own permission-denied response. Errors from the discoverable
+// lookup are returned for the caller to assign to c.Err. When the feature
+// flag is off, this returns (nil, nil) and the caller falls through to its
+// default 403/404 path so the existing read contract is preserved.
+func discoverableNonMemberView(c *Context, channel *model.Channel) (*model.Channel, *model.AppError) {
+	if !c.App.Config().FeatureFlags.DiscoverableChannels {
+		return nil, nil
+	}
+	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if userErr != nil {
+		return nil, userErr
+	}
+	allowed, allowedErr := c.App.IsDiscoverableJoinAllowed(c.AppContext, user, channel)
+	if allowedErr != nil {
+		return nil, allowedErr
+	}
+	if !allowed {
+		return nil, nil
+	}
+	return sanitizeDiscoverableChannel(channel), nil
+}
+
+// serveDiscoverableNonMember writes the sanitized non-member discoverable
+// view of `channel` to `w` and returns true when the request was handled
+// here (either the response was written, or c.Err was set on a lookup
+// failure). Returns false without touching the response when the caller
+// should emit its own permission-denied response (the channel is hidden
+// from this non-member, or the feature flag is off).
+//
+// Centralising this here means every read endpoint that previously emitted
+// 403/404 to a non-member can keep its prior failure shape while opting in
+// to the discoverable surface with a single `if served { return }` guard.
+func serveDiscoverableNonMember(c *Context, w http.ResponseWriter, channel *model.Channel) bool {
+	sanitized, err := discoverableNonMemberView(c, channel)
+	if err != nil {
+		c.Err = err
+		return true
+	}
+	if sanitized == nil {
+		return false
+	}
+	if encErr := json.NewEncoder(w).Encode(sanitized); encErr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(encErr))
+	}
+	return true
 }
 
 func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1730,16 +1767,8 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		// allows team admins to access private channel
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel); !ok {
-				if c.App.Config().FeatureFlags.DiscoverableChannels {
-					if sanitized, sanitizedErr := serveDiscoverableChannelOr404(c, channel); sanitizedErr != nil {
-						c.Err = sanitizedErr
-						return
-					} else if sanitized != nil {
-						if err := json.NewEncoder(w).Encode(sanitized); err != nil {
-							c.Logger.Warn("Error while writing response", mlog.Err(err))
-						}
-						return
-					}
+				if served := serveDiscoverableNonMember(c, w, channel); served {
+					return
 				}
 				c.Err = model.NewAppError("getChannelByName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 				return
@@ -1756,26 +1785,6 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(channel); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
-}
-
-// serveDiscoverableChannelOr404 returns a sanitized representation of a
-// non-member private channel when the calling user qualifies under the
-// discoverable visibility rules, or nil when the channel must remain
-// hidden. Errors are propagated; the nil/nil return means "fall through and
-// emit the original 404".
-func serveDiscoverableChannelOr404(c *Context, channel *model.Channel) (*model.Channel, *model.AppError) {
-	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
-	if userErr != nil {
-		return nil, userErr
-	}
-	allowed, allowedErr := c.App.IsDiscoverableJoinAllowed(c.AppContext, user, channel)
-	if allowedErr != nil {
-		return nil, allowedErr
-	}
-	if !allowed {
-		return nil, nil
-	}
-	return sanitizeDiscoverableChannel(channel), nil
 }
 
 func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1801,16 +1810,8 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	} else if !channelOk {
 		// allows team admins to access private channel
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) {
-			if c.App.Config().FeatureFlags.DiscoverableChannels {
-				if sanitized, sanitizedErr := serveDiscoverableChannelOr404(c, channel); sanitizedErr != nil {
-					c.Err = sanitizedErr
-					return
-				} else if sanitized != nil {
-					if err := json.NewEncoder(w).Encode(sanitized); err != nil {
-						c.Logger.Warn("Error while writing response", mlog.Err(err))
-					}
-					return
-				}
+			if served := serveDiscoverableNonMember(c, w, channel); served {
+				return
 			}
 			c.Err = model.NewAppError("getChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 			return
