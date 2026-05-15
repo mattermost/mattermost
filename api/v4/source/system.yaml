@@ -550,22 +550,60 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/file/test:
+    post:
+      tags:
+        - system
+      summary: Test the configured file storage backend
+      description: >
+        Send a test to validate that the server can connect to the configured
+        file storage backend (Amazon S3 or Azure Blob Storage). Optionally
+        provide a configuration in the request body to test. If no valid
+        configuration is present in the request body the current server
+        configuration will be tested.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 11.10
+      operationId: TestFileStoreConnection
+      requestBody:
+        description: Mattermost configuration
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Config"
+      responses:
+        "200":
+          description: File storage test successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/file/s3_test:
     post:
       tags:
         - system
       summary: Test AWS S3 connection
       description: >
-        Send a test to validate if can connect to AWS S3. Optionally provide a
-        configuration in the request body to test. If no valid configuration is
-        present in the request body the current server configuration will be
-        tested.
+        Deprecated alias for `/api/v4/file/test` kept for backwards
+        compatibility. New callers should use `/api/v4/file/test`, which is
+        backend-agnostic.
 
         ##### Permissions
 
         Must have `manage_system` permission.
 
         __Minimum server version__: 4.8
+      deprecated: true
       operationId: TestS3Connection
       requestBody:
         description: Mattermost configuration
