@@ -1,0 +1,103 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.request-join-channel-modal {
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    &__channel {
+        display: flex;
+        flex-direction: column;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        gap: 8px;
+
+        > p {
+            margin: 0;
+        }
+    }
+
+    &__channel-name {
+        display: flex;
+        align-items: center;
+        color: var(--center-channel-color);
+        font-size: 16px;
+        font-weight: 600;
+        gap: 6px;
+    }
+
+    &__metadata {
+        display: inline-flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        gap: 4px;
+    }
+
+    &__purpose,
+    &__header {
+        display: flex;
+        flex-direction: column;
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+        font-size: 13px;
+        gap: 2px;
+        line-height: 1.5;
+
+        > strong {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+    }
+
+    &__intro,
+    &__pending {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    &__label {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    &__textarea {
+        padding: 8px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 14px;
+        resize: vertical;
+
+        &:focus {
+            border-color: var(--button-bg);
+            outline: 0;
+        }
+
+        &[aria-invalid='true'] {
+            border-color: var(--error-text);
+        }
+    }
+
+    &__counter {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        text-align: right;
+
+        .over-limit {
+            color: var(--error-text);
+        }
+    }
+}

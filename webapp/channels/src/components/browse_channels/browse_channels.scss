@@ -212,6 +212,10 @@
             }
 
             .more-modal__actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
                 button {
                     min-width: 54px;
                     height: 32px;
@@ -220,6 +224,63 @@
                     transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
                     visibility: hidden;
                 }
+
+                .more-modal__requested-actions,
+                .more-modal__withdraw-confirm {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .more-modal__requested-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 4px 8px;
+                    border-radius: 12px;
+                    background: rgba(var(--center-channel-color-rgb), 0.08);
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                    font-size: 12px;
+                    font-weight: 600;
+                    gap: 4px;
+                }
+
+                .more-modal__withdraw-confirm-text {
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+
+                .more-modal__withdraw-icon-button {
+                    width: 28px;
+                    min-width: 0;
+                    height: 28px;
+                    padding: 0;
+
+                    i {
+                        margin: 0;
+                        font-size: 14px;
+                    }
+                }
+            }
+        }
+
+        .more-modal__name {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            .more-modal__discoverable-pill {
+                display: inline-flex;
+                align-items: center;
+                padding: 2px 6px;
+                border-radius: 10px;
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                font-size: 11px;
+                font-weight: 600;
+                gap: 2px;
+                letter-spacing: 0.02em;
+                text-transform: uppercase;
             }
         }
 
@@ -230,10 +291,18 @@
 
             .more-modal__actions {
                 .primaryButton,
-                .outlineButton {
+                .outlineButton,
+                #requestJoinChannelButton,
+                #abacJoinChannelButton,
+                .more-modal__withdraw-icon-button {
                     visibility: visible;
                 }
             }
+        }
+
+        .more-modal__actions .more-modal__requested-pill,
+        .more-modal__actions .more-modal__withdraw-confirm-text {
+            visibility: visible;
         }
 
         .form-group {

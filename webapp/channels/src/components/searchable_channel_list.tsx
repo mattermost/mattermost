@@ -5,21 +5,19 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
+import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import BrowseChannelRow from 'components/browse_channels/browse_channel_row';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import QuickInput from 'components/quick_input';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -35,6 +33,7 @@ interface Props extends WrappedComponentProps {
     isSearch: boolean;
     search: (term: string) => void;
     handleJoin: (channel: Channel, done: () => void) => void;
+    handleRequestToJoin?: (channel: Channel) => void;
     noResultsText: JSX.Element;
     changeFilter: (filter: FilterType) => void;
     filter: FilterType;
@@ -121,116 +120,40 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         return this.props.myChannelMemberships[channelId];
     }
 
+    handleRequestToJoin = (channel: Channel) => {
+        // Delegated to the parent so we don't double-track join requests
+        // between SearchableChannelList and BrowseChannels.
+        this.props.handleRequestToJoin?.(channel);
+    };
+
     createChannelRow = (channel: Channel) => {
-        const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
-        const ChannelIcon = getChannelIconComponent(channel);
-        const channelTypeIcon = <ChannelIcon size={18}/>;
-        let memberCount = 0;
-        if (this.props.channelsMemberCount?.[channel.id]) {
-            memberCount = this.props.channelsMemberCount[channel.id];
-        }
-
-        const membershipIndicator = this.isMemberOfChannel(channel.id) ? (
-            <div
-                id='membershipIndicatorContainer'
-                aria-label={this.props.intl.formatMessage({id: 'more_channels.membership_indicator', defaultMessage: 'Membership Indicator: Joined'})}
-            >
-                <CheckIcon size={14}/>
-                <FormattedMessage
-                    id={'more_channels.joined'}
-                    defaultMessage={'Joined'}
-                />
-            </div>
-        ) : null;
-
-        const channelPurposeContainerAriaLabel = this.props.intl.formatMessage(
-            messages.channelPurpose,
-            {memberCount, channelPurpose: channel.purpose || ''},
-        );
-
-        const channelPurposeContainer = (
-            <div
-                id='channelPurposeContainer'
-                aria-label={channelPurposeContainerAriaLabel}
-            >
-                {membershipIndicator}
-                {membershipIndicator ? <span className='dot'/> : null}
-                <AccountOutlineIcon size={14}/>
-                <span data-testid={`channelMemberCount-${channel.name}`} >{memberCount}</span>
-                {channel.purpose.length > 0 ? <span className='dot'/> : null}
-                <span className='more-modal__description'>{channel.purpose}</span>
-            </div>
-        );
-
-        const joinViewChannelButtonEmphasis = this.isMemberOfChannel(channel.id) ? 'secondary' : 'primary';
-        const joinViewChannelButtonClass = this.isMemberOfChannel(channel.id) ? 'outlineButton' : 'primaryButton';
-
-        const joinViewChannelButton = (
-            <Button
-                id='joinViewChannelButton'
-                onClick={(e) => this.handleJoin(channel, e)}
-                emphasis={joinViewChannelButtonEmphasis}
-                size='sm'
-                className={joinViewChannelButtonClass}
-                disabled={Boolean(this.state.joiningChannel)}
-                tabIndex={-1}
-                aria-label={this.isMemberOfChannel(channel.id) ? this.props.intl.formatMessage({id: 'more_channels.view', defaultMessage: 'View'}) : this.props.intl.formatMessage({id: 'joinChannel.JoinButton', defaultMessage: 'Join'})}
-            >
-                <LoadingWrapper
-                    loading={this.state.joiningChannel === channel.id}
-                    text={messages.joiningButton}
-                >
-                    <FormattedMessage
-                        id={this.isMemberOfChannel(channel.id) ? 'more_channels.view' : 'joinChannel.JoinButton'}
-                        defaultMessage={this.isMemberOfChannel(channel.id) ? 'View' : 'Join'}
-                    />
-                </LoadingWrapper>
-            </Button>
-        );
-
-        const sharedChannelIcon = channel.shared ? (
-            <SharedChannelIndicator
-                className='shared-channel-icon'
-                withTooltip={true}
-            />
-        ) : null;
+        const memberCount = this.props.channelsMemberCount?.[channel.id] ?? 0;
+        const isMember = Boolean(this.isMemberOfChannel(channel.id));
+        const isJoining = this.state.joiningChannel === channel.id;
 
         return (
-            <div
-                className='more-modal__row'
-                key={channel.id}
-                id={`ChannelRow-${channel.name}`}
-                data-testid={`ChannelRow-${channel.name}`}
-                aria-label={ariaLabel}
-                onClick={(e) => this.handleJoin(channel, e)}
-                tabIndex={0}
-            >
-                <div className='more-modal__details'>
-                    <div className='style--none more-modal__name'>
-                        {channelTypeIcon}
-                        <span id='channelName'>{channel.display_name}</span>
-                        {sharedChannelIcon}
-                    </div>
-                    {channelPurposeContainer}
-                </div>
-                <div className='more-modal__actions'>
-                    {joinViewChannelButton}
-                    {this.state.joiningChannel === channel.id && !this.isMemberOfChannel(channel.id) && (
-                        <span
-                            className='sr-only'
-                            role='alert'
-                        >
-                            <FormattedMessage
-                                id='more_channels.joinedChannel'
-                                defaultMessage='Joined channel {channelName}'
-                                values={{
-                                    channelName: channel.display_name,
-                                }}
-                            />
-                        </span>
-                    )}
-                </div>
-            </div>
+            <React.Fragment key={channel.id}>
+                <BrowseChannelRow
+                    channel={channel}
+                    memberCount={memberCount}
+                    isMember={isMember}
+                    isJoining={isJoining}
+                    onJoin={this.handleJoin}
+                    onRequestToJoin={this.handleRequestToJoin}
+                />
+                {isJoining && !isMember && (
+                    <span
+                        className='sr-only'
+                        role='alert'
+                    >
+                        <FormattedMessage
+                            id='more_channels.joinedChannel'
+                            defaultMessage='Joined channel {channelName}'
+                            values={{channelName: channel.display_name}}
+                        />
+                    </span>
+                )}
+            </React.Fragment>
         );
     };
 
@@ -667,14 +590,6 @@ const messages = defineMessages({
     channelCount: {
         id: 'more_channels.count',
         defaultMessage: '{count} Results',
-    },
-    channelPurpose: {
-        id: 'more_channels.channel_purpose',
-        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}',
-    },
-    joiningButton: {
-        id: 'joinChannel.joiningButton',
-        defaultMessage: 'Joining...',
     },
     noMore: {
         id: 'more_channels.noMore',

@@ -15,6 +15,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import LoadingScreen from 'components/loading_screen';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
+import RequestJoinChannelModal from 'components/request_join_channel_modal/request_join_channel_modal';
 import SearchableChannelList from 'components/searchable_channel_list';
 
 import {getHistory} from 'utils/browser_history';
@@ -229,6 +230,17 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         }
     };
 
+    handleRequestToJoin = (channel: Channel) => {
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.REQUEST_JOIN_CHANNEL,
+            dialogType: RequestJoinChannelModal,
+            dialogProps: {
+                channel,
+                memberCount: this.props.channelsMemberCount?.[channel.id],
+            },
+        });
+    };
+
     search = (term: string) => {
         clearTimeout(this.searchTimeoutId);
 
@@ -268,10 +280,20 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     };
 
     setSearchResults = (channels: Channel[]) => {
-        // filter out private channels that the user is not a member of
-        let searchedChannels = channels.filter((c) => c.type !== Constants.PRIVATE_CHANNEL || this.isMemberOfChannel(c.id));
+        // Keep private channels the user is a member of OR that are marked
+        // discoverable. The server's search endpoint already enforces the
+        // ABAC visibility invariant for discoverable+policy_enforced rows,
+        // so anything the server returned is safe to surface.
+        let searchedChannels = channels.filter((c) =>
+            c.type !== Constants.PRIVATE_CHANNEL ||
+            this.isMemberOfChannel(c.id) ||
+            c.discoverable,
+        );
         if (this.state.filter === Filter.Private) {
-            searchedChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && this.isMemberOfChannel(c.id));
+            searchedChannels = channels.filter((c) =>
+                c.type === Constants.PRIVATE_CHANNEL &&
+                (this.isMemberOfChannel(c.id) || c.discoverable),
+            );
         }
         if (this.state.filter === Filter.Public) {
             searchedChannels = channels.filter((c) => c.type === Constants.OPEN_CHANNEL && c.delete_at === 0);
@@ -414,6 +436,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     isSearch={search}
                     search={this.search}
                     handleJoin={this.handleJoin}
+                    handleRequestToJoin={this.handleRequestToJoin}
                     noResultsText={noResultsText}
                     loading={search ? searching : channelsRequestStarted}
                     showRecommendedFilter={this.props.accessControlEnabled}
