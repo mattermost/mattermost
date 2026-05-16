@@ -520,6 +520,9 @@ func MinimumEnterpriseAdvancedLicense(license *License) bool {
 func NewBuiltinLicense() *License {
 	f := &Features{}
 	f.SetDefaults()
+	// SetDefaults() leaves Users=0 which can trigger zero-limit guards elsewhere.
+	// Use a large enough number so no seat-count code path fires.
+	f.Users = NewPointer(999999)
 	return &License{
 		Id:           "builtin",
 		IssuedAt:     0,

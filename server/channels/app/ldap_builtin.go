@@ -68,7 +68,11 @@ func (a *App) doBuiltinLdapLogin(rctx request.CTX, ldapID, password string) (*mo
 
 	// Service-account bind
 	if cfg.BindUsername != nil && *cfg.BindUsername != "" {
-		if err := conn.Bind(*cfg.BindUsername, *cfg.BindPassword); err != nil {
+		bindPass := strDeref(cfg.BindPassword)
+		if bindPass == "" {
+			return nil, model.NewAppError("doBuiltinLdapLogin", "app.ldap_builtin.bind.app_error", nil, "BindPassword is empty", http.StatusBadRequest)
+		}
+		if err := conn.Bind(*cfg.BindUsername, bindPass); err != nil {
 			return nil, model.NewAppError("doBuiltinLdapLogin", "app.ldap_builtin.bind.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -220,8 +224,13 @@ func doBuiltinLdapTest(cfg model.LdapSettings) *model.AppError {
 
 	// Service-account bind
 	if bindUser := strDeref(cfg.BindUsername); bindUser != "" {
+		bindPass := strDeref(cfg.BindPassword)
+		if bindPass == "" {
+			mlog.Debug("Builtin LDAP test: bind skipped — BindPassword is empty")
+			return model.NewAppError("doBuiltinLdapTest", "app.ldap_builtin.bind.app_error", nil, "BindPassword is empty", http.StatusBadRequest)
+		}
 		mlog.Debug("Builtin LDAP test: binding", mlog.String("bind_user", bindUser))
-		if err := conn.Bind(bindUser, strDeref(cfg.BindPassword)); err != nil {
+		if err := conn.Bind(bindUser, bindPass); err != nil {
 			mlog.Debug("Builtin LDAP test: bind failed", mlog.Err(err))
 			return model.NewAppError("doBuiltinLdapTest", "app.ldap_builtin.bind.app_error", nil, err.Error(), http.StatusUnauthorized)
 		}
