@@ -508,3 +508,31 @@ func MinimumEnterpriseLicense(license *License) bool {
 func MinimumEnterpriseAdvancedLicense(license *License) bool {
 	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= EnterpriseAdvancedTier
 }
+
+// NewBuiltinLicense returns a synthetic all-features Enterprise Advanced license
+// used when no real license is loaded.  Every feature flag is enabled via
+// Features.SetDefaults() so that upstream license checks become no-ops without
+// modifying each individual check site.
+//
+// Патч (builtin LDAP и др.): минимальный diff — правим только это место и
+// (ch *Channels).License() в app/license.go вместо сотен точечных изменений,
+// что существенно упрощает мержи с апстримом.
+func NewBuiltinLicense() *License {
+	f := &Features{}
+	f.SetDefaults()
+	return &License{
+		Id:           "builtin",
+		IssuedAt:     0,
+		StartsAt:     0,
+		ExpiresAt:    4102444800000, // 2100-01-01 UTC — effectively never expires
+		SkuName:      "Enterprise Advanced",
+		SkuShortName: LicenseShortSkuEnterpriseAdvanced,
+		Features:     f,
+		Customer: &Customer{
+			Id:      "builtin",
+			Name:    "Builtin",
+			Email:   "builtin@localhost",
+			Company: "Builtin",
+		},
+	}
+}

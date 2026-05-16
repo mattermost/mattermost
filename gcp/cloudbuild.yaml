@@ -4,46 +4,30 @@
 # Cloud Build работает нативно на linux/amd64 — QEMU не нужен.
 # npm run build занимает ~8-12 мин (vs 35+ мин под QEMU на macOS).
 #
-# Кеширование: inline-cache сохраняется в образе _IMAGE_REPO:latest.
-# При повторной сборке без изменений webapp — npm ci и npm run build
-# берутся из кеша слоёв Docker.
+# Кеширование: BuildKit registry cache сохраняется в _IMAGE_REPO:buildcache.
+# При повторной сборке без изменений webapp/server переиспользуются
+# промежуточные слои и cache mounts из Dockerfile.
 
 steps:
-  # ── Прогрев кеша ───────────────────────────────────────────────────────────
-  - name: 'gcr.io/cloud-builders/docker'
-    id: 'pull-cache'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - 'docker pull $_IMAGE_REPO:latest || true'
-
-  # ── Сборка образа ──────────────────────────────────────────────────────────
+  # ── Сборка и push образа ───────────────────────────────────────────────────
   - name: 'gcr.io/cloud-builders/docker'
     id: 'build'
     env:
       - 'DOCKER_BUILDKIT=1'
+    entrypoint: 'bash'
     args:
-      - build
-      - --file=Dockerfile.team-patch
-      - --cache-from=$_IMAGE_REPO:latest
-      - --build-arg=BUILDKIT_INLINE_CACHE=1
-      - --tag=$_IMAGE_REPO:$BRANCH_NAME
-      - --tag=$_IMAGE_REPO:latest
-      - .
+      - '-c'
+      - |
+        docker buildx create --name cloudbuild --use || docker buildx use cloudbuild
+        docker buildx build \
+          --file=Dockerfile.team-patch \
+          --cache-from=type=registry,ref=$_IMAGE_REPO:buildcache \
+          --cache-to=type=registry,ref=$_IMAGE_REPO:buildcache,mode=max \
+          --tag=$_IMAGE_REPO:$BRANCH_NAME \
+          --tag=$_IMAGE_REPO:latest \
+          --push \
+          .
     timeout: '3600s'
-
-  # ── Push ───────────────────────────────────────────────────────────────────
-  - name: 'gcr.io/cloud-builders/docker'
-    id: 'push-branch'
-    args: ['push', '$_IMAGE_REPO:$BRANCH_NAME']
-
-  - name: 'gcr.io/cloud-builders/docker'
-    id: 'push-latest'
-    args: ['push', '$_IMAGE_REPO:latest']
-
-images:
-  - '$_IMAGE_REPO:$BRANCH_NAME'
-  - '$_IMAGE_REPO:latest'
 
 timeout: '3600s'
 

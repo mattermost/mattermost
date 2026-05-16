@@ -14,7 +14,14 @@ import (
 )
 
 func (ch *Channels) License() *model.License {
-	return ch.srv.License()
+	// Патч: если реальной лицензии нет — возвращаем синтетическую all-features
+	// лицензию, чтобы все upstream license-checks стали no-op.
+	// При мерже с апстримом достаточно сохранить model.NewBuiltinLicense()
+	// в server/public/model/license.go и эти три строки.
+	if lic := ch.srv.License(); lic != nil {
+		return lic
+	}
+	return model.NewBuiltinLicense()
 }
 
 func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
