@@ -4,20 +4,21 @@
 import {createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
 import type {ReactNode} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
-import styled from 'styled-components';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import styled, {css} from 'styled-components';
 
-import {InformationOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, InformationOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {supportsOptions, type UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
+import AlertBanner from 'components/alert_banner';
 import LoadingScreen from 'components/loading_screen';
 
 import Constants from 'utils/constants';
 import {CPA_FIELD_NAME_RESERVED_WORDS, filterCELIdentifier, slugifyForCEL} from 'utils/properties';
 
-import {DangerText, BorderlessInput, LinkButton} from './controls';
+import {BorderlessInput, LinkButton} from './controls';
 import {useIsFieldOrphaned} from './orphaned_fields_utils';
 import type {SectionHook} from './section_utils';
 import DotMenu from './user_properties_dot_menu';
@@ -69,6 +70,7 @@ export const useUserPropertiesTable = (): SectionHook => {
                 deleteField={itemOps.delete}
                 reorderField={itemOps.reorder}
             />
+            <ValidationBanners warnings={userPropertyFields.warnings}/>
             {canCreate && (
                 <LinkButton onClick={create}>
                     <PlusIcon size={16}/>
@@ -258,46 +260,10 @@ export function UserPropertiesTable({
                     const toDelete = row.original.delete_at !== 0;
                     const isProtected = Boolean(row.original.attrs?.protected);
                     const warningId = collection.warnings?.[row.original.id]?.name;
-
-                    let warning;
-
-                    if (warningId === ValidationWarningNameRequired) {
-                        warning = (
-                            <FormattedMessage
-                                tagName={DangerText}
-                                id='admin.system_properties.user_properties.table.validation.name_required'
-                                defaultMessage='Please enter an attribute name.'
-                            />
-                        );
-                    } else if (warningId === ValidationWarningNameUnique) {
-                        warning = (
-                            <FormattedMessage
-                                tagName={DangerText}
-                                id='admin.system_properties.user_properties.table.validation.name_unique'
-                                defaultMessage='Attribute names must be unique.'
-                            />
-                        );
-                    } else if (warningId === ValidationWarningNameTaken) {
-                        warning = (
-                            <FormattedMessage
-                                tagName={DangerText}
-                                id='admin.system_properties.user_properties.table.validation.name_taken'
-                                defaultMessage='Attribute name already taken.'
-                            />
-                        );
-                    } else if (warningId === ValidationWarningNameInvalidCEL) {
-                        warning = (
-                            <DangerText data-testid='property-field-validation-error'>
-                                <FormattedMessage
-                                    id='admin.system_properties.user_properties.table.validation.name_invalid_cel'
-                                    defaultMessage='Identifier must start with a letter or underscore and contain only letters, numbers, and underscores. Reserved CEL words are not allowed.'
-                                />
-                            </DangerText>
-                        );
-                    }
+                    const hasError = Boolean(warningId) && !toDelete;
 
                     return (
-                        <>
+                        <NameCellWrapper $hasError={hasError}>
                             <EditCell
                                 value={getValue()}
                                 liveValue={nameOverridesRef.current[row.original.id]}
@@ -314,8 +280,15 @@ export function UserPropertiesTable({
                                 }}
                                 maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
                             />
-                            {!toDelete && warning}
-                        </>
+                            {hasError && (
+                                <NameCellErrorIcon
+                                    data-testid='property-field-validation-error'
+                                    aria-hidden='true'
+                                >
+                                    <AlertOutlineIcon size={14}/>
+                                </NameCellErrorIcon>
+                            )}
+                        </NameCellWrapper>
                     );
                 },
                 enableHiding: false,
@@ -500,6 +473,43 @@ const InfoIconWrapper = styled.span`
     cursor: pointer;
 `;
 
+const NameCellWrapper = styled.div<{$hasError: boolean}>`
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+
+    ${({$hasError}) => $hasError && css`
+        background: rgba(var(--error-text-color-rgb), 0.08);
+        box-shadow: inset 0 0 0 1px rgba(var(--error-text-color-rgb), 0.32);
+
+        /* Reserve room for the absolutely-positioned error icon so long
+           identifiers don't slide underneath it. */
+        input {
+            padding-right: 28px;
+        }
+    `};
+`;
+
+const NameCellErrorIcon = styled.span`
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--error-text);
+    pointer-events: none;
+    transform: translateY(-50%);
+`;
+
+const ValidationBannersWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+`;
+
 const ActionsRoot = styled.div`
     text-align: right;
 `;
@@ -596,5 +606,95 @@ const EditCell = (props: EditCellProps) => {
             />
             {props.footer}
         </>
+    );
+};
+
+const nameBannerTitles = defineMessages({
+    [ValidationWarningNameRequired]: {
+        id: 'admin.system_properties.user_properties.table.validation.name_required',
+        defaultMessage: 'Please enter an attribute name.',
+    },
+    [ValidationWarningNameUnique]: {
+        id: 'admin.system_properties.user_properties.table.validation.name_unique',
+        defaultMessage: 'Attribute names must be unique.',
+    },
+    [ValidationWarningNameTaken]: {
+        id: 'admin.system_properties.user_properties.table.validation.name_taken',
+        defaultMessage: 'Attribute name already taken.',
+    },
+    [ValidationWarningNameInvalidCEL]: {
+        id: 'admin.system_properties.user_properties.table.validation.name_invalid_cel',
+        defaultMessage: 'Identifier must start with a letter or underscore and contain only letters, numbers, and underscores. Reserved CEL words are not allowed.',
+    },
+});
+
+const nameBannerBodies = defineMessages({
+    [ValidationWarningNameRequired]: {
+        id: 'admin.system_properties.user_properties.table.validation.banner.name_required',
+        defaultMessage: '{count, plural, one {# attribute is} other {# attributes are}} missing a Name. Enter a Name to continue.',
+    },
+    [ValidationWarningNameUnique]: {
+        id: 'admin.system_properties.user_properties.table.validation.banner.name_unique',
+        defaultMessage: '{count, plural, one {# attribute shares} other {# attributes share}} the same Name. Update the highlighted Names so each attribute has a unique identifier.',
+    },
+    [ValidationWarningNameTaken]: {
+        id: 'admin.system_properties.user_properties.table.validation.banner.name_taken',
+        defaultMessage: 'The highlighted Name is already used by another attribute. Choose a different Name to continue.',
+    },
+    [ValidationWarningNameInvalidCEL]: {
+        id: 'admin.system_properties.user_properties.table.validation.banner.name_invalid_cel',
+        defaultMessage: 'The highlighted Name is not a valid identifier. Use letters, numbers, and underscores only; start with a letter or underscore, and avoid reserved CEL words.',
+    },
+});
+
+const NAME_BANNER_ORDER = [
+    ValidationWarningNameRequired,
+    ValidationWarningNameInvalidCEL,
+    ValidationWarningNameUnique,
+    ValidationWarningNameTaken,
+] as const;
+
+type ValidationBannersProps = {
+    warnings: UserPropertyFields['warnings'];
+}
+
+export const ValidationBanners = ({warnings}: ValidationBannersProps) => {
+    const {counts, presentTypes} = useMemo(() => {
+        const acc: Partial<Record<typeof NAME_BANNER_ORDER[number], number>> = {};
+        if (warnings) {
+            for (const warning of Object.values(warnings)) {
+                const id = warning?.name;
+                if (id && id in nameBannerTitles) {
+                    const key = id as typeof NAME_BANNER_ORDER[number];
+                    acc[key] = (acc[key] ?? 0) + 1;
+                }
+            }
+        }
+        return {
+            counts: acc,
+            presentTypes: NAME_BANNER_ORDER.filter((id) => (acc[id] ?? 0) > 0),
+        };
+    }, [warnings]);
+
+    if (presentTypes.length === 0) {
+        return null;
+    }
+
+    return (
+        <ValidationBannersWrapper>
+            {presentTypes.map((id) => (
+                <AlertBanner
+                    key={id}
+                    mode='warning'
+                    title={<FormattedMessage {...nameBannerTitles[id]}/>}
+                    message={
+                        <FormattedMessage
+                            {...nameBannerBodies[id]}
+                            values={{count: counts[id]}}
+                        />
+                    }
+                />
+            ))}
+        </ValidationBannersWrapper>
     );
 };
