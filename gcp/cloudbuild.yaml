@@ -52,4 +52,4 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 substitutions:
-  _IMAGE_REPO: 'asia-southeast3-docker.pkg.dev/mattermost/mattermost'
+  _IMAGE_REPO: 'asia-southeast3-docker.pkg.dev/gcloud-production-1/mattermost/mattermost'
