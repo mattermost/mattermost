@@ -33,11 +33,18 @@ var pluginRemoteInitialPingDelay = 5 * time.Second
 
 // schedulePluginRemoteInitialPing schedules a single deferred ping for a
 // freshly registered or restored plugin remote. The goroutine is launched
-// via Server.Go so it cannot outlive the server.
+// via Server.Go so it cannot outlive the server. The remote is re-read
+// before the ping fires because the plugin may have unregistered it
+// inside the delay window; pinging a soft-deleted row is harmless but
+// produces a stray "ping failed" warning.
 func (a *App) schedulePluginRemoteInitialPing(rcService remotecluster.RemoteClusterServiceIFace, rc *model.RemoteCluster) {
 	a.Srv().Go(func() {
 		time.Sleep(pluginRemoteInitialPingDelay)
-		rcService.PingNow(rc)
+		current, err := a.Srv().Store().RemoteCluster().Get(rc.RemoteId, true)
+		if err != nil || current.DeleteAt != 0 {
+			return
+		}
+		rcService.PingNow(current)
 	})
 }
 
