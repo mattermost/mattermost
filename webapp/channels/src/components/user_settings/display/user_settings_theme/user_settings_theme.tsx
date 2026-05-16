@@ -79,7 +79,10 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        if (this.props.selected) {
+        // Патч: не перетираем тему при закрытии если включён syncWithOS.
+        // props.theme — базовая светлая тема из DB; реальная тема определяется
+        // ThemeProvider через OS-режим, и вызов applyTheme здесь её сбрасывал.
+        if (this.props.selected && !this.props.syncWithOS) {
             applyTheme(this.props.theme);
         }
     }
@@ -165,7 +168,11 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         state.serverError = '';
         this.setState(state);
 
-        applyTheme(state.theme);
+        // Патч: не перетираем тему если syncWithOS включён — ThemeProvider
+        // сам поддерживает правильную тему через OS-режим.
+        if (!this.props.syncWithOS) {
+            applyTheme(state.theme);
+        }
 
         this.props.setRequireConfirm?.(false);
     };
