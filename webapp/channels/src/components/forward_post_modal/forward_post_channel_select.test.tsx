@@ -3,13 +3,14 @@
 
 import React from 'react';
 
+import {compassIconForName} from 'components/channel_type_icon';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 import {TestHelper} from 'utils/test_helper';
 
 import {FormattedOption, makeSelectedChannelOption} from './forward_post_channel_select';
 
-jest.mock('utils/compass_icon_resolver', () => ({
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
     compassIconForName: jest.fn().mockReturnValue(null),
 }));
 

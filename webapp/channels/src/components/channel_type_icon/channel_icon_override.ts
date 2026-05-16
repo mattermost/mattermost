@@ -5,9 +5,10 @@ import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import type {Channel} from '@mattermost/types/channels';
 
 import {getChannelIconClassName} from 'utils/channel_utils';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 
 import type {GlobalState} from 'types/store';
+
+import {compassIconForName} from './compass_icon_resolver';
 
 // Tracks plugin ids that have already logged a matcher error to avoid spamming the console.
 const loggedMatcherErrors = new Set<string>();
@@ -18,13 +19,8 @@ const loggedIconNameErrors = new Set<string>();
 
 /**
  * Clears the per-pluginId log-once tracker for matcher errors.
- * No-arg form clears all entries (e.g., on logout); with-arg form clears one plugin's entry.
- *
- * Call this when a plugin is unregistered so that errors are re-logged if the plugin
- * re-registers with a broken matcher. The logout case (no page reload) is a known limitation:
- * if a page reload does not occur between sessions the Set will retain entries from the prior
- * session until the next plugin unregistration clears them. This is acceptable because the
- * SPA always reloads on logout in practice (see store/index.ts), but is not enforced here.
+ * No-arg form clears all entries; with-arg form clears one plugin's entry.
+ * Called on each new registration so that re-registering a plugin starts fresh.
  */
 export function clearLoggedMatcherErrors(pluginId?: string): void {
     if (pluginId === undefined) {
@@ -53,7 +49,7 @@ export function getChannelIconOverrideForChannel(
     const overrides = state.plugins.components.ChannelIconOverride ?? [];
     for (const entry of overrides) {
         try {
-            const matched = entry.matcher(channel, state);
+            const matched = entry.matcher(state, channel);
             if (matched === true) {
                 return entry.iconName;
             }

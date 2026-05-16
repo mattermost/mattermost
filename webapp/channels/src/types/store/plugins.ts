@@ -423,7 +423,7 @@ export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
 };
 
 export type ChannelIconOverrideRegistration = PluginComponent & {
-    matcher: (channel: Channel, state: GlobalState) => boolean;
+    matcher: (state: GlobalState, channel: Channel) => boolean;
     iconName: IconGlyphTypes;
 };
 

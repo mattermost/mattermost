@@ -6,9 +6,9 @@ import {useSelector} from 'react-redux';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import type {Channel} from '@mattermost/types/channels';
 
-import {getChannelIconOverrideForChannel} from 'selectors/channel_icon_override';
-
 import type {GlobalState} from 'types/store';
+
+import {getChannelIconOverrideForChannel} from './channel_icon_override';
 
 export function useChannelIconOverrideName(channel?: Channel): IconGlyphTypes | null {
     return useSelector((state: GlobalState) => getChannelIconOverrideForChannel(state, channel));

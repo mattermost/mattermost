@@ -202,7 +202,11 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Archived channel',
                 })}
             >
-                {isRealChannel(channel) && <ChannelTypeIcon channel={channel}/>}
+                {isRealChannel(channel) ? (
+                    <ChannelTypeIcon channel={channel}/>
+                ) : (
+                    <i className='icon icon-archive-outline'/>
+                )}
             </span>
         );
     } else if (hasDraft) {

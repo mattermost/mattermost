@@ -3,9 +3,6 @@
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot 1`] = `
 <div>
   <div>
-    <i
-      class="icon icon-globe"
-    />
     <button
       aria-label="Channel options"
     >
@@ -21,9 +18,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when private channel 1`] = `
 <div>
   <div>
-    <i
-      class="icon icon-lock-outline"
-    />
     <button
       aria-label="Channel options"
     >
@@ -39,9 +33,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when shared channel 1`] = `
 <div>
   <div>
-    <i
-      class="icon icon-globe"
-    />
     <button
       aria-label="Channel options"
     >
@@ -57,9 +48,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match sn
 exports[`components/sidebar/sidebar_channel/sidebar_base_channel should match snapshot when shared private channel 1`] = `
 <div>
   <div>
-    <i
-      class="icon icon-lock-outline"
-    />
     <button
       aria-label="Channel options"
     >

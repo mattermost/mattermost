@@ -12,7 +12,7 @@ import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
  * Returns null if the component isn't in the glyph map.
  */
 export function compassIconForName(name: IconGlyphTypes): React.FC<IconProps> | null {
-    if (!Object.prototype.hasOwnProperty.call(glyphMap, name)) {
+    if (!Object.hasOwn(glyphMap, name)) {
         return null;
     }
     return (glyphMap as Partial<Record<IconGlyphTypes, React.FC<IconProps>>>)[name] ?? null;

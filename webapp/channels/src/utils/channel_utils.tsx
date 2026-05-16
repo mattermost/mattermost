@@ -119,6 +119,14 @@ export function getChannelIconClassName(channel?: Channel): string {
         return getArchiveIconClassName(channel?.type);
     }
 
+    if (channel?.type === Constants.DM_CHANNEL) {
+        return 'icon-account-outline';
+    }
+
+    if (channel?.type === Constants.GM_CHANNEL) {
+        return 'icon-account-multiple-outline';
+    }
+
     if (channel?.type === Constants.PRIVATE_CHANNEL) {
         return 'icon-lock-outline';
     }

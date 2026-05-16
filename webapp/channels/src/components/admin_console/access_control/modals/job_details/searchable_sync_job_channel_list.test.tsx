@@ -3,15 +3,16 @@
 
 import React from 'react';
 
-jest.mock('utils/compass_icon_resolver', () => ({
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
     compassIconForName: jest.fn(),
 }));
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
+import {compassIconForName} from 'components/channel_type_icon';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 
 jest.mock('@mattermost/compass-icons/components', () => ({
     ...jest.requireActual('@mattermost/compass-icons/components'),

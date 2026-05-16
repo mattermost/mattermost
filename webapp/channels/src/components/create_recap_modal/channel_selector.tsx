@@ -9,8 +9,6 @@ import type {Channel} from '@mattermost/types/channels';
 import ChannelTypeIcon from 'components/channel_type_icon';
 import Input from 'components/widgets/inputs/input/input';
 
-import {Constants} from 'utils/constants';
-
 type Props = {
     selectedChannelIds: string[];
     setSelectedChannelIds: (ids: string[]) => void;
@@ -53,12 +51,7 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
     const renderChannelItem = (channel: Channel) => {
         const isSelected = selectedChannelIds.includes(channel.id);
 
-        let icon: React.ReactNode = <ChannelTypeIcon channel={channel}/>;
-        if (channel.type === Constants.DM_CHANNEL) {
-            icon = <i className='icon icon-account-outline'/>;
-        } else if (channel.type === Constants.GM_CHANNEL) {
-            icon = <i className='icon icon-account-multiple-outline'/>;
-        }
+        const icon: React.ReactNode = <ChannelTypeIcon channel={channel}/>;
 
         return (
             <div

@@ -71,7 +71,7 @@ describe('selectors/getChannelIconClassNameForChannel', () => {
             ]);
             const channel = makeChannel();
             expect(getChannelIconClassNameForChannel(state, channel)).toBe('icon-shield-outline');
-            expect(matcher).toHaveBeenCalledWith(channel, state);
+            expect(matcher).toHaveBeenCalledWith(state, channel);
         });
 
         it('uses array order for first-match-wins when multiple match', () => {
@@ -113,7 +113,7 @@ describe('selectors/getChannelIconClassNameForChannel', () => {
                         ChannelIconOverride: [{
                             id: '1',
                             pluginId: 'mbe',
-                            matcher: (channel: Channel, state: GlobalState) =>
+                            matcher: (state: GlobalState) =>
                                 (state as any)['plugins-mbe']?.someValue === 42,
                             iconName: 'shield-outline',
                         }],
@@ -132,7 +132,7 @@ describe('selectors/getChannelIconClassNameForChannel', () => {
                         ChannelIconOverride: [{
                             id: '1',
                             pluginId: 'mbe',
-                            matcher: (channel: Channel, state: GlobalState) =>
+                            matcher: (state: GlobalState) =>
                                 (state as any)['plugins-mbe']?.someValue === 42,
                             iconName: 'shield-outline',
                         }],
@@ -265,7 +265,7 @@ describe('selectors/getChannelIconOverrideForChannel', () => {
             ]);
             const channel = makeChannel();
             expect(getChannelIconOverrideForChannel(state, channel)).toBe('shield-outline');
-            expect(matcher).toHaveBeenCalledWith(channel, state);
+            expect(matcher).toHaveBeenCalledWith(state, channel);
         });
 
         it('uses array order for first-match-wins when multiple match', () => {

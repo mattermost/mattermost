@@ -11,11 +11,10 @@ import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 
 import AdvancedCreateComment from 'components/advanced_create_comment';
+import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
 
-import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getArchiveIconComponent} from 'utils/channel_utils';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -76,10 +75,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
         const IconComponent = OverrideIcon ?? getArchiveIconComponent(channelType);
 
-        // When an override icon wins, strip archive chrome so the plugin icon stands on its own.
-        const archiveIconEl = OverrideIcon ? (
-            <IconComponent size={20}/>
-        ) : (
+        const archiveIconEl = (
             <IconComponent
                 size={20}
                 color={'rgba(var(--center-channel-color-rgb), 0.75)'}

@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-jest.mock('utils/compass_icon_resolver', () => ({
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
     compassIconForName: jest.fn(),
 }));
 
@@ -22,10 +22,11 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
 
+import {compassIconForName} from 'components/channel_type_icon';
+
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 import {Locations} from 'utils/constants';
 import * as PopoutWindows from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
@@ -747,11 +748,12 @@ describe('PostComponent', () => {
         });
 
         test('renders override SVG icon for archived channel in search view when plugin matches', () => {
-            const StubIcon = ({size, color}: {size?: number; color?: string}) => (
+            const StubIcon = ({size, color, className}: {size?: number; color?: string; className?: string}) => (
                 <span
                     data-testid='stub-override-icon'
                     data-size={size}
                     data-color={color}
+                    className={className}
                 />
             );
             mockedCompassIconForName.mockReturnValue(StubIcon as any);
@@ -782,13 +784,11 @@ describe('PostComponent', () => {
             const overrideIcon = screen.getByTestId('stub-override-icon');
             expect(overrideIcon).toBeInTheDocument();
 
-            // Override branch passes no props — no size, no color, no archive classes
-            expect(overrideIcon).not.toHaveAttribute('data-size');
-            expect(overrideIcon).not.toHaveAttribute('data-color');
+            // Override icon gets svg-text-color (greyed to signal archived) but not the built-in archive icon classes
+            expect(overrideIcon).toHaveClass('svg-text-color');
             expect(overrideIcon).not.toHaveClass('channel-header-archived-icon');
-            expect(overrideIcon).not.toHaveClass('svg-text-color');
 
-            // No "Archived" tooltip when override wins
+            // No "Archived" tooltip when override wins (parent is aria-hidden; tooltip adds no a11y value)
             expect(screen.queryByText('Archived')).not.toBeInTheDocument();
 
             // Default archive icon is absent when override wins

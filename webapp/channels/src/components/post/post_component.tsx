@@ -19,6 +19,7 @@ import {
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
 import BurnOnReadConfirmationModal from 'components/burn_on_read_confirmation_modal';
+import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
@@ -44,10 +45,8 @@ import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
-import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getHistory} from 'utils/browser_history';
 import {getArchiveIconComponent} from 'utils/channel_utils';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -152,11 +151,10 @@ const ArchivedChannelIcon = ({channel, channelType}: ArchivedChannelIconProps) =
     const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
     const IconComponent = OverrideIcon ?? getArchiveIconComponent(channelType);
 
-    // When an override icon wins, strip archive chrome so the plugin icon stands on its own.
     if (OverrideIcon) {
         return (
             <span className='search-channel__archived'>
-                <IconComponent/>
+                <IconComponent className='svg-text-color'/>
             </span>
         );
     }

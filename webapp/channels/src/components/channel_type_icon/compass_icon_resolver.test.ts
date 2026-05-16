@@ -5,7 +5,7 @@ import {GlobeIcon, ShieldOutlineIcon, ArchiveLockOutlineIcon} from '@mattermost/
 
 import {compassIconForName} from './compass_icon_resolver';
 
-describe('utils/compassIconForName', () => {
+describe('components/channel_type_icon/compassIconForName', () => {
     it("maps 'globe' to GlobeIcon", () => {
         expect(compassIconForName('globe')).toBe(GlobeIcon);
     });
