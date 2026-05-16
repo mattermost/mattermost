@@ -19,13 +19,12 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
+import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getChannelIconComponent} from 'utils/channel_utils';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 
 import type {GlobalState} from 'types/store';
 

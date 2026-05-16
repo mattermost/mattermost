@@ -31,7 +31,6 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_icon', () => {
                 channel={makeChannel({type: 'O', delete_at: 0})}
                 icon={baseIcon}
             />,
-            makeState(),
         );
 
         expect(container.querySelector('.icon-globe')).toBeInTheDocument();
@@ -45,7 +44,6 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_icon', () => {
                 channel={makeChannel({type: 'O', delete_at: 1})}
                 icon={baseIcon}
             />,
-            makeState(),
         );
 
         expect(container.querySelector('.icon-archive-outline')).toBeInTheDocument();
@@ -58,7 +56,6 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_icon', () => {
                 channel={makeChannel({type: 'P', delete_at: 1})}
                 icon={baseIcon}
             />,
-            makeState(),
         );
 
         expect(container.querySelector('.icon-archive-lock-outline')).toBeInTheDocument();

@@ -6,15 +6,16 @@ import React from 'react';
 import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {compassIconForName} from 'components/channel_type_icon';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
 import CreateComment from './create_comment';
 
-jest.mock('utils/compass_icon_resolver', () => ({
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
     compassIconForName: jest.fn(),
 }));
 
@@ -102,8 +103,8 @@ describe('components/threading/CreateComment', () => {
         expect(icon).toBeInTheDocument();
         expect(icon).toHaveAttribute('data-size', '20');
 
-        // Override icon renders without archive color chrome
-        expect(icon).not.toHaveAttribute('data-color');
+        // Override icon gets the same greyed color as the default archive icon
+        expect(icon).toHaveAttribute('data-color', 'rgba(var(--center-channel-color-rgb), 0.75)');
     });
 
     it('renders fallback SVG archive icon when matcher returns false', () => {

@@ -181,19 +181,7 @@ describe('PluginRegistry — registerChannelIconOverride', () => {
         expect(getOverrides()).toHaveLength(2);
     });
 
-    it('(d) unregisterChannelIconOverride removes only that entry', () => {
-        const registry = new PluginRegistry(PLUGIN_ID);
-        const id1 = registry.registerChannelIconOverride({matcher: () => false, iconName: 'shield-outline'});
-        const id2 = registry.registerChannelIconOverride({matcher: () => true, iconName: 'lock-outline'});
-
-        registry.unregisterChannelIconOverride({id: id1});
-
-        const overrides = getOverrides();
-        expect(overrides).toHaveLength(1);
-        expect(overrides[0].id).toBe(id2);
-    });
-
-    it('(e) REMOVED_WEBAPP_PLUGIN sweeps all overrides for that plugin', () => {
+    it('(d) REMOVED_WEBAPP_PLUGIN sweeps all overrides for that plugin', () => {
         const registry = new PluginRegistry(PLUGIN_ID);
         const otherRegistry = new PluginRegistry('other_plugin');
 
@@ -234,22 +222,7 @@ describe('PluginRegistry — registerChannelIconOverride', () => {
         expect(overrides[1].pluginId).toBe('zzz_plugin');
     });
 
-    it('(h) plugin B cannot unregister plugin A\'s override by id', () => {
-        const registryA = new PluginRegistry('plugin_a');
-        const registryB = new PluginRegistry('plugin_b');
-
-        const idFromA = registryA.registerChannelIconOverride({matcher: () => true, iconName: 'shield-outline'});
-        registryB.registerChannelIconOverride({matcher: () => false, iconName: 'lock-outline'});
-
-        // Plugin B attempts to unregister plugin A's id — should be a no-op
-        registryB.unregisterChannelIconOverride({id: idFromA});
-
-        const overrides: Array<{pluginId: string}> = getOverrides();
-        expect(overrides).toHaveLength(2);
-        expect(overrides.some((o) => o.pluginId === 'plugin_a')).toBe(true);
-    });
-
-    it('(i) registering with an unknown iconName logs an error and does not add an entry', () => {
+    it('(h) registering with an unknown iconName logs an error and does not add an entry', () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         const registry = new PluginRegistry(PLUGIN_ID);
 

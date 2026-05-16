@@ -21,6 +21,7 @@ import {getMyTeams, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
@@ -29,9 +30,7 @@ import SwitchChannelProvider from 'components/suggestion/switch_channel_provider
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getArchiveIconComponent} from 'utils/channel_utils';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
@@ -69,7 +68,7 @@ export const FormattedOption = (props: ChannelOption & {className: string; isSin
     const isPartOfOnlyOneTeam = useSelector((state: GlobalState) => getMyTeams(state).length === 1);
 
     const channelIsArchived = details.delete_at > 0;
-    const overrideName = useChannelIconOverrideName(details);
+    const overrideName = useChannelIconOverrideName(details.id ? details : undefined);
 
     let icon;
     const iconProps = {

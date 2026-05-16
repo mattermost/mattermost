@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-jest.mock('utils/compass_icon_resolver', () => ({
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
     compassIconForName: jest.fn(),
 }));
 
@@ -19,8 +19,9 @@ jest.mock('utils/channel_utils', () => ({
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
+import {compassIconForName} from 'components/channel_type_icon';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderTitle from './channel_header_title';
@@ -165,10 +166,11 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
         // The archive icon is rendered directly (not inside ChannelHeaderMenu) for bot DM channels.
         // Use a bot DM + archived channel to test the override path without fighting the mock.
         test('renders override SVG icon in archive slot when plugin matcher matches', () => {
-            const StubIcon = (props: {'data-testid'?: string; size?: number}) => (
+            const StubIcon = (props: {'data-testid'?: string; size?: number; className?: string}) => (
                 <span
                     data-testid={props['data-testid'] ?? 'stub-override-icon'}
                     data-size={props.size}
+                    className={props.className}
                 />
             );
             mockedCompassIconForName.mockReturnValue(StubIcon as any);
@@ -204,10 +206,9 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
             const overrideIcon = screen.getByTestId('channel-header-archive-icon');
             expect(overrideIcon).toBeInTheDocument();
 
-            // Override branch passes no size — no archive-specific classes
-            expect(overrideIcon).not.toHaveAttribute('data-size');
+            // Override icon gets svg-text-color (greyed to signal archived) but not the built-in archive icon classes
+            expect(overrideIcon).toHaveClass('svg-text-color');
             expect(overrideIcon).not.toHaveClass('channel-header-archived-icon');
-            expect(overrideIcon).not.toHaveClass('svg-text-color');
 
             // Default archive icon is absent when override wins
             expect(document.querySelector('[data-is-default-archive]')).not.toBeInTheDocument();

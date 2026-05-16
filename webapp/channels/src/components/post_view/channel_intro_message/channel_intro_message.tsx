@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
-import {BellRingOutlineIcon, GlobeIcon, PencilOutlineIcon, StarOutlineIcon, LockOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
+import {BellRingOutlineIcon, PencilOutlineIcon, StarOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
@@ -15,6 +15,7 @@ import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import {ChannelIcon} from 'components/channel_type_icon';
 import ChannelIntroPrivateSvg from 'components/common/svg_images_components/channel_intro_private_svg';
 import ChannelIntroPublicSvg from 'components/common/svg_images_components/channel_intro_public_svg';
 import ChannelIntroTownSquareSvg from 'components/common/svg_images_components/channel_intro_town_square_svg';
@@ -25,8 +26,6 @@ import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
 import UserProfile from 'components/user_profile';
 
-import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 import * as Utils from 'utils/utils';
@@ -525,13 +524,6 @@ function createDefaultIntroMessage(
     );
 }
 
-function ChannelIntroIcon({channel, isPrivate}: {channel: Channel; isPrivate: boolean}) {
-    const overrideName = useChannelIconOverrideName(channel);
-    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
-    const IconComponent = OverrideIcon ?? (isPrivate ? LockOutlineIcon : GlobeIcon);
-    return <IconComponent size={14}/>;
-}
-
 function createStandardIntroMessage(
     channel: Channel,
     centeredIntro: string,
@@ -697,9 +689,9 @@ function createStandardIntroMessage(
                 {channel.display_name}
             </h2>
             <div className='channel-intro__created'>
-                <ChannelIntroIcon
+                <ChannelIcon
                     channel={channel}
-                    isPrivate={isPrivate}
+                    size={14}
                 />
                 {createMessage}
             </div>

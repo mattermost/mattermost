@@ -3,10 +3,9 @@
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {clearLoggedMatcherErrors} from 'selectors/channel_icon_override';
-
 import {renderHookWithContext} from 'tests/react_testing_utils';
 
+import {clearLoggedMatcherErrors} from './channel_icon_override';
 import {useChannelIconOverrideName} from './useChannelIconOverrideName';
 
 function makeChannel(partial: Partial<Channel> = {}): Channel {

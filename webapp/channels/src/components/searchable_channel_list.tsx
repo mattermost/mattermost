@@ -11,6 +11,7 @@ import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import {ChannelIcon} from 'components/channel_type_icon';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
@@ -19,9 +20,6 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
-import {getChannelIconComponent} from 'utils/channel_utils';
-import {compassIconForName} from 'utils/compass_icon_resolver';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -29,13 +27,6 @@ import type {FilterType} from './browse_channels/browse_channels';
 import {Filter} from './browse_channels/browse_channels';
 
 const NEXT_BUTTON_TIMEOUT_MILLISECONDS = 500;
-
-function ChannelRowIcon({channel}: {channel: Channel}) {
-    const overrideName = useChannelIconOverrideName(channel);
-    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
-    const IconComponent = OverrideIcon ?? getChannelIconComponent(channel);
-    return <IconComponent size={18}/>;
-}
 
 interface Props extends WrappedComponentProps {
     channels: Channel[];
@@ -132,7 +123,11 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
     createChannelRow = (channel: Channel) => {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
-        const channelTypeIcon = <ChannelRowIcon channel={channel}/>;
+        const channelTypeIcon = (
+            <ChannelIcon
+                channel={channel}
+                size={18}
+            />);
         let memberCount = 0;
         if (this.props.channelsMemberCount?.[channel.id]) {
             memberCount = this.props.channelsMemberCount[channel.id];

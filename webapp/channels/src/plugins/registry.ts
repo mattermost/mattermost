@@ -27,10 +27,11 @@ import {
     registerPluginReconnectHandler,
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
-import {clearLoggedMatcherErrors} from 'selectors/channel_icon_override';
 import store from 'stores/redux_store';
 
-import {compassIconForName} from 'utils/compass_icon_resolver';
+import {compassIconForName} from 'components/channel_type_icon';
+import {clearLoggedMatcherErrors} from 'components/channel_type_icon/channel_icon_override';
+
 import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
 import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
@@ -1360,16 +1361,17 @@ export default class PluginRegistry {
     /**
      * Register an icon override for matching channels.
      *
-     * `matcher` receives the full GlobalState (not a projection) and a Channel object. It is called
-     * for every channel, including archived ones. Matcher throws are caught and treated as no-match.
-     * Collisions between plugins are resolved by reducer order (alphabetical by pluginId across plugins;
-     * insertion order within a plugin after stable sort). First match wins.
+     * `matcher` receives the full GlobalState as the first argument and a Channel object as the
+     * second. It is called for every channel, including archived ones. Matcher throws are caught
+     * and treated as no-match. Collisions between plugins are resolved by reducer order
+     * (alphabetical by pluginId across plugins; insertion order within a plugin after stable sort).
+     * First match wins.
      *
      * `iconName` must be a Compass IconGlyphTypes value such as 'shield-outline'. Core renders the
      * glyph as `icon-${iconName}` using the existing icon-font DOM family. Plugins must not supply
      * React components, arbitrary class names, colors, wrappers, or SVGs.
      *
-     * Store the returned id and pass it to `unregisterChannelIconOverride` during plugin cleanup.
+     * Registrations are cleaned up automatically when the plugin is removed.
      *
      * @returns Auto-generated unique id for this registration.
      */
@@ -1384,6 +1386,7 @@ export default class PluginRegistry {
             );
             return generateId();
         }
+        clearLoggedMatcherErrors(this.id);
         const id = generateId();
         dispatchPluginComponentWithData('ChannelIconOverride', {
             id,
@@ -1392,23 +1395,6 @@ export default class PluginRegistry {
             iconName,
         });
         return id;
-    });
-
-    /**
-     * Remove a channel icon override registered by this plugin.
-     * Pass the id returned by `registerChannelIconOverride`.
-     * Removal is scoped to this plugin: only entries with a matching (pluginId, id) pair are removed,
-     * so a plugin cannot unregister another plugin's override.
-     * Unregistering an id that is not currently registered is a no-op.
-     */
-    unregisterChannelIconOverride = reArg(['id'], ({id}: {id: string}) => {
-        clearLoggedMatcherErrors(this.id);
-        store.dispatch({
-            type: ActionTypes.REMOVED_PLUGIN_COMPONENT_BY_ID,
-            name: 'ChannelIconOverride',
-            pluginId: this.id,
-            id,
-        });
     });
 
     /**

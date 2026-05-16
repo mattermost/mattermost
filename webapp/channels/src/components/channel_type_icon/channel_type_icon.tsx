@@ -6,7 +6,7 @@ import type {HTMLAttributes} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {useChannelIconClassName} from 'hooks/useChannelIconClassName';
+import {useChannelIconClassName} from './useChannelIconClassName';
 
 type Props = {
     channel?: Channel;
