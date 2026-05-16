@@ -51,6 +51,14 @@ func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) 
 	if ldapI != nil && license != nil && model.SafeDereference(license.Features.LDAP) {
 		return ldapI.RunTestConnection(rctx, settings)
 	}
+
+	// Патч: UI не передаёт пароль обратно (password-поле пустое в форме).
+	// Если BindPassword пустой в пришедших settings — берём из сохранённого конфига
+	// (который включает значения из env vars, например MM_LDAPSETTINGS_BINDPASSWORD).
+	if strDeref(settings.BindPassword) == "" {
+		settings.BindPassword = a.Config().LdapSettings.BindPassword
+	}
+
 	// Team Edition fallback: test using the settings passed from the UI
 	// (may differ from the saved config — admin can test before saving).
 	return doBuiltinLdapTest(settings)
