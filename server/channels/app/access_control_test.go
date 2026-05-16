@@ -2644,6 +2644,10 @@ func TestRedactSimulationAttributesForCaller(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	require.True(t, ok, "SetLicense should return true")
+	defer th.App.Srv().SetLicense(nil)
+
 	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	require.Nil(t, gErr)
 
