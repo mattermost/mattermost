@@ -7,16 +7,14 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 1 — webapp (JS/CSS assets)
 # ─────────────────────────────────────────────────────────────────────────────
-FROM node:24-alpine AS webapp-builder
+FROM node:24-bookworm-slim AS webapp-builder
 
 WORKDIR /src/webapp
 
-# Install dependencies first so this layer is cached when only source changes.
-COPY webapp/package.json webapp/package-lock.json ./
+# Copy all sources first — postinstall needs workspace dirs (platform/*) to exist.
+COPY webapp/ .
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --include=dev
-
-COPY webapp/ .
 # Outputs to channels/dist/
 RUN npm run build
 
