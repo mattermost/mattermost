@@ -9,13 +9,13 @@ import {shallowEqual, useDispatch, useSelector} from 'react-redux';
 import {GenericModal} from '@mattermost/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Board} from '@mattermost/types/boards';
-import type {ChannelType, Channel, NewChannelFormState} from '@mattermost/types/channels';
+import type {ChannelType, Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
+import type {CreateResult, NewChannelFormState} from '@mattermost/types/plugins';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
 import {Client4} from 'mattermost-redux/client';
-import {logError} from 'mattermost-redux/actions/errors';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
@@ -71,7 +71,7 @@ export function getChannelTypeFromPermissions(canCreatePublicChannel: boolean, c
     return channelType as ChannelType;
 }
 
-function isBuiltInType(t: string): boolean {
+function isBuiltInType(t: string): t is ChannelType {
     return t === Constants.OPEN_CHANNEL || t === Constants.PRIVATE_CHANNEL;
 }
 
@@ -203,7 +203,7 @@ const NewChannelModal = () => {
                 display_name: displayName,
                 purpose,
                 header: '',
-                type: type as ChannelType,
+                type,
                 create_at: 0,
                 creator_id: '',
                 delete_at: 0,
@@ -262,62 +262,51 @@ const NewChannelModal = () => {
             } catch (e) {
                 // eslint-disable-next-line no-console
                 console.error('NewChannelModal builtin creation failed', e);
-                dispatch(logError({message: String(e)}));
                 onCreateChannelError({message: formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'})});
             }
         } else if (activePluginOption) {
-            const formState: NewChannelFormState = {
-                teamId: currentTeamId,
-                displayName,
-                url,
-                purpose,
-                type,
-                managedCategoryName,
-            };
-
+            const genericError = formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'});
             setIsSubmitting(true);
+            let result: CreateResult | undefined;
             try {
-                const result = await activePluginOption.onCreate(formState);
-                const genericError = formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'});
-                const logMalformed = (reason: string) => {
-                    const msg = `ChannelTypeOption ${activePluginOption.pluginId}:${activePluginOption.id} ${reason}`;
-                    // eslint-disable-next-line no-console
-                    console.error(msg, result);
-                    dispatch(logError({message: msg}));
-                    setServerError(genericError);
-                };
-
-                if (result.status === 'created' && !result.channel) {
-                    logMalformed('returned malformed result');
-                } else if (result.status === 'error' && typeof result.message !== 'string') {
-                    logMalformed('returned malformed result');
-                } else {
-                    switch (result.status) {
-                    case 'created':
-                        dispatch(switchToChannel(result.channel));
-                        handleOnModalCancel();
-                        break;
-                    case 'deferred':
-                        handleOnModalCancel();
-                        break;
-                    case 'error':
-                        setServerError(result.message);
-                        break;
-                    case 'cancelled':
-                        break;
-                    default: {
-                        logMalformed('returned unrecognized status');
-                    }
-                    }
-                }
+                result = await activePluginOption.onCreate(formState);
             } catch (e) {
-                const msg = `ChannelTypeOption ${activePluginOption.pluginId}:${activePluginOption.id} onCreate threw`;
                 // eslint-disable-next-line no-console
-                console.error(msg, e);
-                dispatch(logError({message: `${msg}: ${String(e)}`}));
-                setServerError(formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'}));
+                console.error(`ChannelTypeOption ${activePluginOption.pluginId}:${activePluginOption.id} onCreate threw`, e);
+                setServerError(genericError);
             } finally {
                 setIsSubmitting(false);
+            }
+            if (!result) {
+                return;
+            }
+            if (result.status === 'created' && !result.channel) {
+                // eslint-disable-next-line no-console
+                console.error(`ChannelTypeOption ${activePluginOption.pluginId}:${activePluginOption.id} returned malformed result`, result);
+                setServerError(genericError);
+                return;
+            }
+            if (result.status === 'error' && typeof result.message !== 'string') {
+                // eslint-disable-next-line no-console
+                console.error(`ChannelTypeOption ${activePluginOption.pluginId}:${activePluginOption.id} returned malformed result`, result);
+                setServerError(genericError);
+                return;
+            }
+            switch (result.status) {
+            case 'created':
+                dispatch(switchToChannel(result.channel));
+                handleOnModalCancel();
+                break;
+            case 'deferred':
+                handleOnModalCancel();
+                break;
+            case 'error':
+                setServerError(result.message);
+                break;
+            default:
+                // eslint-disable-next-line no-console
+                console.error(`ChannelTypeOption ${activePluginOption.pluginId}:${activePluginOption.id} returned unrecognized status`, result);
+                setServerError(genericError);
             }
         }
     };
@@ -415,21 +404,21 @@ const NewChannelModal = () => {
     const classificationValid = !classificationEnabled || (Boolean(selectedClassificationId) && bannerText.trim().length > 0);
     const canCreate = displayName && !urlError && hasValidType && !purposeError && !serverError && pluginCreateGate && !channelInputError && classificationValid && !isSubmitting;
 
-    const pluginOptions: PluginOptionButtonProps[] = availableOptions.map((o) => ({
+    const pluginOptions = useMemo<PluginOptionButtonProps[]>(() => availableOptions.map((o) => ({
         id: o.id,
         label: o.label,
         description: o.description,
         icon: o.icon,
-    }));
+    })), [availableOptions]);
 
-    const formState: NewChannelFormState = {
+    const formState = useMemo<NewChannelFormState>(() => ({
         teamId: currentTeamId ?? '',
         displayName,
         url,
         purpose,
         type,
         managedCategoryName,
-    };
+    }), [currentTeamId, displayName, url, purpose, type, managedCategoryName]);
 
     const newBoardInfoIcon = (
         <WithTooltip

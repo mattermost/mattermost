@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from './channels';
+
 // Equivalent to MessageDescriptor from react-intl
 type MessageDescriptor = {
     id: string;
@@ -154,3 +156,28 @@ export type MarketplacePlugin = { // TODO remove this in favour of the definitio
     manifest: PluginManifest;
     installed_version?: string;
 }
+
+/**
+ * The form state passed to a plugin's channel-type option when the user submits channel creation.
+ * `type` identifies which option was selected so a plugin that registers multiple options can branch.
+ * `teamId` and `type` are owned by the modal and are not writable via setFormState.
+ */
+export type NewChannelFormState = {
+    teamId: string;
+    displayName: string;
+    url: string;
+    purpose: string;
+    type: string;
+    managedCategoryName?: string;
+};
+
+/**
+ * Discriminated union returned by a plugin's `onCreate` handler.
+ * - `created`: plugin created the channel successfully.
+ * - `deferred`: plugin will handle creation asynchronously; the modal closes immediately.
+ * - `error`: plugin encountered an error; the modal displays `message`.
+ */
+export type CreateResult =
+    | {status: 'created'; channel: Channel}
+    | {status: 'deferred'}
+    | {status: 'error'; message: string};

@@ -702,27 +702,6 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
     });
 
-    test('CreateResult: cancelled - modal stays open with no error', async () => {
-        const onCreate = jest.fn().mockResolvedValue({status: 'cancelled'});
-        renderWithContext(<NewChannelModal/>, stateWithOption({onCreate}));
-
-        const pluginButton = screen.getByText('Plugin Channel');
-        await userEvent.click(pluginButton);
-
-        const channelNameInput = screen.getByRole('textbox', {name: 'Channel name'});
-        await userEvent.type(channelNameInput, 'My Channel');
-
-        const createButton = screen.getByRole('button', {name: /create channel/i});
-        await userEvent.click(createButton);
-
-        await waitFor(() => {
-            expect(onCreate).toHaveBeenCalledTimes(1);
-        });
-        expect(screen.getByText('Plugin Channel')).toBeInTheDocument();
-        expect(screen.queryByText(/something went wrong/i)).not.toBeInTheDocument();
-        expect(switchToChannel).not.toHaveBeenCalled();
-    });
-
     test('onCreate throws - modal stays open with generic error', async () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         const onCreate = jest.fn().mockRejectedValue(new Error('network failure'));
@@ -816,7 +795,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         });
 
         await act(async () => {
-            resolveOnCreate({status: 'cancelled'});
+            resolveOnCreate({status: 'deferred'});
         });
     });
 
@@ -1182,7 +1161,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         expect(publicButton.closest('button')).not.toHaveClass('selected');
 
         await act(async () => {
-            resolveOnCreate({status: 'cancelled'});
+            resolveOnCreate({status: 'deferred'});
         });
 
         expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();

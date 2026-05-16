@@ -1306,26 +1306,16 @@ export default class PluginRegistry {
      * Register a channel-type option in the "Create a new channel" modal.
      *
      * When the user selects this option, the modal calls `onCreate` with the current form state and
-     * awaits one of four outcomes:
+     * awaits one of three outcomes:
      *   - `{status: 'created', channel}` – plugin created the channel; modal closes with the new channel.
      *   - `{status: 'deferred'}` – plugin will finish asynchronously; modal closes immediately.
      *   - `{status: 'error', message}` – creation failed; modal surfaces the message.
-     *   - `{status: 'cancelled'}` – plugin aborted; modal stays open without showing an error.
      *
      * `isAvailable(state)` receives the full Redux state and gates whether this option appears. Plugins
      * may read their own plugin-scoped state (e.g. `state['plugins-<pluginId>']`) to decide visibility.
      *
-     * `extraContent`, if provided, renders inline inside the modal when this option is selected. It
-     * receives `formState`, `setFormState` (writable fields only: displayName, url, purpose,
-     * managedCategoryName), and `setCanCreate` to block or unblock the submit button.
-     *
-     * `id` is caller-supplied and must be unique within the plugin. Re-registering the same `id` from
-     * the same plugin replaces the prior registration (safe for hot-reload scenarios).
-     *
      * The ids `'O'` and `'P'` are reserved for the built-in open and private channel types and
      * must not be used by plugins. Attempting to register with either value throws an `Error`.
-     *
-     * Returns the caller-supplied `id`.
      */
     registerChannelTypeOption = reArg([
         'id',
