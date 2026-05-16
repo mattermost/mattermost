@@ -57,9 +57,13 @@ func (a *App) doBuiltinLdapLogin(rctx request.CTX, ldapID, password string) (*mo
 	}
 	defer conn.Close()
 
+	// Патч: всегда выставляем таймаут на LDAP-операции (bind, search).
+	// Без него requestTimeout == 0 и операции зависают бесконечно.
+	queryTimeout := 30 * time.Second
 	if cfg.QueryTimeout != nil && *cfg.QueryTimeout > 0 {
-		conn.SetTimeout(time.Duration(*cfg.QueryTimeout) * time.Second)
+		queryTimeout = time.Duration(*cfg.QueryTimeout) * time.Second
 	}
+	conn.SetTimeout(queryTimeout)
 
 	// Service-account bind
 	if cfg.BindUsername != nil && *cfg.BindUsername != "" {
@@ -201,9 +205,13 @@ func doBuiltinLdapTest(cfg model.LdapSettings) *model.AppError {
 	}
 	defer conn.Close()
 
+	// Патч: всегда выставляем таймаут на LDAP-операции (bind, search).
+	// Без него requestTimeout == 0 и операции зависают бесконечно.
+	queryTimeout := 30 * time.Second
 	if cfg.QueryTimeout != nil && *cfg.QueryTimeout > 0 {
-		conn.SetTimeout(time.Duration(*cfg.QueryTimeout) * time.Second)
+		queryTimeout = time.Duration(*cfg.QueryTimeout) * time.Second
 	}
+	conn.SetTimeout(queryTimeout)
 
 	// Service-account bind
 	if bindUser := strDeref(cfg.BindUsername); bindUser != "" {
