@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/ldap"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -176,6 +177,8 @@ func doBuiltinLdapTest(cfg model.LdapSettings) *model.AppError {
 	}
 	addr := net.JoinHostPort(server, fmt.Sprintf("%d", port))
 
+	mlog.Debug("Builtin LDAP test: dialing", mlog.String("addr", addr))
+
 	skipVerify := cfg.SkipCertificateVerification != nil && *cfg.SkipCertificateVerification
 	tlsCfg := &tls.Config{
 		InsecureSkipVerify: skipVerify, //nolint:gosec
@@ -201,9 +204,11 @@ func doBuiltinLdapTest(cfg model.LdapSettings) *model.AppError {
 		conn, dialErr = ldap.Dial("tcp", addr)
 	}
 	if dialErr != nil {
+		mlog.Debug("Builtin LDAP test: dial failed", mlog.String("addr", addr), mlog.Err(dialErr))
 		return model.NewAppError("doBuiltinLdapTest", "app.ldap_builtin.dial.app_error", nil, dialErr.Error(), http.StatusInternalServerError)
 	}
 	defer conn.Close()
+	mlog.Debug("Builtin LDAP test: dial OK", mlog.String("addr", addr))
 
 	// Патч: всегда выставляем таймаут на LDAP-операции (bind, search).
 	// Без него requestTimeout == 0 и операции зависают бесконечно.
@@ -215,21 +220,27 @@ func doBuiltinLdapTest(cfg model.LdapSettings) *model.AppError {
 
 	// Service-account bind
 	if bindUser := strDeref(cfg.BindUsername); bindUser != "" {
+		mlog.Debug("Builtin LDAP test: binding", mlog.String("bind_user", bindUser))
 		if err := conn.Bind(bindUser, strDeref(cfg.BindPassword)); err != nil {
+			mlog.Debug("Builtin LDAP test: bind failed", mlog.Err(err))
 			return model.NewAppError("doBuiltinLdapTest", "app.ldap_builtin.bind.app_error", nil, err.Error(), http.StatusUnauthorized)
 		}
+		mlog.Debug("Builtin LDAP test: bind OK")
 	}
 
 	// Verify BaseDN is reachable with a minimal base-object search
 	baseDN := strDeref(cfg.BaseDN)
+	mlog.Debug("Builtin LDAP test: searching BaseDN", mlog.String("base_dn", baseDN))
 	req := ldap.NewSearchRequest(
 		baseDN, ldap.ScopeBaseObject, ldap.NeverDerefAliases,
 		1, 0, false, "(objectClass=*)", []string{"dn"}, nil,
 	)
 	if _, err := conn.Search(req); err != nil {
+		mlog.Debug("Builtin LDAP test: search failed", mlog.Err(err))
 		return model.NewAppError("doBuiltinLdapTest", "app.ldap_builtin.search.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	mlog.Debug("Builtin LDAP test: all checks passed")
 	return nil
 }
 
