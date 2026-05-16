@@ -1471,7 +1471,9 @@ test.describe('Attribute-Value Masking', () => {
         }
     });
 
-    test('MM-68508-17: Multi-condition save preserves all hidden values; deleting masked row is blocked', async ({pw}) => {
+    test('MM-68508-17: Multi-condition save preserves all hidden values; deleting masked row is blocked', async ({
+        pw,
+    }) => {
         // Validates merge-on-save for a multi-condition policy. The caller (holds Alpha
         // in programField, nothing in clearanceField) can save — both conditions survive
         // with their hidden values intact. The server blocks deletion of masked conditions.
