@@ -109,7 +109,13 @@ type JWTClaims struct {
 }
 
 func (s *Server) License() *model.License {
-	return s.platform.License()
+	// Патч: возвращаем синтетическую all-features лицензию вместо nil.
+	// s.platform.License() вызывается из app/ldap.go и других мест через
+	// a.Srv().License() — без этой обёртки они обходят (ch *Channels).License().
+	if lic := s.platform.License(); lic != nil {
+		return lic
+	}
+	return model.NewBuiltinLicense()
 }
 
 func (s *Server) LoadLicense() {

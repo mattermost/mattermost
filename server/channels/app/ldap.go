@@ -22,21 +22,20 @@ func (a *App) SyncLdap(rctx request.CTX) {
 			return
 		}
 
+		// Патч: enterprise-путь только если плагин реально загружен (ldapI != nil).
+		// Без этой проверки builtin-лицензия (NewBuiltinLicense) делала Features.LDAP=true
+		// и код уходил в enterprise-ветку, где падал из-за отсутствия плагина.
+		ldapI := a.Ldap()
 		license := a.Srv().License()
-		if license != nil && *license.Features.LDAP {
+		if ldapI != nil && license != nil && *license.Features.LDAP {
 			// Enterprise path: delegate to the plugin.
-			ldapI := a.Ldap()
-			if ldapI == nil {
-				rctx.Logger().Error("Not executing ldap sync because ldap is not available")
-				return
-			}
 			if _, appErr := ldapI.StartSynchronizeJob(rctx, false); appErr != nil {
 				rctx.Logger().Error("Failed to start LDAP sync job")
 			}
 			return
 		}
 
-		// Team Edition path: schedule the builtin sync job.
+		// Builtin path: schedule the builtin sync job.
 		if _, err := a.Srv().Jobs.CreateJob(rctx, model.JobTypeLdapSync, nil); err != nil {
 			rctx.Logger().Error("Failed to schedule builtin LDAP sync job", mlog.Err(err))
 		}
@@ -76,7 +75,9 @@ func (a *App) TestLdapDiagnostics(rctx request.CTX, testType model.LdapDiagnosti
 		return ldapI.RunTestDiagnostics(rctx, testType, settings)
 	}
 
-	return nil, model.NewAppError("TestLdapDiagnostics", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+	// Патч: расширенная диагностика доступна только в enterprise-плагине.
+	// В builtin-режиме возвращаем пустой результат без ошибки.
+	return []model.LdapDiagnosticResult{}, nil
 }
 
 // GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
