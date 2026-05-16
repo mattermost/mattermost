@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -3165,4 +3167,374 @@ func TestClearAllSimulationAttributesAndTrees(t *testing.T) {
 		assert.Empty(t, child.ActualValue, "leaf %q ActualValue must be cleared", child.Attribute)
 	}
 	assert.Empty(t, blame.MergedRules[0].EvaluationTree.ActualValue, "merged-rule leaf ActualValue must be cleared")
+}
+
+// makeSimulationResponseForRedactionTest builds a simulator response
+// shaped like the real picker output: top-level user/session
+// attribute snapshots AND a deny blame whose evaluation tree carries
+// per-leaf `ActualValue`s (including a per-merged-rule subtree). One
+// leaf references `protected` and one references `public`; callers
+// can vary which CPA field names are protected to drive the
+// assertions in each redaction scenario.
+func makeSimulationResponseForRedactionTest(protectedName, publicName, protectedValue, publicValue string) *model.PolicySimulationResponse {
+	mkLeaf := func(name, value string) model.PolicySimulationEvaluationNode {
+		return model.PolicySimulationEvaluationNode{
+			Kind:        model.PolicySimulationEvaluationKindCompare,
+			Attribute:   userAttributesPathPrefix + name,
+			ActualValue: value,
+			Outcome:     model.PolicySimulationEvaluationOutcomeFalse,
+		}
+	}
+	topLevelTree := &model.PolicySimulationEvaluationNode{
+		Kind:    model.PolicySimulationEvaluationKindAnd,
+		Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+		Children: []model.PolicySimulationEvaluationNode{
+			mkLeaf(protectedName, protectedValue),
+			mkLeaf(publicName, publicValue),
+		},
+	}
+	mergedRuleTree := &model.PolicySimulationEvaluationNode{
+		Kind:        model.PolicySimulationEvaluationKindCompare,
+		Attribute:   userAttributesPathPrefix + protectedName,
+		ActualValue: protectedValue,
+		Outcome:     model.PolicySimulationEvaluationOutcomeFalse,
+	}
+	return &model.PolicySimulationResponse{
+		Results: []model.PolicySimulationUserResult{{
+			User: &model.User{Id: model.NewId()},
+			Attributes: map[string]string{
+				protectedName: protectedValue,
+				publicName:    publicValue,
+			},
+			Decisions: map[string]model.PolicySimulationActionDecision{
+				"upload_file_attachment": {
+					Decision: false,
+					Blame: []model.PolicySimulationBlame{{
+						Source:         model.PolicySimulationBlameSourceThisRule,
+						RuleName:       "rule1",
+						EvaluationTree: topLevelTree,
+						MergedRules: []model.PolicySimulationMergedRule{{
+							Name:           "rule1",
+							EvaluationTree: mergedRuleTree,
+						}},
+					}},
+				},
+			},
+			Sessions: []model.PolicySimulationSession{{
+				ID: "s1",
+				Attributes: map[string]string{
+					protectedName: protectedValue,
+					publicName:    publicValue,
+				},
+			}},
+		}},
+	}
+}
+
+// TestRedactSimulationAttributesForCallerAccessModes exercises the
+// non-public access-mode branches of cpaFieldIsProtectedForChannelAdmin
+// end to end through RedactSimulationAttributesForCaller. Source_only
+// and shared_only fields require `protected: true` (and a source
+// plugin ID), so we bypass the App-level CreatePropertyField path —
+// which would reject a non-plugin caller — and insert the fields
+// directly into the store. This proves the full pipeline (predicate +
+// protected-set + top-level pruner + tree walker) treats these
+// access modes the same as `visibility: hidden`.
+func TestRedactSimulationAttributesForCallerAccessModes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	rctx := th.emptyContextWithCallerID(anonymousCallerId)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	require.True(t, ok, "SetLicense should return true")
+	defer th.App.Srv().SetLicense(nil)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+
+	createProtectedField := func(t *testing.T, accessMode string) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:    cpaGroup.ID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected:      true,
+				model.PropertyAttrsAccessMode:     accessMode,
+				model.PropertyAttrsSourcePluginID: "com.mattermost.uas-plugin",
+			},
+		}
+		created, err := th.Store.PropertyField().Create(field)
+		require.NoError(t, err,
+			"protected %s fields must be insertable directly via the store (the app's CreatePropertyField hook rejects non-plugin callers, which is unrelated to what this test exercises)",
+			accessMode)
+		return created
+	}
+
+	publicField := &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet},
+	}
+	createdPublic, vAppErr := th.App.CreatePropertyField(rctx, publicField, false, "")
+	require.Nil(t, vAppErr)
+	publicName := createdPublic.Name
+
+	assertRedactedAgainst := func(t *testing.T, protectedName string) {
+		t.Helper()
+		resp := makeSimulationResponseForRedactionTest(protectedName, publicName, "il5", "us")
+		th.App.RedactSimulationAttributesForCaller(rctx, resp, false)
+
+		// Top-level user + session snapshots: protected field removed,
+		// public field preserved on both surfaces.
+		_, presentUser := resp.Results[0].Attributes[protectedName]
+		assert.False(t, presentUser, "protected user attribute must be stripped for channel admin")
+		assert.Equal(t, "us", resp.Results[0].Attributes[publicName], "public user attribute must be preserved")
+
+		_, presentSession := resp.Results[0].Sessions[0].Attributes[protectedName]
+		assert.False(t, presentSession, "protected session attribute must be stripped for channel admin")
+		assert.Equal(t, "us", resp.Results[0].Sessions[0].Attributes[publicName], "public session attribute must be preserved")
+
+		// Top-level evaluation tree: protected leaf has ActualValue
+		// blanked, public leaf preserved. Iterate by attribute to
+		// avoid relying on child ordering.
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		require.Len(t, blame.EvaluationTree.Children, 2)
+		leafByAttribute := map[string]model.PolicySimulationEvaluationNode{}
+		for _, child := range blame.EvaluationTree.Children {
+			leafByAttribute[child.Attribute] = child
+		}
+		assert.Empty(t, leafByAttribute[userAttributesPathPrefix+protectedName].ActualValue,
+			"protected leaf must have ActualValue blanked")
+		assert.Equal(t, "us", leafByAttribute[userAttributesPathPrefix+publicName].ActualValue,
+			"public leaf must keep ActualValue")
+
+		// Per-merged-rule subtree must receive the same treatment as
+		// the top-level tree — the picker renders the merged-rule
+		// tree alongside it, so a leak on either path is equally bad.
+		assert.Empty(t, blame.MergedRules[0].EvaluationTree.ActualValue,
+			"merged-rule leaf for the protected field must have ActualValue blanked")
+	}
+
+	t.Run("source_only access mode is redacted on every surface", func(t *testing.T) {
+		field := createProtectedField(t, model.PropertyAccessModeSourceOnly)
+		assertRedactedAgainst(t, field.Name)
+	})
+
+	t.Run("shared_only access mode is redacted on every surface", func(t *testing.T) {
+		field := createProtectedField(t, model.PropertyAccessModeSharedOnly)
+		assertRedactedAgainst(t, field.Name)
+	})
+}
+
+// TestRedactSimulationAttributesForCallerFailClosed exercises the
+// branch that runs when protectedCPAFieldNamesForCaller returns an
+// error (a transient property-store failure during the CPA lookup).
+// The contract is "fail closed": every attribute snapshot AND every
+// evaluation-tree leaf's ActualValue must be wiped so the channel
+// admin can't see a single protected value just because the CPA
+// lookup happened to fail mid-request. We force the error by
+// swapping the server's propertyService with one whose
+// PropertyGroupStore is mocked to return a synthetic store failure
+// for the access-control group lookup.
+func TestRedactSimulationAttributesForCallerFailClosed(t *testing.T) {
+	mainHelper.Parallel(t)
+	thMock := SetupWithStoreMock(t)
+	rctx := thMock.emptyContextWithCallerID(anonymousCallerId)
+
+	// Build a fresh property service wired to mocked stores: the
+	// group store fails on the AccessControl group lookup, which is
+	// the very first call protectedCPAFieldNamesForCaller makes.
+	// PropertyField / PropertyValue stores stay attached but never
+	// fire because we error before getting that far.
+	mockGroupStore := &storemocks.PropertyGroupStore{}
+	mockFieldStore := &storemocks.PropertyFieldStore{}
+	mockValueStore := &storemocks.PropertyValueStore{}
+	mockGroupStore.
+		On("Get", model.AccessControlPropertyGroupName).
+		Return((*model.PropertyGroup)(nil), errors.New("simulated store failure"))
+
+	ps, err := properties.New(properties.ServiceConfig{
+		PropertyGroupStore: mockGroupStore,
+		PropertyFieldStore: mockFieldStore,
+		PropertyValueStore: mockValueStore,
+		CallerIDExtractor:  func(rctx request.CTX) string { return "" },
+	})
+	require.NoError(t, err)
+
+	originalPS := thMock.App.Srv().propertyService
+	thMock.App.Srv().propertyService = ps
+	defer func() { thMock.App.Srv().propertyService = originalPS }()
+
+	resp := makeSimulationResponseForRedactionTest("Clearance", "Region", "il5", "us")
+	thMock.App.RedactSimulationAttributesForCaller(rctx, resp, false)
+
+	// Every Attributes map (user + session) cleared — we can't tell
+	// which fields are protected, so we redact unconditionally.
+	r := resp.Results[0]
+	assert.Nil(t, r.Attributes, "fail-closed: user-level attributes must be cleared")
+	require.Len(t, r.Sessions, 1)
+	assert.Nil(t, r.Sessions[0].Attributes, "fail-closed: session attributes must be cleared")
+
+	// Every evaluation-tree leaf — top-level + per-merged-rule —
+	// has ActualValue cleared. The public field's leaf is no
+	// exception in the fail-closed path: we don't know which fields
+	// are protected, so we wipe them all.
+	blame := r.Decisions["upload_file_attachment"].Blame[0]
+	require.NotNil(t, blame.EvaluationTree)
+	for _, child := range blame.EvaluationTree.Children {
+		assert.Empty(t, child.ActualValue, "fail-closed: leaf %q ActualValue must be cleared", child.Attribute)
+	}
+	require.Len(t, blame.MergedRules, 1)
+	assert.Empty(t, blame.MergedRules[0].EvaluationTree.ActualValue,
+		"fail-closed: merged-rule leaf ActualValue must be cleared")
+
+	mockGroupStore.AssertExpectations(t)
+}
+
+// TestRedactSimulationAttributesForCallerSystemAdminBypass pins the
+// privacy-escape hatch for system admins: they always see every
+// attribute the simulator recorded, regardless of CPA visibility or
+// access_mode. The function must early-return BEFORE talking to the
+// property service so a broken store/property service can't degrade
+// the sysadmin's view. We assert that by mocking the property
+// service with no expectations — any call to it would crash the
+// test.
+func TestRedactSimulationAttributesForCallerSystemAdminBypass(t *testing.T) {
+	mainHelper.Parallel(t)
+	thMock := SetupWithStoreMock(t)
+	rctx := thMock.emptyContextWithCallerID(anonymousCallerId)
+
+	// Property service is wired to mocks with NO expectations — if
+	// the sysadmin bypass leaks into the CPA lookup path, the mock
+	// will panic with "no return value specified" and fail the test
+	// with a clear signal.
+	mockGroupStore := &storemocks.PropertyGroupStore{}
+	mockFieldStore := &storemocks.PropertyFieldStore{}
+	mockValueStore := &storemocks.PropertyValueStore{}
+	ps, err := properties.New(properties.ServiceConfig{
+		PropertyGroupStore: mockGroupStore,
+		PropertyFieldStore: mockFieldStore,
+		PropertyValueStore: mockValueStore,
+		CallerIDExtractor:  func(rctx request.CTX) string { return "" },
+	})
+	require.NoError(t, err)
+
+	originalPS := thMock.App.Srv().propertyService
+	thMock.App.Srv().propertyService = ps
+	defer func() { thMock.App.Srv().propertyService = originalPS }()
+
+	resp := makeSimulationResponseForRedactionTest("Clearance", "Region", "il5", "us")
+	thMock.App.RedactSimulationAttributesForCaller(rctx, resp, true)
+
+	// Top-level snapshots preserved verbatim.
+	r := resp.Results[0]
+	assert.Equal(t, "il5", r.Attributes["Clearance"], "system admin must see protected user attribute")
+	assert.Equal(t, "us", r.Attributes["Region"], "system admin must see public user attribute")
+	require.Len(t, r.Sessions, 1)
+	assert.Equal(t, "il5", r.Sessions[0].Attributes["Clearance"], "system admin must see protected session attribute")
+	assert.Equal(t, "us", r.Sessions[0].Attributes["Region"], "system admin must see public session attribute")
+
+	// Every leaf's ActualValue preserved on every tree.
+	blame := r.Decisions["upload_file_attachment"].Blame[0]
+	require.NotNil(t, blame.EvaluationTree)
+	leafByAttribute := map[string]model.PolicySimulationEvaluationNode{}
+	for _, child := range blame.EvaluationTree.Children {
+		leafByAttribute[child.Attribute] = child
+	}
+	assert.Equal(t, "il5", leafByAttribute[userAttributesPathPrefix+"Clearance"].ActualValue,
+		"sysadmin must see ActualValue on protected leaf in evaluation tree")
+	assert.Equal(t, "us", leafByAttribute[userAttributesPathPrefix+"Region"].ActualValue,
+		"sysadmin must see ActualValue on public leaf in evaluation tree")
+	require.Len(t, blame.MergedRules, 1)
+	assert.Equal(t, "il5", blame.MergedRules[0].EvaluationTree.ActualValue,
+		"sysadmin must see ActualValue on merged-rule leaf in evaluation tree")
+
+	// Sanity check: the property service must not have been called.
+	mockGroupStore.AssertNotCalled(t, "Get", mock.Anything)
+	mockFieldStore.AssertExpectations(t)
+	mockValueStore.AssertExpectations(t)
+}
+
+// TestValidatePolicySimulationUsersInScopeChannel covers the channel-
+// scope branch of the delegated-simulate input validator. The
+// channel-scope branch is reached when a non-system-admin author
+// runs the simulator from the channel-settings policy editor; the
+// validator must refuse to look outside that channel. We pin:
+//   - non-member user → 403 users_out_of_scope (the deny-by-default
+//     bound the api4 handler relies on to short-circuit before the
+//     simulator ever runs)
+//   - empty / malformed user_id → 400 invalid_param so the picker
+//     surfaces a usable validation error
+//   - invalid channel_id → 400 invalid_param (mismatched ID type)
+//   - a channel member passes through (negative control for the 403 path)
+func TestValidatePolicySimulationUsersInScopeChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	rctx := th.Context
+
+	// BasicChannel is created in InitBasic but BasicUser/BasicUser2
+	// are NOT auto-joined to it; add BasicUser explicitly so we have
+	// a "member" baseline.
+	th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+
+	// outsider is added to the team (so the team-membership path
+	// doesn't accidentally trip) but never added to BasicChannel.
+	outsider := th.CreateUser(t)
+	th.LinkUserToTeam(t, outsider, th.BasicTeam)
+
+	t.Run("channel member passes the check", func(t *testing.T) {
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", th.BasicChannel.Id, []model.PolicySimulationUserOverride{{UserID: th.BasicUser.Id}})
+		require.Nil(t, err, "channel member must pass the scope check")
+	})
+
+	t.Run("user not a member of the channel returns 403 users_out_of_scope", func(t *testing.T) {
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", th.BasicChannel.Id, []model.PolicySimulationUserOverride{{UserID: outsider.Id}})
+		require.NotNil(t, err, "outsider must be rejected")
+		assert.Equal(t, http.StatusForbidden, err.StatusCode,
+			"the contract with the api4 handler is a 403 so the delegated path can short-circuit before invoking the simulator")
+		assert.Equal(t, "api.access_control_policy.simulate.users_out_of_scope.app_error", err.Id)
+	})
+
+	t.Run("empty user_id returns 400 invalid_param", func(t *testing.T) {
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", th.BasicChannel.Id, []model.PolicySimulationUserOverride{{UserID: ""}})
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Equal(t, "api.context.invalid_param.app_error", err.Id)
+	})
+
+	t.Run("malformed user_id returns 400 invalid_param", func(t *testing.T) {
+		// 25 hex chars is not a valid 26-char model ID; the
+		// model.IsValidId pre-check must reject before the store
+		// would be hit (which would otherwise raise a 500).
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", th.BasicChannel.Id, []model.PolicySimulationUserOverride{{UserID: "not-a-valid-id"}})
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Equal(t, "api.context.invalid_param.app_error", err.Id)
+	})
+
+	t.Run("malformed channel_id returns 400 invalid_param", func(t *testing.T) {
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", "not-a-valid-id", []model.PolicySimulationUserOverride{{UserID: th.BasicUser.Id}})
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Equal(t, "api.context.invalid_param.app_error", err.Id)
+	})
+
+	t.Run("first failure short-circuits the rest of the user list", func(t *testing.T) {
+		// Mixed list: outsider first, member second. The validator
+		// is a strict gate — one bad apple makes the whole call
+		// fail. Pins the early-exit ordering the api4 handler
+		// depends on for the audit trail.
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", th.BasicChannel.Id, []model.PolicySimulationUserOverride{
+			{UserID: outsider.Id},
+			{UserID: th.BasicUser.Id},
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
 }
