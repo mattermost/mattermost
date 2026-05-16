@@ -77,22 +77,26 @@ func (a *App) doBuiltinLdapLogin(rctx request.CTX, ldapID, password string) (*mo
 		}
 	}
 
-	idAttr := "uid"
-	if cfg.IdAttribute != nil && *cfg.IdAttribute != "" {
-		idAttr = *cfg.IdAttribute
+	// Search by LoginIdAttribute (what the user types, e.g. uid).
+	// IdAttribute (e.g. ipaUniqueID) is the stable unique key stored as AuthData in DB.
+	loginIdAttr := "uid"
+	if cfg.LoginIdAttribute != nil && *cfg.LoginIdAttribute != "" {
+		loginIdAttr = *cfg.LoginIdAttribute
 	}
+	idAttr := strDeref(cfg.IdAttribute) // stable unique ID stored as AuthData
+
 	baseDN := ""
 	if cfg.BaseDN != nil {
 		baseDN = *cfg.BaseDN
 	}
 
-	// Build search filter, optionally ANDed with UserFilter
-	filter := fmt.Sprintf("(%s=%s)", idAttr, ldap.EscapeFilter(ldapID))
+	// Build search filter using LoginIdAttribute, optionally ANDed with UserFilter
+	filter := fmt.Sprintf("(%s=%s)", loginIdAttr, ldap.EscapeFilter(ldapID))
 	if cfg.UserFilter != nil && *cfg.UserFilter != "" {
 		filter = fmt.Sprintf("(&%s%s)", filter, *cfg.UserFilter)
 	}
 
-	// Collect only the attributes we need
+	// Collect only the attributes we need (plus IdAttribute for AuthData)
 	type attrKey struct{ key, attr string }
 	attrKeys := []attrKey{
 		{"username", strDeref(cfg.UsernameAttribute)},
@@ -101,6 +105,9 @@ func (a *App) doBuiltinLdapLogin(rctx request.CTX, ldapID, password string) (*mo
 		{"lastname", strDeref(cfg.LastNameAttribute)},
 	}
 	searchAttrs := []string{"dn"}
+	if idAttr != "" {
+		searchAttrs = append(searchAttrs, idAttr)
+	}
 	for _, ak := range attrKeys {
 		if ak.attr != "" {
 			searchAttrs = append(searchAttrs, ak.attr)
@@ -122,6 +129,19 @@ func (a *App) doBuiltinLdapLogin(rctx request.CTX, ldapID, password string) (*mo
 	result, searchErr := conn.Search(searchReq)
 	if searchErr != nil {
 		return nil, model.NewAppError("doBuiltinLdapLogin", "app.ldap_builtin.search.app_error", nil, searchErr.Error(), http.StatusInternalServerError)
+	}
+	// If LoginIdAttribute search returned nothing, try IdAttribute as fallback.
+	// This handles the case where AuthData (stored as IdAttribute value) is passed in on re-login.
+	if len(result.Entries) == 0 && idAttr != "" && loginIdAttr != idAttr {
+		fallbackFilter := fmt.Sprintf("(%s=%s)", idAttr, ldap.EscapeFilter(ldapID))
+		if cfg.UserFilter != nil && *cfg.UserFilter != "" {
+			fallbackFilter = fmt.Sprintf("(&%s%s)", fallbackFilter, *cfg.UserFilter)
+		}
+		fallbackReq := ldap.NewSearchRequest(baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 2, 0, false, fallbackFilter, searchAttrs, nil)
+		result, searchErr = conn.Search(fallbackReq)
+		if searchErr != nil {
+			return nil, model.NewAppError("doBuiltinLdapLogin", "app.ldap_builtin.search.app_error", nil, searchErr.Error(), http.StatusInternalServerError)
+		}
 	}
 	if len(result.Entries) == 0 {
 		return nil, model.NewAppError("doBuiltinLdapLogin", "app.ldap_builtin.user_not_found.app_error", nil, "ldap_id="+ldapID, http.StatusUnauthorized)
@@ -146,8 +166,17 @@ func (a *App) doBuiltinLdapLogin(rctx request.CTX, ldapID, password string) (*mo
 	firstName := getAttr(strDeref(cfg.FirstNameAttribute))
 	lastName := getAttr(strDeref(cfg.LastNameAttribute))
 
+	// Use IdAttribute value as the stable AuthData key (e.g. ipaUniqueID).
+	// Fall back to the typed login ID if IdAttribute is not configured or missing.
+	authData := ldapID
+	if idAttr != "" {
+		if v := entry.GetAttributeValue(idAttr); v != "" {
+			authData = v
+		}
+	}
+
 	// Return the existing DB user, or create one on first login
-	ldapIDPtr := &ldapID
+	ldapIDPtr := &authData
 	dbUser, appErr := a.GetUserByAuth(ldapIDPtr, model.UserAuthServiceLdap)
 	if appErr == nil {
 		return dbUser, nil
