@@ -2561,6 +2561,8 @@ type LdapSettings struct {
 	AdminFilter       *string
 
 	// Group Mapping
+	GroupBaseDN               *string `access:"authentication_ldap"` // telemetry: none
+	GroupMemberAttribute      *string `access:"authentication_ldap"` // telemetry: none
 	GroupDisplayNameAttribute *string `access:"authentication_ldap"`
 	GroupIdAttribute          *string `access:"authentication_ldap"`
 
@@ -2658,6 +2660,14 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.GroupFilter == nil {
 		s.GroupFilter = NewPointer("")
+	}
+
+	if s.GroupBaseDN == nil {
+		s.GroupBaseDN = NewPointer("")
+	}
+
+	if s.GroupMemberAttribute == nil {
+		s.GroupMemberAttribute = NewPointer("member")
 	}
 
 	if s.GroupDisplayNameAttribute == nil {

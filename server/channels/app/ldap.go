@@ -17,12 +17,14 @@ import (
 // SyncLdap starts an LDAP sync job.
 func (a *App) SyncLdap(rctx request.CTX) {
 	a.Srv().Go(func() {
-		if license := a.Srv().License(); license != nil && *license.Features.LDAP {
-			if !*a.Config().LdapSettings.EnableSync {
-				rctx.Logger().Error("LdapSettings.EnableSync is set to false. Skipping LDAP sync.")
-				return
-			}
+		if !*a.Config().LdapSettings.Enable || !*a.Config().LdapSettings.EnableSync {
+			rctx.Logger().Error("LdapSettings.Enable or EnableSync is false. Skipping LDAP sync.")
+			return
+		}
 
+		license := a.Srv().License()
+		if license != nil && *license.Features.LDAP {
+			// Enterprise path: delegate to the plugin.
 			ldapI := a.Ldap()
 			if ldapI == nil {
 				rctx.Logger().Error("Not executing ldap sync because ldap is not available")
@@ -31,6 +33,12 @@ func (a *App) SyncLdap(rctx request.CTX) {
 			if _, appErr := ldapI.StartSynchronizeJob(rctx, false); appErr != nil {
 				rctx.Logger().Error("Failed to start LDAP sync job")
 			}
+			return
+		}
+
+		// Team Edition path: schedule the builtin sync job.
+		if _, err := a.Srv().Jobs.CreateJob(rctx, model.JobTypeLdapSync, nil); err != nil {
+			rctx.Logger().Error("Failed to schedule builtin LDAP sync job", mlog.Err(err))
 		}
 	})
 }
@@ -40,9 +48,8 @@ func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 	if ldapI := a.LdapDiagnostic(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
 		return ldapI.RunTest(rctx)
 	}
-
-	return model.NewAppError("TestLdap",
-		"ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+	// Team Edition fallback: test using current saved config.
+	return doBuiltinLdapTest(a.Config().LdapSettings)
 }
 
 func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) *model.AppError {
@@ -54,9 +61,9 @@ func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) 
 	if ldapI != nil && license != nil && model.SafeDereference(license.Features.LDAP) {
 		return ldapI.RunTestConnection(rctx, settings)
 	}
-
-	return model.NewAppError("TestLdapConnection",
-		"ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+	// Team Edition fallback: test using the settings passed from the UI
+	// (may differ from the saved config — admin can test before saving).
+	return doBuiltinLdapTest(settings)
 }
 
 func (a *App) TestLdapDiagnostics(rctx request.CTX, testType model.LdapDiagnosticTestType, settings model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
