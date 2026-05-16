@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 import {Preferences} from 'mattermost-redux/constants';
 import {getMyPreferences, getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {applyTheme} from 'utils/utils';
 
@@ -19,11 +20,15 @@ function osIsDarkNow(): boolean {
 }
 
 export default function ThemeProvider({children}: {children: React.ReactNode}) {
-    // Counter: 0 = unthemed login screens, ≥1 = full app (use user theme).
+    // Counter: kept for API compatibility with WithUserTheme / useUserTheme consumers.
     const [usingUserTheme, setUsingUserTheme] = useState(0);
 
     // Track OS dark-mode state reactively.
     const [osDark, setOsDark] = useState(osIsDarkNow);
+
+    // User is considered "active" when logged in — used to suppress theme sync
+    // on the login / pre-auth screens instead of relying on the fragile counter.
+    const isLoggedIn = useSelector((state: GlobalState) => Boolean(getCurrentUserId(state)));
 
     // Whether the user opted in to OS sync.
     const syncWithOS = useSelector((state: GlobalState) => {
@@ -34,9 +39,9 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
         return getMyPreferences(state)[key]?.value === 'true';
     });
 
-    // The theme saved by the user in their preferences.
+    // The theme saved by the user in their preferences (only meaningful when logged in).
     const savedTheme = useSelector((state: GlobalState) => {
-        if (usingUserTheme > 0) {
+        if (isLoggedIn) {
             return getTheme(state);
         }
         return Preferences.THEMES.quartz;
@@ -50,13 +55,16 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
         return () => mq.removeEventListener('change', handler);
     }, []);
 
-    // The effective theme: OS-driven when sync is on, saved otherwise.
+    // The effective theme: OS-driven when logged in + sync enabled, saved otherwise.
+    // usingUserTheme counter is intentionally NOT used here — relying on it caused
+    // sync to break when navigating to routes not wrapped by WithUserTheme (Playbooks,
+    // System Console, select_team, etc.).
     const theme = useMemo(() => {
-        if (syncWithOS && usingUserTheme > 0) {
+        if (syncWithOS && isLoggedIn) {
             return osDark ? Preferences.THEMES.onyx : Preferences.THEMES.quartz;
         }
         return savedTheme;
-    }, [syncWithOS, osDark, savedTheme, usingUserTheme]);
+    }, [syncWithOS, osDark, savedTheme, isLoggedIn]);
 
     useEffect(() => {
         applyTheme(theme);
