@@ -204,7 +204,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 
 	ldapID := user.AuthData
 
-	if ldapID == nil {
+	if a.Ldap() == nil || ldapID == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
@@ -214,20 +214,6 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		if err := checkUserLoginAttempts(user, *a.Config().LdapSettings.MaximumLoginAttempts); err != nil {
 			return nil, err
 		}
-	}
-
-	if a.Ldap() == nil {
-		ldapUser, err := a.doBuiltinLdapLogin(rctx, *ldapID, password)
-		if err != nil {
-			if err.Id == "ent.ldap.do_login.invalid_password.app_error" && user.Id != "" {
-				if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
-					return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
-				}
-			}
-			err.StatusCode = http.StatusUnauthorized
-			return nil, err
-		}
-		return ldapUser, nil
 	}
 
 	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapID, password)
@@ -414,9 +400,7 @@ func checkUserNotBot(user *model.User) *model.AppError {
 
 func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
 	license := a.Srv().License()
-	ldapEnterpriseAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
-	ldapBuiltinAvailable := *a.Config().LdapSettings.Enable && a.Ldap() == nil
-	ldapAvailable := ldapEnterpriseAvailable || ldapBuiltinAvailable
+	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
 	if user.AuthService == model.UserAuthServiceLdap {
 		if !ldapAvailable {

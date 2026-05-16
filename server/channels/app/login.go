@@ -129,17 +129,6 @@ func (a *App) GetUserForLogin(rctx request.CTX, id, loginId string) (*model.User
 		}
 	}
 
-	// Патч: builtin LDAP — enterprise plugin отсутствует, но LDAP включён.
-	// Возвращаем placeholder с AuthData=loginId чтобы authenticateUser мог вызвать
-	// doBuiltinLdapLogin, который сам найдёт пользователя в LDAP и создаст его в DB.
-	if *a.Config().LdapSettings.Enable && a.Ldap() == nil {
-		loginIdCopy := loginId
-		return &model.User{
-			AuthData:    &loginIdCopy,
-			AuthService: model.UserAuthServiceLdap,
-		}, nil
-	}
-
 	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)
 }
 

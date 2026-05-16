@@ -22,22 +22,13 @@ func (a *App) SyncLdap(rctx request.CTX) {
 			return
 		}
 
-		// Патч: enterprise-путь только если плагин реально загружен (ldapI != nil).
-		// Без этой проверки builtin-лицензия (NewBuiltinLicense) делала Features.LDAP=true
-		// и код уходил в enterprise-ветку, где падал из-за отсутствия плагина.
 		ldapI := a.Ldap()
-		license := a.Srv().License()
-		if ldapI != nil && license != nil && *license.Features.LDAP {
-			// Enterprise path: delegate to the plugin.
-			if _, appErr := ldapI.StartSynchronizeJob(rctx, false); appErr != nil {
-				rctx.Logger().Error("Failed to start LDAP sync job")
-			}
+		if ldapI == nil {
+			rctx.Logger().Error("Not executing ldap sync because ldap is not available")
 			return
 		}
-
-		// Builtin path: schedule the builtin sync job.
-		if _, err := a.Srv().Jobs.CreateJob(rctx, model.JobTypeLdapSync, nil); err != nil {
-			rctx.Logger().Error("Failed to schedule builtin LDAP sync job", mlog.Err(err))
+		if _, appErr := ldapI.StartSynchronizeJob(rctx, false); appErr != nil {
+			rctx.Logger().Error("Failed to start LDAP sync job")
 		}
 	})
 }

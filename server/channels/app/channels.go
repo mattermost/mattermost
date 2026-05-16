@@ -134,6 +134,9 @@ func NewChannels(s *Server) (*Channels, error) {
 	}
 	if ldapInterface != nil {
 		ch.Ldap = ldapInterface(New(ServerConnector(ch)))
+	} else {
+		// Patched: register builtin LDAP for Team Edition when the enterprise plugin is absent.
+		ch.Ldap = NewBuiltinLdap(New(ServerConnector(ch)))
 	}
 	if notificationInterface != nil {
 		ch.Notification = notificationInterface(New(ServerConnector(ch)))
