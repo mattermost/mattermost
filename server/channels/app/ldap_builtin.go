@@ -63,12 +63,12 @@ func doBuiltinLdapTest(cfg model.LdapSettings) *model.AppError {
 	defer conn.Close()
 	mlog.Debug("Builtin LDAP test: dial OK", mlog.String("addr", addr))
 
-	// Патч: всегда выставляем таймаут на LDAP-операции (bind, search).
-	// Без него requestTimeout == 0 и операции зависают бесконечно.
 	queryTimeout := 30 * time.Second
 	if cfg.QueryTimeout != nil && *cfg.QueryTimeout > 0 {
 		queryTimeout = time.Duration(*cfg.QueryTimeout) * time.Second
 	}
+	// SetTimeout uses time.AfterFunc which may not unblock a hung TLS read;
+	// still set it as a hint to the library, but enforce the deadline ourselves.
 	conn.SetTimeout(queryTimeout)
 
 	// Service-account bind
@@ -79,7 +79,7 @@ func doBuiltinLdapTest(cfg model.LdapSettings) *model.AppError {
 			return model.NewAppError("doBuiltinLdapTest", "app.ldap_builtin.bind.app_error", nil, "BindPassword is empty", http.StatusBadRequest)
 		}
 		mlog.Debug("Builtin LDAP test: binding", mlog.String("bind_user", bindUser))
-		if err := conn.Bind(bindUser, bindPass); err != nil {
+		if err := ldapWithTimeout(conn, queryTimeout, func() error { return conn.Bind(bindUser, bindPass) }); err != nil {
 			mlog.Debug("Builtin LDAP test: bind failed", mlog.Err(err))
 			return model.NewAppError("doBuiltinLdapTest", "app.ldap_builtin.bind.app_error", nil, err.Error(), http.StatusUnauthorized)
 		}
@@ -93,7 +93,7 @@ func doBuiltinLdapTest(cfg model.LdapSettings) *model.AppError {
 		baseDN, ldap.ScopeBaseObject, ldap.NeverDerefAliases,
 		1, 0, false, "(objectClass=*)", []string{"dn"}, nil,
 	)
-	if _, err := conn.Search(req); err != nil {
+	if err := ldapWithTimeout(conn, queryTimeout, func() error { _, err := conn.Search(req); return err }); err != nil {
 		mlog.Debug("Builtin LDAP test: search failed", mlog.Err(err))
 		return model.NewAppError("doBuiltinLdapTest", "app.ldap_builtin.search.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -117,4 +117,19 @@ func strDeref(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+// ldapWithTimeout runs fn in a goroutine and returns its error, or closes conn
+// and returns a timeout error if fn does not complete within timeout.
+// conn.SetTimeout is unreliable for TLS connections; this is the fallback.
+func ldapWithTimeout(conn interface{ Close() }, timeout time.Duration, fn func() error) error {
+	ch := make(chan error, 1)
+	go func() { ch <- fn() }()
+	select {
+	case err := <-ch:
+		return err
+	case <-time.After(timeout):
+		conn.Close()
+		return fmt.Errorf("ldap operation timed out after %s", timeout)
+	}
 }

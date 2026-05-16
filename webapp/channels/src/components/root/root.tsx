@@ -364,15 +364,13 @@ export default class Root extends React.PureComponent<Props, State> {
                     <Route
                         path={'/admin_console'}
                     >
-                        <WithUserTheme>
-                            <Switch>
-                                <LoggedInRoute
-                                    path={'/admin_console'}
-                                    component={AdminConsole}
-                                />
-                                <RootRedirect/>
-                            </Switch>
-                        </WithUserTheme>
+                        <Switch>
+                            <LoggedInRoute
+                                path={'/admin_console'}
+                                component={AdminConsole}
+                            />
+                            <RootRedirect/>
+                        </Switch>
                     </Route>
                     <LoggedInHFTRoute
                         path={'/select_team'}

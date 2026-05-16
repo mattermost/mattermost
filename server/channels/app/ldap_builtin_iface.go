@@ -73,12 +73,19 @@ func (b *BuiltinLdap) dial() (*ldap.Conn, error) {
 		return nil, err
 	}
 
+	qt := b.queryTimeout()
+	conn.SetTimeout(qt)
+	return conn, nil
+}
+
+// queryTimeout returns the configured LDAP query timeout.
+func (b *BuiltinLdap) queryTimeout() time.Duration {
+	cfg := b.app.Config().LdapSettings
 	qt := 30 * time.Second
 	if cfg.QueryTimeout != nil && *cfg.QueryTimeout > 0 {
 		qt = time.Duration(*cfg.QueryTimeout) * time.Second
 	}
-	conn.SetTimeout(qt)
-	return conn, nil
+	return qt
 }
 
 // bindServiceAccount performs the service-account bind when BindUsername is set.
@@ -88,7 +95,9 @@ func (b *BuiltinLdap) bindServiceAccount(conn *ldap.Conn) error {
 	if bindUser == "" {
 		return nil
 	}
-	return conn.Bind(bindUser, strDeref(cfg.BindPassword))
+	return ldapWithTimeout(conn, b.queryTimeout(), func() error {
+		return conn.Bind(bindUser, strDeref(cfg.BindPassword))
+	})
 }
 
 // searchUser runs an LDAP search using the provided filter and returns the first
@@ -104,8 +113,12 @@ func (b *BuiltinLdap) searchUser(conn *ldap.Conn, filter string, attrs []string)
 		2, 0, false,
 		filter, attrs, nil,
 	)
-	result, err := conn.Search(req)
-	if err != nil {
+	var result *ldap.SearchResult
+	if err := ldapWithTimeout(conn, b.queryTimeout(), func() error {
+		var e error
+		result, e = conn.Search(req)
+		return e
+	}); err != nil {
 		return nil, err
 	}
 	if len(result.Entries) == 0 {
@@ -261,7 +274,9 @@ func (b *BuiltinLdap) DoLogin(rctx request.CTX, ldapID, password string) (*model
 	}
 
 	// Verify password via direct bind to the user's DN.
-	if err := conn.Bind(entry.DN, password); err != nil {
+	if err := ldapWithTimeout(conn, b.queryTimeout(), func() error {
+		return conn.Bind(entry.DN, password)
+	}); err != nil {
 		return nil, model.NewAppError("BuiltinLdap.DoLogin", "ent.ldap.do_login.invalid_password.app_error", nil, err.Error(), http.StatusUnauthorized)
 	}
 
