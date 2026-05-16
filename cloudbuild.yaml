@@ -27,22 +27,22 @@ steps:
       - --file=Dockerfile.team-patch
       - --cache-from=$_IMAGE_REPO:latest
       - --build-arg=BUILDKIT_INLINE_CACHE=1
-      - --tag=$_IMAGE_REPO:$SHORT_SHA
+      - --tag=$_IMAGE_REPO:$BRANCH_NAME
       - --tag=$_IMAGE_REPO:latest
       - .
     timeout: '3600s'
 
   # ── Push ───────────────────────────────────────────────────────────────────
   - name: 'gcr.io/cloud-builders/docker'
-    id: 'push-sha'
-    args: ['push', '$_IMAGE_REPO:$SHORT_SHA']
+    id: 'push-branch'
+    args: ['push', '$_IMAGE_REPO:$BRANCH_NAME']
 
   - name: 'gcr.io/cloud-builders/docker'
     id: 'push-latest'
     args: ['push', '$_IMAGE_REPO:latest']
 
 images:
-  - '$_IMAGE_REPO:$SHORT_SHA'
+  - '$_IMAGE_REPO:$BRANCH_NAME'
   - '$_IMAGE_REPO:latest'
 
 timeout: '3600s'
@@ -52,4 +52,4 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 substitutions:
-  _IMAGE_REPO: 'asia-southeast3-docker.pkg.dev/gcloud-production-1/mattermost/team-patch'
+  _IMAGE_REPO: 'asia-southeast3-docker.pkg.dev/mattermost/mattermost'
