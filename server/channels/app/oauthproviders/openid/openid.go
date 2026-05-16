@@ -11,7 +11,9 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -95,9 +97,72 @@ func (p *OpenIDProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, _ *mo
 	return userFromOpenIDUser(rctx.Logger(), &ou, settings), nil
 }
 
-// GetSSOSettings returns the OpenIdSettings block from the server config.
-func (p *OpenIDProvider) GetSSOSettings(_ request.CTX, config *model.Config, _ string) (*model.SSOSettings, error) {
-	return &config.OpenIdSettings, nil
+// oidcDiscovery is the subset of the OIDC discovery document we need.
+type oidcDiscovery struct {
+	AuthorizationEndpoint string `json:"authorization_endpoint"`
+	TokenEndpoint         string `json:"token_endpoint"`
+	UserinfoEndpoint      string `json:"userinfo_endpoint"`
+}
+
+// fetchDiscovery fetches and parses the OIDC discovery document at discoveryURL.
+func fetchDiscovery(discoveryURL string) (*oidcDiscovery, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get(discoveryURL)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("openid discovery: unexpected status " + resp.Status)
+	}
+	var doc oidcDiscovery
+	if err := json.NewDecoder(resp.Body).Decode(&doc); err != nil {
+		return nil, err
+	}
+	return &doc, nil
+}
+
+// GetSSOSettings returns the OpenIdSettings block from the server config,
+// auto-populating AuthEndpoint/TokenEndpoint/UserAPIEndpoint from the
+// discovery document when DiscoveryEndpoint is set and the individual
+// endpoint fields are empty.
+func (p *OpenIDProvider) GetSSOSettings(rctx request.CTX, config *model.Config, _ string) (*model.SSOSettings, error) {
+	s := config.OpenIdSettings // copy so we don't mutate global config
+
+	discoveryURL := ""
+	if s.DiscoveryEndpoint != nil {
+		discoveryURL = *s.DiscoveryEndpoint
+	}
+
+	// If individual endpoints are already populated, use them as-is.
+	if discoveryURL == "" ||
+		(s.AuthEndpoint != nil && *s.AuthEndpoint != "" &&
+			s.TokenEndpoint != nil && *s.TokenEndpoint != "" &&
+			s.UserAPIEndpoint != nil && *s.UserAPIEndpoint != "") {
+		return &s, nil
+	}
+
+	// Resolve from discovery document.
+	doc, err := fetchDiscovery(discoveryURL)
+	if err != nil {
+		if rctx != nil {
+			rctx.Logger().Warn("OpenID: failed to fetch discovery document",
+				mlog.String("url", discoveryURL), mlog.Err(err))
+		}
+		return &s, nil // fall back to whatever is in config
+	}
+
+	if doc.AuthorizationEndpoint != "" {
+		s.AuthEndpoint = model.NewPointer(doc.AuthorizationEndpoint)
+	}
+	if doc.TokenEndpoint != "" {
+		s.TokenEndpoint = model.NewPointer(doc.TokenEndpoint)
+	}
+	if doc.UserinfoEndpoint != "" {
+		s.UserAPIEndpoint = model.NewPointer(doc.UserinfoEndpoint)
+	}
+
+	return &s, nil
 }
 
 // GetUserFromIdToken is a no-op; Mattermost uses the userinfo endpoint instead.

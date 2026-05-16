@@ -39,7 +39,7 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
         if (usingUserTheme > 0) {
             return getTheme(state);
         }
-        return Preferences.THEMES.denim;
+        return Preferences.THEMES.quartz;
     });
 
     // Subscribe to OS dark-mode changes for the entire session lifetime.
@@ -53,7 +53,7 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     // The effective theme: OS-driven when sync is on, saved otherwise.
     const theme = useMemo(() => {
         if (syncWithOS && usingUserTheme > 0) {
-            return osDark ? Preferences.THEMES.onyx : Preferences.THEMES.denim;
+            return osDark ? Preferences.THEMES.onyx : Preferences.THEMES.quartz;
         }
         return savedTheme;
     }, [syncWithOS, osDark, savedTheme, usingUserTheme]);

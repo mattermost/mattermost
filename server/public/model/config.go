@@ -2395,7 +2395,7 @@ func (s *ThemeSettings) SetDefaults() {
 	}
 
 	if s.DefaultTheme == nil {
-		s.DefaultTheme = NewPointer(TeamSettingsDefaultTeamText)
+		s.DefaultTheme = NewPointer("quartz")
 	}
 
 	if s.AllowCustomThemes == nil {
