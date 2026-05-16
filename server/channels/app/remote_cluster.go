@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -18,6 +19,27 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+// pluginRemoteInitialPingDelay is how long the framework waits after
+// RegisterPluginForSharedChannels returns before firing the first ping to
+// the newly created or restored plugin remote. The delay gives the
+// calling plugin a chance to record the returned RemoteId in its own
+// state, so the synchronous OnSharedChannelsPing hook the framework
+// invokes can resolve the remote. Without the delay, the first ping for
+// every freshly registered SiteURL fails and the remote stays offline
+// until the periodic pingLoop refreshes it (up to PingFreq, default 1
+// minute). Declared as a var, not const, so tests can shorten it.
+var pluginRemoteInitialPingDelay = 5 * time.Second
+
+// schedulePluginRemoteInitialPing schedules a single deferred ping for a
+// freshly registered or restored plugin remote. The goroutine is launched
+// via Server.Go so it cannot outlive the server.
+func (a *App) schedulePluginRemoteInitialPing(rcService remotecluster.RemoteClusterServiceIFace, rc *model.RemoteCluster) {
+	a.Srv().Go(func() {
+		time.Sleep(pluginRemoteInitialPingDelay)
+		rcService.PingNow(rc)
+	})
+}
 
 func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.RegisterPluginOpts) (remoteID string, err error) {
 	// When SiteURL is empty, fall back to the legacy single-remote behavior
@@ -60,14 +82,16 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 			return "", err
 		}
 
-		// Ping the plugin remote immediately so the restored row's
-		// LastPingAt is refreshed before sync attempts. Without this,
-		// rc.IsOnline() returns false until the next pingLoop iteration
-		// (up to PingFreq), causing transient sync failures on the
-		// restore path. Mirrors the new-connection branch below.
+		// Ping the restored plugin remote so its LastPingAt is refreshed
+		// before sync attempts. Deferred via a goroutine (see
+		// schedulePluginRemoteInitialPing) so the caller has a chance
+		// to record the returned RemoteId before the synchronous
+		// OnSharedChannelsPing hook fires. Without this the restored
+		// remote stays offline until the next pingLoop iteration (up to
+		// PingFreq), causing transient sync failures.
 		rcService, _ := a.GetRemoteClusterService()
 		if rcService != nil {
-			rcService.PingNow(rc)
+			a.schedulePluginRemoteInitialPing(rcService, rc)
 		}
 		return rc.RemoteId, nil
 	}
@@ -96,13 +120,19 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 		mlog.String("site_url", opts.SiteURL),
 	)
 
-	// Ping the plugin remote immediately if the service is running.
-	// If the service is not available the ping will happen once the
-	// service starts. This is expected since plugins start before the
-	// service.
+	// Ping the new plugin remote, deferred via a goroutine so the
+	// calling plugin has a chance to record the returned RemoteId
+	// before the synchronous OnSharedChannelsPing hook fires for the
+	// first time. A synchronous ping here would invoke the hook
+	// before the caller's return statement, the plugin would fail to
+	// resolve the new RemoteId, the ping would be recorded as failed,
+	// and the remote would stay offline until the next pingLoop
+	// iteration (up to PingFreq, default 1 minute). If the service is
+	// not yet running the ping will fire from the periodic pingLoop
+	// once the service starts.
 	rcService, _ := a.GetRemoteClusterService()
 	if rcService != nil {
-		rcService.PingNow(rcSaved)
+		a.schedulePluginRemoteInitialPing(rcService, rcSaved)
 	}
 
 	return rcSaved.RemoteId, nil
