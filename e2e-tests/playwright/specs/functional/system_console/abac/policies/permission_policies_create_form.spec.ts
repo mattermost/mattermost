@@ -53,9 +53,7 @@ test.describe('Permission Policies - Create Policy', () => {
         await expect(systemConsolePage.page.getByText('Permissions evaluation order', {exact: false})).toBeVisible();
     });
 
-    test('MM-T5806 create policy form shows role dropdown defaulting to Members', async ({
-        pw,
-    }) => {
+    test('MM-T5806 create policy form shows role dropdown defaulting to Members', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.initSetup();
         await ensureUserAttributes(adminClient);
