@@ -104,7 +104,7 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
         };
 
         if (window.desktopAPI) {
-            log('path=desktop, registering onDarkModeChanged + matchMedia fallback');
+            log('path=desktop, registering onDarkModeChanged + matchMedia + poll fallback');
             const unsubscribe = DesktopApp.onDarkModeChanged((dark) => {
                 log('onDarkModeChanged fired, dark=', dark);
                 setOsDark(dark);
@@ -113,9 +113,26 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
                 log('getDarkMode resolved, dark=', dark);
                 setOsDark(dark);
             });
-            // matchMedia as fallback for desktop builds that don't implement onDarkModeChanged
+
+            // matchMedia fallback for desktop builds that don't implement onDarkModeChanged
             mq.addEventListener('change', mqHandler);
+
+            // Polling fallback: in some Electron versions neither onDarkModeChanged
+            // nor matchMedia fire reliably when the OS switches theme. Poll every 2s
+            // so the theme always catches up within a moment of the OS change.
+            let lastDark = osIsDarkNow();
+            const pollInterval = setInterval(() => {
+                DesktopApp.getDarkMode().then((dark) => {
+                    if (dark !== lastDark) {
+                        log('poll detected OS theme change, dark=', dark);
+                        lastDark = dark;
+                        setOsDark(dark);
+                    }
+                });
+            }, 2000);
+
             return () => {
+                clearInterval(pollInterval);
                 mq.removeEventListener('change', mqHandler);
                 unsubscribe?.();
             };
