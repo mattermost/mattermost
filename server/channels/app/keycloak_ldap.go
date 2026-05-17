@@ -206,6 +206,11 @@ func kcGroupToModel(g kcGroup) *model.Group {
 	}
 }
 
+// IsKeycloakProvider signals that this LdapInterface implementation is backed
+// by the Keycloak Admin API rather than a real LDAP server. The API layer uses
+// this to skip the enterprise-license LDAPGroups gate.
+func (k *KeycloakLdap) IsKeycloakProvider() bool { return true }
+
 // ─── LdapInterface: group methods ────────────────────────────────────────────
 
 // GetAllGroupsPage searches Keycloak groups and returns a paginated list.

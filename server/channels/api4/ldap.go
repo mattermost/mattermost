@@ -12,6 +12,22 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+// keycloakProvider is a marker interface implemented by KeycloakLdap.
+// When present the enterprise LDAPGroups license gate is skipped.
+type keycloakProvider interface {
+	IsKeycloakProvider() bool
+}
+
+// ldapGroupsAllowed returns true when the request is permitted to use LDAP
+// group APIs — either via an enterprise LDAPGroups license feature or because
+// the installed LDAP provider is our Keycloak-backed implementation.
+func ldapGroupsAllowed(c *Context) bool {
+	if kp, ok := c.App.Ldap().(keycloakProvider); ok && kp.IsKeycloakProvider() {
+		return true
+	}
+	return c.App.Channels().License() != nil && *c.App.Channels().License().Features.LDAPGroups
+}
+
 type mixedUnlinkedGroup struct {
 	ID           *string `json:"mattermost_group_id"`
 	DisplayName  string  `json:"name"`
@@ -139,7 +155,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		c.Err = model.NewAppError("api4.getLdapGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -202,7 +218,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
 
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		c.Err = model.NewAppError("api4.linkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -304,7 +320,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
+	if !ldapGroupsAllowed(c) {
 		c.Err = model.NewAppError("api4.unlinkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
