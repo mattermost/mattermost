@@ -96,14 +96,27 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     //   Promise.resolve(false) unconditionally, which would overwrite the
     //   correct initial osDark value obtained from matchMedia at useState time.
     useEffect(() => {
+        const log = (...args: unknown[]) => console.log('[ThemeSync]', ...args);
+
         if (window.desktopAPI) {
-            const unsubscribe = DesktopApp.onDarkModeChanged((dark) => setOsDark(dark));
-            DesktopApp.getDarkMode().then((dark) => setOsDark(dark));
+            log('path=desktop, registering onDarkModeChanged');
+            const unsubscribe = DesktopApp.onDarkModeChanged((dark) => {
+                log('onDarkModeChanged fired, dark=', dark);
+                setOsDark(dark);
+            });
+            DesktopApp.getDarkMode().then((dark) => {
+                log('getDarkMode resolved, dark=', dark);
+                setOsDark(dark);
+            });
             return () => unsubscribe?.();
         }
 
+        log('path=browser, registering matchMedia listener, initial dark=', osIsDarkNow());
         const mq = window.matchMedia('(prefers-color-scheme: dark)');
-        const handler = (e: MediaQueryListEvent) => setOsDark(e.matches);
+        const handler = (e: MediaQueryListEvent) => {
+            log('matchMedia change fired, dark=', e.matches);
+            setOsDark(e.matches);
+        };
         mq.addEventListener('change', handler);
         return () => mq.removeEventListener('change', handler);
     }, []);
@@ -142,6 +155,13 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     const effectiveTheme = isAdminConsole ? Preferences.THEMES.quartz : theme;
 
     useEffect(() => {
+        console.log('[ThemeSync] applyTheme', {
+            syncWithOS,
+            osDark,
+            isLoggedIn,
+            isAdminConsole,
+            effectiveTheme: effectiveTheme?.type ?? effectiveTheme,
+        });
         applyTheme(effectiveTheme);
         // Notify the desktop app so it can update native UI (title bar, etc.).
         DesktopApp.updateTheme(effectiveTheme);
