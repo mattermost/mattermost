@@ -338,6 +338,14 @@ func (k *KeycloakLdap) SyncGroupMembers(rctx request.CTX, mmGroupID, kcGroupUID 
 	}
 	rctx.Logger().Info("KeycloakLdap.SyncGroupMembers: sync complete",
 		mlog.String("group_id", mmGroupID), mlog.Int("members_found", len(members)))
+
+	// Propagate group membership to all synced teams and channels immediately.
+	if err := k.app.CreateDefaultMemberships(rctx, model.CreateDefaultMembershipParams{
+		Since:               0,
+		ReAddRemovedMembers: true,
+	}); err != nil {
+		rctx.Logger().Warn("KeycloakLdap.SyncGroupMembers: failed to propagate to teams/channels", mlog.Err(err))
+	}
 }
 
 // ─── LdapInterface: user auth stubs (handled by OIDC, not LDAP) ─────────────

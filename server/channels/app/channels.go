@@ -301,7 +301,42 @@ func (ch *Channels) Start() error {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
 
+	// Sync Keycloak group members to Mattermost in the background on startup.
+	// This ensures users are added to teams/channels even if the server was
+	// restarted after groups were linked.
+	go ch.syncKeycloakGroupsOnStartup(ctx)
+
 	return nil
+}
+
+// syncKeycloakGroupsOnStartup syncs members for all LDAP-sourced groups that
+// are already linked in Mattermost, then propagates memberships to teams and
+// channels. Runs once in the background after server start.
+func (ch *Channels) syncKeycloakGroupsOnStartup(ctx request.CTX) {
+	a := New(ServerConnector(ch))
+
+	kp, ok := a.Ldap().(interface {
+		SyncGroupMembers(request.CTX, string, string)
+	})
+	if !ok {
+		return // not Keycloak provider
+	}
+
+	groups, appErr := a.GetGroups(0, 1000, model.GroupSearchOpts{
+		Source: model.GroupSourceLdap,
+	}, nil)
+	if appErr != nil {
+		ch.srv.Log().Warn("syncKeycloakGroupsOnStartup: failed to list groups", mlog.Err(appErr))
+		return
+	}
+
+	ch.srv.Log().Info("syncKeycloakGroupsOnStartup: syncing groups", mlog.Int("count", len(groups)))
+	for _, g := range groups {
+		if g.RemoteId == nil || *g.RemoteId == "" {
+			continue
+		}
+		kp.SyncGroupMembers(ctx, g.Id, *g.RemoteId)
+	}
 }
 
 func (ch *Channels) Stop() error {
