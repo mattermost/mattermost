@@ -88,28 +88,24 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     });
 
     // Subscribe to dark-mode changes.
-    // Desktop app: window.desktopAPI.onDarkModeChanged fires reliably from the
-    // Electron main process. matchMedia change events are unreliable in Electron.
-    // Browser: fall back to the standard matchMedia change event.
+    // Desktop: window.desktopAPI is present — use the native Electron API only.
+    //   matchMedia events are unreliable in Electron, and getDarkMode() gives
+    //   the authoritative initial value from the main process.
+    // Browser: window.desktopAPI is absent — use matchMedia change events only.
+    //   Never call getDarkMode() in the browser because it returns
+    //   Promise.resolve(false) unconditionally, which would overwrite the
+    //   correct initial osDark value obtained from matchMedia at useState time.
     useEffect(() => {
-        // Desktop app path — returns an unsubscribe function when available.
-        const desktopUnsubscribe = DesktopApp.onDarkModeChanged((dark) => setOsDark(dark));
-
-        // Also fetch the authoritative initial value asynchronously from the
-        // desktop API (getDarkMode resolves immediately in the desktop app).
-        DesktopApp.getDarkMode().then((dark) => setOsDark(dark));
-
-        // Browser fallback: matchMedia fires reliably in web browsers.
-        const mq = window.matchMedia('(prefers-color-scheme: dark)');
-        const handler = (e: MediaQueryListEvent) => setOsDark(e.matches);
-        if (!desktopUnsubscribe) {
-            mq.addEventListener('change', handler);
+        if (window.desktopAPI) {
+            const unsubscribe = DesktopApp.onDarkModeChanged((dark) => setOsDark(dark));
+            DesktopApp.getDarkMode().then((dark) => setOsDark(dark));
+            return () => unsubscribe?.();
         }
 
-        return () => {
-            mq.removeEventListener('change', handler);
-            desktopUnsubscribe?.();
-        };
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const handler = (e: MediaQueryListEvent) => setOsDark(e.matches);
+        mq.addEventListener('change', handler);
+        return () => mq.removeEventListener('change', handler);
     }, []);
 
     // Persist the sync preference to localStorage so the module-level init above
