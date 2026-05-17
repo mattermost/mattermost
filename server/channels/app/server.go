@@ -64,7 +64,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/recap"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/refresh_materialized_views"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/ldap_sync_builtin"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -1503,14 +1502,6 @@ func (s *Server) initJobs() {
 	if jobsLdapSyncInterface != nil {
 		builder := jobsLdapSyncInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
-	} else {
-		// Team Edition: register builtin LDAP sync when the enterprise plugin is absent.
-		a := New(ServerConnector(s.Channels()))
-		s.Jobs.RegisterJobType(
-			model.JobTypeLdapSync,
-			ldap_sync_builtin.MakeWorker(s.Jobs, a),
-			ldap_sync_builtin.MakeScheduler(s.Jobs),
-		)
 	}
 
 	if jobsAccessControlSyncJobInterface != nil {
