@@ -97,9 +97,14 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     //   correct initial osDark value obtained from matchMedia at useState time.
     useEffect(() => {
         const log = (...args: unknown[]) => console.log('[ThemeSync]', ...args);
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const mqHandler = (e: MediaQueryListEvent) => {
+            log('matchMedia change fired, dark=', e.matches);
+            setOsDark(e.matches);
+        };
 
         if (window.desktopAPI) {
-            log('path=desktop, registering onDarkModeChanged');
+            log('path=desktop, registering onDarkModeChanged + matchMedia fallback');
             const unsubscribe = DesktopApp.onDarkModeChanged((dark) => {
                 log('onDarkModeChanged fired, dark=', dark);
                 setOsDark(dark);
@@ -108,17 +113,17 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
                 log('getDarkMode resolved, dark=', dark);
                 setOsDark(dark);
             });
-            return () => unsubscribe?.();
+            // matchMedia as fallback for desktop builds that don't implement onDarkModeChanged
+            mq.addEventListener('change', mqHandler);
+            return () => {
+                mq.removeEventListener('change', mqHandler);
+                unsubscribe?.();
+            };
         }
 
         log('path=browser, registering matchMedia listener, initial dark=', osIsDarkNow());
-        const mq = window.matchMedia('(prefers-color-scheme: dark)');
-        const handler = (e: MediaQueryListEvent) => {
-            log('matchMedia change fired, dark=', e.matches);
-            setOsDark(e.matches);
-        };
-        mq.addEventListener('change', handler);
-        return () => mq.removeEventListener('change', handler);
+        mq.addEventListener('change', mqHandler);
+        return () => mq.removeEventListener('change', mqHandler);
     }, []);
 
     // Persist the sync preference to localStorage so the module-level init above
