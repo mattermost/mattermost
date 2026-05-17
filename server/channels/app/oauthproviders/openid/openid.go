@@ -49,6 +49,13 @@ func (u *OpenIDUser) IsValid() error {
 	return nil
 }
 
+func (u *OpenIDUser) hasAuthData() error {
+	if u.Sub == "" {
+		return errors.New("openid: user sub claim cannot be empty")
+	}
+	return nil
+}
+
 func (u *OpenIDUser) mergeFallback(fallback *OpenIDUser) {
 	if fallback == nil {
 		return
@@ -224,7 +231,7 @@ func (p *OpenIDProvider) GetUserFromIdToken(rctx request.CTX, idToken string) (*
 	if err := json.Unmarshal(payload, &ou); err != nil {
 		return nil, err
 	}
-	if err := ou.IsValid(); err != nil {
+	if err := ou.hasAuthData(); err != nil {
 		return nil, err
 	}
 	return userFromOpenIDUser(rctx.Logger(), &ou, nil), nil
