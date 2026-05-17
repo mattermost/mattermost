@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // keycloakProvider is a marker interface implemented by KeycloakLdap.
@@ -298,6 +299,14 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+
+	// Kick off Keycloak group member sync in background so the Group
+	// Configuration page shows users immediately after linking.
+	if kp, ok := c.App.Ldap().(interface {
+		SyncGroupMembers(request.CTX, string, string)
+	}); ok {
+		go kp.SyncGroupMembers(c.AppContext, newOrUpdatedGroup.Id, c.Params.RemoteId)
+	}
 
 	w.WriteHeader(status)
 	if _, err := w.Write(b); err != nil {

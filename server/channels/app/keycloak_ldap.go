@@ -45,6 +45,11 @@ type kcTokenResp struct {
 	AccessToken string `json:"access_token"`
 }
 
+type kcUser struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
+}
+
 // adminBase derives the Keycloak Admin API base URL from DiscoveryEndpoint.
 // https://kc/realms/corp/.well-known/openid-configuration → https://kc/admin/realms/corp
 func (k *KeycloakLdap) adminBase() (string, error) {
@@ -275,6 +280,64 @@ func (k *KeycloakLdap) GetGroup(rctx request.CTX, groupUID string) (*model.Group
 		return nil, model.NewAppError("KeycloakLdap.GetGroup", "app.keycloak_ldap.groups.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return kcGroupToModel(g), nil
+}
+
+// ─── Group member sync ───────────────────────────────────────────────────────
+
+// fetchGroupMembers returns all members (emails) of a Keycloak group by UUID.
+func (k *KeycloakLdap) fetchGroupMembers(token, groupUID string) ([]kcUser, error) {
+	base, err := k.adminBase()
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(http.MethodGet, base+"/groups/"+groupUID+"/members?max=1000", nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("keycloak members request: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("keycloak members request failed: %s", resp.Status)
+	}
+	var users []kcUser
+	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+// SyncGroupMembers fetches Keycloak group members and upserts them into the
+// Mattermost GroupMembers table, matching by email.
+func (k *KeycloakLdap) SyncGroupMembers(rctx request.CTX, mmGroupID, kcGroupUID string) {
+	token, err := k.getAdminToken()
+	if err != nil {
+		rctx.Logger().Warn("KeycloakLdap.SyncGroupMembers: failed to get admin token", mlog.Err(err))
+		return
+	}
+	members, err := k.fetchGroupMembers(token, kcGroupUID)
+	if err != nil {
+		rctx.Logger().Warn("KeycloakLdap.SyncGroupMembers: failed to fetch members", mlog.Err(err))
+		return
+	}
+	for _, m := range members {
+		if m.Email == "" {
+			continue
+		}
+		user, appErr := k.app.GetUserByEmail(m.Email)
+		if appErr != nil {
+			continue
+		}
+		if _, appErr = k.app.UpsertGroupMember(mmGroupID, user.Id); appErr != nil {
+			rctx.Logger().Warn("KeycloakLdap.SyncGroupMembers: failed to upsert member",
+				mlog.String("user_id", user.Id), mlog.Err(appErr))
+		}
+	}
+	rctx.Logger().Info("KeycloakLdap.SyncGroupMembers: sync complete",
+		mlog.String("group_id", mmGroupID), mlog.Int("members_found", len(members)))
 }
 
 // ─── LdapInterface: user auth stubs (handled by OIDC, not LDAP) ─────────────
