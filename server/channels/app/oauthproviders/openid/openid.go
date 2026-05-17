@@ -8,6 +8,7 @@
 package oauthopenid
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"io"
@@ -48,6 +49,46 @@ func (u *OpenIDUser) IsValid() error {
 	return nil
 }
 
+func (u *OpenIDUser) mergeFallback(fallback *OpenIDUser) {
+	if fallback == nil {
+		return
+	}
+	if u.Sub == "" {
+		u.Sub = fallback.Sub
+	}
+	if u.Email == "" {
+		u.Email = fallback.Email
+	}
+	if u.Name == "" {
+		u.Name = fallback.Name
+	}
+	if u.GivenName == "" {
+		u.GivenName = fallback.GivenName
+	}
+	if u.FamilyName == "" {
+		u.FamilyName = fallback.FamilyName
+	}
+	if u.PreferredUsername == "" {
+		u.PreferredUsername = fallback.PreferredUsername
+	}
+}
+
+func openIDUserFromModelUser(user *model.User) *OpenIDUser {
+	if user == nil {
+		return nil
+	}
+	ou := &OpenIDUser{
+		Email:             user.Email,
+		GivenName:         user.FirstName,
+		FamilyName:        user.LastName,
+		PreferredUsername: user.Username,
+	}
+	if user.AuthData != nil {
+		ou.Sub = *user.AuthData
+	}
+	return ou
+}
+
 func userFromOpenIDUser(logger mlog.LoggerIFace, ou *OpenIDUser, settings *model.SSOSettings) *model.User {
 	user := &model.User{}
 
@@ -86,11 +127,12 @@ func userFromOpenIDUser(logger mlog.LoggerIFace, ou *OpenIDUser, settings *model
 }
 
 // GetUserFromJSON parses a standard OIDC userinfo JSON payload.
-func (p *OpenIDProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, _ *model.User, settings *model.SSOSettings) (*model.User, error) {
+func (p *OpenIDProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, tokenUser *model.User, settings *model.SSOSettings) (*model.User, error) {
 	var ou OpenIDUser
 	if err := json.NewDecoder(data).Decode(&ou); err != nil {
 		return nil, err
 	}
+	ou.mergeFallback(openIDUserFromModelUser(tokenUser))
 	if err := ou.IsValid(); err != nil {
 		return nil, err
 	}
@@ -165,9 +207,27 @@ func (p *OpenIDProvider) GetSSOSettings(rctx request.CTX, config *model.Config, 
 	return &s, nil
 }
 
-// GetUserFromIdToken is a no-op; Mattermost uses the userinfo endpoint instead.
-func (p *OpenIDProvider) GetUserFromIdToken(_ request.CTX, _ string) (*model.User, error) {
-	return nil, nil
+// GetUserFromIdToken parses the unverified JWT payload. The token has already
+// been obtained from the configured OIDC token endpoint; this is only used as a
+// fallback source for standard profile claims when userinfo is sparse.
+func (p *OpenIDProvider) GetUserFromIdToken(rctx request.CTX, idToken string) (*model.User, error) {
+	parts := strings.Split(idToken, ".")
+	if len(parts) < 2 {
+		return nil, errors.New("openid: invalid id_token format")
+	}
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return nil, err
+	}
+
+	var ou OpenIDUser
+	if err := json.Unmarshal(payload, &ou); err != nil {
+		return nil, err
+	}
+	if err := ou.IsValid(); err != nil {
+		return nil, err
+	}
+	return userFromOpenIDUser(rctx.Logger(), &ou, nil), nil
 }
 
 // IsSameUser compares the stable sub claim stored as AuthData.
