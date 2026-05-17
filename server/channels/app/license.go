@@ -14,7 +14,14 @@ import (
 )
 
 func (ch *Channels) License() *model.License {
-	return ch.srv.License()
+	// Патч: если реальной лицензии нет — возвращаем синтетическую all-features
+	// лицензию, чтобы все upstream license-checks стали no-op.
+	// При мерже с апстримом достаточно сохранить model.NewBuiltinLicense()
+	// в server/public/model/license.go и эти три строки.
+	if lic := ch.srv.License(); lic != nil {
+		return lic
+	}
+	return model.NewBuiltinLicense()
 }
 
 func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
@@ -102,7 +109,13 @@ type JWTClaims struct {
 }
 
 func (s *Server) License() *model.License {
-	return s.platform.License()
+	// Патч: возвращаем синтетическую all-features лицензию вместо nil.
+	// s.platform.License() вызывается из app/ldap.go и других мест через
+	// a.Srv().License() — без этой обёртки они обходят (ch *Channels).License().
+	if lic := s.platform.License(); lic != nil {
+		return lic
+	}
+	return model.NewBuiltinLicense()
 }
 
 func (s *Server) LoadLicense() {

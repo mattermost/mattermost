@@ -83,6 +83,7 @@ const Preferences = {
     BURN_ON_READ_SKIP_CONFIRMATION: 'skip_delete_confirmation',
 
     CATEGORY_THEME: 'theme',
+    NAME_THEME_SYNC_WITH_OS: 'sync_with_os_theme',
     THEMES: {
         denim: {
             type: 'Denim',

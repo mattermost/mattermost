@@ -5,6 +5,8 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {PreferenceType} from '@mattermost/types/preferences';
+import {Preferences} from 'mattermost-redux/constants';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import ExternalLink from 'components/external_link';
@@ -22,6 +24,7 @@ import PremadeThemeChooser from './premade_theme_chooser';
 
 type Props = {
     currentTeamId: string;
+    currentUserId: string;
     theme: Theme;
     selected: boolean;
     areAllSectionsInactive: boolean;
@@ -30,10 +33,12 @@ type Props = {
     allowCustomThemes: boolean;
     showAllTeamsCheckbox: boolean;
     applyToAllTeams: boolean;
+    syncWithOS: boolean;
     actions: {
         saveTheme: (teamId: string, theme: Theme) => void;
         deleteTeamSpecificThemes: () => void;
         openModal: <P>(modalData: ModalData<P>) => void;
+        savePreferences: (userId: string, preferences: PreferenceType[]) => void;
     };
 };
 
@@ -44,11 +49,13 @@ type State = {
     applyToAllTeams: boolean;
     serverError: string;
     theme: Theme;
+    syncWithOS: boolean;
 };
 
 export default class ThemeSetting extends React.PureComponent<Props, State> {
     minRef: RefObject<SettingItemMinComponent>;
     originalTheme: Theme;
+
     constructor(props: Props) {
         super(props);
 
@@ -72,7 +79,10 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        if (this.props.selected) {
+        // Патч: не перетираем тему при закрытии если включён syncWithOS.
+        // props.theme — базовая светлая тема из DB; реальная тема определяется
+        // ThemeProvider через OS-режим, и вызов applyTheme здесь её сбрасывал.
+        if (this.props.selected && !this.props.syncWithOS) {
             applyTheme(this.props.theme);
         }
     }
@@ -88,6 +98,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
             type: theme.type || 'premade',
             showAllTeamsCheckbox: props.showAllTeamsCheckbox,
             applyToAllTeams: props.applyToAllTeams,
+            syncWithOS: props.syncWithOS,
             serverError: '',
             isSaving: false,
         };
@@ -102,10 +113,22 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
         this.setState({isSaving: true});
 
-        await this.props.actions.saveTheme(teamId, this.state.theme);
+        // Save the OS-sync preference first.
+        const syncPref: PreferenceType = {
+            user_id: this.props.currentUserId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: Preferences.NAME_THEME_SYNC_WITH_OS,
+            value: this.state.syncWithOS ? 'true' : 'false',
+        };
+        this.props.actions.savePreferences(this.props.currentUserId, [syncPref]);
 
-        if (this.state.applyToAllTeams) {
-            await this.props.actions.deleteTeamSpecificThemes();
+        // Only save the selected theme when sync-with-OS is off.
+        if (!this.state.syncWithOS) {
+            await this.props.actions.saveTheme(teamId, this.state.theme);
+
+            if (this.state.applyToAllTeams) {
+                await this.props.actions.deleteTeamSpecificThemes();
+            }
         }
 
         this.props.setRequireConfirm?.(false);
@@ -135,12 +158,21 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
     updateType = (type: string): void => this.setState({type});
 
+    handleSyncWithOSChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({syncWithOS: e.target.checked});
+        this.props.setRequireConfirm?.(true);
+    };
+
     resetFields = (): void => {
         const state = this.getStateFromProps();
         state.serverError = '';
         this.setState(state);
 
-        applyTheme(state.theme);
+        // Патч: не перетираем тему если syncWithOS включён — ThemeProvider
+        // сам поддерживает правильную тему через OS-режим.
+        if (!this.props.syncWithOS) {
+            applyTheme(state.theme);
+        }
 
         this.props.setRequireConfirm?.(false);
     };
@@ -182,68 +214,99 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         if (this.props.selected) {
             const inputs = [];
 
-            if (this.props.allowCustomThemes) {
-                inputs.push(
-                    <div
-                        key='premadeCustom'
-                        className='user-settings__radio-group-inline'
-                    >
-                        <div className='radio radio-inline'>
-                            <label>
-                                <input
-                                    id='standardThemes'
-                                    type='radio'
-                                    name='theme'
-                                    checked={!displayCustom}
-                                    onChange={this.updateType.bind(this, 'premade')}
-                                />
-                                <FormattedMessage
-                                    id='user.settings.display.theme.premadeThemes'
-                                    defaultMessage='Premade Themes'
-                                />
-                            </label>
-                        </div>
-                        <div className='radio radio-inline'>
-                            <label>
-                                <input
-                                    id='customThemes'
-                                    type='radio'
-                                    name='theme'
-                                    checked={displayCustom}
-                                    onChange={this.updateType.bind(this, 'custom')}
-                                />
-                                <FormattedMessage
-                                    id='user.settings.display.theme.customTheme'
-                                    defaultMessage='Custom Theme'
-                                />
-                            </label>
-                        </div>
-                    </div>,
-                );
+            // ── Sync with OS checkbox ──────────────────────────────────────
+            inputs.push(
+                <div
+                    key='syncWithOS'
+                    className='checkbox'
+                    style={{marginBottom: '12px'}}
+                >
+                    <label>
+                        <input
+                            id='syncWithOSTheme'
+                            type='checkbox'
+                            checked={this.state.syncWithOS}
+                            onChange={this.handleSyncWithOSChange}
+                        />
+                        <FormattedMessage
+                            id='user.settings.display.theme.syncWithOS'
+                            defaultMessage='Sync with OS dark/light mode'
+                        />
+                    </label>
+                    <div className='help-text'>
+                        <FormattedMessage
+                            id='user.settings.display.theme.syncWithOS.description'
+                            defaultMessage='Automatically switch to Onyx in dark mode and your chosen theme in light mode based on your OS appearance setting.'
+                        />
+                    </div>
+                </div>,
+            );
 
-                inputs.push(premade, custom);
-
-                inputs.push(
-                    <div key='otherThemes'>
-                        <br/>
-                        <ExternalLink
-                            id='otherThemes'
-                            href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
-                            location='user_settings_theme'
+            // Theme pickers are shown only when OS sync is off.
+            if (!this.state.syncWithOS) {
+                if (this.props.allowCustomThemes) {
+                    inputs.push(
+                        <div
+                            key='premadeCustom'
+                            className='user-settings__radio-group-inline'
                         >
-                            <FormattedMessage
-                                id='user.settings.display.theme.otherThemes'
-                                defaultMessage='See other themes'
-                            />
-                        </ExternalLink>
-                    </div>,
-                );
-            } else {
-                inputs.push(premade);
+                            <div className='radio radio-inline'>
+                                <label>
+                                    <input
+                                        id='standardThemes'
+                                        type='radio'
+                                        name='theme'
+                                        checked={!displayCustom}
+                                        onChange={this.updateType.bind(this, 'premade')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.display.theme.premadeThemes'
+                                        defaultMessage='Premade Themes'
+                                    />
+                                </label>
+                            </div>
+                            <div className='radio radio-inline'>
+                                <label>
+                                    <input
+                                        id='customThemes'
+                                        type='radio'
+                                        name='theme'
+                                        checked={displayCustom}
+                                        onChange={this.updateType.bind(this, 'custom')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.display.theme.customTheme'
+                                        defaultMessage='Custom Theme'
+                                    />
+                                </label>
+                            </div>
+                        </div>,
+                    );
+
+                    inputs.push(premade, custom);
+
+                    inputs.push(
+                        <div key='otherThemes'>
+                            <br/>
+                            <ExternalLink
+                                id='otherThemes'
+                                href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
+                                location='user_settings_theme'
+                            >
+                                <FormattedMessage
+                                    id='user.settings.display.theme.otherThemes'
+                                    defaultMessage='See other themes'
+                                />
+                            </ExternalLink>
+                        </div>,
+                    );
+                } else {
+                    inputs.push(premade);
+                }
             }
 
             let allTeamsCheckbox = null;
-            if (this.state.showAllTeamsCheckbox) {
+            if (this.state.showAllTeamsCheckbox && !this.state.syncWithOS) {
                 allTeamsCheckbox = (
                     <div className='checkbox user-settings__submit-checkbox'>
                         <label>

@@ -5,7 +5,10 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {Preferences} from 'mattermost-redux/constants';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {getMyPreferences, getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {applyTheme} from 'utils/utils';
 
@@ -13,19 +16,107 @@ import type {GlobalState} from 'types/store';
 
 import {ThemeContext} from './theme_context';
 
+// localStorage keys — persisted so the correct theme can be applied
+// synchronously on the next page load before React and Redux initialise.
+const LS_SYNC_KEY = 'mm_sync_with_os_theme';
+const LS_LIGHT_THEME_KEY = 'mm_light_theme';
+
+function osIsDarkNow(): boolean {
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+}
+
+function localSync(): boolean {
+    try {
+        return localStorage.getItem(LS_SYNC_KEY) === 'true';
+    } catch {
+        return false;
+    }
+}
+
+function localLightTheme(): Theme | null {
+    try {
+        const v = localStorage.getItem(LS_LIGHT_THEME_KEY);
+        return v ? JSON.parse(v) as Theme : null;
+    } catch {
+        return null;
+    }
+}
+
+// Apply the correct theme at module-load time — before React renders a single
+// pixel — so there is no flash of the wrong theme on page load / hard refresh.
+if (typeof window !== 'undefined' && localSync()) {
+    applyTheme(osIsDarkNow() ? Preferences.THEMES.onyx : (localLightTheme() ?? Preferences.THEMES.quartz));
+}
+
 export default function ThemeProvider({children}: {children: React.ReactNode}) {
-    // This keeps track of if we're in a themed part of the app. Realistically, it should only ever be 0 (unthemed) or
-    // 1 (themed), but using a counter lets us handle cases where the start/stop functions are called multiple times or
-    // in the wrong order.
+    // Counter: kept for API compatibility with WithUserTheme / useUserTheme consumers.
     const [usingUserTheme, setUsingUserTheme] = useState(0);
 
-    const theme = useSelector((state: GlobalState) => {
-        if (usingUserTheme > 0) {
+    // Track OS dark-mode state reactively.
+    const [osDark, setOsDark] = useState(osIsDarkNow);
+
+    const isLoggedIn = useSelector((state: GlobalState) => Boolean(getCurrentUserId(state)));
+
+    // Whether the user opted in to OS sync.
+    // Falls back to localStorage while Redux preferences are still loading from
+    // the server — prevents the theme from briefly reverting to the saved theme.
+    const syncWithOS = useSelector((state: GlobalState) => {
+        const key = getPreferenceKey(
+            Preferences.CATEGORY_DISPLAY_SETTINGS,
+            Preferences.NAME_THEME_SYNC_WITH_OS,
+        );
+        const pref = getMyPreferences(state)[key];
+        if (pref === undefined) {
+            return localSync();
+        }
+        return pref.value === 'true';
+    });
+
+    // The theme saved by the user in their preferences (used as the light theme
+    // when OS sync is active, and as the sole theme when sync is off).
+    const savedTheme = useSelector((state: GlobalState) => {
+        if (isLoggedIn) {
             return getTheme(state);
         }
-
-        return Preferences.THEMES.denim;
+        return Preferences.THEMES.quartz;
     });
+
+    // Subscribe to OS dark-mode changes for the entire session lifetime.
+    useEffect(() => {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const handler = (e: MediaQueryListEvent) => setOsDark(e.matches);
+        mq.addEventListener('change', handler);
+        return () => mq.removeEventListener('change', handler);
+    }, []);
+
+    // Persist the sync preference to localStorage so the module-level init above
+    // can apply the right theme immediately on the next page load.
+    useEffect(() => {
+        try {
+            localStorage.setItem(LS_SYNC_KEY, syncWithOS ? 'true' : 'false');
+        } catch {}
+    }, [syncWithOS]);
+
+    // Persist the saved (light) theme so the module-level init can apply it
+    // without waiting for Redux on the next page load.
+    useEffect(() => {
+        if (isLoggedIn) {
+            try {
+                localStorage.setItem(LS_LIGHT_THEME_KEY, JSON.stringify(savedTheme));
+            } catch {}
+        }
+    }, [savedTheme, isLoggedIn]);
+
+    // Effective theme:
+    //   sync ON + dark OS  → Onyx
+    //   sync ON + light OS → user's saved light theme (not hardcoded Quartz)
+    //   sync OFF           → user's saved theme
+    const theme = useMemo(() => {
+        if (syncWithOS && isLoggedIn) {
+            return osDark ? Preferences.THEMES.onyx : savedTheme;
+        }
+        return savedTheme;
+    }, [syncWithOS, osDark, savedTheme, isLoggedIn]);
 
     useEffect(() => {
         applyTheme(theme);
