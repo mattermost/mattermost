@@ -63,7 +63,6 @@ func (api *API) InitLdap() {
 }
 
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Патч: проверка лицензии убрана — builtin LDAP работает без enterprise
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateLdapSyncJob) {
 		c.SetPermissionError(model.PermissionCreateLdapSyncJob)
 		return
@@ -79,7 +78,6 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Патч: проверка лицензии убрана — builtin LDAP работает без enterprise
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestLdap) {
 		c.SetPermissionError(model.PermissionTestLdap)
 		return
@@ -94,7 +92,6 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testLdapConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Патч: проверка лицензии убрана — builtin LDAP работает без enterprise
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestLdap) {
 		c.SetPermissionError(model.PermissionTestLdap)
 		return
@@ -115,7 +112,6 @@ func testLdapConnection(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testLdapDiagnostics(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Патч: проверка лицензии убрана — builtin LDAP работает без enterprise
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestLdap) {
 		c.SetPermissionError(model.PermissionTestLdap)
 		return
@@ -372,7 +368,6 @@ func migrateIDLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Патч: проверка лицензии убрана — builtin LDAP работает без enterprise
 	if err := c.App.MigrateIdLDAP(c.AppContext, toAttribute); err != nil {
 		c.Err = err
 		return

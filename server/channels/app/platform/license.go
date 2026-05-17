@@ -102,9 +102,6 @@ func (ps *PlatformService) LoadLicense() {
 
 	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
 	if nErr != nil {
-		// Патч: вместо nil / Mattermost Entry всегда ставим builtin all-features лицензию.
-		// Это гарантирует: (1) clientLicenseValue заполнен → frontend видит лицензию корректно,
-		// (2) не показывается баннер "Mattermost Entry", (3) все license-checks на сервере — no-op.
 		ps.logger.Info("No valid license found in DB, using builtin all-features license.")
 		ps.SetLicense(model.NewBuiltinLicense())
 		return

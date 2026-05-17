@@ -1421,8 +1421,11 @@ function handleChannelUnarchivedEvent(msg: WebSocketMessages.ChannelRestored) {
 
 function handlePreferenceChangedEvent(msg: WebSocketMessages.PreferenceChanged) {
     const preference = JSON.parse(msg.data.preference) as PreferenceType;
+
+    // Ignore sync_with_os_theme from remote sessions (e.g. Desktop App "Sync with server"
+    // checkbox) so the Desktop App setting cannot override the user's OS-sync preference.
     if (preference.name === 'sync_with_os_theme') {
-        console.log('[ThemeSync] WS preference_changed: sync_with_os_theme=', preference.value);
+        return;
     }
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [preference]});
 
@@ -1437,11 +1440,11 @@ function handlePreferenceChangedEvent(msg: WebSocketMessages.PreferenceChanged) 
 
 function handlePreferencesChangedEvent(msg: WebSocketMessages.PreferencesChanged) {
     const preferences = JSON.parse(msg.data.preferences) as PreferenceType[];
-    const syncPref = preferences.find((p) => p.name === 'sync_with_os_theme');
-    if (syncPref) {
-        console.log('[ThemeSync] WS preferences_changed: sync_with_os_theme=', syncPref.value);
-    }
-    dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: preferences});
+
+    // Strip sync_with_os_theme from remote broadcasts so the Desktop App
+    // "Sync with server" toggle cannot override the user's OS-sync preference.
+    const filtered = preferences.filter((p) => p.name !== 'sync_with_os_theme');
+    dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: filtered});
 
     if (preferences.findIndex(addedNewDmUser) !== -1) {
         loadProfilesForDM();

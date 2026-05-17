@@ -96,23 +96,12 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     //   Promise.resolve(false) unconditionally, which would overwrite the
     //   correct initial osDark value obtained from matchMedia at useState time.
     useEffect(() => {
-        const log = (...args: unknown[]) => console.log('[ThemeSync]', ...args);
         const mq = window.matchMedia('(prefers-color-scheme: dark)');
-        const mqHandler = (e: MediaQueryListEvent) => {
-            log('matchMedia change fired, dark=', e.matches);
-            setOsDark(e.matches);
-        };
+        const mqHandler = (e: MediaQueryListEvent) => setOsDark(e.matches);
 
         if (window.desktopAPI) {
-            log('path=desktop, registering onDarkModeChanged + matchMedia + poll fallback');
-            const unsubscribe = DesktopApp.onDarkModeChanged((dark) => {
-                log('onDarkModeChanged fired, dark=', dark);
-                setOsDark(dark);
-            });
-            DesktopApp.getDarkMode().then((dark) => {
-                log('getDarkMode resolved, dark=', dark);
-                setOsDark(dark);
-            });
+            const unsubscribe = DesktopApp.onDarkModeChanged((dark) => setOsDark(dark));
+            DesktopApp.getDarkMode().then((dark) => setOsDark(dark));
 
             // matchMedia fallback for desktop builds that don't implement onDarkModeChanged
             mq.addEventListener('change', mqHandler);
@@ -124,7 +113,6 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
             const pollInterval = setInterval(() => {
                 DesktopApp.getDarkMode().then((dark) => {
                     if (dark !== lastDark) {
-                        log('poll detected OS theme change, dark=', dark);
                         lastDark = dark;
                         setOsDark(dark);
                     }
@@ -138,7 +126,6 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
             };
         }
 
-        log('path=browser, registering matchMedia listener, initial dark=', osIsDarkNow());
         mq.addEventListener('change', mqHandler);
         return () => mq.removeEventListener('change', mqHandler);
     }, []);
@@ -146,7 +133,6 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     // Persist the sync preference to localStorage so the module-level init above
     // can apply the right theme immediately on the next page load.
     useEffect(() => {
-        console.log('[ThemeSync] syncWithOS ->', syncWithOS, '| localStorage was:', localSync());
         try {
             localStorage.setItem(LS_SYNC_KEY, syncWithOS ? 'true' : 'false');
         } catch {}
@@ -178,13 +164,6 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     const effectiveTheme = isAdminConsole ? Preferences.THEMES.quartz : theme;
 
     useEffect(() => {
-        console.log('[ThemeSync] applyTheme', {
-            syncWithOS,
-            osDark,
-            isLoggedIn,
-            isAdminConsole,
-            effectiveTheme: effectiveTheme?.type ?? effectiveTheme,
-        });
         applyTheme(effectiveTheme);
         // Notify the desktop app so it can update native UI (title bar, etc.).
         DesktopApp.updateTheme(effectiveTheme);

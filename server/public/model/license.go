@@ -513,10 +513,8 @@ func MinimumEnterpriseAdvancedLicense(license *License) bool {
 // used when no real license is loaded.  Every feature flag is enabled via
 // Features.SetDefaults() so that upstream license checks become no-ops without
 // modifying each individual check site.
-//
-// Патч (builtin LDAP и др.): минимальный diff — правим только это место и
-// (ch *Channels).License() в app/license.go вместо сотен точечных изменений,
-// что существенно упрощает мержи с апстримом.
+// To apply on a new upstream release: keep this function and the two License()
+// overrides in app/license.go — that is the entire license patch.
 func NewBuiltinLicense() *License {
 	f := &Features{}
 	f.SetDefaults()

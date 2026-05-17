@@ -235,8 +235,8 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Патч: в builtin-режиме LicenseManager отсутствует — возвращаем пустой ответ
-	// вместо 403, чтобы UI не показывал баннер "требуется обновление".
+	// LicenseManager is absent in builtin mode — return empty JSON so the UI
+	// does not show an upgrade banner.
 	if c.App.Srv().Platform().LicenseManager() == nil {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte("{}"))

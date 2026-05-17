@@ -14,10 +14,8 @@ import (
 )
 
 func (ch *Channels) License() *model.License {
-	// Патч: если реальной лицензии нет — возвращаем синтетическую all-features
-	// лицензию, чтобы все upstream license-checks стали no-op.
-	// При мерже с апстримом достаточно сохранить model.NewBuiltinLicense()
-	// в server/public/model/license.go и эти три строки.
+	// Fall back to the builtin all-features license so upstream license checks
+	// become no-ops when no real license is loaded.
 	if lic := ch.srv.License(); lic != nil {
 		return lic
 	}
@@ -109,9 +107,8 @@ type JWTClaims struct {
 }
 
 func (s *Server) License() *model.License {
-	// Патч: возвращаем синтетическую all-features лицензию вместо nil.
-	// s.platform.License() вызывается из app/ldap.go и других мест через
-	// a.Srv().License() — без этой обёртки они обходят (ch *Channels).License().
+	// Callers that bypass (ch *Channels).License() via a.Srv().License() still
+	// get the builtin all-features license when none is loaded.
 	if lic := s.platform.License(); lic != nil {
 		return lic
 	}

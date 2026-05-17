@@ -4005,7 +4005,6 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'authentication/ldap',
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
                 isHidden: it.any(
-                    // Патч: убрана проверка лицензии LDAP — builtin реализация работает без enterprise
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                 ),
                 schema: {
@@ -4017,7 +4016,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'authentication/ldap',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
-                isHidden: true, // Патч: upsell страница всегда скрыта
+                isHidden: true, // upsell page hidden — builtin provider replaces enterprise LDAP
                 schema: {
                     id: 'LdapSettings',
                     name: defineMessage({id: 'admin.authentication.ldap', defaultMessage: 'AD/LDAP'}),
