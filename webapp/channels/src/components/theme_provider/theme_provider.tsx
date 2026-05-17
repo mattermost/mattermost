@@ -3,6 +3,7 @@
 
 import React, {useEffect, useMemo, useState} from 'react';
 import {useSelector} from 'react-redux';
+import {useLocation} from 'react-router-dom';
 
 import {Preferences} from 'mattermost-redux/constants';
 import {getMyPreferences, getTheme} from 'mattermost-redux/selectors/entities/preferences';
@@ -53,6 +54,9 @@ if (typeof window !== 'undefined' && localSync()) {
 export default function ThemeProvider({children}: {children: React.ReactNode}) {
     // Counter: kept for API compatibility with WithUserTheme / useUserTheme consumers.
     const [usingUserTheme, setUsingUserTheme] = useState(0);
+
+    const location = useLocation();
+    const isAdminConsole = location.pathname.startsWith('/admin_console');
 
     // Track OS dark-mode state reactively.
     const [osDark, setOsDark] = useState(osIsDarkNow);
@@ -137,11 +141,15 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
         return savedTheme;
     }, [syncWithOS, osDark, savedTheme, isLoggedIn]);
 
+    // Admin console must always render with the default light theme.
+    // When the user navigates away, their real theme is restored automatically.
+    const effectiveTheme = isAdminConsole ? Preferences.THEMES.quartz : theme;
+
     useEffect(() => {
-        applyTheme(theme);
+        applyTheme(effectiveTheme);
         // Notify the desktop app so it can update native UI (title bar, etc.).
-        DesktopApp.updateTheme(theme);
-    }, [theme]);
+        DesktopApp.updateTheme(effectiveTheme);
+    }, [effectiveTheme]);
 
     const context = useMemo(() => ({
         startUsingUserTheme: () => setUsingUserTheme((count) => count + 1),
