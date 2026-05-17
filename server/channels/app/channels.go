@@ -134,6 +134,11 @@ func NewChannels(s *Server) (*Channels, error) {
 	}
 	if ldapInterface != nil {
 		ch.Ldap = ldapInterface(New(ServerConnector(ch)))
+	} else {
+		// No enterprise LDAP plugin — register Keycloak group provider so that
+		// the group-sync UI (/admin_console groups, team/channel sync) works
+		// against the Keycloak Admin API using the same OIDC client credentials.
+		ch.Ldap = NewKeycloakLdap(New(ServerConnector(ch)))
 	}
 	if notificationInterface != nil {
 		ch.Notification = notificationInterface(New(ServerConnector(ch)))
