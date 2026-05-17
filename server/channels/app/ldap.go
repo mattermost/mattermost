@@ -107,6 +107,21 @@ func (a *App) GetAllLdapGroupsPage(rctx request.CTX, page int, perPage int, opts
 		return nil, 0, ae
 	}
 
+	// Populate Mattermost group IDs so the LDAP groups page can show which
+	// groups are already linked (have a corresponding Mattermost group in DB).
+	for _, g := range groups {
+		remoteID := g.GetRemoteId()
+		if remoteID == "" {
+			continue
+		}
+		mmGroup, appErr := a.GetGroupByRemoteID(remoteID, model.GroupSourceLdap)
+		if appErr != nil || mmGroup == nil || mmGroup.DeleteAt != 0 {
+			continue
+		}
+		g.Id = mmGroup.Id
+		g.HasSyncables = mmGroup.HasSyncables
+	}
+
 	return groups, total, nil
 }
 
