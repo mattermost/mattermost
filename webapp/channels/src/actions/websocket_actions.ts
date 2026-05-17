@@ -1421,6 +1421,9 @@ function handleChannelUnarchivedEvent(msg: WebSocketMessages.ChannelRestored) {
 
 function handlePreferenceChangedEvent(msg: WebSocketMessages.PreferenceChanged) {
     const preference = JSON.parse(msg.data.preference) as PreferenceType;
+    if (preference.name === 'sync_with_os_theme') {
+        console.log('[ThemeSync] WS preference_changed: sync_with_os_theme=', preference.value);
+    }
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [preference]});
 
     if (addedNewDmUser(preference)) {
@@ -1434,6 +1437,10 @@ function handlePreferenceChangedEvent(msg: WebSocketMessages.PreferenceChanged) 
 
 function handlePreferencesChangedEvent(msg: WebSocketMessages.PreferencesChanged) {
     const preferences = JSON.parse(msg.data.preferences) as PreferenceType[];
+    const syncPref = preferences.find((p) => p.name === 'sync_with_os_theme');
+    if (syncPref) {
+        console.log('[ThemeSync] WS preferences_changed: sync_with_os_theme=', syncPref.value);
+    }
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: preferences});
 
     if (preferences.findIndex(addedNewDmUser) !== -1) {

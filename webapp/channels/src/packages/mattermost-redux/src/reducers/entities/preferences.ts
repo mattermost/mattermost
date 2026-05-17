@@ -44,8 +44,12 @@ function setAllUserPreferences(preferences: PreferenceType[]): {[key: string]: P
 
 function myPreferences(state: Record<string, PreferenceType> = {}, action: MMReduxAction) {
     switch (action.type) {
-    case PreferenceTypes.RECEIVED_ALL_PREFERENCES:
+    case PreferenceTypes.RECEIVED_ALL_PREFERENCES: {
+        const allPrefs = action.data as PreferenceType[];
+        const syncPref = Array.isArray(allPrefs) ? allPrefs.find((p) => p.name === 'sync_with_os_theme') : undefined;
+        console.log('[ThemeSync] RECEIVED_ALL_PREFERENCES: sync_with_os_theme=', syncPref?.value ?? '(not set)');
         return setAllPreferences(action.data);
+    }
 
     case UserTypes.LOGIN: // Used by the mobile app
         return setAllPreferences(action.data.preferences);

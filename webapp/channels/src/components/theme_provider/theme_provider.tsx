@@ -146,6 +146,7 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     // Persist the sync preference to localStorage so the module-level init above
     // can apply the right theme immediately on the next page load.
     useEffect(() => {
+        console.log('[ThemeSync] syncWithOS ->', syncWithOS, '| localStorage was:', localSync());
         try {
             localStorage.setItem(LS_SYNC_KEY, syncWithOS ? 'true' : 'false');
         } catch {}
