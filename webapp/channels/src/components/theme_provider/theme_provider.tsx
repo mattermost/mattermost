@@ -11,6 +11,7 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {applyTheme} from 'utils/utils';
+import DesktopApp from 'utils/desktop_api';
 
 import type {GlobalState} from 'types/store';
 
@@ -44,6 +45,7 @@ function localLightTheme(): Theme | null {
 
 // Apply the correct theme at module-load time — before React renders a single
 // pixel — so there is no flash of the wrong theme on page load / hard refresh.
+// Uses localStorage to know the user's sync preference and their saved light theme.
 if (typeof window !== 'undefined' && localSync()) {
     applyTheme(osIsDarkNow() ? Preferences.THEMES.onyx : (localLightTheme() ?? Preferences.THEMES.quartz));
 }
@@ -81,12 +83,29 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
         return Preferences.THEMES.quartz;
     });
 
-    // Subscribe to OS dark-mode changes for the entire session lifetime.
+    // Subscribe to dark-mode changes.
+    // Desktop app: window.desktopAPI.onDarkModeChanged fires reliably from the
+    // Electron main process. matchMedia change events are unreliable in Electron.
+    // Browser: fall back to the standard matchMedia change event.
     useEffect(() => {
+        // Desktop app path — returns an unsubscribe function when available.
+        const desktopUnsubscribe = DesktopApp.onDarkModeChanged((dark) => setOsDark(dark));
+
+        // Also fetch the authoritative initial value asynchronously from the
+        // desktop API (getDarkMode resolves immediately in the desktop app).
+        DesktopApp.getDarkMode().then((dark) => setOsDark(dark));
+
+        // Browser fallback: matchMedia fires reliably in web browsers.
         const mq = window.matchMedia('(prefers-color-scheme: dark)');
         const handler = (e: MediaQueryListEvent) => setOsDark(e.matches);
-        mq.addEventListener('change', handler);
-        return () => mq.removeEventListener('change', handler);
+        if (!desktopUnsubscribe) {
+            mq.addEventListener('change', handler);
+        }
+
+        return () => {
+            mq.removeEventListener('change', handler);
+            desktopUnsubscribe?.();
+        };
     }, []);
 
     // Persist the sync preference to localStorage so the module-level init above
@@ -109,7 +128,7 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
 
     // Effective theme:
     //   sync ON + dark OS  → Onyx
-    //   sync ON + light OS → user's saved light theme (not hardcoded Quartz)
+    //   sync ON + light OS → user's saved light theme
     //   sync OFF           → user's saved theme
     const theme = useMemo(() => {
         if (syncWithOS && isLoggedIn) {
@@ -120,6 +139,8 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
 
     useEffect(() => {
         applyTheme(theme);
+        // Notify the desktop app so it can update native UI (title bar, etc.).
+        DesktopApp.updateTheme(theme);
     }, [theme]);
 
     const context = useMemo(() => ({
