@@ -236,7 +236,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                     <div className='help-text'>
                         <FormattedMessage
                             id='user.settings.display.theme.syncWithOS.description'
-                            defaultMessage='Automatically switch between Onyx (dark) and Denim (light) based on your operating system setting.'
+                            defaultMessage='Automatically switch to Onyx in dark mode and your chosen theme in light mode based on your OS appearance setting.'
                         />
                     </div>
                 </div>,
