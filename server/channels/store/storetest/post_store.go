@@ -269,9 +269,9 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		o1.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewPointer("important"),
-				RequestedAck:            model.NewPointer(true),
-				PersistentNotifications: model.NewPointer(false),
+				Priority:                new("important"),
+				RequestedAck:            new(true),
+				PersistentNotifications: new(false),
 			},
 		}
 
@@ -4317,7 +4317,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewPointer(int64(30)),
+				PostDurationDays: new(int64(30)),
 			},
 			ChannelIDs: []string{channel.Id},
 		})
@@ -4354,7 +4354,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewPointer(int64(20)),
+				PostDurationDays: new(int64(20)),
 			},
 			TeamIDs: []string{team.Id},
 		})
@@ -4423,7 +4423,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		channelPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewPointer(int64(30)),
+				PostDurationDays: new(int64(30)),
 			},
 			ChannelIDs: []string{c1.Id},
 		})
@@ -4432,7 +4432,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		teamPolicy, err2 := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				DisplayName:      "DisplayName",
-				PostDurationDays: model.NewPointer(int64(30)),
+				PostDurationDays: new(int64(30)),
 			},
 			TeamIDs: []string{team.Id},
 		})
@@ -5106,7 +5106,7 @@ func testHasAutoResponsePostByUserSince(t *testing.T, rctx request.CTX, ss store
 func testGetPostsSinceUpdateForSync(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	// create some posts.
 	channelID := model.NewId()
-	remoteID := model.NewPointer(model.NewId())
+	remoteID := new(model.NewId())
 	first := model.GetMillis()
 
 	data := []*model.Post{
@@ -5125,7 +5125,7 @@ func testGetPostsSinceUpdateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 	for i, p := range data {
 		p.UpdateAt = first + (int64(i) * 300000)
 		if p.RemoteId == nil {
-			p.RemoteId = model.NewPointer(model.NewId())
+			p.RemoteId = new(model.NewId())
 		}
 		_, err := ss.Post().Save(rctx, p)
 		require.NoError(t, err, "couldn't save post")
@@ -5209,7 +5209,7 @@ func testGetPostsSinceUpdateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	// create some posts.
 	channelID := model.NewId()
-	remoteID := model.NewPointer(model.NewId())
+	remoteID := new(model.NewId())
 	first := model.GetMillis()
 
 	data := []*model.Post{
@@ -5228,7 +5228,7 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 	for i, p := range data {
 		p.CreateAt = first + (int64(i) * 300000)
 		if p.RemoteId == nil {
-			p.RemoteId = model.NewPointer(model.NewId())
+			p.RemoteId = new(model.NewId())
 		}
 		_, err := ss.Post().Save(rctx, p)
 		require.NoError(t, err, "couldn't save post")
@@ -5689,7 +5689,7 @@ func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss 
 	for i, p := range data {
 		p.UpdateAt = first + (int64(i) * 300000)
 		p.CreateAt = first + (int64(i) * 300000)
-		p.RemoteId = model.NewPointer(model.NewId())
+		p.RemoteId = new(model.NewId())
 		_, err := ss.Post().Save(rctx, p)
 		require.NoError(t, err, "couldn't save post")
 	}
@@ -5768,7 +5768,7 @@ func testGetPostsSinceForSyncExcludedPostTypes(t *testing.T, rctx request.CTX, s
 	for i, p := range data {
 		p.UpdateAt = first + (int64(i) * 300000)
 		p.CreateAt = first + (int64(i) * 300000)
-		p.RemoteId = model.NewPointer(model.NewId())
+		p.RemoteId = new(model.NewId())
 		_, err := ss.Post().Save(rctx, p)
 		require.NoError(t, err, "couldn't save post")
 	}

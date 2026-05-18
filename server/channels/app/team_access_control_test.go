@@ -99,7 +99,7 @@ func TestValidateTeamScopePolicyChannelAssignment(t *testing.T) {
 
 	t.Run("shared channel returns error", func(t *testing.T) {
 		channel := th.CreatePrivateChannel(t, th.BasicTeam)
-		channel.Shared = model.NewPointer(true)
+		channel.Shared = new(true)
 		_, err := th.App.UpdateChannel(th.Context, channel)
 		require.Nil(t, err)
 
@@ -110,7 +110,7 @@ func TestValidateTeamScopePolicyChannelAssignment(t *testing.T) {
 
 	t.Run("group-constrained channel returns error", func(t *testing.T) {
 		channel := th.CreatePrivateChannel(t, th.BasicTeam)
-		channel.GroupConstrained = model.NewPointer(true)
+		channel.GroupConstrained = new(true)
 		_, err := th.App.UpdateChannel(th.Context, channel)
 		require.Nil(t, err)
 

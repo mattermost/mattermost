@@ -655,6 +655,36 @@ func (_m *UserStore) GetByAuth(authData *string, authService string) (*model.Use
 	return r0, r1
 }
 
+// GetByAuthData provides a mock function with given fields: authData
+func (_m *UserStore) GetByAuthData(authData *string) (*model.User, error) {
+	ret := _m.Called(authData)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByAuthData")
+	}
+
+	var r0 *model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*string) (*model.User, error)); ok {
+		return rf(authData)
+	}
+	if rf, ok := ret.Get(0).(func(*string) *model.User); ok {
+		r0 = rf(authData)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*string) error); ok {
+		r1 = rf(authData)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByEmail provides a mock function with given fields: email
 func (_m *UserStore) GetByEmail(email string) (*model.User, error) {
 	ret := _m.Called(email)

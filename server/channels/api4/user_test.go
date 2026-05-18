@@ -144,7 +144,7 @@ func TestCreateUser(t *testing.T) {
 		email := th.GenerateTestEmail()
 		newUser := &model.User{
 			Id:            model.NewId(),
-			RemoteId:      model.NewPointer(model.NewId()),
+			RemoteId:      new(model.NewId()),
 			Email:         email,
 			Password:      model.NewTestPassword(),
 			Username:      GenerateTestUsername(),
@@ -188,99 +188,99 @@ func TestCreateUserPasswordValidation(t *testing.T) {
 			Password: strings.Repeat("x", model.PasswordFIPSMinimumLength),
 			Settings: &model.PasswordSettings{
 				MinimumLength: model.NewPointer(model.PasswordFIPSMinimumLength),
-				Lowercase:     model.NewPointer(false),
-				Uppercase:     model.NewPointer(false),
-				Number:        model.NewPointer(false),
-				Symbol:        model.NewPointer(false),
+				Lowercase:     new(false),
+				Uppercase:     new(false),
+				Number:        new(false),
+				Symbol:        new(false),
 			},
 		},
 		"Long": {
 			Password: strings.Repeat("x", model.PasswordMaximumLength),
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewPointer(false),
-				Uppercase: model.NewPointer(false),
-				Number:    model.NewPointer(false),
-				Symbol:    model.NewPointer(false),
+				Lowercase: new(false),
+				Uppercase: new(false),
+				Number:    new(false),
+				Symbol:    new(false),
 			},
 		},
 		"TooShort": {
 			Password: strings.Repeat("x", 2),
 			Settings: &model.PasswordSettings{
 				MinimumLength: model.NewPointer(model.PasswordFIPSMinimumLength),
-				Lowercase:     model.NewPointer(false),
-				Uppercase:     model.NewPointer(false),
-				Number:        model.NewPointer(false),
-				Symbol:        model.NewPointer(false),
+				Lowercase:     new(false),
+				Uppercase:     new(false),
+				Number:        new(false),
+				Symbol:        new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_min_length.app_error",
 		},
 		"TooLong": {
 			Password: strings.Repeat("x", model.PasswordMaximumLength+1),
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewPointer(false),
-				Uppercase: model.NewPointer(false),
-				Number:    model.NewPointer(false),
-				Symbol:    model.NewPointer(false),
+				Lowercase: new(false),
+				Uppercase: new(false),
+				Number:    new(false),
+				Symbol:    new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_max_length.app_error",
 		},
 		"MissingLower": {
 			Password: "AAAAAAAAAAASD123!@#",
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewPointer(true),
-				Uppercase: model.NewPointer(false),
-				Number:    model.NewPointer(false),
-				Symbol:    model.NewPointer(false),
+				Lowercase: new(true),
+				Uppercase: new(false),
+				Number:    new(false),
+				Symbol:    new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_lowercase.app_error",
 		},
 		"MissingUpper": {
 			Password: "aaaaaaaaaaaaasd123!@#",
 			Settings: &model.PasswordSettings{
-				Uppercase: model.NewPointer(true),
-				Lowercase: model.NewPointer(false),
-				Number:    model.NewPointer(false),
-				Symbol:    model.NewPointer(false),
+				Uppercase: new(true),
+				Lowercase: new(false),
+				Number:    new(false),
+				Symbol:    new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_uppercase.app_error",
 		},
 		"MissingNumber": {
 			Password: "asasdasdsadASD!@#",
 			Settings: &model.PasswordSettings{
-				Number:    model.NewPointer(true),
-				Lowercase: model.NewPointer(false),
-				Uppercase: model.NewPointer(false),
-				Symbol:    model.NewPointer(false),
+				Number:    new(true),
+				Lowercase: new(false),
+				Uppercase: new(false),
+				Symbol:    new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_number.app_error",
 		},
 		"MissingSymbol": {
 			Password: "asdasdasdasdasdASD123",
 			Settings: &model.PasswordSettings{
-				Symbol:    model.NewPointer(true),
-				Lowercase: model.NewPointer(false),
-				Uppercase: model.NewPointer(false),
-				Number:    model.NewPointer(false),
+				Symbol:    new(true),
+				Lowercase: new(false),
+				Uppercase: new(false),
+				Number:    new(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_symbol.app_error",
 		},
 		"MissingMultiple": {
 			Password: "asdasdasdasdasdasd",
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewPointer(true),
-				Uppercase: model.NewPointer(true),
-				Number:    model.NewPointer(true),
-				Symbol:    model.NewPointer(true),
+				Lowercase: new(true),
+				Uppercase: new(true),
+				Number:    new(true),
+				Symbol:    new(true),
 			},
 			ExpectedError: "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
 		},
 		"Everything": {
 			Password: "asdASDasd!@#123",
 			Settings: &model.PasswordSettings{
-				Lowercase: model.NewPointer(true),
-				Uppercase: model.NewPointer(true),
-				Number:    model.NewPointer(true),
-				Symbol:    model.NewPointer(true),
+				Lowercase: new(true),
+				Uppercase: new(true),
+				Number:    new(true),
+				Symbol:    new(true),
 			},
 		},
 	} {
@@ -306,8 +306,8 @@ func TestCreateUserAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
-		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
 	})
 
 	email := th.GenerateTestEmail()
@@ -341,8 +341,8 @@ func TestUserLoginAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
-		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
 	})
 
 	_, err = th.Client.Logout(context.Background())
@@ -384,8 +384,8 @@ func TestLogoutAuditAuthStatus(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
-		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
 	})
 
 	t.Run("authenticated logout has auth_status=authenticated and user_id", func(t *testing.T) {
@@ -510,7 +510,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 					Email:       "foobar+testdomainrestriction@mattermost.org",
 					Username:    GenerateTestUsername(),
 					AuthService: "ldap",
-					AuthData:    model.NewPointer("999099"),
+					AuthData:    new("999099"),
 				}
 				u, _, err := th.SystemAdminClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
@@ -522,7 +522,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 					Email:       "foobar+testdomainrestrictionlocalclient@mattermost.org",
 					Username:    GenerateTestUsername(),
 					AuthService: "ldap",
-					AuthData:    model.NewPointer("999100"),
+					AuthData:    new("999100"),
 				}
 				u, _, err := th.LocalClient.CreateUser(context.Background(), user)
 				require.NoError(t, err)
@@ -939,12 +939,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	t.Run("GroupConstrainedTeam", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: model.NewTestPassword(), Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		th.BasicTeam.GroupConstrained = model.NewPointer(true)
+		th.BasicTeam.GroupConstrained = new(true)
 		team, appErr := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
-			th.BasicTeam.GroupConstrained = model.NewPointer(false)
+			th.BasicTeam.GroupConstrained = new(false)
 			_, appErr = th.App.UpdateTeam(th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
@@ -958,12 +958,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: model.NewTestPassword(), Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
-		th.BasicTeam.GroupConstrained = model.NewPointer(true)
+		th.BasicTeam.GroupConstrained = new(true)
 		team, appErr := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
-			th.BasicTeam.GroupConstrained = model.NewPointer(false)
+			th.BasicTeam.GroupConstrained = new(false)
 			_, appErr = th.App.UpdateTeam(th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
@@ -1487,6 +1487,169 @@ func TestGetUserByEmail(t *testing.T) {
 	})
 }
 
+func TestGetUserByAuthData(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	team := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	regularUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, regularUser, team)
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, team)
+	_, err := th.App.Srv().Store().User().VerifyEmail(user.Id, user.Email)
+	require.NoError(t, err)
+
+	authID := "extid-" + model.NewId()
+	userAuth := &model.UserAuth{
+		AuthData:    model.NewPointer(authID),
+		AuthService: model.UserAuthServiceSaml,
+	}
+	_, _, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.NoError(t, err)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		t.Run("returns user and auth fields for system admin and local", func(t *testing.T) {
+			ruser, resp, getErr := client.GetUserByAuthData(context.Background(), authID, "")
+			require.NoError(t, getErr)
+			require.Equal(t, user.Id, ruser.Id)
+			require.NotNil(t, ruser.AuthData)
+			require.Equal(t, authID, *ruser.AuthData)
+			require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
+			ruser, resp, _ = client.GetUserByAuthData(context.Background(), authID, resp.Etag)
+			CheckEtag(t, ruser, resp)
+		})
+
+		t.Run("not found returns not found", func(t *testing.T) {
+			_, resp, notFoundErr := client.GetUserByAuthData(context.Background(), "nope-"+model.NewId(), "")
+			require.Error(t, notFoundErr)
+			CheckNotFoundStatus(t, resp)
+		})
+	})
+
+	t.Run("returns accepted terms of service for system admin", func(t *testing.T) {
+		tos, appErr := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+		require.Nil(t, appErr)
+		appErr = th.App.SaveUserTermsOfService(user.Id, tos.Id, true)
+		require.Nil(t, appErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), authID, "")
+		require.NoError(t, getErr)
+		require.Equal(t, tos.Id, ruser.TermsOfServiceId, "Terms of service ID should match")
+		require.NotZero(t, ruser.TermsOfServiceCreateAt, "Terms of service CreateAt should be populated")
+	})
+
+	t.Run("returns user when auth_data is an email-shaped value", func(t *testing.T) {
+		// ResetAuthDataToEmailForUsers sets AuthData = Email for whole batches of
+		// users, so email-shaped auth_data values are common in practice. Verify
+		// the route, Client4 path escaping (`@` -> `%40`), and server-side decoding
+		// all round-trip correctly.
+		emailUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, emailUser, team)
+		emailAuth := "user-" + model.NewId() + "@example.com"
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), emailUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(emailAuth),
+			AuthService: model.UserAuthServiceSaml,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), emailAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, emailUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, emailAuth, *ruser.AuthData)
+	})
+
+	t.Run("preserves case in auth_data", func(t *testing.T) {
+		// auth_data is opaque and case-sensitive (unlike email, which the email
+		// endpoint lowercases). Non-SAML IdPs commonly issue mixed-case identifiers,
+		// so guard against a regression where the handler normalizes the value.
+		mixedUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, mixedUser, team)
+		mixedAuth := "MixedCase-" + model.NewId() + "@Example.COM"
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), mixedUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(mixedAuth),
+			AuthService: model.UserAuthServiceSaml,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), mixedAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, mixedUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, mixedAuth, *ruser.AuthData)
+
+		_, resp, lowerErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), strings.ToLower(mixedAuth), "")
+		require.Error(t, lowerErr)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("returns user when auth_data is an LDAP objectGUID hex-escape form", func(t *testing.T) {
+		// AD objectGUID stored under auth_service=ldap uses the LDAP filter
+		// hex-escape form (`\xx` per byte). Backslashes are special in URL paths
+		// (WHATWG rewrites them to `/`), which is why this endpoint uses a query
+		// parameter; this test guards the query-string round-trip for the exact
+		// shape the customer reported.
+		ldapUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, ldapUser, team)
+		ldapAuth := `\61\14\e1\d1\c5\35\18\4a\b6\60\d6\78\50\fd\0d\5d`
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), ldapUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(ldapAuth),
+			AuthService: model.UserAuthServiceLdap,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), ldapAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, ldapUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, ldapAuth, *ruser.AuthData)
+	})
+
+	t.Run("returns user when auth_data is SAML base64 with reserved chars", func(t *testing.T) {
+		// AD objectGUID stored under auth_service=saml uses standard Base64,
+		// which can contain `+`, `/`, and `=` padding -- all reserved in
+		// application/x-www-form-urlencoded. url.Values.Set escapes them
+		// correctly; this test guards against a future regression where someone
+		// rewrites the client to skip that escaping.
+		samlUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, samlUser, team)
+		// Bytes chosen to produce all three reserved characters in the Base64
+		// output: 0xfb,0xef,0xff,0x00 -> "++//AA==".
+		samlAuth := base64.StdEncoding.EncodeToString([]byte{0xfb, 0xef, 0xff, 0x00})
+		require.Contains(t, samlAuth, "+")
+		require.Contains(t, samlAuth, "/")
+		require.Contains(t, samlAuth, "=")
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), samlUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(samlAuth),
+			AuthService: model.UserAuthServiceSaml,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), samlAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, samlUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, samlAuth, *ruser.AuthData)
+	})
+
+	t.Run("rejects non-system admin", func(t *testing.T) {
+		// `user` is converted to SAML below and can no longer use password login; use
+		// a separate team member to assert the endpoint requires a system admin.
+		_, _, err = th.Client.Login(context.Background(), regularUser.Email, regularUser.Password)
+		require.NoError(t, err)
+		_, resp, err := th.Client.GetUserByAuthData(context.Background(), authID, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("rejects auth data over max length", func(t *testing.T) {
+		longData := strings.Repeat("x", model.UserAuthDataMaxLength+1)
+		_, resp, err := th.SystemAdminClient.GetUserByAuthData(context.Background(), longData, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 // This test can flake if two calls to model.NewId can return the same value.
 // Not much can be done about it.
 func TestSearchUsers(t *testing.T) {
@@ -1639,10 +1802,10 @@ func TestSearchUsers(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewPointer("name" + id),
+		Name:        new("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1679,10 +1842,10 @@ func TestSearchUsers(t *testing.T) {
 	id = model.NewId()
 	group, appErr = th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewPointer("name" + id),
+		Name:        new("name" + id),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -2334,7 +2497,7 @@ func TestUpdateUserRemoteIdIgnored(t *testing.T) {
 		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
 		require.NoError(t, err)
 
-		user.RemoteId = model.NewPointer("attacker-remote-id")
+		user.RemoteId = new("attacker-remote-id")
 		user.Nickname = "updated-nickname"
 		ruser, _, err := th.Client.UpdateUser(context.Background(), user)
 		require.NoError(t, err)
@@ -2349,7 +2512,7 @@ func TestUpdateUserRemoteIdIgnored(t *testing.T) {
 	t.Run("remote_id in update body is ignored for system admin", func(t *testing.T) {
 		user := th.CreateUser(t)
 
-		user.RemoteId = model.NewPointer("admin-remote-id")
+		user.RemoteId = new("admin-remote-id")
 		user.Nickname = "admin-updated"
 		ruser, _, err := th.SystemAdminClient.UpdateUser(context.Background(), user)
 		require.NoError(t, err)
@@ -2433,10 +2596,10 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	patch := &model.UserPatch{}
-	patch.Password = model.NewPointer(model.NewTestPassword())
-	patch.Nickname = model.NewPointer("Joram Wilander")
-	patch.FirstName = model.NewPointer("Joram")
-	patch.LastName = model.NewPointer("Wilander")
+	patch.Password = new(model.NewTestPassword())
+	patch.Nickname = new("Joram Wilander")
+	patch.FirstName = new("Joram")
+	patch.LastName = new("Wilander")
 	patch.Position = new(string)
 	patch.NotifyProps = model.StringMap{}
 	patch.NotifyProps["comment"] = "somethingrandom"
@@ -2471,19 +2634,19 @@ func TestPatchUser(t *testing.T) {
 	require.Nil(t, appErr, "Password should still match")
 
 	patch = &model.UserPatch{}
-	patch.Email = model.NewPointer(th.GenerateTestEmail())
+	patch.Email = new(th.GenerateTestEmail())
 
 	_, resp, err := th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	patch.Password = model.NewPointer(currentPassword)
+	patch.Password = new(currentPassword)
 	ruser, _, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.NoError(t, err)
 
 	require.Equal(t, *patch.Email, ruser.Email, "Email should update properly")
 
-	patch.Username = model.NewPointer(th.BasicUser2.Username)
+	patch.Username = new(th.BasicUser2.Username)
 	_, resp, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
@@ -2507,7 +2670,7 @@ func TestPatchUser(t *testing.T) {
 	session.IsOAuth = true
 	th.App.AddSessionToCache(session)
 
-	patch.Email = model.NewPointer(th.GenerateTestEmail())
+	patch.Email = new(th.GenerateTestEmail())
 	_, resp, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -2537,8 +2700,8 @@ func TestPatchUserRemoteIdIgnored(t *testing.T) {
 		require.NoError(t, err)
 
 		patch := &model.UserPatch{
-			RemoteId: model.NewPointer("attacker-remote-id"),
-			Nickname: model.NewPointer("new-nickname"),
+			RemoteId: new("attacker-remote-id"),
+			Nickname: new("new-nickname"),
 		}
 		ruser, _, err := th.Client.PatchUser(context.Background(), user.Id, patch)
 		require.NoError(t, err)
@@ -2554,8 +2717,8 @@ func TestPatchUserRemoteIdIgnored(t *testing.T) {
 		user := th.CreateUser(t)
 
 		patch := &model.UserPatch{
-			RemoteId: model.NewPointer("admin-remote-id"),
-			Nickname: model.NewPointer("admin-patched"),
+			RemoteId: new("admin-remote-id"),
+			Nickname: new("admin-patched"),
 		}
 		ruser, _, err := th.SystemAdminClient.PatchUser(context.Background(), user.Id, patch)
 		require.NoError(t, err)
@@ -2572,7 +2735,7 @@ func TestPatchUserRemoteIdIgnored(t *testing.T) {
 		user := th.SetUserRemoteID(t, th.CreateUser(t).Id, remoteId)
 
 		patch := &model.UserPatch{
-			Nickname: model.NewPointer("updated-nickname"),
+			Nickname: new("updated-nickname"),
 		}
 		ruser, _, err := th.SystemAdminClient.PatchUser(context.Background(), user.Id, patch)
 		require.NoError(t, err)
@@ -2591,7 +2754,7 @@ func TestPatchBotUser(t *testing.T) {
 
 	bot := th.CreateBotWithSystemAdminClient(t)
 	patch := &model.UserPatch{}
-	patch.Email = model.NewPointer("newemail@test.com")
+	patch.Email = new("newemail@test.com")
 
 	user, _, err := th.SystemAdminClient.PatchUser(context.Background(), bot.UserId, patch)
 	require.NoError(t, err)
@@ -2611,7 +2774,7 @@ func TestPatchAdminUser(t *testing.T) {
 	require.Nil(t, appErr)
 
 	patch := &model.UserPatch{}
-	patch.Email = model.NewPointer(th.GenerateTestEmail())
+	patch.Email = new(th.GenerateTestEmail())
 
 	th.AddPermissionToRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 	_, appErr = th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
@@ -2677,9 +2840,9 @@ func TestUserUnicodeNames(t *testing.T) {
 		require.NoError(t, err)
 
 		patch := &model.UserPatch{}
-		patch.Nickname = model.NewPointer("\U000E0000Ender\u206d Wiggin\U000E007F")
-		patch.FirstName = model.NewPointer("\U0001d173Andrew\U0001d17a")
-		patch.LastName = model.NewPointer("\u2028Wiggin\u2029")
+		patch.Nickname = new("\U000E0000Ender\u206d Wiggin\U000E007F")
+		patch.FirstName = new("\U0001d173Andrew\U0001d17a")
+		patch.LastName = new("\u2028Wiggin\u2029")
 
 		ruser, _, err := client.PatchUser(context.Background(), user.Id, patch)
 		require.NoError(t, err)
@@ -2712,7 +2875,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, respErr, _ := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr, "Shouldn't have permissions. Only Admins")
 
-	userAuth.AuthData = model.NewPointer("test@test.com")
+	userAuth.AuthData = new("test@test.com")
 	userAuth.AuthService = model.UserAuthServiceSaml
 	ruser, _, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
@@ -3265,7 +3428,7 @@ func TestGetUsers(t *testing.T) {
 			Email:       th.GenerateTestEmail(),
 			Username:    GenerateTestUsername(),
 			AuthService: model.UserAuthServiceLdap,
-			AuthData:    model.NewPointer(model.NewId()),
+			AuthData:    new(model.NewId()),
 		}
 		u, resp, err := c.CreateUser(context.Background(), user)
 		require.NoError(t, err)
@@ -3739,20 +3902,20 @@ func TestGetUsersInGroup(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewPointer("name" + id),
+		Name:        new("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
 	cid := model.NewId()
 	customGroup, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + cid,
-		Name:        model.NewPointer("name" + cid),
+		Name:        new("name" + cid),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + cid,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -3821,10 +3984,10 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        model.NewPointer("name" + id),
+		Name:        new("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -4785,7 +4948,7 @@ func TestLogin(t *testing.T) {
 	t.Run("remote user login rejected", func(t *testing.T) {
 		email := th.GenerateTestEmail()
 		remoteUserPassword := model.NewTestPassword()
-		user := model.User{Email: email, Nickname: "Darth Vader", Password: remoteUserPassword, Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewPointer("remote-id")}
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: remoteUserPassword, Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: new("remote-id")}
 		ruser, appErr := th.App.CreateUser(th.Context, &user)
 		require.Nil(t, appErr)
 
@@ -5512,7 +5675,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		// make a remote user
 		remoteUser, appErr := th.App.CreateUser(request.TestContext(t), &model.User{
 			Username: "remoteuser",
-			RemoteId: model.NewPointer(model.NewId()),
+			RemoteId: new(model.NewId()),
 			Password: model.NewId(),
 			Email:    "remoteuser@example.com",
 		})
@@ -7249,8 +7412,8 @@ func TestUpdatePasswordAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
-		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
 	})
 
 	password := model.NewTestPassword()
@@ -8647,7 +8810,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			model.ServiceOpenid,
 		} {
 			user := th.CreateUserWithAuth(t, authService)
-			patch := &model.UserPatch{Username: model.NewPointer("something new")}
+			patch := &model.UserPatch{Username: new("something new")}
 			conflictField := th.App.CheckProviderAttributes(th.Context, user, patch)
 			require.NotEqual(t, "", conflictField)
 		}

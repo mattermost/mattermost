@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -12,21 +13,31 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
+// listCPAValuesForUser fetches the user's CPA values via the admin HTTP
+// client (field-id → raw-JSON map, same shape the command returns).
+func (s *MmctlE2ETestSuite) listCPAValuesForUser(userID string) map[string]json.RawMessage {
+	s.T().Helper()
+	values, _, err := s.th.SystemAdminClient.ListCPAValues(context.Background(), userID)
+	s.Require().NoError(err)
+	return values
+}
+
 // cleanCPAValuesForUser removes all CPA values for a user
 func (s *MmctlE2ETestSuite) cleanCPAValuesForUser(userID string) {
-	existingValues, appErr := s.th.App.ListCPAValues(nil, userID)
-	s.Require().Nil(appErr)
+	s.T().Helper()
+	existing := s.listCPAValuesForUser(userID)
+	if len(existing) == 0 {
+		return
+	}
 
 	// Clear all existing values by setting them to null
-	updates := make(map[string]json.RawMessage)
-	for _, value := range existingValues {
-		updates[value.FieldID] = json.RawMessage("null")
+	updates := make(map[string]json.RawMessage, len(existing))
+	for fieldID := range existing {
+		updates[fieldID] = json.RawMessage("null")
 	}
 
-	if len(updates) > 0 {
-		_, appErr = s.th.App.PatchCPAValues(nil, userID, updates, false)
-		s.Require().Nil(appErr)
-	}
+	_, _, err := s.th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), userID, updates)
+	s.Require().NoError(err)
 }
 
 func (s *MmctlE2ETestSuite) TestCPAValueList() {
@@ -64,19 +75,18 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(nil, textField)
-		s.Require().Nil(appErr)
+		createdField := s.createCPAField(textField)
 
-		// Set a text value using the app layer
+		// Seed a text value via the admin HTTP client.
 		updates := map[string]json.RawMessage{
 			createdField.ID: json.RawMessage(`"Engineering"`),
 		}
-		_, appErr = s.th.App.PatchCPAValues(nil, s.th.BasicUser.Id, updates, false)
-		s.Require().Nil(appErr)
+		_, _, err := s.th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), s.th.BasicUser.Id, updates)
+		s.Require().NoError(err)
 
 		// Test listing the values with plain format (human-readable)
 		printer.SetFormat(printer.FormatPlain)
-		err := cpaValueListCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
+		err = cpaValueListCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -122,8 +132,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(nil, textField)
-		s.Require().Nil(appErr)
+		createdField := s.createCPAField(textField)
 
 		// Set a text value
 		cmd := &cobra.Command{}
@@ -136,11 +145,9 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Verify the value was set
 
-		values, appErr := s.th.App.ListCPAValues(nil, s.th.BasicUser.Id)
-		s.Require().Nil(appErr)
+		values := s.listCPAValuesForUser(s.th.BasicUser.Id)
 		s.Require().Len(values, 1)
-		s.Require().Equal(createdField.ID, values[0].FieldID)
-		s.Require().Equal(`"Engineering"`, string(values[0].Value))
+		s.Require().Equal(`"Engineering"`, string(values[createdField.ID]))
 	})
 
 	s.Run("Set value for select type field", func() {
@@ -166,8 +173,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(nil, selectField)
-		s.Require().Nil(appErr)
+		createdField := s.createCPAField(selectField)
 
 		// Set a select value using the option name
 		cmd := &cobra.Command{}
@@ -180,10 +186,8 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Verify the value was set (should be stored as option ID)
 
-		values, appErr := s.th.App.ListCPAValues(nil, s.th.BasicUser.Id)
-		s.Require().Nil(appErr)
+		values := s.listCPAValuesForUser(s.th.BasicUser.Id)
 		s.Require().Len(values, 1)
-		s.Require().Equal(createdField.ID, values[0].FieldID)
 
 		// Find the Senior option ID for verification
 		var seniorOptionID string
@@ -193,7 +197,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 				break
 			}
 		}
-		s.Require().Equal(`"`+seniorOptionID+`"`, string(values[0].Value))
+		s.Require().Equal(`"`+seniorOptionID+`"`, string(values[createdField.ID]))
 	})
 
 	s.Run("Set value for multiselect type field", func() {
@@ -220,8 +224,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(nil, multiselectField)
-		s.Require().Nil(appErr)
+		createdField := s.createCPAField(multiselectField)
 
 		// Set multiple values using option names
 		cmd := &cobra.Command{}
@@ -239,10 +242,8 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Verify the values were set (should be stored as option IDs)
 
-		values, appErr := s.th.App.ListCPAValues(nil, s.th.BasicUser.Id)
-		s.Require().Nil(appErr)
+		values := s.listCPAValuesForUser(s.th.BasicUser.Id)
 		s.Require().Len(values, 1)
-		s.Require().Equal(createdField.ID, values[0].FieldID)
 
 		// Find the option IDs for verification
 		var goOptionID, reactOptionID, pythonOptionID string
@@ -259,7 +260,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// The multiselect values should be stored as an array of option IDs
 		// The JSON serialization may include spaces, so we need to compare the content, not exact string
-		actualValue := string(values[0].Value)
+		actualValue := string(values[createdField.ID])
 		s.Require().Contains(actualValue, goOptionID)
 		s.Require().Contains(actualValue, reactOptionID)
 		s.Require().Contains(actualValue, pythonOptionID)
@@ -288,8 +289,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(nil, multiselectField)
-		s.Require().Nil(appErr)
+		createdField := s.createCPAField(multiselectField)
 
 		// Set a single value using option name
 		cmd := &cobra.Command{}
@@ -303,10 +303,8 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Verify the value was set (should be stored as an array with single option ID)
 
-		values, appErr := s.th.App.ListCPAValues(nil, s.th.BasicUser.Id)
-		s.Require().Nil(appErr)
+		values := s.listCPAValuesForUser(s.th.BasicUser.Id)
 		s.Require().Len(values, 1)
-		s.Require().Equal(createdField.ID, values[0].FieldID)
 
 		// Find the option ID for verification
 		var pythonOptionID string
@@ -319,7 +317,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// The multiselect value should be stored as an array with single option ID
 		// Even for single value, multiselect fields store values as arrays
-		actualValue := string(values[0].Value)
+		actualValue := string(values[createdField.ID])
 		s.Require().Contains(actualValue, pythonOptionID)
 		s.Require().Contains(actualValue, "[")
 		s.Require().Contains(actualValue, "]")
@@ -349,8 +347,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField(nil, userField)
-		s.Require().Nil(appErr)
+		createdField := s.createCPAField(userField)
 
 		// Set a user value using the system admin user ID
 		cmd := &cobra.Command{}
@@ -363,10 +360,8 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Verify the value was set
 
-		values, appErr := s.th.App.ListCPAValues(nil, s.th.BasicUser.Id)
-		s.Require().Nil(appErr)
+		values := s.listCPAValuesForUser(s.th.BasicUser.Id)
 		s.Require().Len(values, 1)
-		s.Require().Equal(createdField.ID, values[0].FieldID)
-		s.Require().Equal(`"`+s.th.SystemAdminUser.Id+`"`, string(values[0].Value))
+		s.Require().Equal(`"`+s.th.SystemAdminUser.Id+`"`, string(values[createdField.ID]))
 	})
 }

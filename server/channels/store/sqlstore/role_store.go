@@ -101,12 +101,12 @@ func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
 
 func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 	// Check the role is valid before proceeding.
-	if !role.IsValidWithoutId() {
-		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))
+	if err = role.IsValidWithoutId(); err != nil {
+		return nil, store.NewErrInvalidInput("Role", "<any>", err.Error())
 	}
 
 	if role.Id == "" {
-		transaction, terr := s.GetMaster().Beginx()
+		transaction, terr := s.GetMaster().Begin()
 		if terr != nil {
 			return nil, errors.Wrap(terr, "begin_transaction")
 		}
@@ -148,8 +148,8 @@ func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 
 func (s *SqlRoleStore) createRole(role *model.Role, transaction *sqlxTxWrapper) (*model.Role, error) {
 	// Check the role is valid before proceeding.
-	if !role.IsValidWithoutId() {
-		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))
+	if err := role.IsValidWithoutId(); err != nil {
+		return nil, store.NewErrInvalidInput("Role", "<any>", err.Error())
 	}
 
 	dbRole := NewRoleFromModel(role)
@@ -222,7 +222,7 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 		return nil, errors.Wrap(err, "role_tosql")
 	}
 
-	rows, err := s.GetReplica().DB.Query(queryString, args...)
+	rows, err := s.GetReplica().Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}
