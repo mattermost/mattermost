@@ -144,6 +144,8 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		require.Equal(t, "This is spam content", review.ReporterComment)
 		require.Greater(t, review.ReportTimestamp, int64(0))
 		require.Empty(t, review.ActorDecision)
+		require.Empty(t, review.ActorUserId)
+		require.Empty(t, review.ActorUsername)
 	})
 
 	t.Run("content_review.yaml records remove decision after permanent delete", func(t *testing.T) {
@@ -162,6 +164,8 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		var review model.FlaggedPostReportContentReview
 		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
 		require.Equal(t, "remove", review.ActorDecision)
+		require.Empty(t, review.ActorUserId)
+		require.Empty(t, review.ActorUsername)
 	})
 
 	t.Run("content_review.yaml records keep decision after keep action", func(t *testing.T) {
@@ -180,6 +184,8 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		var review model.FlaggedPostReportContentReview
 		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
 		require.Equal(t, "keep", review.ActorDecision)
+		require.Empty(t, review.ActorUserId)
+		require.Empty(t, review.ActorUsername)
 	})
 
 	t.Run("content_review.yaml uses pending action when status is not yet committed", func(t *testing.T) {
@@ -195,6 +201,8 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		var review model.FlaggedPostReportContentReview
 		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
 		require.Equal(t, "remove", review.ActorDecision)
+		require.Equal(t, th.BasicUser.Id, review.ActorUserId)
+		require.Equal(t, th.BasicUser.Username, review.ActorUsername)
 	})
 
 	t.Run("content_review.yaml ignores invalid pending action", func(t *testing.T) {
@@ -210,6 +218,10 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		var review model.FlaggedPostReportContentReview
 		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
 		require.Empty(t, review.ActorDecision)
+		// Actor details are still populated whenever a pending action is supplied,
+		// even when the value isn't a recognised decision.
+		require.Equal(t, th.BasicUser.Id, review.ActorUserId)
+		require.Equal(t, th.BasicUser.Username, review.ActorUsername)
 	})
 
 	t.Run("includes file attachments for the base post", func(t *testing.T) {

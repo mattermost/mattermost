@@ -165,6 +165,8 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		}
 		require.True(t, found, "content_review.yaml should be present in the report archive")
 		require.Equal(t, "remove", review.ActorDecision)
+		require.Equal(t, th.BasicUser.Id, review.ActorUserId)
+		require.Equal(t, th.BasicUser.Username, review.ActorUsername)
 	})
 
 	t.Run("Should include edit history entries in the generated report", func(t *testing.T) {
