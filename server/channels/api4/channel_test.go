@@ -7860,7 +7860,12 @@ func TestSetChannelMembers(t *testing.T) {
 	t.Run("policy-enforced channel rejected", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
-		// Create an access control policy to make the channel policy-enforced
+		// The gate rejects bulk membership edits only when the channel's
+		// policy actually governs membership. We declare the `membership`
+		// action here so PolicyActions[membership]=true is hydrated on
+		// subsequent reads — a non-membership action (e.g. `view`) would
+		// no longer trigger this path after the Phase 2 migration, which
+		// is intentional and covered by the permission-only test below.
 		policy := &model.AccessControlPolicy{
 			Type:    model.AccessControlPolicyTypeChannel,
 			ID:      channel.Id,
@@ -7868,13 +7873,17 @@ func TestSetChannelMembers(t *testing.T) {
 			Version: model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
 				{
-					Actions:    []string{"view"},
+					Actions:    []string{model.AccessControlPolicyActionMembership},
 					Expression: "user.attributes.team == \"test\"",
 				},
 			},
 		}
 		_, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
 		require.NoError(t, storeErr)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channel.Id)
+		})
+		th.App.Srv().Store().Channel().InvalidateChannel(channel.Id)
 
 		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id}}, 0, 0)
 		require.Error(t, err)
@@ -8160,37 +8169,6 @@ func TestSetChannelMembers(t *testing.T) {
 		member, _, err = th.SystemAdminClient.GetChannelMember(ctx, channel.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.False(t, member.SchemeAdmin, "BasicUser should no longer be admin")
-	})
-
-	t.Run("rejects bulk membership edit when channel has a membership policy", func(t *testing.T) {
-		channel := th.CreatePrivateChannel(t)
-
-		// Save a channel-scope policy with a `membership` rule. Its mere
-		// existence flips Channel.PolicyEnforced=true (computed via EXISTS
-		// in channel_store.go) and, after Phase 1 hydration, surfaces a
-		// PolicyActions={membership:true} map on subsequent reads.
-		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
-			ID:       channel.Id,
-			Type:     model.AccessControlPolicyTypeChannel,
-			Active:   true,
-			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_2,
-			Imports:  []string{},
-			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
-			},
-		})
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channel.Id)
-		})
-		th.App.Srv().Store().Channel().InvalidateChannel(channel.Id)
-
-		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{
-			Members: []string{th.BasicUser.Id},
-		}, 0, 0)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("permission-only policy does NOT reject bulk membership edits (bug fix)", func(t *testing.T) {
