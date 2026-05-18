@@ -3864,3 +3864,70 @@ func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {
 		assert.Equal(t, originalName, createdChannel.Name, "channel name should not be overridden")
 	})
 }
+
+func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("RegisterPropertyGroup rejects deprecated name", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		// Register using the deprecated name must fail
+		_, err := api.RegisterPropertyGroup(model.DeprecatedCPAPropertyGroupName)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "renamed")
+
+		// Register using the canonical name should still work
+		group, err := api.RegisterPropertyGroup(model.AccessControlPropertyGroupName)
+		require.NoError(t, err)
+		require.NotNil(t, group)
+		assert.Equal(t, model.AccessControlPropertyGroupName, group.Name)
+	})
+
+	t.Run("GetPropertyGroup maps deprecated name to canonical name", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		// The access_control group is registered at server startup, so
+		// we can look it up directly.
+		canonical, err := api.GetPropertyGroup(model.AccessControlPropertyGroupName)
+		require.NoError(t, err)
+		require.NotNil(t, canonical)
+
+		// Looking up by the deprecated name should return the same group
+		deprecated, err := api.GetPropertyGroup(model.DeprecatedCPAPropertyGroupName)
+		require.NoError(t, err)
+		require.NotNil(t, deprecated)
+
+		assert.Equal(t, canonical.ID, deprecated.ID)
+		assert.Equal(t, model.AccessControlPropertyGroupName, deprecated.Name)
+	})
+
+	t.Run("other group names are not affected by the mapping", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		// Register a different group — no mapping should occur
+		group, err := api.RegisterPropertyGroup("my_plugin_group")
+		require.NoError(t, err)
+		require.NotNil(t, group)
+		assert.Equal(t, "my_plugin_group", group.Name)
+
+		// Look it up
+		fetched, err := api.GetPropertyGroup("my_plugin_group")
+		require.NoError(t, err)
+		assert.Equal(t, group.ID, fetched.ID)
+	})
+
+	t.Run("GetPropertyGroup with nonexistent name returns error", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		_, err := api.GetPropertyGroup("no_such_group")
+		require.Error(t, err)
+	})
+}

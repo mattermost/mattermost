@@ -8,7 +8,7 @@ import {useDispatch} from 'react-redux';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {batchGetProfilesInChannel, getMissingProfilesByIds} from 'mattermost-redux/actions/users';
+import {batchGetProfilesInGroupChannel, getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 
 import Avatar from 'components/widgets/users/avatar';
 
@@ -51,7 +51,7 @@ function DraftTitle({
         // The action uses a data loader so it is safe to call do this for multiple
         // scheduled posts for the same GM without causing any duplicate API calls.
         if (channel.type === Constants.GM_CHANNEL && !membersCount) {
-            dispatch(batchGetProfilesInChannel(channel.id));
+            dispatch(batchGetProfilesInGroupChannel(channel.id));
         }
     }, [channel.id, channel.type, dispatch, membersCount]);
 
