@@ -12944,6 +12944,22 @@ func (s *TimerLayerUserStore) GetByAuth(authData *string, authService string) (*
 	return result, err
 }
 
+func (s *TimerLayerUserStore) GetByAuthData(authData *string) (*model.User, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetByAuthData(authData)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetByAuthData", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) GetByEmail(email string) (*model.User, error) {
 	start := time.Now()
 
@@ -13833,6 +13849,38 @@ func (s *TimerLayerUserStore) UpdateFailedPasswordAttempts(userID string, attemp
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.UpdateFailedPasswordAttempts", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerUserStore) TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.TryIncrementFailedPasswordAttempts(userID, maxAttempts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.TryIncrementFailedPasswordAttempts", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) DecrementFailedPasswordAttempts(userID string) error {
+	start := time.Now()
+
+	err := s.UserStore.DecrementFailedPasswordAttempts(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.DecrementFailedPasswordAttempts", success, elapsed)
 	}
 	return err
 }
