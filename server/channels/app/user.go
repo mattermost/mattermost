@@ -2706,6 +2706,10 @@ func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId
 // DemoteUserToGuest Convert user's roles and all his membership's roles from
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppError {
+	if user.IsBot {
+		return model.NewAppError("DemoteUserToGuest", "api.user.demote_user_to_guest.bot_not_allowed.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
