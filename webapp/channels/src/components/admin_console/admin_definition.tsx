@@ -1549,8 +1549,8 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             options: [
                                 {
-                                    value: 'atmos/camo',
-                                    display_name: defineMessage({id: 'atmos/camo', defaultMessage: 'atmos/camo'}),
+                                    value: 'cactus/go-camo',
+                                    display_name: defineMessage({id: 'cactus/go-camo', defaultMessage: 'cactus/go-camo'}),
                                 },
                                 {
                                     value: 'local',

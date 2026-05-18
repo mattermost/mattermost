@@ -73,8 +73,8 @@ func (proxy *ImageProxy) makeBackend(proxySettings model.ImageProxySettings) Ima
 	switch *proxySettings.ImageProxyType {
 	case model.ImageProxyTypeLocal:
 		return makeLocalBackend(proxy)
-	case model.ImageProxyTypeAtmosCamo:
-		return makeAtmosCamoBackend(proxy, proxySettings)
+	case model.ImageProxyTypeCactusCamo, model.ImageProxyTypeAtmosCamo:
+		return makeCactusGoCamoBackend(proxy, proxySettings)
 	default:
 		return nil
 	}

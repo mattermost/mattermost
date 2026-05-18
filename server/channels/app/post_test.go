@@ -749,32 +749,32 @@ func TestImageProxy(t *testing.T) {
 		ProxiedImageURL        string
 		ProxiedRemovedImageURL string
 	}{
-		"atmos/camo": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
+		"cactus/go-camo": {
+			ProxyType:              model.ImageProxyTypeCactusCamo,
 			ProxyURL:               "https://127.0.0.1",
 			ProxyOptions:           testHMACKey,
 			ImageURL:               "http://mydomain.com/myimage",
 			ProxiedRemovedImageURL: "http://mydomain.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
 		},
-		"atmos/camo_SameSite": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
+		"cactus/go-camo_SameSite": {
+			ProxyType:              model.ImageProxyTypeCactusCamo,
 			ProxyURL:               "https://127.0.0.1",
 			ProxyOptions:           testHMACKey,
 			ImageURL:               "http://mymattermost.com/myimage",
 			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
-		"atmos/camo_PathOnly": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
+		"cactus/go-camo_PathOnly": {
+			ProxyType:              model.ImageProxyTypeCactusCamo,
 			ProxyURL:               "https://127.0.0.1",
 			ProxyOptions:           testHMACKey,
 			ImageURL:               "/myimage",
 			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
-		"atmos/camo_EmptyImageURL": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
+		"cactus/go-camo_EmptyImageURL": {
+			ProxyType:              model.ImageProxyTypeCactusCamo,
 			ProxyURL:               "https://127.0.0.1",
 			ProxyOptions:           testHMACKey,
 			ImageURL:               "",
@@ -1009,7 +1009,7 @@ func TestCreatePost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.ImageProxyType = "cactus/go-camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})
@@ -1501,7 +1501,7 @@ func TestPatchPost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.ImageProxyType = "cactus/go-camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})
@@ -1956,7 +1956,7 @@ func TestUpdatePost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.ImageProxyType = "cactus/go-camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})

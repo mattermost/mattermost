@@ -11012,15 +11012,15 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+    "translation": "Invalid RemoteImageProxyOptions for cactus/go-camo. Must be set to your shared key."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo: HMAC key must be at least {{.MinLength}} bytes for FIPS compliance."
+    "translation": "Invalid RemoteImageProxyOptions for cactus/go-camo: HMAC key must be at least {{.MinLength}} bytes for FIPS compliance."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
+    "translation": "Invalid RemoteImageProxyURL for cactus/go-camo. Must be set to your proxy URL."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",

@@ -1023,7 +1023,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.ImageProxyType = "cactus/go-camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})

@@ -154,11 +154,11 @@ func TestOnConfigChange(t *testing.T) {
 		require.Equal(t, "https://new.example.com", proxy.backend.(*LocalBackend).baseURL.String())
 	})
 
-	t.Run("for atmos/camo proxy, should update site URL when that changes", func(t *testing.T) {
-		proxy := makeTestAtmosCamoProxy()
+	t.Run("for cactus/go-camo proxy, should update site URL when that changes", func(t *testing.T) {
+		proxy := makeTestCactusGoCamoProxy()
 
 		require.Equal(t, "https://mattermost.example.com", proxy.siteURL.String())
-		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*AtmosCamoBackend).siteURL.String())
+		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*CactusGoCamoBackend).siteURL.String())
 
 		newConfig := proxy.ConfigService.Config().Clone()
 		newConfig.ServiceSettings.SiteURL = new("https://new.example.com")
@@ -166,14 +166,14 @@ func TestOnConfigChange(t *testing.T) {
 		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
 
 		require.Equal(t, "https://new.example.com", proxy.siteURL.String())
-		require.Equal(t, "https://new.example.com", proxy.backend.(*AtmosCamoBackend).siteURL.String())
+		require.Equal(t, "https://new.example.com", proxy.backend.(*CactusGoCamoBackend).siteURL.String())
 	})
 
-	t.Run("for atmos/camo proxy, should update additional options when those change", func(t *testing.T) {
-		proxy := makeTestAtmosCamoProxy()
+	t.Run("for cactus/go-camo proxy, should update additional options when those change", func(t *testing.T) {
+		proxy := makeTestCactusGoCamoProxy()
 
-		require.Equal(t, "http://images.example.com", proxy.backend.(*AtmosCamoBackend).remoteURL.String())
-		// require.Equal(t, "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac", proxy.backend.(*AtmosCamoBackend).remoteOptions)
+		require.Equal(t, "http://images.example.com", proxy.backend.(*CactusGoCamoBackend).remoteURL.String())
+		// require.Equal(t, "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac", proxy.backend.(*CactusGoCamoBackend).remoteOptions)
 
 		newConfig := proxy.ConfigService.Config().Clone()
 		newConfig.ImageProxySettings.RemoteImageProxyURL = new("https://new.example.com")
@@ -181,7 +181,7 @@ func TestOnConfigChange(t *testing.T) {
 
 		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
 
-		require.Equal(t, "https://new.example.com", proxy.backend.(*AtmosCamoBackend).remoteURL.String())
-		// require.Equal(t, "some other random hash", proxy.backend.(*AtmosCamoBackend).remoteOptions)
+		require.Equal(t, "https://new.example.com", proxy.backend.(*CactusGoCamoBackend).remoteURL.String())
+		// require.Equal(t, "some other random hash", proxy.backend.(*CactusGoCamoBackend).remoteOptions)
 	})
 }

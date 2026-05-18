@@ -43,13 +43,13 @@ func TestGetImage(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
-	t.Run("atmos/camo", func(t *testing.T) {
+	t.Run("cactus/go-camo", func(t *testing.T) {
 		imageURL := "http://foo.bar/baz.gif"
 		proxiedURL := "https://proxy.foo.bar/83d4d9ac78b76ce425ea67038826df867c62cc5c/687474703a2f2f666f6f2e6261722f62617a2e676966"
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ImageProxySettings.Enable = new(true)
-			cfg.ImageProxySettings.ImageProxyType = new("atmos/camo")
+			cfg.ImageProxySettings.ImageProxyType = new("cactus/go-camo")
 			cfg.ImageProxySettings.RemoteImageProxyOptions = new("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac")
 			cfg.ImageProxySettings.RemoteImageProxyURL = new("https://proxy.foo.bar")
 		})

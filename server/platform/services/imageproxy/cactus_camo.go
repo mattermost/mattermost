@@ -14,19 +14,19 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-type AtmosCamoBackend struct {
+type CactusGoCamoBackend struct {
 	siteURL       *url.URL
 	remoteOptions string
 	remoteURL     *url.URL
 	client        *http.Client
 }
 
-func makeAtmosCamoBackend(proxy *ImageProxy, proxySettings model.ImageProxySettings) *AtmosCamoBackend {
+func makeCactusGoCamoBackend(proxy *ImageProxy, proxySettings model.ImageProxySettings) *CactusGoCamoBackend {
 	// We deliberately ignore the error because it's from config.json.
 	// The function returns a nil pointer in case of error, and we handle it when it's used.
 	remoteURL, _ := url.Parse(*proxySettings.RemoteImageProxyURL)
 
-	return &AtmosCamoBackend{
+	return &CactusGoCamoBackend{
 		siteURL:       proxy.siteURL,
 		remoteURL:     remoteURL,
 		remoteOptions: *proxySettings.RemoteImageProxyOptions,
@@ -34,12 +34,12 @@ func makeAtmosCamoBackend(proxy *ImageProxy, proxySettings model.ImageProxySetti
 	}
 }
 
-func (backend *AtmosCamoBackend) GetImage(w http.ResponseWriter, r *http.Request, imageURL string) {
-	http.Redirect(w, r, backend.getAtmosCamoImageURL(imageURL), http.StatusFound)
+func (backend *CactusGoCamoBackend) GetImage(w http.ResponseWriter, r *http.Request, imageURL string) {
+	http.Redirect(w, r, backend.getCactusGoCamoImageURL(imageURL), http.StatusFound)
 }
 
-func (backend *AtmosCamoBackend) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {
-	req, err := http.NewRequest("GET", backend.getAtmosCamoImageURL(imageURL), nil)
+func (backend *CactusGoCamoBackend) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {
+	req, err := http.NewRequest("GET", backend.getCactusGoCamoImageURL(imageURL), nil)
 	if err != nil {
 		return nil, "", Error{err}
 	}
@@ -53,7 +53,7 @@ func (backend *AtmosCamoBackend) GetImageDirect(imageURL string) (io.ReadCloser,
 	return resp.Body, resp.Header.Get("Content-Type"), nil
 }
 
-func (backend *AtmosCamoBackend) getAtmosCamoImageURL(imageURL string) string {
+func (backend *CactusGoCamoBackend) getCactusGoCamoImageURL(imageURL string) string {
 	if imageURL == "" || backend.siteURL == nil {
 		return imageURL
 	}

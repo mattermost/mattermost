@@ -18,7 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
-func makeTestAtmosCamoProxy() *ImageProxy {
+func makeTestCactusGoCamoProxy() *ImageProxy {
 	configService := &testutils.StaticConfigService{
 		Cfg: &model.Config{
 			ServiceSettings: model.ServiceSettings{
@@ -27,7 +27,7 @@ func makeTestAtmosCamoProxy() *ImageProxy {
 			},
 			ImageProxySettings: model.ImageProxySettings{
 				Enable:                  new(true),
-				ImageProxyType:          model.NewPointer(model.ImageProxyTypeAtmosCamo),
+				ImageProxyType:          model.NewPointer(model.ImageProxyTypeCactusCamo),
 				RemoteImageProxyURL:     new("http://images.example.com"),
 				RemoteImageProxyOptions: new("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"),
 			},
@@ -37,11 +37,11 @@ func makeTestAtmosCamoProxy() *ImageProxy {
 	return MakeImageProxy(configService, httpservice.MakeHTTPService(configService), nil)
 }
 
-func TestAtmosCamoBackend_GetImage(t *testing.T) {
+func TestCactusGoCamoBackend_GetImage(t *testing.T) {
 	imageURL := "https://www.mattermost.com/wp-content/uploads/2022/02/logoHorizontalWhite.png"
 	proxiedURL := "http://images.example.com/b569ce17f1be4550cffa8d8dd3a9e80e6d209584/68747470733a2f2f7777772e6d61747465726d6f73742e636f6d2f77702d636f6e74656e742f75706c6f6164732f323032322f30322f6c6f676f486f72697a6f6e74616c57686974652e706e67"
 
-	proxy := makeTestAtmosCamoProxy()
+	proxy := makeTestCactusGoCamoProxy()
 
 	recorder := httptest.NewRecorder()
 	request, _ := http.NewRequest(http.MethodGet, "", nil)
@@ -52,7 +52,7 @@ func TestAtmosCamoBackend_GetImage(t *testing.T) {
 	assert.Equal(t, proxiedURL, resp.Header.Get("Location"))
 }
 
-func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
+func TestCactusGoCamoBackend_GetImageDirect(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "max-age=2592000, private")
 		w.Header().Set("Content-Type", "image/png")
@@ -65,14 +65,14 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 	mock := httptest.NewServer(handler)
 	defer mock.Close()
 
-	proxy := makeTestAtmosCamoProxy()
+	proxy := makeTestCactusGoCamoProxy()
 	parsedURL, err := url.Parse("https://mattermost.example.com")
 	require.NoError(t, err)
 
 	remoteURL, err := url.Parse(mock.URL)
 	require.NoError(t, err)
 
-	backend := &AtmosCamoBackend{
+	backend := &CactusGoCamoBackend{
 		siteURL:   parsedURL,
 		remoteURL: remoteURL,
 		client:    proxy.HTTPService.MakeClient(false),
@@ -88,7 +88,7 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 	assert.Equal(t, []byte("1111111111"), respBody)
 }
 
-func TestGetAtmosCamoImageURL(t *testing.T) {
+func TestGetCactusGoCamoImageURL(t *testing.T) {
 	imageURL := "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png"
 	proxiedURL := "http://images.example.com/03b122734ae088d10cb46ea05512ec7dc852299e/68747470733a2f2f6d61747465726d6f73742e636f6d2f77702d636f6e74656e742f75706c6f6164732f323032322f30322f6c6f676f486f72697a6f6e74616c2e706e67"
 
@@ -175,13 +175,13 @@ func TestGetAtmosCamoImageURL(t *testing.T) {
 			remoteURL, err := url.Parse(proxyURL)
 			require.NoError(t, err)
 
-			backend := &AtmosCamoBackend{
+			backend := &CactusGoCamoBackend{
 				siteURL:       parsedURL,
 				remoteURL:     remoteURL,
-				remoteOptions: *makeTestAtmosCamoProxy().ConfigService.Config().ImageProxySettings.RemoteImageProxyOptions,
+				remoteOptions: *makeTestCactusGoCamoProxy().ConfigService.Config().ImageProxySettings.RemoteImageProxyOptions,
 			}
 
-			assert.Equal(t, test.Expected, backend.getAtmosCamoImageURL(test.Input))
+			assert.Equal(t, test.Expected, backend.getCactusGoCamoImageURL(test.Input))
 		})
 	}
 }

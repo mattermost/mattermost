@@ -268,7 +268,9 @@ const (
 	GlobalrelayCustomerTypeA10    = "A10"
 	GlobalrelayCustomerTypeCustom = "CUSTOM"
 
-	ImageProxyTypeLocal     = "local"
+	ImageProxyTypeLocal      = "local"
+	ImageProxyTypeCactusCamo = "cactus/go-camo"
+	// Deprecated: Use ImageProxyTypeCactusCamo instead.
 	ImageProxyTypeAtmosCamo = "atmos/camo"
 
 	GoogleSettingsDefaultScope           = "profile email"
@@ -5082,7 +5084,7 @@ func (s *ImageProxySettings) isValid() *AppError {
 		switch *s.ImageProxyType {
 		case ImageProxyTypeLocal:
 			// No other settings to validate
-		case ImageProxyTypeAtmosCamo:
+		case ImageProxyTypeCactusCamo, ImageProxyTypeAtmosCamo:
 			if *s.RemoteImageProxyURL == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_url.app_error", nil, "", http.StatusBadRequest)
 			}
