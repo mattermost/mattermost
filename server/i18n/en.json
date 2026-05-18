@@ -4439,6 +4439,10 @@
     "translation": "Unable to convert the user to guest because is already a guest."
   },
   {
+    "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
+    "translation": "Bot accounts cannot be converted to guest accounts."
+  },
+  {
     "id": "api.user.email_to_ldap.not_available.app_error",
     "translation": "AD/LDAP not available on this server."
   },
