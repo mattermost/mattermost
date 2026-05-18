@@ -838,7 +838,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             expect(screen.queryByText('Classification')).not.toBeInTheDocument();
         });
 
-        it('blocks save when classification is enabled but no level is selected', async () => {
+        it('auto-selects the lowest-rank level when classification is toggled on', async () => {
             const {Client4} = require('mattermost-redux/client');
             const {patchChannel} = require('mattermost-redux/actions/channels');
             patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
@@ -855,12 +855,13 @@ describe('ChannelSettingsConfigurationTab', () => {
 
             await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
 
-            // Save panel appears once the toggle creates a change.
-            const saveButton = await screen.findByRole('button', {name: 'Save'});
-            expect(saveButton).toBeDisabled();
+            // The lowest-rank level (UNCLASSIFIED) should be auto-selected in the dropdown.
+            const dropdown = screen.getByTestId('channelClassificationLevel');
+            expect(dropdown).toHaveTextContent(LEVEL_UNCLASSIFIED.name);
 
-            // No network calls happen because the form is invalid.
-            expect(Client4.patchPropertyValues).not.toHaveBeenCalled();
+            // Save button should be enabled since a level is pre-selected.
+            const saveButton = await screen.findByRole('button', {name: 'Save'});
+            expect(saveButton).toBeEnabled();
         });
 
         it('saves banner_info via patchChannel when banner text is edited while classification is active', async () => {
@@ -1022,15 +1023,19 @@ describe('ChannelSettingsConfigurationTab', () => {
                 sysAdminState,
             );
 
-            // Enable classification toggle.
+            // Enable classification toggle — lowest-rank level is auto-selected.
             await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
 
-            // The save button should appear but be disabled (no level selected).
+            // Save button should be enabled (level auto-selected).
             const saveButton = await screen.findByRole('button', {name: 'Save'});
-            expect(saveButton).toBeDisabled();
+            expect(saveButton).toBeEnabled();
 
-            // We can't easily drive react-select, so let's test the error path by
-            // starting with an already-classified channel and toggling off then on to create a change.
+            // Click save to trigger the patchPropertyValues rejection.
+            await userEvent.click(saveButton);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Server boom/)).toBeInTheDocument();
+            });
         });
 
         it('shows an error when patchPropertyValues rejects with pre-existing classification', async () => {
