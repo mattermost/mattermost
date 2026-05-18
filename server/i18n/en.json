@@ -2881,10 +2881,6 @@
     "translation": "Can not post to deleted channel."
   },
   {
-    "id": "api.post.create_post.card_type_disabled.app_error",
-    "translation": "Card posts are not enabled on this server."
-  },
-  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Invalid ChannelId for RootId parameter."
   },
@@ -2931,6 +2927,10 @@
   {
     "id": "api.post.disabled_here",
     "translation": "@here notifications are disabled in channels with more than {{.Users}} users. Contact your system administrator for more information."
+  },
+  {
+    "id": "api.post.disallowed_type.app_error",
+    "translation": "Posts of type \"{{.PostType}}\" cannot be created or modified through /api/v4/posts. Use the dedicated endpoint for this type."
   },
   {
     "id": "api.post.do_action.action_id.app_error",

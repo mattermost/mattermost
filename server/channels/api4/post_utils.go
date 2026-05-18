@@ -43,8 +43,8 @@ func postPriorityCheckWithContext(where string, c *Context, priority *model.Post
 	}
 }
 
-func postCardTypeCheckWithContext(where string, c *Context, postType string) {
-	if appErr := app.PostCardTypeCheckWithApp(where, c.App, postType); appErr != nil {
+func postsAPITypeCheckWithContext(where string, c *Context, postType string) {
+	if appErr := app.PostsAPITypeCheck(where, postType); appErr != nil {
 		appErr.Where = where
 		c.Err = appErr
 	}

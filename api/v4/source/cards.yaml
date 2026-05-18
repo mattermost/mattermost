@@ -8,8 +8,6 @@
 
         Create a new card post (`type` is always `card`; do not send `type` in the body).
 
-        `POST /api/v4/posts` may also be used to create card posts when `type` is `card` and the same checks apply.
-
         ##### Permissions
 
         Same as creating a regular post in the channel (`create_post`, optional `upload_file` when attaching files, etc.).

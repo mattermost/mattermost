@@ -85,7 +85,7 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 		return
 	}
 
-	postCardTypeCheckWithContext(where, c, post.Type)
+	postsAPITypeCheckWithContext(where, c, post.Type)
 	if c.Err != nil {
 		return
 	}
@@ -738,6 +738,12 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 		c.Err = appErr
 		return
 	}
+
+	postsAPITypeCheckWithContext("deletePost", c, post.Type)
+	if c.Err != nil {
+		return
+	}
+
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
 
@@ -1054,6 +1060,11 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postsAPITypeCheckWithContext("updatePost", c, originalPost.Type)
+	if c.Err != nil {
+		return
+	}
+
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
 	if !ok {
 		c.SetPermissionError(model.PermissionEditPost)
@@ -1207,6 +1218,12 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 		c.SetPermissionError(model.PermissionEditPost)
 		return false
 	}
+
+	postsAPITypeCheckWithContext("patchPost", c, originalPost.Type)
+	if c.Err != nil {
+		return false
+	}
+
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
