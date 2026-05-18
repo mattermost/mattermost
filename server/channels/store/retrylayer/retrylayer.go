@@ -3847,21 +3847,21 @@ func (s *RetryLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, chan
 
 }
 
-func (s *RetryLayerChannelGuardStore) Delete(rctx request.CTX, channelID string, pluginID string) error {
+func (s *RetryLayerChannelGuardStore) Delete(rctx request.CTX, channelID string, pluginID string) (int64, error) {
 
 	tries := 0
 	for {
-		err := s.ChannelGuardStore.Delete(rctx, channelID, pluginID)
+		result, err := s.ChannelGuardStore.Delete(rctx, channelID, pluginID)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

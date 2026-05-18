@@ -493,7 +493,7 @@ type Hooks interface {
 	ChannelWillBeRestored(c *Context, channel *model.Channel) string
 
 	// ScheduledPostWillBeCreated is invoked before a scheduled post is committed. Fires from the
-	// app-layer CreateScheduledPost and UpdateScheduledPost paths.
+	// app-layer SaveScheduledPost and UpdateScheduledPost paths.
 	//
 	// Return value semantics match MessageWillBePosted.
 	//

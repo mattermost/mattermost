@@ -217,7 +217,6 @@ func TestChannelGuardLowercaseNormalization(t *testing.T) {
 	}
 
 	require.Nil(t, api.RegisterChannelGuard(channelID))
-
 	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, guards, 1)
@@ -243,6 +242,34 @@ func TestChannelGuardEmptyChannelIDRejected(t *testing.T) {
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.channel_guard.unregister.empty_channel.app_error", appErr.Id)
 	assert.Equal(t, 400, appErr.StatusCode)
+}
+
+// TestUnregisterChannelGuardWarnsOnNoMatchingRow verifies that calling UnregisterChannelGuard with
+// a pluginID that has no claim on the channel returns nil (no error) and leaves the existing guard
+// row untouched. The Warn log emitted when rowsAffected==0 is operator-facing and is not asserted
+// here; the behavioral contract (nil return + row unchanged) is the check.
+func TestUnregisterChannelGuardWarnsOnNoMatchingRow(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	channelID := th.BasicChannel.Id
+	pluginA := "com.example.plugin-a"
+	pluginB := "com.example.plugin-b"
+
+	rctx := request.EmptyContext(th.App.Srv().Log())
+
+	// Register pluginA's guard on the channel.
+	require.Nil(t, th.App.RegisterChannelGuard(rctx, channelID, pluginA))
+
+	// Unregister with a different pluginID — must return nil (no-op).
+	appErr := th.App.UnregisterChannelGuard(rctx, channelID, pluginB)
+	require.Nil(t, appErr, "cross-plugin Unregister must return nil")
+
+	// pluginA's guard row must be untouched.
+	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(rctx, channelID)
+	require.NoError(t, err)
+	require.Len(t, guards, 1, "pluginA guard row must remain after cross-plugin Unregister")
+	assert.Equal(t, pluginA, guards[0].PluginId)
 }
 
 // failingGuardStore wraps a real ChannelGuardStore but forces GetAll to error,

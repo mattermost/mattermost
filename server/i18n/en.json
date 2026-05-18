@@ -5671,6 +5671,10 @@
     "translation": "Unable to restore the channel."
   },
   {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "Channel restore rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.save_member.exists.app_error",
     "translation": "A channel member with that ID already exists."
   },
@@ -5709,6 +5713,14 @@
   {
     "id": "app.channel.update_channel.internal_error",
     "translation": "Unable to update channel."
+  },
+  {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "Plugin {{.PluginID}} attempted to mutate channel type via ChannelWillBeUpdated; type changes must go through the dedicated type-change path"
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "Channel update rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",
@@ -6323,6 +6335,10 @@
   {
     "id": "app.draft.save.app_error",
     "translation": "Unable to save the Draft."
+  },
+  {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "Draft rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.drafts.permanent_delete_by_user.app_error",
@@ -7657,6 +7673,14 @@
     "translation": "Unable to get plugin statuses."
   },
   {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "Operation rejected: claiming plugin {{.PluginID}} hook call failed"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "Operation rejected: a required plugin is not active"
+  },
+  {
     "id": "app.plugin.install.app_error",
     "translation": "Unable to install plugin."
   },
@@ -8559,8 +8583,16 @@
     "translation": "Private channel"
   },
   {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "Scheduled post rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Unknown Channel"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "Scheduled post update rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.scheme.delete.app_error",

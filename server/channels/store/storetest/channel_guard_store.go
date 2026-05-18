@@ -18,6 +18,7 @@ func TestChannelGuardStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("SaveIdempotentSamePlugin", func(t *testing.T) { testChannelGuardSaveIdempotentSamePlugin(t, rctx, ss) })
 	t.Run("SaveTwoPluginsSameChannel", func(t *testing.T) { testChannelGuardSaveTwoPluginsSameChannel(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testChannelGuardDelete(t, rctx, ss) })
+	t.Run("DeleteRowsAffected", func(t *testing.T) { testChannelGuardDeleteRowsAffected(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testChannelGuardGetAll(t, rctx, ss) })
 }
 
@@ -83,7 +84,9 @@ func testChannelGuardDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, ss.ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelID, PluginId: pluginA, CreatedAt: 1000}))
 	require.NoError(t, ss.ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelID, PluginId: pluginB, CreatedAt: 2000}))
 
-	require.NoError(t, ss.ChannelGuard().Delete(rctx, channelID, pluginA))
+	n, err := ss.ChannelGuard().Delete(rctx, channelID, pluginA)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), n, "expected 1 row deleted")
 
 	got, err := ss.ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
@@ -91,7 +94,28 @@ func testChannelGuardDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Equal(t, pluginB, got[0].PluginId)
 
 	// Deleting an already-removed (channel, plugin) pair is a no-op, not an error.
-	require.NoError(t, ss.ChannelGuard().Delete(rctx, channelID, pluginA))
+	n, err = ss.ChannelGuard().Delete(rctx, channelID, pluginA)
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), n, "expected 0 rows deleted for already-removed row")
+}
+
+func testChannelGuardDeleteRowsAffected(t *testing.T, rctx request.CTX, ss store.Store) {
+	channelID := model.NewId()
+	pluginA := "com.example.plugin-a"
+	pluginB := "com.example.plugin-b"
+
+	require.NoError(t, ss.ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelID, PluginId: pluginA, CreatedAt: 1000}))
+
+	// Cross-plugin delete: pluginB has no claim on the channel; returns (0, nil).
+	n, err := ss.ChannelGuard().Delete(rctx, channelID, pluginB)
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), n, "cross-plugin delete must return 0 rows affected")
+
+	// pluginA's row must be untouched.
+	got, err := ss.ChannelGuard().GetForChannel(rctx, channelID)
+	require.NoError(t, err)
+	require.Len(t, got, 1, "pluginA row must remain after cross-plugin delete")
+	assert.Equal(t, pluginA, got[0].PluginId)
 }
 
 func testChannelGuardGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
