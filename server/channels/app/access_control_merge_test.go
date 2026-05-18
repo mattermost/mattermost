@@ -89,6 +89,24 @@ func TestBuildCELFromConditions(t *testing.T) {
 		assert.Equal(t, `"Alpha" in user.attributes.Programs`, result)
 	})
 
+	t.Run("hasAnyOf with single masked-token value emits duplicate OR to preserve operator through re-parse", func(t *testing.T) {
+		// A sole masked-token sentinel must round-trip as hasAnyOf. Without the
+		// duplicate, a standalone "tok in attr" is promoted to hasAllOf by
+		// mergeMultiselectConditions, showing the wrong operator in the table editor.
+		conditions := []model.Condition{
+			{
+				Attribute:     "user.attributes.Programs",
+				Operator:      "hasAnyOf",
+				Value:         []any{maskedTokenValue},
+				ValueType:     model.LiteralValue,
+				AttributeType: "multiselect",
+			},
+		}
+		result := buildCELFromConditions(conditions)
+		expected := `("` + maskedTokenValue + `" in user.attributes.Programs || "` + maskedTokenValue + `" in user.attributes.Programs)`
+		assert.Equal(t, expected, result)
+	})
+
 	t.Run("hasAllOf operator", func(t *testing.T) {
 		conditions := []model.Condition{
 			{

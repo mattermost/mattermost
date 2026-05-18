@@ -6,6 +6,13 @@ import type {Client4} from '@mattermost/client';
 
 import {ChannelsPage, expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
 
+import {
+    assignChannelsToPolicy,
+    createPrivateChannel,
+    createTeamAdmin,
+    waitForAttributeViewToInclude,
+} from '../../../channels/team_settings/helpers';
+
 import {enableUserManagedAttributes} from '../support';
 
 // PLUG: setFieldAsSharedOnly flips a CPA field to shared_only in the DB (the
@@ -68,6 +75,31 @@ async function createMaskingTextField(client: Client4, fieldName: string): Promi
                 sort_order: 99,
                 managed: 'admin',
                 visibility: 'when_set',
+            },
+        }),
+    });
+    return created.id as string;
+}
+
+/**
+ * Create a multiselect CPA field with the given options and return its ID.
+ */
+async function createMaskingMultiselectField(
+    client: Client4,
+    fieldName: string,
+    options: string[],
+): Promise<string> {
+    const url = `${client.getBaseRoute()}/custom_profile_attributes/fields`;
+    const created = await (client as any).doFetch(url, {
+        method: 'POST',
+        body: JSON.stringify({
+            name: fieldName,
+            type: 'multiselect',
+            attrs: {
+                sort_order: 99,
+                managed: 'admin',
+                visibility: 'when_set',
+                options: options.map((name) => ({name, color: ''})),
             },
         }),
     });
@@ -1808,6 +1840,342 @@ test.describe('Attribute-Value Masking', () => {
             if (await valueSelector.isVisible({timeout: 2000})) {
                 await expect(valueSelector).toBeDisabled();
             }
+        } finally {
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
+        }
+    });
+
+    test('MM-68508-20: Team admin (non-sysadmin) sees the same masking as a system admin in team settings', async ({
+        pw,
+    }) => {
+        // Role-neutrality across roles: a delegated team admin (granted
+        // PermissionManageTeamAccessRules by their team_admin role, but NOT
+        // PermissionManageSystem) must see masking in the team-settings access
+        // policy editor. The masked-values guard MUST apply at this surface too:
+        // controls locked, Delete disabled, server 403 on direct DELETE.
+        test.setTimeout(180000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        const fieldIds: string[] = [];
+        const policyIds: string[] = [];
+
+        try {
+            await enableUserManagedAttributes(adminClient);
+            await enableMaskingFlag(adminClient);
+
+            const teamAdmin = await createTeamAdmin(adminClient, team.id);
+
+            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldId = await createMaskingTextField(adminClient, fieldName);
+            fieldIds.push(fieldId);
+            await setUserAttribute(adminClient, teamAdmin.id, fieldId, 'Alpha');
+
+            const channel = await createPrivateChannel(adminClient, team.id);
+            await adminClient.addToChannel(teamAdmin.id, channel.id);
+
+            // Sysadmin enables ABAC via the UI (required to activate the PAP),
+            // then creates a parent policy and assigns only channels from the
+            // team administered by `teamAdmin`. The assigned private channel makes
+            // SearchTeamAccessPolicies enforce self-inclusion, which `teamAdmin`
+            // satisfies because they hold Alpha.
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const sysPage = systemConsolePage.page;
+            await navigateToABACPage(sysPage);
+            await enableABAC(sysPage);
+            const policyName = `MaskingPolicy ${pw.random.id()}`;
+            const policyExpression = `user.attributes.${fieldName} in ["Alpha", "Bravo"]`;
+            const policyResp = await (adminClient as any).doFetch(
+                `${(adminClient as any).getBaseRoute()}/access_control_policies`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        name: policyName,
+                        type: 'parent',
+                        version: 'v0.3',
+                        revision: 1,
+                        rules: [
+                            {
+                                actions: ['membership'],
+                                expression: policyExpression,
+                            },
+                        ],
+                    }),
+                },
+            );
+            const policyId = policyResp.id as string;
+            policyIds.push(policyId);
+            await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
+            await waitForAttributeViewToInclude(adminClient, policyExpression, [teamAdmin.id]);
+
+            await setFieldAsSharedOnly(fieldId);
+
+            // Log in AS THE TEAM ADMIN (not the sysadmin).
+            const {page} = await pw.testBrowser.login(teamAdmin);
+            const channelsPage = new ChannelsPage(page);
+            await channelsPage.goto(team.name);
+            await channelsPage.toBeVisible();
+
+            const teamSettings = await channelsPage.openTeamSettings();
+            await teamSettings.openAccessPoliciesTab();
+
+            // The policy is team-scoped through its single-team channel
+            // assignment, and `teamAdmin` satisfies its rule, so it MUST appear in
+            // the team-admin policy list. Search by the unique name because the
+            // list is paginated and prior tests can leave more than one page of
+            // MaskingPolicy rows.
+            const searchInput = teamSettings.container.locator('[data-testid="searchInput"]').first();
+            await expect(searchInput).toBeVisible({timeout: 10000});
+            const searchResponse = page.waitForResponse(
+                (resp) =>
+                    /\/api\/v4\/access_control_policies\/search$/.test(resp.url()) &&
+                    resp.request().method() === 'POST' &&
+                    Boolean(resp.request().postData()?.includes(policyName)) &&
+                    resp.ok(),
+                {timeout: 15000},
+            );
+            await searchInput.fill(policyName);
+            await searchResponse.catch(() => {
+                // Debounced search can occasionally settle from cached data; the
+                // row assertion below is the source of truth.
+            });
+            await page.waitForLoadState('networkidle');
+
+            const policyRow = teamSettings.container.getByText(policyName).first();
+            await expect(policyRow).toBeVisible({timeout: 10000});
+            await policyRow.click();
+            await page.waitForTimeout(500);
+
+            // Masking surfaces in the team-policy editor exactly as in the
+            // system console — masked chip visible, Delete disabled.
+            await expect(teamSettings.container.locator('.select__multi-value--masked').first()).toBeVisible({
+                timeout: 5000,
+            });
+
+            const deleteBtn = teamSettings.container
+                .locator('.TeamPolicyEditor__section--delete button')
+                .filter({hasText: 'Delete'});
+            await expect(deleteBtn).toBeVisible({timeout: 5000});
+            await expect(deleteBtn).toBeDisabled();
+
+            await teamSettings.close();
+
+            // Server enforces the same 403 regardless of which admin role
+            // initiated the delete. team_id is required in the URL because the
+            // team-admin permission path scopes by team.
+            expect(policyId).toMatch(/^[A-Za-z0-9]{26}$/);
+            const status = await page.evaluate(
+                async ({id, teamId}: {id: string; teamId: string}) => {
+                    const resp = await fetch(`/api/v4/access_control_policies/${id}?team_id=${teamId}`, {
+                        method: 'DELETE',
+                        headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    });
+                    return resp.status;
+                },
+                {id: policyId, teamId: team.id},
+            );
+            expect(status, `DELETE as team admin returned ${status}`).toBe(403);
+        } finally {
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
+        }
+    });
+
+    test('MM-68508-21: Channel admin (non-sysadmin) sees the same masking as a system admin in channel settings', async ({
+        pw,
+    }) => {
+        // Role-neutrality for the channel-admin surface: a user with
+        // PermissionManageChannelAccessRules (via channel_admin role) on a
+        // private channel must see masking inside the Membership Policy tab of
+        // the channel settings modal. Channel admins never see the system
+        // console — this is the only surface where they touch policy values.
+        test.setTimeout(180000);
+        await pw.skipIfNoLicense();
+
+        // adminClient is the sysadmin REST handle used to seed the channel-level
+        // policy directly; the channel admin (user) drives the UI assertions.
+        const {adminClient, user, team} = await pw.initSetup();
+        const fieldIds: string[] = [];
+        const policyIds: string[] = [];
+
+        try {
+            await enableUserManagedAttributes(adminClient);
+            await enableMaskingFlag(adminClient);
+
+            // The Membership Policy tab requires a private channel that the
+            // caller has channel-admin permission over.
+            const channel = await adminClient.createChannel({
+                team_id: team.id,
+                name: `mp-${pw.random.id()}`.toLowerCase(),
+                display_name: `Masked Policy Channel ${pw.random.id()}`,
+                type: 'P',
+                purpose: '',
+                header: '',
+            } as any);
+            await adminClient.addToChannel(user.id, channel.id);
+            await adminClient.updateChannelMemberRoles(channel.id, user.id, 'channel_user channel_admin');
+
+            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldId = await createMaskingTextField(adminClient, fieldName);
+            fieldIds.push(fieldId);
+            await setUserAttribute(adminClient, user.id, fieldId, 'Alpha');
+
+            // Sysadmin authors a CHANNEL-level policy directly (id === channel.id,
+            // type === "channel"). The channel settings access-rules tab renders
+            // this via getAccessControlPolicy(channelId) — which goes through the
+            // same MaskPolicyExpressions read-path masking as everything else.
+            // Parent policies assigned to a channel would only surface in the
+            // SystemPolicyIndicator (read-only), not in the editable TableEditor
+            // where the masked chips render.
+            const channelPolicyResp = await (adminClient as any).doFetch(
+                `${(adminClient as any).getBaseRoute()}/access_control_policies`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        id: channel.id,
+                        type: 'channel',
+                        version: 'v0.3',
+                        revision: 1,
+                        rules: [
+                            {actions: ['membership'], expression: `user.attributes.${fieldName} in ["Alpha", "Bravo"]`},
+                        ],
+                    }),
+                },
+            );
+            const policyId = (channelPolicyResp?.id ?? channel.id) as string;
+            policyIds.push(policyId);
+
+            await setFieldAsSharedOnly(fieldId);
+
+            // Log in AS THE CHANNEL ADMIN (not the sysadmin).
+            const {page} = await pw.testBrowser.login(user);
+            const channelsPage = new ChannelsPage(page);
+            await page.goto(`/${team.name}/channels/${channel.name}`);
+            await channelsPage.toBeVisible();
+
+            // Open channel settings via the lib helper so we don't depend on
+            // hand-rolled header selectors. The Membership Policy tab is gated
+            // by canManageChannelAccessRules — channel_admin has it.
+            const channelSettings = await channelsPage.openChannelSettings();
+            const membershipPolicyTab = channelSettings.container.getByRole('tab', {name: /membership policy/i});
+            await membershipPolicyTab.waitFor({state: 'visible', timeout: 10000});
+            await membershipPolicyTab.click();
+            // The tab loads via getChannelPolicy → server returns the masked
+            // view (FF on). Allow time for the AST round-trip to render chips.
+            await page.waitForTimeout(1500);
+
+            // Same masking primitives as every other surface — the TableEditor
+            // underneath is the same component.
+            await expect(channelSettings.container.locator('.select__multi-value--masked').first()).toBeVisible({
+                timeout: 10000,
+            });
+
+            // Server-side guard: direct DELETE by the channel admin must 403,
+            // matching the team-admin and sysadmin paths and proving no role
+            // bypasses the masked-values protection.
+            expect(policyId).toMatch(/^[A-Za-z0-9]{26}$/);
+            const status = await page.evaluate(async (id: string) => {
+                const resp = await fetch(`/api/v4/access_control_policies/${id}`, {
+                    method: 'DELETE',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                });
+                return resp.status;
+            }, policyId);
+            expect(status, `DELETE as channel admin returned ${status}`).toBe(403);
+        } finally {
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
+        }
+    });
+
+    test('MM-68508-22: Fully-masked hasAnyOf row displays correct operator', async ({pw}) => {
+        // Regression test for: when a caller holds none of the values in a
+        // hasAnyOf condition, all values are replaced by a single masked-token
+        // sentinel. The masked expression re-parses to a standalone "tok in attr"
+        // which mergeMultiselectConditions promotes to hasAllOf — showing the wrong
+        // operator in the table editor. The fix emits a duplicate-token OR to
+        // preserve hasAnyOf semantics through the re-parse cycle.
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.initSetup();
+        const fieldIds: string[] = [];
+        const policyIds: string[] = [];
+
+        try {
+            await enableUserManagedAttributes(adminClient);
+            await enableMaskingFlag(adminClient);
+
+            const fieldName = `MaskingTeam_${pw.random.id()}`;
+            const fieldId = await createMaskingMultiselectField(adminClient, fieldName, ['Alpha', 'Bravo']);
+            fieldIds.push(fieldId);
+
+            // adminUser holds NONE of the values — the entire condition is fully masked.
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const page = systemConsolePage.page;
+            await navigateToABACPage(page);
+            await enableABAC(page);
+
+            // Policy uses hasAnyOf: ("Alpha" in attr || "Bravo" in attr)
+            const policyName = `MaskingPolicy ${pw.random.id()}`;
+            const policyId = await createPolicyWithCEL(
+                page,
+                policyName,
+                `("Alpha" in user.attributes.${fieldName} || "Bravo" in user.attributes.${fieldName})`,
+            );
+            policyIds.push(policyId);
+
+            // Flip to shared_only AFTER saving so the initial save is not rejected.
+            await setFieldAsSharedOnly(fieldId);
+
+            await openExistingPolicy(page, policyName);
+
+            // Only the masked chip is visible — caller holds no values.
+            await expect(page.locator('.select__multi-value--masked')).toBeVisible();
+            await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).not.toBeVisible();
+            await expect(page.locator('.select__multi-value').filter({hasText: 'Bravo'})).not.toBeVisible();
+
+            // The operator selector on the masked row must show "has any of", NOT "has all of".
+            // Before the fix, the masked expression re-parsed as hasAllOf and the wrong label appeared.
+            const operatorBtn = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
+            await operatorBtn.waitFor({state: 'visible', timeout: 10000});
+            await expect(operatorBtn).toContainText('has any of');
+            await expect(operatorBtn).not.toContainText('has all of');
         } finally {
             for (const id of policyIds) {
                 try {

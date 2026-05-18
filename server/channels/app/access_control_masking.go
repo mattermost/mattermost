@@ -545,6 +545,13 @@ func conditionToCEL(cond model.Condition) string {
 			orParts = append(orParts, celStringLiteral(v)+" in "+attr)
 		}
 		if len(orParts) == 1 {
+			// When the sole value is the masked-token sentinel, duplicate it into a
+			// two-branch OR so that the parser can recover hasAnyOf on the next read.
+			// A standalone "tok in attr" is promoted to hasAllOf by
+			// mergeMultiselectConditions, which would display the wrong operator in the UI.
+			if values[0] == maskedTokenValue {
+				return "(" + orParts[0] + " || " + orParts[0] + ")"
+			}
 			return orParts[0]
 		}
 		return "(" + strings.Join(orParts, " || ") + ")"
