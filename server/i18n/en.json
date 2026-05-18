@@ -5763,6 +5763,10 @@
     "translation": "Unable to restore the channel."
   },
   {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "Channel restore rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.save_member.app_error",
     "translation": "Unable to save channel member."
   },
@@ -5807,6 +5811,14 @@
     "translation": "Unable to update channel."
   },
   {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "Plugin {{.PluginID}} attempted to mutate channel type via ChannelWillBeUpdated; type changes must go through the dedicated type-change path"
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "Channel update rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.update_last_viewed_at.app_error",
     "translation": "Unable to update the last viewed at time."
   },
@@ -5825,6 +5837,26 @@
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels."
+  },
+  {
+    "id": "app.channel_guard.invalid_channel.app_error",
+    "translation": "Channel ID is not a valid channel identifier."
+  },
+  {
+    "id": "app.channel_guard.register.app_error",
+    "translation": "Unable to register the channel guard."
+  },
+  {
+    "id": "app.channel_guard.register.empty_channel.app_error",
+    "translation": "Channel ID is required to register a channel guard."
+  },
+  {
+    "id": "app.channel_guard.unregister.app_error",
+    "translation": "Unable to unregister the channel guard."
+  },
+  {
+    "id": "app.channel_guard.unregister.empty_channel.app_error",
+    "translation": "Channel ID is required to unregister a channel guard."
   },
   {
     "id": "app.channel_member_history.log_join_event.internal_error",
@@ -6375,6 +6407,10 @@
   {
     "id": "app.draft.save.app_error",
     "translation": "Unable to save the Draft."
+  },
+  {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "Draft rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.drafts.permanent_delete_by_user.app_error",
@@ -7801,6 +7837,14 @@
     "translation": "Unable to get plugin statuses."
   },
   {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "Operation rejected: claiming plugin {{.PluginID}} hook call failed"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "Operation rejected: a required plugin is not active"
+  },
+  {
     "id": "app.plugin.install.app_error",
     "translation": "Unable to install plugin."
   },
@@ -8767,8 +8811,16 @@
     "translation": "Private channel"
   },
   {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "Scheduled post rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Unknown Channel"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "Scheduled post update rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.scheme.delete.app_error",
