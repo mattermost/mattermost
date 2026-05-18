@@ -4512,6 +4512,61 @@ func TestRevokeSessions(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestRevokeSessionBotPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot, botResp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "Test Bot",
+		Description: "bot for revoke-session permission test",
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, botResp)
+	defer func() {
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		assert.Nil(t, appErr)
+	}()
+
+	t.Run("user manager without bot permissions cannot revoke bot session", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		// Seed a real session so the test confirms the permission gate blocks
+		// access even when the target session genuinely exists.
+		botSession, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: bot.UserId})
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+
+		resp, err := th.Client.RevokeSession(context.Background(), bot.UserId, botSession.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("user with bot management permissions can revoke bot session", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+
+		// Seed a real session for the bot directly via the app layer.
+		botSession, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: bot.UserId})
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+
+		_, err := th.Client.RevokeSession(context.Background(), bot.UserId, botSession.Id)
+		require.NoError(t, err)
+
+		// Confirm the session row is gone.
+		_, appErr = th.App.GetSessionById(th.Context, botSession.Id)
+		require.NotNil(t, appErr, "session should no longer exist after revocation")
+	})
+}
+
 func TestRevokeAllSessions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -7405,6 +7460,49 @@ func TestUpdatePassword(t *testing.T) {
 	})
 }
 
+func TestUpdatePasswordBotPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot, botResp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "Test Bot",
+		Description: "bot for update-password permission test",
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, botResp)
+	defer func() {
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		assert.Nil(t, appErr)
+	}()
+
+	t.Run("user manager without bot permissions cannot update bot password", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		th.LoginBasic(t)
+
+		resp, err := th.Client.UpdatePassword(context.Background(), bot.UserId, "", model.NewTestPassword())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("user with bot management permissions can update bot password", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+
+		th.LoginBasic(t)
+
+		resp, err := th.Client.UpdatePassword(context.Background(), bot.UserId, "", model.NewTestPassword())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}
+
 func TestUpdatePasswordAudit(t *testing.T) {
 	logFile, err := os.CreateTemp("", "adv.log")
 	require.NoError(t, err)
@@ -9820,6 +9918,57 @@ func TestRevokeAllSessionsForUser(t *testing.T) {
 		resp, err := nonAdminClient.RevokeAllSessions(context.Background(), user.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestRevokeAllSessionsForUserBotPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot, botResp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "Test Bot",
+		Description: "bot for revoke-all-sessions permission test",
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, botResp)
+	defer func() {
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		assert.Nil(t, appErr)
+	}()
+
+	t.Run("user manager without bot permissions cannot revoke all sessions for a bot", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		th.LoginBasic(t)
+
+		resp, err := th.Client.RevokeAllSessions(context.Background(), bot.UserId)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("user with bot management permissions can revoke all sessions for a bot", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+
+		// Seed a real session so RevokeAllSessions is not a no-op.
+		_, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: bot.UserId})
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+
+		_, err := th.Client.RevokeAllSessions(context.Background(), bot.UserId)
+		require.NoError(t, err)
+
+		// Confirm all sessions for the bot are gone.
+		sessions, appErr := th.App.GetSessions(th.Context, bot.UserId)
+		require.Nil(t, appErr)
+		require.Empty(t, sessions, "all bot sessions should be revoked")
 	})
 }
 
