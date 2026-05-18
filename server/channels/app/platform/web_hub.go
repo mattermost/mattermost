@@ -164,7 +164,7 @@ func (ps *PlatformService) GetHubForUserId(userID string) *Hub {
 	// https://mattermost.atlassian.net/browse/MM-26629.
 	var hash maphash.Hash
 	hash.SetSeed(ps.hashSeed)
-	_, err := hash.Write([]byte(userID))
+	_, err := hash.WriteString(userID)
 	if err != nil {
 		ps.logger.Error("Unable to write userID to hash", mlog.String("userID", userID), mlog.Err(err))
 	}

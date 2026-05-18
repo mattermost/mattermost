@@ -1186,6 +1186,18 @@ func (c *Client4) GetUserByEmail(ctx context.Context, email, etag string) (*User
 	return DecodeJSONFromResponse[*User](r)
 }
 
+// GetUserByAuthData returns a user by auth_data (external AuthData).
+func (c *Client4) GetUserByAuthData(ctx context.Context, authData, etag string) (*User, *Response, error) {
+	values := url.Values{}
+	values.Set("value", authData)
+	r, err := c.doAPIGetWithQuery(ctx, c.usersRoute().Join("auth_data"), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*User](r)
+}
+
 // AutocompleteUsersInTeam returns the users on a team based on search term.
 func (c *Client4) AutocompleteUsersInTeam(ctx context.Context, teamId string, username string, limit int, etag string) (*UserAutocomplete, *Response, error) {
 	values := url.Values{}

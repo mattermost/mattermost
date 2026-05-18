@@ -1281,6 +1281,27 @@ func (us SqlUserStore) GetByRemoteID(remoteID string) (*model.User, error) {
 	return &user, nil
 }
 
+func (us SqlUserStore) GetByAuthData(authData *string) (*model.User, error) {
+	if authData == nil || *authData == "" {
+		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")
+	}
+
+	query := us.usersQuery.Where("Users.AuthData = ?", authData)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_auth_data_tosql")
+	}
+
+	user := model.User{}
+	if err := us.GetReplica().Get(&user, queryString, args...); err == sql.ErrNoRows {
+		return nil, store.NewErrNotFound("User", fmt.Sprintf("authData=%s", *authData))
+	} else if err != nil {
+		return nil, errors.Wrapf(err, "failed to find User with authData=%s", *authData)
+	}
+	return &user, nil
+}
+
 func (us SqlUserStore) GetByAuth(authData *string, authService string) (*model.User, error) {
 	if authData == nil || *authData == "" {
 		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")
@@ -1884,7 +1905,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() (err error) {
 		var transaction *sqlxTxWrapper
 		var err error
 
-		if transaction, err = us.GetMaster().Beginx(); err != nil {
+		if transaction, err = us.GetMaster().Begin(); err != nil {
 			return errors.Wrap(err, "begin_transaction")
 		}
 		defer finalizeTransactionX(transaction, &err)
@@ -2131,7 +2152,7 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 }
 
 func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
-	transaction, err := us.GetMaster().Beginx()
+	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -2200,7 +2221,7 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
 }
 
 func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err error) {
-	transaction, err := us.GetMaster().Beginx()
+	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}

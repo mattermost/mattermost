@@ -1,20 +1,84 @@
 version: "2"
 linters:
-  default: none
-  enable:
-    - bidichk
-    - errcheck
-    - govet
-    - ineffassign
-    - makezero
-    - misspell
-    - modernize
-    - revive
-    - staticcheck
-    - unconvert
-    - unqueryvet
-    - unused
-    - whitespace
+  default: all
+  disable:
+    - bodyclose
+    - canonicalheader
+    - containedctx       # storing context.Context in a struct is an established pattern here
+    - contextcheck
+    - cyclop
+    - depguard
+    - dogsled            # test helpers return many values; blank-heavy destructuring is idiomatic
+    - dupl
+    - dupword
+    - embeddedstructfieldcheck
+    - err113
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - exhaustruct
+    - forbidigo
+    - forcetypeassert
+    - funcorder
+    - funlen
+    - gocheckcompilerdirectives  # //go:fix is a valid directive in Go 1.24+; linter doesn't know it yet
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godoclint
+    - godot
+    - godox
+    - gomoddirectives    # replace directives in go.mod are intentional forks
+    - gomodguard         # deprecated since v2.12.0; replaced by gomodguard_v2 (enabled via default: all)
+    - goprintffuncname   # Ephemeral → Ephemeralf rename is a plugin API breaking change; deferred
+    - gosec
+    - gosmopolitan
+    - iface              # identical job interfaces are intentional — type-safe scheduling without coupling
+    - inamedparam
+    - interfacebloat
+    - intrange
+    - iotamixing         # const blocks intentionally mix iota with explicit values (ABI stability, ASCII)
+    - ireturn
+    - lll
+    - maintidx
+    - mnd
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr             # intentionally dropping errors is common here (graceful degradation, security non-disclosure, fallbacks)
+    - nilnil
+    - nlreturn
+    - noctx
+    - noinlineerr
+    - nolintlint
+    - nonamedreturns
+    - paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared        # variable named 'copy' is intentional; already suppressed for revive
+    - promlinter         # metric renames are a breaking change; deferred
+    - protogetter
+    - recvcheck
+    - sqlclosecheck      # wrapper functions return *sqlx.Rows to callers who close them; not a real leak
+    - tagalign
+    - tagliatelle
+    - testableexamples
+    - testifylint
+    - testpackage
+    - thelper
+    - tparallel
+    - unparam
+    - usestdlibvars
+    - usetesting
+    - varnamelen
+    - wastedassign
+    - wrapcheck
+    - wsl
+    - wsl_v5
   settings:
     govet:
       disable:
