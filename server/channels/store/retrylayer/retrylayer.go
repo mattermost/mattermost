@@ -17413,6 +17413,48 @@ func (s *RetryLayerUserStore) UpdateFailedPasswordAttempts(userID string, attemp
 
 }
 
+func (s *RetryLayerUserStore) TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.TryIncrementFailedPasswordAttempts(userID, maxAttempts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserStore) DecrementFailedPasswordAttempts(userID string) error {
+
+	tries := 0
+	for {
+		err := s.UserStore.DecrementFailedPasswordAttempts(userID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserStore) UpdateLastLogin(userID string, lastLogin int64) error {
 
 	tries := 0

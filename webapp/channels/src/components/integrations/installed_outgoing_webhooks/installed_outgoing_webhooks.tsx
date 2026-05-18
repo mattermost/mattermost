@@ -136,7 +136,7 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
         return displayNameA.localeCompare(displayNameB);
     };
 
-    outgoingWebhooks = (filter: string) => this.props.outgoingWebhooks.
+    outgoingWebhooks = (filter: string) => [...this.props.outgoingWebhooks].
         sort(this.outgoingWebhookCompare).
         filter((outgoingWebhook) => matchesFilter(outgoingWebhook, this.props.channels[outgoingWebhook.channel_id], filter)).
         map((outgoingWebhook) => {
