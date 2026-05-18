@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -214,7 +213,7 @@ func TestScanRowsIntoMap(t *testing.T) {
 			defer rows.Close()
 
 			// Create scanner function
-			scanner := func(rows *sql.Rows) (string, int, error) {
+			scanner := func(rows rowScanner) (string, int, error) {
 				var key string
 				var value int
 				return key, value, rows.Scan(&key, &value)
@@ -253,7 +252,7 @@ func TestScanRowsIntoMap(t *testing.T) {
 			defer rows.Close()
 
 			// Create scanner function
-			scanner := func(rows *sql.Rows) (string, int, error) {
+			scanner := func(rows rowScanner) (string, int, error) {
 				var key string
 				var value int
 				return key, value, rows.Scan(&key, &value)
@@ -293,7 +292,7 @@ func TestScanRowsIntoMap(t *testing.T) {
 			defer rows.Close()
 
 			// Create scanner function
-			scanner := func(rows *sql.Rows) (string, int, error) {
+			scanner := func(rows rowScanner) (string, int, error) {
 				var key string
 				var value int
 				return key, value, rows.Scan(&key, &value)

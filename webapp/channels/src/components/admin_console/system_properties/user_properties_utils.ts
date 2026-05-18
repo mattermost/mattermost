@@ -13,6 +13,7 @@ import type {IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilit
 import {Client4} from 'mattermost-redux/client';
 import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
+import {validateCPAFieldName} from 'utils/properties';
 import {generateId} from 'utils/utils';
 
 import type {CollectionIO} from './section_utils';
@@ -141,9 +142,27 @@ export const useUserPropertyFields = () => {
                 }
 
                 if (!field.name) {
-                    // name not provided
-                    acc[field.id] = {name: ValidationWarningNameRequired};
-                } else if (pendingByName[field.name.toLowerCase()]?.filter((x) => x.delete_at === 0)?.length > 1) {
+                    // name not provided — suppress for brand-new fields that
+                    // haven't been interacted with yet (user just clicked "Add attribute")
+                    const hasDisplayName = Boolean(field.attrs?.display_name?.trim());
+                    if (field.create_at !== 0 || hasDisplayName) {
+                        acc[field.id] = {name: ValidationWarningNameRequired};
+                    }
+                    return acc;
+                }
+
+                // Lenient grandfather: only validate CEL names after a rename.
+                // Newly created fields always validate because they have no
+                // server-persisted identifier to grandfather from.
+                const originalName = current.data[field.id]?.name;
+                const nameChanged = field.create_at === 0 || field.name !== originalName;
+
+                if (nameChanged && validateCPAFieldName(field.name)) {
+                    acc[field.id] = {name: ValidationWarningNameInvalidCEL};
+                    return acc;
+                }
+
+                if (pendingByName[field.name.toLowerCase()]?.filter((x) => x.delete_at === 0)?.length > 1) {
                     // duplicate pending name
                     acc[field.id] = {name: ValidationWarningNameUnique};
                 } else if (
@@ -206,10 +225,14 @@ export const useUserPropertyFields = () => {
             pendingIO.apply((pending) => {
                 const nextOrder = Object.values(pending.data).filter((x) => !isDeletePending(x)).length;
 
+                const name = patch?.name ?
+                    getIncrementedCELName(patch.name, pending) :
+                    '';
+
                 const field = newPendingField({
                     type: 'text',
                     ...patch,
-                    name: getIncrementedName(patch?.name ?? 'Text', pending),
+                    name,
                     attrs: {
                         visibility: 'when_set',
                         value_type: '',
@@ -263,15 +286,20 @@ export const useUserPropertyFields = () => {
 export const ValidationWarningNameRequired = 'user_properties.validation.name_required';
 export const ValidationWarningNameUnique = 'user_properties.validation.name_unique';
 export const ValidationWarningNameTaken = 'user_properties.validation.name_taken';
+export const ValidationWarningNameInvalidCEL = 'user_properties.validation.name_invalid_cel';
 export const ValidationWarningOptionsRequired = 'user_properties.validation.options_required';
 
-const getIncrementedName = (desiredName: string, collection: UserPropertyFields) => {
-    const names = new Set(Object.values(collection.data).map(({name}) => name));
+const getIncrementedCELName = (desiredName: string, collection: UserPropertyFields) => {
+    const names = new Set(
+        Object.values(collection.data).
+            filter(({delete_at: deleteAt}) => deleteAt === 0).
+            map(({name}) => name.toLowerCase()),
+    );
     let newName = desiredName;
     let n = 1;
-    while (names.has(newName)) {
+    while (names.has(newName.toLowerCase())) {
         n++;
-        newName = `${desiredName} ${n}`;
+        newName = `${desiredName}_${n}`;
     }
     return newName;
 };

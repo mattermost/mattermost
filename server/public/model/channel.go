@@ -108,6 +108,7 @@ type Channel struct {
 	PolicyIsActive      bool               `json:"policy_is_active"`
 	DefaultCategoryName string             `json:"default_category_name"`
 	ManagedCategoryName string             `json:"managed_category_name"`
+	Discoverable        bool               `json:"discoverable"`
 }
 
 func (o *Channel) Auditable() map[string]any {
@@ -131,6 +132,7 @@ func (o *Channel) Auditable() map[string]any {
 		"policy_enforced":      o.PolicyEnforced,
 		"autotranslation":      o.AutoTranslation,
 		"policy_is_active":     o.PolicyIsActive, // this field is only for logging purposes
+		"discoverable":         o.Discoverable,
 	}
 }
 
@@ -160,6 +162,7 @@ type ChannelPatch struct {
 	AutoTranslation     *bool              `json:"autotranslation"`
 	ManagedCategoryName *string            `json:"managed_category_name"`
 	DefaultCategoryName *string            `json:"default_category_name"`
+	Discoverable        *bool              `json:"discoverable"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]any {
@@ -169,6 +172,7 @@ func (c *ChannelPatch) Auditable() map[string]any {
 		"purpose":               c.Purpose,
 		"default_category_name": c.DefaultCategoryName,
 		"managed_category_name": c.ManagedCategoryName,
+		"discoverable":          c.Discoverable,
 	}
 }
 
@@ -339,6 +343,10 @@ func (o *Channel) IsValid() *AppError {
 		}
 	}
 
+	if o.Discoverable && o.Type != ChannelTypePrivate {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.discoverable.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -458,6 +466,10 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 	if patch.DefaultCategoryName != nil {
 		o.DefaultCategoryName = strings.TrimSpace(*patch.DefaultCategoryName)
+	}
+
+	if patch.Discoverable != nil {
+		o.Discoverable = *patch.Discoverable
 	}
 }
 

@@ -5010,7 +5010,7 @@ export default class Client4 {
             `${this.getContentFlaggingRoute()}/post/${postId}/flag`,
             {
                 method: 'post',
-                body: JSON.stringify({reason, comment: JSON.stringify(comment)}),
+                body: JSON.stringify({reason, comment}),
             },
         );
     };
@@ -5020,7 +5020,7 @@ export default class Client4 {
             `${this.getContentFlaggingRoute()}/post/${postId}/remove`,
             {
                 method: 'put',
-                body: JSON.stringify({comment: JSON.stringify(comment)}),
+                body: JSON.stringify({comment}),
             },
         );
     };
@@ -5030,7 +5030,7 @@ export default class Client4 {
             `${this.getContentFlaggingRoute()}/post/${postId}/keep`,
             {
                 method: 'put',
-                body: JSON.stringify({comment: JSON.stringify(comment)}),
+                body: JSON.stringify({comment}),
             },
         );
     };

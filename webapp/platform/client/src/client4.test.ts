@@ -111,6 +111,99 @@ describe('Client4', () => {
         });
     });
 
+    describe('content flagging routes', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        test('flagPost should send comment as a plain string', async () => {
+            let receivedBody: any;
+            nock(client.getBaseRoute()).
+                post('/content_flagging/post/post123/flag', (body) => {
+                    receivedBody = body;
+                    return true;
+                }).
+                reply(200, {status: 'OK'});
+
+            await client.flagPost('post123', 'Spam', 'looks suspicious');
+
+            expect(receivedBody).toEqual({reason: 'Spam', comment: 'looks suspicious'});
+        });
+
+        test('flagPost should preserve an empty comment as an empty string', async () => {
+            let receivedBody: any;
+            nock(client.getBaseRoute()).
+                post('/content_flagging/post/post123/flag', (body) => {
+                    receivedBody = body;
+                    return true;
+                }).
+                reply(200, {status: 'OK'});
+
+            await client.flagPost('post123', 'Spam', '');
+
+            expect(receivedBody).toEqual({reason: 'Spam', comment: ''});
+        });
+
+        test('removeFlaggedPost should send comment as a plain string', async () => {
+            let receivedBody: any;
+            nock(client.getBaseRoute()).
+                put('/content_flagging/post/post123/remove', (body) => {
+                    receivedBody = body;
+                    return true;
+                }).
+                reply(200, {status: 'OK'});
+
+            await client.removeFlaggedPost('post123', 'violates policy');
+
+            expect(receivedBody).toEqual({comment: 'violates policy'});
+        });
+
+        test('removeFlaggedPost should preserve an empty comment as an empty string', async () => {
+            let receivedBody: any;
+            nock(client.getBaseRoute()).
+                put('/content_flagging/post/post123/remove', (body) => {
+                    receivedBody = body;
+                    return true;
+                }).
+                reply(200, {status: 'OK'});
+
+            await client.removeFlaggedPost('post123', '');
+
+            expect(receivedBody).toEqual({comment: ''});
+        });
+
+        test('keepFlaggedPost should send comment as a plain string', async () => {
+            let receivedBody: any;
+            nock(client.getBaseRoute()).
+                put('/content_flagging/post/post123/keep', (body) => {
+                    receivedBody = body;
+                    return true;
+                }).
+                reply(200, {status: 'OK'});
+
+            await client.keepFlaggedPost('post123', 'looks fine');
+
+            expect(receivedBody).toEqual({comment: 'looks fine'});
+        });
+
+        test('keepFlaggedPost should preserve an empty comment as an empty string', async () => {
+            let receivedBody: any;
+            nock(client.getBaseRoute()).
+                put('/content_flagging/post/post123/keep', (body) => {
+                    receivedBody = body;
+                    return true;
+                }).
+                reply(200, {status: 'OK'});
+
+            await client.keepFlaggedPost('post123', '');
+
+            expect(receivedBody).toEqual({comment: ''});
+        });
+    });
+
     describe('doFetchWithResponse', () => {
         test('serverVersion should be set from response header', async () => {
             const client = new Client4();

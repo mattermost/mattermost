@@ -87,7 +87,7 @@ func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 		jsonData = AppendBinaryFlag(jsonData)
 	}
 
-	tx, err := jss.GetMaster().BeginXWithIsolation(&sql.TxOptions{
+	tx, err := jss.GetMaster().BeginWithIsolation(&sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	})
 	if err != nil {
