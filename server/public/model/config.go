@@ -5397,7 +5397,7 @@ func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any
 		switch field.Kind() {
 		case reflect.Struct:
 			value = structToMapFilteredByTag(field.Interface(), typeOfTag, filterTag)
-		case reflect.Ptr:
+		case reflect.Pointer:
 			indirectType := field.Elem()
 			if indirectType.Kind() == reflect.Struct {
 				value = structToMapFilteredByTag(indirectType.Interface(), typeOfTag, filterTag)

@@ -3,6 +3,8 @@
 
 package markdown
 
+import "slices"
+
 const (
 	// Assuming 64k maxSize of a post which can be stored in DB.
 	// Allow scanning upto twice(arbitrary value) the post size.
@@ -58,20 +60,20 @@ func InspectBlock(block Block, f func(Block) bool) {
 
 		switch v := block.(type) {
 		case *Document:
-			for i := len(v.Children) - 1; i >= 0; i-- {
-				stack = append(stack, v.Children[i])
+			for _, v0 := range slices.Backward(v.Children) {
+				stack = append(stack, v0)
 			}
 		case *List:
-			for i := len(v.Children) - 1; i >= 0; i-- {
-				stack = append(stack, v.Children[i])
+			for _, v0 := range slices.Backward(v.Children) {
+				stack = append(stack, v0)
 			}
 		case *ListItem:
-			for i := len(v.Children) - 1; i >= 0; i-- {
-				stack = append(stack, v.Children[i])
+			for _, v0 := range slices.Backward(v.Children) {
+				stack = append(stack, v0)
 			}
 		case *BlockQuote:
-			for i := len(v.Children) - 1; i >= 0; i-- {
-				stack = append(stack, v.Children[i])
+			for _, v0 := range slices.Backward(v.Children) {
+				stack = append(stack, v0)
 			}
 		}
 	}
@@ -103,20 +105,20 @@ func InspectInline(inline Inline, f func(Inline) bool) {
 
 		switch v := inline.(type) {
 		case *InlineImage:
-			for i := len(v.Children) - 1; i >= 0; i-- {
-				stack = append(stack, v.Children[i])
+			for _, v0 := range slices.Backward(v.Children) {
+				stack = append(stack, v0)
 			}
 		case *InlineLink:
-			for i := len(v.Children) - 1; i >= 0; i-- {
-				stack = append(stack, v.Children[i])
+			for _, v0 := range slices.Backward(v.Children) {
+				stack = append(stack, v0)
 			}
 		case *ReferenceImage:
-			for i := len(v.Children) - 1; i >= 0; i-- {
-				stack = append(stack, v.Children[i])
+			for _, v0 := range slices.Backward(v.Children) {
+				stack = append(stack, v0)
 			}
 		case *ReferenceLink:
-			for i := len(v.Children) - 1; i >= 0; i-- {
-				stack = append(stack, v.Children[i])
+			for _, v0 := range slices.Backward(v.Children) {
+				stack = append(stack, v0)
 			}
 		}
 	}

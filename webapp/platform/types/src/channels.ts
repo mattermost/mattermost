@@ -73,6 +73,7 @@ export type Channel = {
     default_category_name?: string;
     managed_category_name?: string;
     autotranslation?: boolean;
+    discoverable?: boolean;
 };
 
 export type ServerChannel = Channel & {
@@ -110,6 +111,32 @@ export type ChannelWithTeamData = Channel & {
 export type ChannelsWithTotalCount = {
     channels: ChannelWithTeamData[];
     total_count: number;
+};
+
+export type ChannelJoinRequestStatus = 'pending' | 'approved' | 'denied' | 'withdrawn';
+
+export type ChannelJoinRequest = {
+    id: string;
+    channel_id: string;
+    user_id: string;
+    message: string;
+    status: ChannelJoinRequestStatus;
+    denial_reason: string;
+    create_at: number;
+    update_at: number;
+    reviewed_by: string;
+    reviewed_at: number;
+};
+
+export type ChannelJoinRequestList = {
+    requests: ChannelJoinRequest[];
+    total_count: number;
+};
+
+export type GetChannelJoinRequestsOptions = {
+    status?: ChannelJoinRequestStatus;
+    page?: number;
+    per_page?: number;
 };
 
 export type ChannelMembership = {

@@ -117,6 +117,7 @@ type SqlStoreStores struct {
 	recap                      store.RecapStore
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
+	channelJoinRequest         store.ChannelJoinRequestStore
 }
 
 type SqlStore struct {
@@ -303,6 +304,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.recap = newSqlRecapStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
+	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -479,9 +481,11 @@ func (ss *SqlStore) analyticsContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), time.Duration(*ss.settings.AnalyticsQueryTimeout)*time.Second)
 }
 
-// noTimeoutContext should only be used with queries that expect no client-side timeout.
+// noTimeoutContext returns a context that suppresses automatic timeout injection
+// by ensureQueryTimeout. Use only for queries that legitimately must be unbounded,
+// such as schema introspection or long-running migrations.
 func (ss *SqlStore) noTimeoutContext() context.Context {
-	return context.Background()
+	return context.WithValue(context.Background(), noTimeoutKey{}, true)
 }
 
 func (ss *SqlStore) monitorReplicas() {
@@ -922,6 +926,10 @@ func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
 
 func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
 	return ss.stores.temporaryPost
+}
+
+func (ss *SqlStore) ChannelJoinRequest() store.ChannelJoinRequestStore {
+	return ss.stores.channelJoinRequest
 }
 
 func (ss *SqlStore) DropAllTables() {

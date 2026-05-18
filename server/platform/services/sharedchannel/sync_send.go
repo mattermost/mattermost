@@ -6,6 +6,7 @@ package sharedchannel
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -529,8 +530,7 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 
 	// range the slice in reverse so the newest posts are visited first; this ensures an ephemeral
 	// get added where it is mostly likely to be seen.
-	for i := len(posts) - 1; i >= 0; i-- {
-		post := posts[i]
+	for _, post := range slices.Backward(posts) {
 		if didNotify := notified[post.UserId]; didNotify {
 			continue
 		}

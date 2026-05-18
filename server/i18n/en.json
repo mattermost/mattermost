@@ -4655,6 +4655,10 @@
     "translation": "Unable to convert the user to guest because is already a guest."
   },
   {
+    "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
+    "translation": "Bot accounts cannot be converted to guest accounts."
+  },
+  {
     "id": "api.user.email_to_ldap.not_available.app_error",
     "translation": "AD/LDAP not available on this server."
   },
@@ -5845,6 +5849,10 @@
   {
     "id": "app.compile_csv_chunks.header_error",
     "translation": "Failed to write CSV headers."
+  },
+  {
+    "id": "app.compile_csv_chunks.write_error",
+    "translation": "Failed to write CSV data."
   },
   {
     "id": "app.compile_report_chunks.unsupported_format",
@@ -7489,6 +7497,10 @@
     "translation": "Unable to delete access control policy."
   },
   {
+    "id": "app.pap.delete_policy.masked_values",
+    "translation": "You cannot delete this policy because it contains attribute values you do not have permission to view."
+  },
+  {
     "id": "app.pap.expression_to_visual_ast.app_error",
     "translation": "Could not genereate visual AST from expression."
   },
@@ -7533,6 +7545,10 @@
     "translation": "Access control service is not ready."
   },
   {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": "Could not merge policy expression."
+  },
+  {
     "id": "app.pap.missing_attribute.app_error",
     "translation": "An attribute is missing from the expression."
   },
@@ -7545,12 +7561,32 @@
     "translation": "Could not query for expression."
   },
   {
+    "id": "app.pap.save_policy.advanced_expression_blocked",
+    "translation": "This rule expression cannot be safely edited while restricted values are present."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
   },
   {
+    "id": "app.pap.save_policy.invalid_value",
+    "translation": "Invalid value."
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "You cannot remove a condition that contains attribute values you do not have permission to view."
+  },
+  {
+    "id": "app.pap.save_policy.masked_rule_deleted",
+    "translation": "You cannot remove a rule that contains attribute values you do not have permission to view."
+  },
+  {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "A policy with this name already exists. Please choose a different name."
+  },
+  {
+    "id": "app.pap.save_policy.self_exclusion",
+    "translation": "You do not satisfy one or more conditions in this policy."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -7563,6 +7599,10 @@
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
     "translation": "Could not update active status of access control policies."
+  },
+  {
+    "id": "app.pap.validate_expression_values.app_error",
+    "translation": "Could not validate policy expression values."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -10735,6 +10775,10 @@
     "translation": "Invalid creator id."
   },
   {
+    "id": "model.channel.is_valid.discoverable.app_error",
+    "translation": "Only private channels can be marked as discoverable."
+  },
+  {
     "id": "model.channel.is_valid.display_name.app_error",
     "translation": "Invalid display name."
   },
@@ -10825,6 +10869,50 @@
   {
     "id": "model.channel_bookmark.is_valid.update_at.app_error",
     "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason.app_error",
+    "translation": "Denial reason is too long."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason_status.app_error",
+    "translation": "Denial reason can only be set on a denied join request."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.id.app_error",
+    "translation": "Invalid Id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.message.app_error",
+    "translation": "Join request message is too long."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewed_by.app_error",
+    "translation": "Invalid reviewer id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewer.app_error",
+    "translation": "An approved or denied join request must record the reviewer and review time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.status.app_error",
+    "translation": "Invalid join request status."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.user_id.app_error",
+    "translation": "Invalid user id."
   },
   {
     "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",

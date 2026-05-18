@@ -33,7 +33,7 @@ const (
 // GenerateFlaggedPostReport builds a ZIP archive of a flagged post's data into a
 // temporary file and returns the file path. The caller is responsible for
 // removing the file when the response has been served.
-func (a *App) GenerateFlaggedPostReport(rctx request.CTX, postID, generatedByUserID, comment string) (string, *model.AppError) {
+func (a *App) GenerateFlaggedPostReport(rctx request.CTX, postID, generatedByUserID, comment, action string) (string, *model.AppError) {
 	if appErr := a.ensureActorCommentForReport(rctx, postID, comment); appErr != nil {
 		return "", appErr
 	}
@@ -51,7 +51,7 @@ func (a *App) GenerateFlaggedPostReport(rctx request.CTX, postID, generatedByUse
 
 	zw := zip.NewWriter(tmp)
 
-	if appErr := a.writeFlaggedPostReport(rctx, zw, postID, generatedByUserID); appErr != nil {
+	if appErr := a.writeFlaggedPostReport(rctx, zw, postID, generatedByUserID, action); appErr != nil {
 		_ = zw.Close()
 		cleanup()
 		return "", appErr
@@ -73,7 +73,7 @@ func (a *App) GenerateFlaggedPostReport(rctx request.CTX, postID, generatedByUse
 	return tmpPath, nil
 }
 
-func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, generatedByUserID string) *model.AppError {
+func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, generatedByUserID, action string) *model.AppError {
 	rc, appErr := a.loadFlaggedPostReportContext(rctx, postID)
 	if appErr != nil {
 		return appErr
@@ -89,7 +89,7 @@ func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, g
 	if appErr := a.writeEditHistorySection(rctx, zw, rc, seenFiles); appErr != nil {
 		return appErr
 	}
-	if appErr := a.writeContentReviewEntry(rctx, zw, rc.Post); appErr != nil {
+	if appErr := a.writeContentReviewEntry(rctx, zw, rc.Post, generatedByUserID, action); appErr != nil {
 		return appErr
 	}
 	if appErr := a.writeReportMetadataEntry(zw, generatedByUserID); appErr != nil {
@@ -183,8 +183,8 @@ func (a *App) writeEditHistorySection(rctx request.CTX, zw *zip.Writer, rc *mode
 	return nil
 }
 
-func (a *App) writeContentReviewEntry(rctx request.CTX, zw *zip.Writer, post *model.Post) *model.AppError {
-	payload, appErr := a.buildContentReviewYAML(rctx, post)
+func (a *App) writeContentReviewEntry(rctx request.CTX, zw *zip.Writer, post *model.Post, generatedByUserID, action string) *model.AppError {
+	payload, appErr := a.buildContentReviewYAML(rctx, post, generatedByUserID, action)
 	if appErr != nil {
 		return appErr
 	}
@@ -199,14 +199,16 @@ func (a *App) writeContentReviewEntry(rctx request.CTX, zw *zip.Writer, post *mo
 // already present (set by a prior keep/remove or report-generation), it is
 // preserved so the existing reviewer note is never overwritten.
 func (a *App) ensureActorCommentForReport(rctx request.CTX, postID, comment string) *model.AppError {
+	if comment == "" {
+		return nil
+	}
+
 	existing, appErr := a.GetPostContentFlaggingPropertyValue(postID, contentFlaggingPropertyNameActorComment)
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		return appErr
 	}
+
 	if existing != nil {
-		return nil
-	}
-	if comment == "" {
 		return nil
 	}
 
@@ -233,6 +235,7 @@ func (a *App) ensureActorCommentForReport(rctx request.CTX, postID, comment stri
 			Value:      json.RawMessage(commentBytes),
 		},
 	}
+
 	if _, appErr := a.CreatePropertyValues(rctx, propertyValues); appErr != nil {
 		return model.NewAppError("ensureActorCommentForReport", "app.data_spillage.create_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
@@ -279,7 +282,7 @@ func buildPostYAML(post *model.Post, channel *model.Channel, team *model.Team, a
 	return out
 }
 
-func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post) (model.FlaggedPostReportContentReview, *model.AppError) {
+func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generatedByUserID, pendingAction string) (model.FlaggedPostReportContentReview, *model.AppError) {
 	out := model.FlaggedPostReportContentReview{}
 
 	values, appErr := a.GetPostContentFlaggingPropertyValues(post.Id)
@@ -332,12 +335,31 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post) (model.
 		}
 	}
 
-	// Reviewer details: prefer the actor (the one who took the keep/remove action)
-	// when present, otherwise fall back to the assigned reviewer.
 	reviewerID := decodePropertyString(rctx, byName, contentFlaggingPropertyNameReviewerUserID)
 	out.ReviewerUserID = reviewerID
 	out.ReviewerComment = decodePropertyString(rctx, byName, contentFlaggingPropertyNameActorComment)
 	out.ActionTime = decodePropertyInt64(rctx, byName, contentFlaggingPropertyNameActionTime)
+
+	// We want to include the actor details only when an action is being performed - retain or delete the quarantined post.
+	if pendingAction != "" {
+		if u, uErr := a.GetUser(generatedByUserID); uErr == nil {
+			out.ActorUsername = u.Username
+			out.ActorUserId = u.Id
+		} else {
+			rctx.Logger().Warn("Failed to fetch report generator user for flagged post report", mlog.String("user_id", generatedByUserID), mlog.Err(uErr))
+		}
+	}
+
+	switch decodePropertyString(rctx, byName, ContentFlaggingPropertyNameStatus) {
+	case model.ContentFlaggingStatusRetained:
+		out.ActorDecision = model.ContentFlaggingActionKeep
+	case model.ContentFlaggingStatusRemoved:
+		out.ActorDecision = model.ContentFlaggingActionRemove
+	default:
+		if pendingAction == model.ContentFlaggingActionKeep || pendingAction == model.ContentFlaggingActionRemove {
+			out.ActorDecision = pendingAction
+		}
+	}
 
 	if reviewerID != "" {
 		if u, uErr := a.GetUser(reviewerID); uErr == nil {
