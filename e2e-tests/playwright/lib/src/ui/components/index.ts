@@ -21,6 +21,7 @@ import ChannelsSidebarRight from './channels/sidebar_right';
 import DeletePostConfirmationDialog from './channels/delete_post_confirmation_dialog';
 import DeletePostModal from './channels/delete_post_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
+import DirectChannelsModal from './channels/direct_channels_modal';
 import DraftPost from './channels/draft_post';
 import EmojiGifPicker from './channels/emoji_gif_picker';
 import FindChannelsModal from './channels/find_channels_modal';
@@ -89,6 +90,7 @@ const components = {
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
+    DirectChannelsModal,
     DraftPost,
     EmojiGifPicker,
     FindChannelsModal,
@@ -172,6 +174,7 @@ export {
     FlagPostConfirmationDialog,
     NewChannelModal,
     BrowseChannelsModal,
+    DirectChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
     MembersInvitedModal,

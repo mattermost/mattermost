@@ -69,6 +69,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetProfilesByUsernames", func(t *testing.T) { testUserStoreGetProfilesByUsernames(t, rctx, ss) })
 	t.Run("GetSystemAdminProfiles", func(t *testing.T) { testUserStoreGetSystemAdminProfiles(t, rctx, ss) })
 	t.Run("GetByEmail", func(t *testing.T) { testUserStoreGetByEmail(t, rctx, ss) })
+	t.Run("GetByAuth", func(t *testing.T) { testUserStoreGetByAuth(t, rctx, ss) })
 	t.Run("GetByAuthData", func(t *testing.T) { testUserStoreGetByAuthData(t, rctx, ss) })
 	t.Run("GetByUsername", func(t *testing.T) { testUserStoreGetByUsername(t, rctx, ss) })
 	t.Run("GetForLogin", func(t *testing.T) { testUserStoreGetForLogin(t, rctx, ss) })
@@ -1678,10 +1679,10 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, rctx request.CTX, ss sto
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        model.NewPointer("n_" + model.NewId()),
+		Name:        new("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer("ri_" + model.NewId()),
+		RemoteId:    new("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -2104,7 +2105,7 @@ func testUserStoreGetByEmail(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) {
+func testUserStoreGetByAuth(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamID := model.NewId()
 	auth1 := model.NewId()
 	auth3 := model.NewId()
@@ -2167,20 +2168,127 @@ func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) 
 		require.True(t, errors.As(err, &nfErr))
 	})
 
-	t.Run("get by unknown auth, u1 service", func(t *testing.T) {
-		unknownAuth := ""
+	t.Run("get by unknown non-empty auth, u1 service", func(t *testing.T) {
+		unknownAuth := model.NewId()
 		_, err := ss.User().GetByAuth(&unknownAuth, u1.AuthService)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+
+	t.Run("get by empty auth, u1 service", func(t *testing.T) {
+		emptyAuth := ""
+		_, err := ss.User().GetByAuth(&emptyAuth, u1.AuthService)
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
 	})
 
-	t.Run("get by unknown auth, unknown service", func(t *testing.T) {
-		unknownAuth := ""
-		_, err := ss.User().GetByAuth(&unknownAuth, "unknown")
+	t.Run("get by nil auth, u1 service", func(t *testing.T) {
+		_, err := ss.User().GetByAuth(nil, u1.AuthService)
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
+	})
+
+	t.Run("get by unknown non-empty auth, unknown service", func(t *testing.T) {
+		unknownAuth := model.NewId()
+		_, err := ss.User().GetByAuth(&unknownAuth, "unknown")
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+
+	t.Run("get by empty auth, unknown service", func(t *testing.T) {
+		emptyAuth := ""
+		_, err := ss.User().GetByAuth(&emptyAuth, "unknown")
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+	})
+}
+
+func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	auth1 := model.NewId()
+	auth2 := model.NewId()
+
+	u1, err := ss.User().Save(rctx, &model.User{
+		Email:       MakeEmail(),
+		Username:    "u1" + model.NewId(),
+		AuthData:    &auth1,
+		AuthService: "service",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
+	require.NoError(t, nErr)
+
+	u2, err := ss.User().Save(rctx, &model.User{
+		Email:       MakeEmail(),
+		Username:    "u2" + model.NewId(),
+		AuthData:    &auth2,
+		AuthService: "service2",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
+	require.NoError(t, nErr)
+
+	t.Run("returns full user when auth data matches", func(t *testing.T) {
+		u, err := ss.User().GetByAuthData(u1.AuthData)
+		require.NoError(t, err)
+		assert.Equal(t, u1, u)
+	})
+
+	t.Run("matches regardless of auth service", func(t *testing.T) {
+		u, err := ss.User().GetByAuthData(u2.AuthData)
+		require.NoError(t, err)
+		assert.Equal(t, u2.Id, u.Id)
+		assert.Equal(t, "service2", u.AuthService)
+	})
+
+	t.Run("returns ErrNotFound for unknown auth data", func(t *testing.T) {
+		unknownAuth := model.NewId()
+		_, err := ss.User().GetByAuthData(&unknownAuth)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+
+	t.Run("returns ErrInvalidInput for nil auth data", func(t *testing.T) {
+		_, err := ss.User().GetByAuthData(nil)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+	})
+
+	t.Run("returns ErrInvalidInput for empty auth data", func(t *testing.T) {
+		emptyAuth := ""
+		_, err := ss.User().GetByAuthData(&emptyAuth)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+	})
+
+	t.Run("matches when auth data is an email-shaped value", func(t *testing.T) {
+		// ResetAuthDataToEmailForUsers sets AuthData = Email for whole batches of
+		// users, so email-shaped auth_data values are common in practice.
+		emailAuth := "u3-" + model.NewId() + "@example.com"
+		u3, err := ss.User().Save(rctx, &model.User{
+			Email:       MakeEmail(),
+			Username:    "u3" + model.NewId(),
+			AuthData:    &emailAuth,
+			AuthService: "service",
+		})
+		require.NoError(t, err)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
+
+		u, err := ss.User().GetByAuthData(&emailAuth)
+		require.NoError(t, err)
+		assert.Equal(t, u3.Id, u.Id)
+		require.NotNil(t, u.AuthData)
+		assert.Equal(t, emailAuth, *u.AuthData)
 	})
 }
 
@@ -2430,7 +2538,7 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, rctx request.CTX, s
 
 	resetAuthDataToID := func() {
 		_, err = ss.User().UpdateAuthData(
-			user.Id, model.UserAuthServiceSaml, model.NewPointer("some-id"), "", false)
+			user.Id, model.UserAuthServiceSaml, new("some-id"), "", false)
 		require.NoError(t, err)
 	}
 	resetAuthDataToID()
@@ -3725,21 +3833,21 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
 
 	g1 := &model.Group{
-		Name:        model.NewPointer(NewTestID()),
+		Name:        new(NewTestID()),
 		DisplayName: NewTestID(),
 		Description: NewTestID(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer(NewTestID()),
+		RemoteId:    new(NewTestID()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewPointer(NewTestID()),
+		Name:        new(NewTestID()),
 		DisplayName: NewTestID(),
 		Description: NewTestID(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer(NewTestID()),
+		RemoteId:    new(NewTestID()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -3861,21 +3969,21 @@ func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Stor
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
 
 	g1 := &model.Group{
-		Name:        model.NewPointer(NewTestID()),
+		Name:        new(NewTestID()),
 		DisplayName: NewTestID(),
 		Description: NewTestID(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewPointer(NewTestID()),
+		RemoteId:    new(NewTestID()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewPointer(NewTestID()),
+		Name:        new(NewTestID()),
 		DisplayName: NewTestID(),
 		Description: NewTestID(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewPointer(NewTestID()),
+		RemoteId:    new(NewTestID()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -5000,10 +5108,10 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        model.NewPointer("n_" + model.NewId()),
+		Name:        new("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer("ri_" + model.NewId()),
+		RemoteId:    new("ri_" + model.NewId()),
 	})
 	require.NoError(t, err)
 
@@ -5320,10 +5428,10 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        model.NewPointer("n_" + id),
+			Name:        new("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewPointer("ri_" + id),
+			RemoteId:    new("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
@@ -5359,7 +5467,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	requireNUsers(1)
 
 	// update team to be group-constrained
-	team.GroupConstrained = model.NewPointer(true)
+	team.GroupConstrained = new(true)
 	team, err = ss.Team().Update(team)
 	require.NoError(t, err)
 
@@ -5441,10 +5549,10 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 		id = model.NewId()
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        model.NewPointer("n_" + id),
+			Name:        new("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewPointer("ri_" + id),
+			RemoteId:    new("ri_" + id),
 		})
 		require.NoError(t, err)
 		require.NotNil(t, group)
@@ -5480,7 +5588,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 	requireNUsers(1)
 
 	// update team to be group-constrained
-	channel.GroupConstrained = model.NewPointer(true)
+	channel.GroupConstrained = new(true)
 	_, nErr = ss.Channel().Update(rctx, channel)
 	require.NoError(t, nErr)
 
@@ -7448,7 +7556,7 @@ func testUserStoreSearchTeamContentFlaggingReviewers(t *testing.T, rctx request.
 		CommonReviewerIds: []string{},
 		TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
 			teamId: {
-				Enabled:     model.NewPointer(true),
+				Enabled:     new(true),
 				ReviewerIds: []string{u1.Id, u2.Id},
 			},
 		},
