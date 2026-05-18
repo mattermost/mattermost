@@ -86,6 +86,43 @@ func TestCreateCardSucceedsWhenIntegratedBoardsEnabled(t *testing.T) {
 	assert.Equal(t, "card post", rpost.Message)
 }
 
+func TestCardAPIPreservesCardTypeOnMutations(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	channel := th.BasicChannel
+	cardPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: channel.Id,
+		Message:   "card post",
+		Type:      model.PostTypeCard,
+	}, channel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	t.Run("update with different type in body keeps card type", func(t *testing.T) {
+		updated := cardPost.Clone()
+		updated.Message = "updated"
+		updated.Type = model.PostTypeDefault
+		rpost, _, err := th.Client.UpdateCard(context.Background(), cardPost.Id, updated)
+		require.NoError(t, err)
+		assert.Equal(t, model.PostTypeCard, rpost.Type)
+
+		fetched, _, err := th.Client.GetPost(context.Background(), cardPost.Id, "")
+		require.NoError(t, err)
+		assert.Equal(t, model.PostTypeCard, fetched.Type)
+	})
+
+	t.Run("patch ignores type field in body (PostPatch has no Type)", func(t *testing.T) {
+		patch := &model.PostPatch{Message: model.NewPointer("patched")}
+		rpost, _, err := th.Client.PatchCard(context.Background(), cardPost.Id, patch)
+		require.NoError(t, err)
+		assert.Equal(t, model.PostTypeCard, rpost.Type)
+	})
+}
+
 func TestCardAPIUpdateByNonOwner(t *testing.T) {
 	mainHelper.Parallel(t)
 
