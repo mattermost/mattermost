@@ -158,6 +158,7 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 		p + "LastRootPostAt",
 		p + "BannerInfo",
 		p + "DefaultCategoryName",
+		p + "Discoverable",
 	}
 
 	if isSelect {
@@ -196,6 +197,7 @@ func channelToSlice(channel *model.Channel) []any {
 		channel.LastRootPostAt,
 		channel.BannerInfo,
 		channel.DefaultCategoryName,
+		channel.Discoverable,
 	}
 }
 
@@ -872,7 +874,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 			LastRootPostAt=:LastRootPostAt,
 		    BannerInfo=:BannerInfo,
 			DefaultCategoryName=:DefaultCategoryName,
-			AutoTranslation=:AutoTranslation
+			AutoTranslation=:AutoTranslation,
+			Discoverable=:Discoverable
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {

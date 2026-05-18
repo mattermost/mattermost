@@ -35,6 +35,64 @@ func TestChannelPatch(t *testing.T) {
 	require.Equal(t, *p.GroupConstrained, *o.GroupConstrained)
 }
 
+func TestChannelPatchDiscoverable(t *testing.T) {
+	t.Run("applies discoverable when set", func(t *testing.T) {
+		on := true
+		p := &ChannelPatch{Discoverable: &on}
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypePrivate}
+		o.Patch(p)
+		require.True(t, o.Discoverable)
+	})
+
+	t.Run("clears discoverable when set to false", func(t *testing.T) {
+		off := false
+		p := &ChannelPatch{Discoverable: &off}
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypePrivate, Discoverable: true}
+		o.Patch(p)
+		require.False(t, o.Discoverable)
+	})
+
+	t.Run("nil discoverable leaves channel untouched", func(t *testing.T) {
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypePrivate, Discoverable: true}
+		o.Patch(&ChannelPatch{})
+		require.True(t, o.Discoverable)
+	})
+}
+
+func TestChannelIsValidDiscoverable(t *testing.T) {
+	base := Channel{
+		Id:          NewId(),
+		CreateAt:    GetMillis(),
+		UpdateAt:    GetMillis(),
+		DisplayName: "x",
+		Name:        "valid-name",
+		Header:      "h",
+		Purpose:     "p",
+	}
+
+	t.Run("discoverable=false is valid on any type", func(t *testing.T) {
+		c := base
+		c.Type = ChannelTypeOpen
+		require.Nil(t, c.IsValid())
+	})
+
+	t.Run("discoverable=true requires private channel", func(t *testing.T) {
+		c := base
+		c.Type = ChannelTypeOpen
+		c.Discoverable = true
+		require.NotNil(t, c.IsValid(), "discoverable=true on public channel must be rejected")
+
+		c.Type = ChannelTypeDirect
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypeGroup
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypePrivate
+		require.Nil(t, c.IsValid())
+	})
+}
+
 func TestChannelIsValid(t *testing.T) {
 	o := Channel{}
 

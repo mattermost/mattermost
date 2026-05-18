@@ -778,25 +778,28 @@ func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*C
 	return &RolePatch{Permissions: &patchPermissions}
 }
 
-func (r *Role) IsValid() bool {
+func (r *Role) IsValid() error {
 	if !IsValidId(r.Id) {
-		return false
+		return fmt.Errorf("invalid role id %q", r.Id)
 	}
 
 	return r.IsValidWithoutId()
 }
 
-func (r *Role) IsValidWithoutId() bool {
+func (r *Role) IsValidWithoutId() error {
 	if !IsValidRoleName(r.Name) {
-		return false
+		return fmt.Errorf("invalid role name %q", r.Name)
 	}
 
-	if r.DisplayName == "" || len(r.DisplayName) > RoleDisplayNameMaxLength {
-		return false
+	if r.DisplayName == "" {
+		return fmt.Errorf("role display name must not be empty")
+	}
+	if len(r.DisplayName) > RoleDisplayNameMaxLength {
+		return fmt.Errorf("role display name %q exceeds maximum length of %d", r.DisplayName, RoleDisplayNameMaxLength)
 	}
 
 	if len(r.Description) > RoleDescriptionMaxLength {
-		return false
+		return fmt.Errorf("role description exceeds maximum length of %d", RoleDescriptionMaxLength)
 	}
 
 	check := func(perms []*Permission, permission string) bool {
@@ -808,13 +811,12 @@ func (r *Role) IsValidWithoutId() bool {
 		return false
 	}
 	for _, permission := range r.Permissions {
-		permissionValidated := check(AllPermissions, permission) || check(DeprecatedPermissions, permission)
-		if !permissionValidated {
-			return false
+		if !check(AllPermissions, permission) && !check(DeprecatedPermissions, permission) {
+			return fmt.Errorf("unknown permission %q", permission)
 		}
 	}
 
-	return true
+	return nil
 }
 
 func CleanRoleNames(roleNames []string) ([]string, bool) {
@@ -930,6 +932,8 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManageChannelAccessRules.Id,
 			PermissionManagePublicChannelAutoTranslation.Id,
 			PermissionManagePrivateChannelAutoTranslation.Id,
+			PermissionManagePrivateChannelDiscoverability.Id,
+			PermissionManageChannelJoinRequests.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

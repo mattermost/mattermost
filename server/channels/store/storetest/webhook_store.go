@@ -132,8 +132,8 @@ func testWebhookStoreGetIncomingListByUser(t *testing.T, rctx request.CTX, ss st
 	o1.UserId = model.NewId()
 	o1.TeamId = model.NewId()
 
-	o1, err := ss.Webhook().SaveIncoming(o1)
-	require.NoError(t, err)
+	o1, errSave := ss.Webhook().SaveIncoming(o1)
+	require.NoError(t, errSave)
 
 	t.Run("GetIncomingListByUser, known user filtered", func(t *testing.T) {
 		hooks, err := ss.Webhook().GetIncomingListByUser(o1.UserId, 0, 100)
@@ -146,6 +146,27 @@ func testWebhookStoreGetIncomingListByUser(t *testing.T, rctx request.CTX, ss st
 		hooks, err := ss.Webhook().GetIncomingListByUser("123465", 0, 100)
 		require.NoError(t, err)
 		require.Equal(t, 0, len(hooks))
+	})
+
+	t.Run("GetIncomingListByUser, ordered alphabetically by display name", func(t *testing.T) {
+		userId := model.NewId()
+		hookC := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: model.NewId(), DisplayName: "Charlie"}
+		hookA := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: model.NewId(), DisplayName: "Alpha"}
+		hookB := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: model.NewId(), DisplayName: "Bravo"}
+
+		hookC, err := ss.Webhook().SaveIncoming(hookC)
+		require.NoError(t, err)
+		hookA, err = ss.Webhook().SaveIncoming(hookA)
+		require.NoError(t, err)
+		hookB, err = ss.Webhook().SaveIncoming(hookB)
+		require.NoError(t, err)
+
+		hooks, err := ss.Webhook().GetIncomingListByUser(userId, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, hooks, 3)
+		require.Equal(t, hookA.Id, hooks[0].Id, "first result should be Alpha (alphabetical order)")
+		require.Equal(t, hookB.Id, hooks[1].Id, "second result should be Bravo (alphabetical order)")
+		require.Equal(t, hookC.Id, hooks[2].Id, "third result should be Charlie (alphabetical order)")
 	})
 }
 
@@ -166,16 +187,14 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, rctx request.CTX, ss store.
 }
 
 func TestWebhookStoreGetIncomingByTeamByUser(t *testing.T, rctx request.CTX, ss store.Store) {
-	var err error
-
 	o1 := buildIncomingWebhook()
-	o1, err = ss.Webhook().SaveIncoming(o1)
-	require.NoError(t, err)
+	o1, errSave := ss.Webhook().SaveIncoming(o1)
+	require.NoError(t, errSave)
 
 	o2 := buildIncomingWebhook()
 	o2.TeamId = o1.TeamId //Set both to the same team
-	o2, err = ss.Webhook().SaveIncoming(o2)
-	require.NoError(t, err)
+	o2, errSave = ss.Webhook().SaveIncoming(o2)
+	require.NoError(t, errSave)
 
 	t.Run("GetIncomingByTeamByUser, no user filter", func(t *testing.T) {
 		hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100)
@@ -194,6 +213,28 @@ func TestWebhookStoreGetIncomingByTeamByUser(t *testing.T, rctx request.CTX, ss 
 		hooks, err := ss.Webhook().GetIncomingByTeamByUser(o2.TeamId, "123465", 0, 100)
 		require.NoError(t, err)
 		require.Equal(t, len(hooks), 0)
+	})
+
+	t.Run("GetIncomingByTeamByUser, ordered alphabetically by display name", func(t *testing.T) {
+		teamId := model.NewId()
+		userId := model.NewId()
+		hookC := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: teamId, DisplayName: "Charlie"}
+		hookA := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: teamId, DisplayName: "Alpha"}
+		hookB := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: teamId, DisplayName: "Bravo"}
+
+		hookC, err := ss.Webhook().SaveIncoming(hookC)
+		require.NoError(t, err)
+		hookA, err = ss.Webhook().SaveIncoming(hookA)
+		require.NoError(t, err)
+		hookB, err = ss.Webhook().SaveIncoming(hookB)
+		require.NoError(t, err)
+
+		hooks, err := ss.Webhook().GetIncomingByTeamByUser(teamId, userId, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, hooks, 3)
+		require.Equal(t, hookA.Id, hooks[0].Id, "first result should be Alpha (alphabetical order)")
+		require.Equal(t, hookB.Id, hooks[1].Id, "second result should be Bravo (alphabetical order)")
+		require.Equal(t, hookC.Id, hooks[2].Id, "third result should be Charlie (alphabetical order)")
 	})
 }
 
@@ -332,6 +373,27 @@ func testWebhookStoreGetOutgoingListByUser(t *testing.T, rctx request.CTX, ss st
 		require.NoError(t, err)
 		require.Equal(t, 0, len(hooks))
 	})
+
+	t.Run("GetOutgoingListByUser, ordered alphabetically by display name", func(t *testing.T) {
+		creatorId := model.NewId()
+		hookC := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Charlie"}
+		hookA := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Alpha"}
+		hookB := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Bravo"}
+
+		hookC, err := ss.Webhook().SaveOutgoing(hookC)
+		require.NoError(t, err)
+		hookA, err = ss.Webhook().SaveOutgoing(hookA)
+		require.NoError(t, err)
+		hookB, err = ss.Webhook().SaveOutgoing(hookB)
+		require.NoError(t, err)
+
+		hooks, err := ss.Webhook().GetOutgoingListByUser(creatorId, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, hooks, 3)
+		require.Equal(t, hookA.Id, hooks[0].Id, "first result should be Alpha (alphabetical order)")
+		require.Equal(t, hookB.Id, hooks[1].Id, "second result should be Bravo (alphabetical order)")
+		require.Equal(t, hookC.Id, hooks[2].Id, "third result should be Charlie (alphabetical order)")
+	})
 }
 
 func testWebhookStoreGetOutgoingList(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -400,8 +462,8 @@ func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, rctx request.CTX, 
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o1, err := ss.Webhook().SaveOutgoing(o1)
-	require.NoError(t, err)
+	o1, errSave := ss.Webhook().SaveOutgoing(o1)
+	require.NoError(t, errSave)
 
 	o2 := &model.OutgoingWebhook{}
 	o2.ChannelId = o1.ChannelId
@@ -409,8 +471,8 @@ func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, rctx request.CTX, 
 	o2.TeamId = model.NewId()
 	o2.CallbackURLs = []string{"http://nowhere.com/"}
 
-	_, err = ss.Webhook().SaveOutgoing(o2)
-	require.NoError(t, err)
+	_, errSave = ss.Webhook().SaveOutgoing(o2)
+	require.NoError(t, errSave)
 
 	t.Run("GetOutgoingByChannelByUser, no user filter", func(t *testing.T) {
 		hooks, err := ss.Webhook().GetOutgoingByChannel(o1.ChannelId, 0, 100)
@@ -429,6 +491,27 @@ func testWebhookStoreGetOutgoingByChannelByUser(t *testing.T, rctx request.CTX, 
 		hooks, err := ss.Webhook().GetOutgoingByChannelByUser(o1.ChannelId, "123465", 0, 100)
 		require.NoError(t, err)
 		require.Equal(t, 0, len(hooks))
+	})
+
+	t.Run("GetOutgoingByChannelByUser, ordered alphabetically by display name", func(t *testing.T) {
+		channelId := model.NewId()
+		hookC := &model.OutgoingWebhook{ChannelId: channelId, CreatorId: model.NewId(), TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Charlie"}
+		hookA := &model.OutgoingWebhook{ChannelId: channelId, CreatorId: model.NewId(), TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Alpha"}
+		hookB := &model.OutgoingWebhook{ChannelId: channelId, CreatorId: model.NewId(), TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Bravo"}
+
+		hookC, err := ss.Webhook().SaveOutgoing(hookC)
+		require.NoError(t, err)
+		hookA, err = ss.Webhook().SaveOutgoing(hookA)
+		require.NoError(t, err)
+		hookB, err = ss.Webhook().SaveOutgoing(hookB)
+		require.NoError(t, err)
+
+		hooks, err := ss.Webhook().GetOutgoingByChannel(channelId, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, hooks, 3)
+		require.Equal(t, hookA.Id, hooks[0].Id, "first result should be Alpha (alphabetical order)")
+		require.Equal(t, hookB.Id, hooks[1].Id, "second result should be Bravo (alphabetical order)")
+		require.Equal(t, hookC.Id, hooks[2].Id, "third result should be Charlie (alphabetical order)")
 	})
 }
 
@@ -451,16 +534,14 @@ func testWebhookStoreGetOutgoingByTeam(t *testing.T, rctx request.CTX, ss store.
 }
 
 func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, rctx request.CTX, ss store.Store) {
-	var err error
-
 	o1 := &model.OutgoingWebhook{}
 	o1.ChannelId = model.NewId()
 	o1.CreatorId = model.NewId()
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o1, err = ss.Webhook().SaveOutgoing(o1)
-	require.NoError(t, err)
+	o1, errSave := ss.Webhook().SaveOutgoing(o1)
+	require.NoError(t, errSave)
 
 	o2 := &model.OutgoingWebhook{}
 	o2.ChannelId = model.NewId()
@@ -468,8 +549,8 @@ func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, rctx request.CTX, ss 
 	o2.TeamId = o1.TeamId
 	o2.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o2, err = ss.Webhook().SaveOutgoing(o2)
-	require.NoError(t, err)
+	o2, errSave = ss.Webhook().SaveOutgoing(o2)
+	require.NoError(t, errSave)
 
 	t.Run("GetOutgoingByTeamByUser, no user filter", func(t *testing.T) {
 		hooks, err := ss.Webhook().GetOutgoingByTeam(o1.TeamId, 0, 100)
@@ -488,6 +569,28 @@ func testWebhookStoreGetOutgoingByTeamByUser(t *testing.T, rctx request.CTX, ss 
 		hooks, err := ss.Webhook().GetOutgoingByTeamByUser(o2.TeamId, "123465", 0, 100)
 		require.NoError(t, err)
 		require.Equal(t, len(hooks), 0)
+	})
+
+	t.Run("GetOutgoingByTeamByUser, ordered alphabetically by display name", func(t *testing.T) {
+		teamId := model.NewId()
+		creatorId := model.NewId()
+		hookC := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: teamId, CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Charlie"}
+		hookA := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: teamId, CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Alpha"}
+		hookB := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: teamId, CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Bravo"}
+
+		hookC, err := ss.Webhook().SaveOutgoing(hookC)
+		require.NoError(t, err)
+		hookA, err = ss.Webhook().SaveOutgoing(hookA)
+		require.NoError(t, err)
+		hookB, err = ss.Webhook().SaveOutgoing(hookB)
+		require.NoError(t, err)
+
+		hooks, err := ss.Webhook().GetOutgoingByTeamByUser(teamId, creatorId, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, hooks, 3)
+		require.Equal(t, hookA.Id, hooks[0].Id, "first result should be Alpha (alphabetical order)")
+		require.Equal(t, hookB.Id, hooks[1].Id, "second result should be Bravo (alphabetical order)")
+		require.Equal(t, hookC.Id, hooks[2].Id, "third result should be Charlie (alphabetical order)")
 	})
 }
 

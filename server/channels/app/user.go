@@ -606,6 +606,24 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	return user, nil
 }
 
+func (a *App) GetUserByAuthData(authData *string) (*model.User, *model.AppError) {
+	user, err := a.ch.srv.userService.GetUserByAuthData(authData)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return user, nil
+}
+
 func (a *App) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersFromProfiles(options)
 	if err != nil {
@@ -2724,6 +2742,10 @@ func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId
 // DemoteUserToGuest Convert user's roles and all his membership's roles from
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppError {
+	if user.IsBot {
+		return model.NewAppError("DemoteUserToGuest", "api.user.demote_user_to_guest.bot_not_allowed.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {

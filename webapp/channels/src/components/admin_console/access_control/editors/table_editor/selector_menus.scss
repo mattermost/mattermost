@@ -44,6 +44,28 @@
     }
 }
 
+.attribute-selector-label {
+    display: flex;
+    flex-direction: column;
+    padding: 2px 0;
+    gap: 4px;
+
+    &__display-name {
+        color: var(--menu-item-text-color, rgba(var(--center-channel-color-rgb), 1));
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+
+    &__unique-name {
+        color: var(--menu-item-text-color, rgba(var(--center-channel-color-rgb), 1));
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 16px;
+        opacity: 0.75;
+    }
+}
+
 .values-editor {
     width: 100%;
     
