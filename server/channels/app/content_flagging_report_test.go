@@ -143,7 +143,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		require.Equal(t, "spam", review.ReporterReason)
 		require.Equal(t, "This is spam content", review.ReporterComment)
 		require.Greater(t, review.ReportTimestamp, int64(0))
-		require.Empty(t, review.ReviewerDecision)
+		require.Empty(t, review.ActorDecision)
 	})
 
 	t.Run("content_review.yaml records remove decision after permanent delete", func(t *testing.T) {
@@ -161,7 +161,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		entries := readReportZip(t, path)
 		var review model.FlaggedPostReportContentReview
 		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
-		require.Equal(t, "remove", review.ReviewerDecision)
+		require.Equal(t, "remove", review.ActorDecision)
 	})
 
 	t.Run("content_review.yaml records keep decision after keep action", func(t *testing.T) {
@@ -179,7 +179,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		entries := readReportZip(t, path)
 		var review model.FlaggedPostReportContentReview
 		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
-		require.Equal(t, "keep", review.ReviewerDecision)
+		require.Equal(t, "keep", review.ActorDecision)
 	})
 
 	t.Run("content_review.yaml uses pending action when status is not yet committed", func(t *testing.T) {
@@ -194,7 +194,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		entries := readReportZip(t, path)
 		var review model.FlaggedPostReportContentReview
 		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
-		require.Equal(t, "remove", review.ReviewerDecision)
+		require.Equal(t, "remove", review.ActorDecision)
 	})
 
 	t.Run("content_review.yaml ignores invalid pending action", func(t *testing.T) {
@@ -209,7 +209,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		entries := readReportZip(t, path)
 		var review model.FlaggedPostReportContentReview
 		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
-		require.Empty(t, review.ReviewerDecision)
+		require.Empty(t, review.ActorDecision)
 	})
 
 	t.Run("includes file attachments for the base post", func(t *testing.T) {

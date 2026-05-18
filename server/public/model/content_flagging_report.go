@@ -73,8 +73,10 @@ type FlaggedPostReportContentReview struct {
 	ReviewerUserID   string `yaml:"reviewer_user_id,omitempty"`
 	ReviewerUsername string `yaml:"reviewer_username,omitempty"`
 	ReviewerComment  string `yaml:"reviewer_comment,omitempty"`
-	ReviewerDecision string `yaml:"reviewer_decision,omitempty"`
 	ActionTime       int64  `yaml:"action_time,omitempty"`
+	ActorDecision    string `yaml:"actor_decision,omitempty"`
+	ActorUserId      string `yaml:"actor_user_id,omitempty"`
+	ActorUsername    string `yaml:"actor_username,omitempty"`
 }
 
 // FlaggedPostReportMetadata is the on-disk shape for report_metadata.yaml.

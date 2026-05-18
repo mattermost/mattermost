@@ -89,7 +89,7 @@ func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, g
 	if appErr := a.writeEditHistorySection(rctx, zw, rc, seenFiles); appErr != nil {
 		return appErr
 	}
-	if appErr := a.writeContentReviewEntry(rctx, zw, rc.Post, action); appErr != nil {
+	if appErr := a.writeContentReviewEntry(rctx, zw, rc.Post, generatedByUserID, action); appErr != nil {
 		return appErr
 	}
 	if appErr := a.writeReportMetadataEntry(zw, generatedByUserID); appErr != nil {
@@ -183,8 +183,8 @@ func (a *App) writeEditHistorySection(rctx request.CTX, zw *zip.Writer, rc *mode
 	return nil
 }
 
-func (a *App) writeContentReviewEntry(rctx request.CTX, zw *zip.Writer, post *model.Post, action string) *model.AppError {
-	payload, appErr := a.buildContentReviewYAML(rctx, post, action)
+func (a *App) writeContentReviewEntry(rctx request.CTX, zw *zip.Writer, post *model.Post, generatedByUserID, action string) *model.AppError {
+	payload, appErr := a.buildContentReviewYAML(rctx, post, generatedByUserID, action)
 	if appErr != nil {
 		return appErr
 	}
@@ -282,7 +282,7 @@ func buildPostYAML(post *model.Post, channel *model.Channel, team *model.Team, a
 	return out
 }
 
-func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, pendingAction string) (model.FlaggedPostReportContentReview, *model.AppError) {
+func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generatedByUserID, pendingAction string) (model.FlaggedPostReportContentReview, *model.AppError) {
 	out := model.FlaggedPostReportContentReview{}
 
 	values, appErr := a.GetPostContentFlaggingPropertyValues(post.Id)
@@ -335,21 +335,29 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, pending
 		}
 	}
 
-	// Reviewer details: prefer the actor (the one who took the keep/remove action)
-	// when present, otherwise fall back to the assigned reviewer.
 	reviewerID := decodePropertyString(rctx, byName, contentFlaggingPropertyNameReviewerUserID)
 	out.ReviewerUserID = reviewerID
 	out.ReviewerComment = decodePropertyString(rctx, byName, contentFlaggingPropertyNameActorComment)
 	out.ActionTime = decodePropertyInt64(rctx, byName, contentFlaggingPropertyNameActionTime)
 
+	// We want to include the actor details only when an action is being performed - retain or delete the quarantined post.
+	if pendingAction != "" {
+		if u, uErr := a.GetUser(generatedByUserID); uErr == nil {
+			out.ActorUsername = u.Username
+			out.ActorUserId = u.Id
+		} else {
+			rctx.Logger().Warn("Failed to fetch report generator user for flagged post report", mlog.String("user_id", generatedByUserID), mlog.Err(uErr))
+		}
+	}
+
 	switch decodePropertyString(rctx, byName, ContentFlaggingPropertyNameStatus) {
 	case model.ContentFlaggingStatusRetained:
-		out.ReviewerDecision = model.ContentFlaggingActionKeep
+		out.ActorDecision = model.ContentFlaggingActionKeep
 	case model.ContentFlaggingStatusRemoved:
-		out.ReviewerDecision = model.ContentFlaggingActionRemove
+		out.ActorDecision = model.ContentFlaggingActionRemove
 	default:
 		if pendingAction == model.ContentFlaggingActionKeep || pendingAction == model.ContentFlaggingActionRemove {
-			out.ReviewerDecision = pendingAction
+			out.ActorDecision = pendingAction
 		}
 	}
 
