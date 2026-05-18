@@ -663,12 +663,11 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 
 // hasPropertyFieldValueScopeAccess reports whether the user can write the
 // value's target as a regular member. For channel-object fields this is
-// membership in the value's channel — checked via HasPermissionToChannel so
-// sysadmins and team admins cascade through. For post-object fields the
-// value is an attribute of that post: the author can write their own
-// value, and admin-tier writers (channel/team/system admin) cascade through
-// the field's admin-level check. User/system/template fields have no
-// per-object membership and defer to the field's TargetType-based scope.
+// membership in the value's channel. For post-object fields this is
+// membership in the post's channel — any channel member can set values on
+// any post in that channel. Both are checked via HasPermissionToChannel so
+// sysadmins and team admins cascade through. User/system/template fields
+// have no per-object membership and defer to the field's TargetType-based scope.
 func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
 	switch field.ObjectType {
 	case model.PropertyFieldObjectTypeChannel:
@@ -685,13 +684,8 @@ func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, 
 			)
 			return false
 		}
-		if post.UserId == userID {
-			ok, _ := a.HasPermissionToChannel(rctx, userID, post.ChannelId, model.PermissionEditPost)
-			return ok
-		}
-		// Non-authors cascade through the admin-tier check: channel admin
-		// on the post's channel, team admin on its team, or sysadmin.
-		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+		ok, _ := a.HasPermissionToChannel(rctx, userID, post.ChannelId, model.PermissionReadChannel)
+		return ok
 	case model.PropertyFieldObjectTypeUser,
 		model.PropertyFieldObjectTypeSystem,
 		model.PropertyFieldObjectTypeTemplate:

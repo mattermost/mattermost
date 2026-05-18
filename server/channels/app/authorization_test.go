@@ -2420,10 +2420,9 @@ func TestSessionHasPropertyFieldPermissionAdmin(t *testing.T) {
 	})
 }
 
-// Member-level scope access on post-object values follows post-edit
-// permission rather than mere channel membership: a value is an attribute
-// of the post, so writing it should require the same authority as editing
-// the post itself.
+// Member-level scope access on post-object values requires only channel
+// membership: any member of the post's channel can set a value on any post
+// in that channel, regardless of whether they are the post's author.
 func TestSessionHasPermissionToSetPropertyFieldValues_PostMember(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -2450,8 +2449,8 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostMember(t *testing.T) {
 	authorSession := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
 	nonAuthorSession := model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}
 
-	// Author can edit their own post → can set its value.
+	// Author (channel member) can set the value.
 	assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, authorSession, field, post.Id))
-	// Channel member who is not the author and lacks edit_others_posts cannot.
-	assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, nonAuthorSession, field, post.Id))
+	// Non-author who is also a channel member can set the value.
+	assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, nonAuthorSession, field, post.Id))
 }
