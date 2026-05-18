@@ -930,6 +930,8 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		}
 	}
 
+	a.applyPostWillBeConsumedHook(&rpost)
+
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
 
 	appErr = a.publishWebsocketEventForPost(rctx, rpost, message)
