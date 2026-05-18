@@ -752,23 +752,6 @@ function PolicyDetails({
                     compassDesign={true}
                 >
                     <>
-                        {hasMaskedRows && (
-                            <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
-                                <SectionNotice
-                                    type='warning'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.access_control.policy.edit_policy.masked_values_warning.title'
-                                            defaultMessage='This policy contains restricted values'
-                                        />
-                                    }
-                                    text={formatMessage({
-                                        id: 'admin.access_control.policy.edit_policy.masked_values_warning.delete_text',
-                                        defaultMessage: 'This policy includes attribute values that are hidden from you. Deleting it may remove access for users who match those hidden conditions.',
-                                    })}
-                                />
-                            </div>
-                        )}
                         <FormattedMessage
                             id='admin.access_control.policy.edit_policy.delete_confirmation.message'
                             defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'

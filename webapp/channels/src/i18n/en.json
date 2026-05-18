@@ -330,7 +330,6 @@
   "admin.access_control.policy.edit_policy.error.name_required": "Please add a name to the policy",
   "admin.access_control.policy.edit_policy.error.unassign_channels": "Error unassigning channels: {error}",
   "admin.access_control.policy.edit_policy.error.update_active_status": "Error updating policy active status: {error}",
-  "admin.access_control.policy.edit_policy.masked_values_warning.delete_text": "This policy includes attribute values that are hidden from you. Deleting it may remove access for users who match those hidden conditions.",
   "admin.access_control.policy.edit_policy.masked_values_warning.text": "Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.",
   "admin.access_control.policy.edit_policy.masked_values_warning.title": "This policy contains restricted values",
   "admin.access_control.policy.edit_policy.mixed_channels.text": "On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.",

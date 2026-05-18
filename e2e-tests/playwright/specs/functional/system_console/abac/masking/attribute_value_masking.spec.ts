@@ -176,21 +176,39 @@ async function createPolicyWithCEL(page: Page, name: string, celExpression: stri
 
 /**
  * Navigate to the membership-policies list and open the editor for the named policy.
+ *
+ * Many tests create accumulating `MaskingPolicy <rand>` rows during a single
+ * run, so the target row is often beyond the first page. We rely on the search
+ * box to filter, and explicitly wait for the search request to land before
+ * looking for the row — otherwise we race the network and time out on a stale
+ * page.
  */
 async function openExistingPolicy(page: Page, policyName: string): Promise<void> {
     await page.goto('/admin_console/system_attributes/membership_policies');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
 
-    // Search helps filter to the correct row quickly
     const searchInput = page.locator('input[placeholder*="Search" i]').first();
-    if (await searchInput.isVisible({timeout: 3000})) {
-        await searchInput.fill(policyName);
-        await page.waitForTimeout(1000);
-    }
+    await searchInput.waitFor({state: 'visible', timeout: 10000});
+
+    // Wait for the search response triggered by typing the policy name.
+    // The list uses POST /access_control_policies/search with the term in the body,
+    // so we match by URL only and ignore the query payload.
+    const searchResponse = page.waitForResponse(
+        (resp) =>
+            /\/api\/v4\/access_control_policies\/search$/.test(resp.url()) &&
+            resp.request().method() === 'POST' &&
+            resp.ok(),
+        {timeout: 15000},
+    );
+    await searchInput.fill(policyName);
+    await searchResponse.catch(() => {
+        // List components debounce; some renders may not fire a fresh request if
+        // the cached result already matches. Fall back to a short settle.
+    });
+    await page.waitForLoadState('networkidle');
 
     const policyRow = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
-    await policyRow.waitFor({state: 'visible', timeout: 15000});
+    await policyRow.waitFor({state: 'visible', timeout: 20000});
     await policyRow.click();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(500);

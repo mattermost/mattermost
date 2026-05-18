@@ -709,23 +709,6 @@ export default function TeamPolicyEditor({
                     }
                 >
                     <>
-                        {hasMaskedRows && (
-                            <div className='TeamPolicyEditor__masked-values-warning'>
-                                <SectionNotice
-                                    type='warning'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.access_control.policy.edit_policy.masked_values_warning.title'
-                                            defaultMessage='This policy contains restricted values'
-                                        />
-                                    }
-                                    text={formatMessage({
-                                        id: 'admin.access_control.policy.edit_policy.masked_values_warning.delete_text',
-                                        defaultMessage: 'This policy includes attribute values that are hidden from you. Deleting it may remove access for users who match those hidden conditions.',
-                                    })}
-                                />
-                            </div>
-                        )}
                         <p>
                             <FormattedMessage
                                 id='team_settings.policy_editor.delete_confirmation.body'

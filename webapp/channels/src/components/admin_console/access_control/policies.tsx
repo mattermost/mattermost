@@ -26,6 +26,10 @@ import './policies.scss';
 // by the quoted token substring.
 const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
 
+function policyHasMaskedValues(policy: AccessControlPolicy): boolean {
+    return policy.rules?.some((rule) => rule.expression?.includes(MASKED_VALUE_TOKEN_LITERAL)) ?? false;
+}
+
 type Props = {
     onPolicySelected?: (policy: AccessControlPolicy) => void;
     onPoliciesLoaded?: (count: number) => void;
@@ -271,7 +275,12 @@ export default function PolicyList(props: Props): JSX.Element {
                                                 />
                                             }
                                             isDestructive={true}
-                                            disabled={Boolean(policy.props?.child_ids?.length)}
+
+                                            // Also disable when the policy contains values masked
+                                            // for this caller. Mirrors the policy-details Delete
+                                            // guard — server returns 403, so otherwise the modal
+                                            // flow would just round-trip an error.
+                                            disabled={Boolean(policy.props?.child_ids?.length) || policyHasMaskedValues(policy)}
                                         />
                                     )}
                                 </Menu.Container>
@@ -470,23 +479,6 @@ export default function PolicyList(props: Props): JSX.Element {
                     compassDesign={true}
                 >
                     <>
-                        {pendingDeletePolicy.rules.some((r) => r.expression.includes(MASKED_VALUE_TOKEN_LITERAL)) && (
-                            <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
-                                <SectionNotice
-                                    type='warning'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.access_control.policy.edit_policy.masked_values_warning.title'
-                                            defaultMessage='This policy contains restricted values'
-                                        />
-                                    }
-                                    text={intl.formatMessage({
-                                        id: 'admin.access_control.policy.edit_policy.masked_values_warning.delete_text',
-                                        defaultMessage: 'This policy includes attribute values that are hidden from you. Deleting it may remove access for users who match those hidden conditions.',
-                                    })}
-                                />
-                            </div>
-                        )}
                         <FormattedMessage
                             id='admin.access_control.policy.edit_policy.delete_confirmation.message'
                             defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
