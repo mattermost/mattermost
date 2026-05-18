@@ -3,7 +3,13 @@
 
 import {Locator, expect} from '@playwright/test';
 
-import {RadioSetting, TextInputSetting, NumberInputSetting, DropdownSetting, AdminSectionPanel} from '../../base_components';
+import {
+    RadioSetting,
+    TextInputSetting,
+    NumberInputSetting,
+    DropdownSetting,
+    AdminSectionPanel,
+} from '../../base_components';
 
 /**
  * System Console -> Environment -> Mobile Security

@@ -54,7 +54,13 @@ import BurnOnReadTimerChip from './channels/burn_on_read_timer_chip';
 import BurnOnReadConcealedPlaceholder from './channels/burn_on_read_concealed_placeholder';
 import BurnOnReadConfirmationModal from './channels/burn_on_read_confirmation_modal';
 // System Console Components
-import {AdminSectionPanel, DropdownSetting, NumberInputSetting, RadioSetting, TextInputSetting} from './system_console/base_components';
+import {
+    AdminSectionPanel,
+    DropdownSetting,
+    NumberInputSetting,
+    RadioSetting,
+    TextInputSetting,
+} from './system_console/base_components';
 import DelegatedGranularAdministration from './system_console/sections/user_management/delegated_granular_administration';
 import UserDetail from './system_console/sections/user_management/user_detail';
 import EditionAndLicense from './system_console/sections/about/edition_and_license';
