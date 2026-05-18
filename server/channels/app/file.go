@@ -74,6 +74,21 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 	return nil
 }
 
+func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.AppError {
+	var fileBackendSettings filestore.FileBackendSettings
+	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+		fileBackendSettings = filestore.NewExportFileBackendSettingsFromConfig(settings, false, false)
+	} else {
+		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+	}
+
+	err := fileBackendSettings.CheckMandatoryAzureFields()
+	if err != nil {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	return nil
+}
+
 func connectionTestErrorToAppError(connTestErr error) *model.AppError {
 	// errors.As (rather than a type switch) so that future wrapping of
 	// the backend's typed errors does not silently fall through to the
