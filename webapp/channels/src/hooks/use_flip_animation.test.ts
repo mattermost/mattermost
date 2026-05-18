@@ -59,8 +59,9 @@ describe('useFLIPAnimation', () => {
     });
 
     it('does not animate on first render (no previous positions to compare)', () => {
-        const a = buildItem('a', {top: 0, left: 0, width: 50, height: 20});
-        const b = buildItem('b', {top: 30, left: 0, width: 50, height: 20});
+        // buildItem appends to document.body; we only need the side effect here.
+        buildItem('a', {top: 0, left: 0, width: 50, height: 20});
+        buildItem('b', {top: 30, left: 0, width: 50, height: 20});
 
         renderHook(() =>
             useFLIPAnimation({
@@ -70,12 +71,11 @@ describe('useFLIPAnimation', () => {
         );
 
         expect(animateSpy).not.toHaveBeenCalled();
-        void a; void b;
     });
 
     it('does not animate when the order is unchanged between renders', () => {
-        const a = buildItem('a', {top: 0, left: 0, width: 50, height: 20});
-        const b = buildItem('b', {top: 30, left: 0, width: 50, height: 20});
+        buildItem('a', {top: 0, left: 0, width: 50, height: 20});
+        buildItem('b', {top: 30, left: 0, width: 50, height: 20});
 
         const {rerender} = renderHook(
             ({items}: {items: string[]}) =>
@@ -88,7 +88,6 @@ describe('useFLIPAnimation', () => {
         rerender({items: ['a', 'b']});
 
         expect(animateSpy).not.toHaveBeenCalled();
-        void a; void b;
     });
 
     it('animates elements that moved when the order key changes', () => {
@@ -113,6 +112,7 @@ describe('useFLIPAnimation', () => {
         expect(animateSpy).toHaveBeenCalledTimes(2);
         const animateCalls = animateSpy.mock.calls;
         const keyframes = animateCalls.map((call) => call[0]);
+
         // First keyframe is `translate(0 -30px)` for one element and `translate(0 30px)` for the other.
         const hasUpMovement = keyframes.some((kf: Array<{transform: string}>) => kf[0].transform === 'translate(0px, -30px)');
         const hasDownMovement = keyframes.some((kf: Array<{transform: string}>) => kf[0].transform === 'translate(0px, 30px)');
@@ -121,7 +121,7 @@ describe('useFLIPAnimation', () => {
     });
 
     it('does not animate elements whose position is unchanged even when the order key changes (e.g., new item appended)', () => {
-        const a = buildItem('a', {top: 0, left: 0, width: 50, height: 20});
+        buildItem('a', {top: 0, left: 0, width: 50, height: 20});
 
         const {rerender} = renderHook(
             ({items}: {items: string[]}) =>
