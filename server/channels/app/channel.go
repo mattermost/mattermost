@@ -763,21 +763,10 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 		}
 	}
 
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		replacement, reason := hooks.ChannelWillBeUpdated(pluginContext, channel, oldChannel)
-		if reason != "" {
-			rejectionReason = reason
-			return false
-		}
-		if replacement != nil {
-			channel = replacement
-		}
-		return true
-	}, plugin.ChannelWillBeUpdatedID)
-	if rejectionReason != "" {
-		return nil, model.NewAppError("UpdateChannel", "app.channel.update_channel.rejected_by_plugin", map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
+	var channelErr *model.AppError
+	channel, channelErr = a.runGuardedChannelWillBeUpdated(rctx, channel, oldChannel)
+	if channelErr != nil {
+		return nil, channelErr
 	}
 
 	_, err := a.Srv().Store().Channel().Update(rctx, channel)
@@ -922,14 +911,8 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 		return nil, model.NewAppError("restoreChannel", "api.channel.restore_channel.restored.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rejectionReason = hooks.ChannelWillBeRestored(pluginContext, channel)
-		return rejectionReason == ""
-	}, plugin.ChannelWillBeRestoredID)
-	if rejectionReason != "" {
-		return nil, model.NewAppError("RestoreChannel", "app.channel.restore_channel.rejected_by_plugin", map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
+	if appErr := a.runGuardedChannelWillBeRestored(rctx, channel); appErr != nil {
+		return nil, appErr
 	}
 
 	if err := a.Srv().Store().Channel().Restore(channel.Id, model.GetMillis()); err != nil {
@@ -1837,23 +1820,10 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 		}
 	}
 
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		updatedMember, reason := hooks.ChannelMemberWillBeAdded(pluginContext, newMember)
-		if reason != "" {
-			rejectionReason = reason
-			return false
-		}
-		if updatedMember != nil {
-			newMember = updatedMember
-		}
-		return true
-	}, plugin.ChannelMemberWillBeAddedID)
-
-	if rejectionReason != "" {
-		return nil, model.NewAppError("AddUserToChannel", "app.channel.add_user.to.channel.rejected_by_plugin",
-			map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
+	var channelMemberErr *model.AppError
+	newMember, channelMemberErr = a.runGuardedChannelMemberWillBeAdded(rctx, channel.Id, newMember)
+	if channelMemberErr != nil {
+		return nil, channelMemberErr
 	}
 
 	newMember, nErr = a.Srv().Store().Channel().SaveMember(rctx, newMember)

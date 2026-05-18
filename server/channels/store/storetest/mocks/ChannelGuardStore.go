@@ -16,21 +16,31 @@ type ChannelGuardStore struct {
 }
 
 // Delete provides a mock function with given fields: rctx, channelID, pluginID
-func (_m *ChannelGuardStore) Delete(rctx request.CTX, channelID string, pluginID string) error {
+func (_m *ChannelGuardStore) Delete(rctx request.CTX, channelID string, pluginID string) (int64, error) {
 	ret := _m.Called(rctx, channelID, pluginID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) error); ok {
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (int64, error)); ok {
+		return rf(rctx, channelID, pluginID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) int64); ok {
 		r0 = rf(rctx, channelID, pluginID)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
+		r1 = rf(rctx, channelID, pluginID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetAll provides a mock function with given fields: rctx

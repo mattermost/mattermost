@@ -1077,7 +1077,7 @@ type ChannelGuard struct {
 
 type ChannelGuardStore interface {
 	Save(rctx request.CTX, guard *ChannelGuard) error
-	Delete(rctx request.CTX, channelID, pluginID string) error
+	Delete(rctx request.CTX, channelID, pluginID string) (rowsAffected int64, err error)
 	GetForChannel(rctx request.CTX, channelID string) ([]*ChannelGuard, error)
 	GetAll(rctx request.CTX) ([]*ChannelGuard, error)
 }

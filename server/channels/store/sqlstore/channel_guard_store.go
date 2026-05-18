@@ -41,7 +41,7 @@ func (s *SqlChannelGuardStore) Save(rctx request.CTX, guard *store.ChannelGuard)
 	return nil
 }
 
-func (s *SqlChannelGuardStore) Delete(rctx request.CTX, channelID, pluginID string) error {
+func (s *SqlChannelGuardStore) Delete(rctx request.CTX, channelID, pluginID string) (int64, error) {
 	builder := s.getQueryBuilder().
 		Delete("ChannelGuards").
 		Where(sq.Eq{
@@ -49,11 +49,17 @@ func (s *SqlChannelGuardStore) Delete(rctx request.CTX, channelID, pluginID stri
 			"PluginId":  pluginID,
 		})
 
-	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return errors.Wrapf(err, "failed to delete channel guard for channel=%s plugin=%s", channelID, pluginID)
+	result, err := s.GetMaster().ExecBuilder(builder)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to delete channel guard for channel=%s plugin=%s", channelID, pluginID)
 	}
 
-	return nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to get rows affected for channel guard delete channel=%s plugin=%s", channelID, pluginID)
+	}
+
+	return rowsAffected, nil
 }
 
 func (s *SqlChannelGuardStore) GetForChannel(rctx request.CTX, channelID string) ([]*store.ChannelGuard, error) {
