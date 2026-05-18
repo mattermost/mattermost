@@ -15,6 +15,8 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import completedImg from 'images/completed.svg';
 import {AboutLinks, LicenseLinks} from 'utils/constants';
 
@@ -212,24 +214,26 @@ const Completed = (props: Props): JSX.Element => {
                             />
                         </button>
                     )}
-                    <div className='download-apps'>
-                        <span>
-                            <FormattedMessage
-                                id='onboardingTask.checklist.downloads'
-                                defaultMessage='Now that you’re all set up, <link>download our apps.</link>'
-                                values={{
-                                    link: (msg: React.ReactNode) => (
-                                        <ExternalLink
-                                            location='onboarding_tasklist_completed'
-                                            href='https://mattermost.com/download#desktop'
-                                        >
-                                            {msg}
-                                        </ExternalLink>
-                                    ),
-                                }}
-                            />
-                        </span>
-                    </div>
+                    {!isDesktopApp() && (
+                        <div className='download-apps'>
+                            <span>
+                                <FormattedMessage
+                                    id='onboardingTask.checklist.downloads'
+                                    defaultMessage='Now that you’re all set up, <link>download our apps.</link>'
+                                    values={{
+                                        link: (msg: React.ReactNode) => (
+                                            <ExternalLink
+                                                location='onboarding_tasklist_completed'
+                                                href='https://mattermost.com/download#desktop'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    }}
+                                />
+                            </span>
+                        </div>
+                    )}
                     {showStartTrialBtn && <div className='disclaimer'>
                         <span>
                             <FormattedMessage

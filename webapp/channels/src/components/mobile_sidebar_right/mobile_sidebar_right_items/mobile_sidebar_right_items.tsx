@@ -27,6 +27,8 @@ import UserAccountOnlineMenuItem from 'components/user_account_menu/user_account
 import UserSettingsModal from 'components/user_settings/modal';
 import Menu from 'components/widgets/menu/menu';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {makeUrlSafe} from 'utils/url';
 
@@ -407,7 +409,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     />
                     <Menu.ItemExternalLink
                         id='nativeAppLink'
-                        show={this.props.appDownloadLink}
+                        show={Boolean(this.props.appDownloadLink) && !isDesktopApp()}
                         url={safeAppDownloadLink}
                         text={formatMessage({id: 'navbar_dropdown.nativeApps', defaultMessage: 'Download Apps'})}
                         icon={

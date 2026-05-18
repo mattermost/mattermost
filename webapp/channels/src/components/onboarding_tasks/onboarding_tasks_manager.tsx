@@ -39,6 +39,8 @@ import {
 } from 'components/tours';
 import {ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON} from 'components/user_account_menu/user_account_menu';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -136,6 +138,10 @@ export const useTasksList = () => {
     // invite other users is hidden for guest users
     if (isGuestUser) {
         delete list.INVITE_PEOPLE;
+    }
+
+    if (isDesktopApp()) {
+        delete list.DOWNLOAD_APP;
     }
 
     return Object.values(list);

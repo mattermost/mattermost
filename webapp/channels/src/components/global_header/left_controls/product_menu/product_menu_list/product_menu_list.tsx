@@ -27,6 +27,8 @@ import UserGroupsModal from 'components/user_groups_modal';
 import Menu from 'components/widgets/menu/menu';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
 import {makeUrlSafe} from 'utils/url';
@@ -208,7 +210,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                 </TeamPermissionGate>
                 <Menu.ItemExternalLink
                     id='nativeAppLink'
-                    show={appDownloadLink}
+                    show={Boolean(appDownloadLink) && !isDesktopApp()}
                     url={makeUrlSafe(appDownloadLink)}
                     text={formatMessage({id: 'navbar_dropdown.nativeApps', defaultMessage: 'Download Apps'})}
                     icon={<DownloadOutlineIcon size={18}/>}
