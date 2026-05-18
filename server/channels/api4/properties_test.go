@@ -1852,12 +1852,8 @@ func TestPatchPropertyValues(t *testing.T) {
 	createdNoneField, appErr := th.App.CreatePropertyField(th.Context, noneField, false, "")
 	require.Nil(t, appErr)
 
-	// Use a real post as the target so target access checks pass. The post
-	// is authored by BasicUser (via the default th.Client login) so
-	// member-level value writes pass the author check; tests that need a
-	// non-BasicUser-authored target use th.BasicPost directly instead.
-	th.LoginBasic(t)
-	targetID := th.CreatePost(t).Id
+	// Use a real post as the target so target access checks pass.
+	targetID := th.BasicPost.Id
 
 	t.Run("unauthenticated request should fail", func(t *testing.T) {
 		client := model.NewAPIv4Client(th.Client.URL)
@@ -2081,17 +2077,24 @@ func TestPatchPropertyValues(t *testing.T) {
 		require.Equal(t, json.RawMessage(`"channel-value"`), values[0].Value)
 	})
 
-	t.Run("non-author with values permission member cannot set values on another user's post", func(t *testing.T) {
-		// Under the value-target dispatch, member-level on a post-object
-		// field means "author of the post, with admin cascade". BasicUser
-		// is not the author of th.BasicPost (it's authored by TeamAdmin in
-		// InitBasic) and does not hold channel/team admin, so the write
-		// must be denied.
+	t.Run("non-member cannot set values on post in a channel they don't belong to", func(t *testing.T) {
+		privateChannel, chanErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Type:        model.ChannelTypePrivate,
+			Name:        model.NewId(),
+			DisplayName: "Private Channel",
+			CreatorId:   th.SystemAdminUser.Id,
+		}, false)
+		require.Nil(t, chanErr)
+
+		// Create a post in the private channel as SystemAdmin (BasicUser is not a member).
+		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
+
 		th.LoginBasic(t)
 		items := []model.PropertyValuePatchItem{
 			{FieldID: createdMemberField.ID, Value: json.RawMessage(`"should-fail"`)},
 		}
-		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", th.BasicPost.Id, items)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", privatePost.Id, items)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -2905,9 +2908,7 @@ func TestPatchPropertyValuesMultiValuePayload(t *testing.T) {
 			{FieldID: createdFields[2].ID, Value: json.RawMessage(`"val-2"`)},
 		}
 
-		// Use a BasicUser-authored post so the member-level value writes
-		// pass the author check.
-		targetID := th.CreatePost(t).Id
+		targetID := th.BasicPost.Id
 		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
 		require.NoError(t, patchErr)
 		CheckOKStatus(t, resp)
