@@ -1167,14 +1167,14 @@ func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, flagged
 		Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reviewerId)),
 	}
 
-	assigneePropertyValue, appErr = a.UpsertPropertyValue(nil, assigneePropertyValue)
+	assigneePropertyValue, appErr = a.UpsertPropertyValue(rctx, assigneePropertyValue)
 	if appErr != nil {
 		return model.NewAppError("AssignFlaggedPostReviewer", "app.data_spillage.assign_reviewer.upsert_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	if status == model.ContentFlaggingStatusPending {
 		statusPropertyValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
-		statusPropertyValue, appErr = a.UpdatePropertyValue(nil, groupId, statusPropertyValue)
+		statusPropertyValue, appErr = a.UpdatePropertyValue(rctx, groupId, statusPropertyValue)
 		if appErr != nil {
 			return model.NewAppError("AssignFlaggedPostReviewer", "app.data_spillage.assign_reviewer.update_status_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}

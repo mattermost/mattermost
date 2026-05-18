@@ -43,6 +43,43 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/users/login/desktop_token:
+    post:
+      tags:
+        - users
+      summary: Login using desktop token
+      description: >
+        Login to Mattermost with a short-lived desktop token.
+
+        ##### Permissions
+        No permission required.
+      operationId: LoginWithDesktopToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                device_id:
+                  type: string
+      responses:
+        "200":
+          description: Desktop token login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /api/v4/users/login/cws:
     post:
       tags:
@@ -292,6 +329,64 @@
                 $ref: "#/components/schemas/StatusOK"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/users/notify-admin:
+    post:
+      tags:
+        - users
+      summary: Save notify-admin intent
+      description: >
+        Save a notify-admin request for upgrade or trial flows.
+
+        ##### Permissions
+        Must be authenticated.
+      operationId: NotifyAdmin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotifyAdminToUpgradeRequest"
+      responses:
+        "200":
+          description: Notify-admin request saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v4/users/trigger-notify-admin-posts:
+    post:
+      tags:
+        - users
+      summary: Trigger notify-admin posts
+      description: >
+        Trigger admin notification posts manually when enabled by configuration.
+
+        ##### Permissions
+        Must be authenticated and have `manage_system` permission.
+      operationId: TriggerNotifyAdminPosts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotifyAdminToUpgradeRequest"
+      responses:
+        "200":
+          description: Notify-admin posts triggered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
 
@@ -1439,6 +1534,54 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+  /api/v4/users/auth_data:
+    get:
+      tags:
+        - users
+      summary: Get a user by auth data
+      description: >
+        Get a user by their external auth data identifier. The `value` is
+        matched against what is stored in `Users.AuthData`, which for most
+        identity providers is the identifier as the provider issues it.
+
+
+        The exception is Active Directory `objectGUID`: under
+        `auth_service: ldap` it is stored as the LDAP filter hex-escape
+        form (e.g. `\61\14\e1\d1\c5\35\18\4a\b6\60\d6\78\50\fd\0d\5d`),
+        and under `auth_service: saml` it is stored as the standard
+        Base64 of the same bytes (e.g. `YRTh0cU1GEq2YNZ4UP0NXQ==`). Use
+        the form matching the user's current `AuthService`.
+
+
+        ##### Permissions
+
+        Must be a system admin.
+      operationId: GetUserByAuthData
+      parameters:
+        - name: value
+          in: query
+          description: >
+            The user's AuthData as stored in `Users.AuthData`. Must be
+            URL-encoded; in particular, Base64 `+` characters must be sent
+            as `%2B` so they are not decoded as spaces.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /api/v4/users/password/reset:
     post:
       tags:
@@ -1691,45 +1834,6 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  /api/v4/users/mfa:
-    post:
-      tags:
-        - users
-      summary: Check MFA
-      description: >
-        Check if a user has multi-factor authentication active on their account
-        by providing a login id. Used to check whether an MFA code needs to be
-        provided when logging in.
-
-        ##### Permissions
-
-        No permission required.
-      operationId: CheckUserMfa
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - login_id
-              properties:
-                login_id:
-                  description: The email or username used to login
-                  type: string
-        required: true
-      responses:
-        "200":
-          description: MFA check successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  mfa_required:
-                    description: Value will `true` if MFA is active, `false` otherwise
-                    type: boolean
-        "400":
-          $ref: "#/components/responses/BadRequest"
   "/api/v4/users/{user_id}/password":
     put:
       tags:
@@ -2969,152 +3073,66 @@
         '501':
           $ref: "#/components/responses/NotImplemented"
   /api/v4/users/migrate_auth/saml:
-      post:
-        tags:
-          - users
-          - migrate
-          - authentication
-          - SAML
-        summary: Migrate user accounts authentication type to SAML.
-        description: >
-          Migrates accounts from one authentication provider to another.
-          For example, you can upgrade your authentication provider from email to SAML.
+    post:
+      tags:
+        - users
+        - migrate
+        - authentication
+        - SAML
+      summary: Migrate user accounts authentication type to SAML.
+      description: >
+        Migrates accounts from one authentication provider to another.
+        For example, you can upgrade your authentication provider from email to SAML.
 
-          __Minimum server version__: 5.28
+        __Minimum server version__: 5.28
 
-          ##### Permissions
+        ##### Permissions
 
-          Must have `manage_system` permission.
+        Must have `manage_system` permission.
 
-        operationId: MigrateAuthToSaml
-        requestBody:
-            content:
-              application/json:
-                schema:
-                  type: object
-                  required:
-                    - from
-                    - matches
-                    - auto
-                  properties:
-                    from:
-                      description: The current authentication type for the matched users.
-                      type: string
-                    matches:
-                      description: Users map.
-                      type: object
-                    auto:
-                      type: boolean
-        responses:
-          '200':
-            description: Successfully migrated authentication type to LDAP.
-          '400':
-            $ref: "#/components/responses/BadRequest"
-          '401':
-            $ref: "#/components/responses/Unauthorized"
-          '403':
-            $ref: "#/components/responses/Forbidden"
-          '501':
-            $ref: "#/components/responses/NotImplemented"
-  "/api/v4/users/{user_id}/teams/{team_id}/threads":
-   get:
-    tags:
-     - threads
-    summary: Get all threads that user is following
-    description: |
-      Get all threads that user is following
-
-      __Minimum server version__: 5.29
-
-      ##### Permissions
-      Must be logged in as the user or have `edit_other_users` permission.
-    operationId: GetUserThreads
-    parameters:
-      - name: user_id
-        in: path
-        description: The ID of the user. This can also be "me" which will point to the current user.
-        required: true
-        schema:
-         type: string
-      - name: team_id
-        in: path
-        description: The ID of the team in which the thread is.
-        required: true
-        schema:
-          type: string
-      - name: since
-        in: query
-        description: Since filters the threads based on their LastUpdateAt timestamp.
-        required: false
-        schema:
-         type: integer
-      - name: deleted
-        in: query
-        description: Deleted will specify that even deleted threads should be returned (For mobile sync).
-        required: false
-        schema:
-         type: boolean
-         default: false
-      - name: extended
-        in: query
-        description: Extended will enrich the response with participant details.
-        required: false
-        schema:
-          type: boolean
-          default: false
-      - name: page
-        in: query
-        description: Page specifies which part of the results to return, by per_page.
-        required: false
-        schema:
-          type: integer
-          default: 0
-      - name: per_page
-        in: query
-        description: The size of the returned chunk of results.
-        schema:
-          type: integer
-          default: 60
-      - name: totalsOnly
-        in: query
-        description: Setting this to true will only return the total counts.
-        required: false
-        schema:
-          type: boolean
-          default: false
-      - name: threadsOnly
-        in: query
-        description: Setting this to true will only return threads.
-        required: false
-        schema:
-          type: boolean
-          default: false
-    responses:
-      "200":
-        description: User's thread retrieval successful
+      operationId: MigrateAuthToSaml
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserThreads"
-      "400":
-        $ref: "#/components/responses/BadRequest"
-      "401":
-        $ref: "#/components/responses/Unauthorized"
-      "404":
-        $ref: "#/components/responses/NotFound"
-  "/api/v4/users/{user_id}/teams/{team_id}/threads/mention_counts":
+              type: object
+              required:
+                - from
+                - matches
+                - auto
+              properties:
+                from:
+                  description: The current authentication type for the matched users.
+                  type: string
+                matches:
+                  description: Users map.
+                  type: object
+                auto:
+                  type: boolean
+      responses:
+        '200':
+          description: Successfully migrated authentication type to SAML.
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '501':
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/teams/{team_id}/threads":
     get:
       tags:
         - threads
-      summary: Get all unread mention counts from followed threads, per-channel
+      summary: Get all threads that user is following
       description: |
-        Get all unread mention counts from followed threads
+        Get all threads that user is following
 
         __Minimum server version__: 5.29
 
         ##### Permissions
         Must be logged in as the user or have `edit_other_users` permission.
-      operationId: GetThreadMentionCountsByChannel
+      operationId: GetUserThreads
       parameters:
         - name: user_id
           in: path
@@ -3128,15 +3146,120 @@
           required: true
           schema:
             type: string
+        - name: since
+          in: query
+          description: Since filters the threads based on their LastUpdateAt timestamp.
+          required: false
+          schema:
+            type: integer
+        - name: deleted
+          in: query
+          description: Deleted will specify that even deleted threads should be returned (For mobile sync).
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: extended
+          in: query
+          description: Extended will enrich the response with participant details.
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: page
+          in: query
+          description: Page specifies which part of the results to return, by per_page.
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The size of the returned chunk of results.
+          schema:
+            type: integer
+            default: 60
+        - name: totalsOnly
+          in: query
+          description: Setting this to true will only return the total counts.
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: threadsOnly
+          in: query
+          description: Setting this to true will only return threads.
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
-          description: Get was successful
+          description: User's thread retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserThreads"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/users/{user_id}/teams/{team_id}/read":
+    put:
+      tags:
+        - channels
+      summary: Mark all channels and threads in a team as read
+      description: |
+        Mark all channels and threads in a team as read for a user.
+
+        ##### Permissions
+
+        Must be logged in as user or have `edit_other_users` permission. Must have `view_team` permission for the team.
+
+        __Minimum server version__: 11.3
+      operationId: MarkAllTeamChannelsRead
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID to mark channels as read for
+          required: true
+          schema:
+            type: string
+        - name: team_id
+          in: path
+          description: Team ID to mark all channels as read in
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Team channels marked as read successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Value should be "OK" if successful
+                  last_viewed_at_times:
+                    type: object
+                    description: A JSON object mapping channel IDs to the last viewed times
+                    additionalProperties:
+                      type: integer
+                      format: int64
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/teams/{team_id}/threads/read":
     put:
       tags:
@@ -3390,6 +3513,159 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+  /api/v4/drafts:
+    post:
+      tags:
+        - users
+        - drafts
+      summary: Upsert synced draft
+      description: |
+        Create or update a synced draft for the current user.
+        ##### Permissions
+        Must be authenticated, have permission to create posts in the channel, and synced drafts must be enabled.
+      operationId: UpsertDraft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DraftUpsertRequest"
+      responses:
+        "201":
+          description: Draft upsert successful. Returns `null` when an empty message deletes the draft.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Draft"
+                nullable: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/teams/{team_id}/drafts":
+    get:
+      tags:
+        - users
+        - drafts
+      summary: Get synced drafts for a team
+      description: |
+        Get synced drafts for the current user in a team.
+        ##### Permissions
+        Must have `view_team` permission for the team and synced drafts must be enabled.
+      operationId: GetDrafts
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+        - name: team_id
+          in: path
+          description: Team ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Drafts retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Draft"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/channels/{channel_id}/drafts":
+    delete:
+      tags:
+        - users
+        - drafts
+      summary: Delete synced draft
+      description: |
+        Delete a synced draft for a channel.
+        ##### Permissions
+        Must be authenticated as the draft owner and synced drafts must be enabled.
+      operationId: DeleteDraft
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+        - name: channel_id
+          in: path
+          description: Channel ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Draft deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/users/{user_id}/channels/{channel_id}/drafts/{thread_id}":
+    delete:
+      tags:
+        - users
+        - drafts
+      summary: Delete synced thread draft
+      description: |
+        Delete a synced draft for a channel thread.
+        ##### Permissions
+        Must be authenticated as the draft owner and synced drafts must be enabled.
+      operationId: DeleteDraftForThread
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+        - name: channel_id
+          in: path
+          description: Channel ID
+          required: true
+          schema:
+            type: string
+        - name: thread_id
+          in: path
+          description: Root post ID of the thread
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Thread draft deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/data_retention/team_policies":
     get:
       tags:

@@ -18,6 +18,7 @@ type Subject struct {
 	// An attribute may be single-valued or multi-valued and can be a primitive type
 	// (string, boolean, number) or a complex type like a JSON object or array.
 	Attributes map[string]any `json:"attributes"`
+	Session    map[string]any `json:"session"`
 }
 
 type SubjectSearchOptions struct {

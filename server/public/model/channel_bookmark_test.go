@@ -651,9 +651,9 @@ func TestToBookmarkWithFileInfo(t *testing.T) {
 
 func TestChannelBookmarkPatch(t *testing.T) {
 	p := &ChannelBookmarkPatch{
-		DisplayName: NewPointer(NewId()),
-		SortOrder:   NewPointer(int64(1)),
-		LinkUrl:     NewPointer(NewId()),
+		DisplayName: new(NewId()),
+		SortOrder:   new(int64(1)),
+		LinkUrl:     new(NewId()),
 	}
 
 	b := ChannelBookmark{
