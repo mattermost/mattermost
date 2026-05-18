@@ -211,7 +211,7 @@
                 has_reactions:
                   type: boolean
                 props:
-                  type: string
+                  type: object
       responses:
         "200":
           description: Card patched
