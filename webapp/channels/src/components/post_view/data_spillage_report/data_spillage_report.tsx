@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {ContentFlaggingStatus} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
@@ -16,14 +16,16 @@ import {useGetContentFlaggingChannel, useGetContentFlaggingTeam, useGetFlaggedPo
 import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
 import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
-import type {PropertiesCardViewMetadata} from 'components/properties_card_view/properties_card_view';
+import DataSpillageDownloadReport from 'components/post_view/data_spillage_report/data_spillage_download_report/data_spillage_download_report';
+import type {ActionRow, PropertiesCardViewMetadata} from 'components/properties_card_view/properties_card_view';
 import PropertiesCardView from 'components/properties_card_view/properties_card_view';
 
 import {DataSpillagePropertyNames} from 'utils/constants';
 
-import './data_spillage_report.scss';
 import DataSpillageFooter from './data_spillage_footer/data_spillage_footer';
 import {getSyntheticPropertyFields, getSyntheticPropertyValues} from './synthetic_data';
+
+import './data_spillage_report.scss';
 
 // The order of fields to be displayed in the report, from top to bottom.
 const orderedFieldName = [
@@ -115,8 +117,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 fetchDeletedPost: true,
                 channel,
                 team,
-                generateFileDownloadUrl:
-                    generateFileDownloadUrl(reportedPostId),
+                generateFileDownloadUrl: generateFileDownloadUrl(reportedPostId),
             },
             reporting_comment: {
                 placeholder: formatMessage({
@@ -157,24 +158,44 @@ export function DataSpillageReport({post, isRHS}: Props) {
         );
     }, [isRHS, post, reportedPostId]);
 
-    const actionRow = useMemo(() => {
-        if (!reportedPost || !reportingUser) {
-            return null;
+    const actionRows = useMemo<ActionRow[]>(() => {
+        if (!reportedPost) {
+            return [];
         }
 
-        let showActionRow;
-        if (!propertyFields || !propertyValues) {
-            showActionRow = true;
-        } else {
-            const status = propertyValues.find((value) => value.field_id === propertyFields.status.id)?.value as string | undefined;
-            showActionRow = reportedPost && reportingUser && status && (status === ContentFlaggingStatus.Pending || status === ContentFlaggingStatus.Assigned);
+        const rows: ActionRow[] = [];
+
+        rows.push({
+            label: (
+                <FormattedMessage
+                    id='data_spillage_report.row.report.label'
+                    defaultMessage='Report'
+                />
+            ),
+            content: <DataSpillageDownloadReport flaggedPostId={reportedPost.id}/>,
+        });
+
+        const statusFieldId = propertyFields.status?.id;
+        const status = statusFieldId ? (propertyValues.find((value) => value.field_id === statusFieldId)?.value as string | undefined) : undefined;
+
+        if (reportingUser && (status === ContentFlaggingStatus.Pending || status === ContentFlaggingStatus.Assigned)) {
+            rows.push({
+                label: (
+                    <FormattedMessage
+                        id='data_spillage_report.row.actions.label'
+                        defaultMessage='Actions'
+                    />
+                ),
+                content: (
+                    <DataSpillageAction
+                        flaggedPost={reportedPost}
+                        reportingUser={reportingUser}
+                    />
+                ),
+            });
         }
 
-        return showActionRow ? (
-            <DataSpillageAction
-                flaggedPost={reportedPost}
-                reportingUser={reportingUser}
-            />) : null;
+        return rows;
     }, [propertyFields, propertyValues, reportedPost, reportingUser]);
 
     return (
@@ -189,7 +210,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 propertyValues={propertyValues}
                 fieldOrder={orderedFieldName}
                 shortModeFieldOrder={shortModeFieldOrder}
-                actionsRow={actionRow}
+                actionRows={actionRows}
                 mode={mode}
                 metadata={metadata}
                 footer={footer}

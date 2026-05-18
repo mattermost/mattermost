@@ -430,4 +430,37 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         expect(screen.queryByTestId('data-spillage-action-remove-message')).toBeVisible();
         expect(screen.queryByTestId('data-spillage-action-keep-message')).toBeVisible();
     });
+
+    describe.each([
+        ['Pending', true],
+        ['Retained', false],
+        ['Removed', false],
+    ])('Download Report button when status is %s', (status, expectActions) => {
+        it('is rendered in action rows in RHS mode', async () => {
+            usePostContentFlaggingValues.mockReturnValue(
+                postContentFlaggingValues.map((v) =>
+                    (v.field_id === contentFlaggingFields.status.id ? {...v, value: status} : v),
+                ),
+            );
+
+            renderWithContext(
+                <DataSpillageReport
+                    post={post}
+                    isRHS={true}
+                />,
+                baseState,
+            );
+
+            await act(async () => {});
+
+            expect(screen.getByTestId('data-spillage-action-download-report')).toBeVisible();
+            expect(screen.getByTestId('data-spillage-action-download-report')).toHaveTextContent('Download Report');
+
+            if (expectActions) {
+                expect(screen.queryByTestId('data-spillage-action')).toBeVisible();
+            } else {
+                expect(screen.queryByTestId('data-spillage-action')).not.toBeInTheDocument();
+            }
+        });
+    });
 });

@@ -17,6 +17,12 @@ export default class ContentReviewPage {
     readonly confirmRemoveMessageButton: Locator;
     readonly confirmKeepMessageButton: Locator;
     readonly confirmationModalComment: Locator;
+    readonly downloadReportCheckbox: Locator;
+    readonly formContinueButton: Locator;
+    readonly removePermanentlyButton: Locator;
+    readonly keepPermanentlyButton: Locator;
+    readonly removeWithoutReportButton: Locator;
+    readonly generatedSection: Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -33,6 +39,16 @@ export default class ContentReviewPage {
         this.confirmationModalComment = this.postActionConformationModal.getByTestId(
             'RemoveFlaggedMessageConfirmationModal__comment',
         );
+        this.downloadReportCheckbox = this.postActionConformationModal.getByTestId('download-report-checkbox');
+        this.formContinueButton = this.postActionConformationModal.getByRole('button', {name: 'Continue'});
+        this.removePermanentlyButton = this.postActionConformationModal.getByRole('button', {
+            name: 'Remove permanently',
+        });
+        this.keepPermanentlyButton = this.postActionConformationModal.getByRole('button', {name: 'Keep permanently'});
+        this.removeWithoutReportButton = this.postActionConformationModal.getByRole('button', {
+            name: 'Remove without report',
+        });
+        this.generatedSection = this.postActionConformationModal.getByTestId('generated-section');
     }
 
     async setReportCardByPostID(postID: string) {
@@ -173,6 +189,37 @@ export default class ContentReviewPage {
 
     async confirmKeep() {
         await this.confirmKeepMessageButton.click();
+        await this.postActionConformationModal.waitFor({state: 'hidden'});
+    }
+
+    /**
+     * From the form step, advance to the report-generated step
+     * (downloadReport checkbox is on by default).
+     */
+    async submitFormAndWaitForReport() {
+        await this.formContinueButton.click();
+        await expect(this.generatedSection).toBeVisible({timeout: 30000});
+    }
+
+    async confirmRemovePermanently() {
+        await this.removePermanentlyButton.click();
+        await this.postActionConformationModal.waitFor({state: 'hidden'});
+    }
+
+    async confirmKeepPermanently() {
+        await this.keepPermanentlyButton.click();
+        await this.postActionConformationModal.waitFor({state: 'hidden'});
+    }
+
+    /**
+     * Skip-report path: uncheck the download checkbox, submit the form to reach
+     * the skip-confirm step, then confirm removal without a report.
+     */
+    async confirmRemoveWithoutReport() {
+        await this.downloadReportCheckbox.uncheck();
+        await this.confirmRemoveMessageButton.click();
+        await expect(this.removeWithoutReportButton).toBeVisible({timeout: 10000});
+        await this.removeWithoutReportButton.click();
         await this.postActionConformationModal.waitFor({state: 'hidden'});
     }
 }
