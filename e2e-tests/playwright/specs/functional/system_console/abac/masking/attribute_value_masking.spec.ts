@@ -12,7 +12,6 @@ import {
     createTeamAdmin,
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
-
 import {enableUserManagedAttributes} from '../support';
 
 // PLUG: setFieldAsSharedOnly flips a CPA field to shared_only in the DB (the
@@ -21,7 +20,7 @@ import {enableUserManagedAttributes} from '../support';
 // masking pipeline — the AttributeValueMasking feature flag is loaded at
 // server boot and cannot be flipped at runtime, so any API-level fetch returns
 // the masked view and can't verify what was actually persisted.
-import {setFieldAsSharedOnly, getStoredPolicyRuleExpressions} from './masking_db_setup';
+import {setFieldAsSharedOnly, setFieldAsSourceOnly, getStoredPolicyRuleExpressions} from './masking_db_setup';
 
 /**
  * Attribute-Value Masking E2E Tests
@@ -84,11 +83,7 @@ async function createMaskingTextField(client: Client4, fieldName: string): Promi
 /**
  * Create a multiselect CPA field with the given options and return its ID.
  */
-async function createMaskingMultiselectField(
-    client: Client4,
-    fieldName: string,
-    options: string[],
-): Promise<string> {
+async function createMaskingMultiselectField(client: Client4, fieldName: string, options: string[]): Promise<string> {
     const url = `${client.getBaseRoute()}/custom_profile_attributes/fields`;
     const created = await (client as any).doFetch(url, {
         method: 'POST',
@@ -2176,6 +2171,127 @@ test.describe('Attribute-Value Masking', () => {
             await operatorBtn.waitFor({state: 'visible', timeout: 10000});
             await expect(operatorBtn).toContainText('has any of');
             await expect(operatorBtn).not.toContainText('has all of');
+        } finally {
+            for (const id of policyIds) {
+                try {
+                    await deletePolicy(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            for (const id of fieldIds) {
+                try {
+                    await deleteCPAField(adminClient, id);
+                } catch {} // eslint-disable-line no-empty
+            }
+            try {
+                await disableMaskingFlag(adminClient);
+            } catch {} // eslint-disable-line no-empty
+        }
+    });
+
+    test('MM-68508-23: source_only and shared_only fields are filtered from the channel members RHS attribute tags', async ({
+        pw,
+    }) => {
+        // Validates that the /attributes endpoint strips source_only and shared_only
+        // fields before they reach the channel members RHS panel. A public field in
+        // the same policy must still appear so we confirm the filter is selective.
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        const fieldIds: string[] = [];
+        const policyIds: string[] = [];
+
+        try {
+            await enableUserManagedAttributes(adminClient);
+            await enableMaskingFlag(adminClient);
+
+            const id = pw.random.id();
+            const publicFieldName = `MaskingPublic_${id}`;
+            const sharedFieldName = `MaskingShared_${id}`;
+            const sourceFieldName = `MaskingSource_${id}`;
+
+            // Create all three fields as public first — the API rejects protected
+            // access modes (source_only / shared_only) without a source_plugin_id,
+            // so we flip them via direct DB writes after creation.
+            const publicFieldId = await createMaskingTextField(adminClient, publicFieldName);
+            const sharedFieldId = await createMaskingTextField(adminClient, sharedFieldName);
+            const sourceFieldId = await createMaskingTextField(adminClient, sourceFieldName);
+            fieldIds.push(publicFieldId, sharedFieldId, sourceFieldId);
+
+            // Give the admin user a value for every field so the self-inclusion
+            // check passes when the policy is saved.
+            await setUserAttribute(adminClient, adminUser.id, publicFieldId, 'Alpha');
+            await setUserAttribute(adminClient, adminUser.id, sharedFieldId, 'Beta');
+            await setUserAttribute(adminClient, adminUser.id, sourceFieldId, 'Gamma');
+
+            const {channelsPage, page} = await pw.testBrowser.login(adminUser);
+            await navigateToABACPage(page);
+            await enableABAC(page);
+
+            const policyName = `MaskingPolicy ${pw.random.id()}`;
+            const policyId = await createPolicyWithCEL(
+                page,
+                policyName,
+                `user.attributes.${publicFieldName} in ["Alpha"] && user.attributes.${sharedFieldName} in ["Beta"] && user.attributes.${sourceFieldName} in ["Gamma"]`,
+            );
+            policyIds.push(policyId);
+
+            // Flip access modes AFTER saving — same pattern as other masking tests.
+            // The policy save runs validatePolicyExpressionValues, which would reject
+            // values the caller does not hold if the field were already shared_only/
+            // source_only at save time.
+            await setFieldAsSharedOnly(sharedFieldId);
+            await setFieldAsSourceOnly(sourceFieldId);
+
+            // Create a private channel and attach the policy.
+            const channel = await createPrivateChannel(adminClient, team.id);
+            await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
+
+            // Navigate to the channel.
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            // The enforcement cache is cold on the first request — the hook fetch
+            // returns {} and the RHS renders no tags. Open the RHS, check; if the
+            // public-field tag is not yet visible, reload and retry. The first
+            // /attributes request from the browser warms the cache so subsequent
+            // fetches return the correctly-filtered attribute set.
+            const alertContainer = page.locator('.channel-members-rhs__alert-container.policy-enforced');
+            let publicTagVisible = false;
+            for (let attempt = 0; attempt < 6; attempt++) {
+                if (attempt > 0) {
+                    await page.keyboard.press('Escape');
+                    await page.waitForTimeout(3000);
+                    await page.reload();
+                    await channelsPage.toBeVisible();
+                }
+
+                await channelsPage.centerView.header.openChannelMenu();
+                await page.locator('#channelMembers').click();
+                await channelsPage.sidebarRight.toBeVisible();
+
+                try {
+                    await alertContainer.waitFor({state: 'visible', timeout: 10000});
+                    publicTagVisible = await alertContainer.getByText(/:\s*Alpha/).isVisible();
+                    if (publicTagVisible) {
+                        break;
+                    }
+                } catch {
+                    // alert container not yet visible, retry
+                }
+            }
+
+            // The tag text is formatted as "${AttributeLabel}: ${value}" where AttributeLabel
+            // is the result of formatAttributeName() — field names with underscores and mixed
+            // case are split and title-cased. Assert on the attribute VALUE to avoid coupling
+            // to the formatting logic.
+            //
+            // Public field (value "Alpha") MUST be visible.
+            await expect(alertContainer.getByText(/:\s*Alpha/)).toBeVisible({timeout: 5000});
+
+            // shared_only (value "Beta") and source_only (value "Gamma") must NOT appear.
+            await expect(alertContainer.getByText(/:\s*Beta/)).not.toBeVisible();
+            await expect(alertContainer.getByText(/:\s*Gamma/)).not.toBeVisible();
         } finally {
             for (const id of policyIds) {
                 try {

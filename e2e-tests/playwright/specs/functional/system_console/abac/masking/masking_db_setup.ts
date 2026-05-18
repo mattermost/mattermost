@@ -47,6 +47,14 @@ export async function setFieldAsSharedOnly(fieldId: string): Promise<void> {
 }
 
 /**
+ * Set a CPA field's access_mode to 'source_only' directly in the DB.
+ * Bypasses API validation (which requires source_plugin_id for protected fields).
+ */
+export async function setFieldAsSourceOnly(fieldId: string): Promise<void> {
+    await setFieldAccessMode(fieldId, 'source_only');
+}
+
+/**
  * Set the field back to public (removes the access_mode attr).
  */
 export async function setFieldAsPublic(fieldId: string): Promise<void> {
@@ -96,7 +104,12 @@ async function setFieldAccessMode(fieldId: string, accessMode: string): Promise<
 
     await runQuery(
         `UPDATE propertyfields
-            SET attrs = jsonb_set(COALESCE(attrs, '{}'::jsonb), '{access_mode}', to_jsonb($2::text)),
+            SET attrs = jsonb_set(
+                    jsonb_set(COALESCE(attrs, '{}'::jsonb), '{access_mode}', to_jsonb($2::text)),
+                    '{protected}',
+                    'true'::jsonb
+                ),
+                protected = true,
                 updateat = EXTRACT(EPOCH FROM NOW())::bigint * 1000
           WHERE id = $1`,
         [fieldId, accessMode],

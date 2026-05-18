@@ -442,6 +442,45 @@ func TestMergeConditionValues(t *testing.T) {
 		result := mergeConditionValues(submitted, []string{"Building 7"})
 		assert.Equal(t, "Building 7", result.Value)
 	})
+
+	t.Run("scalar: hidden value wins over empty submitted string", func(t *testing.T) {
+		submitted := model.Condition{Attribute: "user.attributes.Location", Operator: "!=", Value: ""}
+		result := mergeConditionValues(submitted, []string{"Building 7"})
+		assert.Equal(t, "Building 7", result.Value)
+	})
+
+	t.Run("scalar: hidden value wins over masked-token submitted string", func(t *testing.T) {
+		submitted := model.Condition{Attribute: "user.attributes.Location", Operator: "!=", Value: maskedTokenValue}
+		result := mergeConditionValues(submitted, []string{"Building 7"})
+		assert.Equal(t, "Building 7", result.Value)
+	})
+
+	t.Run("scalar: hidden value wins over caller-visible submitted string (security: prevents overwrite)", func(t *testing.T) {
+		// A crafted save can submit a caller-held value that passes validateConditionValues.
+		// mergeConditionValues must still restore the stored hidden value so the caller
+		// cannot overwrite a shared_only scalar they cannot see.
+		submitted := model.Condition{Attribute: "user.attributes.Location", Operator: "!=", Value: "Building 1"}
+		result := mergeConditionValues(submitted, []string{"Building 7"})
+		assert.Equal(t, "Building 7", result.Value)
+	})
+
+	t.Run("scalar via []any: mergeConditionValues appends hidden value last; isScalarOperator block must use hiddenValues[0] not arr[0]", func(t *testing.T) {
+		// Second attack vector: a crafted submission of `in ["Building 1"]` (a list,
+		// not a string) also passes validateConditionValues for a shared_only caller.
+		// mergeConditionValues produces ["Building 1", "Building 7"] — the caller's
+		// value comes first. The isScalarOperator normalization in
+		// mergeExpressionWithMaskedValues must use hiddenValues[0] directly rather
+		// than arr[0], otherwise the attacker's value wins.
+		submitted := model.Condition{Attribute: "user.attributes.Location", Operator: "in", Value: []any{"Building 1"}}
+		result := mergeConditionValues(submitted, []string{"Building 7"})
+		values, ok := result.Value.([]any)
+		require.True(t, ok)
+		// Hidden value is appended after the submitted one — arr[0] would be "Building 1".
+		// The fix in mergeExpressionWithMaskedValues (isScalarOperator block) must
+		// pick hiddenValues[0] = "Building 7" instead of arr[0].
+		assert.Equal(t, "Building 1", values[0], "submitted value is first in merged list")
+		assert.Equal(t, "Building 7", values[1], "hidden value is appended last")
+	})
 }
 
 func TestGetHiddenValues(t *testing.T) {
