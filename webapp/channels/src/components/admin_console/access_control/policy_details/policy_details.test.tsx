@@ -28,6 +28,14 @@ jest.mock('../editors/table_editor/table_editor', () => {
     });
 });
 
+// Mock CELEditor — its real implementation boots Monaco on mount, which is
+// not available in JSDOM. The mode-toggle tests only care that switching to
+// Advanced/Simple flips state in the parent, not how Monaco renders.
+jest.mock('../editors/cel_editor/editor', () => {
+    const reactLib = require('react');
+    return jest.fn(() => reactLib.createElement('div', {'data-testid': 'cel-editor'}));
+});
+
 // Mock the useChannelAccessControlActions hook
 jest.mock('hooks/useChannelAccessControlActions', () => ({
     useChannelAccessControlActions: jest.fn(),
@@ -163,11 +171,9 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
                 ...defaultProps.actions,
                 fetchPolicy: jest.fn().mockResolvedValue({
                     data: {
-                        policy: {
-                            id: 'policy1',
-                            name: 'Policy 1',
-                            rules: [{expression: 'true'}],
-                        },
+                        id: 'policy1',
+                        name: 'Policy 1',
+                        rules: [{expression: 'true'}],
                     },
                 }),
             },
@@ -186,14 +192,12 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
                 ...defaultProps.actions,
                 fetchPolicy: jest.fn().mockResolvedValue({
                     data: {
-                        policy: {
-                            id: 'policy1',
-                            name: 'Policy 1',
-                            rules: [{
-                                actions: ['*'],
-                                expression: 'user.attributes.program in ["Alpha", "--------"]',
-                            }],
-                        },
+                        id: 'policy1',
+                        name: 'Policy 1',
+                        rules: [{
+                            actions: ['*'],
+                            expression: 'user.attributes.program in ["Alpha", "--------"]',
+                        }],
                     },
                 }),
             },
@@ -221,20 +225,24 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         // the warning banner would flicker off and the CEL/delete gates would
         // briefly open. Deriving from the "--------" sentinel in the expression
         // is the only source of truth that's lifecycle-independent.
+
+        // The mode-toggle button is disabled while no usable attributes are
+        // available, so the test needs at least one to actually exercise the
+        // Simple → Advanced → Simple round-trip.
+        mockGetAccessControlFields.mockResolvedValue({data: [{name: 'program', attrs: {ldap: true}}]});
+
         const props = {
             ...defaultProps,
             actions: {
                 ...defaultProps.actions,
                 fetchPolicy: jest.fn().mockResolvedValue({
                     data: {
-                        policy: {
-                            id: 'policy1',
-                            name: 'Policy 1',
-                            rules: [{
-                                actions: ['*'],
-                                expression: 'user.attributes.program in ["Alpha", "--------"]',
-                            }],
-                        },
+                        id: 'policy1',
+                        name: 'Policy 1',
+                        rules: [{
+                            actions: ['*'],
+                            expression: 'user.attributes.program in ["Alpha", "--------"]',
+                        }],
                     },
                 }),
             },
@@ -269,14 +277,12 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
                 ...defaultProps.actions,
                 fetchPolicy: jest.fn().mockResolvedValue({
                     data: {
-                        policy: {
-                            id: 'policy1',
-                            name: 'Policy 1',
-                            rules: [{
-                                actions: ['*'],
-                                expression: 'user.attributes.program in ["Alpha", "Bravo"]',
-                            }],
-                        },
+                        id: 'policy1',
+                        name: 'Policy 1',
+                        rules: [{
+                            actions: ['*'],
+                            expression: 'user.attributes.program in ["Alpha", "Bravo"]',
+                        }],
                     },
                 }),
             },
