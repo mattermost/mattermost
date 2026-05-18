@@ -5,6 +5,8 @@ import React from 'react';
 import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {Permissions} from 'mattermost-redux/constants';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
@@ -26,8 +28,6 @@ import UserAccountOfflineMenuItem from 'components/user_account_menu/user_accoun
 import UserAccountOnlineMenuItem from 'components/user_account_menu/user_account_online_menuitem';
 import UserSettingsModal from 'components/user_settings/modal';
 import Menu from 'components/widgets/menu/menu';
-
-import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 import {ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {makeUrlSafe} from 'utils/url';

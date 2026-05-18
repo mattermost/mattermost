@@ -6,6 +6,8 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {matchPath, useLocation} from 'react-router-dom';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -38,8 +40,6 @@ import {
     TutorialTourName,
 } from 'components/tours';
 import {ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON} from 'components/user_account_menu/user_account_menu';
-
-import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 import {ModalIdentifiers} from 'utils/constants';
 

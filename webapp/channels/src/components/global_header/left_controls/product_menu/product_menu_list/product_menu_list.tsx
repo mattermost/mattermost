@@ -13,6 +13,7 @@ import {
     ViewGridPlusOutlineIcon,
     WebhookIncomingIcon,
 } from '@mattermost/compass-icons/components';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -26,8 +27,6 @@ import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import UserGroupsModal from 'components/user_groups_modal';
 import Menu from 'components/widgets/menu/menu';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
-
-import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';

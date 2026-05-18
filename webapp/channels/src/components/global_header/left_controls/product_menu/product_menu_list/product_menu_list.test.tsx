@@ -3,9 +3,9 @@
 
 import React from 'react';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
-import * as UserAgent from '@mattermost/shared/utils/user_agent';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';

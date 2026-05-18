@@ -4,6 +4,7 @@
 import React from 'react';
 
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {Permissions} from 'mattermost-redux/constants';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';

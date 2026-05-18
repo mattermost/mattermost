@@ -7,6 +7,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
@@ -14,8 +15,6 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
-
-import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 import completedImg from 'images/completed.svg';
 import {AboutLinks, LicenseLinks} from 'utils/constants';
