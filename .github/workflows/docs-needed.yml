@@ -6,13 +6,28 @@
 #   mattermost/mattermost-mobile -> .github/workflows/docs-needed.yml
 #   mattermost/desktop           -> .github/workflows/docs-needed.yml
 #
-# Required secrets (set in each repo's Settings -> Secrets):
-#   DOCS_REPO_PAT     - PAT with read/write access to mattermost/docs
-#                       (contents, pull-requests, issues, milestones)
+# Cross-repo authentication (choose one):
+#
+#   Option A - GitHub App (recommended for production):
+#     vars.DOCS_APP_ID             - GitHub App ID (repository variable)
+#     secrets.DOCS_APP_PRIVATE_KEY - GitHub App private key
+#     The app must be installed on and granted contents: write +
+#     pull-requests: write + issues: write for mattermost/docs.
+#     Short-lived installation tokens are generated automatically per run.
+#
+#   Option B - Fine-grained PAT (simpler setup, ties to a user account):
+#     secrets.DOCS_REPO_PAT - Fine-grained PAT with contents: write +
+#                             pull-requests: write + issues: write on
+#                             mattermost/docs.
+#     To use: replace steps.token.outputs.token with secrets.DOCS_REPO_PAT
+#             and remove the "Generate token" step.
+#
+# Other required secrets (set in each repo's Settings -> Secrets):
 #   ANTHROPIC_API_KEY - Claude API key for doc generation
 #
 # Behaviour:
-#   When Docs/Needed is added to a PR, opens one docs PR in mattermost/docs:
+#   When Docs/Needed is added to a non-draft PR from within the same repo,
+#   opens one docs PR in mattermost/docs:
 #     Branch:  docs/<repo-name>-pr-<number>
 #              e.g. docs/mattermost-pr-1234, docs/desktop-pr-42
 #     Targets the versioned release branch (e.g. v11.7-documentation) if it
@@ -30,7 +45,10 @@ on:
   pull_request:
     types: [labeled]
  
-# One run at a time per dev PR - prevents a race if the label bounces.
+# One run at a time per dev PR prevents a race if the label bounces quickly.
+# cancel-in-progress is false because a mid-run cancellation can leave the
+# docs branch in a partial state (e.g. commit pushed but PR not yet opened).
+# Queuing is safer; the idempotency checks in each step handle duplicates.
 concurrency:
   group: >-
     docs-needed-${{ github.repository }}-${{ github.event.pull_request.number }}
@@ -42,13 +60,30 @@ jobs:
       Open docs PR for
       ${{ github.repository }}#${{ github.event.pull_request.number }}
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'Docs/Needed'
+    # Fork guard: only run on PRs opened from within this repo, not forks.
+    # Draft guard: skip draft PRs - apply Docs/Needed when the PR is ready.
+    if: |
+      github.event.label.name == 'Docs/Needed' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false
     permissions:
       contents: read
       pull-requests: write
  
     steps:
-      # 0. Guard: milestone is required
+      # 0. Generate a short-lived installation token scoped to mattermost/docs.
+      #    Uses a GitHub App so the token is not tied to any individual user
+      #    account and expires automatically after 1 hour.
+      #    See Option B in the header comment if you prefer a PAT instead.
+      - name: Generate token
+        id: token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.DOCS_APP_ID }}
+          private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
+          repositories: docs
+ 
+      # 1. Guard: milestone is required
       - name: Require milestone
         env:
           MILESTONE: ${{ github.event.pull_request.milestone.number }}
@@ -58,7 +93,7 @@ jobs:
             exit 1
           fi
  
-      # 1. Compute shared variables
+      # 2. Compute shared variables
       - name: Set variables
         id: vars
         env:
@@ -83,7 +118,7 @@ jobs:
           echo "pr_author=$PR_AUTHOR" >> "$GITHUB_OUTPUT"
           echo "source_repo=$SOURCE_REPO" >> "$GITHUB_OUTPUT"
  
-      # 2. Resolve the versioned base branch in mattermost/docs
+      # 3. Resolve the versioned base branch in mattermost/docs
       #    mattermost/mattermost milestones (e.g. "v11.7.0") map directly to
       #    the docs branch (e.g. "v11.7-documentation").
       #    mattermost-mobile and desktop use different versioning schemes, but
@@ -93,7 +128,7 @@ jobs:
       - name: Resolve docs base branch
         id: base-branch
         env:
-          GH_TOKEN: ${{ secrets.DOCS_REPO_PAT }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
           MILESTONE_TITLE: ${{ steps.vars.outputs.milestone_title }}
           MILESTONE_DUE: ${{ github.event.pull_request.milestone.due_on }}
           REPO_NAME: ${{ steps.vars.outputs.repo_name }}
@@ -164,11 +199,11 @@ jobs:
               "Ensure docs-branch-create.yml has run for this milestone."
           fi
  
-      # 3. Check for an existing docs PR (idempotency)
+      # 4. Check for an existing docs PR (idempotency)
       - name: Check for existing docs PR
         id: existing
         env:
-          GH_TOKEN: ${{ secrets.DOCS_REPO_PAT }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
           BRANCH: ${{ steps.vars.outputs.branch }}
         run: |
           RESULT=$(gh pr list \
@@ -188,12 +223,15 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
  
-      # 4. Checkout docs repo
+      # 5. Checkout docs repo
+      #    Pinned to a specific commit SHA for supply-chain security.
+      #    To update: find the SHA for the desired tag at
+      #    https://github.com/actions/checkout/releases
       - name: Checkout docs repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: mattermost/docs
-          token: ${{ secrets.DOCS_REPO_PAT }}
+          token: ${{ steps.token.outputs.token }}
           path: docs-repo
           fetch-depth: 0
  
@@ -217,7 +255,7 @@ jobs:
             git checkout -b "$BRANCH" "origin/$BASE_BRANCH"
           fi
  
-      # 5. Fetch PR content for Claude
+      # 6. Fetch PR content for Claude
       - name: Fetch PR diff and description
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -230,10 +268,22 @@ jobs:
           gh pr view "$PR_NUMBER" --repo "$SOURCE_REPO" \
             --json body --jq '.body // ""' > /tmp/pr-body.txt
  
-      # 6. Generate documentation draft via Claude
+      # 7. Generate documentation draft via Claude
+      #
       #    System prompt is read from mattermost/docs at runtime so it can be
       #    updated independently of this workflow file.
       #    File location in mattermost/docs: .github/prompts/draft_docs.md
+      #
+      #    Raw API call (not anthropics/claude-code-action) because:
+      #    - We supply a custom system prompt read from a file in the docs repo
+      #    - We HTML-escape untrusted PR content before insertion (security)
+      #    - We validate the response structure before writing any file
+      #    claude-code-action is designed for code-execution tasks and does not
+      #    support file-based system prompts or the output validation required
+      #    by the security model here.
+      #
+      #    Model: claude-sonnet-4-6 balances quality and cost for doc drafting
+      #    and is consistent with other Mattermost docs automation workflows.
       - name: Generate documentation draft
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -290,7 +340,7 @@ jobs:
             --rawfile system /tmp/system_prompt.txt \
             --rawfile content /tmp/user_message.txt \
             '{
-              model: "claude-opus-4-6",
+              model: "claude-sonnet-4-6",
               max_tokens: 2048,
               system: $system,
               messages: [{
@@ -299,12 +349,27 @@ jobs:
               }]
             }')
  
-          curl -sf https://api.anthropic.com/v1/messages \
+          # --max-time 60: fail fast if the API is unresponsive.
+          # Capture the full response before piping so we can inspect it.
+          RESPONSE=$(curl -sf --max-time 60 \
+            https://api.anthropic.com/v1/messages \
             -H "x-api-key: $ANTHROPIC_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
-            -d "$PAYLOAD" \
-            | jq -r '.content[0].text' > /tmp/generated-docs.md
+            -d "$PAYLOAD") || {
+            echo "::error::Claude API call failed (timeout or HTTP error)."
+            exit 1
+          }
+ 
+          echo "$RESPONSE" | jq -r '.content[0].text' > /tmp/generated-docs.md
+ 
+          # Fail immediately if the API returned null or an empty body.
+          if [ ! -s /tmp/generated-docs.md ] || \
+             [ "$(cat /tmp/generated-docs.md)" = "null" ]; then
+            echo "::error::Claude returned empty or null content. Full response:"
+            echo "$RESPONSE"
+            exit 1
+          fi
  
           # Validate the output matches the required structure defined in the
           # system prompt. Missing sections indicate the model was steered away
@@ -320,7 +385,7 @@ jobs:
             exit 1
           fi
  
-      # 7. Write docs file
+      # 8. Write docs file
       - name: Write docs file
         working-directory: docs-repo
         env:
@@ -348,16 +413,18 @@ jobs:
             cat /tmp/generated-docs.md
           } > "$DOCS_FILE"
  
-      # 8. Commit and push
+      # 9. Commit and push
       - name: Commit and push
         working-directory: docs-repo
         env:
           BRANCH: ${{ steps.vars.outputs.branch }}
+          DOCS_FILE: ${{ steps.vars.outputs.docs_file }}
           SOURCE_REPO: ${{ steps.vars.outputs.source_repo }}
           PR_NUMBER: ${{ steps.vars.outputs.pr_number }}
           PR_TITLE: ${{ steps.vars.outputs.pr_title }}
         run: |
-          git add .
+          # Stage only the specific docs file - not the entire working tree.
+          git add "$DOCS_FILE"
           if git diff --cached --quiet; then
             echo "No content changes - skipping commit."
           else
@@ -365,16 +432,19 @@ jobs:
             git push origin "$BRANCH"
           fi
  
-      # 9. Sync milestone to mattermost/docs
+      # 10. Sync milestone to mattermost/docs
       - name: Sync milestone
         id: docs-milestone
         env:
-          GH_TOKEN: ${{ secrets.DOCS_REPO_PAT }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
           MILESTONE_TITLE: ${{ steps.vars.outputs.milestone_title }}
         run: |
+          # Use --arg to pass the title safely - avoids jq injection if the
+          # milestone title contains quotes or other special characters.
           NUM=$(gh api 'repos/mattermost/docs/milestones?state=all' \
             --paginate \
-            --jq ".[] | select(.title == \"$MILESTONE_TITLE\") | .number" \
+            --jq '.[] | select(.title == $title) | .number' \
+            --arg title "$MILESTONE_TITLE" \
             | head -1)
  
           if [ -z "$NUM" ]; then
@@ -387,12 +457,12 @@ jobs:
  
           echo "number=$NUM" >> "$GITHUB_OUTPUT"
  
-      # 10a. Create docs PR
+      # 11a. Create docs PR
       - name: Create docs PR
         id: create-pr
         if: steps.existing.outputs.exists == 'false'
         env:
-          GH_TOKEN: ${{ secrets.DOCS_REPO_PAT }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
           BRANCH: ${{ steps.vars.outputs.branch }}
           MILESTONE_TITLE: ${{ steps.vars.outputs.milestone_title }}
           MILESTONE_NUMBER: ${{ steps.docs-milestone.outputs.number }}
@@ -427,11 +497,11 @@ jobs:
           echo "number=$(echo "$URL" | grep -oE '[0-9]+$')" >> "$GITHUB_OUTPUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
  
-      # 10b. Update existing docs PR milestone (re-trigger path)
+      # 11b. Update existing docs PR milestone (re-trigger path)
       - name: Update existing docs PR
         if: steps.existing.outputs.exists == 'true'
         env:
-          GH_TOKEN: ${{ secrets.DOCS_REPO_PAT }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
           DOCS_PR: ${{ steps.existing.outputs.number }}
           MILESTONE_NUMBER: ${{ steps.docs-milestone.outputs.number }}
         run: |
@@ -439,7 +509,7 @@ jobs:
             --repo mattermost/docs \
             --milestone "$MILESTONE_NUMBER"
  
-      # 11. Resolve final docs PR reference
+      # 12. Resolve final docs PR reference
       - name: Resolve docs PR reference
         id: resolve
         run: |
@@ -451,10 +521,10 @@ jobs:
             echo "url=${{ steps.create-pr.outputs.url }}" >> "$GITHUB_OUTPUT"
           fi
  
-      # 12. Add dev PR author as reviewer
+      # 13. Add dev PR author as reviewer
       - name: Add reviewer
         env:
-          GH_TOKEN: ${{ secrets.DOCS_REPO_PAT }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
           PR_AUTHOR: ${{ steps.vars.outputs.pr_author }}
         run: |
           gh pr edit "${{ steps.resolve.outputs.number }}" \
@@ -463,7 +533,7 @@ jobs:
           || echo "::warning::Could not add @${PR_AUTHOR} as reviewer" \
             "- they may need docs repo access first."
  
-      # 13. Comment on the dev PR
+      # 14. Comment on the dev PR
       - name: Comment on dev PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
