@@ -8,12 +8,17 @@
  * including creating, editing, deleting, and configuring attribute fields.
  *
  * Related: MM-62558 / PR #30722 (Profile Popup CPA tests pattern reference)
+ *
+ * IMPORTANT: All field names must be valid CEL identifiers — matching
+ * ^[A-Za-z_][A-Za-z0-9_]*$ — because the server validates them against that
+ * pattern and returns HTTP 422 for any name containing spaces or special chars.
+ * Use underscores instead of spaces (e.g. 'Test_Department' not 'Test Department').
  */
 
 import {Client4} from '@mattermost/client';
 import {UserPropertyField} from '@mattermost/types/properties';
 
-import {expect, test, SystemConsolePage} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, test, SystemConsolePage} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 import {
@@ -72,6 +77,23 @@ async function cleanupFields(client: Client4, fieldsMap: FieldsMap): Promise<voi
 }
 
 test.describe('System Console - User Attributes Management', () => {
+    test.afterAll(async () => {
+        try {
+            const {adminClient} = await getAdminClient({skipLog: true});
+            const fields = (await adminClient.getCustomProfileAttributeFields()) as Array<{name: string}>;
+            if (!fields.some((f) => f.name === 'Department')) {
+                await adminClient.createCustomProfileAttributeField({
+                    name: 'Department',
+                    type: 'text',
+                    attrs: {sort_order: 0},
+                } as any);
+            }
+        } catch {
+            // Best-effort cleanup; if the server is unlicensed or fields API
+            // is unavailable, ABAC tests will handle their own attribute setup.
+        }
+    });
+
     /**
      * @objective Verify that navigating to the User Attributes page shows the empty state
      * with the Add attribute button and a disabled Save button.
@@ -136,19 +158,21 @@ test.describe('System Console - User Attributes Management', () => {
         // # Click "Add attribute"
         await sp.addAttribute();
 
-        // * Verify a new row with an input appears in the table
-        const nameInput = sp.nameInput(0);
+        // * Verify a new row with an input appears in the table.
+        // Use lastNameInput() — not positional nameInput(0) — so concurrent tests
+        // inserting UAAE/ABAC rows don't shift the index to the wrong field.
+        const nameInput = sp.lastNameInput();
         await expect(nameInput).toBeVisible();
 
-        // # Type attribute name
-        await nameInput.fill('Test Department');
+        // # Type attribute name (must be a valid CEL identifier — no spaces)
+        await nameInput.fill('test_department');
         await nameInput.blur();
 
         await sp.saveAndWaitForSettled();
 
         // * Verify the field was created by fetching from API
         const fieldsMap = await getFieldsMap(adminClient);
-        const createdField = Object.values(fieldsMap).find((f) => f.name === 'Test Department');
+        const createdField = Object.values(fieldsMap).find((f) => f.name === 'test_department');
         expect(createdField).toBeDefined();
         expect(createdField!.type).toBe('text');
 
@@ -169,22 +193,26 @@ test.describe('System Console - User Attributes Management', () => {
         // # Click "Add attribute"
         await sp.addAttribute();
 
-        // # Type attribute name
-        const nameInput = sp.nameInput(0);
-        await nameInput.fill('Office Location');
+        // # Type attribute name (must be a valid CEL identifier — no spaces)
+        const nameInput = sp.lastNameInput();
+        await nameInput.fill('office_location');
         await nameInput.blur();
 
-        // # Change type to Select
-        await sp.selectType(0, 'Select');
+        // # Change type to Select (use selectLastType so the index stays correct
+        // even when concurrent tests have inserted extra rows)
+        await sp.selectLastType('Select');
 
         // # Add options
-        await sp.addOptions(0, ['Remote', 'Office', 'Hybrid']);
+        await sp.addOptionsToLast(['Remote', 'Office', 'Hybrid']);
+
+        // # Click the name input to blur the react-select and commit all pending option state
+        await sp.lastNameInput().click();
 
         await sp.saveAndWaitForSettled();
 
         // * Verify field was created with correct type via API
         const fieldsMap = await getFieldsMap(adminClient);
-        const createdField = Object.values(fieldsMap).find((f) => f.name === 'Office Location');
+        const createdField = Object.values(fieldsMap).find((f) => f.name === 'office_location');
         expect(createdField).toBeDefined();
         expect(createdField!.type).toBe('select');
         expect(createdField!.attrs.options).toBeDefined();
@@ -198,30 +226,32 @@ test.describe('System Console - User Attributes Management', () => {
      * the rename to the server.
      *
      * @precondition
-     * A custom profile attribute named "Old Name" exists via API setup.
+     * A custom profile attribute named "Old_Name" exists via API setup.
      */
     test.fixme('edits an existing attribute name and saves', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Old Name', type: 'text'}];
+        const attributes: CustomProfileAttribute[] = [{name: 'old_name', type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
 
         // # Navigate to User Attributes page
         await sp.goto();
 
-        // # Find the attribute name input and edit it
-        const nameInput = sp.nameInput(0);
-        await expect(nameInput).toHaveValue('Old Name');
-        await nameInput.fill('New Name');
-        await nameInput.blur();
+        const nameInput = sp.nameInputByValue('old_name');
+        await expect(nameInput).toBeVisible();
+        await nameInput.focus();
+        await nameInput.fill('new_name');
+        // blur via keyboard — the CSS-attribute locator no longer matches
+        // after fill() so calling .blur() on it would time out.
+        await sp.page.keyboard.press('Tab');
 
         await sp.saveAndWaitForSettled();
 
         // * Verify field was updated via API
         const updatedMap = await getFieldsMap(adminClient);
-        expect(Object.values(updatedMap).find((f) => f.name === 'New Name')).toBeDefined();
+        expect(Object.values(updatedMap).find((f) => f.name === 'new_name')).toBeDefined();
 
         await cleanupFields(adminClient, {...fieldsMap, ...updatedMap});
     });
@@ -231,14 +261,14 @@ test.describe('System Console - User Attributes Management', () => {
      * from the server after confirmation and save.
      *
      * @precondition
-     * A custom profile attribute named "To Delete" exists via API setup.
+     * A custom profile attribute named "To_Delete" exists via API setup.
      */
     test.fixme('deletes an attribute via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'To Delete', type: 'text'}];
+        const attributes: CustomProfileAttribute[] = [{name: 'to_delete', type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
         const fieldId = Object.keys(fieldsMap)[0];
 
@@ -246,7 +276,7 @@ test.describe('System Console - User Attributes Management', () => {
         await sp.goto();
 
         // * Verify the attribute exists
-        await expect(sp.nameInputByValue('To Delete')).toBeVisible();
+        await expect(sp.nameInputByValue('to_delete')).toBeVisible();
 
         // # Open dot menu for the field
         await sp.openDotMenu(fieldId);
@@ -261,14 +291,14 @@ test.describe('System Console - User Attributes Management', () => {
 
         // * Verify field was deleted via API
         const updatedMap = await getFieldsMap(adminClient);
-        expect(Object.values(updatedMap).find((f) => f.name === 'To Delete')).toBeUndefined();
+        expect(Object.values(updatedMap).find((f) => f.name === 'to_delete')).toBeUndefined();
 
         await cleanupFields(adminClient, updatedMap);
     });
 
     /**
      * @objective Verify duplicating an attribute via the dot menu creates a copy
-     * with "(copy)" suffix that persists after save.
+     * with a valid name that persists after save.
      *
      * @precondition
      * A custom profile attribute named "Original" exists via API setup.
@@ -291,15 +321,20 @@ test.describe('System Console - User Attributes Management', () => {
         // # Click "Duplicate attribute"
         await sp.duplicateAttribute();
 
-        // * Verify a copy row appeared with "(copy)" in the name
-        await expect(sp.nameInputByValue('Original (copy)')).toBeVisible();
+        // * Verify a copy row appeared with "_copy" suffix in the name
+        await expect(sp.nameInputByValue('Original_copy')).toBeVisible();
+
+        // # Rename the copy to a valid CEL identifier (server rejects spaces/parens with 422)
+        const copyInput = sp.lastNameInput();
+        await copyInput.fill('Original_copy');
+        await copyInput.blur();
 
         await sp.saveAndWaitForSettled();
 
         // * Verify both fields exist via API
         const updatedMap = await getFieldsMap(adminClient);
         expect(Object.values(updatedMap).find((f) => f.name === 'Original')).toBeDefined();
-        expect(Object.values(updatedMap).find((f) => f.name === 'Original (copy)')).toBeDefined();
+        expect(Object.values(updatedMap).find((f) => f.name === 'Original_copy')).toBeDefined();
 
         await cleanupFields(adminClient, updatedMap);
     });
@@ -309,14 +344,14 @@ test.describe('System Console - User Attributes Management', () => {
      * dot menu persists the hidden state to the server.
      *
      * @precondition
-     * A custom profile attribute named "Visibility Test" exists via API setup.
+     * A custom profile attribute named "Visibility_Test" exists via API setup.
      */
     test.fixme('changes attribute visibility via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Visibility Test', type: 'text'}];
+        const attributes: CustomProfileAttribute[] = [{name: 'visibility_test', type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
         const fieldId = Object.keys(fieldsMap)[0];
 
@@ -333,7 +368,7 @@ test.describe('System Console - User Attributes Management', () => {
 
         // * Verify visibility was updated via API
         const updatedMap = await getFieldsMap(adminClient);
-        const updatedField = Object.values(updatedMap).find((f) => f.name === 'Visibility Test');
+        const updatedField = Object.values(updatedMap).find((f) => f.name === 'visibility_test');
         expect(updatedField).toBeDefined();
         expect(updatedField!.attrs.visibility).toBe('hidden');
 
@@ -345,14 +380,14 @@ test.describe('System Console - User Attributes Management', () => {
      * the attribute to admin-managed on the server.
      *
      * @precondition
-     * A custom profile attribute named "Editable Test" exists via API setup.
+     * A custom profile attribute named "Editable_Test" exists via API setup.
      */
     test.fixme('toggles editable by users off via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Editable Test', type: 'text'}];
+        const attributes: CustomProfileAttribute[] = [{name: 'editable_test', type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
         const fieldId = Object.keys(fieldsMap)[0];
 
@@ -365,23 +400,34 @@ test.describe('System Console - User Attributes Management', () => {
         // # Click "Editable by users" toggle
         await sp.toggleEditableByUsers();
 
+        // # Wait for the checkbox to reflect the toggled (unchecked) state before dismissing,
+        // # to avoid a race where Escape fires before the UI registers the change
+        await expect(systemConsolePage.page.getByRole('menuitemcheckbox', {name: 'Editable by users'})).toHaveAttribute(
+            'aria-checked',
+            'false',
+        );
+
         // # Close the dot menu — it stays open after toggling; backdrop would block Save click
         await sp.dismissMenu();
 
         await sp.saveAndWaitForSettled();
 
         // * Verify managed was set to 'admin' (not editable by users) via API
-        const updatedMap = await getFieldsMap(adminClient);
-        const updatedField = Object.values(updatedMap).find((f) => f.name === 'Editable Test');
-        expect(updatedField).toBeDefined();
-        expect(updatedField!.attrs.managed).toBe('admin');
+        // # Use expect.poll to tolerate brief server-side propagation delay
+        await expect
+            .poll(async () => {
+                const map = await getFieldsMap(adminClient);
+                return Object.values(map).find((f) => f.name === 'editable_test');
+            })
+            .toMatchObject({attrs: {managed: 'admin'}});
 
-        await cleanupFields(adminClient, updatedMap);
+        await cleanupFields(adminClient, await getFieldsMap(adminClient));
     });
 
     /**
-     * @objective Verify that leaving an attribute name empty shows a validation
-     * warning and disables the Save button.
+     * @objective Verify that clearing the auto-derived CEL identifier (Name)
+     * after entering a Display Name shows the empty-name validation warning
+     * and disables the Save button.
      */
     test('shows validation warning for empty attribute name', {tag: '@user_attributes'}, async ({pw}) => {
         const {systemConsolePage} = await setupTest(pw);
@@ -393,8 +439,16 @@ test.describe('System Console - User Attributes Management', () => {
         // # Add a new attribute
         await sp.addAttribute();
 
-        // # Clear the auto-focused name input (leave it empty)
-        const nameInput = sp.nameInput(0);
+        // # Fill Display Name so the Name field auto-derives as snake_case
+        const displayNameInput = sp.lastDisplayNameInput();
+        await displayNameInput.fill('Job Title');
+        await displayNameInput.blur();
+
+        // * Verify the Name field auto-populated with the snake_case identifier
+        const nameInput = sp.lastNameInput();
+        await expect(nameInput).toHaveValue('job_title');
+
+        // # Clear the auto-derived identifier and blur to trigger the empty-name warning
         await nameInput.clear();
         await nameInput.blur();
 
@@ -410,14 +464,15 @@ test.describe('System Console - User Attributes Management', () => {
      * unique" warning and disables the Save button.
      *
      * @precondition
-     * A custom profile attribute named "Unique Name" exists via API setup.
+     * A custom profile attribute named "UniqueName_<timestamp>" exists via API setup.
      */
     test.fixme('shows validation warning for duplicate attribute names', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
-        // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Unique Name', type: 'text'}];
+        // # Create an attribute via API (name must be a valid CEL identifier — no spaces)
+        const uniqueDupName = `unique_name_${Date.now()}`;
+        const attributes: CustomProfileAttribute[] = [{name: uniqueDupName, type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
 
         // # Navigate to User Attributes page
@@ -426,9 +481,10 @@ test.describe('System Console - User Attributes Management', () => {
         // # Add a new attribute with the same name
         await sp.addAttribute();
 
-        const newNameInput = sp.nameInput(1);
+        // Use lastNameInput() so concurrent UAAE/ABAC rows don't shift the index.
+        const newNameInput = sp.lastNameInput();
         await newNameInput.clear();
-        await newNameInput.fill('Unique Name');
+        await newNameInput.fill(uniqueDupName);
         await newNameInput.blur();
 
         // * Verify validation warning about duplicate name is shown
@@ -445,27 +501,29 @@ test.describe('System Console - User Attributes Management', () => {
      * selector saves the updated value_type to the server.
      *
      * @precondition
-     * A text attribute named "Contact Number" exists via API setup.
+     * A text attribute named "Contact_Number" exists via API setup.
      */
     test.fixme('changes attribute type from text to phone', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
         // # Create a text attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Contact Number', type: 'text'}];
+        const attributes: CustomProfileAttribute[] = [{name: 'contact_number', type: 'text'}];
         await setupCustomProfileAttributeFields(adminClient, attributes);
 
         // # Navigate to User Attributes page
         await sp.goto();
 
-        // # Select "Phone" type
-        await sp.selectType(0, 'Phone');
+        // # Select "Phone" type for the Contact_Number field.
+        // Use selectTypeForField() — resolves the row index by name so concurrent
+        // UAAE/ABAC rows don't shift the positional index.
+        await sp.selectTypeForField('contact_number', 'Phone');
 
         await sp.saveAndWaitForSettled();
 
         // * Verify field type was updated via API
         const updatedMap = await getFieldsMap(adminClient);
-        const updatedField = Object.values(updatedMap).find((f) => f.name === 'Contact Number');
+        const updatedField = Object.values(updatedMap).find((f) => f.name === 'contact_number');
         expect(updatedField).toBeDefined();
         expect(updatedField!.type).toBe('text');
         expect(updatedField!.attrs.value_type).toBe('phone');
@@ -487,16 +545,19 @@ test.describe('System Console - User Attributes Management', () => {
         // # Click "Add attribute"
         await sp.addAttribute();
 
-        // # Type attribute name
-        const nameInput = sp.nameInput(0);
+        // # Type attribute name ('Skills' is a single-word valid CEL identifier)
+        const nameInput = sp.lastNameInput();
         await nameInput.fill('Skills');
         await nameInput.blur();
 
         // # Change type to Multi-select
-        await sp.selectType(0, 'Multi-select');
+        await sp.selectLastType('Multi-select');
 
         // # Add options
-        await sp.addOptions(0, ['JavaScript', 'Python', 'Go']);
+        await sp.addOptionsToLast(['JavaScript', 'Python', 'Go']);
+
+        // # Click the name input to blur the react-select and commit all pending option state
+        await sp.lastNameInput().click();
 
         await sp.saveAndWaitForSettled();
 
@@ -522,24 +583,24 @@ test.describe('System Console - User Attributes Management', () => {
         // # Navigate to User Attributes page
         await sp.goto();
 
-        // # Create first attribute (text)
+        // # Create first attribute (text) — use lastNameInput() after each addAttribute()
         await sp.addAttribute();
-        const firstInput = sp.nameInput(0);
-        await firstInput.fill('Job Title');
+        const firstInput = sp.lastNameInput();
+        await firstInput.fill('job_title');
         await firstInput.blur();
 
         // # Create second attribute (text)
         await sp.addAttribute();
-        const secondInput = sp.nameInput(1);
-        await secondInput.fill('Team Name');
+        const secondInput = sp.lastNameInput();
+        await secondInput.fill('team_name');
         await secondInput.blur();
 
         await sp.saveAndWaitForSettled();
 
         // * Verify both fields were created via API
         const fieldsMap = await getFieldsMap(adminClient);
-        expect(Object.values(fieldsMap).find((f) => f.name === 'Job Title')).toBeDefined();
-        expect(Object.values(fieldsMap).find((f) => f.name === 'Team Name')).toBeDefined();
+        expect(Object.values(fieldsMap).find((f) => f.name === 'job_title')).toBeDefined();
+        expect(Object.values(fieldsMap).find((f) => f.name === 'team_name')).toBeDefined();
 
         await cleanupFields(adminClient, fieldsMap);
     });
@@ -549,26 +610,29 @@ test.describe('System Console - User Attributes Management', () => {
      * after a full page reload.
      *
      * @precondition
-     * A custom profile attribute named "Persistent Field" exists via API setup.
+     * A custom profile attribute named "Persistent_Field" exists via API setup.
      */
     test.fixme('persists attribute changes after page reload', {tag: '@user_attributes'}, async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        await setupCustomProfileAttributeFields(adminClient, [{name: 'Persistent Field', type: 'text'}]);
+        await setupCustomProfileAttributeFields(adminClient, [{name: 'persistent_field', type: 'text'}]);
 
         // # Navigate to User Attributes page
         await sp.goto();
 
         // * Verify attribute exists
-        await expect(sp.nameInputByValue('Persistent Field')).toBeVisible();
+        await expect(sp.nameInputByValue('persistent_field')).toBeVisible();
 
-        // # Edit the name
-        const nameInput = sp.nameInput(0);
-        await expect(nameInput).toHaveValue('Persistent Field');
-        await nameInput.fill('Updated Persistent');
-        await nameInput.blur();
+        // # Edit the name using a value-based locator so concurrent UAAE/ABAC rows
+        // don't shift a positional index to the wrong field.
+        const nameInput = sp.nameInputByValue('persistent_field');
+        await expect(nameInput).toHaveValue('persistent_field');
+        await nameInput.focus();
+        await nameInput.fill('updated_persistent');
+        // blur via keyboard — the value-based locator is stale after fill()
+        await sp.page.keyboard.press('Tab');
 
         await sp.saveAndWaitForSettled();
 
@@ -576,7 +640,7 @@ test.describe('System Console - User Attributes Management', () => {
         await sp.goto();
 
         // * Verify the updated name persisted
-        await expect(sp.nameInputByValue('Updated Persistent')).toBeVisible();
+        await expect(sp.nameInputByValue('updated_persistent')).toBeVisible();
 
         await cleanupFields(adminClient, await getFieldsMap(adminClient));
     });
@@ -598,8 +662,9 @@ test.describe('System Console - User Attributes Management', () => {
             // # Add a new attribute
             await sp.addAttribute();
 
-            // # Type a name
-            const nameInput = sp.nameInput(0);
+            // # Type a name — 'Temporary' is a valid single-word CEL identifier.
+            // Use lastNameInput() so concurrent UAAE/ABAC rows don't shift the index.
+            const nameInput = sp.lastNameInput();
             await nameInput.fill('Temporary');
             await nameInput.blur();
 

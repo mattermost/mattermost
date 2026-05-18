@@ -132,7 +132,13 @@ func (fs SqlFileInfoStore) Save(rctx request.CTX, info *model.FileInfo) (*model.
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
+func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error) {
+	db := fs.GetReplica()
+
+	if readFromMaster {
+		db = fs.GetMaster()
+	}
+
 	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
 		From("FileInfo").
@@ -149,7 +155,7 @@ func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache
 	}
 
 	items := []fileInfoWithChannelID{}
-	if err := fs.GetReplica().Select(&items, queryString, args...); err != nil {
+	if err := db.Select(&items, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find FileInfos")
 	}
 	if len(items) == 0 {

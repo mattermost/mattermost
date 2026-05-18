@@ -132,6 +132,7 @@ export type ClientConfig = {
     FeatureFlagWebSocketEventScope: string;
     FeatureFlagInteractiveDialogAppsForm: string;
     FeatureFlagContentFlagging: string;
+    FeatureFlagClassificationMarkings: string;
     FeatureFlagManagedChannelCategories: string;
 
     ForgotPasswordLink: string;

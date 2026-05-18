@@ -50,12 +50,13 @@ type S3FileBackend struct {
 	storageClass   string
 }
 
-type S3FileBackendAuthError struct {
-	DetailedError string
-}
-
-// S3FileBackendNoBucketError is returned when testing a connection and no S3 bucket is found
-type S3FileBackendNoBucketError struct{}
+// S3FileBackendAuthError and S3FileBackendNoBucketError are aliases for the
+// generic backend errors. They are kept so external code (plugins,
+// historically-typed consumers) continues to compile.
+type (
+	S3FileBackendAuthError     = FileBackendAuthError
+	S3FileBackendNoBucketError = FileBackendNoBucketError
+)
 
 const (
 	// This is not exported by minio. See: https://github.com/minio/minio-go/issues/1339
@@ -75,14 +76,6 @@ func getContentType(ext string) string {
 		mimeType = "application/octet-stream"
 	}
 	return mimeType
-}
-
-func (s *S3FileBackendAuthError) Error() string {
-	return s.DetailedError
-}
-
-func (s *S3FileBackendNoBucketError) Error() string {
-	return "no such bucket"
 }
 
 // NewS3FileBackend returns an instance of an S3FileBackend and determine if we are in Mattermost cloud or not.

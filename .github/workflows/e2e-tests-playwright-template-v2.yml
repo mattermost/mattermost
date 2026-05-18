@@ -96,35 +96,17 @@ permissions:
   contents: read
   statuses: write
   id-token: write
-  pull-requests: write
 
 env:
   SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
 
 jobs:
-  update-initial-status:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      statuses: write
-    steps:
-      - name: ci/set-initial-status
-        uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: ${{ inputs.context_name }}
-          description: "tests running, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
-          status: pending
-
   dispatch-begin:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
       id-token: write
-      pull-requests: write
+      statuses: write
     outputs:
       composite-identity-json: ${{ steps.composite-identity.outputs.composite-identity-json }}
       workers-matrix: ${{ steps.matrix.outputs.workers }}
@@ -186,10 +168,10 @@ jobs:
           total-reports-expected: ${{ inputs.workers }}
           retest-on-fail: ${{ inputs.retest_on_fail }}
           playwright-project: ${{ inputs.playwright_project }}
-          post-pr-comment: 'true'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          test-type: full
-          server-edition: ${{ inputs.server_edition }}
+          commit-status-context: ${{ inputs.context_name }}
+          image-tag: ${{ inputs.server_image_tag }}
+          image-aliases: ${{ inputs.server_image_aliases }}
 
   workers:
     name: dispatch-run-${{ matrix.worker_index }}
@@ -213,6 +195,16 @@ jobs:
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "full-test-${{ matrix.worker_index }}"
     steps:
+      - name: ci/checkout-actions
+        # Sparse-checkout just .github/actions from the triggering ref (master)
+        # so the composite action below is available before the full checkout
+        # overwrites the workspace with inputs.commit_sha.
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: true
+      - name: ci/runner-prep-for-openldap
+        uses: ./.github/actions/runner-prep-openldap
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -276,7 +268,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      pull-requests: write
+      statuses: write
     outputs:
       commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
@@ -291,15 +283,13 @@ jobs:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.dispatch-begin.outputs.composite-identity-json }}
           framework: playwright
-          test-type: full
           report-type: ${{ inputs.report_type }}
           image-tag: ${{ inputs.server_image_tag }}
           image-aliases: ${{ inputs.server_image_aliases }}
           server-image: ${{ env.SERVER_IMAGE }}
           pr-number: ${{ inputs.pr_number }}
           ref-branch: ${{ inputs.ref_branch }}
-          server-edition: ${{ inputs.server_edition }}
-          post-pr-comment: 'true'
+          commit-status-context: ${{ inputs.context_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
@@ -313,45 +303,3 @@ jobs:
           SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
         run: |
           [ "$SUMMARY_OUTCOME" = "success" ]
-
-  update-success-status:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      statuses: write
-    if: always() && needs.report.result == 'success'
-    needs:
-      - dispatch-begin
-      - report
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: ${{ inputs.context_name }}
-          description: ${{ needs.report.outputs.commit_status_description }}
-          status: success
-          target_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-  update-failure-status:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      statuses: write
-    if: always() && needs.report.result != 'success'
-    needs:
-      - dispatch-begin
-      - report
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: ${{ inputs.context_name }}
-          description: ${{ needs.report.outputs.commit_status_description }}
-          status: failure
-          target_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

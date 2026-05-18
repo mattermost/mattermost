@@ -59,6 +59,17 @@ export function getBrowserInfo() {
     return {browser, browserVersion};
 }
 
+export function isDesktopApp(): boolean {
+    return window.navigator.userAgent.indexOf('Mattermost') !== -1 && window.navigator.userAgent.indexOf('Electron') !== -1;
+}
+
+export function getDesktopVersion(): string {
+    // use if the value window.desktop.version is not set yet
+    const regex = /Mattermost\/(\d+\.\d+\.\d+)/gm;
+    const match = regex.exec(window.navigator.appVersion)?.[1] || '';
+    return match;
+}
+
 export function getPlatformInfo() {
     // Casting to undefined in case it is deprecated in any browser
     const platform = window.navigator.platform as string | undefined;

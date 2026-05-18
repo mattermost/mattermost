@@ -80,6 +80,7 @@ export default class SystemConsoleSidebar {
         return this.environment.mobileSecurity;
     }
     get notifications() {
+        // Rendered under Site Configuration (`site`); URL is environment/notifications.
         return this.siteConfiguration.notifications;
     }
     get pluginManagement() {
@@ -97,6 +98,7 @@ class SidebarSection {
     }
 
     async click() {
+        await this.link.scrollIntoViewIfNeeded();
         await this.link.click();
     }
 

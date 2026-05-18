@@ -1175,7 +1175,7 @@ func createSharedTestChannel(ss store.Store, rctx request.CTX, name string, shar
 		Header:      name + " header",
 		Purpose:     name + "purpose",
 		CreatorId:   model.NewId(),
-		Shared:      model.NewPointer(shared),
+		Shared:      new(shared),
 	}
 	channel, err := ss.Channel().Save(rctx, channel, 10000)
 	if err != nil {

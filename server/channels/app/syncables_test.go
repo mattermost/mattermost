@@ -61,9 +61,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	gleeGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewPointer(model.NewId()),
+		Name:        new(model.NewId()),
 		DisplayName: "Glee Club",
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	if err != nil {
@@ -71,9 +71,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	scienceGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewPointer(model.NewId()),
+		Name:        new(model.NewId()),
 		DisplayName: "Science Club",
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 		Source:      model.GroupSourceLdap,
 	})
 	if err != nil {
@@ -415,9 +415,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		}
 
 		group1, err := th.App.CreateGroup(&model.Group{
-			Name:        model.NewPointer(model.NewId()),
+			Name:        new(model.NewId()),
 			DisplayName: "Group 1",
-			RemoteId:    model.NewPointer(model.NewId()),
+			RemoteId:    new(model.NewId()),
 			Source:      model.GroupSourceLdap,
 		})
 		if err != nil {
@@ -561,14 +561,14 @@ func TestDeleteGroupMemberships(t *testing.T) {
 
 	// make team group-constrained
 	team := th.BasicTeam
-	team.GroupConstrained = model.NewPointer(true)
+	team.GroupConstrained = new(true)
 	team, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 	require.True(t, *team.GroupConstrained)
 
 	// make channel group-constrained
 	channel := th.BasicChannel
-	channel.GroupConstrained = model.NewPointer(true)
+	channel.GroupConstrained = new(true)
 	channel, err = th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 	require.True(t, *channel.GroupConstrained)
@@ -615,7 +615,7 @@ func TestSyncSyncableRoles(t *testing.T) {
 	team := th.CreateTeam(t)
 
 	channel := th.CreateChannel(t, team)
-	channel.GroupConstrained = model.NewPointer(true)
+	channel.GroupConstrained = new(true)
 	channel, err := th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 

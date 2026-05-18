@@ -4,13 +4,19 @@
 package imaging
 
 import (
+	"bytes"
+	"flag"
 	"image"
-	"image/color"
+	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/anthonynsimon/bild/transform"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+
 	"github.com/stretchr/testify/require"
 )
+
+var updateImagingFixtures = flag.Bool("update-fixtures", false, "overwrite imaging fixture files with actual output")
 
 func TestGenerateThumbnail(t *testing.T) {
 	tcs := []struct {
@@ -78,95 +84,71 @@ func TestGenerateThumbnail(t *testing.T) {
 	}
 }
 
-func createTestImage(t *testing.T, width, height int) image.Image {
-	t.Helper()
-	img := image.NewNRGBA(image.Rect(0, 0, width, height))
-	for y := range height {
-		for x := range width {
-			img.Set(x, y, color.NRGBA{uint8(x % 256), uint8(y % 256), 0, 255})
-		}
-	}
-	return img
+func TestGeneratePreview(t *testing.T) {
+	imgDir, ok := fileutils.FindDir("tests")
+	require.True(t, ok)
+
+	d, err := NewDecoder(DecoderOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, d)
+
+	inputFile, err := os.Open(filepath.Join(imgDir, "qa-data-graph.png"))
+	require.NoError(t, err)
+	defer inputFile.Close()
+
+	inputImg, format, err := d.Decode(inputFile)
+	require.NoError(t, err)
+	require.Equal(t, "png", format)
+
+	expectedFile, err := os.Open(filepath.Join(imgDir, "preview_test_qa_data_graph_1024.png"))
+	require.NoError(t, err)
+	defer expectedFile.Close()
+
+	expectedImg, format, err := d.Decode(expectedFile)
+	require.NoError(t, err)
+	require.Equal(t, "png", format)
+
+	preview := GeneratePreview(inputImg, 1024)
+	requireSameImage(t, expectedImg, preview)
 }
 
-func TestResize(t *testing.T) {
-	for _, tc := range []struct {
-		name      string
-		img       image.Image
-		targetW   int
-		targetH   int
-		expectedW int
-		expectedH int
-	}{
-		{
-			name:      "zero target dimensions",
-			img:       createTestImage(t, 100, 50),
-			targetW:   0,
-			targetH:   0,
-			expectedW: 0,
-			expectedH: 0,
-		},
-		{
-			name:      "negative target dimensions",
-			img:       createTestImage(t, 100, 50),
-			targetW:   -1,
-			targetH:   25,
-			expectedW: 0,
-			expectedH: 0,
-		},
-		{
-			name:      "zero source dimensions",
-			img:       createTestImage(t, 0, 0),
-			targetW:   50,
-			targetH:   25,
-			expectedW: 0,
-			expectedH: 0,
-		},
-		{
-			name:      "preserve aspect ratio with width",
-			img:       createTestImage(t, 100, 50),
-			targetW:   50,
-			targetH:   0,
-			expectedW: 50,
-			expectedH: 25,
-		},
-		{
-			name:      "preserve aspect ratio with width, height > width",
-			img:       createTestImage(t, 50, 100),
-			targetW:   50,
-			targetH:   0,
-			expectedW: 50,
-			expectedH: 100,
-		},
-		{
-			name:      "preserve aspect ratio with height",
-			img:       createTestImage(t, 100, 50),
-			targetW:   0,
-			targetH:   25,
-			expectedW: 50,
-			expectedH: 25,
-		},
-		{
-			name:      "preserve aspect ratio with height, height > width",
-			img:       createTestImage(t, 50, 100),
-			targetW:   0,
-			targetH:   25,
-			expectedW: 13,
-			expectedH: 25,
-		},
-		{
-			name:      "valid target dimensions",
-			img:       createTestImage(t, 100, 50),
-			targetW:   50,
-			targetH:   25,
-			expectedW: 50,
-			expectedH: 25,
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			resizedImg := Resize(tc.img, tc.targetW, tc.targetH, transform.Lanczos)
-			require.Equal(t, tc.expectedW, resizedImg.Bounds().Dx())
-			require.Equal(t, tc.expectedH, resizedImg.Bounds().Dy())
-		})
+func TestGenerateMiniPreviewImage(t *testing.T) {
+	imgDir, ok := fileutils.FindDir("tests")
+	require.True(t, ok)
+
+	d, err := NewDecoder(DecoderOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, d)
+
+	inputFile, err := os.Open(filepath.Join(imgDir, "qa-data-graph.png"))
+	require.NoError(t, err)
+	defer inputFile.Close()
+
+	inputImg, format, err := d.Decode(inputFile)
+	require.NoError(t, err)
+	require.Equal(t, "png", format)
+
+	fixturePath := filepath.Join(imgDir, "mini_preview_test_qa_data_graph_16x16_q90.jpg")
+
+	out, err := GenerateMiniPreviewImage(inputImg, 16, 16, 90)
+	require.NoError(t, err)
+
+	if *updateImagingFixtures {
+		require.NoError(t, os.WriteFile(fixturePath, out, 0600))
+		return
 	}
+
+	expectedFile, err := os.Open(fixturePath)
+	require.NoError(t, err)
+	defer expectedFile.Close()
+
+	expectedImg, format, err := d.Decode(expectedFile)
+	require.NoError(t, err)
+	require.Equal(t, "jpeg", format)
+
+	actualImg, format, err := d.Decode(bytes.NewReader(out))
+	require.NoError(t, err)
+	require.Equal(t, "jpeg", format)
+
+	requireSameImage(t, expectedImg, actualImg)
 }
