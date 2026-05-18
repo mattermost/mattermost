@@ -4638,6 +4638,8 @@ export default class Client4 {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
+            } else if (contentType === 'application/zip') {
+                data = await response.blob();
             } else {
                 data = await response.text();
             }
@@ -5017,7 +5019,7 @@ export default class Client4 {
             `${this.getContentFlaggingRoute()}/post/${postId}/flag`,
             {
                 method: 'post',
-                body: JSON.stringify({reason, comment: JSON.stringify(comment)}),
+                body: JSON.stringify({reason, comment}),
             },
         );
     };
@@ -5027,7 +5029,7 @@ export default class Client4 {
             `${this.getContentFlaggingRoute()}/post/${postId}/remove`,
             {
                 method: 'put',
-                body: JSON.stringify({comment: JSON.stringify(comment)}),
+                body: JSON.stringify({comment}),
             },
         );
     };
@@ -5037,7 +5039,7 @@ export default class Client4 {
             `${this.getContentFlaggingRoute()}/post/${postId}/keep`,
             {
                 method: 'put',
-                body: JSON.stringify({comment: JSON.stringify(comment)}),
+                body: JSON.stringify({comment}),
             },
         );
     };
@@ -5088,6 +5090,21 @@ export default class Client4 {
         return this.doFetch<ContentFlaggingSettings>(
             `${this.getContentFlaggingRoute()}/config`,
             {method: 'get'},
+        );
+    };
+
+    getFlaggedPostReportUrl = (postId: string) => {
+        return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
+    };
+
+    generateFlaggedPostReport = (postId: string, comment: string, action?: 'keep' | 'remove', signal?: AbortSignal): Promise<Blob> => {
+        return this.doFetch<Blob>(
+            this.getFlaggedPostReportUrl(postId),
+            {
+                method: 'post',
+                body: JSON.stringify({comment, action}),
+                signal,
+            },
         );
     };
 }

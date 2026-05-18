@@ -158,7 +158,7 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.4
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.5
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.7.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.0
@@ -328,7 +328,7 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 golangci-lint: setup-go-work ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
 else
