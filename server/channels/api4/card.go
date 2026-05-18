@@ -126,6 +126,7 @@ func updateCard(c *Context, w http.ResponseWriter, r *http.Request) {
 	// MM-67055: Strip client-supplied metadata.embeds to prevent spoofing.
 	// This matches createPost behavior.
 	post.SanitizeInput()
+	post.Type = model.PostTypeCard
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdatePost, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "post", &post)
