@@ -63,6 +63,7 @@ type Store struct {
 	PostPersistentNotificationStore mocks.PostPersistentNotificationStore
 	DesktopTokensStore              mocks.DesktopTokensStore
 	ChannelBookmarkStore            mocks.ChannelBookmarkStore
+	ChannelGuardStore               mocks.ChannelGuardStore
 	ScheduledPostStore              mocks.ScheduledPostStore
 	PropertyGroupStore              mocks.PropertyGroupStore
 	PropertyFieldStore              mocks.PropertyFieldStore
@@ -119,6 +120,7 @@ func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
 func (s *Store) ChannelBookmark() store.ChannelBookmarkStore { return &s.ChannelBookmarkStore }
+func (s *Store) ChannelGuard() store.ChannelGuardStore       { return &s.ChannelGuardStore }
 func (s *Store) DesktopTokens() store.DesktopTokensStore     { return &s.DesktopTokensStore }
 func (s *Store) NotifyAdmin() store.NotifyAdminStore         { return &s.NotifyAdminStore }
 func (s *Store) Group() store.GroupStore                     { return &s.GroupStore }
@@ -230,6 +232,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PostPersistentNotificationStore,
 		&s.DesktopTokensStore,
 		&s.ChannelBookmarkStore,
+		&s.ChannelGuardStore,
 		&s.ScheduledPostStore,
 		&s.AccessControlPolicyStore,
 		&s.AttributesStore,

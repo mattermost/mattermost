@@ -537,6 +537,14 @@ func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 	return api.app.UpdateChannel(api.ctx, channel)
 }
 
+func (api *PluginAPI) RegisterChannelGuard(channelID string) *model.AppError {
+	return api.app.RegisterChannelGuard(api.ctx, channelID, strings.ToLower(api.id))
+}
+
+func (api *PluginAPI) UnregisterChannelGuard(channelID string) *model.AppError {
+	return api.app.UnregisterChannelGuard(api.ctx, channelID, strings.ToLower(api.id))
+}
+
 func (api *PluginAPI) SearchChannels(teamID string, term string) ([]*model.Channel, *model.AppError) {
 	channels, err := api.app.SearchChannels(api.ctx, teamID, term)
 	if err != nil {
