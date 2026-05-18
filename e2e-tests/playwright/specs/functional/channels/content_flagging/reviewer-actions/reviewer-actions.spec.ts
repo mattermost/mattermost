@@ -5,13 +5,13 @@ import {test} from '@mattermost/playwright-lib';
 
 import {setupContentFlagging, createPost, verifyAuthorNotification} from './../support';
 
-/** @objective Verify Retained and Removed Flagged posts do not appear in RHS after once reviewed
+/** @objective Verify Removed Flagged posts show appropriate status and do not show the post message
  * @testcase
  * 1. Create three users and add them as reviewers to a team
  * 2. Setup content flagging with the three users as reviewers
  * 3. Create a post and flag it
- * 4. As Reviewer 1, Retain the flagged post and verify the status is updated to 'Retained'
- * 5. As Reviewer 2, Verify the flagged post status is 'Retained'
+ * 4. As Reviewer 1, walk through the multi-step removal flow (form → report generated → remove permanently)
+ * 5. As Reviewer 2, verify the flagged post status is 'Removed' and the message has been replaced
  */
 test('Verify Removed Flagged posts show appropriate status and do not show the post message', async ({pw}) => {
     const {adminClient, team, user, userClient, adminUser} = await pw.initSetup();
@@ -72,7 +72,10 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
     });
     await secondContentReviewPage.clickRemoveMessage();
     await secondContentReviewPage.enterConfirmationComment(commentRemove);
-    await secondContentReviewPage.confirmRemove();
+
+    // New multi-step flow: Continue → wait for report to generate → Remove permanently
+    await secondContentReviewPage.submitFormAndWaitForReport();
+    await secondContentReviewPage.confirmRemovePermanently();
     await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
 
     const {channelsPage: channelsPageThird, contentReviewPage: contentReviewPageThird} =

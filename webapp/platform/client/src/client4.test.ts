@@ -162,6 +162,25 @@ describe('Client4', () => {
             expect(result[1]).toEqual({user_id: 'dummy-user-id', channel_id: 'channel2', roles: 'channel_user channel_admin'});
             expect(result[2]).toEqual({user_id: 'dummy-user-id', channel_id: 'channel3', roles: 'channel_user'});
         });
+
+        test('should parse ZIP responses as blobs', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            const postId = 'dummy-post-id';
+            const zipData = Buffer.from('zip contents');
+
+            nock(client.getBaseRoute()).
+                post(`/content_flagging/post/${postId}/report`, {comment: 'investigation note'}).
+                reply(200, zipData, {'Content-Type': 'application/zip'});
+
+            const result = await client.generateFlaggedPostReport(postId, 'investigation note');
+
+            expect(typeof result.text).toBe('function');
+            expect(result.size).toEqual(zipData.length);
+            expect(result.type).toEqual('application/zip');
+            expect(await result.text()).toEqual('zip contents');
+        });
     });
 });
 
