@@ -75,7 +75,7 @@
 
         ##### Permissions
 
-        Collaborative card updates require `edit_post` for the channel (see server documentation for card permission model).
+        Requires both `edit_post` and `create_post` for the channel (the latter via `userCreatePostPermissionCheckWithContext`). Clients holding `edit_post` without `create_post` will receive 403.
       operationId: UpdateCard
       parameters:
         - name: post_id
@@ -182,7 +182,7 @@
 
         ##### Permissions
 
-        Requires `edit_post` for the channel for collaborative edits when applicable.
+        Requires both `edit_post` and `create_post` for the channel. Clients holding `edit_post` without `create_post` will receive 403.
       operationId: PatchCard
       parameters:
         - name: post_id
