@@ -12,9 +12,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// PostsAPIDisallowedTypes lists post types that own a dedicated /api/v4 endpoint
+// postsAPIDisallowedTypes lists post types that own a dedicated /api/v4 endpoint
 // and must therefore be rejected on the generic /api/v4/posts routes.
-var PostsAPIDisallowedTypes = []string{model.PostTypeCard}
+var postsAPIDisallowedTypes = []string{model.PostTypeCard}
 
 func PostPriorityCheckWithApp(where string, a *App, userId string, priority *model.PostPriority, rootId string) *model.AppError {
 	user, appErr := a.GetUser(userId)
@@ -122,7 +122,7 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 
 // PostsAPITypeCheck rejects post types that have their own dedicated /api/v4 endpoint.
 func PostsAPITypeCheck(where, postType string) *model.AppError {
-	if slices.Contains(PostsAPIDisallowedTypes, postType) {
+	if slices.Contains(postsAPIDisallowedTypes, postType) {
 		return model.NewAppError(where, "api.post.disallowed_type.app_error", map[string]any{"PostType": postType}, "", http.StatusBadRequest)
 	}
 	return nil
