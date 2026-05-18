@@ -8,8 +8,6 @@
 
         Create a new card post (`type` is always `card`; do not send `type` in the body).
 
-        This route is only available when the server was started with the Integrated Boards feature flag enabled.
-
         `POST /api/v4/posts` may also be used to create card posts when `type` is `card` and the same checks apply.
 
         ##### Permissions
@@ -75,7 +73,7 @@
       description: |
         *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
 
-        Fully update a card post by ID. Only registered when the Integrated Boards feature flag was enabled at server startup.
+        Fully update a card post by ID.
 
         ##### Permissions
 
