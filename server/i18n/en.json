@@ -11543,6 +11543,18 @@
     "translation": "Invalid version number. Must be a valid semantic version (e.g. 5.0.0)."
   },
   {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+    "translation": "Invalid Auto Cache Cleanup value. Must be between {{.Min}} and {{.Max}} days."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+    "translation": "Invalid Disconnection Timeout value. Must be between {{.Min}} and {{.Max}} seconds."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+    "translation": "Invalid Offline Persistence Timer value. Must be between {{.Min}} and {{.Max}} hours."
+  },
+  {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
     "translation": "Invalid domain for move thread settings"
   },
