@@ -617,14 +617,14 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 // "none" behave identically to the field-level dispatch.
 func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string, level model.PermissionLevel) bool {
 	switch level {
-	case model.PermissionLevelNone:
-		return false
 	case model.PermissionLevelSysadmin:
 		return a.HasPermissionTo(userID, model.PermissionManageSystem)
-	case model.PermissionLevelMember:
-		return a.hasPropertyFieldValueScopeAccess(rctx, userID, field, valueTargetID)
 	case model.PermissionLevelAdmin:
 		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	case model.PermissionLevelMember:
+		return a.hasPropertyFieldValueScopeAccess(rctx, userID, field, valueTargetID)
+	case model.PermissionLevelNone:
+		return false
 	}
 	return false
 }
