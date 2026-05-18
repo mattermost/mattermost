@@ -161,11 +161,22 @@ function ChannelSettingsConfigurationTab({
     const handleClassificationToggle = useCallback(() => {
         setClassificationEnabled((prev) => {
             if (!prev) {
-                setUpdatedChannelBanner((banner) => ({...banner, enabled: true}));
+                const lowestRank = classification.levels[0];
+                if (lowestRank) {
+                    setSelectedClassificationId(lowestRank.id);
+                    setUpdatedChannelBanner((banner) => ({
+                        ...banner,
+                        enabled: true,
+                        text: `**${lowestRank.name}**`,
+                        background_color: lowestRank.color,
+                    }));
+                } else {
+                    setUpdatedChannelBanner((banner) => ({...banner, enabled: true}));
+                }
             }
             return !prev;
         });
-    }, []);
+    }, [classification.levels]);
 
     const handleClassificationLevelChange = useCallback((selected: ValueType) => {
         setSelectedClassificationId(selected.value);
