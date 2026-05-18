@@ -96,6 +96,9 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 	filename := fmt.Sprintf("flagged-post-%s-%d.zip", postId, model.GetMillis())
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+
+	// Prevent caching so reports are always fresh
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	http.ServeContent(w, r, filename, stat.ModTime(), f)
 
 	auditRec.Success()
