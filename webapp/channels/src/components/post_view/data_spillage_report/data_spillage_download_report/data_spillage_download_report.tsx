@@ -54,6 +54,7 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
             // eslint-disable-next-line no-console
             console.error(err);
             setStatus('error');
+            return;
         }
 
         if (controller.signal.aborted || !blob) {
