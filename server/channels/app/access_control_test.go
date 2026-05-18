@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -3537,4 +3538,376 @@ func TestValidatePolicySimulationUsersInScopeChannel(t *testing.T) {
 		require.NotNil(t, err)
 		assert.Equal(t, http.StatusForbidden, err.StatusCode)
 	})
+}
+
+func TestHydrateChannelPolicyActions(t *testing.T) {
+	t.Run("Channel without an enforced policy is a no-op (no store call, PolicyActions stays nil)", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		// We register the AccessControlPolicy() accessor in case any other
+		// path touches it, but `GetActionsForPolicy` MUST NOT be called
+		// when PolicyEnforced is false — that's the whole point of the
+		// lazy-fetch design.
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
+
+		ch := &model.Channel{Id: model.NewId(), PolicyEnforced: false}
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, ch)
+		require.Nil(t, appErr)
+		require.Nil(t, ch.PolicyActions, "non-enforced channels must not have an empty map injected")
+		mockACPStore.AssertNotCalled(t, "GetActionsForPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("Nil channel pointer is a defensive no-op", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, nil)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("Membership-only policy hydrates PolicyActions with membership key", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		channelID := model.NewId()
+		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
+			Return(map[string]bool{model.AccessControlPolicyActionMembership: true}, nil).Once()
+
+		ch := &model.Channel{Id: channelID, PolicyEnforced: true}
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, ch)
+		require.Nil(t, appErr)
+		require.Equal(t, map[string]bool{model.AccessControlPolicyActionMembership: true}, ch.PolicyActions)
+		require.True(t, ch.HasMembershipPolicyAction(), "convenience helper must agree with the map")
+		mockACPStore.AssertExpectations(t)
+	})
+
+	t.Run("Permission-only policy hydrates with the permission key only (no membership)", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		channelID := model.NewId()
+		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
+			Return(map[string]bool{model.AccessControlPolicyActionUploadFileAttachment: true}, nil).Once()
+
+		ch := &model.Channel{Id: channelID, PolicyEnforced: true}
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, ch)
+		require.Nil(t, appErr)
+		require.False(t, ch.HasMembershipPolicyAction(), "permission-only policy must NOT report membership — this is the core bug fix invariant")
+		require.True(t, ch.HasPolicyAction(model.AccessControlPolicyActionUploadFileAttachment))
+	})
+
+	t.Run("Policy missing in store (deleted between reads) returns nil and sets empty map", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		channelID := model.NewId()
+		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
+			Return(nil, store.NewErrNotFound("AccessControlPolicy", channelID)).Once()
+
+		ch := &model.Channel{Id: channelID, PolicyEnforced: true}
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, ch)
+		require.Nil(t, appErr, "ErrNotFound from store must be swallowed — channel row will reconcile on next write")
+		require.NotNil(t, ch.PolicyActions, "ErrNotFound path must set an empty map so HasPolicyAction returns false")
+		require.Empty(t, ch.PolicyActions)
+	})
+
+	t.Run("Unexpected store error is surfaced and PolicyActions stays nil", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		channelID := model.NewId()
+		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
+			Return(nil, errors.New("boom")).Once()
+
+		ch := &model.Channel{Id: channelID, PolicyEnforced: true}
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, ch)
+		require.NotNil(t, appErr, "non-not-found store errors must propagate so callers can fail-closed")
+		require.Equal(t, "app.pap.hydrate_actions.app_error", appErr.Id)
+		require.Nil(t, ch.PolicyActions, "error path must leave PolicyActions untouched (caller decides fallback)")
+	})
+}
+
+func TestHydrateChannelsPolicyActions(t *testing.T) {
+	t.Run("Empty slice is a no-op", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
+
+		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, nil)
+		require.Nil(t, appErr)
+		appErr = thMock.App.HydrateChannelsPolicyActions(thMock.Context, []*model.Channel{})
+		require.Nil(t, appErr)
+		mockACPStore.AssertNotCalled(t, "GetActionsForPolicies", mock.Anything, mock.Anything)
+	})
+
+	t.Run("Slice with only non-enforced channels skips the store entirely", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
+
+		channels := []*model.Channel{
+			{Id: model.NewId(), PolicyEnforced: false},
+			{Id: model.NewId(), PolicyEnforced: false},
+		}
+		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, channels)
+		require.Nil(t, appErr)
+		for _, ch := range channels {
+			require.Nil(t, ch.PolicyActions)
+		}
+		mockACPStore.AssertNotCalled(t, "GetActionsForPolicies", mock.Anything, mock.Anything)
+	})
+
+	t.Run("Mixed slice issues a single batched call for enforced channels only", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		enforced1 := model.NewId()
+		enforced2 := model.NewId()
+		channels := []*model.Channel{
+			{Id: enforced1, PolicyEnforced: true},
+			{Id: model.NewId(), PolicyEnforced: false},
+			{Id: enforced2, PolicyEnforced: true},
+		}
+
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, mock.MatchedBy(func(ids []string) bool {
+			// We don't depend on slice order — order is incidental — but
+			// the contents must be exactly the two enforced IDs and never
+			// the non-enforced one.
+			if len(ids) != 2 {
+				return false
+			}
+			have := map[string]bool{}
+			for _, id := range ids {
+				have[id] = true
+			}
+			return have[enforced1] && have[enforced2]
+		})).Return(map[string]map[string]bool{
+			enforced1: {model.AccessControlPolicyActionMembership: true},
+			enforced2: {model.AccessControlPolicyActionUploadFileAttachment: true},
+		}, nil).Once()
+
+		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, channels)
+		require.Nil(t, appErr)
+		require.True(t, channels[0].HasMembershipPolicyAction())
+		require.Nil(t, channels[1].PolicyActions, "non-enforced channels must remain untouched")
+		require.False(t, channels[2].HasMembershipPolicyAction(), "permission-only channel must NOT report membership")
+		require.True(t, channels[2].HasPolicyAction(model.AccessControlPolicyActionUploadFileAttachment))
+		mockACPStore.AssertExpectations(t)
+	})
+
+	t.Run("Enforced channel missing from batch result gets an empty map (fail-closed for membership)", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		enforced := model.NewId()
+		channels := []*model.Channel{
+			{Id: enforced, PolicyEnforced: true},
+		}
+		// Simulate the policy row being deleted between channel read and
+		// batch fetch — the result map is empty, but the call succeeded.
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{enforced}).
+			Return(map[string]map[string]bool{}, nil).Once()
+
+		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, channels)
+		require.Nil(t, appErr)
+		require.NotNil(t, channels[0].PolicyActions, "missing-from-batch must default to empty map, not nil")
+		require.Empty(t, channels[0].PolicyActions)
+		require.False(t, channels[0].HasMembershipPolicyAction())
+	})
+
+	t.Run("Underlying batch error is surfaced and channels are left untouched", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		channels := []*model.Channel{{Id: model.NewId(), PolicyEnforced: true}}
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, mock.Anything).
+			Return(nil, errors.New("boom")).Once()
+
+		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, channels)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.pap.hydrate_actions.app_error", appErr.Id)
+		require.Nil(t, channels[0].PolicyActions, "error path must leave the slice untouched")
+	})
+}
+
+func TestGetChannelHydratesPolicyActions(t *testing.T) {
+	// App.GetChannel is the canonical single-channel read seam. After
+	// Phase 1 it must transparently hydrate PolicyActions so consumers
+	// (Phase 2 server gates and frontend) can rely on the field being
+	// present whenever PolicyEnforced is true.
+	t.Run("Returned channel carries PolicyActions when policy_enforced is true", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+
+		channelID := model.NewId()
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("Get", channelID, true).
+			Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: true}, nil).Once()
+
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
+			Return(map[string]bool{model.AccessControlPolicyActionMembership: true}, nil).Once()
+
+		channel, appErr := thMock.App.GetChannel(thMock.Context, channelID)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+		require.True(t, channel.HasMembershipPolicyAction(), "GetChannel must hydrate the action map so downstream gates see the membership bit")
+		mockACPStore.AssertExpectations(t)
+	})
+
+	t.Run("No-policy channel returns without touching AccessControlPolicies", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+
+		channelID := model.NewId()
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("Get", channelID, true).
+			Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: false}, nil).Once()
+
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
+
+		channel, appErr := thMock.App.GetChannel(thMock.Context, channelID)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+		require.Nil(t, channel.PolicyActions)
+		mockACPStore.AssertNotCalled(t, "GetActionsForPolicy", mock.Anything, mock.Anything)
+	})
+}
+
+func TestChannelAccessControlled(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok)
+	defer th.App.Srv().SetLicense(nil)
+
+	savePolicy := func(t *testing.T, channelID string, actions ...string) {
+		t.Helper()
+		policy := &model.AccessControlPolicy{
+			ID:       channelID,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Name:     "policy-" + channelID,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: actions, Expression: "true"},
+			},
+		}
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channelID)
+			th.App.Srv().Store().Channel().InvalidateChannel(channelID)
+		})
+		th.App.Srv().Store().Channel().InvalidateChannel(channelID)
+	}
+
+	t.Run("channel with no policy is not controlled", func(t *testing.T) {
+		channel := th.CreatePrivateChannel(t, th.BasicTeam)
+		controlled, appErr := th.App.ChannelAccessControlled(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.False(t, controlled)
+	})
+
+	t.Run("channel with a membership policy is controlled", func(t *testing.T) {
+		channel := th.CreatePrivateChannel(t, th.BasicTeam)
+		savePolicy(t, channel.Id, model.AccessControlPolicyActionMembership)
+
+		controlled, appErr := th.App.ChannelAccessControlled(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.True(t, controlled, "membership policy must make ChannelAccessControlled return true")
+	})
+
+	t.Run("channel with ONLY a permission policy is NOT controlled (bug fix)", func(t *testing.T) {
+		// Bug-fix regression: HasPermissionToChannel and other callers
+		// must not treat permission-only channels (e.g. file upload
+		// restriction) as ABAC-membership-controlled. Before the
+		// PolicyActions[membership] migration this returned true.
+		channel := th.CreatePrivateChannel(t, th.BasicTeam)
+		savePolicy(t, channel.Id, model.AccessControlPolicyActionUploadFileAttachment)
+
+		controlled, appErr := th.App.ChannelAccessControlled(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.False(t, controlled, "permission-only policy must NOT make ChannelAccessControlled return true")
+	})
+
+	t.Run("non-existent channel returns false without error (existing contract)", func(t *testing.T) {
+		controlled, appErr := th.App.ChannelAccessControlled(th.Context, model.NewId())
+		require.Nil(t, appErr)
+		require.False(t, controlled)
+	})
+}
+
+func TestPublishChannelPolicyEnforcedUpdateHydratesBroadcastPayload(t *testing.T) {
+	// publishChannelPolicyEnforcedUpdate must include PolicyActions in the
+	// broadcast payload so connected clients can react to action-set
+	// changes without a follow-up REST round-trip. The hydration happens
+	// after GetChannel reloads the (now-policy-enforced) channel post-save.
+	thMock := SetupWithStoreMock(t)
+
+	channelID := model.NewId()
+	channelPolicy := &model.AccessControlPolicy{
+		ID:   channelID,
+		Type: model.AccessControlPolicyTypeChannel,
+		Rules: []model.AccessControlPolicyRule{
+			{Actions: []string{model.AccessControlPolicyActionUploadFileAttachment}, Expression: "true"},
+		},
+	}
+
+	mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+	mockChannelStore := storemocks.ChannelStore{}
+	mockStore.On("Channel").Return(&mockChannelStore)
+	mockChannelStore.On("InvalidateChannel", channelID).Once()
+	// Channel().Get is called twice on a save flow — once by eligibility
+	// validation pre-save, once by publishChannelPolicyEnforcedUpdate
+	// post-save. Both calls return a PolicyEnforced=true channel so the
+	// hydrator fires on the second call.
+	mockChannelStore.On("Get", channelID, true).
+		Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: true}, nil).Twice()
+
+	mockACPStore := storemocks.AccessControlPolicyStore{}
+	mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+	// Permission-only policy: hydrator must return an action set WITHOUT
+	// the membership key. This is the bug-fix invariant the broadcast
+	// must carry to the client.
+	expectedActions := map[string]bool{model.AccessControlPolicyActionUploadFileAttachment: true}
+	mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).Return(expectedActions, nil)
+
+	mockAccessControl := &mocks.AccessControlServiceInterface{}
+	thMock.App.Srv().ch.AccessControl = mockAccessControl
+	mockAccessControl.On("SavePolicy", thMock.Context, mock.Anything).Return(channelPolicy, nil).Once()
+
+	result, err := thMock.App.CreateOrUpdateAccessControlPolicy(thMock.Context, channelPolicy)
+	require.Nil(t, err)
+	require.NotNil(t, result)
+
+	mockChannelStore.AssertCalled(t, "InvalidateChannel", channelID)
+	// The critical assertion: the hydrator was invoked with the right
+	// channel ID, meaning the WS payload that follows includes the
+	// non-membership action set.
+	mockACPStore.AssertCalled(t, "GetActionsForPolicy", thMock.Context, channelID)
+	mockAccessControl.AssertExpectations(t)
 }

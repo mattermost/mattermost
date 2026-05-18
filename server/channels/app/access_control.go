@@ -1158,6 +1158,76 @@ func (a *App) channelPolicyIDsWithImport(rctx request.CTX, importID string) []st
 	return channelIDs
 }
 
+// HydrateChannelPolicyActions populates ch.PolicyActions for a single channel
+// when ch.PolicyEnforced is true, by looking up the per-action union from
+// the AccessControlPolicies table. It's a no-op for channels without an
+// attached policy, so the cost on the common no-policy path is zero — only
+// the cheap PolicyEnforced=false branch is taken.
+//
+// Errors from the underlying store are returned as AppErrors; callers
+// should treat them as the channel having no actions (fail-closed) for any
+// membership-dependent gate. Hydration leaves PolicyEnforced untouched so
+// the "any AC policy attached" semantic remains available for consumers
+// that need it (admin UI, useChannelSystemPolicies).
+func (a *App) HydrateChannelPolicyActions(rctx request.CTX, ch *model.Channel) *model.AppError {
+	if ch == nil || !ch.PolicyEnforced {
+		return nil
+	}
+	actions, err := a.Srv().Store().AccessControlPolicy().GetActionsForPolicy(rctx, ch.Id)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			// Policy was deleted between the channel read and this lookup;
+			// the channel row's PolicyEnforced flag will be reconciled on
+			// the next write. Treat as "no actions" rather than failing.
+			ch.PolicyActions = map[string]bool{}
+			return nil
+		}
+		return model.NewAppError("HydrateChannelPolicyActions", "app.pap.hydrate_actions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	ch.PolicyActions = actions
+	return nil
+}
+
+// HydrateChannelsPolicyActions does the same for a slice of channels, but
+// batches the underlying store call for the subset of channels with
+// PolicyEnforced=true. Channels with PolicyEnforced=false are left
+// untouched and never reach the AccessControlPolicies table. Used by
+// list endpoints to avoid an N+1 against the policy store.
+func (a *App) HydrateChannelsPolicyActions(rctx request.CTX, channels []*model.Channel) *model.AppError {
+	if len(channels) == 0 {
+		return nil
+	}
+	var ids []string
+	for _, ch := range channels {
+		if ch == nil || !ch.PolicyEnforced {
+			continue
+		}
+		ids = append(ids, ch.Id)
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	actionsByID, err := a.Srv().Store().AccessControlPolicy().GetActionsForPolicies(rctx, ids)
+	if err != nil {
+		return model.NewAppError("HydrateChannelsPolicyActions", "app.pap.hydrate_actions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	for _, ch := range channels {
+		if ch == nil || !ch.PolicyEnforced {
+			continue
+		}
+		if actions, ok := actionsByID[ch.Id]; ok {
+			ch.PolicyActions = actions
+		} else {
+			// Policy row missing for an enforced channel — same semantics
+			// as the single-channel ErrNotFound path: treat as empty rather
+			// than fail the whole batch.
+			ch.PolicyActions = map[string]bool{}
+		}
+	}
+	return nil
+}
+
 // publishChannelPolicyEnforcedUpdate invalidates the channel cache for the
 // given channel ID and broadcasts a channel_access_control_updated websocket
 // event so that connected clients can refresh their view of the channel's
@@ -1176,6 +1246,19 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 			mlog.Err(appErr),
 		)
 		return
+	}
+
+	// Ensure the broadcasted payload carries the freshly-hydrated action
+	// map so clients can react to action-set changes without an extra
+	// round-trip. GetChannel above already hydrates on cache miss, but
+	// re-hydrating here keeps the behavior consistent if a cache hit
+	// returned a channel without PolicyActions populated (e.g. a Phase 1
+	// rollout where caches predate the hydration seam).
+	if appErr := a.HydrateChannelPolicyActions(rctx, channel); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate policy actions before broadcast; clients will see policy_actions=nil",
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		)
 	}
 
 	channelJSON, jsonErr := json.Marshal(channel)

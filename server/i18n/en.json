@@ -7537,6 +7537,10 @@
     "translation": "Could not get attributes for policy."
   },
   {
+    "id": "app.pap.hydrate_actions.app_error",
+    "translation": "Could not load the action set declared by the channel's access control policy."
+  },
+  {
     "id": "app.pap.init.app_error",
     "translation": "Unable to initialize access control service."
   },
