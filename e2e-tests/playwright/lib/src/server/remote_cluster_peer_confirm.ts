@@ -51,7 +51,10 @@ export type DecryptedRemoteClusterInvite = {
 /**
  * Decrypts a v3+ `RemoteClusterInvite` blob (`model.RemoteClusterInvite.Decrypt` / PBKDF2 + AES-GCM).
  */
-export function decryptRemoteClusterInviteFromBase64(inviteBase64: string, password: string): DecryptedRemoteClusterInvite {
+export function decryptRemoteClusterInviteFromBase64(
+    inviteBase64: string,
+    password: string,
+): DecryptedRemoteClusterInvite {
     const encrypted = decodeBase64UrlInvite(inviteBase64);
     if (encrypted.length <= 16) {
         throw new Error('remote_cluster_peer_confirm: invite blob too short');

@@ -348,7 +348,10 @@ export class MockRemoteClusterServer {
         return this.msgOtherQueue.shift();
     }
 
-    private applyConfirmInviteDecision(res: http.ServerResponse, decision: NextConfirmInviteDecision | undefined): void {
+    private applyConfirmInviteDecision(
+        res: http.ServerResponse,
+        decision: NextConfirmInviteDecision | undefined,
+    ): void {
         const d = decision ?? {accept: true};
         if (d.accept === true) {
             jsonWrite(res, 200, {status: REMOTE_CLUSTER_RESPONSE_STATUS.ok});
@@ -356,9 +359,7 @@ export class MockRemoteClusterServer {
         }
         const fail = d as Extract<NextConfirmInviteDecision, {accept: false}>;
         const httpStatus = fail.httpStatus ?? 200;
-        const body =
-            fail.body ??
-            buildRemoteClusterMsgFailResponse(fail.err ?? 'mock: confirm_invite rejected');
+        const body = fail.body ?? buildRemoteClusterMsgFailResponse(fail.err ?? 'mock: confirm_invite rejected');
         jsonWrite(res, httpStatus, body);
     }
 

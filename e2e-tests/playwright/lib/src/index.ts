@@ -34,7 +34,6 @@ export {
     type PostRemoteClusterConfirmInviteFromPeerResult,
 } from './server';
 
-
 export {
     ChannelsPage,
     LandingLoginPage,

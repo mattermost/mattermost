@@ -58,7 +58,9 @@ async function dismissCrtIntroModalIfPresent(appPage: Page): Promise<void> {
     }
 }
 
-async function enableConnectedWorkspaces(adminClient: {patchConfig: (patch: Record<string, unknown>) => Promise<unknown>}): Promise<void> {
+async function enableConnectedWorkspaces(adminClient: {
+    patchConfig: (patch: Record<string, unknown>) => Promise<unknown>;
+}): Promise<void> {
     await adminClient.patchConfig({
         ConnectedWorkspacesSettings: {
             EnableSharedChannels: true,
@@ -190,7 +192,10 @@ test.describe('Shared channel invitations', () => {
 
             await appPage.getByRole('menu').getByRole('menuitem', {name: 'Delete'}).click();
 
-            await appPage.getByRole('dialog', {name: 'Delete secure connection'}).getByRole('button', {name: 'Yes, delete'}).click();
+            await appPage
+                .getByRole('dialog', {name: 'Delete secure connection'})
+                .getByRole('button', {name: 'Yes, delete'})
+                .click();
 
             await expect(connectionRow).toHaveCount(0);
         });
@@ -230,7 +235,13 @@ test.describe('Shared channel invitations', () => {
                 const {page: appPage} = await pw.testBrowser.login(adminUser);
                 await skipDesktopDeepLinkingPrompt(appPage);
 
-                const handshake = await createConfirmedMockRemoteConnection(appPage, mock, team, orgDisplayName, peerSiteUrl);
+                const handshake = await createConfirmedMockRemoteConnection(
+                    appPage,
+                    mock,
+                    team,
+                    orgDisplayName,
+                    peerSiteUrl,
+                );
                 remoteId = handshake.originRemoteId;
 
                 mock.beginHoldNextSharedChannelInvite();
@@ -251,7 +262,11 @@ test.describe('Shared channel invitations', () => {
                 await expect
                     .poll(
                         async () => {
-                            const rows = await adminClient.getSharedChannelInvitationsByRemote(handshake.originRemoteId, 0, 500);
+                            const rows = await adminClient.getSharedChannelInvitationsByRemote(
+                                handshake.originRemoteId,
+                                0,
+                                500,
+                            );
                             return rows?.filter((r) => r.status === 'pending').length ?? 0;
                         },
                         {timeout: 60_000},
@@ -315,7 +330,13 @@ test.describe('Shared channel invitations', () => {
                 const {page: appPage} = await pw.testBrowser.login(adminUser);
                 await skipDesktopDeepLinkingPrompt(appPage);
 
-                const handshake = await createConfirmedMockRemoteConnection(appPage, mock, team, orgDisplayName, peerSiteUrl);
+                const handshake = await createConfirmedMockRemoteConnection(
+                    appPage,
+                    mock,
+                    team,
+                    orgDisplayName,
+                    peerSiteUrl,
+                );
                 remoteId = handshake.originRemoteId;
 
                 mock.enqueueNextSharedChannelInviteMsg({accept: false, err: remoteErr});
@@ -383,7 +404,13 @@ test.describe('Shared channel invitations', () => {
                 const {page: appPage} = await pw.testBrowser.login(adminUser);
                 await skipDesktopDeepLinkingPrompt(appPage);
 
-                const handshake = await createConfirmedMockRemoteConnection(appPage, mock, team, orgDisplayName, peerSiteUrl);
+                const handshake = await createConfirmedMockRemoteConnection(
+                    appPage,
+                    mock,
+                    team,
+                    orgDisplayName,
+                    peerSiteUrl,
+                );
                 remoteId = handshake.originRemoteId;
 
                 mock.beginHoldNextSharedChannelInvite();
@@ -482,7 +509,13 @@ test.describe('Shared channel invitations', () => {
                 const {page: appPage} = await pw.testBrowser.login(adminUser);
                 await skipDesktopDeepLinkingPrompt(appPage);
 
-                const handshake = await createConfirmedMockRemoteConnection(appPage, mock, team, orgDisplayName, peerSiteUrl);
+                const handshake = await createConfirmedMockRemoteConnection(
+                    appPage,
+                    mock,
+                    team,
+                    orgDisplayName,
+                    peerSiteUrl,
+                );
                 remoteId = handshake.originRemoteId;
 
                 mock.enqueueNextSharedChannelInviteMsg({accept: false, err: remoteErr});
