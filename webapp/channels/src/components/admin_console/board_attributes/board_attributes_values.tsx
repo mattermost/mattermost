@@ -3,8 +3,7 @@
 
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import styled, {css} from 'styled-components';
 
 import {CheckIcon, CloseCircleIcon, LockOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
@@ -14,59 +13,19 @@ import {supportsOptions, type BoardPropertyField, type PropertyFieldOption} from
 import * as Menu from 'components/menu';
 
 import {useFLIPAnimation} from 'hooks/use_flip_animation';
+import {
+    COLOR_TOKEN_NAMES,
+    type ColorToken,
+    colorTokenLabels,
+    colorTokenMap,
+    normalizeColor,
+} from 'utils/property_option_colors';
 
 import {ValidationWarningOptionsUnique, isOptionNameTaken, newPendingId} from './board_attributes_utils';
 import {useBoardOptionDnd} from './hooks/use_board_option_dnd';
 import {useBoardOptionsDnd} from './hooks/use_board_options_dnd';
 
 import {DangerText} from '../system_properties/controls';
-
-// Color tokens for select-option chips. Each token is a stable string stored
-// on `PropertyFieldOption.color`. The map below renders the token as a light
-// pastel background. Order matches the picker's display order.
-const COLOR_TOKEN_NAMES = ['default', 'brown', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'red'] as const;
-type ColorToken = typeof COLOR_TOKEN_NAMES[number];
-
-// Palette pulled from Figma node 696:91067 ("Select Chip Color"). These are
-// feature-level domain tokens (not theme variables); same hex values render
-// across light/dark mode pending a dedicated dark-mode pass.
-const colorTokenMap: Record<ColorToken, string> = {
-    default: '#f0f0f1',
-    brown: '#f1d9bb',
-    orange: '#f8cfb9',
-    yellow: '#f4eead',
-    green: '#c5e6bb',
-    blue: '#aec9f5',
-    purple: '#dfcaff',
-    pink: '#f9d2e6',
-    red: '#f3a4a0',
-};
-
-// Backward-compat: prior seeds and earlier dev installs stored "neutral".
-// Treat it as `default` so existing data renders correctly.
-const COLOR_ALIASES: Record<string, ColorToken> = {
-    neutral: 'default',
-};
-
-const normalizeColor = (token: string | undefined): ColorToken => {
-    const t = token ?? 'default';
-    const aliased = COLOR_ALIASES[t] ?? (t as ColorToken);
-    return COLOR_TOKEN_NAMES.includes(aliased) ? aliased : 'default';
-};
-
-const resolveColor = (token: string | undefined): string => colorTokenMap[normalizeColor(token)];
-
-const colorTokenLabels: Record<ColorToken, MessageDescriptor> = defineMessages({
-    default: {id: 'admin.board_attributes.values.color.default', defaultMessage: 'Default'},
-    brown: {id: 'admin.board_attributes.values.color.brown', defaultMessage: 'Brown'},
-    orange: {id: 'admin.board_attributes.values.color.orange', defaultMessage: 'Orange'},
-    yellow: {id: 'admin.board_attributes.values.color.yellow', defaultMessage: 'Yellow'},
-    green: {id: 'admin.board_attributes.values.color.green', defaultMessage: 'Green'},
-    blue: {id: 'admin.board_attributes.values.color.blue', defaultMessage: 'Blue'},
-    purple: {id: 'admin.board_attributes.values.color.purple', defaultMessage: 'Purple'},
-    pink: {id: 'admin.board_attributes.values.color.pink', defaultMessage: 'Pink'},
-    red: {id: 'admin.board_attributes.values.color.red', defaultMessage: 'Red'},
-});
 
 const MAX_OPTION_NAME_LENGTH = 64;
 
@@ -111,6 +70,9 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
     }
 
     if (field.protected) {
+        // Reuse the editable layout — same ValuesContainer, same ChipDropZone,
+        // same ChipShell — so protected and editable rows align by construction
+        // rather than by keeping two separate styled trees in sync.
         return (
             <WithTooltip
                 title={formatMessage({
@@ -118,20 +80,22 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
                     defaultMessage: 'System attribute options cannot be modified',
                 })}
             >
-                <ProtectedValues data-testid='property-values-readonly'>
+                <ValuesContainer data-testid='property-values-readonly'>
                     {options.map((option) => (
-                        <ReadonlyChip
+                        <EditableChip
                             key={option.id}
-                            style={{backgroundColor: resolveColor(option.color)}}
-                        >
-                            <ChipLabel>{option.name}</ChipLabel>
-                        </ReadonlyChip>
+                            option={option}
+                            options={options}
+                            setOptions={setOptions}
+                            fieldId={field.id}
+                            readonly={true}
+                        />
                     ))}
                     <LockOutlineIcon
                         size={14}
                         color='rgba(var(--center-channel-color-rgb), 0.48)'
                     />
-                </ProtectedValues>
+                </ValuesContainer>
             </WithTooltip>
         );
     }
@@ -200,16 +164,25 @@ type ChipProps = {
     options: PropertyFieldOption[];
     setOptions: (next: PropertyFieldOption[]) => void;
     fieldId: string;
+
+    // When true, render the chip with no menu, no delete affordance, and no
+    // drag-and-drop wiring — but keep the exact same outer markup so
+    // protected (Status) rows align pixel-for-pixel with editable rows.
+    readonly?: boolean;
 };
 
-const EditableChip = ({option, options, setOptions, fieldId}: ChipProps) => {
+const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: ChipProps) => {
     const {formatMessage} = useIntl();
     const [editValue, setEditValue] = useState(option.name);
     const inputRef = useRef<HTMLInputElement>(null);
     const [chipElement, setChipElement] = useState<HTMLElement | null>(null);
     const [dropZoneElement, setDropZoneElement] = useState<HTMLElement | null>(null);
     const canDelete = options.length > 1;
-    const currentColor = normalizeColor(option.color);
+
+    // Normalize once: unknown legacy values fall back to `default` consistently
+    // across the chip's background, the drag preview, and the menu's
+    // selected-state check.
+    const color = normalizeColor(option.color);
 
     // The committed name conflicts with a sibling — render the chip with a
     // red border so the conflict is visible without opening the dropdown.
@@ -228,7 +201,7 @@ const EditableChip = ({option, options, setOptions, fieldId}: ChipProps) => {
         getDragPreview: () => {
             const node = document.createElement('span');
             node.className = 'BoardAttributes__optionDragPreview';
-            node.style.backgroundColor = resolveColor(option.color);
+            node.style.backgroundColor = colorTokenMap[color];
             node.textContent = option.name;
             return node;
         },
@@ -285,6 +258,30 @@ const EditableChip = ({option, options, setOptions, fieldId}: ChipProps) => {
         handleDelete();
     };
 
+    if (readonly) {
+        // Same outer wrappers as the editable chip so protected chips align
+        // pixel-for-pixel with editable ones (no separate ReadonlyChip
+        // styled component to drift over time). No Menu.Container, no
+        // delete button, and the chip + dropzone refs stay unset so
+        // useBoardOptionDnd never wires up DnD for this option.
+        return (
+            <ChipDropZone data-flip-key={option.id}>
+                <ChipShell
+                    $invalid={false}
+                    $readonly={true}
+                    style={{backgroundColor: colorTokenMap[color]}}
+                >
+                    <span
+                        className='property-option-chip-trigger'
+                        data-testid={`property-option-chip-${option.id || option.name}`}
+                    >
+                        <ChipLabel>{option.name}</ChipLabel>
+                    </span>
+                </ChipShell>
+            </ChipDropZone>
+        );
+    }
+
     return (
         <ChipDropZone
             ref={setDropZoneElement}
@@ -293,7 +290,7 @@ const EditableChip = ({option, options, setOptions, fieldId}: ChipProps) => {
             <ChipShell
                 ref={setChipElement}
                 $invalid={isInvalid}
-                style={{backgroundColor: resolveColor(option.color)}}
+                style={{backgroundColor: colorTokenMap[color]}}
             >
                 <Menu.Container
                     menuButton={{
@@ -362,12 +359,12 @@ const EditableChip = ({option, options, setOptions, fieldId}: ChipProps) => {
                             key={token}
                             id={`${menuId}-color-${token}`}
                             role='menuitemradio'
-                            aria-checked={currentColor === token}
+                            aria-checked={color === token}
                             forceCloseOnSelect={false}
                             onClick={() => setColor(token)}
                             leadingElement={<ColorPreview style={{backgroundColor: colorTokenMap[token]}}/>}
                             labels={<FormattedMessage {...colorTokenLabels[token]}/>}
-                            trailingElements={currentColor === token ? (
+                            trailingElements={color === token ? (
                                 <CheckIcon
                                     size={16}
                                     color='var(--button-bg)'
@@ -413,28 +410,6 @@ const ValuesContainer = styled.div`
     align-items: center;
     padding: 6px 0;
     min-height: 40px;
-
-    /*
-     * Menu.Container wraps the chip label in a <button>. Reset its box model
-     * so it can sit transparently inside <ChipShell> and pick up the chip's
-     * coloured background, padding, and rounded corners.
-     */
-    .property-option-chip-trigger,
-    & .property-option-chip-trigger:focus,
-    & .property-option-chip-trigger:hover {
-        padding: 2px 4px 2px 8px;
-        margin: 0;
-        border: 0;
-        background: transparent;
-        min-height: 0;
-        line-height: normal;
-        box-shadow: none;
-        color: var(--center-channel-color);
-        font-family: 'Open Sans';
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-    }
 `;
 
 const ChipDropZone = styled.span`
@@ -443,54 +418,75 @@ const ChipDropZone = styled.span`
     padding: 0 3px;
 `;
 
-const ProtectedValues = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    row-gap: 3px;
-    column-gap: 6px;
-    align-items: center;
-    padding: 6px 0;
-    min-height: 40px;
-`;
-
 /* Outer pill: takes the option's colour as background, holds the menu-trigger
    button and the inline X delete button as siblings so they render as one
-   visual chip but remain individually focusable.
+   visual chip but remain individually focusable. Read-only chips reuse this
+   same shell (via EditableChip's `readonly` branch) so protected and editable
+   rows align by construction.
    position: relative is required so DropIndicator (absolute-positioned) clips
-   to the chip boundary. */
-const ChipShell = styled.span<{$invalid?: boolean}>`
+   to the chip boundary.
+
+   All chip-internal CSS lives on this component (trigger button reset, focus
+   ring, readonly variant) so the rules are scoped to a single chip rather
+   than to whatever container the chip happens to render inside. */
+const ChipShell = styled.span<{$invalid?: boolean; $readonly?: boolean}>`
     position: relative;
     display: inline-flex;
     align-items: center;
     border-radius: 4px;
     user-select: none;
-    cursor: grab;
+    cursor: ${({$readonly}) => ($readonly ? 'default' : 'grab')};
     transition: filter 0.15s ease, box-shadow 0.15s ease;
 
     &:active {
-        cursor: grabbing;
+        cursor: ${({$readonly}) => ($readonly ? 'default' : 'grabbing')};
     }
 
-    &:hover {
-        filter: brightness(0.97);
-    }
+    ${({$readonly}) => !$readonly && css`
+        &:hover {
+            filter: brightness(0.97);
+        }
+    `}
 
     ${({$invalid}) => $invalid && css`
         box-shadow: 0 0 0 1px var(--error-text);
     `}
-`;
 
-const ReadonlyChip = styled.span`
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 10px;
-    border-radius: 4px;
-    color: var(--center-channel-color);
-    font-family: 'Open Sans';
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 18px;
-    cursor: default;
+    /* Trigger element inside the chip: the menu button in editable mode, a
+       plain <span> wrapping the label in readonly mode. Same class either
+       way; readonly-specific tweaks are conditional on $readonly below. */
+    .property-option-chip-trigger {
+        padding: 2px 4px 2px 8px;
+        margin: 0;
+        border: 0;
+        background: transparent;
+        min-height: 0;
+        line-height: normal;
+        box-shadow: none;
+        outline: none;
+        color: var(--center-channel-color);
+        font-family: 'Open Sans';
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    /* Keyboard focus ring on the trigger button — mirrors ChipDeleteButton's
+       pattern. Mouse focus (:focus without :focus-visible) stays ring-less. */
+    .property-option-chip-trigger:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+
+    ${({$readonly}) => $readonly && css`
+        /* Readonly: balance the right padding (no trailing X), and use the
+           default cursor since the span has no menu to open. */
+        .property-option-chip-trigger {
+            padding-right: 8px;
+            cursor: default;
+        }
+    `}
 `;
 
 const ChipLabel = styled.span`

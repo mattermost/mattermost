@@ -181,7 +181,8 @@ describe('BoardAttributesTable', () => {
             await userEvent.tab();
 
             await waitFor(() => expect(props.updateField).toHaveBeenCalled());
-            const lastCall = props.updateField.mock.calls.at(-1)![0] as BoardPropertyField;
+            const updateFieldMock = props.updateField as jest.Mock;
+            const lastCall = updateFieldMock.mock.calls.at(-1)![0] as BoardPropertyField;
             expect(lastCall.name).toBe('New');
             expect(lastCall.id).toBe('1');
         });

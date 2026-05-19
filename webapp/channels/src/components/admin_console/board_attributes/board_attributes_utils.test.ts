@@ -122,6 +122,7 @@ describe('board_attributes_utils', () => {
                 name: 'Status',
                 type: 'select',
                 attrs: {
+                    sort_order: 0,
                     options: [
                         {id: 'whatever', name: 'Todo'},
                         {id: '', name: 'Done'},

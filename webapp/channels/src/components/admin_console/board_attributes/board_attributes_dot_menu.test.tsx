@@ -106,7 +106,8 @@ describe('Board attributes DotMenu', () => {
 
         // Menu.Item defers onClick for non-radio items until after the menu close animation completes
         await waitFor(() => expect(props.createField).toHaveBeenCalledTimes(1));
-        const passed = props.createField.mock.calls[0][0] as BoardPropertyField;
+        const createFieldMock = props.createField as jest.Mock;
+        const passed = createFieldMock.mock.calls[0][0] as BoardPropertyField;
         expect(passed.name).toBe('Priority');
 
         // attrs should be a shallow copy, not the original reference

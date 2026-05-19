@@ -65,9 +65,15 @@ export type FieldValueType =
     'phone' |
     '';
 
+// Boards' option-chip color palette; hex values + labels in webapp utils/property_option_colors.
+export const COLOR_TOKEN_NAMES = ['default', 'brown', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'red'] as const;
+export type ColorToken = typeof COLOR_TOKEN_NAMES[number];
+
 export type PropertyFieldOption = {
     id: string;
     name: string;
+
+    // Free-form on the wire (Boards: ColorToken, Classification Markings: hex, CPAs: ''); narrow per feature.
     color?: string;
     rank?: number;
 }
