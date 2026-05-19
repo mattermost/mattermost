@@ -51,7 +51,7 @@ func (a *App) GenerateFlaggedPostReport(rctx request.CTX, postID, generatedByUse
 
 	zw := zip.NewWriter(tmp)
 
-	if appErr := a.writeFlaggedPostReport(rctx, zw, postID, generatedByUserID, action); appErr != nil {
+	if appErr := a.writeFlaggedPostReport(rctx, zw, postID, generatedByUserID, comment, action); appErr != nil {
 		_ = zw.Close()
 		cleanup()
 		return "", appErr
@@ -73,7 +73,7 @@ func (a *App) GenerateFlaggedPostReport(rctx request.CTX, postID, generatedByUse
 	return tmpPath, nil
 }
 
-func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, generatedByUserID, action string) *model.AppError {
+func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, generatedByUserID, comment, action string) *model.AppError {
 	rc, appErr := a.loadFlaggedPostReportContext(rctx, postID)
 	if appErr != nil {
 		return appErr
@@ -89,7 +89,7 @@ func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, g
 	if appErr := a.writeEditHistorySection(rctx, zw, rc, seenFiles); appErr != nil {
 		return appErr
 	}
-	if appErr := a.writeContentReviewEntry(rctx, zw, rc.Post, generatedByUserID, action); appErr != nil {
+	if appErr := a.writeContentReviewEntry(rctx, zw, rc.Post, generatedByUserID, comment, action); appErr != nil {
 		return appErr
 	}
 	if appErr := a.writeReportMetadataEntry(zw, generatedByUserID); appErr != nil {
@@ -183,8 +183,8 @@ func (a *App) writeEditHistorySection(rctx request.CTX, zw *zip.Writer, rc *mode
 	return nil
 }
 
-func (a *App) writeContentReviewEntry(rctx request.CTX, zw *zip.Writer, post *model.Post, generatedByUserID, action string) *model.AppError {
-	payload, appErr := a.buildContentReviewYAML(rctx, post, generatedByUserID, action)
+func (a *App) writeContentReviewEntry(rctx request.CTX, zw *zip.Writer, post *model.Post, generatedByUserID, comment, action string) *model.AppError {
+	payload, appErr := a.buildContentReviewYAML(rctx, post, generatedByUserID, comment, action)
 	if appErr != nil {
 		return appErr
 	}
@@ -282,7 +282,7 @@ func buildPostYAML(post *model.Post, channel *model.Channel, team *model.Team, a
 	return out
 }
 
-func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generatedByUserID, pendingAction string) (model.FlaggedPostReportContentReview, *model.AppError) {
+func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generatedByUserID, actorComment, pendingAction string) (model.FlaggedPostReportContentReview, *model.AppError) {
 	out := model.FlaggedPostReportContentReview{}
 
 	values, appErr := a.GetPostContentFlaggingPropertyValues(post.Id)
@@ -338,6 +338,13 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 	reviewerID := decodePropertyString(rctx, byName, contentFlaggingPropertyNameReviewerUserID)
 	out.ReviewerUserID = reviewerID
 	out.ReviewerComment = decodePropertyString(rctx, byName, contentFlaggingPropertyNameActorComment)
+	// SearchPropertyValues reads from a replica, so a comment just persisted by
+	// ensureActorCommentForReport on the master may not be visible yet under
+	// replication lag. Fall back to the in-hand value the caller just supplied
+	// so the report always reflects it.
+	if out.ReviewerComment == "" && actorComment != "" {
+		out.ReviewerComment = actorComment
+	}
 	out.ActionTime = decodePropertyInt64(rctx, byName, contentFlaggingPropertyNameActionTime)
 
 	// We want to include the actor details only when an action is being performed - retain or delete the quarantined post.
