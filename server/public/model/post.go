@@ -782,9 +782,7 @@ func (o *Post) InteractiveBlocksImageURLs() []string {
 		collectBlockKitImageURLs(raw, &out)
 	}
 	if raw, ok := props[PostPropsAdaptiveCards]; ok {
-		for _, card := range adaptiveCardPayloadRoots(raw) {
-			collectAdaptiveCardImageURLs(card, &out)
-		}
+		collectAdaptiveCardImageURLs(raw, &out)
 	}
 	return out
 }
@@ -809,7 +807,7 @@ func (o *Post) nonEmptyInteractivePayloadPropKeys() []string {
 	if interactivePropJSONArrayNonEmpty(props[PostPropsBlockKitBlocks]) {
 		keys = append(keys, PostPropsBlockKitBlocks)
 	}
-	if adaptiveCardsPropNonEmpty(props[PostPropsAdaptiveCards]) {
+	if interactivePropJSONArrayNonEmpty(props[PostPropsAdaptiveCards]) {
 		keys = append(keys, PostPropsAdaptiveCards)
 	}
 	if len(o.Attachments()) > 0 {

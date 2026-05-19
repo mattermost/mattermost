@@ -29,6 +29,10 @@ func TestMergeQueryIntoURL(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "https://example.com/a", out)
 	})
+	t.Run("invalid url", func(t *testing.T) {
+		_, err := MergeQueryIntoURL("://bad", map[string]string{"a": "b"})
+		require.Error(t, err)
+	})
 }
 
 func TestResolveMmBlocksAction(t *testing.T) {
@@ -44,8 +48,8 @@ func TestResolveMmBlocksAction(t *testing.T) {
 
 	t.Run("external merges client query", func(t *testing.T) {
 		resolved, err := ResolveMmBlocksAction(&MmBlocksActionSpec{
-			Type: MmBlocksActionTypeExternal,
-			URL:  "https://hooks.example.com/x",
+			Type:    MmBlocksActionTypeExternal,
+			URL:     "https://hooks.example.com/x",
 			Context: map[string]any{"k": "v"},
 		}, "ext1", map[string]string{"client": "q"})
 		require.NoError(t, err)
@@ -55,6 +59,24 @@ func TestResolveMmBlocksAction(t *testing.T) {
 
 	t.Run("not found", func(t *testing.T) {
 		_, err := ResolveMmBlocksAction(nil, "missing", nil)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrMmBlocksActionNotFound)
+	})
+
+	t.Run("openURL empty url", func(t *testing.T) {
+		_, err := ResolveMmBlocksAction(&MmBlocksActionSpec{Type: MmBlocksActionTypeOpenURL}, "open1", nil)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrMmBlocksOpenURLEmpty)
+	})
+
+	t.Run("external empty url", func(t *testing.T) {
+		_, err := ResolveMmBlocksAction(&MmBlocksActionSpec{Type: MmBlocksActionTypeExternal}, "ext1", nil)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrMmBlocksActionNotFound)
+	})
+
+	t.Run("unknown type", func(t *testing.T) {
+		_, err := ResolveMmBlocksAction(&MmBlocksActionSpec{Type: "other", URL: "https://example.com"}, "x", nil)
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrMmBlocksActionNotFound)
 	})
@@ -88,6 +110,52 @@ func TestPostGetMmBlocksActionSpec(t *testing.T) {
 	open := p.GetMmBlocksActionSpec("open1")
 	require.NotNil(t, open)
 	assert.Equal(t, MmBlocksActionTypeOpenURL, open.Type)
+
+	assert.Nil(t, p.GetMmBlocksActionSpec("missing"))
+	assert.Nil(t, p.GetMmBlocksActionSpec(""))
+}
+
+func TestPostGetMmBlocksActionSpec_encryptedProp(t *testing.T) {
+	p := &Post{}
+	p.SetProps(StringInterface{
+		PostPropsMmBlocksActions: "opaque-ciphertext",
+	})
+	assert.Nil(t, p.GetMmBlocksActionSpec("any"))
+}
+
+func TestPostGetMmBlocksActionSpec_mapContext(t *testing.T) {
+	p := &Post{}
+	p.SetProps(StringInterface{
+		PostPropsMmBlocksActions: map[string]any{
+			"act1": map[string]any{
+				"type":    MmBlocksActionTypeExternal,
+				"url":     "https://hooks.example.com/x",
+				"context": map[string]any{"k": "v"},
+			},
+		},
+	})
+	spec := p.GetMmBlocksActionSpec("act1")
+	require.NotNil(t, spec)
+	assert.Equal(t, "v", spec.Context["k"])
+}
+
+func TestMmBlocksActionCookie_ActionSpec(t *testing.T) {
+	var nilCookie *MmBlocksActionCookie
+	assert.Nil(t, nilCookie.ActionSpec("a"))
+
+	cookie := &MmBlocksActionCookie{
+		Actions: map[string]map[string]any{
+			"ext": {
+				"type": MmBlocksActionTypeExternal,
+				"url":  "https://example.com/hook",
+			},
+		},
+	}
+	spec := cookie.ActionSpec("ext")
+	require.NotNil(t, spec)
+	assert.Equal(t, MmBlocksActionTypeExternal, spec.Type)
+	assert.Nil(t, cookie.ActionSpec("missing"))
+	assert.Nil(t, cookie.ActionSpec(""))
 }
 
 func TestStripMmBlocksActionSecrets(t *testing.T) {
@@ -95,23 +163,13 @@ func TestStripMmBlocksActionSecrets(t *testing.T) {
 	p.SetProps(StringInterface{
 		PostPropsMmBlocksActions: map[string]any{
 			"a": map[string]any{
-				"type":    MmBlocksActionTypeExternal,
-				"url":     "https://secret",
-				"context": "{}",
-				"query":   map[string]any{"q": "1"},
-				"cookie":  "abc",
+				"type": MmBlocksActionTypeExternal,
+				"url":  "https://secret",
 			},
 		},
 	})
 	p.StripMmBlocksActionSecrets()
-	m, ok := p.GetProp(PostPropsMmBlocksActions).(map[string]any)
-	require.True(t, ok)
-	inner := m["a"].(map[string]any)
-	assert.Equal(t, MmBlocksActionTypeExternal, inner["type"])
-	assert.Equal(t, "abc", inner["cookie"])
-	assert.NotContains(t, inner, "url")
-	assert.NotContains(t, inner, "context")
-	assert.NotContains(t, inner, "query")
+	assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
 }
 
 func TestStripMmBlocksActionSecrets_StringNoop(t *testing.T) {
@@ -162,7 +220,30 @@ func TestAddMmBlocksActionCookies_ReplacesWithEncryptedString(t *testing.T) {
 	assert.Equal(t, "postid", mm.PostId)
 	assert.Equal(t, "chid", mm.ChannelId)
 	assert.Contains(t, spec.URL, "example.com")
-	assert.Contains(t, spec.URL, "a=b")
+	assert.Equal(t, "b", spec.Query["a"])
+	assert.Equal(t, "2", spec.Query["keep"])
+}
+
+func TestAddMmBlocksActionCookies_rootPostIdAndRetain(t *testing.T) {
+	secret := make([]byte, 32)
+	p := &Post{Id: "postid", RootId: "rootid", ChannelId: "chid"}
+	p.SetProps(StringInterface{
+		PostPropsFromWebhook: "true",
+		PostPropsMmBlocksActions: map[string]any{
+			"a1": map[string]any{
+				"type": MmBlocksActionTypeOpenURL,
+				"url":  "https://example.com",
+			},
+		},
+	})
+	AddMmBlocksActionCookies(p, secret)
+
+	plain, err := DecryptPostActionCookie(p.GetProp(PostPropsMmBlocksActions).(string), secret)
+	require.NoError(t, err)
+	_, mm, err := ParseDecryptedActionCookiePayload(plain)
+	require.NoError(t, err)
+	assert.Equal(t, "rootid", mm.RootPostId)
+	assert.Equal(t, "true", mm.RetainProps[PostPropsFromWebhook])
 }
 
 func TestParseDecryptedActionCookiePayload_LegacyPostActionCookie(t *testing.T) {
@@ -183,10 +264,26 @@ func TestParseDecryptedActionCookiePayload_LegacyPostActionCookie(t *testing.T) 
 	assert.Equal(t, "https://hooks.example.com/x", legacy.Integration.URL)
 }
 
-func TestMmBlocksContextMap(t *testing.T) {
-	assert.Nil(t, MmBlocksContextMap(""))
-	m := MmBlocksContextMap(`{"a":1}`)
-	assert.Equal(t, float64(1), m["a"])
-	m2 := MmBlocksContextMap("not-json")
-	assert.Equal(t, "not-json", m2["context"])
+func TestParseDecryptedActionCookiePayload_MmBlocksCookie(t *testing.T) {
+	mm := &MmBlocksActionCookie{
+		Kind:      MmBlocksActionCookieKind,
+		PostId:    "p1",
+		ChannelId: "c1",
+		Actions: map[string]map[string]any{
+			"a": {"type": MmBlocksActionTypeOpenURL, "url": "https://example.com"},
+		},
+	}
+	b, err := json.Marshal(mm)
+	require.NoError(t, err)
+	legacy, parsed, err := ParseDecryptedActionCookiePayload(string(b))
+	require.NoError(t, err)
+	require.Nil(t, legacy)
+	require.NotNil(t, parsed)
+	assert.Equal(t, MmBlocksActionCookieKind, parsed.Kind)
+	assert.Equal(t, "p1", parsed.PostId)
+}
+
+func TestParseDecryptedActionCookiePayload_InvalidJSON(t *testing.T) {
+	_, _, err := ParseDecryptedActionCookiePayload("{")
+	require.Error(t, err)
 }

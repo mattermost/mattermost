@@ -4073,9 +4073,9 @@ func (c *Client4) DoPostAction(ctx context.Context, postId, actionId string) (*R
 }
 
 // DoPostActionWithCookie performs a post action with extra arguments
-func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, selected, cookieStr string, query map[string]string, integrationContext string) (*Response, error) {
+func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, selected, cookieStr string, query map[string]string, integrationFormat string) (*Response, error) {
 	route := c.postRoute(postId).Join("actions", actionId)
-	if selected == "" && cookieStr == "" && len(query) == 0 && integrationContext == "" {
+	if selected == "" && cookieStr == "" && len(query) == 0 && integrationFormat == "" {
 		r, err := c.doAPIPost(ctx, route, "")
 		if err != nil {
 			return BuildResponse(r), err
@@ -4088,7 +4088,7 @@ func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, 
 		SelectedOption:    selected,
 		Cookie:            cookieStr,
 		Query:             query,
-		IntegrationFormat: integrationContext,
+		IntegrationFormat: integrationFormat,
 	}
 	r, err := c.doAPIPostJSON(ctx, route, req)
 	if err != nil {

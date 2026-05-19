@@ -1677,13 +1677,38 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 	})
 }
 
+func TestPost_PostActionPreserveState(t *testing.T) {
+	t.Run("top-level post", func(t *testing.T) {
+		p := &Post{
+			Id:             "postid",
+			IsPinned:       true,
+			HasReactions:   true,
+			Props:          StringInterface{PostPropsFromWebhook: "true", "other": "x"},
+		}
+		state := p.PostActionPreserveState()
+		assert.Equal(t, "true", state.Retain[PostPropsFromWebhook])
+		assert.Contains(t, state.Remove, PostPropsOverrideUsername)
+		assert.Contains(t, state.Remove, PostPropsOverrideIconURL)
+		assert.Equal(t, "true", state.OriginalProps[PostPropsFromWebhook])
+		assert.Equal(t, "x", state.OriginalProps["other"])
+		assert.True(t, state.OriginalIsPinned)
+		assert.True(t, state.OriginalHasReactions)
+		assert.Equal(t, "postid", state.RootPostId)
+	})
+
+	t.Run("thread reply uses root id", func(t *testing.T) {
+		p := &Post{Id: "replyid", RootId: "rootid"}
+		assert.Equal(t, "rootid", p.PostActionPreserveState().RootPostId)
+	})
+}
+
 func TestNormalizePostActionIntegrationContext(t *testing.T) {
-	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationContext(""))
-	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationContext("  "))
-	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationContext("ATTACHMENT"))
-	assert.Equal(t, PostActionIntegrationFormatMmBlock, NormalizePostActionIntegrationContext("mm_block"))
-	assert.Equal(t, PostActionIntegrationFormatBlock, NormalizePostActionIntegrationContext("block"))
-	assert.Equal(t, PostActionIntegrationFormatCard, NormalizePostActionIntegrationContext("card"))
-	assert.Equal(t, PostActionIntegrationFormatAppsBinding, NormalizePostActionIntegrationContext("apps_binding"))
-	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationContext("unknown-thing"))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat(""))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat("  "))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat("ATTACHMENT"))
+	assert.Equal(t, PostActionIntegrationFormatMmBlock, NormalizePostActionIntegrationFormat("mm_block"))
+	assert.Equal(t, PostActionIntegrationFormatBlock, NormalizePostActionIntegrationFormat("block"))
+	assert.Equal(t, PostActionIntegrationFormatCard, NormalizePostActionIntegrationFormat("card"))
+	assert.Equal(t, PostActionIntegrationFormatAppsBinding, NormalizePostActionIntegrationFormat("apps_binding"))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat("unknown-thing"))
 }

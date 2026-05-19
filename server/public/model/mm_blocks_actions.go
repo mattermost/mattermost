@@ -80,18 +80,6 @@ func mmBlocksEntryMapToSpec(entryMap map[string]any) *MmBlocksActionSpec {
 	}
 }
 
-// MmBlocksContextMap parses a context JSON string or treats a non-JSON string as a single context value.
-func MmBlocksContextMap(contextString string) map[string]any {
-	if contextString == "" {
-		return nil
-	}
-	var m map[string]any
-	if err := json.Unmarshal([]byte(contextString), &m); err == nil && m != nil {
-		return m
-	}
-	return map[string]any{"context": contextString}
-}
-
 // ActionSpec returns the server-side spec for one action id from the cookie actions map.
 func (m *MmBlocksActionCookie) ActionSpec(actionID string) *MmBlocksActionSpec {
 	if m == nil || actionID == "" || m.Actions == nil {
@@ -216,18 +204,6 @@ func AddMmBlocksActionCookies(p *Post, secret []byte) {
 		if !ok {
 			continue
 		}
-		typ, _ := entryMap["type"].(string)
-		if typ == MmBlocksActionTypeExternal {
-			urlStr, _ := entryMap["url"].(string)
-			if urlStr != "" {
-				actionQuery := stringMapFromPropValue(entryMap["query"])
-				finalURL, err := MergeQueryIntoURL(urlStr, actionQuery)
-				if err == nil {
-					entryMap["url"] = finalURL
-					delete(entryMap, "query")
-				}
-			}
-		}
 		actionsForEnc[actionID] = entryMap
 	}
 
@@ -284,9 +260,6 @@ func (o *Post) StripMmBlocksActionSecrets() {
 func contextMapFromProp(v any) map[string]any {
 	if v == nil {
 		return nil
-	}
-	if s, ok := v.(string); ok {
-		return MmBlocksContextMap(s)
 	}
 	if m, ok := coerceToStringAnyMap(v); ok {
 		return m

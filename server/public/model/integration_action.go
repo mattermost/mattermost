@@ -102,7 +102,7 @@ type DoPostActionRequest struct {
 	IntegrationFormat string `json:"integration_format,omitempty"`
 }
 
-// Integration context values for DoPostActionRequest.IntegrationContext (client → server).
+// Integration format values for DoPostActionRequest.IntegrationFormat (client → server).
 const (
 	PostActionIntegrationFormatAttachment  = "attachment"
 	PostActionIntegrationFormatAppsBinding = "apps_binding"
@@ -111,8 +111,8 @@ const (
 	PostActionIntegrationFormatMmBlock     = "mm_block"
 )
 
-// NormalizePostActionIntegrationContext returns a canonical integration context, defaulting to attachment when empty or unknown.
-func NormalizePostActionIntegrationContext(s string) string {
+// NormalizePostActionIntegrationFormat returns a canonical integration format, defaulting to attachment when empty or unknown.
+func NormalizePostActionIntegrationFormat(s string) string {
 	c := strings.TrimSpace(strings.ToLower(s))
 	switch c {
 	case PostActionIntegrationFormatMmBlock,

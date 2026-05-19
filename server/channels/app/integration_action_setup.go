@@ -194,7 +194,7 @@ func (a *App) resolvePostActionSetupFromPost(
 ) (*postActionSetup, string, *model.AppError) {
 	fillUpstreamChannel(upstreamRequest, channel, post.ChannelId)
 
-	switch model.NormalizePostActionIntegrationContext(integrationContext) {
+	switch model.NormalizePostActionIntegrationFormat(integrationContext) {
 	case model.PostActionIntegrationFormatMmBlock,
 		model.PostActionIntegrationFormatBlock,
 		model.PostActionIntegrationFormatCard:
@@ -222,7 +222,7 @@ func (a *App) resolvePostActionSetupFromPost(
 			rootPostId:           preserve.RootPostId,
 		}, "", nil
 
-	case model.PostActionIntegrationFormatAttachment,
+	case model.PostActionIntegrationFormatAttachment:
 		action := post.GetAction(actionID)
 		if action == nil || action.Integration == nil {
 			return nil, "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
