@@ -8,7 +8,6 @@ import type {Dispatch} from 'redux';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {openModal} from 'actions/views/modals';
-
 import {isCompactMode} from 'selectors/preferences';
 
 import type {GlobalState} from 'types/store';

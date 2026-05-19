@@ -7,9 +7,8 @@ import {getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilePreviewModal from 'components/file_preview_modal';
 
-import {ModalIdentifiers} from 'utils/constants';
-
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
 
 import FilePreview from './file_preview';
 
