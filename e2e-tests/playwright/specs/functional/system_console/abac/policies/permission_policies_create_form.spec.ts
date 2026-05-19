@@ -74,9 +74,12 @@ test.describe('Permission Policies - Create Policy', () => {
         //   system administrators" to just "Members" in the UX pass;
         //   the "system admins fall back when no admin-specific rule
         //   exists" semantics moved into the role's description copy.
+        //   Use an exact-text matcher so a regression to the longer
+        //   "Members and system administrators" label fails the test
+        //   instead of silently passing the substring check.
         const roleButton = systemConsolePage.page.locator('#pp-role-selector-btn');
         await expect(roleButton).toBeVisible();
-        await expect(roleButton).toContainText('Members');
+        await expect(roleButton).toHaveText('Members');
     });
 
     test('MM-T5807 admin can change role selection to System administrators via dropdown', async ({pw}) => {

@@ -366,7 +366,7 @@
   "admin.access_control.simulate_access.details.combined_label": "Combined evaluation",
   "admin.access_control.simulate_access.details.combined_label_with_role": "Combined evaluation for role {role}",
   "admin.access_control.simulate_access.details.hide_trace": "Hide evaluation trace",
-  "admin.access_control.simulate_access.details.multi_policy_explainer": "{count, number} policies contributed to this deny. Numbered sections below show each policy in turn.",
+  "admin.access_control.simulate_access.details.multi_policy_explainer": "{count, plural, one {# policy} other {# policies}} contributed to this deny. Numbered sections below show each policy in turn.",
   "admin.access_control.simulate_access.details.multi_policy_explainer_mixed": "{denyCount, plural, one {# policy} other {# policies}} denied; {allowCount, plural, one {# policy} other {# policies}} allowed. Multiple policies on the same scope combine with deny-wins, so any single deny produces an overall deny.",
   "admin.access_control.simulate_access.details.policy_allowed": "Allowed",
   "admin.access_control.simulate_access.details.policy_denied": "Denied",

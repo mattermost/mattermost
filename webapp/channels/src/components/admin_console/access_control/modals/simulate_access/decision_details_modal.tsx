@@ -455,7 +455,7 @@ function MultiPolicyTraces({action, traces}: MultiPolicyTracesProps): JSX.Elemen
                 ) : (
                     <FormattedMessage
                         id='admin.access_control.simulate_access.details.multi_policy_explainer'
-                        defaultMessage='{count, number} policies contributed to this deny. Numbered sections below show each policy in turn.'
+                        defaultMessage='{count, plural, one {# policy} other {# policies}} contributed to this deny. Numbered sections below show each policy in turn.'
                         values={{count: traces.length}}
                     />
                 )}
