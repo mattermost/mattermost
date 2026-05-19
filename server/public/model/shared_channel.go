@@ -5,7 +5,9 @@ package model
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"net/http"
+	"sort"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
@@ -277,11 +279,11 @@ type SharedChannelRemoteFilterOpts struct {
 
 // MembershipChangeMsg represents a change in channel membership
 type MembershipChangeMsg struct {
-	ChannelId  string `json:"channel_id"`
-	UserId     string `json:"user_id"`
-	IsAdd      bool   `json:"is_add"`
-	RemoteId   string `json:"remote_id"`
-	ChangeTime int64  `json:"change_time"`
+	ChannelId  string `json:"channel_id" xml:"ChannelId"`
+	UserId     string `json:"user_id" xml:"UserId"`
+	IsAdd      bool   `json:"is_add" xml:"IsAdd"`
+	RemoteId   string `json:"remote_id" xml:"RemoteId"`
+	ChangeTime int64  `json:"change_time" xml:"ChangeTime"`
 }
 
 // SyncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
@@ -321,24 +323,223 @@ func (sm *SyncMsg) String() string {
 	return string(json)
 }
 
+// xmlSyncMsgFields contains the non-map fields of SyncMsg for XML serialization.
+type xmlSyncMsgFields struct {
+	Id                string                 `xml:"Id"`
+	ChannelId         string                 `xml:"ChannelId"`
+	Posts             []*Post                `xml:"Posts>Post,omitempty"`
+	Reactions         []*Reaction            `xml:"Reactions>Reaction,omitempty"`
+	Statuses          []*Status              `xml:"Statuses>Status,omitempty"`
+	MembershipChanges []*MembershipChangeMsg `xml:"MembershipChanges>MembershipChangeMsg,omitempty"`
+	Acknowledgements  []*PostAcknowledgement `xml:"Acknowledgements>PostAcknowledgement,omitempty"`
+}
+
+// xmlSyncMsgUser wraps a User with an ID attribute for XML map serialization.
+type xmlSyncMsgUser struct {
+	ID   string `xml:"id,attr"`
+	User *User  `xml:"User"`
+}
+
+// xmlSyncMsgMentionTransform represents a single mention transform entry.
+type xmlSyncMsgMentionTransform struct {
+	Key   string `xml:"key,attr"`
+	Value string `xml:"value,attr"`
+}
+
+// MarshalXML encodes a SyncMsg to XML, handling the Users map and MentionTransforms map.
+func (sm *SyncMsg) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if err := e.EncodeToken(start); err != nil {
+		return err
+	}
+
+	// Encode non-map fields via the helper struct.
+	fields := xmlSyncMsgFields{
+		Id:                sm.Id,
+		ChannelId:         sm.ChannelId,
+		Posts:             sm.Posts,
+		Reactions:         sm.Reactions,
+		Statuses:          sm.Statuses,
+		MembershipChanges: sm.MembershipChanges,
+		Acknowledgements:  sm.Acknowledgements,
+	}
+	if err := e.EncodeElement(fields, xml.StartElement{Name: xml.Name{Local: "Fields"}}); err != nil {
+		return err
+	}
+
+	// Encode Users map as <Users><UserEntry id="..."><User>...</User></UserEntry></Users>
+	if len(sm.Users) > 0 {
+		usersStart := xml.StartElement{Name: xml.Name{Local: "Users"}}
+		if err := e.EncodeToken(usersStart); err != nil {
+			return err
+		}
+
+		keys := make([]string, 0, len(sm.Users))
+		for k := range sm.Users {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		for _, k := range keys {
+			entry := xmlSyncMsgUser{ID: k, User: sm.Users[k]}
+			if err := e.EncodeElement(entry, xml.StartElement{Name: xml.Name{Local: "UserEntry"}}); err != nil {
+				return err
+			}
+		}
+
+		if err := e.EncodeToken(usersStart.End()); err != nil {
+			return err
+		}
+	}
+
+	// Encode MentionTransforms as <MentionTransforms><Transform key="..." value="..."/></MentionTransforms>
+	if len(sm.MentionTransforms) > 0 {
+		mtStart := xml.StartElement{Name: xml.Name{Local: "MentionTransforms"}}
+		if err := e.EncodeToken(mtStart); err != nil {
+			return err
+		}
+
+		keys := make([]string, 0, len(sm.MentionTransforms))
+		for k := range sm.MentionTransforms {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		for _, k := range keys {
+			entry := xmlSyncMsgMentionTransform{Key: k, Value: sm.MentionTransforms[k]}
+			if err := e.EncodeElement(entry, xml.StartElement{Name: xml.Name{Local: "Transform"}}); err != nil {
+				return err
+			}
+		}
+
+		if err := e.EncodeToken(mtStart.End()); err != nil {
+			return err
+		}
+	}
+
+	return e.EncodeToken(start.End())
+}
+
+// UnmarshalXML decodes a SyncMsg from XML, handling the Users map and MentionTransforms map.
+func (sm *SyncMsg) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	sm.Users = nil
+	sm.MentionTransforms = nil
+
+	for {
+		tok, err := d.Token()
+		if err != nil {
+			return err
+		}
+
+		switch t := tok.(type) {
+		case xml.StartElement:
+			switch t.Name.Local {
+			case "Fields":
+				var fields xmlSyncMsgFields
+				if err := d.DecodeElement(&fields, &t); err != nil {
+					return err
+				}
+				sm.Id = fields.Id
+				sm.ChannelId = fields.ChannelId
+				sm.Posts = fields.Posts
+				sm.Reactions = fields.Reactions
+				sm.Statuses = fields.Statuses
+				sm.MembershipChanges = fields.MembershipChanges
+				sm.Acknowledgements = fields.Acknowledgements
+
+			case "Users":
+				sm.Users = make(map[string]*User)
+				if err := decodeXMLUsers(d, sm); err != nil {
+					return err
+				}
+
+			case "MentionTransforms":
+				sm.MentionTransforms = make(map[string]string)
+				if err := decodeXMLMentionTransforms(d, sm); err != nil {
+					return err
+				}
+
+			default:
+				if err := d.Skip(); err != nil {
+					return err
+				}
+			}
+
+		case xml.EndElement:
+			return nil
+		}
+	}
+}
+
+func decodeXMLUsers(d *xml.Decoder, sm *SyncMsg) error {
+	for {
+		tok, err := d.Token()
+		if err != nil {
+			return err
+		}
+
+		switch t := tok.(type) {
+		case xml.StartElement:
+			if t.Name.Local == "UserEntry" {
+				var entry xmlSyncMsgUser
+				if err := d.DecodeElement(&entry, &t); err != nil {
+					return err
+				}
+				sm.Users[entry.ID] = entry.User
+			} else {
+				if err := d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			return nil
+		}
+	}
+}
+
+func decodeXMLMentionTransforms(d *xml.Decoder, sm *SyncMsg) error {
+	for {
+		tok, err := d.Token()
+		if err != nil {
+			return err
+		}
+
+		switch t := tok.(type) {
+		case xml.StartElement:
+			if t.Name.Local == "Transform" {
+				var entry xmlSyncMsgMentionTransform
+				if err := d.DecodeElement(&entry, &t); err != nil {
+					return err
+				}
+				sm.MentionTransforms[entry.Key] = entry.Value
+			} else {
+				if err := d.Skip(); err != nil {
+					return err
+				}
+			}
+		case xml.EndElement:
+			return nil
+		}
+	}
+}
+
 // SyncResponse represents the response to a synchronization event
 type SyncResponse struct {
-	UsersLastUpdateAt int64    `json:"users_last_update_at"`
-	UserErrors        []string `json:"user_errors"`
-	UsersSyncd        []string `json:"users_syncd"`
+	UsersLastUpdateAt int64    `json:"users_last_update_at" xml:"UsersLastUpdateAt"`
+	UserErrors        []string `json:"user_errors" xml:"UserErrors>Error"`
+	UsersSyncd        []string `json:"users_syncd" xml:"UsersSyncd>UserId"`
 
-	PostsLastUpdateAt int64    `json:"posts_last_update_at"`
-	PostErrors        []string `json:"post_errors"`
+	PostsLastUpdateAt int64    `json:"posts_last_update_at" xml:"PostsLastUpdateAt"`
+	PostErrors        []string `json:"post_errors" xml:"PostErrors>Error"`
 
-	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
-	ReactionErrors        []string `json:"reaction_errors"`
+	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at" xml:"ReactionsLastUpdateAt"`
+	ReactionErrors        []string `json:"reaction_errors" xml:"ReactionErrors>Error"`
 
-	AcknowledgementsLastUpdateAt int64    `json:"acknowledgements_last_update_at"`
-	AcknowledgementErrors        []string `json:"acknowledgement_errors"`
+	AcknowledgementsLastUpdateAt int64    `json:"acknowledgements_last_update_at" xml:"AcknowledgementsLastUpdateAt"`
+	AcknowledgementErrors        []string `json:"acknowledgement_errors" xml:"AcknowledgementErrors>Error"`
 
-	StatusErrors []string `json:"status_errors"` // user IDs for which the status sync failed
+	StatusErrors []string `json:"status_errors" xml:"StatusErrors>Error"` // user IDs for which the status sync failed
 
-	MembershipErrors []string `json:"membership_errors,omitempty"`
+	MembershipErrors []string `json:"membership_errors,omitempty" xml:"MembershipErrors>Error,omitempty"`
 }
 
 // RegisterPluginOpts is passed by plugins to the `RegisterPluginForSharedChannels` plugin API
@@ -349,6 +550,19 @@ type RegisterPluginOpts struct {
 	CreatorID    string // id of the user/bot registering
 	AutoShareDMs bool   // when true, all DMs are automatically shared to this remote
 	AutoInvited  bool   // when true, the plugin is automatically invited and sync'd with all shared channels.
+
+	// SiteURL identifies the remote endpoint for this secure connection. Stored directly as
+	// RemoteCluster.SiteURL. Must be unique across all remote clusters (enforced by the DB
+	// unique index on (SiteURL, RemoteTeamId)).
+	// When empty, defaults to "plugin_<PluginID>" for backward compatibility with single-remote
+	// plugins. When non-empty, the SiteURL must not already be in use by a different plugin or
+	// a server-to-server remote.
+	// Calling RegisterPluginForSharedChannels again with the same SiteURL returns the existing
+	// remoteID and preserves sync cursors (idempotent re-registration).
+	// A plugin registers multiple remotes by calling this method multiple times with different
+	// SiteURLs.
+	// Examples: "nats://nats:4222", "https://matrix.org"
+	SiteURL string
 }
 
 // GetOptionFlags returns a Bitmask of option flags as specified by the boolean options.
