@@ -4655,6 +4655,10 @@
     "translation": "Unable to convert the user to guest because is already a guest."
   },
   {
+    "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
+    "translation": "Bot accounts cannot be converted to guest accounts."
+  },
+  {
     "id": "api.user.email_to_ldap.not_available.app_error",
     "translation": "AD/LDAP not available on this server."
   },
@@ -7497,6 +7501,10 @@
     "translation": "Unable to delete access control policy."
   },
   {
+    "id": "app.pap.delete_policy.masked_values",
+    "translation": "You cannot delete this policy because it contains attribute values you do not have permission to view."
+  },
+  {
     "id": "app.pap.expression_to_visual_ast.app_error",
     "translation": "Could not genereate visual AST from expression."
   },
@@ -7541,6 +7549,10 @@
     "translation": "Access control service is not ready."
   },
   {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": "Could not merge policy expression."
+  },
+  {
     "id": "app.pap.missing_attribute.app_error",
     "translation": "An attribute is missing from the expression."
   },
@@ -7553,12 +7565,32 @@
     "translation": "Could not query for expression."
   },
   {
+    "id": "app.pap.save_policy.advanced_expression_blocked",
+    "translation": "This rule expression cannot be safely edited while restricted values are present."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
   },
   {
+    "id": "app.pap.save_policy.invalid_value",
+    "translation": "Invalid value."
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "You cannot remove a condition that contains attribute values you do not have permission to view."
+  },
+  {
+    "id": "app.pap.save_policy.masked_rule_deleted",
+    "translation": "You cannot remove a rule that contains attribute values you do not have permission to view."
+  },
+  {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "A policy with this name already exists. Please choose a different name."
+  },
+  {
+    "id": "app.pap.save_policy.self_exclusion",
+    "translation": "You do not satisfy one or more conditions in this policy."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -7571,6 +7603,10 @@
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
     "translation": "Could not update active status of access control policies."
+  },
+  {
+    "id": "app.pap.validate_expression_values.app_error",
+    "translation": "Could not validate policy expression values."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -11513,6 +11549,18 @@
   {
     "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
     "translation": "Invalid version number. Must be a valid semantic version (e.g. 5.0.0)."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+    "translation": "Invalid Auto Cache Cleanup value. Must be between {{.Min}} and {{.Max}} days."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+    "translation": "Invalid Disconnection Timeout value. Must be between {{.Min}} and {{.Max}} seconds."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+    "translation": "Invalid Offline Persistence Timer value. Must be between {{.Min}} and {{.Max}} hours."
   },
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",

@@ -13,7 +13,7 @@
         line-height: 20px;
     }
 
-    label.Input_subheading {
+    .Input_subheading {
         color: rgba(var(--center-channel-color-rgb), 0.64);
         font-family: Open Sans, sans-serif;
         font-size: 12px;
@@ -30,10 +30,15 @@
         border-radius: var(--radius-l);
         box-shadow: var(--elevation-6);
 
+        .modal-header {
+            flex-shrink: 0;
+        }
+
         .modal-body {
             display: flex;
             width: auto;
-            min-height: 150px;
+            min-height: 0;
+            flex: 1 1 auto;
             flex-direction: column;
             margin: 0;
             gap: 24px;

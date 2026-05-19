@@ -1955,6 +1955,8 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if user.IsSystemAdmin() {
 			canUpdatePassword = c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+		} else if user.IsBot {
+			canUpdatePassword = c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId) == nil
 		} else {
 			canUpdatePassword = c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementUsers)
 		}
@@ -2527,7 +2529,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventRevokeSession, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2575,7 +2577,7 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
