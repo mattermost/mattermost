@@ -46,9 +46,14 @@
         background: none;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         cursor: pointer;
-        
-        &:hover {
+
+        &:hover:not(:disabled) {
             color: var(--error-text);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
         }
     }
 
