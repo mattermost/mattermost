@@ -44,11 +44,22 @@ const ImageGalleryItem = ({
 }: Props) => {
     const {formatMessage} = useIntl();
 
+    const handleActivate = () => {
+        onClick?.();
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             e.stopPropagation(); // Prevent bubbling to avoid focus moving to post input
-            onClick?.();
+            handleActivate();
+        }
+    };
+
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        // Image clicks are handled by SingleImageView; activate when clicking the item chrome
+        if (e.target === e.currentTarget) {
+            handleActivate();
         }
     };
 
@@ -77,6 +88,7 @@ const ImageGalleryItem = ({
             onKeyDown={handleKeyDown}
             onFocus={handleFocus}
             onMouseDown={onMouseDown}
+            onClick={handleClick}
         >
             <SingleImageView
                 fileInfo={fileInfo}

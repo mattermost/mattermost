@@ -88,6 +88,20 @@ describe('ImageGalleryItem', () => {
         expect(onActivate).toHaveBeenCalledTimes(1);
     });
 
+    test('should handle click on item chrome to activate', () => {
+        const onActivate = jest.fn();
+        render(
+            <ImageGalleryItem
+                {...defaultProps}
+                onClick={onActivate}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('image-gallery__item'));
+
+        expect(onActivate).toHaveBeenCalledTimes(1);
+    });
+
     test('should apply focused class when isFocused is true', () => {
         render(
             <ImageGalleryItem
