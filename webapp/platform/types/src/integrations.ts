@@ -9,6 +9,7 @@ export type IncomingWebhook = {
     create_at: number;
     update_at: number;
     delete_at: number;
+    last_used: number;
     user_id: string;
     channel_id: string;
     team_id: string;

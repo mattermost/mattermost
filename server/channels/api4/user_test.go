@@ -1487,6 +1487,169 @@ func TestGetUserByEmail(t *testing.T) {
 	})
 }
 
+func TestGetUserByAuthData(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	team := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	regularUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, regularUser, team)
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, team)
+	_, err := th.App.Srv().Store().User().VerifyEmail(user.Id, user.Email)
+	require.NoError(t, err)
+
+	authID := "extid-" + model.NewId()
+	userAuth := &model.UserAuth{
+		AuthData:    model.NewPointer(authID),
+		AuthService: model.UserAuthServiceSaml,
+	}
+	_, _, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.NoError(t, err)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		t.Run("returns user and auth fields for system admin and local", func(t *testing.T) {
+			ruser, resp, getErr := client.GetUserByAuthData(context.Background(), authID, "")
+			require.NoError(t, getErr)
+			require.Equal(t, user.Id, ruser.Id)
+			require.NotNil(t, ruser.AuthData)
+			require.Equal(t, authID, *ruser.AuthData)
+			require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
+			ruser, resp, _ = client.GetUserByAuthData(context.Background(), authID, resp.Etag)
+			CheckEtag(t, ruser, resp)
+		})
+
+		t.Run("not found returns not found", func(t *testing.T) {
+			_, resp, notFoundErr := client.GetUserByAuthData(context.Background(), "nope-"+model.NewId(), "")
+			require.Error(t, notFoundErr)
+			CheckNotFoundStatus(t, resp)
+		})
+	})
+
+	t.Run("returns accepted terms of service for system admin", func(t *testing.T) {
+		tos, appErr := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+		require.Nil(t, appErr)
+		appErr = th.App.SaveUserTermsOfService(user.Id, tos.Id, true)
+		require.Nil(t, appErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), authID, "")
+		require.NoError(t, getErr)
+		require.Equal(t, tos.Id, ruser.TermsOfServiceId, "Terms of service ID should match")
+		require.NotZero(t, ruser.TermsOfServiceCreateAt, "Terms of service CreateAt should be populated")
+	})
+
+	t.Run("returns user when auth_data is an email-shaped value", func(t *testing.T) {
+		// ResetAuthDataToEmailForUsers sets AuthData = Email for whole batches of
+		// users, so email-shaped auth_data values are common in practice. Verify
+		// the route, Client4 path escaping (`@` -> `%40`), and server-side decoding
+		// all round-trip correctly.
+		emailUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, emailUser, team)
+		emailAuth := "user-" + model.NewId() + "@example.com"
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), emailUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(emailAuth),
+			AuthService: model.UserAuthServiceSaml,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), emailAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, emailUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, emailAuth, *ruser.AuthData)
+	})
+
+	t.Run("preserves case in auth_data", func(t *testing.T) {
+		// auth_data is opaque and case-sensitive (unlike email, which the email
+		// endpoint lowercases). Non-SAML IdPs commonly issue mixed-case identifiers,
+		// so guard against a regression where the handler normalizes the value.
+		mixedUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, mixedUser, team)
+		mixedAuth := "MixedCase-" + model.NewId() + "@Example.COM"
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), mixedUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(mixedAuth),
+			AuthService: model.UserAuthServiceSaml,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), mixedAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, mixedUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, mixedAuth, *ruser.AuthData)
+
+		_, resp, lowerErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), strings.ToLower(mixedAuth), "")
+		require.Error(t, lowerErr)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("returns user when auth_data is an LDAP objectGUID hex-escape form", func(t *testing.T) {
+		// AD objectGUID stored under auth_service=ldap uses the LDAP filter
+		// hex-escape form (`\xx` per byte). Backslashes are special in URL paths
+		// (WHATWG rewrites them to `/`), which is why this endpoint uses a query
+		// parameter; this test guards the query-string round-trip for the exact
+		// shape the customer reported.
+		ldapUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, ldapUser, team)
+		ldapAuth := `\61\14\e1\d1\c5\35\18\4a\b6\60\d6\78\50\fd\0d\5d`
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), ldapUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(ldapAuth),
+			AuthService: model.UserAuthServiceLdap,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), ldapAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, ldapUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, ldapAuth, *ruser.AuthData)
+	})
+
+	t.Run("returns user when auth_data is SAML base64 with reserved chars", func(t *testing.T) {
+		// AD objectGUID stored under auth_service=saml uses standard Base64,
+		// which can contain `+`, `/`, and `=` padding -- all reserved in
+		// application/x-www-form-urlencoded. url.Values.Set escapes them
+		// correctly; this test guards against a future regression where someone
+		// rewrites the client to skip that escaping.
+		samlUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, samlUser, team)
+		// Bytes chosen to produce all three reserved characters in the Base64
+		// output: 0xfb,0xef,0xff,0x00 -> "++//AA==".
+		samlAuth := base64.StdEncoding.EncodeToString([]byte{0xfb, 0xef, 0xff, 0x00})
+		require.Contains(t, samlAuth, "+")
+		require.Contains(t, samlAuth, "/")
+		require.Contains(t, samlAuth, "=")
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), samlUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(samlAuth),
+			AuthService: model.UserAuthServiceSaml,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), samlAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, samlUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, samlAuth, *ruser.AuthData)
+	})
+
+	t.Run("rejects non-system admin", func(t *testing.T) {
+		// `user` is converted to SAML below and can no longer use password login; use
+		// a separate team member to assert the endpoint requires a system admin.
+		_, _, err = th.Client.Login(context.Background(), regularUser.Email, regularUser.Password)
+		require.NoError(t, err)
+		_, resp, err := th.Client.GetUserByAuthData(context.Background(), authID, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("rejects auth data over max length", func(t *testing.T) {
+		longData := strings.Repeat("x", model.UserAuthDataMaxLength+1)
+		_, resp, err := th.SystemAdminClient.GetUserByAuthData(context.Background(), longData, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 // This test can flake if two calls to model.NewId can return the same value.
 // Not much can be done about it.
 func TestSearchUsers(t *testing.T) {
@@ -4349,6 +4512,61 @@ func TestRevokeSessions(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestRevokeSessionBotPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot, botResp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "Test Bot",
+		Description: "bot for revoke-session permission test",
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, botResp)
+	defer func() {
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		assert.Nil(t, appErr)
+	}()
+
+	t.Run("user manager without bot permissions cannot revoke bot session", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		// Seed a real session so the test confirms the permission gate blocks
+		// access even when the target session genuinely exists.
+		botSession, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: bot.UserId})
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+
+		resp, err := th.Client.RevokeSession(context.Background(), bot.UserId, botSession.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("user with bot management permissions can revoke bot session", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+
+		// Seed a real session for the bot directly via the app layer.
+		botSession, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: bot.UserId})
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+
+		_, err := th.Client.RevokeSession(context.Background(), bot.UserId, botSession.Id)
+		require.NoError(t, err)
+
+		// Confirm the session row is gone.
+		_, appErr = th.App.GetSessionById(th.Context, botSession.Id)
+		require.NotNil(t, appErr, "session should no longer exist after revocation")
+	})
+}
+
 func TestRevokeAllSessions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -6743,6 +6961,34 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("cannot demote bot account", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+
+		prevBotCreation := *th.App.Config().ServiceSettings.EnableBotAccountCreation
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = prevBotCreation
+		})
+
+		createdBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+			Username:    "botdemote" + model.NewId(),
+			DisplayName: "Demote Test Bot",
+			Description: "test",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
+			require.Nil(t, appErr)
+		}()
+
+		demoteResp, err := th.SystemAdminClient.DemoteUserToGuest(context.Background(), createdBot.UserId)
+		CheckBadRequestStatus(t, demoteResp)
+		CheckErrorID(t, err, "api.user.demote_user_to_guest.bot_not_allowed.app_error")
+	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		_, _, err := c.GetUser(context.Background(), user.Id, "")
 		require.NoError(t, err)
@@ -7239,6 +7485,49 @@ func TestUpdatePassword(t *testing.T) {
 	t.Run("OK when request performed by system admin, even if requested user is system admin", func(t *testing.T) {
 		res, _ := th.SystemAdminClient.UpdatePassword(context.Background(), th.SystemAdminUser.Id, th.SystemAdminUser.Password, model.NewTestPassword())
 		CheckOKStatus(t, res)
+	})
+}
+
+func TestUpdatePasswordBotPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot, botResp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "Test Bot",
+		Description: "bot for update-password permission test",
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, botResp)
+	defer func() {
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		assert.Nil(t, appErr)
+	}()
+
+	t.Run("user manager without bot permissions cannot update bot password", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		th.LoginBasic(t)
+
+		resp, err := th.Client.UpdatePassword(context.Background(), bot.UserId, "", model.NewTestPassword())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("user with bot management permissions can update bot password", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+
+		th.LoginBasic(t)
+
+		resp, err := th.Client.UpdatePassword(context.Background(), bot.UserId, "", model.NewTestPassword())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 }
 
@@ -9657,6 +9946,57 @@ func TestRevokeAllSessionsForUser(t *testing.T) {
 		resp, err := nonAdminClient.RevokeAllSessions(context.Background(), user.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestRevokeAllSessionsForUserBotPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot, botResp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "Test Bot",
+		Description: "bot for revoke-all-sessions permission test",
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, botResp)
+	defer func() {
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		assert.Nil(t, appErr)
+	}()
+
+	t.Run("user manager without bot permissions cannot revoke all sessions for a bot", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		th.LoginBasic(t)
+
+		resp, err := th.Client.RevokeAllSessions(context.Background(), bot.UserId)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("user with bot management permissions can revoke all sessions for a bot", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+
+		// Seed a real session so RevokeAllSessions is not a no-op.
+		_, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: bot.UserId})
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+
+		_, err := th.Client.RevokeAllSessions(context.Background(), bot.UserId)
+		require.NoError(t, err)
+
+		// Confirm all sessions for the bot are gone.
+		sessions, appErr := th.App.GetSessions(th.Context, bot.UserId)
+		require.Nil(t, appErr)
+		require.Empty(t, sessions, "all bot sessions should be revoked")
 	})
 }
 

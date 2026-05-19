@@ -9,11 +9,13 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -54,6 +56,8 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, rctx, ss) })
 	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, rctx, ss) })
 	t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, rctx, ss) })
+	t.Run("TryIncrementFailedPasswordAttempts", func(t *testing.T) { testUserStoreTryIncrementFailedPasswordAttempts(t, rctx, ss) })
+	t.Run("DecrementFailedPasswordAttempts", func(t *testing.T) { testUserStoreDecrementFailedPasswordAttempts(t, rctx, ss) })
 	t.Run("Get", func(t *testing.T) { testUserStoreGet(t, rctx, ss) })
 	t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, rctx, ss) })
 	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, rctx, ss) })
@@ -69,6 +73,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetProfilesByUsernames", func(t *testing.T) { testUserStoreGetProfilesByUsernames(t, rctx, ss) })
 	t.Run("GetSystemAdminProfiles", func(t *testing.T) { testUserStoreGetSystemAdminProfiles(t, rctx, ss) })
 	t.Run("GetByEmail", func(t *testing.T) { testUserStoreGetByEmail(t, rctx, ss) })
+	t.Run("GetByAuth", func(t *testing.T) { testUserStoreGetByAuth(t, rctx, ss) })
 	t.Run("GetByAuthData", func(t *testing.T) { testUserStoreGetByAuthData(t, rctx, ss) })
 	t.Run("GetByUsername", func(t *testing.T) { testUserStoreGetByUsername(t, rctx, ss) })
 	t.Run("GetForLogin", func(t *testing.T) { testUserStoreGetForLogin(t, rctx, ss) })
@@ -347,6 +352,145 @@ func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, rctx request.CTX, s
 	user, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 	require.Equal(t, 3, user.FailedAttempts, "FailedAttempts not updated correctly")
+}
+
+func testUserStoreTryIncrementFailedPasswordAttempts(t *testing.T, rctx request.CTX, ss store.Store) {
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	_, err := ss.User().Save(rctx, u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	require.NoError(t, nErr)
+
+	const maxAttempts = 3
+
+	t.Run("claims a slot when below cap", func(t *testing.T) {
+		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, 0))
+
+		claimed, err := ss.User().TryIncrementFailedPasswordAttempts(u1.Id, maxAttempts)
+		require.NoError(t, err)
+		require.True(t, claimed)
+
+		user, err := ss.User().Get(context.Background(), u1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 1, user.FailedAttempts)
+	})
+
+	t.Run("does not claim a slot when at cap", func(t *testing.T) {
+		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, maxAttempts))
+
+		claimed, err := ss.User().TryIncrementFailedPasswordAttempts(u1.Id, maxAttempts)
+		require.NoError(t, err)
+		require.False(t, claimed)
+
+		user, err := ss.User().Get(context.Background(), u1.Id)
+		require.NoError(t, err)
+		require.Equal(t, maxAttempts, user.FailedAttempts, "counter must not advance past the cap")
+	})
+
+	t.Run("does not claim a slot when above cap", func(t *testing.T) {
+		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, maxAttempts+5))
+
+		claimed, err := ss.User().TryIncrementFailedPasswordAttempts(u1.Id, maxAttempts)
+		require.NoError(t, err)
+		require.False(t, claimed)
+
+		user, err := ss.User().Get(context.Background(), u1.Id)
+		require.NoError(t, err)
+		require.Equal(t, maxAttempts+5, user.FailedAttempts)
+	})
+
+	t.Run("does not claim a slot for unknown user", func(t *testing.T) {
+		claimed, err := ss.User().TryIncrementFailedPasswordAttempts(model.NewId(), maxAttempts)
+		require.NoError(t, err)
+		require.False(t, claimed)
+	})
+
+	t.Run("concurrent attempts cap at maxAttempts", func(t *testing.T) {
+		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, 0))
+
+		const goroutines = 50
+		var g errgroup.Group
+		var claimed atomic.Int64
+		start := make(chan struct{})
+		for range goroutines {
+			g.Go(func() error {
+				<-start
+				ok, err := ss.User().TryIncrementFailedPasswordAttempts(u1.Id, maxAttempts)
+				if err != nil {
+					return err
+				}
+				if ok {
+					claimed.Add(1)
+				}
+				return nil
+			})
+		}
+		close(start)
+		require.NoError(t, g.Wait())
+
+		require.Equal(t, int64(maxAttempts), claimed.Load(), "exactly maxAttempts goroutines must have claimed a slot")
+
+		user, err := ss.User().Get(context.Background(), u1.Id)
+		require.NoError(t, err)
+		require.Equal(t, maxAttempts, user.FailedAttempts)
+	})
+}
+
+func testUserStoreDecrementFailedPasswordAttempts(t *testing.T, rctx request.CTX, ss store.Store) {
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	_, err := ss.User().Save(rctx, u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	require.NoError(t, nErr)
+
+	t.Run("decrements when above zero", func(t *testing.T) {
+		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, 3))
+
+		require.NoError(t, ss.User().DecrementFailedPasswordAttempts(u1.Id))
+
+		user, err := ss.User().Get(context.Background(), u1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 2, user.FailedAttempts)
+	})
+
+	t.Run("does not go below zero", func(t *testing.T) {
+		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, 0))
+
+		require.NoError(t, ss.User().DecrementFailedPasswordAttempts(u1.Id))
+
+		user, err := ss.User().Get(context.Background(), u1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, user.FailedAttempts)
+	})
+
+	t.Run("no-op for unknown user", func(t *testing.T) {
+		require.NoError(t, ss.User().DecrementFailedPasswordAttempts(model.NewId()))
+	})
+
+	t.Run("concurrent decrements never go below zero", func(t *testing.T) {
+		const initial = 10
+		const goroutines = 50
+		require.NoError(t, ss.User().UpdateFailedPasswordAttempts(u1.Id, initial))
+
+		var g errgroup.Group
+		start := make(chan struct{})
+		for range goroutines {
+			g.Go(func() error {
+				<-start
+				return ss.User().DecrementFailedPasswordAttempts(u1.Id)
+			})
+		}
+		close(start)
+		require.NoError(t, g.Wait())
+
+		user, err := ss.User().Get(context.Background(), u1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, user.FailedAttempts, "decrement must clamp at zero under contention")
+	})
 }
 
 func testUserStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -2104,7 +2248,7 @@ func testUserStoreGetByEmail(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) {
+func testUserStoreGetByAuth(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamID := model.NewId()
 	auth1 := model.NewId()
 	auth3 := model.NewId()
@@ -2167,20 +2311,127 @@ func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) 
 		require.True(t, errors.As(err, &nfErr))
 	})
 
-	t.Run("get by unknown auth, u1 service", func(t *testing.T) {
-		unknownAuth := ""
+	t.Run("get by unknown non-empty auth, u1 service", func(t *testing.T) {
+		unknownAuth := model.NewId()
 		_, err := ss.User().GetByAuth(&unknownAuth, u1.AuthService)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+
+	t.Run("get by empty auth, u1 service", func(t *testing.T) {
+		emptyAuth := ""
+		_, err := ss.User().GetByAuth(&emptyAuth, u1.AuthService)
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
 	})
 
-	t.Run("get by unknown auth, unknown service", func(t *testing.T) {
-		unknownAuth := ""
-		_, err := ss.User().GetByAuth(&unknownAuth, "unknown")
+	t.Run("get by nil auth, u1 service", func(t *testing.T) {
+		_, err := ss.User().GetByAuth(nil, u1.AuthService)
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
+	})
+
+	t.Run("get by unknown non-empty auth, unknown service", func(t *testing.T) {
+		unknownAuth := model.NewId()
+		_, err := ss.User().GetByAuth(&unknownAuth, "unknown")
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+
+	t.Run("get by empty auth, unknown service", func(t *testing.T) {
+		emptyAuth := ""
+		_, err := ss.User().GetByAuth(&emptyAuth, "unknown")
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+	})
+}
+
+func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	auth1 := model.NewId()
+	auth2 := model.NewId()
+
+	u1, err := ss.User().Save(rctx, &model.User{
+		Email:       MakeEmail(),
+		Username:    "u1" + model.NewId(),
+		AuthData:    &auth1,
+		AuthService: "service",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
+	require.NoError(t, nErr)
+
+	u2, err := ss.User().Save(rctx, &model.User{
+		Email:       MakeEmail(),
+		Username:    "u2" + model.NewId(),
+		AuthData:    &auth2,
+		AuthService: "service2",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
+	require.NoError(t, nErr)
+
+	t.Run("returns full user when auth data matches", func(t *testing.T) {
+		u, err := ss.User().GetByAuthData(u1.AuthData)
+		require.NoError(t, err)
+		assert.Equal(t, u1, u)
+	})
+
+	t.Run("matches regardless of auth service", func(t *testing.T) {
+		u, err := ss.User().GetByAuthData(u2.AuthData)
+		require.NoError(t, err)
+		assert.Equal(t, u2.Id, u.Id)
+		assert.Equal(t, "service2", u.AuthService)
+	})
+
+	t.Run("returns ErrNotFound for unknown auth data", func(t *testing.T) {
+		unknownAuth := model.NewId()
+		_, err := ss.User().GetByAuthData(&unknownAuth)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+
+	t.Run("returns ErrInvalidInput for nil auth data", func(t *testing.T) {
+		_, err := ss.User().GetByAuthData(nil)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+	})
+
+	t.Run("returns ErrInvalidInput for empty auth data", func(t *testing.T) {
+		emptyAuth := ""
+		_, err := ss.User().GetByAuthData(&emptyAuth)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+	})
+
+	t.Run("matches when auth data is an email-shaped value", func(t *testing.T) {
+		// ResetAuthDataToEmailForUsers sets AuthData = Email for whole batches of
+		// users, so email-shaped auth_data values are common in practice.
+		emailAuth := "u3-" + model.NewId() + "@example.com"
+		u3, err := ss.User().Save(rctx, &model.User{
+			Email:       MakeEmail(),
+			Username:    "u3" + model.NewId(),
+			AuthData:    &emailAuth,
+			AuthService: "service",
+		})
+		require.NoError(t, err)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
+
+		u, err := ss.User().GetByAuthData(&emailAuth)
+		require.NoError(t, err)
+		assert.Equal(t, u3.Id, u.Id)
+		require.NotNil(t, u.AuthData)
+		assert.Equal(t, emailAuth, *u.AuthData)
 	})
 }
 

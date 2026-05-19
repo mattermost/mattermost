@@ -177,6 +177,9 @@ func (ss *SqlStore) getTableOptions() (map[string]map[string]string, error) {
 		// Add option to the table
 		tableOptions[tableName][key] = value
 	}
+	if err := optionsRows.Err(); err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error iterating table options rows"))
+	}
 
 	return tableOptions, rErr.ErrorOrNil()
 }
@@ -253,6 +256,9 @@ func (ss *SqlStore) getTableSchemaInformation() (map[string]*model.DatabaseTable
 			})
 		}
 	}
+	if err := rows.Err(); err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error iterating schema rows"))
+	}
 
 	return tablesMap, tableCollations, rErr.ErrorOrNil()
 }
@@ -297,6 +303,9 @@ func (ss *SqlStore) getTableIndexes() (map[string][]model.DatabaseIndex, error) 
 		}
 
 		tableIndexes[tableName] = append(tableIndexes[tableName], index)
+	}
+	if err := rows.Err(); err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error iterating index rows"))
 	}
 
 	return tableIndexes, rErr.ErrorOrNil()

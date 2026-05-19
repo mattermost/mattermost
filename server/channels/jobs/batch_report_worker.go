@@ -106,7 +106,7 @@ func (worker *BatchReportWorker) processChunk(job *model.Job, reportData []model
 
 	appErr := worker.app.SaveReportChunk(worker.reportFormat, job.Id, fileCount, reportData)
 	if appErr != nil {
-		return err
+		return appErr
 	}
 
 	fileCount++

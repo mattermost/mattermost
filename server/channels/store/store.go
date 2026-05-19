@@ -102,6 +102,7 @@ type Store interface {
 	Recap() RecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
+	ChannelJoinRequest() ChannelJoinRequestStore
 }
 
 type RetentionPolicyStore interface {
@@ -472,6 +473,7 @@ type UserStore interface {
 	GetByEmail(email string) (*model.User, error)
 	GetByRemoteID(remoteID string) (*model.User, error)
 	GetByAuth(authData *string, authService string) (*model.User, error)
+	GetByAuthData(authData *string) (*model.User, error)
 	GetAllUsingAuthService(authService string) ([]*model.User, error)
 	GetAllNotInAuthService(authServices []string) ([]*model.User, error)
 	GetByUsername(username string) (*model.User, error)
@@ -480,6 +482,8 @@ type UserStore interface {
 	GetEtagForAllProfiles() string
 	GetEtagForProfiles(teamID string) string
 	UpdateFailedPasswordAttempts(userID string, attempts int) error
+	TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error)
+	DecrementFailedPasswordAttempts(userID string) error
 	GetSystemAdminProfiles() (map[string]*model.User, error)
 	PermanentDelete(rctx request.CTX, userID string) error
 	AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error)
@@ -651,6 +655,7 @@ type WebhookStore interface {
 	GetIncomingByTeam(teamID string, offset, limit int) ([]*model.IncomingWebhook, error)
 	GetIncomingByTeamByUser(teamID string, userID string, offset, limit int) ([]*model.IncomingWebhook, error)
 	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error)
+	UpdateIncomingLastUsed(webhookID string, lastUsed int64) error
 	GetIncomingByChannel(channelID string) ([]*model.IncomingWebhook, error)
 	DeleteIncoming(webhookID string, timestamp int64) error
 	PermanentDeleteIncomingByChannel(channelID string) error
@@ -1149,6 +1154,7 @@ type PropertyFieldStore interface {
 	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
+	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 	CountLinkedFields(fieldID string) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
@@ -1329,6 +1335,19 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
+}
+
+// ChannelJoinRequestStore persists user requests to join discoverable private
+// channels. Rows are never deleted; status transitions are recorded with
+// reviewer and timestamps so the table doubles as an audit trail.
+type ChannelJoinRequestStore interface {
+	Save(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
+	Get(id string) (*model.ChannelJoinRequest, error)
+	GetPendingForChannelAndUser(channelId, userId string) (*model.ChannelJoinRequest, error)
+	GetForChannel(channelId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error)
+	GetForUser(userId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error)
+	Update(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
+	CountPending(channelId string) (int64, error)
 }
 
 type RecapStore interface {

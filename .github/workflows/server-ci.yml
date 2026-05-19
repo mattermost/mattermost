@@ -247,6 +247,7 @@ jobs:
       artifact-pattern: postgres-server-test-logs-shard-*
       artifact-name: postgres-server-test-logs
       save-timing-cache: true
+      all-shards-passed: ${{ needs.test-postgres-normal.result == 'success' }}
 
   test-elasticsearch-v8:
     name: Elasticsearch v8 Compatibility

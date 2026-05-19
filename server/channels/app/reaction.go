@@ -165,7 +165,7 @@ func (a *App) DeleteReactionForPost(rctx request.CTX, reaction *model.Reaction) 
 
 	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(rctx, channel)
 	if appErr != nil {
-		return err
+		return appErr
 	}
 
 	if restrictDM {

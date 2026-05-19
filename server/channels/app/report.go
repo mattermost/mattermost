@@ -75,7 +75,7 @@ func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []stri
 		}
 		_, writeErr := compiledBuf.Write(chunk)
 		if writeErr != nil {
-			return err
+			return model.NewAppError("compileCSVChunks", "app.compile_csv_chunks.write_error", nil, "", http.StatusInternalServerError).Wrap(writeErr)
 		}
 	}
 
