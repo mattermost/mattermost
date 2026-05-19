@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Messaging', () => {
     before(() => {
@@ -40,7 +40,7 @@ describe('Messaging', () => {
                 });
 
                 // Ensure gallery is expanded (retry up to 5s so expand animation can finish)
-                cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed', {timeout: 5000});
+                cy.findByTestId('image-gallery__body', {timeout: 5000}).should('not.have.class', 'collapsed');
 
                 // Then verify we have 4 image gallery items
                 cy.findAllByTestId('image-gallery__item').should('have.length', 4);
@@ -66,7 +66,7 @@ describe('Messaging', () => {
                         }
                     });
                     // Wait for expand animation before clicking first item
-                    cy.findByTestId('image-gallery__body').should('not.have.class', 'collapsed', {timeout: 5000});
+                    cy.findByTestId('image-gallery__body', {timeout: 5000}).should('not.have.class', 'collapsed');
                     cy.findAllByTestId('image-gallery__item').first().should('be.visible').click();
                 });
             });
