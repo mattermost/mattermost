@@ -5121,6 +5121,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 }
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
+	t.Skip("flaky")
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)

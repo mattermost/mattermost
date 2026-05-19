@@ -44,6 +44,16 @@ const HEAVY_MS = 600000; // 10 min: packages above this get test-level splitting
 // their integrity tests scan the entire database and break if split across
 // shards where other tests leave data behind.
 
+// Packages that should always be split test-by-test, even on a cold cache.
+// Without timing data the splitter falls through to alphabetical round-robin,
+// which places these adjacent on the same runner and overwhelms postgres.
+// Forcing them heavy lets `go test -list` enumerate their tests so the
+// bin-packer can spread them across all shards.
+const KNOWN_HEAVY_PKGS = new Set([
+    "github.com/mattermost/mattermost/server/v8/channels/api4",
+    "github.com/mattermost/mattermost/server/v8/channels/app",
+]);
+
 if (isNaN(SHARD_INDEX) || isNaN(SHARD_TOTAL) || SHARD_TOTAL < 1) {
   console.error("ERROR: SHARD_INDEX and SHARD_TOTAL must be set");
   process.exit(1);
@@ -104,17 +114,30 @@ const hasTimingData = Object.keys(pkgTimes).length > 0;
 const hasTestTiming = Object.keys(testTimes).length > 0;
 
 // ── Identify heavy packages ──
-// Only split at test level if we have per-test timing data
+// Split at test level for packages above HEAVY_MS (requires per-test timing)
+// AND for the KNOWN_HEAVY_PKGS list (which uses go test -list discovery
+// to enumerate tests when no timing cache exists).
+//
+// Both checks gate on allPkgs membership so stale entries from the cached
+// pkgTimes (renamed/deleted packages from a prior run) can't end up in
+// heavyPkgs — otherwise the post-discovery fallback would emit them as
+// whole-package items for nonexistent packages.
+const allPkgsSet = new Set(allPkgs);
 const heavyPkgs = new Set();
 if (hasTestTiming) {
   for (const [pkg, ms] of Object.entries(pkgTimes)) {
-    if (ms > HEAVY_MS) heavyPkgs.add(pkg);
+    if (ms > HEAVY_MS && allPkgsSet.has(pkg)) heavyPkgs.add(pkg);
   }
+}
+for (const pkg of allPkgs) {
+    if (KNOWN_HEAVY_PKGS.has(pkg)) heavyPkgs.add(pkg);
 }
 if (heavyPkgs.size > 0) {
   console.log("Heavy packages (test-level splitting):");
   for (const p of heavyPkgs) {
-    console.log(`  ${(pkgTimes[p] / 1000).toFixed(0)}s  ${p.split("/").pop()}`);
+    const t = pkgTimes[p];
+    const label = t ? `${(t / 1000).toFixed(0)}s` : "no-timing";
+    console.log(`  ${label}  ${p.split("/").pop()}`);
   }
 }
 
@@ -129,10 +152,10 @@ for (const pkg of allPkgs) {
       .map(([k, ms]) => ({ ms, type: "T", pkg, test: k.split("::")[1] }));
     if (tests.length > 0) {
       items.push(...tests);
-    } else {
-      // Shouldn't happen, but fall back to whole package
-      items.push({ ms: pkgTimes[pkg] || 1, type: "P", pkg });
     }
+    // If no per-test timing exists, the discovery step below enumerates
+    // tests via `go test -list`. A final fallback to whole-package is
+    // added after discovery for packages where both lookups failed.
   } else {
     items.push({ ms: pkgTimes[pkg] || 1, type: "P", pkg });
   }
@@ -175,6 +198,18 @@ if (heavyPkgs.size > 0) {
       if (process.env.CI) process.exit(1);
     }
   }
+  // Ensure every heavy package has at least one item. A package can reach
+  // this point with zero items if it has no per-test timing AND `go test
+  // -list` failed (e.g. sqlstore on a cold cache).
+  for (const pkg of heavyPkgs) {
+    const hasItems = items.some((it) => it.pkg === pkg);
+    if (!hasItems) {
+      console.log(
+        `  ${pkg.split("/").pop()}: no per-test data, running as whole package`,
+      );
+      items.push({ ms: pkgTimes[pkg] || 1, type: "P", pkg });
+    }
+  }
   console.log("::endgroup::");
 }
 
@@ -188,8 +223,11 @@ const shards = Array.from({ length: SHARD_TOTAL }, () => ({
   heavy: {},
 }));
 
-if (!hasTimingData) {
-  // Round-robin fallback when no timing data exists
+if (!hasTimingData && heavyPkgs.size === 0) {
+  // Round-robin fallback only when we have *no* signal — no timing cache
+  // and no known-heavy packages to test-level-split. With heavyPkgs we
+  // can still bin-pack: discovered tests (ms=1000 each) drive the
+  // distribution and whole-package items (ms=1) fill in evenly.
   console.log("No timing data — using round-robin");
   allPkgs.forEach((pkg, i) => {
     shards[i % SHARD_TOTAL].whole.push(pkg);
