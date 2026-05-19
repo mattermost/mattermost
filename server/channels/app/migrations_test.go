@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"maps"
 	"sync"
 	"testing"
 
@@ -534,9 +535,7 @@ func stripStatusColors(t *testing.T, attrs model.StringInterface) model.StringIn
 		delete(opt, "color")
 	}
 	out := make(model.StringInterface, len(attrs))
-	for k, v := range attrs {
-		out[k] = v
-	}
+	maps.Copy(out, attrs)
 	out["options"] = options
 	return out
 }

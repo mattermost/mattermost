@@ -8,12 +8,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {
-    COLOR_TOKEN_NAMES,
-    SERVER_COLOR_BY_UI_LABEL,
-    setupBoardAttributesTest,
-    cleanupCustomBoardFields,
-} from './setup';
+import {COLOR_TOKEN_NAMES, SERVER_COLOR_BY_UI_LABEL, setupBoardAttributesTest, cleanupCustomBoardFields} from './setup';
 
 test.describe('Board Attributes - option color picker', {tag: '@board_attributes'}, () => {
     test.afterEach(async () => {
@@ -47,8 +42,9 @@ test.describe('Board Attributes - option color picker', {tag: '@board_attributes
             // * Server reflects the color token
             const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
             const updated = (fields ?? []).find((f) => f.name === attrName);
-            const option = (((updated!.attrs as {options?: Array<{name: string; color?: string}>})?.options) ?? []).
-                find((o) => o.name === optionName);
+            const option = ((updated!.attrs as {options?: Array<{name: string; color?: string}>})?.options ?? []).find(
+                (o) => o.name === optionName,
+            );
             expect(option?.color).toBe(SERVER_COLOR_BY_UI_LABEL[uiColor]);
 
             // # Reload
@@ -61,8 +57,7 @@ test.describe('Board Attributes - option color picker', {tag: '@board_attributes
             await ba.openOptionMenu(optionName);
 
             // * The chosen color is the one marked as checked in the picker
-            const checkedColor = ba.container.page().
-                getByRole('menuitemradio', {name: uiColor, exact: true});
+            const checkedColor = ba.container.page().getByRole('menuitemradio', {name: uiColor, exact: true});
             await expect(checkedColor).toHaveAttribute('aria-checked', 'true');
         });
     }
@@ -84,9 +79,7 @@ test.describe('Board Attributes - option color picker', {tag: '@board_attributes
 
         // * Every named color token is offered
         for (const uiColor of COLOR_TOKEN_NAMES) {
-            await expect(
-                ba.container.page().getByRole('menuitemradio', {name: uiColor, exact: true}),
-            ).toBeVisible();
+            await expect(ba.container.page().getByRole('menuitemradio', {name: uiColor, exact: true})).toBeVisible();
         }
     });
 });

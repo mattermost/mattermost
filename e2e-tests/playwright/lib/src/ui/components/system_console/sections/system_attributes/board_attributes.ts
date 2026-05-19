@@ -7,16 +7,7 @@ const BOARD_ATTRIBUTES_URL = '/admin_console/system_attributes/board_attributes'
 
 export type BoardAttributeType = 'Text' | 'Select' | 'Multi-select' | 'Date' | 'User';
 
-export type ColorTokenName =
-    | 'Default'
-    | 'Brown'
-    | 'Orange'
-    | 'Yellow'
-    | 'Green'
-    | 'Blue'
-    | 'Purple'
-    | 'Pink'
-    | 'Red';
+export type ColorTokenName = 'Default' | 'Brown' | 'Orange' | 'Yellow' | 'Green' | 'Blue' | 'Purple' | 'Pink' | 'Red';
 
 /**
  * System Console -> System Attributes -> Board Attributes.
@@ -123,9 +114,9 @@ export default class BoardAttributes {
         // unstable from a test perspective. Walk from the visible chip label
         // up to its ChipDropZone (carries `data-flip-key`) and locate the
         // delete button inside.
-        return this.optionChip(optionName).
-            locator('xpath=ancestor::span[@data-flip-key][1]').
-            locator('button[data-testid^="property-option-delete-"]');
+        return this.optionChip(optionName)
+            .locator('xpath=ancestor::span[@data-flip-key][1]')
+            .locator('button[data-testid^="property-option-delete-"]');
     }
 
     // ── Header / table-level actions ───────────────────────────────────
@@ -166,9 +157,9 @@ export default class BoardAttributes {
         // open color picker can't capture the click. scrollIntoViewIfNeeded
         // covers Date/User at the bottom of the list when the menu's viewport
         // is narrow (visible-but-not-in-clipping-region clicks otherwise no-op).
-        const item = this.page.
-            getByRole('menu', {name: 'Select type'}).
-            getByRole('menuitemradio', {name: type, exact: true});
+        const item = this.page
+            .getByRole('menu', {name: 'Select type'})
+            .getByRole('menuitemradio', {name: type, exact: true});
         await item.scrollIntoViewIfNeeded();
         await item.click();
     }
@@ -238,7 +229,7 @@ export default class BoardAttributes {
      */
     async closeChipMenu() {
         const backdrop = this.page.locator('#backdropForMenuComponent');
-        if (await backdrop.count() > 0) {
+        if ((await backdrop.count()) > 0) {
             await backdrop.click({force: true});
             await backdrop.waitFor({state: 'detached', timeout: 5000}).catch(() => {
                 /* tolerate races where another action already closed it */

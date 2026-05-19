@@ -12,19 +12,18 @@ export const SYSTEM_TARGET_TYPE = 'system';
 
 export type BoardAttributeType = 'Text' | 'Select' | 'Multi-select' | 'Date' | 'User';
 
-export type ColorTokenName =
-    | 'Default'
-    | 'Brown'
-    | 'Orange'
-    | 'Yellow'
-    | 'Green'
-    | 'Blue'
-    | 'Purple'
-    | 'Pink'
-    | 'Red';
+export type ColorTokenName = 'Default' | 'Brown' | 'Orange' | 'Yellow' | 'Green' | 'Blue' | 'Purple' | 'Pink' | 'Red';
 
 export const COLOR_TOKEN_NAMES: ColorTokenName[] = [
-    'Default', 'Brown', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Red',
+    'Default',
+    'Brown',
+    'Orange',
+    'Yellow',
+    'Green',
+    'Blue',
+    'Purple',
+    'Pink',
+    'Red',
 ];
 
 // Server-side color tokens map to the UI labels above. The hex/wire token is

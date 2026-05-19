@@ -38,7 +38,7 @@ test.describe('Board Attributes - select option values', {tag: '@board_attribute
         const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
         const created = (fields ?? []).find((f) => f.name === attrName);
         expect(created).toBeDefined();
-        const optionNames = (((created!.attrs as {options?: Array<{name: string}>})?.options) ?? []).map((o) => o.name);
+        const optionNames = ((created!.attrs as {options?: Array<{name: string}>})?.options ?? []).map((o) => o.name);
         expect(optionNames).toEqual(expect.arrayContaining(['Low', 'Medium', 'High']));
 
         // # Reload
@@ -79,7 +79,7 @@ test.describe('Board Attributes - select option values', {tag: '@board_attribute
         // * Server reflects the rename
         const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
         const updated = (fields ?? []).find((f) => f.name === attrName);
-        const optionNames = (((updated!.attrs as {options?: Array<{name: string}>})?.options) ?? []).map((o) => o.name);
+        const optionNames = ((updated!.attrs as {options?: Array<{name: string}>})?.options ?? []).map((o) => o.name);
         expect(optionNames).toContain('Renamed');
         expect(optionNames).not.toContain('Original');
 
@@ -120,7 +120,7 @@ test.describe('Board Attributes - select option values', {tag: '@board_attribute
         // * Server reflects the deletion
         const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
         const updated = (fields ?? []).find((f) => f.name === attrName);
-        const optionNames = (((updated!.attrs as {options?: Array<{name: string}>})?.options) ?? []).map((o) => o.name);
+        const optionNames = ((updated!.attrs as {options?: Array<{name: string}>})?.options ?? []).map((o) => o.name);
         expect(optionNames).toContain('KeepMe');
         expect(optionNames).not.toContain('DeleteMe');
 
@@ -155,7 +155,9 @@ test.describe('Board Attributes - select option values', {tag: '@board_attribute
         await renameInput.fill('Beta');
 
         // * In-menu duplicate warning appears
-        await expect(ba.container.page().getByText('A value with this name already exists.', {exact: true})).toBeVisible();
+        await expect(
+            ba.container.page().getByText('A value with this name already exists.', {exact: true}),
+        ).toBeVisible();
 
         // * aria-invalid is set on the input
         await expect(renameInput).toHaveAttribute('aria-invalid', 'true');

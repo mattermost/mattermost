@@ -8,7 +8,13 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {BOARDS_GROUP, OBJECT_TYPE_POST, SYSTEM_TARGET_TYPE, setupBoardAttributesTest, cleanupCustomBoardFields} from './setup';
+import {
+    BOARDS_GROUP,
+    OBJECT_TYPE_POST,
+    SYSTEM_TARGET_TYPE,
+    setupBoardAttributesTest,
+    cleanupCustomBoardFields,
+} from './setup';
 
 const MAX_BOARD_ATTRIBUTES = 20;
 
@@ -97,8 +103,6 @@ test.describe('Board Attributes - edge cases', {tag: '@board_attributes'}, () =>
         await systemConsolePage.sidebar.systemAttributes.userAttributes.link.click();
 
         // * The unsaved-changes modal appears
-        await expect(
-            systemConsolePage.page.getByText('Discard Changes?', {exact: true}),
-        ).toBeVisible();
+        await expect(systemConsolePage.page.getByText('Discard Changes?', {exact: true})).toBeVisible();
     });
 });

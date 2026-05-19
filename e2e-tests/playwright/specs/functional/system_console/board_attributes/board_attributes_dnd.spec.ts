@@ -75,8 +75,7 @@ test.describe('Board Attributes - drag-and-drop reorder', {tag: '@board_attribut
 
         const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
         const updated = (fields ?? []).find((f) => f.name === attrName);
-        const optionNames = (((updated!.attrs as {options?: Array<{name: string}>})?.options) ?? []).
-            map((o) => o.name);
+        const optionNames = ((updated!.attrs as {options?: Array<{name: string}>})?.options ?? []).map((o) => o.name);
         expect(optionNames.indexOf('Third')).toBeLessThan(optionNames.indexOf('First'));
     });
 });

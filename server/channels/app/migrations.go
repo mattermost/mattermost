@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"reflect"
 
@@ -929,9 +930,7 @@ func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string
 	}
 
 	out := make(model.StringInterface, len(attrs))
-	for k, v := range attrs {
-		out[k] = v
-	}
+	maps.Copy(out, attrs)
 	out["options"] = options
 	return out
 }

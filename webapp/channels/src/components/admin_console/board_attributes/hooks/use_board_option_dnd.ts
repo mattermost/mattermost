@@ -68,6 +68,7 @@ export function useBoardOptionDnd({
                 onDrop: () => setClosestEdge(null),
             }),
         );
+
     // `getDragPreview` is intentionally omitted: callers pass a fresh closure
     // every render, and re-registering the draggable/dropTarget on every
     // render would tear down PDND state mid-interaction. The closure is

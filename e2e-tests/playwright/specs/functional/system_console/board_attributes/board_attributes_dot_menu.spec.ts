@@ -104,9 +104,7 @@ test.describe('Board Attributes - row dot menu', {tag: '@board_attributes'}, () 
         await ba.container.page().getByRole('button', {name: 'Cancel'}).click();
 
         // * Modal is closed
-        await expect(
-            ba.container.page().getByRole('heading', {name: 'Delete board attribute'}),
-        ).toHaveCount(0);
+        await expect(ba.container.page().getByRole('heading', {name: 'Delete board attribute'})).toHaveCount(0);
 
         // * Row is still present
         await expect(ba.nameInputByValue(name)).toBeVisible();
@@ -126,10 +124,14 @@ test.describe('Board Attributes - row dot menu', {tag: '@board_attributes'}, () 
         await ba.openDotMenuByName('status');
 
         // * Both menu items render but are aria-disabled
-        const duplicate = ba.container.page().getByText('Duplicate', {exact: true}).
-            locator('xpath=ancestor::*[@role="menuitem"][1]');
-        const del = ba.container.page().getByText('Delete attribute', {exact: true}).
-            locator('xpath=ancestor::*[@role="menuitem"][1]');
+        const duplicate = ba.container
+            .page()
+            .getByText('Duplicate', {exact: true})
+            .locator('xpath=ancestor::*[@role="menuitem"][1]');
+        const del = ba.container
+            .page()
+            .getByText('Delete attribute', {exact: true})
+            .locator('xpath=ancestor::*[@role="menuitem"][1]');
         await expect(duplicate).toHaveAttribute('aria-disabled', 'true');
         await expect(del).toHaveAttribute('aria-disabled', 'true');
     });

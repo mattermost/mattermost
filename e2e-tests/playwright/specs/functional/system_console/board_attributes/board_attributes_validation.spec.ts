@@ -52,9 +52,7 @@ test.describe('Board Attributes - validation', {tag: '@board_attributes'}, () =>
         await ba.addAttribute(shared);
 
         // * Uniqueness warning surfaces on at least one row
-        await expect(
-            ba.container.getByText('Attribute names must be unique.', {exact: true}).first(),
-        ).toBeVisible();
+        await expect(ba.container.getByText('Attribute names must be unique.', {exact: true}).first()).toBeVisible();
 
         // * Save is disabled
         await expect(ba.saveButton).toBeDisabled();
@@ -74,9 +72,7 @@ test.describe('Board Attributes - validation', {tag: '@board_attributes'}, () =>
         //   sees both the seeded status (always in the pending collection)
         //   and the new row, so name_unique fires first — name_taken is
         //   reserved for rename-against-a-saved-name conflicts.
-        await expect(
-            ba.container.getByText('Attribute names must be unique.', {exact: true}).first(),
-        ).toBeVisible();
+        await expect(ba.container.getByText('Attribute names must be unique.', {exact: true}).first()).toBeVisible();
 
         // * Save is disabled
         await expect(ba.saveButton).toBeDisabled();
@@ -132,9 +128,7 @@ test.describe('Board Attributes - validation', {tag: '@board_attributes'}, () =>
         await systemConsolePage.page.keyboard.press('Tab');
 
         // * The "name already taken" warning surfaces
-        await expect(
-            ba.container.getByText('Attribute name already taken.', {exact: true}),
-        ).toBeVisible();
+        await expect(ba.container.getByText('Attribute name already taken.', {exact: true})).toBeVisible();
 
         // * Save is disabled
         await expect(ba.saveButton).toBeDisabled();
