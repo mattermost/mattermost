@@ -62,7 +62,9 @@ function ImageUtilityButtons({
                 className={classNames('style--none', 'size-aware-image__copy_link', {
                     'size-aware-image__copy_link--recently_copied': linkCopiedRecently,
                 })}
-                aria-label={intl.formatMessage({id: 'single_image_view.copy_link_tooltip', defaultMessage: 'Copy link'})}
+                aria-label={linkCopiedRecently ?
+                    intl.formatMessage({id: 'single_image_view.copied_link_tooltip', defaultMessage: 'Copied'}) :
+                    intl.formatMessage({id: 'single_image_view.copy_link_tooltip', defaultMessage: 'Copy link'})}
                 onClick={onCopyLink}
             >
                 {linkCopiedRecently ? (
