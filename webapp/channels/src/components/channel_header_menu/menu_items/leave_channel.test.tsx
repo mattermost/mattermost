@@ -66,4 +66,28 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
             },
         });
     });
+
+    test('opens leave confirmation modal for a policy enforced public channel', async () => {
+        const channel = TestHelper.getChannelMock({type: 'O', policy_enforced: true});
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <LeaveChannel channel={channel}/>
+            </WithTestMenuContext>, {},
+        );
+
+        const menuItem = screen.getByText('Leave Channel');
+        expect(menuItem).toBeInTheDocument();
+
+        await userEvent.click(menuItem);
+        expect(channelActions.leaveChannel).not.toHaveBeenCalled();
+        expect(modalActions.openModal).toHaveBeenCalledTimes(1);
+        expect(modalActions.openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL,
+            dialogType: LeaveChannelModal,
+            dialogProps: {
+                channel,
+            },
+        });
+    });
 });

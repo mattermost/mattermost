@@ -75,6 +75,7 @@ type Store struct {
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
 	ViewStore                       mocks.ViewStore
+	ChannelJoinRequestStore         mocks.ChannelJoinRequestStore
 	SharedChannelInvitationStore    mocks.SharedChannelInvitationStore
 }
 
@@ -184,6 +185,9 @@ func (s *Store) ReadReceipt() store.ReadReceiptStore {
 func (s *Store) TemporaryPost() store.TemporaryPostStore {
 	return &s.TemporaryPostStore
 }
+func (s *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
+	return &s.ChannelJoinRequestStore
+}
 func (s *Store) View() store.ViewStore {
 	return &s.ViewStore
 }
@@ -243,6 +247,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ReadReceiptStore,
 		&s.TemporaryPostStore,
 		&s.ViewStore,
+		&s.ChannelJoinRequestStore,
 		&s.SharedChannelInvitationStore,
 	)
 }

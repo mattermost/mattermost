@@ -9,6 +9,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 
+	"github.com/lib/pq/pqerror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -73,6 +74,7 @@ func genStore() *mocks.Store {
 	mock.On("Recap").Return(&mocks.RecapStore{})
 	mock.On("TemporaryPost").Return(&mocks.TemporaryPostStore{})
 	mock.On("View").Return(&mocks.ViewStore{})
+	mock.On("ChannelJoinRequest").Return(&mocks.ChannelJoinRequestStore{})
 	mock.On("SharedChannelInvitation").Return(&mocks.SharedChannelInvitationStore{})
 	return mock
 }
@@ -102,7 +104,7 @@ func TestRetry(t *testing.T) {
 			t.Run("error "+errCode, func(t *testing.T) {
 				mock := genStore()
 				mockBotStore := mock.Bot().(*mocks.BotStore)
-				pqErr := pq.Error{Code: pq.ErrorCode(errCode)}
+				pqErr := pq.Error{Code: pqerror.Code(errCode)}
 				mockBotStore.On("Get", "test", false).Return(nil, errors.Wrap(&pqErr, "test-error")).Times(3)
 				mock.On("Bot").Return(&mockBotStore)
 				layer := New(mock)

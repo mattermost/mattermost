@@ -144,7 +144,7 @@ func TestInviteProvider(t *testing.T) {
 		groupChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
 		_, err := th.App.AddChannelMember(th.Context, th.BasicUser.Id, groupChannel, app.ChannelMemberOpts{})
 		require.Nil(t, err)
-		groupChannel.GroupConstrained = model.NewPointer(true)
+		groupChannel.GroupConstrained = new(true)
 		groupChannel, _ = th.App.UpdateChannel(th.Context, groupChannel)
 
 		msg := "@" + th.BasicUser2.Username + " ~" + groupChannel.Name
@@ -211,7 +211,7 @@ func TestInviteProvider(t *testing.T) {
 func TestInviteGroup(t *testing.T) {
 	th := setup(t).initBasic(t)
 
-	th.BasicTeam.GroupConstrained = model.NewPointer(true)
+	th.BasicTeam.GroupConstrained = new(true)
 	var err *model.AppError
 	_, _ = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser.Id)
 	_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser2.Id)
@@ -271,7 +271,7 @@ func TestUserGroups(t *testing.T) {
 	id := model.NewId()
 	teamGroup, err := th.App.CreateGroup(&model.Group{
 		DisplayName:    "dn_" + id,
-		Name:           model.NewPointer("name" + id),
+		Name:           new("name" + id),
 		Source:         model.GroupSourceCustom,
 		Description:    "description_" + id,
 		AllowReference: true,
@@ -290,7 +290,7 @@ func TestUserGroups(t *testing.T) {
 	id2 := model.NewId()
 	nonTeamGroup, err := th.App.CreateGroup(&model.Group{
 		DisplayName:    "dn_" + id2,
-		Name:           model.NewPointer("name" + id2),
+		Name:           new("name" + id2),
 		Source:         model.GroupSourceCustom,
 		Description:    "description_" + id2,
 		AllowReference: true,

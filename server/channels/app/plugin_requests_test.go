@@ -103,7 +103,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 		// SiteURL must be set before server init so the Router is created with the correct subpath prefix.
 		// Using UpdateConfig after Setup would not rebuild the Router.
 		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065/subpath")
+			cfg.ServiceSettings.SiteURL = new("http://localhost:8065/subpath")
 		})
 
 		installPlugin(t, th, "testplugin")
@@ -137,7 +137,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 		// SiteURL must be set before server init so the Router is created with the correct subpath prefix.
 		// Using UpdateConfig after Setup would not rebuild the Router.
 		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065/subpath")
+			cfg.ServiceSettings.SiteURL = new("http://localhost:8065/subpath")
 		})
 
 		installPlugin(t, th, "testplugin")

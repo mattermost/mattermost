@@ -14,33 +14,33 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"regexp"
-	"strings"
-	"unicode/utf8"
+	"sort"
 )
 
-const CustomProfileAttributesPropertyGroupName = "custom_profile_attributes"
-
+// CPA-prefixed aliases for the canonical PropertyField* constants in
+// property_field_attrs_validation.go. Aliasing (not redeclaring) keeps CPA
+// writes and property-hook reads keyed on the same string at compile time,
+// so a rename to one side cannot silently diverge from the other.
 const (
 	// Attributes keys
-	CustomProfileAttributesPropertyAttrsSortOrder   = "sort_order"
-	CustomProfileAttributesPropertyAttrsValueType   = "value_type"
-	CustomProfileAttributesPropertyAttrsVisibility  = "visibility"
-	CustomProfileAttributesPropertyAttrsLDAP        = "ldap"
-	CustomProfileAttributesPropertyAttrsSAML        = "saml"
-	CustomProfileAttributesPropertyAttrsManaged     = "managed"
-	CustomProfileAttributesPropertyAttrsDisplayName = "display_name"
+	CustomProfileAttributesPropertyAttrsSortOrder   = PropertyFieldAttrSortOrder
+	CustomProfileAttributesPropertyAttrsValueType   = PropertyFieldAttrValueType
+	CustomProfileAttributesPropertyAttrsVisibility  = PropertyFieldAttrVisibility
+	CustomProfileAttributesPropertyAttrsLDAP        = PropertyFieldAttrLDAP
+	CustomProfileAttributesPropertyAttrsSAML        = PropertyFieldAttrSAML
+	CustomProfileAttributesPropertyAttrsManaged     = PropertyFieldAttrManaged
+	CustomProfileAttributesPropertyAttrsDisplayName = PropertyFieldAttrDisplayName
 
 	// Value Types
-	CustomProfileAttributesValueTypeEmail = "email"
-	CustomProfileAttributesValueTypeURL   = "url"
-	CustomProfileAttributesValueTypePhone = "phone"
+	CustomProfileAttributesValueTypeEmail = PropertyFieldValueTypeEmail
+	CustomProfileAttributesValueTypeURL   = PropertyFieldValueTypeURL
+	CustomProfileAttributesValueTypePhone = PropertyFieldValueTypePhone
 
 	// Visibility
-	CustomProfileAttributesVisibilityHidden  = "hidden"
-	CustomProfileAttributesVisibilityWhenSet = "when_set"
-	CustomProfileAttributesVisibilityAlways  = "always"
+	CustomProfileAttributesVisibilityHidden  = PropertyFieldVisibilityHidden
+	CustomProfileAttributesVisibilityWhenSet = PropertyFieldVisibilityWhenSet
+	CustomProfileAttributesVisibilityAlways  = PropertyFieldVisibilityAlways
 	CustomProfileAttributesVisibilityDefault = CustomProfileAttributesVisibilityWhenSet
 
 	// CPA options
@@ -48,30 +48,8 @@ const (
 	CPAOptionColorMaxLength = 128
 
 	// CPA value constraints
-	CPAValueTypeTextMaxLength = 64
+	CPAValueTypeTextMaxLength = PropertyFieldValueTypeTextMaxLength
 )
-
-func IsKnownCPAValueType(valueType string) bool {
-	switch valueType {
-	case CustomProfileAttributesValueTypeEmail,
-		CustomProfileAttributesValueTypeURL,
-		CustomProfileAttributesValueTypePhone:
-		return true
-	}
-
-	return false
-}
-
-func IsKnownCPAVisibility(visibility string) bool {
-	switch visibility {
-	case CustomProfileAttributesVisibilityHidden,
-		CustomProfileAttributesVisibilityWhenSet,
-		CustomProfileAttributesVisibilityAlways:
-		return true
-	}
-
-	return false
-}
 
 // CPAFieldNamePattern defines the character set allowed for CPA field names.
 // Matches the CEL IDENTIFIER grammar (^[A-Za-z_][A-Za-z0-9_]*$) used by the
@@ -200,13 +178,6 @@ func (c *CPAField) IsAdminManaged() bool {
 	return c.Attrs.Managed == "admin"
 }
 
-// SetDefaults sets default values for CPAField attributes
-func (c *CPAField) SetDefaults() {
-	if c.Attrs.Visibility == "" {
-		c.Attrs.Visibility = CustomProfileAttributesVisibilityDefault
-	}
-}
-
 // Patch applies a PropertyFieldPatch to the CPAField by converting to PropertyField,
 // applying the patch, and converting back. This ensures we only maintain one patch logic path.
 // Custom profile attributes doesn't use targets, so TargetID and TargetType are cleared.
@@ -253,101 +224,6 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 	return &pf
 }
 
-// SupportsOptions checks the CPAField type and determines if the type
-// supports the use of options
-func (c *CPAField) SupportsOptions() bool {
-	return c.Type == PropertyFieldTypeSelect || c.Type == PropertyFieldTypeMultiselect
-}
-
-// SupportsSyncing checks the CPAField type and determines if it
-// supports syncing with external sources of truth
-func (c *CPAField) SupportsSyncing() bool {
-	return c.Type == PropertyFieldTypeText
-}
-
-func (c *CPAField) SanitizeAndValidate() *AppError {
-	c.SetDefaults()
-
-	// first we clean unused attributes depending on the field type
-	if !c.SupportsOptions() {
-		c.Attrs.Options = nil
-	}
-	if !c.SupportsSyncing() {
-		c.Attrs.LDAP = ""
-		c.Attrs.SAML = ""
-	}
-
-	// Clear sync properties if managed is set (mutual exclusivity)
-	if c.IsAdminManaged() {
-		c.Attrs.LDAP = ""
-		c.Attrs.SAML = ""
-	}
-
-	switch c.Type {
-	case PropertyFieldTypeText:
-		if valueType := strings.TrimSpace(c.Attrs.ValueType); valueType != "" {
-			if !IsKnownCPAValueType(valueType) {
-				return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
-					"AttributeName": CustomProfileAttributesPropertyAttrsValueType,
-					"Reason":        "unknown value type",
-				}, "", http.StatusUnprocessableEntity)
-			}
-			c.Attrs.ValueType = valueType
-		}
-
-	case PropertyFieldTypeSelect, PropertyFieldTypeMultiselect:
-		options := c.Attrs.Options
-
-		// add an ID to options with no ID
-		for i := range options {
-			if options[i].ID == "" {
-				options[i].ID = NewId()
-			}
-		}
-
-		if err := options.IsValid(); err != nil {
-			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
-				"AttributeName": PropertyFieldAttributeOptions,
-				"Reason":        err.Error(),
-			}, "", http.StatusUnprocessableEntity).Wrap(err)
-		}
-		c.Attrs.Options = options
-	}
-
-	// Validate visibility
-	if visibilityAttr := strings.TrimSpace(c.Attrs.Visibility); visibilityAttr != "" {
-		if !IsKnownCPAVisibility(visibilityAttr) {
-			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
-				"AttributeName": CustomProfileAttributesPropertyAttrsVisibility,
-				"Reason":        "unknown visibility",
-			}, "", http.StatusUnprocessableEntity)
-		}
-		c.Attrs.Visibility = visibilityAttr
-	}
-
-	// Validate managed field
-	if managed := strings.TrimSpace(c.Attrs.Managed); managed != "" {
-		if managed != "admin" {
-			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
-				"AttributeName": CustomProfileAttributesPropertyAttrsManaged,
-				"Reason":        "unknown managed type",
-			}, "", http.StatusBadRequest)
-		}
-		c.Attrs.Managed = managed
-	}
-
-	// Sanitize and validate display_name
-	// Reuses PropertyFieldNameMaxRunes to keep the DisplayName cap aligned with the Name cap; do NOT introduce a separate constant.
-	c.Attrs.DisplayName = strings.TrimSpace(c.Attrs.DisplayName)
-	if utf8.RuneCountInString(c.Attrs.DisplayName) > PropertyFieldNameMaxRunes {
-		return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.display_name_too_long.app_error", map[string]any{
-			"MaxRunes": PropertyFieldNameMaxRunes,
-		}, "", http.StatusUnprocessableEntity)
-	}
-
-	return nil
-}
-
 func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 	attrsJSON, err := json.Marshal(pf.Attrs)
 	if err != nil {
@@ -365,83 +241,27 @@ func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 		Attrs:         attrs,
 	}
 
-	cpaField.SetDefaults()
-
 	return cpaField, nil
 }
 
-// SanitizeAndValidatePropertyValue validates and sanitizes the given
-// property value based on the field type
-func SanitizeAndValidatePropertyValue(cpaField *CPAField, rawValue json.RawMessage) (json.RawMessage, error) {
-	fieldType := cpaField.Type
-
-	// build a list of existing options so we can check later if the values exist
-	optionsMap := map[string]struct{}{}
-	for _, v := range cpaField.Attrs.Options {
-		optionsMap[v.ID] = struct{}{}
-	}
-
-	switch fieldType {
-	case PropertyFieldTypeText, PropertyFieldTypeDate, PropertyFieldTypeSelect, PropertyFieldTypeUser:
-		var value string
-		if err := json.Unmarshal(rawValue, &value); err != nil {
+// CPAFieldsFromPropertyFields converts a slice of PropertyFields to CPAFields
+// and sorts the result by Attrs.SortOrder ascending.
+func CPAFieldsFromPropertyFields(pfs []*PropertyField) ([]*CPAField, error) {
+	cpaFields := make([]*CPAField, 0, len(pfs))
+	for _, pf := range pfs {
+		cpaField, err := NewCPAFieldFromPropertyField(pf)
+		if err != nil {
 			return nil, err
 		}
-		value = strings.TrimSpace(value)
-
-		if fieldType == PropertyFieldTypeText {
-			if len(value) > CPAValueTypeTextMaxLength {
-				return nil, fmt.Errorf("value too long")
-			}
-
-			if cpaField.Attrs.ValueType == CustomProfileAttributesValueTypeEmail && !IsValidEmail(value) {
-				return nil, fmt.Errorf("invalid email")
-			}
-
-			if cpaField.Attrs.ValueType == CustomProfileAttributesValueTypeURL {
-				_, err := url.Parse(value)
-				if err != nil {
-					return nil, fmt.Errorf("invalid url: %w", err)
-				}
-			}
-		}
-
-		if fieldType == PropertyFieldTypeSelect && value != "" {
-			if _, ok := optionsMap[value]; !ok {
-				return nil, fmt.Errorf("option \"%s\" does not exist", value)
-			}
-		}
-
-		if fieldType == PropertyFieldTypeUser && value != "" && !IsValidId(value) {
-			return nil, fmt.Errorf("invalid user id")
-		}
-		return json.Marshal(value)
-
-	case PropertyFieldTypeMultiselect, PropertyFieldTypeMultiuser:
-		var values []string
-		if err := json.Unmarshal(rawValue, &values); err != nil {
-			return nil, err
-		}
-		filteredValues := make([]string, 0, len(values))
-		for _, v := range values {
-			trimmed := strings.TrimSpace(v)
-			if trimmed == "" {
-				continue
-			}
-			if fieldType == PropertyFieldTypeMultiselect {
-				if _, ok := optionsMap[v]; !ok {
-					return nil, fmt.Errorf("option \"%s\" does not exist", v)
-				}
-			}
-
-			if fieldType == PropertyFieldTypeMultiuser && !IsValidId(trimmed) {
-				return nil, fmt.Errorf("invalid user id: %s", trimmed)
-			}
-			filteredValues = append(filteredValues, trimmed)
-		}
-		return json.Marshal(filteredValues)
-
-	default:
-		return nil, fmt.Errorf("unknown field type: %s", fieldType)
+		cpaFields = append(cpaFields, cpaField)
 	}
+
+	sort.Slice(cpaFields, func(i, j int) bool {
+		if cpaFields[i].Attrs.SortOrder != cpaFields[j].Attrs.SortOrder {
+			return cpaFields[i].Attrs.SortOrder < cpaFields[j].Attrs.SortOrder
+		}
+		return cpaFields[i].ID < cpaFields[j].ID
+	})
+
+	return cpaFields, nil
 }

@@ -43,7 +43,7 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (sh *model.SharedCh
 		return nil, fmt.Errorf("invalid channel: %w", err)
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -273,7 +273,7 @@ func (s SqlSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedCha
 // Returns true if shared channel found and deleted, false if not
 // found.
 func (s SqlSharedChannelStore) Delete(channelId string) (ok bool, err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return false, errors.Wrap(err, "DeleteSharedChannel: begin_transaction")
 	}

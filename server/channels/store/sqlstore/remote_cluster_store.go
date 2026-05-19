@@ -121,7 +121,7 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 }
 
 func (s sqlRemoteClusterStore) Delete(remoteId string) (bool, error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return false, errors.Wrap(err, "DeleteRemoteCluster: begin_transaction")
 	}
