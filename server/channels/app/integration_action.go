@@ -114,7 +114,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 
 	// Log request, regardless of whether destination is internal or external
 	rctx.Logger().Info("DoPostActionWithCookie POST request, through DoActionRequest",
-		mlog.String("url", upstreamURL),
+		mlog.String("url", setup.upstreamURL),
 		mlog.String("user_id", upstreamRequest.UserId),
 		mlog.String("post_id", upstreamRequest.PostId),
 		mlog.String("channel_id", upstreamRequest.ChannelId),
