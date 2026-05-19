@@ -790,6 +790,7 @@ const defaultServerConfig: AdminConfig = {
         IntegratedBoards: false,
         CJKSearch: false,
         ManagedChannelCategories: false,
+        MobileEphemeralMode: true,
         MmBlocksEnabled: true,
     },
     ImportSettings: {
@@ -868,5 +869,11 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
+    },
+    MobileEphemeralModeSettings: {
+        Enable: false,
+        DisconnectionTimeoutSeconds: 60,
+        OfflinePersistenceTimerHours: 24,
+        AutoCacheCleanupDays: 7,
     },
 };

@@ -646,6 +646,10 @@ func (c *Client4) bookmarkRoute(channelId, bookmarkId string) clientRoute {
 	return c.bookmarksRoute(channelId).Join(bookmarkId)
 }
 
+func (c *Client4) boardsRoute() clientRoute {
+	return newClientRoute("boards")
+}
+
 func (c *Client4) viewsRoute(channelId string) clientRoute {
 	return c.channelRoute(channelId).Join("views")
 }
@@ -1175,6 +1179,18 @@ func (c *Client4) GetUserByUsername(ctx context.Context, userName, etag string) 
 // GetUserByEmail returns a user based on the provided user email string.
 func (c *Client4) GetUserByEmail(ctx context.Context, email, etag string) (*User, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.userByEmailRoute(email), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*User](r)
+}
+
+// GetUserByAuthData returns a user by auth_data (external AuthData).
+func (c *Client4) GetUserByAuthData(ctx context.Context, authData, etag string) (*User, *Response, error) {
+	values := url.Values{}
+	values.Set("value", authData)
+	r, err := c.doAPIGetWithQuery(ctx, c.usersRoute().Join("auth_data"), values, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2247,10 +2263,10 @@ func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team,
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
 func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*Team, int64, *Response, error) {
 	if search.Page == nil {
-		search.Page = NewPointer(0)
+		search.Page = new(0)
 	}
 	if search.PerPage == nil {
-		search.PerPage = NewPointer(100)
+		search.PerPage = new(100)
 	}
 	r, err := c.doAPIPostJSON(ctx, c.teamsRoute().Join("search"), search)
 	if err != nil {
@@ -2784,6 +2800,18 @@ func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
+// CreateBoard creates a board channel. The channel.Type must be ChannelTypeOpenBoard
+// or ChannelTypePrivateBoard. Requires the IntegratedBoards feature flag to be enabled
+// on the server; otherwise the route is not registered and returns 404.
+func (c *Client4) CreateBoard(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.boardsRoute(), channel)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
 // UpdateChannel updates a channel based on the provided channel struct.
 func (c *Client4) UpdateChannel(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
 	r, err := c.doAPIPutJSON(ctx, c.channelRoute(channel.Id), channel)
@@ -3262,6 +3290,25 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 // ReadMultipleChannels performs a view action on several channels at the same time for a user.
 func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.channelsRoute().Join("members", userId, "mark_read"), channelIds)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelViewResponse](r)
+}
+
+// ReadAllMessages performs a view action on all direct and group messages for a user
+func (c *Client4) ReadAllMessages(ctx context.Context, userId string) (*ChannelViewResponse, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.channelsRoute().Join("members", userId, "direct", "read"), nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelViewResponse](r)
+}
+
+func (c *Client4) ReadAllInTeam(ctx context.Context, userId string, teamId string) (*ChannelViewResponse, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.userRoute(userId).Join("teams", teamId, "read"), nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

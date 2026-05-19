@@ -36,8 +36,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.draft == false &&
        github.event.pull_request.head.repo.full_name == 'mattermost/mattermost')
-    # Pin to a commit SHA once the reusable workflow is stable. Using @main during initial rollout.
-    uses: mattermost/mattermost-test-automation-toolkit/.github/workflows/pr-test-analysis.yml@main
+    uses: mattermost/mattermost-test-automation-toolkit/.github/workflows/pr-test-analysis.yml@93d73f4f101e10dc03c7ed6b76b35eb5ff5babb7 # 2026-05-16
     with:
       pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}
       target_repo: mattermost/mattermost

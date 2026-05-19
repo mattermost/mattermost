@@ -17,6 +17,7 @@ import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
     deleteClassificationMarkingsFieldIfExists,
     setClassificationMarkingsFeatureFlag,
+    setupClassificationFieldWithGlobalBanner,
 } from './classification_markings_helpers';
 
 async function selectClassificationPreset(page: Page, optionLabel: string) {
@@ -286,6 +287,313 @@ test.describe('System Console - Classification markings', () => {
             // * No error and preset remains custom
             await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
             await expect(presetControl).toContainText('Custom classification levels');
+        },
+    );
+
+    /**
+     * @objective Global Classification Indicators section appears when classification is enabled.
+     */
+    test(
+        'MM-T6207 classification markings: global banner section visible when enabled',
+        {tag: ['@system_console', '@classification_markings']},
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
+
+            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await deleteClassificationMarkingsFieldIfExists(adminClient);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
+            await page.waitForLoadState('networkidle');
+
+            // * Global Classification Indicators section should NOT be visible before enabling
+            await expect(page.getByText('Global Classification Indicators')).not.toBeVisible();
+
+            // # Enable classification markings
+            await page.locator('input[name="classificationEnabled"][value="true"]').click();
+
+            // * The section now appears
+            await expect(page.getByText('Global Classification Indicators')).toBeVisible();
+            await expect(page.getByText('Configure the global classification banner')).toBeVisible();
+            await expect(page.getByText('Global Classification Banner', {exact: true})).toBeVisible();
+        },
+    );
+
+    /**
+     * @objective Enabling the global banner shows placement and level controls; saving a level
+     * persists the configuration and loads it back correctly on page reload.
+     */
+    test(
+        'MM-T6208 classification markings: enable global banner, select level, save, and reload',
+        {tag: ['@system_console', '@classification_markings']},
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
+
+            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await deleteClassificationMarkingsFieldIfExists(adminClient);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
+            await page.waitForLoadState('networkidle');
+
+            // # Enable classification markings and select NATO preset
+            await page.locator('input[name="classificationEnabled"][value="true"]').click();
+            await selectClassificationPreset(page, 'NATO');
+            await expect(page.getByLabel('Classification level name').first()).toHaveValue('NATO UNCLASSIFIED');
+
+            // # Enable the global banner
+            await page.locator('input[name="globalBannerEnabled"][value="true"]').click();
+
+            // * Placement and level controls appear
+            await expect(page.getByText('Banner visibility')).toBeVisible();
+            await expect(page.getByText('Global classification level')).toBeVisible();
+
+            // # Select "Top and bottom" for placement
+            await page.locator('input[name="globalBannerPlacement"][value="false"]').click();
+
+            // # Pick the first level (NATO UNCLASSIFIED) from the level dropdown
+            await page.getByTestId('globalBannerLevel').click();
+            const dropdownMenu = page.locator('.DropDown__menu').last();
+            await expect(dropdownMenu).toBeVisible();
+            await dropdownMenu.getByText('NATO UNCLASSIFIED', {exact: true}).click();
+
+            // # Save
+            const saveButton = page.getByRole('button', {name: 'Save', exact: true});
+            await saveButton.click();
+
+            // Wait for the save to fully complete: the button becomes disabled once
+            // the async persistLevels flow finishes and hasChanges resets to false.
+            // networkidle alone is unreliable because there is a JS processing gap
+            // between the re-fetch GETs and the subsequent POST/PATCH calls.
+            await expect(saveButton).toBeDisabled({timeout: 30000});
+
+            // * No save error
+            await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
+
+            // # Reload the page
+            await page.reload();
+            await page.waitForLoadState('networkidle');
+
+            // * Banner configuration persisted: enabled, top_and_bottom, NATO UNCLASSIFIED selected.
+            // The linked field + property value fetch is async; wait for the level dropdown
+            // (only rendered when the banner is enabled) as the hydration signal.
+            await expect(page.getByTestId('globalBannerLevel')).toContainText('NATO UNCLASSIFIED', {timeout: 30000});
+            await expect(page.locator('input[name="globalBannerEnabled"][value="true"]')).toBeChecked();
+            await expect(page.locator('input[name="globalBannerPlacement"][value="false"]')).toBeChecked();
+        },
+    );
+
+    /**
+     * @objective Placement and level controls remain editable after a banner level has been
+     * persisted — the write-once lock behavior no longer exists.
+     */
+    test(
+        'MM-T6209 classification markings: global banner placement and level remain editable after save',
+        {tag: ['@system_console', '@classification_markings']},
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
+
+            await setClassificationMarkingsFeatureFlag(adminClient, true);
+
+            // # Seed a field and banner config via API (skip the UI save step)
+            await setupClassificationFieldWithGlobalBanner(
+                adminClient,
+                [
+                    {id: 'nato-unclassified', name: 'NATO UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'nato-restricted', name: 'NATO RESTRICTED', color: '#FFD700', rank: 2},
+                ],
+                {levelId: 'nato-unclassified', enabled: true, placement: 'top'},
+            );
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
+            await page.waitForLoadState('networkidle');
+
+            // * No locked notice should be present
+            await expect(page.getByText(/Global classification placement and level are locked/)).not.toBeVisible();
+
+            // * Placement inputs are editable
+            await expect(page.locator('input[name="globalBannerPlacement"]').first()).not.toBeDisabled();
+
+            // * Delete buttons for saved level rows are not disabled by a lock
+            await expect(page.getByRole('button', {name: 'Delete level'}).first()).not.toBeDisabled();
+
+            // # Switch placement to "top_and_bottom" and save
+            await page.locator('input[name="globalBannerPlacement"][value="false"]').click();
+            const saveButton = page.getByRole('button', {name: 'Save', exact: true});
+            await saveButton.click();
+            await expect(saveButton).toBeDisabled({timeout: 30000});
+
+            // * No server error
+            await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
+
+            // # Reload and verify the new placement persisted
+            await page.reload();
+            await page.waitForLoadState('networkidle');
+            await expect(page.locator('input[name="globalBannerPlacement"][value="false"]')).toBeChecked({
+                timeout: 30000,
+            });
+
+            await deleteClassificationMarkingsFieldIfExists(adminClient);
+        },
+    );
+
+    /**
+     * @objective When the level currently referenced by the global banner is removed, saving
+     * surfaces a validation error forcing the admin to pick a valid level.
+     */
+    test(
+        'MM-T6210 classification markings: deleting referenced banner level blocks save until resolved',
+        {tag: ['@system_console', '@classification_markings']},
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
+
+            await setClassificationMarkingsFeatureFlag(adminClient, true);
+
+            // # Seed two levels and a banner pointing at the first one
+            await setupClassificationFieldWithGlobalBanner(
+                adminClient,
+                [
+                    {id: 'lvl-unclassified', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'lvl-confidential', name: 'CONFIDENTIAL', color: '#FFD700', rank: 2},
+                ],
+                {levelId: 'lvl-unclassified', enabled: true, placement: 'top'},
+            );
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
+            await page.waitForLoadState('networkidle');
+
+            // # Delete the level used by the banner (first row)
+            await page.getByRole('button', {name: 'Delete level'}).first().click();
+
+            // # Try to save — banner still references the deleted level
+            await page.getByRole('button', {name: 'Save', exact: true}).click();
+
+            // * Validation error is shown
+            await expect(
+                page.getByText(/The global classification banner is configured with a level that no longer exists/i),
+            ).toBeVisible();
+
+            // # Pick a valid replacement level (click the react-select control directly)
+            await page.getByTestId('globalBannerLevel').locator('.DropDown__control').click();
+            const dropdownMenu = page.locator('.DropDown__menu').last();
+            await expect(dropdownMenu).toBeVisible();
+            await dropdownMenu.getByText('CONFIDENTIAL', {exact: true}).click();
+
+            // # Save again
+            const saveButton = page.getByRole('button', {name: 'Save', exact: true});
+            await saveButton.click();
+            await expect(saveButton).toBeDisabled({timeout: 30000});
+
+            // * No save error and banner now references the replacement level
+            await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
+            await expect(page.getByTestId('globalBannerLevel')).toContainText('CONFIDENTIAL');
+
+            await deleteClassificationMarkingsFieldIfExists(adminClient);
+        },
+    );
+
+    /**
+     * @objective Verify that modifying a preset's levels (rename, delete, add) automatically
+     * switches the dropdown to "Custom classification levels", and selecting a real preset
+     * again removes the Custom option from the dropdown.
+     */
+    test(
+        'MM-T6212 classification markings: modifying a preset switches dropdown to Custom',
+        {tag: ['@system_console', '@classification_markings']},
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
+
+            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await deleteClassificationMarkingsFieldIfExists(adminClient);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
+            await page.waitForLoadState('networkidle');
+
+            // # Enable classification markings and select NATO preset
+            await page.locator('input[name="classificationEnabled"][value="true"]').click();
+            await selectClassificationPreset(page, 'NATO');
+
+            const presetControl = page.getByTestId('classificationPreset');
+            await expect(presetControl).toContainText('NATO');
+
+            // # Rename the first level — this should switch to Custom
+            const firstLevelInput = page.getByLabel('Classification level name').first();
+            await firstLevelInput.clear();
+            await firstLevelInput.fill('MY CUSTOM LEVEL');
+
+            // * Preset dropdown should now show "Custom classification levels"
+            await expect(presetControl).toContainText('Custom classification levels');
+
+            // # Open the preset dropdown and verify "Custom classification levels" is listed
+            await presetControl.click();
+            const menu = page.locator('.DropDown__menu');
+            await expect(menu).toBeVisible();
+            await expect(menu.getByText('Custom classification levels', {exact: true})).toBeVisible();
+
+            // # Select a real preset (Canada) — should show the confirmation modal
+            await menu.getByText('Canada', {exact: true}).click();
+            await expect(page.getByText('Change classification preset?')).toBeVisible();
+
+            // # Confirm the preset change
+            await page.getByRole('button', {name: 'Change preset'}).click();
+
+            // * Dropdown now shows Canada, no longer Custom
+            await expect(presetControl).toContainText('Canada');
+
+            // # Open the dropdown again and verify Custom is no longer listed
+            await presetControl.click();
+            const menuAfterSwitch = page.locator('.DropDown__menu');
+            await expect(menuAfterSwitch).toBeVisible();
+            await expect(menuAfterSwitch.getByText('Custom classification levels', {exact: true})).not.toBeVisible();
+
+            // # Close menu by pressing Escape
+            await page.keyboard.press('Escape');
+
+            // # Delete a level from the Canada preset
+            await page.getByRole('button', {name: 'Delete level'}).first().click();
+
+            // * Should switch back to Custom
+            await expect(presetControl).toContainText('Custom classification levels');
+        },
+    );
+
+    /**
+     * @objective Validate that saving with global banner enabled but no level selected shows an error.
+     */
+    test(
+        'MM-T6211 classification markings: save fails when global banner enabled without a level',
+        {tag: ['@system_console', '@classification_markings']},
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
+
+            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await deleteClassificationMarkingsFieldIfExists(adminClient);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
+            await page.waitForLoadState('networkidle');
+
+            // # Enable classification markings, select NATO preset (provides levels)
+            await page.locator('input[name="classificationEnabled"][value="true"]').click();
+            await selectClassificationPreset(page, 'NATO');
+
+            // # Enable the global banner without picking a level
+            await page.locator('input[name="globalBannerEnabled"][value="true"]').click();
+
+            // # Try to save — no level selected in the dropdown
+            await page.getByRole('button', {name: 'Save', exact: true}).click();
+
+            // * Validation error is shown
+            await expect(page.getByText(/A global classification level must be selected/i)).toBeVisible();
         },
     );
 });

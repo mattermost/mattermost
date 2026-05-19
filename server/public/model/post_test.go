@@ -996,7 +996,7 @@ func TestPostPriority(t *testing.T) {
 	p.Metadata.Priority = &PostPriority{}
 	require.False(t, p.IsUrgent())
 
-	p.Metadata.Priority.Priority = NewPointer(PostPriorityUrgent)
+	p.Metadata.Priority.Priority = new(PostPriorityUrgent)
 	require.True(t, p.IsUrgent())
 }
 
