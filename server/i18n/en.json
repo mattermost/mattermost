@@ -11371,6 +11371,14 @@
     "translation": "Workers must be between 1 and 64."
   },
   {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "Invalid value {{.Value}} for {{.Setting}}. Must be 'commercial', 'government', or 'custom'."
+  },
+  {
+    "id": "model.config.is_valid.azure_custom_endpoint.app_error",
+    "translation": "{{.Setting}} must be set when the corresponding AzureCloud value is 'custom'."
+  },
+  {
     "id": "model.config.is_valid.azure_timeout.app_error",
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   },
