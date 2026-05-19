@@ -6614,7 +6614,7 @@
   },
   {
     "id": "app.import.import_direct_channel.save_member.error",
-    "translation": "Failed to save channel member while reconciling group channel membership"
+    "translation": "Failed to save channel member during direct channel import"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",

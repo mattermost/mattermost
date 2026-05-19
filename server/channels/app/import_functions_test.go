@@ -4271,13 +4271,22 @@ func TestImportImportDirectChannel(t *testing.T) {
 		gm, appErr := th.App.GetGroupChannel(th.Context, []string{userA.Id, userB.Id, userC.Id})
 		require.Nil(t, appErr)
 
-		// Second run: every participant is already a member; SaveMember must not be invoked.
+		// Capture the cutoff so we can confirm no membership-change rows are
+		// logged by the second import. The fix only calls LogJoinEvent after a
+		// successful SaveMember insert, so an empty result here proves the
+		// missing-member branch was not entered for any participant.
+		beforeSecondRun := model.GetMillis()
+
 		appErr = th.App.importDirectChannel(th.Context, &data, false)
 		require.Nil(t, appErr)
 
 		members, appErr := th.App.GetChannelMembersPage(th.Context, gm.Id, 0, 100)
 		require.Nil(t, appErr)
 		require.Len(t, members, 3)
+
+		changes, nErr := th.App.Srv().Store().ChannelMemberHistory().GetMembershipChanges(gm.Id, beforeSecondRun, 100)
+		require.NoError(t, nErr)
+		require.Empty(t, changes, "second import must not log any membership changes when all participants are already members")
 	})
 }
 
