@@ -160,7 +160,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
 		Username:    model.NewUsername(),
-		AuthData:    model.NewPointer("1234"),
+		AuthData:    new("1234"),
 		AuthService: model.UserAuthServiceLdap,
 	})
 	s.Require().Nil(appErr)
@@ -218,7 +218,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	for range 10 {
 		userData := model.User{
 			Username: "fakeuser" + model.NewRandomString(10),
-			Password: "Pa$$word11",
+			Password: model.NewTestPassword(),
 			Email:    s.th.GenerateTestEmail(),
 		}
 		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
@@ -231,7 +231,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	for range 2 {
 		userData := model.User{
 			Username: "fakeuser" + model.NewRandomString(10),
-			Password: "Pa$$word11",
+			Password: model.NewTestPassword(),
 			Email:    s.th.GenerateTestEmail(),
 			DeleteAt: model.GetMillis(),
 		}
@@ -297,7 +297,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	for range 10 {
 		userData := model.User{
 			Username: "teamuser" + model.NewRandomString(10),
-			Password: "Pa$$word11",
+			Password: model.NewTestPassword(),
 			Email:    s.th.GenerateTestEmail(),
 		}
 		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
@@ -330,7 +330,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	for range 10 {
 		userData := model.User{
 			Username: "inactiveteamuser" + model.NewRandomString(10),
-			Password: "Pa$$word11",
+			Password: model.NewTestPassword(),
 			Email:    s.th.GenerateTestEmail(),
 			DeleteAt: model.GetMillis(),
 		}
@@ -615,7 +615,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
-		cmd.Flags().String("password", "password", "")
+		cmd.Flags().String("password", model.NewTestPassword(), "")
 		cmd.Flags().Bool("system-admin", true, "")
 
 		err := userCreateCmdF(s.th.Client, cmd, []string{})
@@ -634,10 +634,10 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
-		cmd.Flags().String("password", "somepass", "")
+		cmd.Flags().String("password", model.NewTestPassword(), "")
 		cmd.Flags().Bool("system-admin", true, "")
 
-		err := userCreateCmdF(s.th.SystemAdminClient, cmd, []string{})
+		err := userCreateCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		user, err := s.th.App.GetUserByEmail(email)
@@ -653,7 +653,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
-		cmd.Flags().String("password", "somepass", "")
+		cmd.Flags().String("password", model.NewTestPassword(), "")
 
 		err := userCreateCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -671,7 +671,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
-		cmd.Flags().String("password", "somepass", "")
+		cmd.Flags().String("password", model.NewTestPassword(), "")
 		cmd.Flags().Bool("email-verified", true, "")
 
 		err := userCreateCmdF(c, cmd, []string{})
@@ -891,7 +891,7 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("user", true, "")
-		cmd.Flags().String("password", "password", "")
+		cmd.Flags().String("password", model.NewTestPassword(), "")
 
 		err := userConvertCmdF(c, cmd, []string{bot.Username})
 		s.Require().NoError(err)
@@ -971,7 +971,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 		for range 10 {
 			userData := model.User{
 				Username: "fakeuser" + model.NewRandomString(10),
-				Password: "Pa$$word11",
+				Password: model.NewTestPassword(),
 				Email:    s.th.GenerateTestEmail(),
 			}
 			_, err := s.th.App.CreateUser(s.th.Context, &userData)
@@ -1070,7 +1070,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
 		Username:    model.NewId(),
-		AuthData:    model.NewPointer("test.user.1"),
+		AuthData:    new("test.user.1"),
 		AuthService: model.UserAuthServiceLdap,
 	})
 	s.Require().Nil(appErr)
@@ -1078,7 +1078,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	samlUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       "success+devone@simulator.amazonses.com",
 		Username:    "dev.one",
-		AuthData:    model.NewPointer("dev.one"),
+		AuthData:    new("dev.one"),
 		AuthService: model.UserAuthServiceSaml,
 	})
 	s.Require().Nil(appErr)
@@ -1107,7 +1107,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, ldapUser.Id, &model.UserAuth{
-				AuthData:    model.NewPointer("test.user.1"),
+				AuthData:    new("test.user.1"),
 				AuthService: model.UserAuthServiceLdap,
 			})
 			s.Require().Nil(appErr)
@@ -1136,7 +1136,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, samlUser.Id, &model.UserAuth{
-				AuthData:    model.NewPointer("dev.one"),
+				AuthData:    new("dev.one"),
 				AuthService: model.UserAuthServiceSaml,
 			})
 			s.Require().Nil(appErr)
@@ -1806,7 +1806,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
 		Username:    model.NewUsername(),
-		AuthData:    model.NewPointer("existingauthdata"),
+		AuthData:    new("existingauthdata"),
 		AuthService: model.UserAuthServiceLdap,
 	})
 	s.Require().Nil(appErr)

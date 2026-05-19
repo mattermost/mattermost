@@ -5,13 +5,16 @@ import React, {useEffect, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {ChannelBanner} from '@mattermost/types/channels';
+
 import {selectShowChannelBanner} from 'mattermost-redux/selectors/entities/channel_banner';
 import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
+import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
 import Markdown from 'components/markdown';
-import WithTooltip from 'components/with_tooltip';
 
 import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
@@ -34,7 +37,17 @@ export default function ChannelBanner({channelId}: Props) {
     const license = useSelector(getLicense);
     const licenseEnabled = isMinimumEnterpriseAdvancedLicense(license);
     const channelBannerConfigured = useSelector((state: GlobalState) => selectShowChannelBanner(state, channelId));
-    const showChannelBanner = licenseEnabled && channelBannerConfigured;
+    const showNativeBanner = licenseEnabled && channelBannerConfigured;
+
+    const classificationBanner = useChannelClassificationBanner(channelId);
+
+    // Classification property value takes priority over native banner_info
+    const effectiveBanner: ChannelBanner | undefined = classificationBanner.hasClassification ?
+        classificationBanner.classificationBanner :
+        channelBannerInfo;
+
+    const showBanner = classificationBanner.hasClassification || showNativeBanner;
+
     const textContainerRef = useRef<HTMLSpanElement>(null);
     const [tooltipNeeded, setTooltipNeeded] = React.useState<boolean>(false);
 
@@ -47,31 +60,30 @@ export default function ChannelBanner({channelId}: Props) {
         const isOverflowingVertically = textContainerRef.current.offsetHeight < textContainerRef.current.scrollHeight;
 
         setTooltipNeeded(isOverflowingHorizontally || isOverflowingVertically);
-    }, [channelBannerInfo?.text]);
+    }, [effectiveBanner?.text]);
 
     const intl = useIntl();
     const channelBannerTextAriaLabel = intl.formatMessage({id: 'channel_banner.aria_label', defaultMessage: 'Channel banner text'});
 
     const content = (
         <Markdown
-            message={channelBannerInfo?.text}
+            message={effectiveBanner?.text}
             options={markdownRenderingOptions}
         />
     );
 
     const channelBannerStyle = useMemo(() => {
         return {
-            backgroundColor: channelBannerInfo?.background_color,
+            backgroundColor: effectiveBanner?.background_color,
         };
-    }, [channelBannerInfo]);
+    }, [effectiveBanner]);
 
     const channelBannerTextStyle = useMemo(() => {
-        // this is just to satisfy type checks.
-        if (!channelBannerInfo || !channelBannerInfo.background_color) {
+        if (!effectiveBanner || !effectiveBanner.background_color) {
             return {};
         }
 
-        const color = getContrastingSimpleColor(channelBannerInfo.background_color);
+        const color = getContrastingSimpleColor(effectiveBanner.background_color);
 
         // The CSS variable is declared here, and is being used in the stylesheet being imported in this component.
         // This is needed because if the user sets background color a share of blue similar to the default link color,
@@ -81,9 +93,9 @@ export default function ChannelBanner({channelId}: Props) {
             color,
             '--channel-banner-text-color': color,
         };
-    }, [channelBannerInfo]);
+    }, [effectiveBanner]);
 
-    if (!channelBannerInfo || !showChannelBanner) {
+    if (!effectiveBanner || !showBanner) {
         return null;
     }
 

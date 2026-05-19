@@ -119,6 +119,7 @@ export function usePendingThing<T extends Record<string, unknown>, TErr extends 
     opts: {
         commit: (pending: T, current: T) => T | Promise<T>;
         beforeUpdate?: (pending: T, current: T) => T;
+        isEqual?: (a: T, b: T) => boolean;
     },
 ) {
     const [pending, setPending] = useState(data);
@@ -133,14 +134,15 @@ export function usePendingThing<T extends Record<string, unknown>, TErr extends 
     const apply = useCallback((update: T | ((current: T) => T)) => {
         setPending((currentPending) => {
             const next = typeof update === 'function' ? update(currentPending) : ({...currentPending, ...update});
+            const result = opts.beforeUpdate ? opts.beforeUpdate(next, data) : next;
 
-            if (opts.beforeUpdate) {
-                return opts?.beforeUpdate(next, data);
+            if (opts.isEqual?.(result, data)) {
+                return data;
             }
 
-            return next;
+            return result;
         });
-    }, [setPending, data, opts.beforeUpdate]);
+    }, [setPending, data, opts.beforeUpdate, opts.isEqual]);
 
     const reset = useCallback(() => {
         setPending(data);

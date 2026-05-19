@@ -12,7 +12,7 @@
 
 import {Team} from '@mattermost/types/teams';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Bot accounts ownership and API', () => {
     let newTeam: Team;

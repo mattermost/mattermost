@@ -34,7 +34,7 @@ describe('Interactive Dialog - Apps Form', () => {
 
             cy.visit(`/${team.name}`);
 
-            const webhookBaseUrl = Cypress.env().webhookBaseUrl;
+            const webhookBaseUrl = Cypress.expose().webhookBaseUrl;
 
             const command = {
                 auto_complete: false,

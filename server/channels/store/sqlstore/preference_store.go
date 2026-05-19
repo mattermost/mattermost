@@ -43,7 +43,7 @@ func (s SqlPreferenceStore) deleteUnusedFeatures() {
 
 func (s SqlPreferenceStore) Save(preferences model.Preferences) (err error) {
 	// wrap in a transaction so that if one fails, everything fails
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

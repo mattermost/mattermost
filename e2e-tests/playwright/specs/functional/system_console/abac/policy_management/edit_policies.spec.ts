@@ -20,7 +20,8 @@ import {
     createPrivateChannelForABAC,
     createBasicPolicy,
     createAdvancedPolicy,
-    waitForLatestSyncJob,
+    waitForPolicySyncJob,
+    getPolicyIdByName,
     enableUserManagedAttributes,
 } from '../support';
 
@@ -67,7 +68,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await adminClient.addToTeam(team.id, salesUser.id);
 
         // Create channel - use direct API call for more control
-        const channelName = `abac-edit-test-${await pw.random.id()}`;
+        const channelName = `abac-edit-test-${pw.random.id()}`;
 
         const privateChannel = await adminClient.createChannel({
             team_id: team.id,
@@ -106,7 +107,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
         // SETUP: Create policy with ORIGINAL value (Engineering), Auto-add OFF
         // ===========================================
-        const policyName = `ABAC-Edit-Test-${await pw.random.id()}`;
+        const policyName = `ABAC-Edit-Test-${pw.random.id()}`;
 
         await createBasicPolicy(page, {
             name: policyName,
@@ -116,6 +117,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             autoSync: false, // Auto-add is OFF
             channels: [privateChannel.display_name],
         });
+        const policyId = await getPolicyIdByName(adminClient, policyName);
 
         // Check membership AFTER policy creation (before explicit sync)
         await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);
@@ -256,22 +258,32 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             await page.waitForTimeout(1000);
         }
 
-        // Wait for sync to complete
+        // Wait for sync to complete (race-safe: polls exact policy, not UI table)
         await navigateToABACPage(page);
-        await waitForLatestSyncJob(page, 5);
+        if (!policyId) {
+            throw new Error('Policy ID not found after creation');
+        }
+        await waitForPolicySyncJob(adminClient, policyId);
 
         // ===========================================
         // STEP 5 & 6: Verify channel membership after policy edit
         // ===========================================
 
-        const salesInChannelAfterEdit = await verifyUserInChannel(adminClient, salesUser.id, privateChannel.id);
-        const engineerInChannelAfterEdit = await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);
-
-        // Step 5: salesUser should NOT be in channel (auto-add is off)
-        expect(salesInChannelAfterEdit).toBe(false);
-
-        // Step 6: engineerUser should be REMOVED (no longer satisfies policy)
-        expect(engineerInChannelAfterEdit).toBe(false);
+        // Poll under PW_WORKERS>=2: another shard's sync job may flip membership.
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, salesUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'salesUser should NOT be in channel (auto-add is off)',
+            })
+            .toBe(false);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerUser should be REMOVED (no longer satisfies policy)',
+            })
+            .toBe(false);
 
         // ===========================================
         // STEP 7: Admin can manually add satisfying user
@@ -392,7 +404,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // PRECONDITION: Create ORIGINAL policy with ONE attribute (Department=Engineering)
         // Auto-add ON so users are auto-added
         // ===========================================
-        const policyName = `ABAC-AddAttr-Test-${await pw.random.id()}`;
+        const policyName = `ABAC-AddAttr-Test-${pw.random.id()}`;
 
         await createBasicPolicy(page, {
             name: policyName,
@@ -402,6 +414,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             autoSync: true, // Auto-add is ON
             channels: [privateChannel.display_name],
         });
+        const policyId = await getPolicyIdByName(adminClient, policyName);
 
         // Wait for automatic sync to complete
         await page.waitForTimeout(3000);
@@ -416,7 +429,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
 
         // Navigate back to ABAC list page
-        await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
+        await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
         await page.waitForTimeout(2000);
 
         // Verify we're on the list page by checking for "Add policy" button
@@ -514,35 +527,38 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(2000);
 
         // Wait for the auto-triggered sync job to complete (policy edit triggers sync automatically)
-        await waitForLatestSyncJob(page);
+        if (!policyId) {
+            throw new Error('Policy ID not found after creation');
+        }
+        await waitForPolicySyncJob(adminClient, policyId);
 
         // Additional wait for membership changes to propagate
-        await page.waitForTimeout(5000);
-
         // ===========================================
         // STEP 5 & 6: Verify channel membership after edit
         // ===========================================
 
-        const engineerRemoteAfterEdit = await verifyUserInChannel(
-            adminClient,
-            engineerRemoteUser.id,
-            privateChannel.id,
-        );
-        const engineerOfficeAfterEdit = await verifyUserInChannel(
-            adminClient,
-            engineerOfficeUser.id,
-            privateChannel.id,
-        );
-        const salesAfterEdit = await verifyUserInChannel(adminClient, salesUser.id, privateChannel.id);
-
-        // Step 5: engineerRemoteUser should be in channel (satisfies BOTH attributes)
-        expect(engineerRemoteAfterEdit).toBe(true);
-
-        // Step 6: engineerOfficeUser should be REMOVED (only satisfies original, not new policy)
-        expect(engineerOfficeAfterEdit).toBe(false);
-
-        // salesUser should not be in channel (never satisfied any policy)
-        expect(salesAfterEdit).toBe(false);
+        // Poll under PW_WORKERS>=2: another shard's sync job may interleave.
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerRemoteUser should be in channel (satisfies BOTH attributes)',
+            })
+            .toBe(true);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerOfficeUser should be REMOVED (only satisfies original, not new policy)',
+            })
+            .toBe(false);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, salesUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'salesUser should not be in channel',
+            })
+            .toBe(false);
     });
 
     /**
@@ -652,7 +668,14 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Department=Engineering AND Office=Remote
         // Auto-add ON
         // ===========================================
-        const policyName = `ABAC-RemoveRule-${await pw.random.id()}`;
+        const policyName = `ABAC-RemoveRule-${pw.random.id()}`;
+
+        await adminClient.patchConfig({
+            AccessControlSettings: {
+                EnableAttributeBasedAccessControl: true,
+                EnableUserManagedAttributes: true,
+            },
+        } as any);
 
         // Use advanced mode for multi-attribute policy
         await createAdvancedPolicy(page, {
@@ -661,6 +684,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             autoSync: true, // Auto-add is ON
             channels: [privateChannel.display_name],
         });
+        const policyId = await getPolicyIdByName(adminClient, policyName);
 
         // Wait for automatic sync to complete
         await page.waitForTimeout(3000);
@@ -680,8 +704,15 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // This makes policy LESS restrictive
         // ===========================================
 
+        await adminClient.patchConfig({
+            AccessControlSettings: {
+                EnableAttributeBasedAccessControl: true,
+                EnableUserManagedAttributes: true,
+            },
+        } as any);
+
         // Navigate back to ABAC list page
-        await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
+        await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
         await page.waitForTimeout(2000);
 
         // Verify we're on the list page by checking for "Add policy" button
@@ -785,33 +816,126 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             await page.waitForTimeout(1000);
         }
 
-        // Navigate to ABAC page and wait for sync job to complete
+        // Navigate to ABAC page and wait for sync job to complete (race-safe by policyId)
         await navigateToABACPage(page);
-        await waitForLatestSyncJob(page);
+        if (!policyId) {
+            throw new Error('Policy ID not found after creation');
+        }
+        await waitForPolicySyncJob(adminClient, policyId);
 
         // ===========================================
         // STEP 5 & 6: Verify channel membership after edit
         // ===========================================
 
-        const engineerRemoteAfterEdit = await verifyUserInChannel(
-            adminClient,
-            engineerRemoteUser.id,
-            privateChannel.id,
-        );
-        const engineerOfficeAfterEdit = await verifyUserInChannel(
-            adminClient,
-            engineerOfficeUser.id,
-            privateChannel.id,
-        );
-        const salesRemoteAfterEdit = await verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id);
+        // Poll under PW_WORKERS>=2: another shard's sync job may interleave.
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerOfficeUser should be AUTO-ADDED (satisfies simpler Dept-only policy)',
+            })
+            .toBe(true);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerRemoteUser should still be in channel',
+            })
+            .toBe(true);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'salesRemoteUser should NOT be in channel',
+            })
+            .toBe(false);
+    });
 
-        // Step 5: engineerOfficeUser should be AUTO-ADDED (now satisfies simpler Dept-only policy)
-        expect(engineerOfficeAfterEdit).toBe(true);
+    /**
+     * MM-63848: Renaming a policy to a name that already exists should show an error
+     */
+    test('MM-63848 Should show error when renaming policy to an existing name', async ({pw}) => {
+        await pw.skipIfNoLicense();
 
-        // engineerRemoteUser should still be in channel (continues to satisfy policy)
-        expect(engineerRemoteAfterEdit).toBe(true);
+        const {adminUser, adminClient, team} = await pw.initSetup();
 
-        // Step 6: salesRemoteUser should NOT be in channel (never satisfied Dept requirement)
-        expect(salesRemoteAfterEdit).toBe(false);
+        await enableUserManagedAttributes(adminClient);
+
+        const departmentAttribute: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
+        await setupCustomProfileAttributeFields(adminClient, departmentAttribute);
+
+        const privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const page = systemConsolePage.page;
+
+        await navigateToABACPage(page);
+        await enableABAC(page);
+
+        // Create two policies with different names
+        const policyName1 = `Edit Dup Test A ${pw.random.id()}`;
+        await createBasicPolicy(page, {
+            name: policyName1,
+            attribute: 'Department',
+            operator: '==',
+            value: 'Engineering',
+            autoSync: false,
+            channels: [privateChannel.display_name],
+        });
+
+        await navigateToABACPage(page);
+
+        const privateChannel2 = await createPrivateChannelForABAC(adminClient, team.id);
+        const policyName2 = `Edit Dup Test B ${pw.random.id()}`;
+        await createBasicPolicy(page, {
+            name: policyName2,
+            attribute: 'Department',
+            operator: '==',
+            value: 'Sales',
+            autoSync: false,
+            channels: [privateChannel2.display_name],
+        });
+
+        // Navigate back and edit policy2's name to match policy1
+        await navigateToABACPage(page);
+        await page.waitForTimeout(1000);
+
+        // Search for the second policy
+        const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
+        if (await policySearchInput.isVisible({timeout: 3000})) {
+            await policySearchInput.fill(policyName2);
+            await page.waitForTimeout(1000);
+        }
+
+        const policyRow = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName2}).first();
+        await policyRow.waitFor({state: 'visible', timeout: 10000});
+        await policyRow.click();
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1000);
+
+        // Change the name to match the first policy
+        const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
+        await nameInput.waitFor({state: 'visible', timeout: 10000});
+        await nameInput.fill('');
+        await nameInput.fill(policyName1);
+
+        // Save and expect failure
+        const saveButton = page.getByRole('button', {name: 'Save'});
+        await saveButton.click();
+        await page.waitForTimeout(2000);
+
+        // Handle confirmation modal if it appears
+        const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
+        if (await applyPolicyButton.isVisible({timeout: 3000}).catch(() => false)) {
+            await applyPolicyButton.click();
+            await page.waitForTimeout(2000);
+        }
+
+        // Verify error message is shown
+        const errorMessage = page.locator('.EditPolicy__error');
+        await expect(errorMessage).toBeVisible({timeout: 5000});
+
+        const errorText = await errorMessage.textContent();
+        expect(errorText).toContain('A policy with this name already exists');
     });
 });

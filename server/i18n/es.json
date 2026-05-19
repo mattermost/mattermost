@@ -3048,10 +3048,6 @@
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} ya fue detenido."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} está deshabilitado."
   },
@@ -5182,10 +5178,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "La licencia de Mattermost Enterprise ha sido desactivada."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Su licencia de la Enterprise Edition ha expirado y algunas características pueden estar desactivadas. Por favor, renueve su licencia ahora."
   },
   {
     "id": "api.templates.invite_guest_subject",

@@ -13,10 +13,11 @@ import {UserProfile} from '@mattermost/types/users';
 import {Team} from '@mattermost/types/teams';
 import {Group} from '@mattermost/types/groups';
 
-import ldapUsers from '../../../../fixtures/ldap_users.json';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-
 import {enableGroupMention} from './helpers';
+
+import ldapUsers from '@/fixtures/ldap_users.json';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Group Mentions', () => {
     let groupID1: string;
@@ -261,19 +262,21 @@ describe('Group Mentions', () => {
             // # Link the group and the channel.
             cy.apiLinkGroupChannel(groupID1, channel.id);
 
-            cy.apiLogin({username: 'board.one', password: 'Password1'} as any).then(({user}: {user: UserProfile}) => {
+            cy.apiLogin({username: 'board.one', password: 'Password1'}).then((resp) => {
+                const {user} = resp as {user: UserProfile};
                 cy.apiAddUserToChannel(channel.id, user.id);
 
                 // # Make the channel private and group-synced.
                 cy.apiPatchChannel(channel.id, {group_constrained: true, type: 'P'});
 
                 // # Login to create the dev user
-                cy.apiLogin({username: 'dev.one', password: 'Password1'} as any).then(({user}: {user: UserProfile}) => {
+                cy.apiLogin({username: 'dev.one', password: 'Password1'}).then((resp2) => {
+                    const {user: devUser} = resp2 as {user: UserProfile};
                     cy.apiAdminLogin();
 
-                    cy.apiAddUserToTeam(testTeam.id, user.id);
+                    cy.apiAddUserToTeam(testTeam.id, devUser.id);
 
-                    cy.apiLogin({username: 'board.one', password: 'Password1'} as any);
+                    cy.apiLogin({username: 'board.one', password: 'Password1'});
 
                     // # Visit the channel
                     cy.visit(`/${testTeam.name}/channels/${channel.name}`);

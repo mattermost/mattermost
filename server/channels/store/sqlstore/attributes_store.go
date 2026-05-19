@@ -66,10 +66,7 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID string) (*
 		return nil, errors.Wrap(err, "failed to build query for subject")
 	}
 
-	row := s.GetReplica().QueryRowxContext(rctx.Context(), q, args...)
-	if err := row.Err(); err != nil {
-		return nil, errors.Wrap(err, "failed to get subject")
-	}
+	row := s.GetReplica().QueryRowContext(rctx.Context(), q, args...)
 
 	var subject model.Subject
 	var properties []byte
@@ -96,8 +93,15 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("AttributeView ON Users.Id = AttributeView.TargetID")
 
 	if opts.Query != "" {
-		query = query.Where(sq.Expr(opts.Query, opts.Args...))
-		count = count.Where(sq.Expr(opts.Query, opts.Args...))
+		// Wrap the CEL-derived expression in parentheses so that any top-level
+		// OR (e.g. produced by "has any of [a, b]") does not bind across the
+		// AND-joined WHERE clauses appended below (SubjectID, DeleteAt,
+		// TeamID, ExcludeChannelMembers, Cursor, Term). Without these
+		// parens, "A OR B AND Users.Id = $X" would be parsed as
+		// "A OR (B AND Users.Id = $X)" because AND binds tighter than OR.
+		wrapped := "(" + opts.Query + ")"
+		query = query.Where(sq.Expr(wrapped, opts.Args...))
+		count = count.Where(sq.Expr(wrapped, opts.Args...))
 	}
 
 	argCount := len(opts.Args)

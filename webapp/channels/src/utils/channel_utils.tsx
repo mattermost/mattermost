@@ -153,6 +153,19 @@ export function joinPrivateChannelPrompt(team: Team, channelDisplayName: string,
     };
 }
 
+export function getChannelRoutePathAndIdentifier(channel: Pick<Channel, 'type' | 'name'>, dmUsername?: string): {path: string; identifier: string} {
+    if (channel.type === Constants.DM_CHANNEL) {
+        return {
+            path: 'messages',
+            identifier: dmUsername ? `@${dmUsername}` : channel.name,
+        };
+    }
+    if (channel.type === Constants.GM_CHANNEL) {
+        return {path: 'messages', identifier: channel.name};
+    }
+    return {path: 'channels', identifier: channel.name};
+}
+
 export function makeNewEmptyChannel(displayName: string, teamId: string): Channel {
     return {
         team_id: teamId,

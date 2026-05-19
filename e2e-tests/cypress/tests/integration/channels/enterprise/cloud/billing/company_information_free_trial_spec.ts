@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @cloud_only @cloud_trial
 
-import {getRandomLetter} from '../../../../../utils/index';
+import {getRandomLetter} from '@/utils/index';
 
 describe('System Console - Company Information section', () => {
     before(() => {

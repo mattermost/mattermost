@@ -12,8 +12,8 @@
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import {PostMessageResp} from '../../../support/task_commands';
-import {spyNotificationAs} from '../../../support/notification';
+import {PostMessageResp} from '@/support/task_commands';
+import {spyNotificationAs} from '@/support/notification';
 
 describe('CRT Desktop notifications', () => {
     let testTeam: Team;
@@ -133,7 +133,7 @@ describe('CRT Desktop notifications', () => {
             cy.postMessageAs({sender, message, channelId: testChannelId, rootId: postId});
 
             // * Verify stub was called with correct title and body
-            cy.get('@notifySpy').should('have.been.calledWithMatch', `Reply in ${testChannelName}`, (args) => {
+            cy.get('@notifySpy').should('have.been.calledWithMatch', `Reply in ${testChannelName}`, (args: {body: string}) => {
                 expect(args.body, `Notification body: "${args.body}" should match: "${message}"`).to.equal(`@${sender.username}: ${message}`);
                 return true;
             });
@@ -235,7 +235,7 @@ describe('CRT Desktop notifications', () => {
             cy.postMessageAs({sender, message, channelId: testChannelId, rootId: postId});
 
             // * Verify Notification stub was called with correct title and body with at-mention as per channel settings
-            cy.get('@notifySpy2').should('have.been.calledWithMatch', `Reply in ${testChannelName}`, (args) => {
+            cy.get('@notifySpy2').should('have.been.calledWithMatch', `Reply in ${testChannelName}`, (args: {body: string}) => {
                 expect(args.body, `Notification body: "${args.body}" should match: "${message}"`).to.equal(`@${sender.username}: ${message}`);
                 return true;
             });

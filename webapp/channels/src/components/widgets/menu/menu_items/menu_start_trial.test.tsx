@@ -4,8 +4,7 @@
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import MenuStartTrial from './menu_start_trial';
@@ -31,14 +30,13 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
             },
         };
-        const store = mockStore(state);
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const wrapper = mountWithIntl(<reactRedux.Provider store={store}><MenuStartTrial id='startTrial'/></reactRedux.Provider>);
+        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
 
-        expect(wrapper.find('.editionText').exists()).toBe(true);
-        expect(wrapper.text()).toContain('TEAM EDITION');
-        expect(wrapper.text()).toContain('This is the free');
+        expect(container.querySelector('.editionText')).not.toBeNull();
+        expect(container.textContent).toContain('TEAM EDITION');
+        expect(container.textContent).toContain('This is the free');
     });
 
     test('should render ENTRY EDITION for Entry license', () => {
@@ -55,14 +53,13 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
             },
         };
-        const store = mockStore(state);
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const wrapper = mountWithIntl(<reactRedux.Provider store={store}><MenuStartTrial id='startTrial'/></reactRedux.Provider>);
+        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
 
-        expect(wrapper.find('.editionText').exists()).toBe(true);
-        expect(wrapper.text()).toContain('ENTRY EDITION');
-        expect(wrapper.text()).toContain('Entry offers Enterprise Advance capabilities');
+        expect(container.querySelector('.editionText')).not.toBeNull();
+        expect(container.textContent).toContain('ENTRY EDITION');
+        expect(container.textContent).toContain('Entry offers Enterprise Advance capabilities');
     });
 
     test('should return null for Professional license', () => {
@@ -79,12 +76,11 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
             },
         };
-        const store = mockStore(state);
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const wrapper = mountWithIntl(<reactRedux.Provider store={store}><MenuStartTrial id='startTrial'/></reactRedux.Provider>);
+        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
 
-        expect(wrapper.isEmptyRender()).toBe(true);
+        expect(container.innerHTML).toBe('');
     });
 
     test('should return null for Enterprise license', () => {
@@ -101,11 +97,10 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
             },
         };
-        const store = mockStore(state);
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const wrapper = mountWithIntl(<reactRedux.Provider store={store}><MenuStartTrial id='startTrial'/></reactRedux.Provider>);
+        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
 
-        expect(wrapper.isEmptyRender()).toBe(true);
+        expect(container.innerHTML).toBe('');
     });
 });

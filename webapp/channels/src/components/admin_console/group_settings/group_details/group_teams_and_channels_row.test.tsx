@@ -1,12 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import GroupTeamsAndChannelsRow from 'components/admin_console/group_settings/group_details/group_teams_and_channels_row';
 
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+
 describe('components/admin_console/group_settings/group_details/GroupTeamsAndChannelsRow', () => {
+    const renderInTable = (ui: React.ReactElement) => {
+        return renderWithContext(
+            <table>
+                <tbody>
+                    {ui}
+                </tbody>
+            </table>,
+        );
+    };
+
     for (const type of [
         'public-team',
         'private-team',
@@ -14,7 +25,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         'private-channel',
     ]) {
         test('should match snapshot, for ' + type, () => {
-            const wrapper = shallow(
+            const {container} = renderInTable(
                 <GroupTeamsAndChannelsRow
                     id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
                     type={type}
@@ -26,11 +37,11 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
                     onChangeRoles={jest.fn()}
                 />,
             );
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
     }
     test('should match snapshot, when has children', () => {
-        const wrapper = shallow(
+        const {container} = renderInTable(
             <GroupTeamsAndChannelsRow
                 id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
                 type='public-team'
@@ -42,11 +53,11 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
                 onChangeRoles={jest.fn()}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, when has children and is collapsed', () => {
-        const wrapper = shallow(
+        const {container} = renderInTable(
             <GroupTeamsAndChannelsRow
                 id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
                 type='public-team'
@@ -58,12 +69,12 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
                 onChangeRoles={jest.fn()}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should call onToggleCollapse on caret click', () => {
+    test('should call onToggleCollapse on caret click', async () => {
         const onToggleCollapse = jest.fn();
-        const wrapper = shallow(
+        renderInTable(
             <GroupTeamsAndChannelsRow
                 id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
                 type='public-team'
@@ -75,13 +86,15 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
                 onChangeRoles={jest.fn()}
             />,
         );
-        wrapper.find('.fa-caret-right').simulate('click');
+        const caret = document.querySelector('.fa-caret-right');
+        expect(caret).toBeInTheDocument();
+        await userEvent.click(caret!);
         expect(onToggleCollapse).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx');
     });
 
-    test('should call onRemoveItem on remove link click', () => {
+    test('should call onRemoveItem on remove link click', async () => {
         const onRemoveItem = jest.fn();
-        const wrapper = shallow<GroupTeamsAndChannelsRow>(
+        renderInTable(
             <GroupTeamsAndChannelsRow
                 id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
                 type='public-team'
@@ -93,13 +106,18 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
                 onChangeRoles={jest.fn()}
             />,
         );
-        wrapper.find('.btn-tertiary').simulate('click');
-        expect(wrapper.instance().state.showConfirmationModal).toEqual(true);
-        wrapper.instance().removeItem();
+
+        // Click the Remove button to show confirmation modal
+        const removeButton = screen.getByTestId('Test team with children_groupsyncable_remove');
+        await userEvent.click(removeButton);
+
+        // Confirmation modal should be shown - click confirm
+        const confirmButton = screen.getByText('Yes, Remove');
+        await userEvent.click(confirmButton);
+
         expect(onRemoveItem).toHaveBeenCalledWith(
             'xxxxxxxxxxxxxxxxxxxxxxxxxx',
             'public-team',
         );
-        expect(wrapper.instance().state.showConfirmationModal).toEqual(false);
     });
 });

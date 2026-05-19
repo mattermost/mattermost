@@ -17,7 +17,6 @@ var SystemUserManagerDefaultPermissions []string
 var SystemReadOnlyAdminDefaultPermissions []string
 var SystemCustomGroupAdminDefaultPermissions []string
 var SharedChannelManagerDefaultPermissions []string
-var SecureConnectionManagerDefaultPermissions []string
 
 var BuiltInSchemeManagedRoleIDs []string
 
@@ -29,7 +28,6 @@ func init() {
 		SystemReadOnlyAdminRoleId,
 		SystemManagerRoleId,
 		SharedChannelManagerRoleId,
-		SecureConnectionManagerRoleId,
 	}
 
 	BuiltInSchemeManagedRoleIDs = append([]string{
@@ -362,10 +360,6 @@ func init() {
 		PermissionManageSharedChannels.Id,
 	}
 
-	SecureConnectionManagerDefaultPermissions = []string{
-		PermissionManageSecureConnections.Id,
-	}
-
 	// Add the ancillary permissions to each system role
 	SystemUserManagerDefaultPermissions = AddAncillaryPermissions(SystemUserManagerDefaultPermissions)
 	SystemReadOnlyAdminDefaultPermissions = AddAncillaryPermissions(SystemReadOnlyAdminDefaultPermissions)
@@ -377,18 +371,17 @@ type RoleType string
 type RoleScope string
 
 const (
-	SystemGuestRoleId             = "system_guest"
-	SystemUserRoleId              = "system_user"
-	SystemAdminRoleId             = "system_admin"
-	SystemPostAllRoleId           = "system_post_all"
-	SystemPostAllPublicRoleId     = "system_post_all_public"
-	SystemUserAccessTokenRoleId   = "system_user_access_token"
-	SystemUserManagerRoleId       = "system_user_manager"
-	SystemReadOnlyAdminRoleId     = "system_read_only_admin"
-	SystemManagerRoleId           = "system_manager"
-	SystemCustomGroupAdminRoleId  = "system_custom_group_admin"
-	SharedChannelManagerRoleId    = "shared_channel_manager"
-	SecureConnectionManagerRoleId = "secure_connection_manager"
+	SystemGuestRoleId            = "system_guest"
+	SystemUserRoleId             = "system_user"
+	SystemAdminRoleId            = "system_admin"
+	SystemPostAllRoleId          = "system_post_all"
+	SystemPostAllPublicRoleId    = "system_post_all_public"
+	SystemUserAccessTokenRoleId  = "system_user_access_token"
+	SystemUserManagerRoleId      = "system_user_manager"
+	SystemReadOnlyAdminRoleId    = "system_read_only_admin"
+	SystemManagerRoleId          = "system_manager"
+	SystemCustomGroupAdminRoleId = "system_custom_group_admin"
+	SharedChannelManagerRoleId   = "system_shared_channel_manager"
 
 	TeamGuestRoleId         = "team_guest"
 	TeamUserRoleId          = "team_user"
@@ -785,25 +778,28 @@ func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*C
 	return &RolePatch{Permissions: &patchPermissions}
 }
 
-func (r *Role) IsValid() bool {
+func (r *Role) IsValid() error {
 	if !IsValidId(r.Id) {
-		return false
+		return fmt.Errorf("invalid role id %q", r.Id)
 	}
 
 	return r.IsValidWithoutId()
 }
 
-func (r *Role) IsValidWithoutId() bool {
+func (r *Role) IsValidWithoutId() error {
 	if !IsValidRoleName(r.Name) {
-		return false
+		return fmt.Errorf("invalid role name %q", r.Name)
 	}
 
-	if r.DisplayName == "" || len(r.DisplayName) > RoleDisplayNameMaxLength {
-		return false
+	if r.DisplayName == "" {
+		return fmt.Errorf("role display name must not be empty")
+	}
+	if len(r.DisplayName) > RoleDisplayNameMaxLength {
+		return fmt.Errorf("role display name %q exceeds maximum length of %d", r.DisplayName, RoleDisplayNameMaxLength)
 	}
 
 	if len(r.Description) > RoleDescriptionMaxLength {
-		return false
+		return fmt.Errorf("role description exceeds maximum length of %d", RoleDescriptionMaxLength)
 	}
 
 	check := func(perms []*Permission, permission string) bool {
@@ -815,13 +811,12 @@ func (r *Role) IsValidWithoutId() bool {
 		return false
 	}
 	for _, permission := range r.Permissions {
-		permissionValidated := check(AllPermissions, permission) || check(DeprecatedPermissions, permission)
-		if !permissionValidated {
-			return false
+		if !check(AllPermissions, permission) && !check(DeprecatedPermissions, permission) {
+			return fmt.Errorf("unknown permission %q", permission)
 		}
 	}
 
-	return true
+	return nil
 }
 
 func CleanRoleNames(roleNames []string) ([]string, bool) {
@@ -876,6 +871,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionEditPost.Id,
 			PermissionCreatePost.Id,
 			PermissionUseChannelMentions.Id,
+			PermissionEditFileAttachment.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -902,6 +898,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManagePrivateChannelMembers.Id,
 			PermissionDeletePost.Id,
 			PermissionEditPost.Id,
+			PermissionEditFileAttachment.Id,
 			PermissionAddBookmarkPublicChannel.Id,
 			PermissionEditBookmarkPublicChannel.Id,
 			PermissionDeleteBookmarkPublicChannel.Id,
@@ -935,6 +932,8 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManageChannelAccessRules.Id,
 			PermissionManagePublicChannelAutoTranslation.Id,
 			PermissionManagePrivateChannelAutoTranslation.Id,
+			PermissionManagePrivateChannelDiscoverability.Id,
+			PermissionManageChannelJoinRequests.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -1002,6 +1001,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManageTeam.Id,
 			PermissionImportTeam.Id,
 			PermissionManageTeamRoles.Id,
+			PermissionManageTeamAccessRules.Id,
 			PermissionManageChannelRoles.Id,
 			PermissionManageOwnIncomingWebhooks.Id,
 			PermissionManageOthersIncomingWebhooks.Id,
@@ -1115,6 +1115,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionDeleteCustomGroup.Id,
 			PermissionRestoreCustomGroup.Id,
 			PermissionManageCustomGroupMembers.Id,
+			PermissionManageOwnAgent.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -1195,18 +1196,9 @@ func MakeDefaultRoles() map[string]*Role {
 
 	roles[SharedChannelManagerRoleId] = &Role{
 		Name:          SharedChannelManagerRoleId,
-		DisplayName:   "authentication.roles.shared_channel_manager.name",
-		Description:   "authentication.roles.shared_channel_manager.description",
+		DisplayName:   "authentication.roles.system_shared_channel_manager.name",
+		Description:   "authentication.roles.system_shared_channel_manager.description",
 		Permissions:   SharedChannelManagerDefaultPermissions,
-		SchemeManaged: false,
-		BuiltIn:       true,
-	}
-
-	roles[SecureConnectionManagerRoleId] = &Role{
-		Name:          SecureConnectionManagerRoleId,
-		DisplayName:   "authentication.roles.secure_connection_manager.name",
-		Description:   "authentication.roles.secure_connection_manager.description",
-		Permissions:   SecureConnectionManagerDefaultPermissions,
 		SchemeManaged: false,
 		BuiltIn:       true,
 	}

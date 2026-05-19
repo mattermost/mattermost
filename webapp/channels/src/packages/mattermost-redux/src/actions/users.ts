@@ -352,17 +352,17 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
     };
 }
 
-export function batchGetProfilesInChannel(channelId: string): ActionFuncAsync<Array<Channel['id']>> {
+export function batchGetProfilesInGroupChannel(channelId: string): ActionFuncAsync<Array<Channel['id']>> {
     return async (dispatch, getState, {loaders}: any) => {
-        if (!loaders.profilesInChannelLoader) {
-            loaders.profilesInChannelLoader = new DelayedDataLoader<Channel['id']>({
-                fetchBatch: (channelIds) => dispatch(getProfilesInChannel(channelIds[0], 0)),
-                maxBatchSize: 1,
+        if (!loaders.profilesInGroupChannelLoader) {
+            loaders.profilesInGroupChannelLoader = new DelayedDataLoader<Channel['id']>({
+                fetchBatch: (channelIds) => dispatch(getProfilesInGroupChannels(channelIds)),
+                maxBatchSize: General.MAX_GROUP_CHANNELS_FOR_PROFILES,
                 wait: missingProfilesWait,
             });
         }
 
-        await loaders.profilesInChannelLoader.queueAndWait([channelId]);
+        await loaders.profilesInGroupChannelLoader.queueAndWait([channelId]);
         return {};
     };
 }
@@ -986,7 +986,7 @@ export function saveCustomProfileAttribute(userID: string, attributeID: string, 
             return {data};
         } catch (error) {
             // Extract user-friendly error message from server response
-            let errorMessage = 'Failed to update custom profile attribute';
+            let errorMessage = 'Failed to update user attribute';
             if (error && typeof error === 'object' && 'message' in error && error.message) {
                 errorMessage = error.message;
             }

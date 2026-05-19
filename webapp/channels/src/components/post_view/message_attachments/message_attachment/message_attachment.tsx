@@ -23,6 +23,7 @@ import ShowMore from 'components/post_view/show_more';
 import SizeAwareImage from 'components/size_aware_image';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {decodeHtmlEntities} from 'utils/markdown/decode_html_entities';
 import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import {isUrlSafe} from 'utils/url';
@@ -426,7 +427,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         className='attachment__author-name'
                         key={'attachment__author-name'}
                     >
-                        {attachment.author_name}
+                        {decodeHtmlEntities(attachment.author_name)}
                     </span>,
                 );
             }
@@ -453,7 +454,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                             href={attachment.title_link}
                             location='message_attachment'
                         >
-                            {attachment.title}
+                            {decodeHtmlEntities(attachment.title)}
                         </ExternalLink>
                     </h1>
                 );

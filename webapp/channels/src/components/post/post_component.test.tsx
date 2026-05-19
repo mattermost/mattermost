@@ -36,6 +36,7 @@ describe('PostComponent', () => {
         isMobileView: false,
         isPostAcknowledgementsEnabled: false,
         isPostPriorityEnabled: false,
+        permissionPoliciesEnabled: false,
         location: Locations.CENTER,
         post: TestHelper.getPostMock({channel_id: channel.id}),
         recentEmojis: [],
@@ -56,6 +57,7 @@ describe('PostComponent', () => {
             savePreferences: jest.fn(),
             openModal: jest.fn(),
             closeModal: jest.fn(),
+            highlightPostInChannelPopout: jest.fn(),
         },
         isChannelAutotranslated: false,
     };

@@ -8,6 +8,7 @@ import React from 'react';
 import type {IntlShape} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
 import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin_console/system_user_detail/system_user_detail';
@@ -32,6 +33,7 @@ describe('SystemUserDetail', () => {
         showManageUserSettings: false,
         showLockedManageUserSettings: false,
         mfaEnabled: false,
+        customProfileAttributeEnabled: true,
         customProfileAttributeFields: [],
         patchUser: jest.fn(),
         updateUserAuth: jest.fn(),
@@ -131,6 +133,26 @@ describe('SystemUserDetail', () => {
         const {container} = renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
+
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should not fetch CPA data if disabled', async () => {
+        const getCustomProfileAttributeFields = jest.fn().mockResolvedValue({data: []});
+        const getCustomProfileAttributeValues = jest.fn().mockResolvedValue({data: {}});
+
+        const props = {
+            ...defaultProps,
+            customProfileAttributeEnabled: false,
+            getCustomProfileAttributeFields,
+            getCustomProfileAttributeValues,
+        };
+        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+
+        await waitForLoadingToFinish();
+
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
+        expect(getCustomProfileAttributeValues).not.toHaveBeenCalled();
 
         expect(container).toMatchSnapshot();
     });
@@ -347,6 +369,62 @@ describe('SystemUserDetail', () => {
             });
 
             consoleSpy.mockRestore();
+        });
+    });
+
+    describe('CPA field labels', () => {
+        const buildCPAField = (overrides: Partial<UserPropertyField['attrs']> = {}): UserPropertyField => ({
+            id: 'cpa-1',
+            name: 'department',
+            type: 'text',
+            group_id: 'custom_profile_attributes',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+                ...overrides,
+            },
+        });
+
+        test('should render CPA label using display_name', async () => {
+            const cpaField = buildCPAField({display_name: 'Engineering Department'});
+            const props = {
+                ...defaultProps,
+                customProfileAttributeFields: [cpaField],
+                getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [cpaField]}),
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            const labelEl = await screen.findByTestId('user-detail-custom-attribute-label-cpa-1');
+            expect(labelEl).toHaveTextContent('Engineering Department');
+            expect(labelEl).not.toHaveTextContent('department');
+        });
+
+        test('should fall back to name when display_name is empty', async () => {
+            const cpaField = buildCPAField({display_name: ''});
+            const props = {
+                ...defaultProps,
+                customProfileAttributeFields: [cpaField],
+                getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [cpaField]}),
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            const labelEl = await screen.findByTestId('user-detail-custom-attribute-label-cpa-1');
+            expect(labelEl).toHaveTextContent('department');
         });
     });
 });

@@ -127,6 +127,25 @@ exports[`components/post_view/ShowMore should match snapshot, PostMessageView on
 </div>
 `;
 
+exports[`components/post_view/ShowMore should match snapshot, PostMessageView on collapsed view with ellipsis overflow 1`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed post-message-preview--overflow"
+  >
+    <div
+      class="post-message__text-container"
+      style=""
+    />
+    <button
+      class="post-preview-collapse__show-more-button color--link"
+      id="showMoreButton"
+    >
+      Show more
+    </button>
+  </div>
+</div>
+`;
+
 exports[`components/post_view/ShowMore should match snapshot, PostMessageView on expanded view 1`] = `
 <div>
   <div
@@ -195,6 +214,25 @@ exports[`components/post_view/ShowMore should match snapshot, PostMessageView on
         />
       </div>
     </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore should match snapshot, PostMessageView on expanded view with ellipsis overflow 1`] = `
+<div>
+  <div
+    class="post-message post-message--expanded post-message-preview--overflow"
+  >
+    <div
+      class="post-message__text-container"
+      style=""
+    />
+    <button
+      class="post-preview-collapse__show-more-button color--link"
+      id="showMoreButton"
+    >
+      Show less
+    </button>
   </div>
 </div>
 `;

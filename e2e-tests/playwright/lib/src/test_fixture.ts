@@ -18,6 +18,8 @@ import {
 } from './flag';
 import {getBlobFromAsset, getFileFromAsset} from './file';
 import {
+    configureAIBridgeMock,
+    createMockAIAgent,
     createNewUserProfile,
     createNewTeam,
     createRandomChannel,
@@ -25,11 +27,16 @@ import {
     createRandomTeam,
     createRandomUser,
     createUserWithAttributes,
+    enableAIBridgeTestMode,
+    getAIBridgeMock,
     getAdminClient,
     initSetup,
     isOutsideRemoteUserHour,
     makeClient,
     mergeWithOnPremServerConfig,
+    recapCompletion,
+    resetAIBridgeMock,
+    rewriteCompletion,
     installAndEnablePlugin,
     isPluginActive,
 } from './server';
@@ -43,7 +50,7 @@ import {
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
 import {stubNotification, waitForNotification} from './mock_browser_api';
-import {duration, getRandomId, simpleEmailRe, wait} from './util';
+import {duration, getRandomId, newTestPassword, simpleEmailRe, wait} from './util';
 
 export {expect} from '@playwright/test';
 
@@ -92,6 +99,13 @@ export class PlaywrightExtended {
     readonly getAdminClient;
     readonly mergeWithOnPremServerConfig;
     readonly initSetup;
+    readonly enableAIBridgeTestMode;
+    readonly configureAIBridgeMock;
+    readonly getAIBridgeMock;
+    readonly resetAIBridgeMock;
+    readonly createMockAIAgent;
+    readonly rewriteCompletion;
+    readonly recapCompletion;
     readonly installAndEnablePlugin;
     readonly isPluginActive;
 
@@ -117,6 +131,7 @@ export class PlaywrightExtended {
 
     // ./util
     readonly duration;
+    readonly newTestPassword;
     readonly simpleEmailRe;
     readonly wait;
 
@@ -153,6 +168,13 @@ export class PlaywrightExtended {
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
         this.mergeWithOnPremServerConfig = mergeWithOnPremServerConfig;
+        this.enableAIBridgeTestMode = enableAIBridgeTestMode;
+        this.configureAIBridgeMock = configureAIBridgeMock;
+        this.getAIBridgeMock = getAIBridgeMock;
+        this.resetAIBridgeMock = resetAIBridgeMock;
+        this.createMockAIAgent = createMockAIAgent;
+        this.rewriteCompletion = rewriteCompletion;
+        this.recapCompletion = recapCompletion;
         this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
         this.installAndEnablePlugin = installAndEnablePlugin;
         this.isPluginActive = isPluginActive;
@@ -185,6 +207,7 @@ export class PlaywrightExtended {
         // ./util
         this.duration = duration;
         this.wait = wait;
+        this.newTestPassword = newTestPassword;
         this.simpleEmailRe = simpleEmailRe;
 
         this.random = {

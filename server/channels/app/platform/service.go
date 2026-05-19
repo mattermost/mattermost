@@ -94,6 +94,8 @@ type PlatformService struct {
 	searchConfigListenerId  string
 	searchLicenseListenerId string
 
+	esWatcher *searchEngineWatcher
+
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 
 	Jobs *jobs.JobServer
@@ -117,6 +119,24 @@ type PlatformService struct {
 	forceEnableRedis bool
 
 	pdpService einterfaces.PolicyDecisionPointInterface
+
+	startTime time.Time
+
+	// installTypeOverride overrides MM_INSTALL_TYPE in support packet diagnostics.
+	installTypeOverride string
+
+	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
+	logRootPathOverride string
+}
+
+// SetInstallTypeOverride sets the install type override for support packet diagnostics.
+func (ps *PlatformService) SetInstallTypeOverride(v string) {
+	ps.installTypeOverride = v
+}
+
+// SetLogRootPathOverride sets the log root path override for log file validation.
+func (ps *PlatformService) SetLogRootPathOverride(v string) {
+	ps.logRootPathOverride = v
 }
 
 type HookRunner interface {
@@ -132,6 +152,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		Store:               sc.Store,
 		clusterIFace:        sc.Cluster,
 		hashSeed:            maphash.MakeSeed(),
+		startTime:           time.Now(),
 		goroutineExitSignal: make(chan struct{}, 1),
 		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
 		WebSocketRouter: &WebSocketRouter{
@@ -461,6 +482,14 @@ func (ps *PlatformService) ShutdownMetrics() error {
 		return ps.metrics.stopMetricsServer()
 	}
 
+	return nil
+}
+
+// GetMetricsRouter returns the metrics router. This is primarily used for testing.
+func (ps *PlatformService) GetMetricsRouter() http.Handler {
+	if ps.metrics != nil {
+		return ps.metrics.router
+	}
 	return nil
 }
 

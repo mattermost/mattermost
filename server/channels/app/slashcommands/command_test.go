@@ -250,6 +250,17 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, resp.IconURL, post.GetProp(model.PostPropsOverrideIconURL))
 	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
+	resp.IconURL = ""
+
+	// When both command and response icon URLs are empty and EnablePostIconOverride is enabled,
+	// override_icon_url must not be set (avoids spurious "prop must be a valid URL" warning).
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+	assert.Nil(t, err)
+	assert.Nil(t, post.GetProp(model.PostPropsOverrideIconURL))
+	assert.NotContains(t, post.GetProps(), model.PostPropsOverrideIconURL)
+
+	resp.IconURL = "Response icon url"
+
 	// Test Slack text conversion.
 	resp.Text = "<!channel>"
 
@@ -362,8 +373,8 @@ func TestDoCommandRequest(t *testing.T) {
 	th := setup(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
-		cfg.ServiceSettings.EnableCommands = model.NewPointer(true)
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+		cfg.ServiceSettings.EnableCommands = new(true)
 	})
 
 	t.Run("with a valid text response", func(t *testing.T) {
@@ -448,7 +459,7 @@ func TestDoCommandRequest(t *testing.T) {
 		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
 		})
 
 		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
@@ -467,7 +478,7 @@ func TestDoCommandRequest(t *testing.T) {
 		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(2))
 		})
 
 		_, resp, appErr := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
@@ -480,7 +491,7 @@ func TestDoCommandRequest(t *testing.T) {
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
 		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
-		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewPointer(true)
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = new(true)
 		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
 			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig

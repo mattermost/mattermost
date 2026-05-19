@@ -55,6 +55,11 @@ func (api *PluginAPI) LoadPluginConfiguration(dest any) error {
 		for _, setting := range api.manifest.SettingsSchema.Settings {
 			finalConfig[strings.ToLower(setting.Key)] = setting.Default
 		}
+		for _, section := range api.manifest.SettingsSchema.Sections {
+			for _, setting := range section.Settings {
+				finalConfig[strings.ToLower(setting.Key)] = setting.Default
+			}
+		}
 	}
 
 	// If we have settings given we override the defaults with them
@@ -1476,6 +1481,10 @@ func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
 	return api.app.UnregisterPluginForSharedChannels(pluginID)
 }
 
+func (api *PluginAPI) UnregisterPluginRemoteForSharedChannels(remoteID string) error {
+	return api.app.UnregisterPluginRemoteForSharedChannels(api.id, remoteID)
+}
+
 func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	scShared, err := api.app.ShareChannel(api.ctx, sc)
 	if errors.Is(err, model.ErrChannelAlreadyShared) {
@@ -1507,6 +1516,18 @@ func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID s
 
 func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {
 	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
+}
+
+func (api *PluginAPI) ReceiveSharedChannelSyncMsg(remoteID string, msg *model.SyncMsg) (model.SyncResponse, error) {
+	return api.app.ReceiveSharedChannelSyncMsg(api.ctx, api.id, remoteID, msg)
+}
+
+func (api *PluginAPI) ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	return api.app.ReceiveSharedChannelAttachmentSyncMsg(api.ctx, api.id, remoteID, channelID, fi, data)
+}
+
+func (api *PluginAPI) ReceiveSharedChannelProfileImageSyncMsg(remoteID, userID string, image []byte) error {
+	return api.app.ReceiveSharedChannelProfileImageSyncMsg(api.ctx, api.id, remoteID, userID, image)
 }
 
 func (api *PluginAPI) GetPluginID() string {
@@ -1546,103 +1567,207 @@ func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
 	return nil
 }
 
+func (api *PluginAPI) psaPluginContext() request.CTX {
+	return RequestContextWithCallerID(api.ctx, api.manifest.Id)
+}
+
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
-	if field == nil {
-		return nil, fmt.Errorf("invalid input: property field parameter is required")
+	createdField, appErr := api.app.CreatePropertyField(api.psaPluginContext(), field, false, "")
+	if appErr != nil {
+		return nil, appErr
 	}
-	return api.app.PropertyAccessService().CreatePropertyFieldForPlugin(api.manifest.Id, field)
+	return createdField, nil
 }
 
 func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.PropertyField, error) {
-	return api.app.PropertyAccessService().GetPropertyField(api.manifest.Id, groupID, fieldID)
+	field, appErr := api.app.GetPropertyField(api.psaPluginContext(), groupID, fieldID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return field, nil
 }
 
 func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	return api.app.PropertyAccessService().GetPropertyFields(api.manifest.Id, groupID, ids)
+	fields, appErr := api.app.GetPropertyFields(api.psaPluginContext(), groupID, ids)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return fields, nil
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	return api.app.PropertyAccessService().UpdatePropertyField(api.manifest.Id, groupID, field)
+	updatedField, _, appErr := api.app.UpdatePropertyField(api.psaPluginContext(), groupID, field, false, "")
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updatedField, nil
 }
 
 func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
-	return api.app.PropertyAccessService().DeletePropertyField(api.manifest.Id, groupID, fieldID)
+	if appErr := api.app.DeletePropertyField(api.psaPluginContext(), groupID, fieldID, false, ""); appErr != nil {
+		return appErr
+	}
+	return nil
 }
 
 func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	return api.app.PropertyAccessService().SearchPropertyFields(api.manifest.Id, groupID, opts)
+	fields, appErr := api.app.SearchPropertyFields(api.psaPluginContext(), groupID, opts)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return fields, nil
 }
 
 func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
-	if includeDeleted {
-		return api.app.PropertyAccessService().CountAllPropertyFieldsForGroup(groupID)
+	count, appErr := api.app.CountPropertyFieldsForGroup(api.psaPluginContext(), groupID, includeDeleted)
+	if appErr != nil {
+		return 0, appErr
 	}
-	return api.app.PropertyAccessService().CountActivePropertyFieldsForGroup(groupID)
+	return count, nil
 }
 
 func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
-	if includeDeleted {
-		return api.app.PropertyAccessService().CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
+	count, appErr := api.app.CountPropertyFieldsForTarget(api.psaPluginContext(), groupID, targetType, targetID, includeDeleted)
+	if appErr != nil {
+		return 0, appErr
 	}
-	return api.app.PropertyAccessService().CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
+	return count, nil
 }
 
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
-	return api.app.PropertyAccessService().CreatePropertyValue(api.manifest.Id, value)
+	createdValue, appErr := api.app.CreatePropertyValue(api.psaPluginContext(), value)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return createdValue, nil
 }
 
 func (api *PluginAPI) GetPropertyValue(groupID, valueID string) (*model.PropertyValue, error) {
-	return api.app.PropertyAccessService().GetPropertyValue(api.manifest.Id, groupID, valueID)
+	value, appErr := api.app.GetPropertyValue(api.psaPluginContext(), groupID, valueID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return value, nil
 }
 
 func (api *PluginAPI) GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, error) {
-	return api.app.PropertyAccessService().GetPropertyValues(api.manifest.Id, groupID, ids)
+	values, appErr := api.app.GetPropertyValues(api.psaPluginContext(), groupID, ids)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return values, nil
 }
 
 func (api *PluginAPI) UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	return api.app.PropertyAccessService().UpdatePropertyValue(api.manifest.Id, groupID, value)
+	updatedValue, appErr := api.app.UpdatePropertyValue(api.psaPluginContext(), groupID, value)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updatedValue, nil
 }
 
 func (api *PluginAPI) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
-	return api.app.PropertyAccessService().UpsertPropertyValue(api.manifest.Id, value)
+	upsertedValue, appErr := api.app.UpsertPropertyValue(api.psaPluginContext(), value)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return upsertedValue, nil
 }
 
 func (api *PluginAPI) DeletePropertyValue(groupID, valueID string) error {
-	return api.app.PropertyAccessService().DeletePropertyValue(api.manifest.Id, groupID, valueID)
+	if appErr := api.app.DeletePropertyValue(api.psaPluginContext(), groupID, valueID); appErr != nil {
+		return appErr
+	}
+	return nil
 }
 
 func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	return api.app.PropertyAccessService().SearchPropertyValues(api.manifest.Id, groupID, opts)
+	values, appErr := api.app.SearchPropertyValues(api.psaPluginContext(), groupID, opts)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return values, nil
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
-	return api.app.PropertyAccessService().RegisterPropertyGroup(name)
+	if name == model.DeprecatedCPAPropertyGroupName {
+		return nil, fmt.Errorf(
+			"the group name %q has been renamed to %q; use %q instead",
+			model.DeprecatedCPAPropertyGroupName,
+			model.AccessControlPropertyGroupName,
+			model.AccessControlPropertyGroupName,
+		)
+	}
+	group, appErr := api.app.RegisterPropertyGroup(api.psaPluginContext(), &model.PropertyGroup{
+		Name:    name,
+		Version: model.PropertyGroupVersionV1,
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+	return group, nil
 }
 
 func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
-	return api.app.PropertyAccessService().GetPropertyGroup(name)
+	name = migrateDeprecatedPropertyGroupName(name)
+	group, appErr := api.app.GetPropertyGroup(api.psaPluginContext(), name)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return group, nil
+}
+
+// migrateDeprecatedPropertyGroupName maps the deprecated "custom_profile_attributes"
+// group name to the current "access_control" name for backward compatibility.
+func migrateDeprecatedPropertyGroupName(name string) string {
+	if name == model.DeprecatedCPAPropertyGroupName {
+		return model.AccessControlPropertyGroupName
+	}
+	return name
 }
 
 func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	return api.app.PropertyAccessService().GetPropertyFieldByName(api.manifest.Id, groupID, targetID, name)
+	field, appErr := api.app.GetPropertyFieldByName(api.psaPluginContext(), groupID, targetID, name)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return field, nil
 }
 
 func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	return api.app.PropertyAccessService().UpdatePropertyFields(api.manifest.Id, groupID, fields)
+	updatedFields, _, appErr := api.app.UpdatePropertyFields(api.psaPluginContext(), groupID, fields, false, "")
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updatedFields, nil
 }
 
 func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	return api.app.PropertyAccessService().UpdatePropertyValues(api.manifest.Id, groupID, values)
+	updatedValues, appErr := api.app.UpdatePropertyValues(api.psaPluginContext(), groupID, values)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updatedValues, nil
 }
 
 func (api *PluginAPI) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	return api.app.PropertyAccessService().UpsertPropertyValues(api.manifest.Id, values)
+	upsertedValues, appErr := api.app.UpsertPropertyValues(api.psaPluginContext(), values, "", "", "")
+	if appErr != nil {
+		return nil, appErr
+	}
+	return upsertedValues, nil
 }
 
 func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetID string) error {
-	return api.app.PropertyAccessService().DeletePropertyValuesForTarget(api.manifest.Id, groupID, targetType, targetID)
+	if appErr := api.app.DeletePropertyValuesForTarget(api.psaPluginContext(), groupID, targetType, targetID); appErr != nil {
+		return appErr
+	}
+	return nil
 }
 
 func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) error {
-	return api.app.PropertyAccessService().DeletePropertyValuesForField(api.manifest.Id, groupID, fieldID)
+	if appErr := api.app.DeletePropertyValuesForField(api.psaPluginContext(), groupID, fieldID); appErr != nil {
+		return appErr
+	}
+	return nil
 }

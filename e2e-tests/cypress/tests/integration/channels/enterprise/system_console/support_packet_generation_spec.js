@@ -50,5 +50,5 @@ const goToSupportPacketGenerationModal = () => {
     cy.findByRole('button', {name: 'Commercial Support'}).click();
 
     // * Ensure the download Support Packet button exist and that text regarding setting the proper settings exist
-    cy.get('a.DownloadSupportPacket').should('exist');
+    cy.findByRole('button', {name: 'Download Support Packet'}).should('exist');
 };

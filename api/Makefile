@@ -21,7 +21,6 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/preferences.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/files.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/recaps.yaml >> $(V4_YAML)
-	@cat $(V4_SRC)/ai.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/uploads.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/jobs.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/system.yaml >> $(V4_YAML)
@@ -36,7 +35,6 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/commands.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/oauth.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/elasticsearch.yaml >> $(V4_YAML)
-	@cat $(V4_SRC)/bleve.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/dataretention.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/plugins.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/roles.yaml >> $(V4_YAML)
@@ -54,6 +52,8 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/exports.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/ip_filters.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/bookmarks.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/boards.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/views.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/reports.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/limits.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/logs.yaml >> $(V4_YAML)
@@ -65,6 +65,7 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/access_control.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/content_flagging.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/agents.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/properties.yaml >> $(V4_YAML)
 	@if [ -r $(PLAYBOOKS_SRC)/paths.yaml ]; then cat $(PLAYBOOKS_SRC)/paths.yaml >> $(V4_YAML); fi
 	@if [ -r $(PLAYBOOKS_SRC)/merged-definitions.yaml ]; then cat $(PLAYBOOKS_SRC)/merged-definitions.yaml >> $(V4_YAML); else cat $(V4_SRC)/definitions.yaml >> $(V4_YAML); fi
 	@echo Extracting code samples

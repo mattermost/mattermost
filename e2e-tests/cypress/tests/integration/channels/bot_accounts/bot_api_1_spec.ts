@@ -14,7 +14,7 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Bot accounts ownership and API', () => {
     let newTeam: Team;
@@ -45,7 +45,8 @@ describe('Bot accounts ownership and API', () => {
 
         // # Create a test bot
         cy.apiCreateBot().then(({bot}) => {
-            ({user_id: botId, display_name: botName} = bot);
+            botId = bot.user_id;
+            botName = bot.display_name!;
             cy.apiPatchUserRoles(bot.user_id, ['system_admin', 'system_user']);
         });
     });

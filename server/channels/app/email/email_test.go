@@ -35,6 +35,80 @@ func TestCondenseSiteURL(t *testing.T) {
 	require.Equal(t, "chat.mattermost.com:8080/subpath", condenseSiteURL("http://chat.mattermost.com:8080/subpath/"))
 }
 
+func TestGetLicenseSkuName(t *testing.T) {
+	tests := []struct {
+		name             string
+		license          *model.License
+		expectedSku      string
+		expectedPrefixed string
+	}{
+		{
+			name:             "nil license",
+			license:          nil,
+			expectedSku:      "Mattermost",
+			expectedPrefixed: "Mattermost",
+		},
+		{
+			name:             "empty sku name",
+			license:          &model.License{SkuName: ""},
+			expectedSku:      "Mattermost",
+			expectedPrefixed: "Mattermost",
+		},
+		{
+			name:             "Professional",
+			license:          &model.License{SkuName: "Professional"},
+			expectedSku:      "Professional",
+			expectedPrefixed: "Mattermost Professional",
+		},
+		{
+			name:             "Enterprise",
+			license:          &model.License{SkuName: "Enterprise"},
+			expectedSku:      "Enterprise",
+			expectedPrefixed: "Mattermost Enterprise",
+		},
+		{
+			name:             "Enterprise Advanced",
+			license:          &model.License{SkuName: "Enterprise Advanced"},
+			expectedSku:      "Enterprise Advanced",
+			expectedPrefixed: "Mattermost Enterprise Advanced",
+		},
+		{
+			name:             "Entry",
+			license:          &model.License{SkuName: "Entry"},
+			expectedSku:      "Entry",
+			expectedPrefixed: "Mattermost Entry",
+		},
+		{
+			name:             "Mattermost Entry (prefixed by license server)",
+			license:          &model.License{SkuName: "Mattermost Entry"},
+			expectedSku:      "Entry",
+			expectedPrefixed: "Mattermost Entry",
+		},
+		{
+			name:             "E10",
+			license:          &model.License{SkuName: "E10"},
+			expectedSku:      "E10",
+			expectedPrefixed: "Mattermost E10",
+		},
+		{
+			name:             "E20",
+			license:          &model.License{SkuName: "E20"},
+			expectedSku:      "E20",
+			expectedPrefixed: "Mattermost E20",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			es := &Service{
+				license: func() *model.License { return tt.license },
+			}
+			require.Equal(t, tt.expectedSku, es.getLicenseSkuName())
+			require.Equal(t, tt.expectedPrefixed, es.getPrefixedLicenseSkuName())
+		})
+	}
+}
+
 func TestSendInviteEmails(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -316,7 +390,7 @@ func TestMailServiceConfig(t *testing.T) {
 		config: func() *model.Config {
 			return &model.Config{
 				ServiceSettings: model.ServiceSettings{
-					SiteURL: model.NewPointer(""),
+					SiteURL: new(""),
 				},
 				EmailSettings: model.EmailSettings{
 					EnableSignUpWithEmail:             new(bool),
@@ -327,7 +401,7 @@ func TestMailServiceConfig(t *testing.T) {
 					RequireEmailVerification:          new(bool),
 					FeedbackName:                      new(string),
 					FeedbackEmail:                     new(string),
-					ReplyToAddress:                    model.NewPointer(configuredReplyTo),
+					ReplyToAddress:                    new(configuredReplyTo),
 					FeedbackOrganization:              new(string),
 					EnableSMTPAuth:                    new(bool),
 					SMTPUsername:                      new(string),

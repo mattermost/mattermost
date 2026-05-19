@@ -15,8 +15,8 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import {createBotPatch} from '../../../support/api/bots';
-import {generateRandomUser} from '../../../support/api/user';
+import {createBotPatch} from '@/support/api/bots';
+import {generateRandomUser} from '@/support/api/user';
 
 describe('Bot accounts', () => {
     let team: Team;

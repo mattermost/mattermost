@@ -69,11 +69,11 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
 
-	fakeFileInfo := model.FileInfo{PostId: "123"}
+	fakeFileInfo := model.FileInfo{Id: "123", PostId: "123"}
 	mockFileInfoStore := mocks.FileInfoStore{}
 	mockFileInfoStore.On("GetForPost", "123", true, true, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
 	mockFileInfoStore.On("GetForPost", "123", true, true, true).Return([]*model.FileInfo{&fakeFileInfo}, nil)
-	mockFileInfoStore.On("GetByIds", []string{"123"}, true, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
+	mockFileInfoStore.On("GetByIds", []string{"123"}, true, false, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
 	mockStore.On("FileInfo").Return(&mockFileInfoStore)
 
 	fakeWebhook := model.IncomingWebhook{Id: "123"}
@@ -107,6 +107,8 @@ func getMockStore(t *testing.T) *mocks.Store {
 	fakeChannel2 := model.Channel{Id: "channel2", Name: "channel2-name"}
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
+	mockChannelStore.On("Save", mock.IsType(&request.Context{}), &fakeChannel1, int64(0)).Return(&fakeChannel1, nil)
+	mockChannelStore.On("Update", mock.IsType(&request.Context{}), &fakeChannel1).Return(&fakeChannel1, nil)
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
@@ -166,7 +168,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 
 	fakeUser := []*model.User{{
 		Id:          "123",
-		AuthData:    model.NewPointer("authData"),
+		AuthData:    new("authData"),
 		AuthService: "authService",
 	}}
 	mockUserStore := mocks.UserStore{}
@@ -185,7 +187,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 		fakeUser[0],
 		{
 			Id:          "456",
-			AuthData:    model.NewPointer("authData"),
+			AuthData:    new("authData"),
 			AuthService: "authService",
 		},
 	}

@@ -78,6 +78,10 @@ func TestPostIsValid(t *testing.T) {
 	o.Type = PostCustomTypePrefix + "type"
 	appErr = o.IsValid(maxPostSize)
 	require.Nil(t, appErr)
+
+	o.Type = PostTypeCard
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 }
 
 func TestPostPreSave(t *testing.T) {
@@ -992,7 +996,7 @@ func TestPostPriority(t *testing.T) {
 	p.Metadata.Priority = &PostPriority{}
 	require.False(t, p.IsUrgent())
 
-	p.Metadata.Priority.Priority = NewPointer(PostPriorityUrgent)
+	p.Metadata.Priority.Priority = new(PostPriorityUrgent)
 	require.True(t, p.IsUrgent())
 }
 

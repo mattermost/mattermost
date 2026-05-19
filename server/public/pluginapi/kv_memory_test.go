@@ -136,13 +136,11 @@ func TestMemoryStoreSet(t *testing.T) {
 		var wg sync.WaitGroup
 		const n = 100
 		for i := range n {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+			wg.Go(func() {
 				ok, err := store.Set(fmt.Sprintf("k_%d", i), []byte("value"))
 				require.NoError(t, err)
 				require.True(t, ok)
-			}()
+			})
 		}
 
 		wg.Wait()
@@ -189,12 +187,10 @@ func TestMemoryStoreSetAtomicWithRetries(t *testing.T) {
 		var wg sync.WaitGroup
 		const n = 10
 		for i := range n {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+			wg.Go(func() {
 				err := store.SetAtomicWithRetries("key", func(oldValue []byte) (any, error) { return fmt.Sprintf("k_%d", i), nil })
 				require.NoError(t, err)
-			}()
+			})
 		}
 
 		wg.Wait()

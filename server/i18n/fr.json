@@ -3048,10 +3048,6 @@
     "translation": "Impossible de décoder les résultats de recherche"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch est déjà arrêté"
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch est désactivé."
   },
@@ -5222,10 +5218,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Mattermost Enterprise license has been disabled."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Votre licence Enterprise Edition a expiré et certaines fonctionnalités peuvent être désactivées. Veuillez renouveler votre licence maintenant."
   },
   {
     "id": "api.templates.invite_guest_subject",

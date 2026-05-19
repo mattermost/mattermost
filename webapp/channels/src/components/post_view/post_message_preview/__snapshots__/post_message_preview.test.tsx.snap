@@ -64,7 +64,7 @@ exports[`PostMessagePreview direct and group messages should render preview for 
             >
               <div
                 class="post-message__text-container"
-                style="max-height: 105px;"
+                style="max-height: 200px;"
               >
                 <div
                   class="post-message__text"
@@ -156,7 +156,7 @@ exports[`PostMessagePreview direct and group messages should render preview for 
             >
               <div
                 class="post-message__text-container"
-                style="max-height: 105px;"
+                style="max-height: 200px;"
               >
                 <div
                   class="post-message__text"
@@ -248,7 +248,7 @@ exports[`PostMessagePreview nested previews should render file preview 1`] = `
             >
               <div
                 class="post-message__text-container"
-                style="max-height: 105px;"
+                style="max-height: 200px;"
               >
                 <div
                   class="post-message__text"
@@ -340,7 +340,7 @@ exports[`PostMessagePreview nested previews should render opengraph preview 1`] 
             >
               <div
                 class="post-message__text-container"
-                style="max-height: 105px;"
+                style="max-height: 200px;"
               >
                 <div
                   class="post-message__text"
@@ -432,7 +432,7 @@ exports[`PostMessagePreview should not render bot icon 1`] = `
             >
               <div
                 class="post-message__text-container"
-                style="max-height: 105px;"
+                style="max-height: 200px;"
               >
                 <div
                   class="post-message__text"
@@ -524,7 +524,7 @@ exports[`PostMessagePreview should render bot icon 1`] = `
             >
               <div
                 class="post-message__text-container"
-                style="max-height: 105px;"
+                style="max-height: 200px;"
               >
                 <div
                   class="post-message__text"
@@ -616,7 +616,7 @@ exports[`PostMessagePreview should render correctly 1`] = `
             >
               <div
                 class="post-message__text-container"
-                style="max-height: 105px;"
+                style="max-height: 200px;"
               >
                 <div
                   class="post-message__text"
@@ -710,7 +710,7 @@ exports[`PostMessagePreview show render without preview when preview posts becom
             >
               <div
                 class="post-message__text-container"
-                style="max-height: 105px;"
+                style="max-height: 200px;"
               >
                 <div
                   class="post-message__text"

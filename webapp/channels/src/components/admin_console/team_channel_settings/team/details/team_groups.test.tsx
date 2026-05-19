@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import {TeamGroups} from './team_groups';
@@ -23,7 +23,7 @@ describe('admin_console/team_channel_settings/team/TeamGroups', () => {
             group_constrained: false,
             display_name: 'team',
         });
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <TeamGroups
                 syncChecked={true}
                 onAddCallback={jest.fn()}
@@ -35,6 +35,6 @@ describe('admin_console/team_channel_settings/team/TeamGroups', () => {
                 totalGroups={1}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

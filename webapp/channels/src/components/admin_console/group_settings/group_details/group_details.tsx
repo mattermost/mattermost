@@ -5,6 +5,7 @@ import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import {
     SyncableType,
@@ -97,7 +98,7 @@ export type State = {
     groupChannels: GroupChannel[];
 };
 
-class GroupDetails extends React.PureComponent<Props, State> {
+export class GroupDetails extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
         groupID: '',
         members: [],
@@ -417,17 +418,25 @@ class GroupDetails extends React.PureComponent<Props, State> {
 
     roleChangeKey = (groupTeamOrChannel: {
         type?: SyncableType;
+        id?: string;
         team_id?: string;
         channel_id?: string;
     }) => {
-        let id;
-        if (
-            this.syncableTypeFromEntryType(groupTeamOrChannel.type) ===
-            SyncableType.Team
-        ) {
-            id = groupTeamOrChannel.team_id;
-        } else {
-            id = groupTeamOrChannel.channel_id;
+        // Items in itemsToRemove use a generic `id`, while items coming from
+        // teamsToAdd/channelsToAdd use `team_id`/`channel_id`. The key must
+        // be identical regardless of source so the dedup in
+        // handleRemovedTeamsAndChannels and handleAddedTeamsAndChannels
+        // matches the key produced by onChangeRoles.
+        let id = groupTeamOrChannel.id;
+        if (!id) {
+            if (
+                this.syncableTypeFromEntryType(groupTeamOrChannel.type) ===
+                SyncableType.Team
+            ) {
+                id = groupTeamOrChannel.team_id;
+            } else {
+                id = groupTeamOrChannel.channel_id;
+            }
         }
         return `${id}/${groupTeamOrChannel.type}`;
     };
@@ -683,17 +692,17 @@ class GroupDetails extends React.PureComponent<Props, State> {
                             button={
                                 <div className='group-profile-add-menu'>
                                     <MenuWrapper isDisabled={isDisabled}>
-                                        <button
+                                        <Button
                                             type='button'
                                             id='add_team_or_channel'
-                                            className='btn btn-primary'
+                                            emphasis='primary'
                                         >
                                             <FormattedMessage
                                                 id='admin.group_settings.group_details.add_team_or_channel'
                                                 defaultMessage='Add Team or Channel'
                                             />
                                             <i className={'fa fa-caret-down'}/>
-                                        </button>
+                                        </Button>
                                         <Menu
                                             ariaLabel={this.props.intl.formatMessage({
                                                 id: 'admin.group_settings.group_details.menuAriaLabel',

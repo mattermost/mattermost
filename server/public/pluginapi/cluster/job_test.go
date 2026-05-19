@@ -326,12 +326,10 @@ func TestSchedule(t *testing.T) {
 		var wg sync.WaitGroup
 		for i := range 3 {
 			job := jobs[i]
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+			wg.Go(func() {
 				err := job.Close()
 				require.NoError(t, err)
-			}()
+			})
 		}
 		wg.Wait()
 
@@ -386,12 +384,10 @@ func TestSchedule(t *testing.T) {
 		var wg sync.WaitGroup
 		for i := range 3 {
 			job := jobs[i]
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+			wg.Go(func() {
 				err := job.Close()
 				require.NoError(t, err)
-			}()
+			})
 		}
 		wg.Wait()
 

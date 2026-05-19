@@ -95,11 +95,20 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
             }
         }
 
-        const displayNameB = b.display_name;
+        let displayNameB = b.display_name;
+        if (!displayNameB) {
+            const channelB = this.props.channels[b.channel_id];
+            if (channelB) {
+                displayNameB = channelB.display_name;
+            } else {
+                displayNameB = Utils.localizeMessage({id: 'installed_incoming_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
+            }
+        }
+
         return displayNameA.localeCompare(displayNameB);
     };
 
-    incomingWebhooks = (filter: string) => this.props.incomingHooks.
+    incomingWebhooks = (filter: string) => [...this.props.incomingHooks].
         sort(this.incomingWebhookCompare).
         filter((incomingWebhook: IncomingWebhook) => matchesFilter(incomingWebhook, this.props.channels[incomingWebhook.channel_id], filter)).
         map((incomingWebhook: IncomingWebhook) => {
