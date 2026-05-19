@@ -4,6 +4,8 @@
 package config
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -90,6 +92,86 @@ func TestDesanitize(t *testing.T) {
 	assert.Equal(t, actual.SqlSettings.DataSourceSearchReplicas, target.SqlSettings.DataSourceSearchReplicas)
 	assert.Equal(t, actual.ServiceSettings.SplitKey, target.ServiceSettings.SplitKey)
 	assert.Equal(t, actual.PluginSettings.Plugins, target.PluginSettings.Plugins)
+}
+
+// TestDesanitizeRemovesAllFakeSettings verifies that every field masked by
+// Sanitize has a corresponding entry in desanitize, so FakeSetting is never
+// written back to stored config. No manual field listing is required: all
+// string fields are pre-populated via reflection so Sanitize will mask any
+// secret regardless of its default value.
+func TestDesanitizeRemovesAllFakeSettings(t *testing.T) {
+	actual := &model.Config{}
+	actual.SetDefaults()
+	populateStrings(reflect.ValueOf(actual), "test-value")
+
+	sanitized := actual.Clone()
+	sanitized.Sanitize(nil, nil)
+
+	desanitize(actual, sanitized)
+
+	assertNoFakeSettings(t, reflect.ValueOf(*sanitized), "Config")
+}
+
+// populateStrings sets every empty string reachable from v to value so that
+// Sanitize will replace it if it is a secret field.
+func populateStrings(v reflect.Value, value string) {
+	switch v.Kind() {
+	case reflect.Pointer:
+		if !v.IsNil() {
+			if v.Elem().Kind() == reflect.String {
+				if v.Elem().String() == "" {
+					v.Elem().SetString(value)
+				}
+			} else {
+				populateStrings(v.Elem(), value)
+			}
+		}
+	case reflect.Struct:
+		for _, sf := range reflect.VisibleFields(v.Type()) {
+			field := v.FieldByIndex(sf.Index)
+			if field.CanSet() {
+				populateStrings(field, value)
+			}
+		}
+	case reflect.Slice:
+		for i := range v.Len() {
+			populateStrings(v.Index(i), value)
+		}
+	}
+}
+
+// assertNoFakeSettings walks v recursively and fails if any string field equals
+// model.FakeSetting, reporting the dotted path of the offending field.
+func assertNoFakeSettings(t *testing.T, v reflect.Value, path string) {
+	t.Helper()
+	switch v.Kind() {
+	case reflect.Pointer:
+		if !v.IsNil() {
+			assertNoFakeSettings(t, v.Elem(), path)
+		}
+	case reflect.Struct:
+		for i := range v.NumField() {
+			assertNoFakeSettings(t, v.Field(i), path+"."+v.Type().Field(i).Name)
+		}
+	case reflect.String:
+		assert.NotEqual(t, model.FakeSetting, v.String(), "FakeSetting persisted at %s after desanitize", path)
+	case reflect.Slice:
+		for i := range v.Len() {
+			assertNoFakeSettings(t, v.Index(i), fmt.Sprintf("%s[%d]", path, i))
+		}
+	case reflect.Map:
+		for _, key := range v.MapKeys() {
+			elem := v.MapIndex(key)
+			if elem.Kind() == reflect.Interface {
+				elem = elem.Elem()
+			}
+			assertNoFakeSettings(t, elem, fmt.Sprintf("%s[%v]", path, key))
+		}
+	case reflect.Interface:
+		if !v.IsNil() {
+			assertNoFakeSettings(t, v.Elem(), path)
+		}
+	}
 }
 
 func TestFixInvalidLocales(t *testing.T) {
