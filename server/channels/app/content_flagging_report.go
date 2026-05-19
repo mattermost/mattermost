@@ -340,14 +340,16 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 	out.ReviewerComment = decodePropertyString(rctx, byName, contentFlaggingPropertyNameActorComment)
 	out.ActionTime = decodePropertyInt64(rctx, byName, contentFlaggingPropertyNameActionTime)
 
-	// We want to include the actor details only when an action is being performed - retain or delete the quarantined post.
-	if pendingAction != "" {
-		if u, uErr := a.GetUser(generatedByUserID); uErr == nil {
-			out.ActorUsername = u.Username
-			out.ActorUserId = u.Id
-		} else {
-			rctx.Logger().Warn("Failed to fetch report generator user for flagged post report", mlog.String("user_id", generatedByUserID), mlog.Err(uErr))
-		}
+	actorUserId := decodePropertyString(rctx, byName, contentFlaggingPropertyNameActorUserID)
+	if actorUserId == "" && pendingAction != "" {
+		actorUserId = generatedByUserID
+	}
+
+	if u, uErr := a.GetUser(actorUserId); uErr == nil {
+		out.ActorUsername = u.Username
+		out.ActorUserId = u.Id
+	} else {
+		rctx.Logger().Warn("Failed to fetch report generator user for flagged post report", mlog.String("user_id", generatedByUserID), mlog.Err(uErr))
 	}
 
 	switch decodePropertyString(rctx, byName, ContentFlaggingPropertyNameStatus) {
