@@ -49,6 +49,8 @@ var PermissionManagePublicChannelProperties *Permission
 var PermissionManagePrivateChannelProperties *Permission
 var PermissionManagePublicChannelAutoTranslation *Permission
 var PermissionManagePrivateChannelAutoTranslation *Permission
+var PermissionManagePrivateChannelDiscoverability *Permission
+var PermissionManageChannelJoinRequests *Permission
 var PermissionListPublicTeams *Permission
 var PermissionJoinPublicTeams *Permission
 var PermissionListPrivateTeams *Permission
@@ -566,6 +568,18 @@ func initializePermissions() {
 		"manage_private_channel_auto_translation",
 		"authentication.permissions.manage_private_channel_auto_translation.name",
 		"authentication.permissions.manage_private_channel_auto_translation.description",
+		PermissionScopeChannel,
+	}
+	PermissionManagePrivateChannelDiscoverability = &Permission{
+		"manage_private_channel_discoverability",
+		"authentication.permissions.manage_private_channel_discoverability.name",
+		"authentication.permissions.manage_private_channel_discoverability.description",
+		PermissionScopeChannel,
+	}
+	PermissionManageChannelJoinRequests = &Permission{
+		"manage_channel_join_requests",
+		"authentication.permissions.manage_channel_join_requests.name",
+		"authentication.permissions.manage_channel_join_requests.description",
 		PermissionScopeChannel,
 	}
 	PermissionListPublicTeams = &Permission{
@@ -2631,6 +2645,8 @@ func initializePermissions() {
 		PermissionManagePrivateChannelBanner,
 		PermissionManageChannelAccessRules,
 		PermissionEditFileAttachment,
+		PermissionManagePrivateChannelDiscoverability,
+		PermissionManageChannelJoinRequests,
 	}
 
 	GroupScopedPermissions := []*Permission{

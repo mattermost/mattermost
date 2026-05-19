@@ -34,7 +34,7 @@ func TestUserAuditable(t *testing.T) {
 			DeleteAt:       now,
 			Username:       "some user_name",
 			Password:       "some password",
-			AuthData:       NewPointer("some_auth_data"),
+			AuthData:       new("some_auth_data"),
 			AuthService:    UserAuthServiceLdap,
 			Email:          "test@example.org",
 			EmailVerified:  true,
@@ -50,7 +50,7 @@ func TestUserAuditable(t *testing.T) {
 			Locale:    DefaultLocale,
 			Timezone:  timezones.DefaultUserTimezone(),
 			MfaActive: true,
-			RemoteId:  NewPointer("some_remote"),
+			RemoteId:  new("some_remote"),
 		}
 		m := u.Auditable()
 
@@ -114,7 +114,7 @@ func TestUserLogClone(t *testing.T) {
 			DeleteAt:       now,
 			Username:       "some user_name",
 			Password:       "some password",
-			AuthData:       NewPointer("some_auth_data"),
+			AuthData:       new("some_auth_data"),
 			AuthService:    UserAuthServiceLdap,
 			Email:          "test@example.org",
 			EmailVerified:  true,
@@ -130,7 +130,7 @@ func TestUserLogClone(t *testing.T) {
 			Locale:    DefaultLocale,
 			Timezone:  timezones.DefaultUserTimezone(),
 			MfaActive: true,
-			RemoteId:  NewPointer("some_remote"),
+			RemoteId:  new("some_remote"),
 		}
 
 		l := u.LogClone()
@@ -172,7 +172,7 @@ func TestUserDeepCopy(t *testing.T) {
 	mapKey := "key"
 	mapValue := "key"
 
-	user := &User{Id: id, AuthData: NewPointer(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
+	user := &User{Id: id, AuthData: new(authData), Props: map[string]string{}, NotifyProps: map[string]string{}, Timezone: map[string]string{}}
 	user.Props[mapKey] = mapValue
 	user.NotifyProps[mapKey] = mapValue
 	user.Timezone[mapKey] = mapValue
@@ -316,7 +316,7 @@ func TestUserIsValid(t *testing.T) {
 	appErr = user.IsValid()
 	require.True(t, HasExpectedUserIsValidError(appErr, "email", user.Id, user.Email), "expected user is valid error: %s", appErr.Error())
 
-	user.RemoteId = NewPointer(NewId())
+	user.RemoteId = new(NewId())
 	require.Nil(t, user.IsValid())
 
 	user.FirstName = strings.Repeat("a", 65)
@@ -359,10 +359,10 @@ func TestUserSanitizeInput(t *testing.T) {
 	user.Nickname = "nickname"
 	user.FirstName = "firstname"
 	user.LastName = "lastname"
-	user.RemoteId = NewPointer(NewId())
+	user.RemoteId = new(NewId())
 	user.Position = "position"
 	user.Roles = "system_admin"
-	user.AuthData = NewPointer("authdata")
+	user.AuthData = new("authdata")
 	user.AuthService = "saml"
 	user.EmailVerified = true
 	user.FailedAttempts = 10
@@ -372,10 +372,10 @@ func TestUserSanitizeInput(t *testing.T) {
 	user.SanitizeInput(false)
 
 	// these fields should be reset
-	require.Equal(t, NewPointer(""), user.AuthData)
+	require.Equal(t, new(""), user.AuthData)
 	require.Equal(t, "", user.AuthService)
 	require.False(t, user.EmailVerified)
-	require.Equal(t, NewPointer(""), user.RemoteId)
+	require.Equal(t, new(""), user.RemoteId)
 	require.Equal(t, int64(0), user.CreateAt)
 	require.Equal(t, int64(0), user.UpdateAt)
 	require.Equal(t, int64(0), user.DeleteAt)

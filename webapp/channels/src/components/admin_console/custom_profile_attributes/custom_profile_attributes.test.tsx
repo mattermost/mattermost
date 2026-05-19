@@ -273,4 +273,63 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         const warning = await screen.findByText((content) => content.includes('This attribute will be converted to a TEXT attribute'));
         expect(warning).toBeInTheDocument();
     });
+
+    describe('display_name labels', () => {
+        test('should render TextSetting label and help text using display_name', async () => {
+            const displayNameAttr: UserPropertyField = {
+                ...baseField,
+                id: 'attr_display',
+                name: 'my_field',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'when_set',
+                    value_type: '',
+                    ldap: 'department',
+                    display_name: 'My Display Name',
+                },
+            };
+            const state = createInitialState({displayNameAttr});
+
+            renderWithContext(
+                <CustomProfileAttributes {...baseProps}/>,
+                state,
+            );
+
+            const labelEl = await screen.findByTestId('custom_profile_attribute-my_fieldlabel');
+            expect(labelEl.tagName).toBe('LABEL');
+            expect(labelEl).toHaveTextContent('My Display Name');
+            expect(labelEl).not.toHaveTextContent('my_field');
+
+            const helpTextEl = screen.getByTestId('custom_profile_attribute-my_fieldhelp-text');
+            expect(helpTextEl).toHaveTextContent(/users cannot edit their My Display Name/);
+            expect(helpTextEl).not.toHaveTextContent('users cannot edit their my_field');
+        });
+
+        test('should fall back to name when display_name is missing', async () => {
+            const fallbackAttr: UserPropertyField = {
+                ...baseField,
+                id: 'attr_fallback',
+                name: 'my_field',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'when_set',
+                    value_type: '',
+                    ldap: 'department',
+                },
+            };
+            const state = createInitialState({fallbackAttr});
+
+            renderWithContext(
+                <CustomProfileAttributes {...baseProps}/>,
+                state,
+            );
+
+            const labelEl = await screen.findByTestId('custom_profile_attribute-my_fieldlabel');
+            expect(labelEl.tagName).toBe('LABEL');
+            expect(labelEl).toHaveTextContent('my_field');
+
+            const helpTextEl = screen.getByTestId('custom_profile_attribute-my_fieldhelp-text');
+            expect(helpTextEl).toHaveTextContent(/users cannot edit their my_field/);
+        });
+    });
 });

@@ -124,3 +124,29 @@ jobs:
               repo: context.repo.repo,
               body: body
             })
+
+      - name: Report retried tests to flaky-test webhook (pull request)
+        if: >-
+          steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>'
+          && steps.report.outputs.failed == '0'
+          && github.event.workflow_run.event == 'pull_request'
+          && env.WEBHOOK_URL_FLAKY_TEST != ''
+        continue-on-error: true
+        env:
+          WEBHOOK_URL_FLAKY_TEST: ${{ secrets.WEBHOOK_URL_FLAKY_TEST }}
+          FLAKY_SUMMARY: ${{ steps.report.outputs.flaky_summary }}
+          PR_NUMBER: ${{ steps.incoming-pr.outputs.NUMBER }}
+          REPO: ${{ github.repository }}
+        run: |
+          PAYLOAD=$(jq -n \
+            --arg repo "$REPO" \
+            --arg pr_number "$PR_NUMBER" \
+            --arg flaky_summary "$FLAKY_SUMMARY" \
+            '{repo:$repo, pr_number:$pr_number, flaky_summary:$flaky_summary}')
+
+          curl -X POST -fsSL \
+            --connect-timeout 5 \
+            --max-time 30 \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "$WEBHOOK_URL_FLAKY_TEST"
