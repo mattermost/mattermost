@@ -3,9 +3,17 @@
 
 import React from 'react';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import {useTasksList} from './onboarding_tasks_manager';
+
+const isDesktopAppMock = jest.mocked(UserAgent.isDesktopApp);
+
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(() => false),
+}));
 
 const WrapperComponent = (): JSX.Element => {
     const taskList = useTasksList();
@@ -86,5 +94,17 @@ describe('onboarding tasks manager', () => {
 
         // verify visit_system_console and start_trial were removed
         expect(screen.queryByText('invite_people')).not.toBeInTheDocument();
+    });
+
+    it('Removes download_app task when running in desktop app', () => {
+        isDesktopAppMock.mockReturnValue(true);
+        renderWithContext(
+            <WrapperComponent/>,
+            initialState,
+        );
+
+        expect(screen.getAllByRole('listitem')).toHaveLength(5);
+        expect(screen.queryByText('download_app')).not.toBeInTheDocument();
+        isDesktopAppMock.mockReturnValue(false);
     });
 });
