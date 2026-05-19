@@ -37,7 +37,7 @@ body {
 h1,
 h2,
 h3 {
-    font-family: Metropolis, sans-serif;
+    font-family: Metropolis, 'Open Sans', sans-serif;
 }
 
 h1 {
@@ -105,47 +105,88 @@ ol {
     cursor: pointer;
 }
 
-// Metropolis font definitions
+// Inter font — replaces Metropolis for heading text.
+// Loaded in two subsets so Cyrillic glyphs are served from a separate
+// (smaller) file while Latin is handled by the main file.
+
+/* inter - cyrillic subset */
 @font-face {
     font-family: 'Metropolis';
     font-style: normal;
-    font-weight: 600;
-    src: url('../fonts/Metropolis-SemiBold.woff') format('woff');
-}
-
-@font-face {
-    font-family: 'Metropolis';
-    font-style: italic;
-    font-weight: 600;
-    src: url('../fonts/Metropolis-SemiBoldItalic.woff') format('woff');
+    font-weight: 300;
+    unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    src: url('../fonts/Inter-cyrillic-only-300-normal.woff2') format('woff2');
 }
 
 @font-face {
     font-family: 'Metropolis';
     font-style: normal;
     font-weight: 400;
-    src: url('../fonts/Metropolis-Regular.woff') format('woff');
+    unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    src: url('../fonts/Inter-cyrillic-only-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Metropolis';
+    font-style: normal;
+    font-weight: 600;
+    unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    src: url('../fonts/Inter-cyrillic-only-600-normal.woff2') format('woff2');
+}
+
+/* inter - latin + latin-ext subset */
+@font-face {
+    font-family: 'Metropolis';
+    font-style: normal;
+    font-weight: 300;
+    src:
+        url('../fonts/Inter-latin-300-normal.woff2') format('woff2'),
+        url('../fonts/Inter-latin-300-normal.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Metropolis';
+    font-style: italic;
+    font-weight: 300;
+    src:
+        url('../fonts/Inter-latin-300-italic.woff2') format('woff2'),
+        url('../fonts/Inter-latin-300-italic.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Metropolis';
+    font-style: normal;
+    font-weight: 400;
+    src:
+        url('../fonts/Inter-latin-400-normal.woff2') format('woff2'),
+        url('../fonts/Inter-latin-400-normal.woff') format('woff');
 }
 
 @font-face {
     font-family: 'Metropolis';
     font-style: italic;
     font-weight: 400;
-    src: url('../fonts/Metropolis-RegularItalic.woff') format('woff');
+    src:
+        url('../fonts/Inter-latin-400-italic.woff2') format('woff2'),
+        url('../fonts/Inter-latin-400-italic.woff') format('woff');
 }
 
 @font-face {
     font-family: 'Metropolis';
     font-style: normal;
-    font-weight: 300;
-    src: url('../fonts/Metropolis-Light.woff') format('woff');
+    font-weight: 600;
+    src:
+        url('../fonts/Inter-latin-600-normal.woff2') format('woff2'),
+        url('../fonts/Inter-latin-600-normal.woff') format('woff');
 }
 
 @font-face {
     font-family: 'Metropolis';
     font-style: italic;
-    font-weight: 300;
-    src: url('../fonts/Metropolis-LightItalic.woff') format('woff');
+    font-weight: 600;
+    src:
+        url('../fonts/Inter-latin-600-italic.woff2') format('woff2'),
+        url('../fonts/Inter-latin-600-italic.woff') format('woff');
 }
 
 /* open-sans-300 - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */
@@ -222,7 +263,7 @@ ol {
     h1,
     h2,
     h3 {
-        font-family: Metropolis, sans-serif;
+        font-family: Metropolis, 'Open Sans', sans-serif;
     }
 }
 
