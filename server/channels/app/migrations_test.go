@@ -458,7 +458,7 @@ func TestDoSetupBoardsProperties(t *testing.T) {
 		// Strip colours to simulate the v1 shape, then rewind the version flag.
 		stripped := stripStatusColors(t, statusBefore.Attrs)
 		statusBefore.Attrs = stripped
-		_, _, _, updateErr := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{statusBefore})
+		_, _, _, updateErr := th.Server.propertyService.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{statusBefore})
 		require.NoError(t, updateErr)
 
 		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: boardsPropertySetupDoneKey, Value: "v1"})
