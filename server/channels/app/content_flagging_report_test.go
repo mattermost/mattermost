@@ -311,6 +311,57 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 	})
 }
 
+// TestBuildContentReviewYAMLActorCommentFallback exercises the replica-lag
+// fallback in buildContentReviewYAML: when the property-value read (which is
+// served from a read replica) returns no actor_comment value, the function
+// must fall back to the in-hand actorComment supplied by the caller so the
+// generated report still reflects the comment the user just submitted.
+func TestBuildContentReviewYAMLActorCommentFallback(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("falls back to in-hand comment when no actor_comment is persisted", func(t *testing.T) {
+		appErr := setBaseConfig(th)
+		require.Nil(t, appErr)
+
+		post := setupFlaggedPost(t, th)
+
+		// setupFlaggedPost only writes the reporting_* properties — no
+		// actor_comment row exists yet, so the replica read returns "" for
+		// that field and the fallback branch must take effect.
+		review, appErr := th.App.buildContentReviewYAML(th.Context, post, th.BasicUser.Id, "fallback note", "")
+		require.Nil(t, appErr)
+		require.Equal(t, "fallback note", review.ReviewerComment)
+	})
+
+	t.Run("persisted actor_comment is not overwritten by the in-hand value", func(t *testing.T) {
+		appErr := setBaseConfig(th)
+		require.Nil(t, appErr)
+
+		post := setupFlaggedPost(t, th)
+
+		// Persist an actor_comment so the replica-side read returns a value.
+		// The in-hand actorComment passed below must NOT clobber it.
+		appErr = th.App.ensureActorCommentForReport(th.Context, post.Id, "persisted note")
+		require.Nil(t, appErr)
+
+		review, appErr := th.App.buildContentReviewYAML(th.Context, post, th.BasicUser.Id, "should be ignored", "")
+		require.Nil(t, appErr)
+		require.Equal(t, "persisted note", review.ReviewerComment)
+	})
+
+	t.Run("reviewer comment stays empty when both sources are empty", func(t *testing.T) {
+		appErr := setBaseConfig(th)
+		require.Nil(t, appErr)
+
+		post := setupFlaggedPost(t, th)
+
+		review, appErr := th.App.buildContentReviewYAML(th.Context, post, th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+		require.Empty(t, review.ReviewerComment)
+	})
+}
+
 func TestBuildPostYAML(t *testing.T) {
 	channel := &model.Channel{Id: "channel-id", DisplayName: "Channel Name"}
 	team := &model.Team{Id: "team-id", DisplayName: "Team Name"}
