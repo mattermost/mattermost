@@ -37,12 +37,15 @@ import {
     DEFAULT_GLOBAL_BANNER,
     DISPLAY_BANNER_TOP,
     actionsToGlobalBanner,
+    fetchChannelClassificationField,
     fetchClassificationField,
     fetchLinkedClassificationField,
     fetchSystemClassificationValue,
     processClassificationField,
+    saveCreateChannelLinkedField,
     saveCreateField,
     saveCreateLinkedField,
+    saveDeleteChannelLinkedField,
     saveDeleteField,
     saveDeleteLinkedField,
     savePatchField,
@@ -216,20 +219,21 @@ export default function ClassificationMarkings({disabled}: Props) {
     }, []);
 
     const presetDropdownOptions = useMemo((): ValueType[] => {
-        return [
-            ...presets.map((p) => ({value: p.id, label: p.label})),
-            {
+        const options = presets.map((p) => ({value: p.id, label: p.label}));
+        if (presetId === PRESET_CUSTOM) {
+            options.push({
                 value: PRESET_CUSTOM,
                 label: formatMessage({
                     id: 'admin.classification_markings.preset.custom',
                     defaultMessage: 'Custom classification levels',
                 }),
-            },
-        ];
-    }, [formatMessage]);
+            });
+        }
+        return options;
+    }, [formatMessage, presetId]);
 
     const presetDropdownValue = useMemo(() => {
-        return presetDropdownOptions.find((o) => o.value === presetId) ?? presetDropdownOptions[presetDropdownOptions.length - 1]!;
+        return presetDropdownOptions.find((o) => o.value === presetId) ?? presetDropdownOptions[0]!;
     }, [presetDropdownOptions, presetId]);
 
     const handlePresetDropdownChange = useCallback((selected: ValueType | null) => {
@@ -237,10 +241,6 @@ export default function ClassificationMarkings({disabled}: Props) {
             return;
         }
         const newPresetId = selected.value;
-        if (newPresetId === PRESET_CUSTOM) {
-            setPresetId(PRESET_CUSTOM);
-            return;
-        }
         if (levels.length > 0) {
             setConfirmPresetSwitch(newPresetId);
             return;
@@ -370,9 +370,16 @@ export default function ClassificationMarkings({disabled}: Props) {
                 savedLinked = await savePatchLinkedField(savedLinked.id, effectiveBanner);
             }
 
+            // Ensure the channel_classification linked field exists as part of the set.
             // Push saved fields into Redux eagerly so the banner updates
             // atomically rather than waiting for out-of-order WS events.
-            dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked]}});
+            const existingChannelField = await fetchChannelClassificationField();
+            if (existingChannelField) {
+                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked, existingChannelField]}});
+            } else {
+                const savedChannelField = await saveCreateChannelLinkedField(savedTemplate.id);
+                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked, savedChannelField]}});
+            }
 
             setExistingField(savedTemplate);
             setExistingLinkedField(savedLinked);
@@ -383,7 +390,13 @@ export default function ClassificationMarkings({disabled}: Props) {
             setInitialGlobalBanner(effectiveBanner);
             setInitialEnabled(true);
         } else if (templateField) {
-            // Linked field must be deleted before the template (deletion protection).
+            // Linked fields must be deleted before the template (deletion protection).
+            // Order: channel field -> system field -> template.
+            const channelField = await fetchChannelClassificationField();
+            if (channelField) {
+                await saveDeleteChannelLinkedField(channelField.id);
+                dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: channelField.id}});
+            }
             if (linkedField) {
                 await saveDeleteLinkedField(linkedField.id);
                 dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: linkedField.id}});

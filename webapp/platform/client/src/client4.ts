@@ -2210,6 +2210,13 @@ export default class Client4 {
         );
     };
 
+    patchPropertyValues = <T>(groupName: string, objectType: string, targetId: string, items: Array<{field_id: string; value: T}>) => {
+        return this.doFetch<Array<PropertyValue<T>>>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
+            {method: 'PATCH', body: JSON.stringify(items)},
+        );
+    };
+
     // Remote Clusters Routes
 
     getRemoteClusters = (options: {

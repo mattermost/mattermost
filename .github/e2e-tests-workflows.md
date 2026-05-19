@@ -16,22 +16,116 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 
 ```
 .github/workflows/
-├── e2e-tests-ci.yml                    # PR orchestrator
-├── e2e-tests-on-merge.yml              # Merge orchestrator (master/release branches)
-├── e2e-tests-on-release.yml            # Release cut orchestrator
-├── e2e-tests-cypress.yml               # Shared wrapper: cypress smoke -> full
-├── e2e-tests-playwright.yml            # Shared wrapper: playwright smoke -> full
-├── e2e-tests-cypress-template.yml      # Template: actual cypress test execution
-└── e2e-tests-playwright-template.yml   # Template: actual playwright test execution
+├── e2e-tests-ci.yml                       # PR orchestrator
+├── e2e-tests-on-merge.yml                 # Merge orchestrator (master/release branches)
+├── e2e-tests-on-release.yml               # Release cut orchestrator
+├── e2e-tests-cypress.yml                  # Shared wrapper: routes to v1 or v2 template
+├── e2e-tests-playwright.yml               # Shared wrapper: routes to v1 or v2 template
+├── e2e-tests-cypress-template-v2.yml      # Active: cypress + test-system-io dispatch
+├── e2e-tests-playwright-template-v2.yml   # Active: playwright + test-system-io dispatch
+├── e2e-tests-cypress-template.yml         # Deprecated v1 (legacy in-job execution)
+└── e2e-tests-playwright-template.yml      # Deprecated v1 (legacy in-job execution)
 ```
+
+> **v1 templates are deprecated.** They remain available behind a feature flag during cutover but receive no further changes. New work targets the v2 templates exclusively. The wrappers route by `vars.E2E_USE_TEST_IO_DISPATCH` — `'true'` selects v2, anything else falls back to v1.
 
 ### Call hierarchy
 
 ```
 e2e-tests-ci.yml ─────────────────┐
-e2e-tests-on-merge.yml ───────────┤──► e2e-tests-cypress.yml ──► e2e-tests-cypress-template.yml
-e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.yml ──► e2e-tests-playwright-template.yml
+e2e-tests-on-merge.yml ───────────┤──► e2e-tests-cypress.yml ─────┐
+e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.yml ──┤
+                                                                  │
+                                       ┌──────────────────────────┘
+                                       │  routes on E2E_USE_TEST_IO_DISPATCH
+                                       ▼
+                  v2 (active) ──► e2e-tests-{cypress,playwright}-template-v2.yml
+                  v1 (legacy) ──► e2e-tests-{cypress,playwright}-template.yml
 ```
+
+---
+
+## Workflow Architecture (v2)
+
+v2 splits the template into five jobs — `prepare-run`, `prep-deps`, `dispatch-begin`, `workers` (matrix), and `report` — and pushes spec-level execution to [Test System IO](https://github.com/mattermost/mattermost-test-system-io) so workers stay thin and identical.
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Template v2: e2e-tests-{cypress,playwright}-template-v2.yml              │
+│                                                                            │
+│   ┌───────────────────┐                ┌──────────────────────────────┐   │
+│   │ prepare-run       │                │ prep-deps                    │   │
+│   │ (1 runner)        │    parallel    │ (1 runner)                   │   │
+│   │                   │ ◄────────────► │                              │   │
+│   │ • build workers   │                │ Cypress:                     │   │
+│   │   matrix [1..N]   │                │   • cypress/node_modules     │   │
+│   │ • compute commit  │                │   • ~/.cache/Cypress (binary)│   │
+│   │   status context  │                │                              │   │
+│   │ • emit composite  │                │ Playwright:                  │   │
+│   │   identity        │                │   • webapp/platform/{client, │   │
+│   │                   │                │       types}/{lib,node_mod}  │   │
+│   │                   │                │   • playwright/node_modules  │   │
+│   │                   │                │   • playwright/lib/dist      │   │
+│   │                   │                │   • ~/.cache/ms-playwright   │   │
+│   │                   │                │     (chromium only)          │   │
+│   │                   │                │                              │   │
+│   │                   │                │   → saved to actions/cache   │   │
+│   └─────────┬─────────┘                └───────────────┬──────────────┘   │
+│             │                                          │                  │
+│             │                                          ▼                  │
+│             │                          ┌──────────────────────────────┐  │
+│             │                          │ dispatch-begin               │  │
+│             │                          │ • register run with          │  │
+│             │                          │   Test System IO             │  │
+│             │                          │ • runs immediately before    │  │
+│             │                          │   workers to minimise the    │  │
+│             │                          │   inactivity-timeout window  │  │
+│             │                          └───────────────┬──────────────┘  │
+│             │                                          │                  │
+│             └────────────────────┬─────────────────────┘                  │
+│                                  ▼                                        │
+│   ┌─────────────────────────────────────────────────────────────────┐    │
+│   │ workers  (matrix, fail-fast: false)                             │    │
+│   │   Cypress full: N=40       |   Playwright full: N=10            │    │
+│   │                                                                 │    │
+│   │   each worker, in parallel:                                     │    │
+│   │     1. sparse-checkout actions + full checkout-repo             │    │
+│   │     2. setup-node                                                │    │
+│   │     3. restore caches  ◄─── actions/cache (from prep-deps)      │    │
+│   │        (fail-on-cache-miss: true)                               │    │
+│   │     4. cloud-init + start-server  (docker compose stack)        │    │
+│   │     5. prepare-cypress | prepare-playwright (run setup project) │    │
+│   │     6. dispatch-run  ──────────────────────────────────┐        │    │
+│   │        (pulls specs from Test System IO, runs locally,  │       │    │
+│   │         posts result, loops until queue is empty)       │       │    │
+│   │     7. cloud-teardown                                   │       │    │
+│   └────────────────────┬────────────────────────────────────┼───────┘    │
+│                        │                                    │            │
+│                        ▼                                    │            │
+│   ┌─────────────────────────────────────────────────┐       │            │
+│   │ report                                           │       │            │
+│   │ • pull aggregated results from Test System IO    │  ◄────┘            │
+│   │ • post commit status                             │                    │
+│   │ • send webhook notification                      │                    │
+│   └─────────────────────────────────────────────────┘                    │
+└────────────────────────────────────────────────────────────────────────┬─┘
+                                                                          │
+                                              ┌───────────────────────────▼───┐
+                                              │ Test System IO (external)     │
+                                              │ • spec-level dispatch         │
+                                              │ • result aggregation          │
+                                              │ • retry orchestration         │
+                                              └───────────────────────────────┘
+```
+
+### Key properties
+
+- **Spec-level vs. job-level parallelism.** The matrix sizes the runner pool; Test System IO does the spec assignment. Slow specs don't block a worker — fast workers keep pulling the next spec from the queue.
+- **Cache-only workers.** `prep-deps` installs once per workflow run and saves to `actions/cache`. Every worker restores with `fail-on-cache-miss: true` and runs zero `npm ci`. Eliminates the 40-way `EEXIST/ENOENT` race in npm's shared cacache writer.
+- **dispatch-begin runs late.** It depends on `prep-deps` so the gap between Test System IO run registration and the first worker calling `dispatch-run` is just per-worker setup (~3–5 min). Registering earlier risks the run timing out before any worker checks in, bulk-failing every spec.
+- **Playwright slim slice.** Playwright only consumes `@mattermost/client` and `@mattermost/types` from webapp, so prep-deps caches just those two packages' built `lib/` and `node_modules` (~10–30 MB) instead of the full `webapp/node_modules` tree (~1–2 GB).
+- **Browser/binary caches.** Cypress caches `~/.cache/Cypress` (cypress binary lives outside node_modules); playwright caches `~/.cache/ms-playwright` (chromium only). Both keyed on the framework's lockfile so they invalidate on version bumps.
+- **No retry plumbing in the template.** Test System IO handles per-spec retries; the workflow only sees aggregated results.
 
 ---
 
