@@ -51,13 +51,13 @@ export async function setupBoardAttributesTest(pw: PlaywrightExtended): Promise<
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
 
+    // Feature flags are read at server start from MM_FEATUREFLAGS_* env,
+    // not from runtime config patches — CI sets it in server.generate.sh;
+    // locally, export it before running the server.
+    await pw.skipIfFeatureFlagNotSet('IntegratedBoards', true);
+
     const {adminUser, adminClient} = await pw.initSetup();
     cachedAdminClient = adminClient;
-
-    // # Enable IntegratedBoards so the nav entry and screen are reachable
-    await adminClient.patchConfig({
-        FeatureFlags: {IntegratedBoards: true},
-    } as Parameters<Client4['patchConfig']>[0]);
 
     await deleteNonProtectedFields(adminClient);
 
