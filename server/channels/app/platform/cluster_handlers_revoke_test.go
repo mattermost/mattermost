@@ -20,7 +20,7 @@ import (
 // session reset to the authenticated-as-no-one state.
 func TestRevokeSessionsFromAllUsersInvalidatesWebConnSession(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
