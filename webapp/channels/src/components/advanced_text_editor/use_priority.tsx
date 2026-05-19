@@ -27,14 +27,14 @@ import PriorityLabels from './priority_labels';
 
 const usePriority = (
     draft: PostDraft,
+    channelId: string,
+    rootId: string,
     handleDraftChange: ((draft: PostDraft, options: { instant?: boolean; show?: boolean }) => void),
     focusTextbox: (keepFocus?: boolean) => void,
     shouldShowPreview: boolean,
     showIndividualCloseButton = true,
 ) => {
     const dispatch = useDispatch();
-    const rootId = draft.rootId;
-    const channelId = draft.channelId;
 
     const isPostPriorityEnabled = useSelector(isPostPriorityEnabledSelector);
     const channelType = useSelector((state: GlobalState) => getChannel(state, channelId)?.type || 'O');

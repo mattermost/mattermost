@@ -214,8 +214,8 @@ const useSubmit = (
                 uploadsInProgress: [],
                 createAt: 0,
                 updateAt: 0,
-                channelId,
-                rootId,
+                channelId: submittingDraft.channelId,
+                rootId: submittingDraft.rootId,
             }, {instant: true});
         } catch (err: unknown) {
             if (isServerError(err)) {
@@ -301,7 +301,13 @@ const useSubmit = (
             return;
         }
 
-        const submittingDraft = setUpdatedFileIds(submittingDraftParam);
+        // Pin the submission to the editor's currently-rendered channel/root so a stale
+        // local draft (e.g. captured during a `/msg`-style redirect) cannot mis-route the post.
+        const submittingDraft = setUpdatedFileIds({
+            ...submittingDraftParam,
+            channelId,
+            rootId,
+        });
         setShowPreview(false);
         isDraftSubmitting.current = true;
 
