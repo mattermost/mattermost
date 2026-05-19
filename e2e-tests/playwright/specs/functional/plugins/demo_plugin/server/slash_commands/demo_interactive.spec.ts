@@ -3,9 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {setupDemoPlugin} from '../../helpers';
+import {sendDemoSlashCommand, setupDemoPlugin} from '../../helpers';
 
 test('should post interactive button and respond with click attribution via /interactive command', async ({pw}) => {
+    test.setTimeout(120000);
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);
@@ -19,15 +20,31 @@ test('should post interactive button and respond with click attribution via /int
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 4. Send /interactive command
-    await channelsPage.centerView.postCreate.input.fill('/interactive');
-    await channelsPage.centerView.postCreate.sendMessage();
+    // Re-apply setupDemoPlugin: concurrent initSetup() resets PluginSettings.Plugins = {}
+    await setupDemoPlugin(adminClient, pw);
 
-    // 5. Confirm post appears with 'Test interactive button' and an 'Interactive Button' button
+    // 4. Send /interactive command (retry once if plugin not yet ready)
     const interactivePost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Test interactive button'})
         .last();
+    for (let attempt = 0; attempt < 4; attempt++) {
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/interactive');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
+        try {
+            await expect(interactivePost).toBeVisible({timeout: 15000});
+            break;
+        } catch (err) {
+            if (attempt === 3) {
+                throw err;
+            }
+            await setupDemoPlugin(adminClient, pw);
+        }
+    }
+
+    // 5. Confirm post appears with 'Test interactive button' and an 'Interactive Button' button
     await expect(interactivePost).toBeVisible();
     await expect(interactivePost.getByRole('button', {name: 'Interactive Button'})).toBeVisible();
 

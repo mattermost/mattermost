@@ -52,6 +52,17 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
 
     const onExited = jest.fn();
 
+    let originalCreateObjectURL: typeof URL.createObjectURL;
+    let originalRevokeObjectURL: typeof URL.revokeObjectURL;
+
+    const mockReportSuccess = () => {
+        Client4.generateFlaggedPostReport = jest.fn().mockResolvedValue(new Blob(['report'], {type: 'application/zip'}));
+    };
+
+    const mockReportFailure = () => {
+        Client4.generateFlaggedPostReport = jest.fn().mockRejectedValue(new Error('boom'));
+    };
+
     beforeEach(() => {
         jest.clearAllMocks();
 
@@ -63,8 +74,20 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
 
         Client4.removeFlaggedPost = jest.fn().mockResolvedValue({});
         Client4.keepFlaggedPost = jest.fn().mockResolvedValue({});
+        mockReportSuccess();
 
+        originalCreateObjectURL = URL.createObjectURL;
+        originalRevokeObjectURL = URL.revokeObjectURL;
+        URL.createObjectURL = jest.fn().mockReturnValue('blob:mock-url');
+        URL.revokeObjectURL = jest.fn();
+
+        // eslint-disable-next-line no-console
         console.error = jest.fn();
+    });
+
+    afterEach(() => {
+        URL.createObjectURL = originalCreateObjectURL;
+        URL.revokeObjectURL = originalRevokeObjectURL;
     });
 
     describe('remove action', () => {
@@ -80,7 +103,9 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
 
             expect(screen.getByTestId('keep-remove-flagged-message-confirmation-modal')).toBeVisible();
             expect(screen.getByRole('heading', {name: 'Remove message from channel'})).toBeVisible();
-            expect(screen.getByRole('button', {name: 'Remove message'})).toBeVisible();
+
+            // Default form step shows the "Continue" primary button (download checkbox is on by default)
+            expect(screen.getByRole('button', {name: 'Continue'})).toBeVisible();
         });
 
         test('should show notification subtext when notify_reporter_on_removal is true', () => {
@@ -118,7 +143,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             expect(subtext).toHaveTextContent(/the message will be removed from the channel. This action cannot be reverted./);
         });
 
-        test('should call Client4.removeFlaggedPost on confirm', async () => {
+        test('should call Client4.removeFlaggedPost via download flow on Remove permanently', async () => {
             renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='remove'
@@ -128,13 +153,82 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const confirmButton = screen.getByRole('button', {name: 'Remove message'});
-            await userEvent.click(confirmButton);
+            // Form step with checkbox checked → click Continue triggers report fetch
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+
+            await waitFor(() => {
+                expect(Client4.generateFlaggedPostReport).toHaveBeenCalledWith(
+                    flaggedPost.id,
+                    '',
+                    'remove',
+                    expect.any(AbortSignal),
+                );
+            });
+
+            await waitFor(() => {
+                expect(screen.getByTestId('generated-section')).toBeVisible();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove permanently'}));
 
             await waitFor(() => {
                 expect(Client4.removeFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
             });
             expect(onExited).toHaveBeenCalled();
+        });
+
+        test('should go through skip-confirm when checkbox is unchecked', async () => {
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByTestId('download-report-checkbox'));
+
+            // Button label changes to "Remove message" when checkbox unchecked
+            await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove without report'}));
+
+            await waitFor(() => {
+                expect(Client4.removeFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
+            });
+            expect(Client4.generateFlaggedPostReport).not.toHaveBeenCalled();
+        });
+
+        test('should show error step when report generation fails and allow retry', async () => {
+            mockReportFailure();
+
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('error-section')).toBeVisible();
+            });
+
+            // Switch to success and retry
+            mockReportSuccess();
+            await userEvent.click(screen.getByTestId('error-retry-button'));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('generated-section')).toBeVisible();
+            });
         });
     });
 
@@ -150,7 +244,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             );
 
             expect(screen.getByTestId('keep-remove-flagged-message-confirmation-modal')).toBeVisible();
-            expect(screen.getByRole('button', {name: 'Keep message'})).toBeVisible();
+            expect(screen.getByRole('button', {name: 'Continue'})).toBeVisible();
         });
 
         test('should show notification subtext when notify_reporter_on_dismissal is true', () => {
@@ -188,7 +282,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             expect(subtext).toHaveTextContent(/the message will be visible to all channel members./);
         });
 
-        test('should call Client4.keepFlaggedPost on confirm', async () => {
+        test('should call Client4.keepFlaggedPost via download flow on Keep permanently', async () => {
             renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='keep'
@@ -198,13 +292,64 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const confirmButton = screen.getByRole('button', {name: 'Keep message'});
-            await userEvent.click(confirmButton);
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('generated-section')).toBeVisible();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Keep permanently'}));
 
             await waitFor(() => {
                 expect(Client4.keepFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
             });
             expect(onExited).toHaveBeenCalled();
+        });
+
+        test('should call Client4.keepFlaggedPost directly without skip-confirm when checkbox is unchecked', async () => {
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='keep'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByTestId('download-report-checkbox'));
+            await userEvent.click(screen.getByRole('button', {name: 'Keep message'}));
+
+            await waitFor(() => {
+                expect(Client4.keepFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
+            });
+            expect(screen.queryByTestId('skip-confirm-body')).not.toBeInTheDocument();
+            expect(Client4.generateFlaggedPostReport).not.toHaveBeenCalled();
+        });
+
+        test('skip from generating step calls keepFlaggedPost directly without skip-confirm', async () => {
+            Client4.generateFlaggedPostReport = jest.fn().mockReturnValue(new Promise(() => {}));
+
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='keep'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('generating-section')).toBeVisible();
+            });
+
+            await userEvent.click(screen.getByTestId('generating-skip-button'));
+
+            await waitFor(() => {
+                expect(Client4.keepFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
+            });
+            expect(screen.queryByTestId('skip-confirm-body')).not.toBeInTheDocument();
         });
     });
 
@@ -259,14 +404,116 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const confirmButton = screen.getByRole('button', {name: 'Remove message'});
-            await userEvent.click(confirmButton);
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
 
             await waitFor(() => {
                 expect(screen.getByText('Please add a comment.')).toBeVisible();
             });
+            expect(Client4.generateFlaggedPostReport).not.toHaveBeenCalled();
             expect(Client4.removeFlaggedPost).not.toHaveBeenCalled();
             expect(onExited).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('step transitions', () => {
+        test('should pass typed comment to action API', async () => {
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.type(screen.getByPlaceholderText('Add your comment here'), 'looks fine');
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('generated-section')).toBeVisible();
+            });
+            await userEvent.click(screen.getByRole('button', {name: 'Remove permanently'}));
+
+            await waitFor(() => {
+                expect(Client4.removeFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, 'looks fine');
+            });
+        });
+
+        test('clicking "Download again" on generated step retriggers report fetch', async () => {
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+            await waitFor(() => {
+                expect(screen.getByTestId('generated-section')).toBeVisible();
+            });
+            const initialCallCount = (Client4.generateFlaggedPostReport as jest.Mock).mock.calls.length;
+
+            await userEvent.click(screen.getByTestId('generated-download-again-button'));
+
+            await waitFor(() => {
+                expect((Client4.generateFlaggedPostReport as jest.Mock).mock.calls.length).toBeGreaterThan(initialCallCount);
+            });
+            await waitFor(() => {
+                expect(screen.getByTestId('generated-section')).toBeVisible();
+            });
+        });
+
+        test('skip from generating step routes to skip-confirm', async () => {
+            // Hold the request open so we can interact with the generating footer
+            Client4.generateFlaggedPostReport = jest.fn().mockReturnValue(new Promise(() => {}));
+
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('generating-section')).toBeVisible();
+            });
+
+            await userEvent.click(screen.getByTestId('generating-skip-button'));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
+            });
+            expect(screen.queryByTestId('generated-section')).not.toBeInTheDocument();
+        });
+
+        test('back from skip-confirm returns to form step', async () => {
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByTestId('download-report-checkbox'));
+            await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
+            });
+
+            await userEvent.click(screen.getByTestId('skip-confirm-back-button'));
+
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'Remove message'})).toBeVisible();
+            });
         });
     });
 
@@ -284,8 +531,15 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const confirmButton = screen.getByRole('button', {name: 'Remove message'});
-            await userEvent.click(confirmButton);
+            // Skip download path so we go directly to API call
+            await userEvent.click(screen.getByTestId('download-report-checkbox'));
+            await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove without report'}));
 
             await waitFor(() => {
                 const errorElement = screen.getByTestId(

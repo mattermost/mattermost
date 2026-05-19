@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {setupContentFlagging, createPost, verifyReporterNotification} from './../support';
 
@@ -25,6 +25,15 @@ test('Verify Reporter is notified if flagged post is Retained in a channel', asy
     const {client: reporterUserClient} = await pw.makeClient(reporterUser);
 
     await setupContentFlagging(adminClient, [reviewerUser.id]);
+    await expect
+        .poll(
+            async () => {
+                const cfg = await adminClient.getAdminContentFlaggingConfig();
+                return cfg.ReviewerSettings?.CommonReviewerIds?.includes(reviewerUser.id) ?? false;
+            },
+            {timeout: 30_000, intervals: [500, 1500, 3000]},
+        )
+        .toBe(true);
     const message = `Post by @${reviewerUser.username}, is flagged once`;
 
     const {post, townSquare} = await createPost(adminClient, thirdUserClient, team, postFromThirdUser, message);
@@ -60,6 +69,15 @@ test('Verify Reporter is notified if flagged post is Removed from a channel', as
     const {client: reporterUserClient} = await pw.makeClient(reporterUser);
 
     await setupContentFlagging(adminClient, [reviewerUser.id]);
+    await expect
+        .poll(
+            async () => {
+                const cfg = await adminClient.getAdminContentFlaggingConfig();
+                return cfg.ReviewerSettings?.CommonReviewerIds?.includes(reviewerUser.id) ?? false;
+            },
+            {timeout: 30_000, intervals: [500, 1500, 3000]},
+        )
+        .toBe(true);
     const message = `Post by @${reviewerUser.username}, is flagged once`;
 
     const {post, townSquare} = await createPost(adminClient, thirdUserClient, team, postFromThirdUser, message);

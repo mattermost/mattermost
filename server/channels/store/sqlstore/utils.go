@@ -193,8 +193,15 @@ func trimInput(input string) string {
 	return input
 }
 
+// rowScanner is the minimal interface needed to iterate over SQL result rows.
+type rowScanner interface {
+	Next() bool
+	Scan(dest ...any) error
+	Err() error
+}
+
 // scanRowsIntoMap scans SQL rows into a map, using a provided scanner function to extract key-value pairs
-func scanRowsIntoMap[K comparable, V any](rows *sql.Rows, scanner func(rows *sql.Rows) (K, V, error), defaults map[K]V) (map[K]V, error) {
+func scanRowsIntoMap[K comparable, V any](rows rowScanner, scanner func(rows rowScanner) (K, V, error), defaults map[K]V) (map[K]V, error) {
 	results := make(map[K]V, len(defaults))
 
 	// Initialize with default values if provided

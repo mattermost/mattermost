@@ -180,6 +180,7 @@ func (s SqlWebhookStore) GetIncomingListByUser(userId string, offset, limit int)
 
 	query := s.incomingWebhookSelectQuery.
 		Where(sq.Eq{"DeleteAt": 0}).
+		OrderBy("DisplayName", "Id").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
@@ -202,6 +203,7 @@ func (s SqlWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, o
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"DeleteAt": 0},
 		}).
+		OrderBy("DisplayName", "Id").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
@@ -285,6 +287,7 @@ func (s SqlWebhookStore) GetOutgoingListByUser(userId string, offset, limit int)
 		Where(sq.And{
 			sq.Eq{"DeleteAt": 0},
 		}).
+		OrderBy("DisplayName", "Id").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
@@ -310,7 +313,8 @@ func (s SqlWebhookStore) GetOutgoingByChannelByUser(channelId string, userId str
 		Where(sq.And{
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": 0},
-		})
+		}).
+		OrderBy("DisplayName", "Id")
 
 	if userId != "" {
 		query = query.Where(sq.Eq{"CreatorId": userId})
@@ -337,7 +341,8 @@ func (s SqlWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, o
 		Where(sq.And{
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"DeleteAt": 0},
-		})
+		}).
+		OrderBy("DisplayName", "Id")
 
 	if userId != "" {
 		query = query.Where(sq.Eq{"CreatorId": userId})

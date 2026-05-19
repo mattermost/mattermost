@@ -16,8 +16,8 @@ import (
 func Test_getIPFilters(t *testing.T) {
 	lic := &model.License{
 		Features: &model.Features{
-			CustomPermissionsSchemes: model.NewPointer(false),
-			Cloud:                    model.NewPointer(true),
+			CustomPermissionsSchemes: new(false),
+			Cloud:                    new(true),
 		},
 		Customer: &model.Customer{
 			Name:  "TestName",
@@ -122,7 +122,7 @@ func Test_getIPFilters(t *testing.T) {
 		}, nil)
 		th.App.Srv().IPFiltering = ipFiltering
 
-		lic.Features.Cloud = model.NewPointer(false)
+		lic.Features.Cloud = new(false)
 
 		th.App.Srv().SetLicense(lic)
 
@@ -237,8 +237,8 @@ func Test_applyIPFilters(t *testing.T) {
 func Test_getMyIP(t *testing.T) {
 	lic := &model.License{
 		Features: &model.Features{
-			CustomPermissionsSchemes: model.NewPointer(false),
-			Cloud:                    model.NewPointer(true),
+			CustomPermissionsSchemes: new(false),
+			Cloud:                    new(true),
 		},
 		Customer: &model.Customer{
 			Name:  "TestName",

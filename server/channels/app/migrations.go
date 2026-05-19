@@ -32,6 +32,7 @@ const (
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
 	contentFlaggingMigrationVersion                = "v5"
 	managedCategorySetupDoneKey                    = "managed_category_setup_done"
+	managedCategoryMigrationVersion                = "v2"
 	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
@@ -47,6 +48,9 @@ const (
 	contentFlaggingPropertyManageByContentFlagging = "content_flagging_managed"
 
 	contentFlaggingPropertySubTypeTimestamp = "timestamp"
+
+	boardsPropertySetupDoneKey     = "boards_property_setup_done"
+	boardsPropertyMigrationVersion = "v1"
 )
 
 // This function migrates the default built in roles from code/config to the database.
@@ -381,7 +385,7 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 	}
 
 	s.platform.UpdateConfig(func(config *model.Config) {
-		config.FileSettings.ExtractContent = model.NewPointer(true)
+		config.FileSettings.ExtractContent = new(true)
 	})
 
 	system := model.System{
@@ -605,7 +609,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 	}
 
 	s.platform.UpdateConfig(func(config *model.Config) {
-		config.ServiceSettings.PostPriority = model.NewPointer(true)
+		config.ServiceSettings.PostPriority = new(true)
 	})
 
 	system := model.System{
@@ -749,7 +753,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
 			// Another server may have won the race and updated these fields
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Both servers write the same expected values, so tolerate the
@@ -768,6 +772,107 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	return nil
 }
 
+func (s *Server) doSetupBoardsProperties() error {
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(boardsPropertySetupDoneKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query boards migration: %w", err)
+	}
+
+	if data != nil && data.Value == boardsPropertyMigrationVersion {
+		return nil
+	}
+
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2})
+	if err != nil {
+		return fmt.Errorf("failed to register boards property group: %w", err)
+	}
+
+	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	if err != nil {
+		return fmt.Errorf("failed to search for existing boards properties: %w", err)
+	}
+
+	existingPropertiesMap := map[string]*model.PropertyField{}
+	for _, property := range existingProperties {
+		existingPropertiesMap[property.Name] = property
+	}
+
+	expectedPropertiesMap := map[string]*model.PropertyField{
+		model.BoardsPropertyFieldAssignee: {
+			GroupID:         group.ID,
+			Name:            model.BoardsPropertyFieldAssignee,
+			Type:            model.PropertyFieldTypeUser,
+			ObjectType:      model.PropertyFieldObjectTypePost,
+			TargetType:      string(model.PropertyFieldTargetLevelSystem),
+			Protected:       true,
+			PermissionField: model.NewPointer(model.PermissionLevelNone),
+		},
+		model.BoardsPropertyFieldStatus: {
+			GroupID:         group.ID,
+			Name:            model.BoardsPropertyFieldStatus,
+			Type:            model.PropertyFieldTypeSelect,
+			ObjectType:      model.PropertyFieldObjectTypePost,
+			TargetType:      string(model.PropertyFieldTargetLevelSystem),
+			Protected:       true,
+			PermissionField: model.NewPointer(model.PermissionLevelNone),
+			Attrs: map[string]any{
+				"options": []map[string]string{
+					{"name": model.BoardsStatusOptionTodo},
+					{"name": model.BoardsStatusOptionInProgress},
+					{"name": model.BoardsStatusOptionComplete},
+				},
+			},
+		},
+	}
+
+	var propertiesToUpdate []*model.PropertyField
+	var propertiesToCreate []*model.PropertyField
+
+	for name, expectedProperty := range expectedPropertiesMap {
+		if _, exists := existingPropertiesMap[name]; exists {
+			property := existingPropertiesMap[name]
+			property.Type = expectedProperty.Type
+			property.Attrs = expectedProperty.Attrs
+			property.Protected = expectedProperty.Protected
+			property.PermissionField = expectedProperty.PermissionField
+			propertiesToUpdate = append(propertiesToUpdate, property)
+		} else {
+			propertiesToCreate = append(propertiesToCreate, expectedProperty)
+		}
+	}
+
+	for _, property := range propertiesToCreate {
+		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
+			// Another server may have won the race and created this field
+			// concurrently (e.g. parallel tests sharing a database pool).
+			// Tolerate that but propagate any other error.
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", property.Name); retryErr != nil {
+				return fmt.Errorf("failed to create boards property: %q, error: %w", property.Name, err)
+			}
+		}
+	}
+
+	if len(propertiesToUpdate) > 0 {
+		if _, _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+			// Another server may have won the race and updated these fields
+			// concurrently (e.g. parallel tests sharing a database pool).
+			// Both servers write the same expected values, so tolerate the
+			// conflict but propagate any other error.
+			var conflictErr *store.ErrConflict
+			if !errors.As(err, &conflictErr) {
+				return fmt.Errorf("failed to update boards property fields: %w", err)
+			}
+		}
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: boardsPropertySetupDoneKey, Value: boardsPropertyMigrationVersion}); err != nil {
+		return fmt.Errorf("failed to save boards setup done flag in system store %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) doSetupManagedCategoryProperties() error {
 	var nfErr *store.ErrNotFound
 	data, err := s.Store().System().GetByName(managedCategorySetupDoneKey)
@@ -776,6 +881,18 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	}
 
 	if data != nil {
+		if data.Value == managedCategoryMigrationVersion {
+			return s.cacheManagedCategoryIDs()
+		}
+
+		if incrementErr := s.Store().PropertyGroup().IncrementVersion(model.ManagedCategoryPropertyGroupName); incrementErr != nil {
+			return fmt.Errorf("failed to increment managed category group version: %w", incrementErr)
+		}
+
+		if saveErr := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion}); saveErr != nil {
+			return fmt.Errorf("failed to save managed category setup done flag: %w", saveErr)
+		}
+
 		return s.cacheManagedCategoryIDs()
 	}
 
@@ -1053,6 +1170,7 @@ func (s *Server) doAppMigrations() {
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
+		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
 	}
 

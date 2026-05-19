@@ -319,6 +319,156 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockChannelStore.AssertNotCalled(t, "InvalidateChannel", mock.Anything)
 		mockChannelStore.AssertNotCalled(t, "Get", mock.Anything, mock.Anything)
 	})
+
+	t.Run("Caller with masked values is blocked from deleting (403)", func(t *testing.T) {
+		// When AttributeValueMasking is on and the caller cannot see all values in the
+		// policy, the delete must be refused with the masked_values 403. This closes
+		// the gap where a delegated admin could remove a policy whose conditions they
+		// could not audit. Forcing an unknown-field reference in the rule makes
+		// GetMaskedVisualAST fail-closed (HasMaskedValues=true) without requiring a
+		// full CPA setup for the test.
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.AttributeBasedAccessControl = true
+			cfg.FeatureFlags.AttributeValueMasking = true
+		}).InitBasic(t)
+
+		callerID := model.NewId()
+		th.Context = th.Context.WithSession(&model.Session{UserId: callerID, Id: model.NewId()}).(*request.Context)
+
+		policyID := model.NewId()
+		sensitivePolicy := &model.AccessControlPolicy{
+			ID:      policyID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: `user.attributes.f_unknown_field == "Secret"`},
+			},
+		}
+
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+		mockAccessControl.On("GetPolicy", th.Context, policyID).Return(sensitivePolicy, nil).Once()
+		// Force GetMaskedVisualAST → maskConditionValues → fail-closed (unknown field).
+		mockAccessControl.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(&model.VisualExpression{
+			Conditions: []model.Condition{
+				{Attribute: "user.attributes.f_unknown_field", Operator: "==", Value: "Secret", ValueType: model.LiteralValue},
+			},
+		}, nil).Maybe()
+
+		appErr := th.App.DeleteAccessControlPolicy(th.Context, policyID)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Equal(t, "app.pap.delete_policy.masked_values", appErr.Id)
+
+		mockAccessControl.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
+		mockAccessControl.AssertExpectations(t)
+	})
+
+	t.Run("Masking flag off: delete proceeds for callers that would otherwise be blocked", func(t *testing.T) {
+		// Belt-and-braces: with AttributeValueMasking off, the masking guard must not
+		// fire — the policy deletes normally even if the caller wouldn't have seen all
+		// values. Guards against accidentally inverting the flag condition.
+		thMock := SetupWithStoreMock(t)
+		// Note: SetupWithStoreMock doesn't take a config callback. Feature flags
+		// default to false, which is exactly the state this test wants.
+
+		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
+
+		channelID := model.NewId()
+		channelPolicy := &model.AccessControlPolicy{
+			ID:      channelID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_3,
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("InvalidateChannel", channelID).Once()
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Once()
+
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockAccessControl
+		mockAccessControl.On("GetPolicy", thMock.Context, channelID).Return(channelPolicy, nil).Once()
+		mockAccessControl.On("DeletePolicy", thMock.Context, channelID).Return(nil).Once()
+
+		appErr := thMock.App.DeleteAccessControlPolicy(thMock.Context, channelID)
+		require.Nil(t, appErr)
+		mockAccessControl.AssertExpectations(t)
+		mockChannelStore.AssertExpectations(t)
+	})
+}
+
+// TestCheckSelfInclusion verifies the self-exclusion guard: non-admin callers must
+// satisfy their own policy after saving, or the save is refused with 403
+// self_exclusion. Sysadmins are exempt at the call site
+// (CreateOrUpdateAccessControlPolicy), not inside checkSelfInclusion itself — this
+// test exercises the function directly.
+func TestCheckSelfInclusion(t *testing.T) {
+	t.Run("caller who satisfies the policy passes", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		callerID := th.BasicUser.Id
+
+		policy := &model.AccessControlPolicy{
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: `user.attributes.team == "ops"`},
+			},
+		}
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		// QueryUsersForExpression returns the caller → matches → no error.
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{{Id: callerID}}, int64(1), nil).Once()
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, callerID)
+		require.Nil(t, appErr)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("caller who does not satisfy the policy is rejected with 403", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		callerID := th.BasicUser.Id
+
+		policy := &model.AccessControlPolicy{
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: `user.attributes.team == "ops"`},
+			},
+		}
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		// No users returned → caller does not satisfy → expect self_exclusion 403.
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Once()
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, callerID)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("trivial rules (empty / 'true') are skipped without querying", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		callerID := th.BasicUser.Id
+
+		policy := &model.AccessControlPolicy{
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: ""},
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		}
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		// No query should fire for trivial expressions — if it does, the mock will fail
+		// the test by returning the default zero-value response.
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, callerID)
+		require.Nil(t, appErr)
+		mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
+	})
 }
 
 func TestGetChannelsForPolicy(t *testing.T) {
@@ -611,7 +761,7 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 
 		mockAccessControl.On("GetPolicy", th.Context, parentID).Return(&model.AccessControlPolicy{Type: model.AccessControlPolicyTypeParent}, nil)
 
-		privateChannel.Shared = model.NewPointer(true)
+		privateChannel.Shared = new(true)
 		_, err := th.App.Srv().Store().Channel().Update(th.Context, privateChannel)
 		require.NoError(t, err)
 
@@ -817,7 +967,7 @@ func TestUpdateChannelBlocksTypeConversionWhenPolicyEnforced(t *testing.T) {
 	require.True(t, ok, "SetLicense should return true")
 	t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 	})
 
 	mockACS := &mocks.AccessControlServiceInterface{}
@@ -1193,7 +1343,7 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 		})
 
 		// Mark channel as shared
-		sharedChannel.Shared = model.NewPointer(true)
+		sharedChannel.Shared = new(true)
 		_, err := th.App.Srv().Store().Channel().Update(th.Context, sharedChannel)
 		require.NoError(t, err)
 
@@ -1436,7 +1586,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 		})
 
 		// Mark channel as shared
-		sharedChannel.Shared = model.NewPointer(true)
+		sharedChannel.Shared = new(true)
 		_, err := th.App.Srv().Store().Channel().Update(th.Context, sharedChannel)
 		require.NoError(t, err)
 
@@ -1947,7 +2097,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
 			cfg.FeatureFlags.PermissionPolicies = true
 		})
 
@@ -1960,7 +2110,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 			cfg.FeatureFlags.PermissionPolicies = false
 		})
 
@@ -1982,7 +2132,7 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		channels, appErr := th.App.GetRecommendedPublicChannelsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
@@ -1995,7 +2145,7 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		th.App.Srv().ch.AccessControl = nil
@@ -2009,7 +2159,7 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
 
 		mockACS := &mocks.AccessControlServiceInterface{}

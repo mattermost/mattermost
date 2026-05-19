@@ -66,6 +66,6 @@ export const classificationPresetDropdownStyles: StylesConfig<ValueType> = {
     }),
     menuPortal: (provided) => ({
         ...provided,
-        zIndex: 200,
+        zIndex: 1100,
     }),
 };

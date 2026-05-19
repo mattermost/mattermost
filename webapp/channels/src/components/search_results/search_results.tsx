@@ -150,6 +150,13 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
 
     const noResults = (!results || !Array.isArray(results) || results.length === 0);
     const noFileResults = (!fileResults || !Array.isArray(fileResults) || fileResults.length === 0);
+
+    // The `results` prop is typed as `Array<Post | string>`. Strings are
+    // non-Post entries (date separators injected by
+    // makeAddDateSeparatorsForSearchResults), so the messages counter only
+    // counts the non-string entries. Otherwise the count is inflated by one
+    // per date group (see MM-67904).
+    const messagesCount = Array.isArray(results) ? results.filter((item) => typeof item !== 'string').length : 0;
     const isLoading = isSearchingTerm || isSearchingFlaggedPost || isSearchingPinnedPost || !isOpened;
     const isAtEnd = (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd);
     const showLoadMore = !isAtEnd && !isChannelFiles && !isFlaggedPosts && !isPinnedPosts;
@@ -390,7 +397,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     selected={searchType}
                     selectedFilter={searchFilterType}
                     isFileAttachmentsEnabled={isFileAttachmentsEnabled(config)}
-                    messagesCounter={isSearchAtEnd || props.searchPage === 0 ? `${results.length}` : `${results.length}+`}
+                    messagesCounter={isSearchAtEnd || props.searchPage === 0 ? `${messagesCount}` : `${messagesCount}+`}
                     filesCounter={isSearchFilesAtEnd || props.searchPage === 0 ? `${fileResults.length}` : `${fileResults.length}+`}
                     onChange={setSearchType}
                     onFilter={setSearchFilterType}
