@@ -1252,12 +1252,22 @@ type API interface {
 	// Minimum server version: 9.5
 	RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error)
 
-	// UnregisterPluginForSharedChannels unregisters the plugin as a `Remote` for SharedChannels.
-	// The plugin will no longer receive synchronization messages via the `OnSharedChannelsSyncMsg` hook.
+	// UnregisterPluginForSharedChannels unregisters all remotes for this plugin. The plugin will no
+	// longer receive synchronization messages via the `OnSharedChannelsSyncMsg` hook. Used in
+	// OnDeactivate for bulk cleanup.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 9.5
 	UnregisterPluginForSharedChannels(pluginID string) error
+
+	// UnregisterPluginRemoteForSharedChannels unregisters a specific remote by its remoteID.
+	// The remote must belong to the calling plugin (ownership is validated server-side).
+	// The remote will no longer receive synchronization messages. Used for config change
+	// reconciliation when a connection is removed but others remain.
+	//
+	// @tag SharedChannels
+	// Minimum server version: 11.7
+	UnregisterPluginRemoteForSharedChannels(remoteID string) error
 
 	// ShareChannel marks a channel for sharing via shared channels. Note, this does not automatically
 	// invite any remote clusters to the channel - use `InviteRemote` to invite a remote , or this plugin,
@@ -1330,6 +1340,14 @@ type API interface {
 	// This is the inbound counterpart of the OnSharedChannelsAttachmentSyncMsg hook.
 	// The remoteID identifies which of the plugin's registered remotes this attachment is from
 	// (the value returned by RegisterPluginForSharedChannels).
+	//
+	// The post-receive (ReceiveSharedChannelSyncMsg) and file-receive calls for the same
+	// post-and-attachment pair may be issued in either order or concurrently; the framework
+	// binds the file to its post regardless of arrival order. Repeated calls with the same
+	// (fi.Id, channelID, fi.CreatorId) return the existing FileInfo without producing
+	// duplicates, allowing transports with at-least-once delivery semantics to redeliver
+	// safely. Repeats whose fi.Id matches an existing record under a different channel or
+	// creator are rejected.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 11.7
