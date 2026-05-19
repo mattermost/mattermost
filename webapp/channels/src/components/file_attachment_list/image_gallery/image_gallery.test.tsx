@@ -107,6 +107,10 @@ describe('ImageGallery', () => {
         jest.clearAllMocks();
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('renders with images', () => {
         renderWithProvider(<ImageGallery {...defaultProps}/>);
         expect(screen.getByTestId('fileAttachmentList')).toBeInTheDocument();
