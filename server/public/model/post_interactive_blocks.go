@@ -287,17 +287,7 @@ func collectAdaptiveCardImageURLs(v any, out *[]string) {
 			continue
 		}
 		for _, item := range body {
-			itemMap, ok := item.(map[string]any)
-			if !ok {
-				continue
-			}
-			typ, _ := itemMap["type"].(string)
-			switch typ {
-			case "Image":
-				if u, ok := itemMap["url"].(string); ok {
-					*out = append(*out, u)
-				}
-			}
+			collectAdaptiveCardImageURLsFromItem(item, out)
 		}
 	}
 }

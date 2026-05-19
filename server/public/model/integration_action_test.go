@@ -1680,10 +1680,10 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 func TestPost_PostActionPreserveState(t *testing.T) {
 	t.Run("top-level post", func(t *testing.T) {
 		p := &Post{
-			Id:             "postid",
-			IsPinned:       true,
-			HasReactions:   true,
-			Props:          StringInterface{PostPropsFromWebhook: "true", "other": "x"},
+			Id:           "postid",
+			IsPinned:     true,
+			HasReactions: true,
+			Props:        StringInterface{PostPropsFromWebhook: "true", "other": "x"},
 		}
 		state := p.PostActionPreserveState()
 		assert.Equal(t, "true", state.Retain[PostPropsFromWebhook])
