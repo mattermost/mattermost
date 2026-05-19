@@ -365,7 +365,7 @@ channels/db/migrations/postgres/000183_create_channel_join_requests_user_status_
 channels/db/migrations/postgres/000183_create_channel_join_requests_user_status_index.up.sql
 channels/db/migrations/postgres/000184_add_lastused_to_incoming_webhooks.down.sql
 channels/db/migrations/postgres/000184_add_lastused_to_incoming_webhooks.up.sql
-channels/db/migrations/postgres/000186_create_channel_guards.down.sql
-channels/db/migrations/postgres/000186_create_channel_guards.up.sql
-channels/db/migrations/postgres/000187_create_channel_guards_plugin_id_index.down.sql
-channels/db/migrations/postgres/000187_create_channel_guards_plugin_id_index.up.sql
+channels/db/migrations/postgres/000185_create_channel_guards.down.sql
+channels/db/migrations/postgres/000185_create_channel_guards.up.sql
+channels/db/migrations/postgres/000186_create_channel_guards_plugin_id_index.down.sql
+channels/db/migrations/postgres/000186_create_channel_guards_plugin_id_index.up.sql

@@ -23,7 +23,7 @@ func readMigrationSQL(t *testing.T, filename string) string {
 	return string(data)
 }
 
-func TestMigration000186(t *testing.T) {
+func TestMigration000185(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
 	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
@@ -206,7 +206,7 @@ func TestMigration000186(t *testing.T) {
 	assert.Equal(t, groupID, val.GroupID, "value GroupID should remain unchanged after down")
 }
 
-func TestMigration000186DownPreservesNonUserFields(t *testing.T) {
+func TestMigration000185DownPreservesNonUserFields(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
 	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
@@ -299,7 +299,7 @@ func TestMigration000186DownPreservesNonUserFields(t *testing.T) {
 	assert.Equal(t, "sysadmin", channelField.PermissionOptions.String)
 }
 
-func TestMigration000186NoOpOnFreshDB(t *testing.T) {
+func TestMigration000185NoOpOnFreshDB(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
 	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
