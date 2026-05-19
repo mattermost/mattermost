@@ -285,6 +285,7 @@ export class TestHelper {
             create_at: 1,
             update_at: 1,
             delete_at: 1,
+            last_used: 0,
             user_id: '',
             channel_id: '',
             team_id: '',

@@ -5109,6 +5109,8 @@
   "installed_integrations.edit": "Edit",
   "installed_integrations.fromApp": "Managed by Apps Framework",
   "installed_integrations.hideSecret": "Hide Secret",
+  "installed_integrations.last_used": "Last used on {lastUsed, date, full}",
+  "installed_integrations.never_used": "Never used",
   "installed_integrations.regenSecret": "Regenerate Secret",
   "installed_integrations.regenToken": "Regenerate Token",
   "installed_integrations.showSecret": "Show Secret",
