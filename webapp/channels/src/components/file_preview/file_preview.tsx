@@ -52,6 +52,12 @@ export default class FilePreview extends React.PureComponent<Props> {
         this.props.onRemove?.(id);
     };
 
+    /**
+     * Opens the standard file preview modal for a draft attachment image or SVG thumbnail.
+     *
+     * @param e - Mouse event from the thumbnail link (default prevented; does not bubble).
+     * @param startIndex - Index of the clicked file in {@link Props.fileInfos} for modal navigation.
+     */
     handleThumbnailPreviewClick = (e: React.MouseEvent<HTMLElement>, startIndex: number) => {
         e.preventDefault();
         e.stopPropagation();
