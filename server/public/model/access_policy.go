@@ -542,6 +542,16 @@ func (p *AccessControlPolicy) Inherit(parent *AccessControlPolicy) *AppError {
 		if parent.Version != AccessControlPolicyVersionV0_3 && parent.Version != AccessControlPolicyVersionV0_4 {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.version.app_error", nil, "", 400)
 		}
+		// v0.4 inherit is strictly child-channel → parent-membership.
+		// A channel→channel or permission→channel import has no
+		// well-defined semantics in the v0.4 model (parents are the
+		// only carriers of reusable membership rules), so reject the
+		// import rather than silently appending a peer policy's ID
+		// into Imports where the loader would later treat it as a
+		// membership parent.
+		if parent.Type != AccessControlPolicyTypeParent {
+			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.parent_type.app_error", nil, "v0.4 imports must target a membership parent policy", 400)
+		}
 		if slices.Contains(p.Imports, parent.ID) {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.already_imported.app_error", nil, "", 400)
 		}

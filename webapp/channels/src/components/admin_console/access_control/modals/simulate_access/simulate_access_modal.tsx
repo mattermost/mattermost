@@ -235,18 +235,6 @@ function SimulateAccessModal({
                         return;
                     }
                     raw = (action as ActionResult<UserProfile[]>).data ?? [];
-
-                    // Merge the signed-in sysadmin onto page 0 when
-                    // missing from the channel roster — only on the
-                    // first page so subsequent pages stay clean.
-                    if (
-                        page === 0 &&
-                        currentUser &&
-                        userIsSystemAdmin(currentUser) &&
-                        !raw.some((u) => u.id === currentUser.id)
-                    ) {
-                        raw = [currentUser, ...raw];
-                    }
                 } else {
                     const profileOpts: Record<string, any> = {};
                     if (teamId) {
@@ -262,7 +250,28 @@ function SimulateAccessModal({
                 }
 
                 const overFetch = raw.length > USER_PAGE_SIZE;
-                const visible = overFetch ? raw.slice(0, USER_PAGE_SIZE) : raw;
+                let visible = overFetch ? raw.slice(0, USER_PAGE_SIZE) : raw;
+
+                // Pin the signed-in sysadmin to page 0 when missing
+                // from the channel roster so they can test the policy
+                // against their own session without scrolling. The
+                // insertion happens AFTER the over-fetch slice so it
+                // never displaces a real channel member off the visible
+                // window — the previous version prepended onto `raw`
+                // before slicing, which silently dropped the last member
+                // of every page-0 sysadmin run. `hasNextPage` is still
+                // computed from the un-augmented `raw` length so
+                // pagination matches the server cursor exactly.
+                if (
+                    targetScope === 'channel' &&
+                    channelId &&
+                    page === 0 &&
+                    currentUser &&
+                    userIsSystemAdmin(currentUser) &&
+                    !visible.some((u) => u.id === currentUser.id)
+                ) {
+                    visible = [currentUser, ...visible];
+                }
 
                 // We deliberately DO NOT filter client-side by
                 // applicability (system role / channel role) here.

@@ -4860,12 +4860,16 @@ components:
           $ref: "#/components/schemas/AccessControlPolicy"
         actions:
           type: array
+          minItems: 1
           items:
             type: string
           description: |
             Permission actions to simulate (e.g. `upload_file_attachment`,
             `download_file_attachment`). At least one action is required —
-            the picker UX only makes sense once an action is in scope.
+            the picker UX only makes sense once an action is in scope. The
+            backend rejects empty arrays with `app.pap.simulate.missing_actions`
+            (HTTP 400); `minItems` lets OpenAPI tooling catch that earlier
+            on the client.
         rule_name:
           type: string
           description: |
@@ -4928,6 +4932,20 @@ components:
               privacy stripping as `system_permission`.
             * `no_applicable_policy` — no policy at any scope contributed a
               decision (vacuous allow).
+        outcome:
+          type: string
+          enum:
+            - deny
+            - allow
+          description: |
+            Per-blame verdict. Most blame entries describe the deny that
+            produced the overall decision (`deny`); the simulator also
+            emits informational `allow` entries so the picker can show
+            "your draft rule allowed this user" alongside any peer
+            policies that actually caused the deny. Consumers that only
+            care about deny attribution should filter to `deny`. Empty
+            (omitted) is treated as `deny` for backward compatibility
+            with simulator builds that pre-date this field.
         policy_id:
           type: string
           description: |

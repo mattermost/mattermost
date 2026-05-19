@@ -39,21 +39,26 @@ export default function SessionRow({session, actions}: Props): JSX.Element {
 
     // Compute the relative-time delta + unit here and let
     // `FormattedRelativeTime` own the locale-aware formatting and
-    // pluralisation. Negative or non-finite timestamps (clock skew,
-    // missing field) fall back to the localised "Last active —"
-    // message so the row never renders raw English.
+    // pluralisation. Missing (`undefined` / wrong type) or otherwise
+    // unusable timestamps (clock skew, non-finite delta) fall back to
+    // the localised "Last active —" message so the row never renders
+    // raw English and the field label always stays visible — hiding
+    // the row entirely was misleading because an absent timestamp
+    // looked identical to a session that simply hadn't been used
+    // recently.
     const lastActive = useMemo(() => {
+        const unknown = (
+            <FormattedMessage
+                id='admin.access_control.simulate_access.session.last_active_unknown'
+                defaultMessage='Last active —'
+            />
+        );
         if (typeof session.last_active_at !== 'number') {
-            return null;
+            return unknown;
         }
         const deltaMs = Date.now() - session.last_active_at;
         if (deltaMs < 0 || !Number.isFinite(deltaMs)) {
-            return (
-                <FormattedMessage
-                    id='admin.access_control.simulate_access.session.last_active_unknown'
-                    defaultMessage='Last active —'
-                />
-            );
+            return unknown;
         }
         const sec = Math.floor(deltaMs / 1000);
         let value: number;
@@ -107,11 +112,9 @@ export default function SessionRow({session, actions}: Props): JSX.Element {
                     >{'—'}</span>
                     <div>
                         <div className='SimulateAccessModal__sessionDevice'>{meta.join(' · ') || '—'}</div>
-                        {lastActive ? (
-                            <div className='SimulateAccessModal__sessionLastActive'>
-                                {lastActive}
-                            </div>
-                        ) : null}
+                        <div className='SimulateAccessModal__sessionLastActive'>
+                            {lastActive}
+                        </div>
                     </div>
                 </div>
             </td>

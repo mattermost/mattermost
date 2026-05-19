@@ -2164,8 +2164,14 @@ func TestGetSubjectChannelRole(t *testing.T) {
 	// simulator subject builders) now gate on the empty string and skip
 	// the channel scope.
 	t.Run("returns empty role for non-member", func(t *testing.T) {
-		nonMemberID := model.NewId()
-		role, appErr := th.App.GetSubjectChannelRole(th.Context, nonMemberID, th.BasicChannel.Id)
+		// Cover the real existence path (not the unknown-user path):
+		// create an actual user who is deliberately NOT added to
+		// BasicChannel so the store lookup hits ErrNotFound on the
+		// ChannelMember row rather than ErrNotFound on the User row.
+		// GetSubjectChannelRole must report no channel-scoped role
+		// for them — never fabricate one from system roles.
+		nonMember := th.CreateUser(t)
+		role, appErr := th.App.GetSubjectChannelRole(th.Context, nonMember.Id, th.BasicChannel.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, "", role)
 	})

@@ -763,6 +763,38 @@ func TestInheritV0_4(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, "model.access_policy.inherit.permission.app_error", err.Id)
 	})
+
+	// v0.4 imports are strictly child-channel → parent-membership.
+	// A channel→channel import would write a peer channel policy's ID
+	// into Imports where the loader expects a membership parent — the
+	// resulting evaluation would silently misroute. Reject up front.
+	t.Run("v0.4 child rejects channel-type parent", func(t *testing.T) {
+		parent := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+		child := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+
+		err := child.Inherit(parent)
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.inherit.parent_type.app_error", err.Id)
+		require.Empty(t, child.Imports, "rejected imports must not leak into the child's Imports slice")
+	})
 }
 
 func TestSubjectRoleForScope(t *testing.T) {

@@ -7641,6 +7641,10 @@
     "translation": "At least one action is required for simulation."
   },
   {
+    "id": "app.pap.simulate.missing_channel_id",
+    "translation": "A channel is required to simulate a channel-scoped policy."
+  },
+  {
     "id": "app.pap.simulate.missing_policy",
     "translation": "A policy is required for simulation."
   },
@@ -10625,6 +10629,10 @@
   {
     "id": "model.access_policy.inherit.already_imported.app_error",
     "translation": "The parent is already imported."
+  },
+  {
+    "id": "model.access_policy.inherit.parent_type.app_error",
+    "translation": "Imports must target a membership parent policy."
   },
   {
     "id": "model.access_policy.inherit.permission.app_error",
