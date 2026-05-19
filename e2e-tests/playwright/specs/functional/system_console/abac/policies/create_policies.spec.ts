@@ -21,7 +21,7 @@ import {
     createBasicPolicy,
     activatePolicy,
     waitForLatestSyncJob,
-    getJobDetailsFromRecentJobs,
+    waitForPolicySyncJob,
     enableUserManagedAttributes,
 } from '../support';
 
@@ -100,9 +100,14 @@ test.describe('ABAC Policies - Create Policies', () => {
         await navigateToABACPage(systemConsolePage.page);
         await enableABAC(systemConsolePage.page);
 
+        // Re-apply guard: concurrent initSetup() resets ABAC between enableABAC() UI call and policy creation
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
+
         // Use the working createBasicPolicy helper (same as MM-T5784)
-        const policyName = `Engineering Policy ${await pw.random.id()}`;
-        await createBasicPolicy(systemConsolePage.page, {
+        const policyName = `Engineering Policy ${pw.random.id()}`;
+        const __jobIdMM5783 = await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -135,7 +140,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         }
 
         // Wait for sync job to complete (triggered by createBasicPolicy)
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, __jobIdMM5783);
 
         // ============================================================
         // STEP 5-7: Verify channel membership after sync
@@ -279,8 +284,8 @@ test.describe('ABAC Policies - Create Policies', () => {
         await enableABAC(systemConsolePage.page);
 
         // Use createBasicPolicy with autoSync: true
-        const policyName = `Auto-Add Policy ${await pw.random.id()}`;
-        await createBasicPolicy(systemConsolePage.page, {
+        const policyName = `Auto-Add Policy ${pw.random.id()}`;
+        const __jobIdMM5784 = await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -311,7 +316,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         }
 
         // Wait for initial sync job to complete
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, __jobIdMM5784);
 
         // Get policy ID and activate it for auto-add to work
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
@@ -334,23 +339,13 @@ test.describe('ABAC Policies - Create Policies', () => {
         // Activate the policy so auto-add works
         await activatePolicy(adminClient, policyId);
 
-        // Run sync job with active policy
+        // Run sync job with active policy; poll by policyId to avoid picking up a
+        // concurrent shard's job completing first
         await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForPolicySyncJob(adminClient, policyId);
 
         // ============================================================
-        // VERIFY VIA JOB DETAILS: Check recent jobs for channel membership changes
-        // Note: Sometimes two jobs are created simultaneously, so we check both
-        // ============================================================
-        const jobDetails = await getJobDetailsFromRecentJobs(systemConsolePage.page, privateChannel.display_name);
-
-        // Expected: +1 added (satisfyingUserNotInChannel)
-        // Removed: 2 (nonSatisfyingUserInChannel + admin who created the channel without Department=Engineering)
-        expect(jobDetails.added).toBe(1); // satisfyingUserNotInChannel was auto-added
-        expect(jobDetails.removed).toBeGreaterThanOrEqual(1); // At least nonSatisfyingUserInChannel was removed (admin may also be removed)
-
-        // ============================================================
-        // STEP 5-7: Also verify via API for completeness
+        // STEP 5-7: Verify via API
         // ============================================================
 
         // Step 5: User who satisfies policy but NOT in channel → should be AUTO-ADDED
@@ -364,5 +359,69 @@ test.describe('ABAC Policies - Create Policies', () => {
         // Step 7: User who does NOT satisfy policy and IS in channel → auto-removed
         const user3AfterSync = await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id);
         expect(user3AfterSync).toBe(false); // AUTO-REMOVED
+    });
+
+    /**
+     * MM-63848: Creating a policy with a name that already exists should show an error
+     */
+    test('MM-63848 Should show error when creating policy with duplicate name', async ({pw}) => {
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+
+        await enableUserManagedAttributes(adminClient);
+
+        const departmentAttribute: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
+        await setupCustomProfileAttributeFields(adminClient, departmentAttribute);
+
+        const privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const page = systemConsolePage.page;
+
+        await navigateToABACPage(page);
+        await enableABAC(page);
+
+        // Re-apply guard: concurrent initSetup() resets ABAC between enableABAC() UI call and policy creation
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
+
+        // Create the first policy
+        const policyName = `Duplicate Test ${pw.random.id()}`;
+        await createBasicPolicy(page, {
+            name: policyName,
+            attribute: 'Department',
+            operator: '==',
+            value: 'Engineering',
+            autoSync: false,
+            channels: [privateChannel.display_name],
+        });
+
+        // Navigate back and try to create another policy with the same name.
+        // Re-apply guards: a concurrent initSetup() may have reset EnableAttributeBasedAccessControl
+        // AND deleted custom profile attributes between the first createBasicPolicy call and now.
+        // Without the Department attribute the attributeSelectorMenuButton has no items and times out.
+        await navigateToABACPage(page);
+        await setupCustomProfileAttributeFields(adminClient, departmentAttribute);
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
+
+        await createBasicPolicy(page, {
+            name: policyName,
+            attribute: 'Department',
+            operator: '==',
+            value: 'Sales',
+            autoSync: false,
+            channels: [],
+        });
+
+        // Verify error message is shown
+        const errorMessage = page.locator('.EditPolicy__error');
+        await expect(errorMessage).toBeVisible({timeout: 5000});
+
+        const errorText = await errorMessage.textContent();
+        expect(errorText).toContain('A policy with this name already exists');
     });
 });

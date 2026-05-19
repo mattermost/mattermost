@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Create bot', () => {
     it('MM-T1810 Create a Bot via the UI', () => {

@@ -520,7 +520,7 @@ exports[`FileAttachment should match snapshot, with compact display 1`] = `
     data-testid="post-image__column"
   >
     <div
-      class="post-image__details"
+      class="post-image__details compact"
     >
       <a
         class="post-image__name btn btn-icon btn-sm"
@@ -561,7 +561,11 @@ exports[`FileAttachment should match snapshot, with compact display 1`] = `
             </g>
           </svg>
         </span>
-        test.pdf
+        <span
+          class="post-image__filename"
+        >
+          test.pdf
+        </span>
       </a>
     </div>
   </div>

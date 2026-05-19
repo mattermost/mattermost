@@ -1,0 +1,17 @@
+openapi: "3.0.0"
+info:
+  title: Test API
+  version: "1.0.0"
+paths:
+  /api/v4/users/ids:
+    post:
+      summary: Get users by IDs
+      responses:
+        "200":
+          description: OK
+  /api/v4/groups/{group_id}/teams/{syncable_id}/link:
+    post:
+      summary: Link a group syncable
+      responses:
+        "200":
+          description: OK

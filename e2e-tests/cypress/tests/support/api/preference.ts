@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from 'tests/types';
 import {PreferenceType} from '@mattermost/types/preferences';
 
 import theme from '../../fixtures/theme.json';
+
+import {ChainableT} from '@/types';
 
 // *****************************************************************************
 // Preferences
@@ -21,7 +22,7 @@ import theme from '../../fixtures/theme.json';
  * @example
  *   cy.apiSaveUserPreference([{user_id: 'user-id', category: 'display_settings', name: 'channel_display_mode', value: 'full'}], 'user-id');
  */
-function apiSaveUserPreference(preferences: PreferenceType[] = [], userId = 'me'): ChainableT<any> {
+function apiSaveUserPreference(preferences: PreferenceType[] = [], userId = 'me'): ChainableT<Cypress.Response<unknown>> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/preferences`,
@@ -41,10 +42,10 @@ Cypress.Commands.add('apiSaveUserPreference', apiSaveUserPreference);
  * @example
  *   cy.apiSaveClockDisplayModeTo24HourPreference(true);
  */
-function apiSaveClockDisplayModeTo24HourPreference(is24Hour = true): ChainableT<any> {
+function apiSaveClockDisplayModeTo24HourPreference(is24Hour = true): ChainableT<Cypress.Response<unknown>> {
     return cy.getCookie('MMUSERID').then((cookie) => {
         const preference = {
-            user_id: cookie.value,
+            user_id: cookie!.value,
             category: 'display_settings',
             name: 'use_military_time',
             value: is24Hour.toString(),
@@ -64,7 +65,7 @@ Cypress.Commands.add('apiSaveClockDisplayModeTo24HourPreference', apiSaveClockDi
 function apiSaveChannelDisplayModePreference(value = 'full') {
     return cy.getCookie('MMUSERID').then((cookie) => {
         const preference = {
-            user_id: cookie.value,
+            user_id: cookie!.value,
             category: 'display_settings',
             name: 'channel_display_mode',
             value,
@@ -83,7 +84,7 @@ Cypress.Commands.add('apiSaveChannelDisplayModePreference', apiSaveChannelDispla
 function apiSaveMessageDisplayPreference(value = 'clean') {
     return cy.getCookie('MMUSERID').then((cookie) => {
         const preference = {
-            user_id: cookie.value,
+            user_id: cookie!.value,
             category: 'display_settings',
             name: 'message_display',
             value,
@@ -103,7 +104,7 @@ Cypress.Commands.add('apiSaveMessageDisplayPreference', apiSaveMessageDisplayPre
 function apiSaveTeammateNameDisplayPreference(value = 'username') {
     return cy.getCookie('MMUSERID').then((cookie) => {
         const preference = {
-            user_id: cookie.value,
+            user_id: cookie!.value,
             category: 'display_settings',
             name: 'name_format',
             value,
@@ -123,7 +124,7 @@ Cypress.Commands.add('apiSaveTeammateNameDisplayPreference', apiSaveTeammateName
 function apiSaveThemePreference(value = JSON.stringify(theme.default)) {
     return cy.getCookie('MMUSERID').then((cookie) => {
         const preference = {
-            user_id: cookie.value,
+            user_id: cookie!.value,
             category: 'theme',
             name: '',
             value,
@@ -155,7 +156,7 @@ function apiSaveSidebarSettingPreference(value = {}) {
         };
 
         const preference = {
-            user_id: cookie.value,
+            user_id: cookie!.value,
             category: 'sidebar_settings',
             name: '',
             value: JSON.stringify(newValue),
@@ -175,7 +176,7 @@ Cypress.Commands.add('apiSaveSidebarSettingPreference', apiSaveSidebarSettingPre
 function apiSaveLinkPreviewsPreference(show = 'true') {
     return cy.getCookie('MMUSERID').then((cookie) => {
         const preference = {
-            user_id: cookie.value,
+            user_id: cookie!.value,
             category: 'display_settings',
             name: 'link_previews',
             value: show,
@@ -195,7 +196,7 @@ Cypress.Commands.add('apiSaveLinkPreviewsPreference', apiSaveLinkPreviewsPrefere
 function apiSaveCollapsePreviewsPreference(collapse = 'true') {
     return cy.getCookie('MMUSERID').then((cookie) => {
         const preference = {
-            user_id: cookie.value,
+            user_id: cookie!.value,
             category: 'display_settings',
             name: 'collapse_previews',
             value: collapse,
@@ -212,7 +213,7 @@ Cypress.Commands.add('apiSaveCollapsePreviewsPreference', apiSaveCollapsePreview
  * @param {string} userId - User ID
  * @param {string} value - value of tutorial step, e.g. '999' (default, completed tutorial)
  */
-function apiSaveTutorialStep(userId: string, value = '999'): ChainableT<any> {
+function apiSaveTutorialStep(userId: string, value = '999'): ChainableT<Cypress.Response<unknown>> {
     const preference = {
         user_id: userId,
         category: 'tutorial_step',
@@ -225,7 +226,7 @@ function apiSaveTutorialStep(userId: string, value = '999'): ChainableT<any> {
 
 Cypress.Commands.add('apiSaveTutorialStep', apiSaveTutorialStep);
 
-function apiSaveOnboardingPreference(userId, name, value) {
+function apiSaveOnboardingPreference(userId: string, name: string, value: string) {
     const preference = {
         user_id: userId,
         category: 'recommended_next_steps',
@@ -249,7 +250,7 @@ Cypress.Commands.add('apiSaveOnboardingPreference', apiSaveOnboardingPreference)
  * @example
  *   cy.apiSaveDirectChannelShowPreference('user-id', 'other-user-id', 'false');
  */
-function apiSaveDirectChannelShowPreference(userId: string, otherUserId: string, value: string): ChainableT<any> {
+function apiSaveDirectChannelShowPreference(userId: string, otherUserId: string, value: string): ChainableT<Cypress.Response<unknown>> {
     const preference = {
         user_id: userId,
         category: 'direct_channel_show',
@@ -262,7 +263,7 @@ function apiSaveDirectChannelShowPreference(userId: string, otherUserId: string,
 
 Cypress.Commands.add('apiSaveDirectChannelShowPreference', apiSaveDirectChannelShowPreference);
 
-function apiHideSidebarWhatsNewModalPreference(userId, value) {
+function apiHideSidebarWhatsNewModalPreference(userId: string, value: string) {
     const preference = {
         user_id: userId,
         category: 'whats_new_modal',
@@ -284,10 +285,10 @@ Cypress.Commands.add('apiHideSidebarWhatsNewModalPreference', apiHideSidebarWhat
  * @example
  *   cy.apiGetUserPreference('user-id');
  */
-function apiGetUserPreference(userId: string): ChainableT<any> {
+function apiGetUserPreference(userId: string): ChainableT<PreferenceType[]> {
     return cy.request(`/api/v4/users/${userId}/preferences`).then((response) => {
         expect(response.status).to.equal(200);
-        return cy.wrap(response.body);
+        return cy.wrap(response.body as PreferenceType[]);
     });
 }
 
@@ -303,7 +304,7 @@ Cypress.Commands.add('apiGetUserPreference', apiGetUserPreference);
  * @example
  *   cy.apiSaveCRTPreference('user-id', 'on');
  */
-function apiSaveCRTPreference(userId: string, value = 'on'): ChainableT<any> {
+function apiSaveCRTPreference(userId: string, value = 'on'): ChainableT<Cypress.Response<unknown>> {
     const preference = {
         user_id: userId,
         category: 'display_settings',
@@ -327,7 +328,7 @@ Cypress.Commands.add('apiSaveCRTPreference', apiSaveCRTPreference);
  * @example
  *   cy.apiSaveCloudTrialBannerPreference('user-id', 'hide', 'true');
  */
-function apiSaveCloudTrialBannerPreference(userId: string, name: string, value: string): ChainableT<any> {
+function apiSaveCloudTrialBannerPreference(userId: string, name: string, value: string): ChainableT<Cypress.Response<unknown>> {
     const preference = {
         user_id: userId,
         category: 'cloud_trial_banner',
@@ -351,7 +352,7 @@ Cypress.Commands.add('apiSaveCloudTrialBannerPreference', apiSaveCloudTrialBanne
  * @example
  *   cy.apiSaveStartTrialModal('user-id', 'true');
  */
-function apiSaveStartTrialModal(userId: string, value = 'true'): ChainableT<any> {
+function apiSaveStartTrialModal(userId: string, value = 'true'): ChainableT<Cypress.Response<unknown>> {
     const preference = {
         user_id: userId,
         category: 'start_trial_modal',
@@ -375,7 +376,7 @@ Cypress.Commands.add('apiSaveStartTrialModal', apiSaveStartTrialModal);
  * @example
  *   cy.apiSaveOnboardingTaskListPreference('user-id', 'hide', 'true');
  */
-function apiSaveOnboardingTaskListPreference(userId: string, name: string, value: string): ChainableT<any> {
+function apiSaveOnboardingTaskListPreference(userId: string, name: string, value: string): ChainableT<Cypress.Response<unknown>> {
     const preference = {
         user_id: userId,
         category: 'onboarding_task_list',
@@ -397,7 +398,7 @@ Cypress.Commands.add('apiSaveOnboardingTaskListPreference', apiSaveOnboardingTas
  * @example
  *   cy.apiSaveSkipStepsPreference('user-id', 'true');
  */
-function apiSaveSkipStepsPreference(userId: string, value: string): ChainableT<any> {
+function apiSaveSkipStepsPreference(userId: string, value: string): ChainableT<Cypress.Response<unknown>> {
     const preference = {
         user_id: userId,
         category: 'recommended_next_steps',
@@ -410,7 +411,7 @@ function apiSaveSkipStepsPreference(userId: string, value: string): ChainableT<a
 
 Cypress.Commands.add('apiSaveSkipStepsPreference', apiSaveSkipStepsPreference);
 
-function apiSaveUnreadScrollPositionPreference(userId, value) {
+function apiSaveUnreadScrollPositionPreference(userId: string, value: string) {
     const preference = {
         user_id: userId,
         category: 'advanced_settings',
@@ -432,7 +433,7 @@ Cypress.Commands.add('apiSaveUnreadScrollPositionPreference', apiSaveUnreadScrol
  * @example
  *   cy.apiBoardsWelcomePageViewed('user-id');
  */
-function apiBoardsWelcomePageViewed(userId: string): ChainableT<any> {
+function apiBoardsWelcomePageViewed(userId: string): ChainableT<Cypress.Response<unknown>> {
     const preferences = [{
         user_id: userId,
         category: 'boards',
@@ -456,7 +457,7 @@ Cypress.Commands.add('apiBoardsWelcomePageViewed', apiBoardsWelcomePageViewed);
  * This API assume that the user is logged in and has cookie to access
  * @param {Boolean} enable - Either true (default) or false
  */
-function apiSaveJoinLeaveMessagesPreference(userId, enable = true) {
+function apiSaveJoinLeaveMessagesPreference(userId: string, enable = true) {
     const preference = {
         user_id: userId,
         category: 'advanced_settings',
@@ -472,7 +473,7 @@ Cypress.Commands.add('apiSaveJoinLeaveMessagesPreference', apiSaveJoinLeaveMessa
 /**
  * Disables tutorials for user by marking them finished
  */
-function apiDisableTutorials(userId) {
+function apiDisableTutorials(userId: string) {
     const preferences = [
         {
             user_id: userId,

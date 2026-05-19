@@ -12,7 +12,7 @@ import type {Post} from '@mattermost/types/posts';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General, Preferences as ReduxPreferences} from 'mattermost-redux/constants';
 import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
@@ -38,12 +38,13 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
+import {isPopoutWindow} from 'utils/popouts/popout_windows';
 import {areConsecutivePostsBySameUser, canDeletePost, getPostTranslation, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
 import {getDisplayNameByUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import {removePostCloseRHSDeleteDraft} from './actions';
+import {highlightPostInChannelPopout, removePostCloseRHSDeleteDraft} from './actions';
 import PostComponent from './post_component';
 
 type OwnProps = {
@@ -121,6 +122,7 @@ function makeMapStateToProps() {
         const config = getConfig(state);
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
+        const permissionPoliciesEnabled = isPermissionPoliciesEnabled(state);
         const channel = state.entities.channels.channels[post.channel_id];
         if (!channel) {
             return null;
@@ -168,7 +170,8 @@ function makeMapStateToProps() {
         }
 
         const isPostBurnOnRead = isBurnOnReadPost(state, post.id);
-        const canReply = !isPostBurnOnRead && (isDMorGM || (channel.team_id === currentTeam?.id));
+        const isSearchPopout = isPopoutWindow() && ownProps.location === Locations.SEARCH;
+        const canReply = !isPostBurnOnRead && (isDMorGM || isSearchPopout || (channel.team_id === currentTeam?.id));
         const directTeammate = getDirectTeammate(state, channel.id);
 
         const previewCollapsed = get(
@@ -243,6 +246,7 @@ function makeMapStateToProps() {
             burnOnReadDurationMinutes: getBurnOnReadDurationMinutes(state),
             burnOnReadSkipConfirmation: getBool(state, ReduxPreferences.CATEGORY_BURN_ON_READ, ReduxPreferences.BURN_ON_READ_SKIP_CONFIRMATION, false),
             isBurnOnReadPost: isPostBurnOnRead,
+            permissionPoliciesEnabled,
         };
     };
 }
@@ -252,6 +256,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             markPostAsUnread,
             emitShortcutReactToLastPostFrom,
+            highlightPostInChannelPopout,
             selectPost,
             selectPostFromRightHandSideSearch,
             setRhsExpanded,

@@ -9,9 +9,9 @@
 
 // Group: @channels @subpath
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {generateRandomUser} from '../../../support/api/user';
-import {getAdminAccount} from '../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {generateRandomUser} from '@/support/api/user';
+import {getAdminAccount} from '@/support/env';
 
 describe('Subpath Direct Message Search', () => {
     let testTeam;
@@ -27,7 +27,7 @@ describe('Subpath Direct Message Search', () => {
 
     it('MM-T989 - User on other subpath, but not on this one, should not show in DM More list', () => {
         const admin = getAdminAccount();
-        const secondServer = Cypress.env('secondServerURL');
+        const secondServer = Cypress.expose('secondServerURL');
 
         // # Log into admin account of other subpath server
         cy.request({

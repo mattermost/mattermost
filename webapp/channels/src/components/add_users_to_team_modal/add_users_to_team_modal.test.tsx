@@ -6,10 +6,11 @@ import React from 'react';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, act} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import AddUsersToTeamModal from './add_users_to_team_modal';
+import {AddUsersToTeamModal} from './add_users_to_team_modal';
 import type {AddUsersToTeamModal as AddUsersToTeamModalClass} from './add_users_to_team_modal';
 
 describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal', () => {
@@ -45,6 +46,7 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
     const baseProps = {
         team,
         users: [user1, user2],
+        intl: defaultIntl,
 
         excludeUsers: {},
         includeUsers: {},
@@ -59,50 +61,64 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
     };
 
     test('should match snapshot with 2 users', () => {
-        const wrapper = shallowWithIntl(
+        const {baseElement} = renderWithContext(
             <AddUsersToTeamModal
                 {...baseProps}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should match snapshot with 2 users, 1 included and 1 removed', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <AddUsersToTeamModal
                 {...baseProps}
                 includeUsers={{[removedUser.id]: removedUser}}
                 excludeUsers={{[user1.id]: user1}}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match state when handleHide is called', () => {
-        const wrapper = shallowWithIntl(
-            <AddUsersToTeamModal {...baseProps}/>,
+        const ref = React.createRef<AddUsersToTeamModalClass>();
+        renderWithContext(
+            <AddUsersToTeamModal
+                {...baseProps}
+                ref={ref}
+            />,
         );
 
-        wrapper.setState({show: true});
-        (wrapper.instance() as AddUsersToTeamModalClass).handleHide();
-        expect(wrapper.state('show')).toEqual(false);
+        act(() => {
+            ref.current!.setState({show: true});
+        });
+        act(() => {
+            ref.current!.handleHide();
+        });
+        expect(ref.current!.state.show).toEqual(false);
     });
 
     test('should search', () => {
-        const wrapper = shallowWithIntl(
+        const ref = React.createRef<AddUsersToTeamModalClass>();
+        renderWithContext(
             <AddUsersToTeamModal
                 {...baseProps}
+                ref={ref}
             />,
         );
-        const addUsers = wrapper.instance() as AddUsersToTeamModalClass;
+        const addUsers = ref.current!;
 
         // search profiles when search term given
-        addUsers.search('foo');
+        act(() => {
+            addUsers.search('foo');
+        });
         expect(baseProps.actions.searchProfiles).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.getProfilesNotInTeam).toHaveBeenCalledTimes(1);
 
         // get profiles when no search term
-        addUsers.search('');
+        act(() => {
+            addUsers.search('');
+        });
         expect(baseProps.actions.searchProfiles).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.getProfilesNotInTeam).toHaveBeenCalledTimes(2);
     });

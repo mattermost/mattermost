@@ -7,9 +7,9 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import ExternalLink from '../external_link';
-import WithTooltip from '../with_tooltip';
 
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
 

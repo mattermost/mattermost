@@ -5,8 +5,6 @@
 
 import * as util from 'node:util';
 
-import Adapter from '@cfaester/enzyme-adapter-react-18';
-import {configure} from 'enzyme';
 import nodeFetch from 'node-fetch';
 
 import '@testing-library/jest-dom';
@@ -22,8 +20,6 @@ module.exports = async () => {
     // eslint-disable-next-line no-process-env
     process.env.TZ = 'UTC';
 };
-
-configure({adapter: new Adapter()});
 
 global.window = Object.create(window);
 

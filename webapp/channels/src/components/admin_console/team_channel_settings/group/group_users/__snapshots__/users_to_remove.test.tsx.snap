@@ -1,305 +1,848 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/team_channel_settings/group/UsersToRemove should match snapshot loading 1`] = `
-<div
-  className="UsersToRemove"
->
-  <DataGrid
-    columns={
-      Array [
-        Object {
-          "field": "name",
-          "name": <Memo(MemoizedFormattedMessage)
-            defaultMessage="Name"
-            id="admin.team_channel_settings.user_list.nameHeader"
-          />,
-          "width": 5,
-        },
-        Object {
-          "field": "role",
-          "name": <Memo(MemoizedFormattedMessage)
-            defaultMessage="Role"
-            id="admin.team_channel_settings.user_list.roleHeader"
-          />,
-          "width": 2,
-        },
-        Object {
-          "field": "groups",
-          "name": <Memo(MemoizedFormattedMessage)
-            defaultMessage="Groups"
-            id="admin.team_channel_settings.user_list.groupsHeader"
-          />,
-          "width": 3,
-        },
-      ]
-    }
-    endCount={2}
-    filterProps={
-      Object {
-        "keys": Array [
-          "role",
-        ],
-        "onFilter": [Function],
-        "options": Object {
-          "role": Object {
-            "keys": Array [
-              "system_guest",
-              "team_user",
-              "team_admin",
-              "system_admin",
-            ],
-            "name": <Memo(MemoizedFormattedMessage)
-              defaultMessage="Role"
-              id="admin.user_grid.role"
-            />,
-            "values": Object {
-              "system_admin": Object {
-                "name": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Admin"
-                  id="admin.user_grid.system_admin"
-                />,
-                "value": false,
-              },
-              "system_guest": Object {
-                "name": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Guest"
-                  id="admin.user_grid.guest"
-                />,
-                "value": false,
-              },
-              "team_admin": Object {
-                "name": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Team Admin"
-                  id="admin.user_grid.team_admin"
-                />,
-                "value": false,
-              },
-              "team_user": Object {
-                "name": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Member"
-                  id="admin.user_item.member"
-                />,
-                "value": false,
-              },
-            },
-          },
-        },
-      }
-    }
-    loading={true}
-    nextPage={[Function]}
-    onSearch={[Function]}
-    placeholderEmpty={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="No users found"
-        id="admin.member_list_group.notFound"
+<div>
+  <div
+    class="UsersToRemove"
+  >
+    <div
+      class="DataGrid"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
+          <button
+            class="Filter_button"
+            type="button"
+          >
+            <i
+              class="Icon icon-filter-variant"
+            />
+            Filters
+          </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            >
+              <div
+                class="FilterList"
+              >
+                <div
+                  class="FilterList_name"
+                >
+                  Role
+                </div>
+                <div
+                  class="FilterList_item"
+                >
+                  <div
+                    class="FilterList_checkbox"
+                  >
+                    <label>
+                      <input
+                        id="system_guest"
+                        name="system_guest"
+                        type="checkbox"
+                      />
+                      Guest
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="FilterList_item"
+                >
+                  <div
+                    class="FilterList_checkbox"
+                  >
+                    <label>
+                      <input
+                        id="team_user"
+                        name="team_user"
+                        type="checkbox"
+                      />
+                      Member
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="FilterList_item"
+                >
+                  <div
+                    class="FilterList_checkbox"
+                  >
+                    <label>
+                      <input
+                        id="team_admin"
+                        name="team_admin"
+                        type="checkbox"
+                      />
+                      Team Admin
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="FilterList_item"
+                >
+                  <div
+                    class="FilterList_checkbox"
+                  >
+                    <label>
+                      <input
+                        id="system_admin"
+                        name="system_admin"
+                        type="checkbox"
+                      />
+                      System Admin
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button
+              class="btn btn-primary btn-sm Filter_apply"
+              disabled=""
+              type="button"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
       />
-    }
-    previousPage={[Function]}
-    rows={Array []}
-    startCount={1}
-    term=""
-    total={2}
-  />
+      <div
+        class="DataGrid_rows"
+      >
+        <div
+          class="DataGrid_loading"
+        >
+          <span
+            class="LoadingSpinner"
+            data-testid="loadingSpinner"
+            id="loadingSpinner"
+          >
+            <span
+              class="fa fa-spinner fa-fw fa-pulse spinner"
+              title="Loading Icon"
+            />
+          </span>
+          Loading
+        </div>
+      </div>
+      <div
+        class="DataGrid_footer"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          1 - 2 of 2
+          <button
+            aria-label="Previous page"
+            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-left"
+              title="Previous Icon"
+            />
+          </button>
+          <button
+            aria-label="Next page"
+            class="btn btn-quaternary btn-icon btn-sm next disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-right"
+              title="Next Icon"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/admin_console/team_channel_settings/group/UsersToRemove should match snapshot with 2 users 1`] = `
-<div
-  className="UsersToRemove"
->
-  <DataGrid
-    columns={
-      Array [
-        Object {
-          "field": "name",
-          "name": <Memo(MemoizedFormattedMessage)
-            defaultMessage="Name"
-            id="admin.team_channel_settings.user_list.nameHeader"
-          />,
-          "width": 5,
-        },
-        Object {
-          "field": "role",
-          "name": <Memo(MemoizedFormattedMessage)
-            defaultMessage="Role"
-            id="admin.team_channel_settings.user_list.roleHeader"
-          />,
-          "width": 2,
-        },
-        Object {
-          "field": "groups",
-          "name": <Memo(MemoizedFormattedMessage)
-            defaultMessage="Groups"
-            id="admin.team_channel_settings.user_list.groupsHeader"
-          />,
-          "width": 3,
-        },
-      ]
-    }
-    endCount={2}
-    filterProps={
-      Object {
-        "keys": Array [
-          "role",
-        ],
-        "onFilter": [Function],
-        "options": Object {
-          "role": Object {
-            "keys": Array [
-              "system_guest",
-              "team_user",
-              "team_admin",
-              "system_admin",
-            ],
-            "name": <Memo(MemoizedFormattedMessage)
-              defaultMessage="Role"
-              id="admin.user_grid.role"
-            />,
-            "values": Object {
-              "system_admin": Object {
-                "name": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Admin"
-                  id="admin.user_grid.system_admin"
-                />,
-                "value": false,
-              },
-              "system_guest": Object {
-                "name": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Guest"
-                  id="admin.user_grid.guest"
-                />,
-                "value": false,
-              },
-              "team_admin": Object {
-                "name": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Team Admin"
-                  id="admin.user_grid.team_admin"
-                />,
-                "value": false,
-              },
-              "team_user": Object {
-                "name": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Member"
-                  id="admin.user_item.member"
-                />,
-                "value": false,
-              },
-            },
-          },
-        },
-      }
-    }
-    loading={true}
-    nextPage={[Function]}
-    onSearch={[Function]}
-    placeholderEmpty={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="No users found"
-        id="admin.member_list_group.notFound"
-      />
-    }
-    previousPage={[Function]}
-    rows={Array []}
-    startCount={1}
-    term=""
-    total={2}
-  />
+<div>
+  <div
+    class="UsersToRemove"
+  >
+    <div
+      class="DataGrid"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
+          <button
+            class="Filter_button"
+            type="button"
+          >
+            <i
+              class="Icon icon-filter-variant"
+            />
+            Filters
+          </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            >
+              <div
+                class="FilterList"
+              >
+                <div
+                  class="FilterList_name"
+                >
+                  Role
+                </div>
+                <div
+                  class="FilterList_item"
+                >
+                  <div
+                    class="FilterList_checkbox"
+                  >
+                    <label>
+                      <input
+                        id="system_guest"
+                        name="system_guest"
+                        type="checkbox"
+                      />
+                      Guest
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="FilterList_item"
+                >
+                  <div
+                    class="FilterList_checkbox"
+                  >
+                    <label>
+                      <input
+                        id="team_user"
+                        name="team_user"
+                        type="checkbox"
+                      />
+                      Member
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="FilterList_item"
+                >
+                  <div
+                    class="FilterList_checkbox"
+                  >
+                    <label>
+                      <input
+                        id="team_admin"
+                        name="team_admin"
+                        type="checkbox"
+                      />
+                      Team Admin
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="FilterList_item"
+                >
+                  <div
+                    class="FilterList_checkbox"
+                  >
+                    <label>
+                      <input
+                        id="system_admin"
+                        name="system_admin"
+                        type="checkbox"
+                      />
+                      System Admin
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button
+              class="btn btn-primary btn-sm Filter_apply"
+              disabled=""
+              type="button"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 5;"
+        >
+          Name
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 2;"
+        >
+          Role
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 3;"
+        >
+          Groups
+        </div>
+      </div>
+      <div
+        class="DataGrid_rows"
+      >
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 5;"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/userid1/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  user-1 -  
+                </span>
+                <span
+                  class="ug-email"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 2;"
+          >
+            <div
+              class="UsersToRemoveRole"
+            >
+              Member
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 3;"
+          >
+            <div
+              class="UsersToRemoveGroups"
+            >
+              0 Groups
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 5;"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/userid2/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  user-2 -  
+                </span>
+                <span
+                  class="ug-email"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 2;"
+          >
+            <div
+              class="UsersToRemoveRole"
+            >
+              Team Admin
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 3;"
+          >
+            <div
+              class="UsersToRemoveGroups"
+            >
+              0 Groups
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_footer"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          1 - 2 of 2
+          <button
+            aria-label="Previous page"
+            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-left"
+              title="Previous Icon"
+            />
+          </button>
+          <button
+            aria-label="Next page"
+            class="btn btn-quaternary btn-icon btn-sm next disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-right"
+              title="Next Icon"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/admin_console/team_channel_settings/group/UsersToRemove should match snapshot with guests disabled 1`] = `
-<div
-  className="UsersToRemove"
->
-  <DataGrid
-    columns={
-      Array [
-        Object {
-          "field": "name",
-          "name": <Memo(MemoizedFormattedMessage)
-            defaultMessage="Name"
-            id="admin.team_channel_settings.user_list.nameHeader"
-          />,
-          "width": 5,
-        },
-        Object {
-          "field": "role",
-          "name": <Memo(MemoizedFormattedMessage)
-            defaultMessage="Role"
-            id="admin.team_channel_settings.user_list.roleHeader"
-          />,
-          "width": 2,
-        },
-        Object {
-          "field": "groups",
-          "name": <Memo(MemoizedFormattedMessage)
-            defaultMessage="Groups"
-            id="admin.team_channel_settings.user_list.groupsHeader"
-          />,
-          "width": 3,
-        },
-      ]
-    }
-    endCount={2}
-    filterProps={
-      Object {
-        "keys": Array [
-          "role",
-        ],
-        "onFilter": [Function],
-        "options": Object {
-          "role": Object {
-            "keys": Array [
-              "team_user",
-              "team_admin",
-              "system_admin",
-            ],
-            "name": <Memo(MemoizedFormattedMessage)
-              defaultMessage="Role"
-              id="admin.user_grid.role"
-            />,
-            "values": Object {
-              "system_admin": Object {
-                "name": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="System Admin"
-                  id="admin.user_grid.system_admin"
-                />,
-                "value": false,
-              },
-              "team_admin": Object {
-                "name": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Team Admin"
-                  id="admin.user_grid.team_admin"
-                />,
-                "value": false,
-              },
-              "team_user": Object {
-                "name": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Member"
-                  id="admin.user_item.member"
-                />,
-                "value": false,
-              },
-            },
-          },
-        },
-      }
-    }
-    loading={true}
-    nextPage={[Function]}
-    onSearch={[Function]}
-    placeholderEmpty={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="No users found"
-        id="admin.member_list_group.notFound"
-      />
-    }
-    previousPage={[Function]}
-    rows={Array []}
-    startCount={1}
-    term=""
-    total={2}
-  />
+<div>
+  <div
+    class="UsersToRemove"
+  >
+    <div
+      class="DataGrid"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
+          <button
+            class="Filter_button"
+            type="button"
+          >
+            <i
+              class="Icon icon-filter-variant"
+            />
+            Filters
+          </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            >
+              <div
+                class="FilterList"
+              >
+                <div
+                  class="FilterList_name"
+                >
+                  Role
+                </div>
+                <div
+                  class="FilterList_item"
+                >
+                  <div
+                    class="FilterList_checkbox"
+                  >
+                    <label>
+                      <input
+                        id="team_user"
+                        name="team_user"
+                        type="checkbox"
+                      />
+                      Member
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="FilterList_item"
+                >
+                  <div
+                    class="FilterList_checkbox"
+                  >
+                    <label>
+                      <input
+                        id="team_admin"
+                        name="team_admin"
+                        type="checkbox"
+                      />
+                      Team Admin
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="FilterList_item"
+                >
+                  <div
+                    class="FilterList_checkbox"
+                  >
+                    <label>
+                      <input
+                        id="system_admin"
+                        name="system_admin"
+                        type="checkbox"
+                      />
+                      System Admin
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button
+              class="btn btn-primary btn-sm Filter_apply"
+              disabled=""
+              type="button"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 5;"
+        >
+          Name
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 2;"
+        >
+          Role
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 3;"
+        >
+          Groups
+        </div>
+      </div>
+      <div
+        class="DataGrid_rows"
+      >
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 5;"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/userid1/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  user-1 -  
+                </span>
+                <span
+                  class="ug-email"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 2;"
+          >
+            <div
+              class="UsersToRemoveRole"
+            >
+              Member
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 3;"
+          >
+            <div
+              class="UsersToRemoveGroups"
+            >
+              0 Groups
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 5;"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/userid2/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  user-2 -  
+                </span>
+                <span
+                  class="ug-email"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 2;"
+          >
+            <div
+              class="UsersToRemoveRole"
+            >
+              Team Admin
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 3;"
+          >
+            <div
+              class="UsersToRemoveGroups"
+            >
+              0 Groups
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_footer"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          1 - 2 of 2
+          <button
+            aria-label="Previous page"
+            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-left"
+              title="Previous Icon"
+            />
+          </button>
+          <button
+            aria-label="Next page"
+            class="btn btn-quaternary btn-icon btn-sm next disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-right"
+              title="Next Icon"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 `;

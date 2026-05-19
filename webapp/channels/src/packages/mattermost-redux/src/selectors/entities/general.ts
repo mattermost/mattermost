@@ -22,6 +22,14 @@ export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags)
     return getConfig(state)?.[`FeatureFlag${key}` as keyof Partial<ClientConfig>];
 }
 
+export function isCustomProfileAttributesEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagCustomProfileAttributes === 'true';
+}
+
+export function isPermissionPoliciesEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagPermissionPolicies === 'true';
+}
+
 export type PasswordConfig = {
     minimumLength: number;
     requireLowercase: boolean;
@@ -46,6 +54,11 @@ export const getPasswordConfig: (state: GlobalState) => PasswordConfig = createS
 
 export function getLicense(state: GlobalState): ClientLicense {
     return state.entities.general.license;
+}
+
+export function isFreeEdition(state: GlobalState): boolean {
+    const license = getLicense(state);
+    return license.IsLicensed !== 'true' || license.SkuShortName === General.SKUEntry;
 }
 
 export const isCloudLicense: (state: GlobalState) => boolean = createSelector(

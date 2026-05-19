@@ -9,12 +9,12 @@
 
 // Group: @channels @channel
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Archived channels', () => {
-    let testTeam;
-    let testUser;
-    let otherUser;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
+    let otherUser: Cypress.UserProfile;
 
     before(() => {
         // # Login as test user and visit created channel

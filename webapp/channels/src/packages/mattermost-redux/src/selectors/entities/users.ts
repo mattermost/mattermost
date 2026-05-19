@@ -510,7 +510,7 @@ export function makeSearchProfilesInChannel() {
 }
 
 export function searchProfilesInCurrentChannel(state: GlobalState, term: string, skipCurrent = false): UserProfile[] {
-    const profiles = filterProfilesStartingWithTerm(getProfilesInCurrentChannel(state), term);
+    const profiles = filterProfilesMatchingWithTerm(getProfilesInCurrentChannel(state), term);
 
     if (skipCurrent) {
         removeCurrentUserFromList(profiles, getCurrentUserId(state));

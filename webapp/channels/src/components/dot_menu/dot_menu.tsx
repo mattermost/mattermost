@@ -455,7 +455,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.handleDeleteMenuItemActivated();
             break;
 
-        // move thread
+            // move thread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.W):
             if (this.props.canMove) {
                 forceCloseMenu();

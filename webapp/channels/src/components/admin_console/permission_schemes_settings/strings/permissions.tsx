@@ -35,6 +35,26 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Convert private channels to public',
         },
     }),
+    manage_own_agent: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_own_agent.name',
+            defaultMessage: 'Manage own AI agents',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_own_agent.description',
+            defaultMessage: 'Create and manage your own AI agents.',
+        },
+    }),
+    manage_others_agent: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_others_agent.name',
+            defaultMessage: 'Manage others\' AI agents',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_others_agent.description',
+            defaultMessage: 'Create and manage AI agents for other users.',
+        },
+    }),
     create_direct_channel: defineMessages({
         name: {
             id: 'admin.permissions.permission.create_direct_channel.name',
@@ -495,6 +515,16 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Upload file',
         },
     }),
+    edit_file_attachment: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.edit_file_attachment.name',
+            defaultMessage: 'Edit Attachments',
+        },
+        description: {
+            id: 'admin.permissions.permission.edit_file_attachment.description',
+            defaultMessage: 'Allow users to add or remove file attachments when editing posts.',
+        },
+    }),
     use_channel_mentions: defineMessages({
         name: {
             id: 'admin.permissions.permission.use_channel_mentions.name',
@@ -743,6 +773,16 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
         description: {
             id: 'admin.permissions.permission.manage_channel_access_rules.description',
             defaultMessage: 'Configure attribute-based access control policy for channels.',
+        },
+    }),
+    manage_team_access_rules: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_team_access_rules.name',
+            defaultMessage: 'Manage channel membership policies',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_team_access_rules.description',
+            defaultMessage: 'Manage attribute based membership policies for channels in the team.',
         },
     }),
 };

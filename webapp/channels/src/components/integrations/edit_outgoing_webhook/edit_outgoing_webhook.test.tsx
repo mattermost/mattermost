@@ -1,16 +1,54 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import type {ChannelType} from '@mattermost/types/channels';
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import EditOutgoingWebhook
-    from 'components/integrations/edit_outgoing_webhook/edit_outgoing_webhook';
+import EditOutgoingWebhook from 'components/integrations/edit_outgoing_webhook/edit_outgoing_webhook';
 
-import {getHistory} from 'utils/browser_history';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
+
+const mockPush = jest.fn();
+jest.mock('utils/browser_history', () => ({
+    getHistory: () => ({push: mockPush}),
+}));
+
+const initialState: DeepPartial<GlobalState> = {
+    entities: {
+        channels: {
+            currentChannelId: 'current_channel_id',
+            channels: {
+                current_channel_id: TestHelper.getChannelMock({
+                    id: 'current_channel_id',
+                    team_id: 'current_team_id',
+                    type: 'O' as ChannelType,
+                    name: 'current_channel',
+                }),
+            },
+            myMembers: {
+                current_channel_id: TestHelper.getChannelMembershipMock({channel_id: 'current_channel_id'}),
+            },
+            channelsInTeam: {
+                current_team_id: new Set(['current_channel_id']),
+            },
+        },
+        teams: {
+            currentTeamId: 'current_team_id',
+            teams: {
+                current_team_id: TestHelper.getTeamMock({id: 'current_team_id'}),
+            },
+            myMembers: {
+                current_team_id: TestHelper.getTeamMembershipMock({roles: 'team_roles'}),
+            },
+        },
+    },
+};
 
 describe('components/integrations/EditOutgoingWebhook', () => {
     const team = TestHelper.getTeamMock();
@@ -49,74 +87,123 @@ describe('components/integrations/EditOutgoingWebhook', () => {
         enablePostIconOverride: false,
     };
 
+    beforeEach(() => {
+        mockPush.mockClear();
+    });
+
     test('should match snapshot', () => {
         const props = {...baseProps, hook};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <EditOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loading', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <EditOutgoingWebhook {...baseProps}/>,
+            initialState as GlobalState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when EnableOutgoingWebhooks is false', () => {
         const props = {...baseProps, enableOutgoingWebhooks: false, hook};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <EditOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should have match state when handleConfirmModal is called', () => {
-        const props = {...baseProps, hook};
-        const wrapper = shallow<EditOutgoingWebhook>(
+    test('should have match state when handleConfirmModal is called', async () => {
+        const newActions = {
+            ...baseProps.actions,
+            updateOutgoingHook: jest.fn().mockReturnValue({data: 'data'}),
+        };
+        const props = {...baseProps, hook, actions: newActions};
+        const {container} = renderWithContext(
             <EditOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        wrapper.setState({showConfirmModal: false});
-        wrapper.instance().handleConfirmModal();
-        expect(wrapper.state('showConfirmModal')).toEqual(true);
+        // Change the callback URLs to trigger the confirm modal
+        const callbackUrlsTextarea = container.querySelector('#callbackUrls') as HTMLTextAreaElement;
+        await userEvent.clear(callbackUrlsTextarea);
+        await userEvent.type(callbackUrlsTextarea, 'https://different.com/callback');
+
+        // Submit form to trigger editOutgoingHook which detects callback_urls change and calls handleConfirmModal
+        await userEvent.click(container.querySelector('#saveWebhook') as HTMLButtonElement);
+
+        // The confirm modal should now be visible
+        await waitFor(() => {
+            expect(screen.getByText('Your changes may break the existing outgoing webhook. Are you sure you would like to update it?')).toBeInTheDocument();
+        });
     });
 
-    test('should have match state when confirmModalDismissed is called', () => {
-        const props = {...baseProps, hook};
-        const wrapper = shallow<EditOutgoingWebhook>(
+    test('should have match state when confirmModalDismissed is called', async () => {
+        const newActions = {
+            ...baseProps.actions,
+            updateOutgoingHook: jest.fn().mockReturnValue({data: 'data'}),
+        };
+        const props = {...baseProps, hook, actions: newActions};
+        const {container} = renderWithContext(
             <EditOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        wrapper.setState({showConfirmModal: true});
-        wrapper.instance().confirmModalDismissed();
-        expect(wrapper.state('showConfirmModal')).toEqual(false);
+        // Change callback URLs to trigger confirm modal
+        const callbackUrlsTextarea = container.querySelector('#callbackUrls') as HTMLTextAreaElement;
+        await userEvent.clear(callbackUrlsTextarea);
+        await userEvent.type(callbackUrlsTextarea, 'https://different.com/callback');
+
+        await userEvent.click(container.querySelector('#saveWebhook') as HTMLButtonElement);
+
+        await waitFor(() => {
+            expect(screen.getByText('Your changes may break the existing outgoing webhook. Are you sure you would like to update it?')).toBeInTheDocument();
+        });
+
+        // Click cancel to dismiss the confirm modal
+        await userEvent.click(screen.getByTestId('cancel-button'));
+
+        await waitFor(() => {
+            expect(screen.queryByText('Your changes may break the existing outgoing webhook. Are you sure you would like to update it?')).not.toBeInTheDocument();
+        });
     });
 
     test('should have match renderExtra', () => {
         const props = {...baseProps, hook};
-        const wrapper = shallow<EditOutgoingWebhook>(
+        const {container} = renderWithContext(
             <EditOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        expect(wrapper.instance().renderExtra()).toMatchSnapshot();
+        // renderExtra renders a ConfirmModal - verify its presence in the DOM
+        expect(container.querySelector('.integrations-backstage-modal')).toMatchSnapshot();
     });
 
-    test('should have match when editOutgoingHook is called', () => {
-        const props = {...baseProps, hook};
-        const wrapper = shallow<EditOutgoingWebhook>(
+    test('should have match when editOutgoingHook is called', async () => {
+        const newActions = {
+            ...baseProps.actions,
+            updateOutgoingHook: jest.fn().mockReturnValue({data: 'data'}),
+        };
+        const props = {...baseProps, hook, actions: newActions};
+        const {container} = renderWithContext(
             <EditOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        const instance = wrapper.instance();
-        instance.handleConfirmModal = jest.fn();
-        instance.submitHook = jest.fn();
-        wrapper.instance().editOutgoingHook(hook);
+        // Submit form without changing content_type, trigger_words or callback_urls
+        // should call submitHook directly (no confirm modal)
+        await userEvent.click(container.querySelector('#saveWebhook') as HTMLButtonElement);
 
-        expect(instance.handleConfirmModal).not.toHaveBeenCalled();
-        expect(instance.submitHook).toHaveBeenCalled();
+        // No confirm modal should appear since nothing breaking changed
+        expect(screen.queryByText('Your changes may break the existing outgoing webhook. Are you sure you would like to update it?')).not.toBeInTheDocument();
+
+        // submitHook should have been called which calls updateOutgoingHook
+        expect(newActions.updateOutgoingHook).toHaveBeenCalled();
     });
 
     test('should have match when submitHook is called on success', async () => {
@@ -125,17 +212,18 @@ describe('components/integrations/EditOutgoingWebhook', () => {
             updateOutgoingHook: jest.fn().mockReturnValue({data: 'data'}),
         };
         const props = {...baseProps, hook, actions: newActions};
-        const wrapper = shallow<EditOutgoingWebhook>(
+        const {container} = renderWithContext(
             <EditOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        const instance = wrapper.instance();
-        wrapper.setState({showConfirmModal: true});
-        await instance.submitHook();
+        // Submit form - no breaking changes so submitHook is called directly
+        await userEvent.click(container.querySelector('#saveWebhook') as HTMLButtonElement);
 
         expect(newActions.updateOutgoingHook).toHaveBeenCalledTimes(1);
-        expect(wrapper.state('serverError')).toEqual('');
-        expect(getHistory().push).toHaveBeenCalledWith(`/${team.name}/integrations/outgoing_webhooks`);
+        await waitFor(() => {
+            expect(mockPush).toHaveBeenCalledWith(`/${team.name}/integrations/outgoing_webhooks`);
+        });
     });
 
     test('should have match when submitHook is called on error', async () => {
@@ -144,14 +232,14 @@ describe('components/integrations/EditOutgoingWebhook', () => {
             updateOutgoingHook: jest.fn().mockReturnValue({data: ''}),
         };
         const props = {...baseProps, hook, actions: newActions};
-        const wrapper = shallow<EditOutgoingWebhook>(
+        const {container} = renderWithContext(
             <EditOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        const instance = wrapper.instance();
-        wrapper.setState({showConfirmModal: true});
-        await instance.submitHook();
+        // Submit form
+        await userEvent.click(container.querySelector('#saveWebhook') as HTMLButtonElement);
 
-        expect(wrapper.state('showConfirmModal')).toEqual(false);
+        expect(newActions.updateOutgoingHook).toHaveBeenCalledTimes(1);
     });
 });

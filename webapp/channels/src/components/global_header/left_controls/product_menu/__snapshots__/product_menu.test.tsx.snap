@@ -46,7 +46,7 @@ exports[`components/global/product_switcher should have an active button state w
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             role="menuitem"
           >
@@ -86,7 +86,7 @@ exports[`components/global/product_switcher should have an active button state w
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -121,9 +121,26 @@ exports[`components/global/product_switcher should have an active button state w
             >
               Boards
             </div>
+            <button
+              aria-label="Open in new tab"
+              class="OpenInNewTabButton-fKoVVp cLFfqU"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+                />
+              </svg>
+            </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -148,6 +165,23 @@ exports[`components/global/product_switcher should have an active button state w
             >
               Playbooks
             </div>
+            <button
+              aria-label="Open in new tab"
+              class="OpenInNewTabButton-fKoVVp cLFfqU"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+                />
+              </svg>
+            </button>
           </a>
           <div
             data-testid="product-menu-list"
@@ -288,7 +322,7 @@ exports[`components/global/product_switcher should match snapshot with product s
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             role="menuitem"
           >
@@ -328,7 +362,7 @@ exports[`components/global/product_switcher should match snapshot with product s
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -363,9 +397,26 @@ exports[`components/global/product_switcher should match snapshot with product s
             >
               Boards
             </div>
+            <button
+              aria-label="Open in new tab"
+              class="OpenInNewTabButton-fKoVVp cLFfqU"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+                />
+              </svg>
+            </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -390,6 +441,23 @@ exports[`components/global/product_switcher should match snapshot with product s
             >
               Playbooks
             </div>
+            <button
+              aria-label="Open in new tab"
+              class="OpenInNewTabButton-fKoVVp cLFfqU"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+                />
+              </svg>
+            </button>
           </a>
           <div
             data-testid="product-menu-list"
@@ -491,7 +559,7 @@ exports[`components/global/product_switcher should render once when there are no
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             role="menuitem"
           >
@@ -531,7 +599,7 @@ exports[`components/global/product_switcher should render once when there are no
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -566,9 +634,26 @@ exports[`components/global/product_switcher should render once when there are no
             >
               Boards
             </div>
+            <button
+              aria-label="Open in new tab"
+              class="OpenInNewTabButton-fKoVVp cLFfqU"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+                />
+              </svg>
+            </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -593,6 +678,23 @@ exports[`components/global/product_switcher should render once when there are no
             >
               Playbooks
             </div>
+            <button
+              aria-label="Open in new tab"
+              class="OpenInNewTabButton-fKoVVp cLFfqU"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+                />
+              </svg>
+            </button>
           </a>
           <div
             data-testid="product-menu-list"
@@ -655,7 +757,7 @@ exports[`components/global/product_switcher should render the correct amount of 
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             role="menuitem"
           >
@@ -695,7 +797,7 @@ exports[`components/global/product_switcher should render the correct amount of 
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -730,9 +832,26 @@ exports[`components/global/product_switcher should render the correct amount of 
             >
               Boards
             </div>
+            <button
+              aria-label="Open in new tab"
+              class="OpenInNewTabButton-fKoVVp cLFfqU"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+                />
+              </svg>
+            </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx RqdsE"
+            class="MenuItem-fJA-dRx eXCaei"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -757,6 +876,23 @@ exports[`components/global/product_switcher should render the correct amount of 
             >
               Playbooks
             </div>
+            <button
+              aria-label="Open in new tab"
+              class="OpenInNewTabButton-fKoVVp cLFfqU"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+                />
+              </svg>
+            </button>
           </a>
           <div
             data-testid="product-menu-list"

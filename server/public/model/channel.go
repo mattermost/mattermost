@@ -25,10 +25,14 @@ var (
 type ChannelType string
 
 const (
-	ChannelTypeOpen    ChannelType = "O"
-	ChannelTypePrivate ChannelType = "P"
-	ChannelTypeDirect  ChannelType = "D"
-	ChannelTypeGroup   ChannelType = "G"
+	ChannelTypeOpen         ChannelType = "O"
+	ChannelTypePrivate      ChannelType = "P"
+	ChannelTypeDirect       ChannelType = "D"
+	ChannelTypeGroup        ChannelType = "G"
+	ChannelTypeOpenBoard    ChannelType = "BO"
+	ChannelTypePrivateBoard ChannelType = "BP"
+
+	ChannelPropsBoardLinkedProperties = "board:linked_properties"
 
 	ChannelGroupMaxUsers       = 8
 	ChannelGroupMinUsers       = 3
@@ -103,6 +107,8 @@ type Channel struct {
 	PolicyEnforced      bool               `json:"policy_enforced"`
 	PolicyIsActive      bool               `json:"policy_is_active"`
 	DefaultCategoryName string             `json:"default_category_name"`
+	ManagedCategoryName string             `json:"managed_category_name"`
+	Discoverable        bool               `json:"discoverable"`
 }
 
 func (o *Channel) Auditable() map[string]any {
@@ -126,6 +132,7 @@ func (o *Channel) Auditable() map[string]any {
 		"policy_enforced":      o.PolicyEnforced,
 		"autotranslation":      o.AutoTranslation,
 		"policy_is_active":     o.PolicyIsActive, // this field is only for logging purposes
+		"discoverable":         o.Discoverable,
 	}
 }
 
@@ -146,20 +153,26 @@ type ChannelsWithCount struct {
 }
 
 type ChannelPatch struct {
-	DisplayName      *string            `json:"display_name"`
-	Name             *string            `json:"name"`
-	Header           *string            `json:"header"`
-	Purpose          *string            `json:"purpose"`
-	GroupConstrained *bool              `json:"group_constrained"`
-	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
-	AutoTranslation  *bool              `json:"autotranslation"`
+	DisplayName         *string            `json:"display_name"`
+	Name                *string            `json:"name"`
+	Header              *string            `json:"header"`
+	Purpose             *string            `json:"purpose"`
+	GroupConstrained    *bool              `json:"group_constrained"`
+	BannerInfo          *ChannelBannerInfo `json:"banner_info"`
+	AutoTranslation     *bool              `json:"autotranslation"`
+	ManagedCategoryName *string            `json:"managed_category_name"`
+	DefaultCategoryName *string            `json:"default_category_name"`
+	Discoverable        *bool              `json:"discoverable"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]any {
 	return map[string]any{
-		"header":            c.Header,
-		"group_constrained": c.GroupConstrained,
-		"purpose":           c.Purpose,
+		"header":                c.Header,
+		"group_constrained":     c.GroupConstrained,
+		"purpose":               c.Purpose,
+		"default_category_name": c.DefaultCategoryName,
+		"managed_category_name": c.ManagedCategoryName,
+		"discoverable":          c.Discoverable,
 	}
 }
 
@@ -261,7 +274,7 @@ func WithID(ID string) ChannelOption {
 func (o *Channel) DeepCopy() *Channel {
 	cCopy := *o
 	if cCopy.SchemeId != nil {
-		cCopy.SchemeId = NewPointer(*o.SchemeId)
+		cCopy.SchemeId = new(*o.SchemeId)
 	}
 	return &cCopy
 }
@@ -287,7 +300,7 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup) {
+	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup || o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -330,6 +343,29 @@ func (o *Channel) IsValid() *AppError {
 		}
 	}
 
+	if o.Discoverable && o.Type != ChannelTypePrivate {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.discoverable.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// IsValidBoard performs the input-validation checks specific to board channels:
+// the channel type must be BO/BP, a TeamId must be set, and DisplayName must be
+// non-empty. Callers are expected to TrimSpace DisplayName before calling.
+func (o *Channel) IsValidBoard() *AppError {
+	if !o.IsBoard() {
+		return NewAppError("Channel.IsValidBoard", "model.channel.is_valid_board.type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if o.TeamId == "" {
+		return NewAppError("Channel.IsValidBoard", "model.channel.is_valid_board.team_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if o.DisplayName == "" {
+		return NewAppError("Channel.IsValidBoard", "model.channel.is_valid_board.display_name.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -359,6 +395,29 @@ func (o *Channel) IsGroupOrDirect() bool {
 
 func (o *Channel) IsOpen() bool {
 	return o.Type == ChannelTypeOpen
+}
+
+func (o *Channel) IsBoard() bool {
+	return o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard
+}
+
+// IsMessageChannel reports whether the channel is one of the message-bearing
+// types (open, private, direct, or group). Returns false for boards and any
+// future non-message channel types.
+func (o *Channel) IsMessageChannel() bool {
+	switch o.Type {
+	case ChannelTypeOpen, ChannelTypePrivate, ChannelTypeDirect, ChannelTypeGroup:
+		return true
+	}
+	return false
+}
+
+func (o *Channel) IsOpenBoard() bool {
+	return o.Type == ChannelTypeOpenBoard
+}
+
+func (o *Channel) IsPrivateBoard() bool {
+	return o.Type == ChannelTypePrivateBoard
 }
 
 func (o *Channel) Patch(patch *ChannelPatch) {
@@ -403,6 +462,14 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 	if patch.AutoTranslation != nil {
 		o.AutoTranslation = *patch.AutoTranslation
+	}
+
+	if patch.DefaultCategoryName != nil {
+		o.DefaultCategoryName = strings.TrimSpace(*patch.DefaultCategoryName)
+	}
+
+	if patch.Discoverable != nil {
+		o.Discoverable = *patch.Discoverable
 	}
 }
 

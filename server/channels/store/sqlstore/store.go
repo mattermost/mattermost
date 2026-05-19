@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"path"
@@ -105,6 +106,7 @@ type SqlStoreStores struct {
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
 	scheduledPost              store.ScheduledPostStore
+	view                       store.ViewStore
 	propertyGroup              store.PropertyGroupStore
 	propertyField              store.PropertyFieldStore
 	propertyValue              store.PropertyValueStore
@@ -115,6 +117,7 @@ type SqlStoreStores struct {
 	recap                      store.RecapStore
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
+	channelJoinRequest         store.ChannelJoinRequestStore
 }
 
 type SqlStore struct {
@@ -146,6 +149,17 @@ type SqlStore struct {
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
+
+	// maxInsertParams overrides defaultMaxInsertParams when > 0. Exposed for
+	// tests that need to force multi-chunk behaviour with small row counts.
+	maxInsertParams int
+}
+
+func (ss *SqlStore) getMaxInsertParams() int {
+	if ss.maxInsertParams > 0 {
+		return ss.maxInsertParams
+	}
+	return defaultMaxInsertParams
 }
 
 func SkipMigrations() Option {
@@ -279,6 +293,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
+	store.stores.view = newSqlViewStore(store)
 	store.stores.propertyGroup = newPropertyGroupStore(store)
 	store.stores.propertyField = newPropertyFieldStore(store)
 	store.stores.propertyValue = newPropertyValueStore(store)
@@ -289,6 +304,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.recap = newSqlRecapStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
+	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -310,7 +326,7 @@ func (ss *SqlStore) initConnection() error {
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace)
 	if ss.metrics != nil {
-		ss.metrics.RegisterDBCollector(ss.masterX.DB.DB, "master")
+		ss.metrics.RegisterDBCollector(ss.masterX.DB().DB, "master")
 	}
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
@@ -422,7 +438,7 @@ func (ss *SqlStore) SetMasterX(db *sql.DB) {
 }
 
 func (ss *SqlStore) GetInternalMasterDB() *sql.DB {
-	return ss.GetMaster().DB.DB
+	return ss.GetMaster().DB().DB
 }
 
 func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
@@ -461,6 +477,17 @@ func (ss *SqlStore) GetReplica() *sqlxDBWrapper {
 	return ss.GetMaster()
 }
 
+func (ss *SqlStore) analyticsContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), time.Duration(*ss.settings.AnalyticsQueryTimeout)*time.Second)
+}
+
+// noTimeoutContext returns a context that suppresses automatic timeout injection
+// by ensureQueryTimeout. Use only for queries that legitimately must be unbounded,
+// such as schema introspection or long-running migrations.
+func (ss *SqlStore) noTimeoutContext() context.Context {
+	return context.WithValue(context.Background(), noTimeoutKey{}, true)
+}
+
 func (ss *SqlStore) monitorReplicas() {
 	t := time.NewTicker(time.Duration(*ss.settings.ReplicaMonitorIntervalSeconds) * time.Second)
 	defer func() {
@@ -482,8 +509,8 @@ func (ss *SqlStore) monitorReplicas() {
 					mlog.Warn("Failed to setup connection. Skipping..", mlog.String("db", name), mlog.Err(err))
 					return
 				}
-				if ss.metrics != nil && r.Load() != nil && r.Load().DB != nil {
-					ss.metrics.UnregisterDBCollector(r.Load().DB.DB, name)
+				if ss.metrics != nil && r.Load() != nil && r.Load().db != nil {
+					ss.metrics.UnregisterDBCollector(r.Load().DB().DB, name)
 				}
 				ss.setDB(r, handle, name)
 			}
@@ -503,17 +530,17 @@ func (ss *SqlStore) setDB(replica *atomic.Pointer[sqlxDBWrapper], handle *sql.DB
 		time.Duration(*ss.settings.QueryTimeout)*time.Second,
 		*ss.settings.Trace))
 	if ss.metrics != nil {
-		ss.metrics.RegisterDBCollector(replica.Load().DB.DB, name)
+		ss.metrics.RegisterDBCollector(replica.Load().DB().DB, name)
 	}
 }
 
 func (ss *SqlStore) GetInternalReplicaDB() *sql.DB {
 	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
-		return ss.GetMaster().DB.DB
+		return ss.GetMaster().DB().DB
 	}
 
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
-	return ss.ReplicaXs[rrNum].Load().DB.DB
+	return ss.ReplicaXs[rrNum].Load().DB().DB
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -861,6 +888,10 @@ func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
 	return ss.stores.channelBookmarks
 }
 
+func (ss *SqlStore) View() store.ViewStore {
+	return ss.stores.view
+}
+
 func (ss *SqlStore) PropertyGroup() store.PropertyGroupStore {
 	return ss.stores.propertyGroup
 }
@@ -895,6 +926,10 @@ func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
 
 func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
 	return ss.stores.temporaryPost
+}
+
+func (ss *SqlStore) ChannelJoinRequest() store.ChannelJoinRequestStore {
+	return ss.stores.channelJoinRequest
 }
 
 func (ss *SqlStore) DropAllTables() {

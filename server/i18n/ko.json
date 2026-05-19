@@ -1474,10 +1474,6 @@
     "translation": "서버 시작중 오류, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "이메일 {{.Email}}, 비밀번호 {{.Password}}를 사용하는 슬랙 봇 계정이 추가되었습니다.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "{{.Username}} 슬랙 봇 계정을 추가할 수 없습니다.\n"
   },
@@ -1500,10 +1496,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\n사용자가 생성되었습니다:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "이메일 {{.Email}}, 비밀번호 {{.Password}}를 사용하는 슬랙 사용자가 추가되었습니다.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -3044,10 +3036,6 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "검색 결과를 디코딩하지 못했습니다"
-  },
-  {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} is already stopped."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -5220,10 +5208,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Mattermost Enterprise license has been disabled."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "엔터프라이즈 에디션 라이선스가 만료되었으며 일부 기능이 비활성화될 수 있습니다. 지금 라이선스를 갱신해주세요."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -8694,10 +8678,6 @@
     "translation": "사용자 지정 프로필 속성 그룹을 등록할 수 없습니다."
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "사용자 지정 프로필 속성 필드를 만들 수 없습니다."
-  },
-  {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
     "translation": "사용자에 대한 사용자 지정 프로필 속성 값을 삭제할 수 없습니다."
   },
@@ -9196,10 +9176,6 @@
   {
     "id": "app.pap.access_control.channel_group_constrained",
     "translation": "채널은 그룹이 제한되어 있으며 액세스 제어 정책을 적용할 수 없습니다."
-  },
-  {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "액세스 제어 정책은 비공개 채널에만 적용할 수 있습니다."
   },
   {
     "id": "app.pap.access_control.channel_shared",

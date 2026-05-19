@@ -65,6 +65,9 @@ const (
 	OnSAMLLoginID                             = 46
 	EmailNotificationWillBeSentID             = 47
 	FileWillBeDownloadedID                    = 48
+	ChannelMemberWillBeAddedID                = 49
+	TeamMemberWillBeAddedID                   = 50
+	ChannelWillBeArchivedID                   = 51
 	TotalHooksID                              = iota
 )
 
@@ -203,6 +206,25 @@ type Hooks interface {
 	// Minimum server version: 5.2
 	ChannelHasBeenCreated(c *Context, channel *model.Channel)
 
+	// ChannelWillBeArchived is invoked before a channel is archived, allowing plugins to
+	// reject the archive operation.
+	//
+	// To reject the archive, return a non-empty string describing why it was rejected.
+	// To allow the archive, return an empty string.
+	//
+	// Minimum server version: 11.7
+	ChannelWillBeArchived(c *Context, channel *model.Channel) string
+
+	// ChannelMemberWillBeAdded is invoked before a member is added to a channel, allowing
+	// plugins to modify the channel member or reject the addition.
+	//
+	// To reject the addition, return a non-empty string describing why it was rejected.
+	// To modify the member, return the replacement, non-nil *model.ChannelMember and an empty string.
+	// To allow the addition without modification, return a nil *model.ChannelMember and an empty string.
+	//
+	// Minimum server version: 11.7
+	ChannelMemberWillBeAdded(c *Context, channelMember *model.ChannelMember) (*model.ChannelMember, string)
+
 	// UserHasJoinedChannel is invoked after the membership has been committed to the database.
 	// If actor is not nil, the user was invited to the channel by the actor.
 	//
@@ -214,6 +236,16 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.2
 	UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+
+	// TeamMemberWillBeAdded is invoked before a member is added to a team, allowing
+	// plugins to modify the team member or reject the addition.
+	//
+	// To reject the addition, return a non-empty string describing why it was rejected.
+	// To modify the member, return the replacement, non-nil *model.TeamMember and an empty string.
+	// To allow the addition without modification, return a nil *model.TeamMember and an empty string.
+	//
+	// Minimum server version: 11.7
+	TeamMemberWillBeAdded(c *Context, teamMember *model.TeamMember) (*model.TeamMember, string)
 
 	// UserHasJoinedTeam is invoked after the membership has been committed to the database.
 	// If actor is not nil, the user was added to the team by the actor.

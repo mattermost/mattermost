@@ -14,7 +14,7 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Interactive Menu - Action Button Error Handling', () => {
     let incomingWebhook;
@@ -58,7 +58,7 @@ describe('Interactive Menu - Action Button Error Handling', () => {
     });
 
     it('MM-65023 should clear error message when successful action is triggered', () => {
-        const payload = getPayloadWithErrorAndSuccess(Cypress.env().webhookBaseUrl);
+        const payload = getPayloadWithErrorAndSuccess(Cypress.expose().webhookBaseUrl);
 
         // # Post an incoming webhook with error and success buttons
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload, waitFor: 'attachment-pretext'});

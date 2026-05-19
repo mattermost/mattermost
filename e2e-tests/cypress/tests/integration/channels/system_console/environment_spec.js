@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @not_cloud
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Environment', () => {
     let townsquareLink;
@@ -256,7 +256,7 @@ describe('Environment', () => {
 
         cy.get('#TestS3Connection').scrollIntoView().should('be.visible').within(() => {
             cy.findByText('Test Connection').should('be.visible').click().wait(TIMEOUTS.ONE_SEC);
-            waitForAlert('Connection unsuccessful: Unable to connect to S3. Verify your Amazon S3 connection authorization parameters and authentication settings.');
+            waitForAlert('Connection unsuccessful: Unable to authenticate against the file storage backend. Verify your credentials and authentication settings.');
         });
     });
 

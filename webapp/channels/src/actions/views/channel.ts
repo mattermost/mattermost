@@ -60,6 +60,7 @@ import {getHistory} from 'utils/browser_history';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
+import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
@@ -77,7 +78,11 @@ export function goToLastViewedChannel(): ActionFuncAsync {
             channelToSwitchTo = getChannelByName(channels, getRedirectChannelNameForTeam(state, getCurrentTeamId(state)));
         }
 
-        return dispatch(switchToChannel(channelToSwitchTo!));
+        const result = await dispatch(switchToChannel(channelToSwitchTo!));
+        if (isChannelPopoutWindow()) {
+            window.close();
+        }
+        return result;
     };
 }
 
@@ -191,9 +196,14 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
             dispatch(selectTeam(''));
             dispatch({type: TeamTypes.LEAVE_TEAM, data: currentTeam});
             getHistory().push('/');
+            if (isChannelPopoutWindow()) {
+                window.close();
+            }
         } else if (channelId === currentChannelId) {
-            // We only need to leave the channel if we are in the channel
             getHistory().push(teamUrl);
+            if (isChannelPopoutWindow()) {
+                window.close();
+            }
         }
 
         return {

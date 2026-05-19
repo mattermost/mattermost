@@ -23,9 +23,9 @@ export const agendaPlugin = {
 
 export const demoPlugin = {
     id: 'com.mattermost.demo-plugin',
-    version: '0.10.0',
-    url: 'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.10.0/com.mattermost.demo-plugin-0.10.0.tar.gz',
-    filename: 'com.mattermost.demo-plugin-0.10.0.tar.gz',
+    version: '0.11.0',
+    url: 'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz',
+    filename: 'mattermost-plugin-demo-v0.11.0.tar.gz',
 };
 
 export const demoPluginOld = {

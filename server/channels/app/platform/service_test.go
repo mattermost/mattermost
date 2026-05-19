@@ -147,7 +147,7 @@ func TestMetrics(t *testing.T) {
 		// there is no config listener for the metrics
 		// we handle it on config save step
 		cfg := th.Service.Config().Clone()
-		cfg.MetricsSettings.Enable = model.NewPointer(true)
+		cfg.MetricsSettings.Enable = new(true)
 		_, _, appErr := th.Service.SaveConfig(cfg, false)
 		require.Nil(t, appErr)
 
@@ -159,7 +159,7 @@ func TestMetrics(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
-		cfg.MetricsSettings.Enable = model.NewPointer(false)
+		cfg.MetricsSettings.Enable = new(false)
 		_, _, appErr = th.Service.SaveConfig(cfg, false)
 		require.Nil(t, appErr)
 
@@ -195,6 +195,7 @@ func TestMetrics(t *testing.T) {
 
 		_ = th.CreateUserOrGuest(t, false)
 
+		th.Shutdown(t)
 		mockMetricsImpl.AssertExpectations(t)
 	})
 }

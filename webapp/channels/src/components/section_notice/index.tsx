@@ -20,6 +20,7 @@ type Props = {
     tertiaryButton?: SectionNoticeButtonProp;
     linkButton?: SectionNoticeButtonProp;
     type?: 'info' | 'success' | 'danger' | 'welcome' | 'warning' | 'hint';
+    iconOverride?: string;
     isDismissable?: boolean;
     onDismissClick?: () => void;
 };
@@ -41,11 +42,12 @@ const SectionNotice = ({
     tertiaryButton,
     linkButton,
     type = 'info',
+    iconOverride,
     isDismissable,
     onDismissClick,
 }: Props) => {
     const intl = useIntl();
-    const icon = iconByType[type];
+    const icon = iconOverride || iconByType[type];
     const showDismiss = Boolean(isDismissable && onDismissClick);
     const hasButtons = Boolean(primaryButton || secondaryButton || tertiaryButton || linkButton);
     return (
@@ -60,19 +62,19 @@ const SectionNotice = ({
                             {primaryButton &&
                                 <SectionNoticeButton
                                     button={primaryButton}
-                                    buttonClass='btn-primary'
+                                    emphasis='primary'
                                 />
                             }
                             {secondaryButton &&
                                 <SectionNoticeButton
                                     button={secondaryButton}
-                                    buttonClass='btn-secondary'
+                                    emphasis='secondary'
                                 />
                             }
                             {tertiaryButton && (
                                 <SectionNoticeButton
                                     button={tertiaryButton}
-                                    buttonClass='btn-tertiary'
+                                    emphasis='tertiary'
                                 />
                             )}
                             {linkButton &&

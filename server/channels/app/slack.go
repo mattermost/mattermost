@@ -39,6 +39,14 @@ func (a *App) SlackImport(rctx request.CTX, fileData multipart.File, fileSize in
 		GeneratePreviewImage:   a.generatePreviewImage,
 		InvalidateAllCaches:    func() *model.AppError { return a.ch.srv.platform.InvalidateAllCaches() },
 		MaxPostSize:            func() int { return a.ch.srv.platform.MaxPostSize() },
+		SendPasswordReset: func(email string) (bool, *model.AppError) {
+			sent, err := a.SendPasswordReset(rctx, email, a.GetSiteURL())
+			if err != nil {
+				return false, err
+			}
+
+			return sent, nil
+		},
 		PrepareImage: func(fileData []byte) (image.Image, string, func(), error) {
 			img, imgType, release, err := prepareImage(rctx, a.ch.imgDecoder, bytes.NewReader(fileData))
 			if err != nil {
@@ -83,7 +91,7 @@ func (a *App) ProcessSlackText(rctx request.CTX, text string) string {
 // It's based on the spec from slack: https://api.slack.com/docs/attachments.
 func (a *App) ProcessMessageAttachments(rctx request.CTX, attachments []*model.MessageAttachment) []*model.MessageAttachment {
 	var nonNilAttachments = model.StringifyMessageAttachmentFieldValue(attachments)
-	for _, attachment := range attachments {
+	for _, attachment := range nonNilAttachments {
 		attachment.Pretext = a.ProcessSlackText(rctx, attachment.Pretext)
 		attachment.Text = a.ProcessSlackText(rctx, attachment.Text)
 		attachment.Title = a.ProcessSlackText(rctx, attachment.Title)

@@ -9,7 +9,7 @@
 
 // Group: @channels @messaging @plugin @not_cloud
 
-import {demoPlugin} from '../../../utils/plugins';
+import {demoPlugin} from '@/utils/plugins';
 
 describe('Messaging', () => {
     let testTeam;

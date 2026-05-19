@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -88,4 +89,80 @@ func TestMetricsRouter(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAddPluginLabelToMetrics(t *testing.T) {
+	for name, tc := range map[string]struct {
+		input    []string
+		pluginID string
+		expected []string
+	}{
+		"metric without labels": {
+			input:    []string{"my_metric 42"},
+			pluginID: "com.example.plugin",
+			expected: []string{
+				"# TYPE my_metric untyped",
+				`my_metric{plugin_id="com.example.plugin"} 42`,
+			},
+		},
+		"metric with existing labels": {
+			input:    []string{`my_metric{env="prod"} 42`},
+			pluginID: "com.example.plugin",
+			expected: []string{
+				"# TYPE my_metric untyped",
+				`my_metric{env="prod",plugin_id="com.example.plugin"} 42`,
+			},
+		},
+		"help and type comments are preserved": {
+			input: []string{
+				"# HELP my_metric A metric",
+				"# TYPE my_metric gauge",
+				"my_metric 42",
+			},
+			pluginID: "my-plugin",
+			expected: []string{
+				"# HELP my_metric A metric",
+				"# TYPE my_metric gauge",
+				`my_metric{plugin_id="my-plugin"} 42`,
+			},
+		},
+		"empty lines are dropped": {
+			// blank lines carry no semantic meaning in Prometheus text format
+			input:    []string{"", "my_metric 1"},
+			pluginID: "p",
+			expected: []string{
+				"# TYPE my_metric untyped",
+				`my_metric{plugin_id="p"} 1`,
+			},
+		},
+		"existing plugin_id label is replaced not duplicated": {
+			input:    []string{`my_metric{plugin_id="old-plugin"} 42`},
+			pluginID: "new-plugin",
+			expected: []string{
+				`my_metric{plugin_id="new-plugin"} 42`,
+			},
+		},
+		"multiple metrics are sorted and separated": {
+			input:    []string{"metric_a 1", "metric_b 2"},
+			pluginID: "plug",
+			expected: []string{
+				"# TYPE metric_a untyped",
+				`metric_a{plugin_id="plug"} 1`,
+				"# TYPE metric_b untyped",
+				`metric_b{plugin_id="plug"} 2`,
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			result := addPluginLabelToMetrics(strings.Join(tc.input, "\n")+"\n", tc.pluginID)
+			for _, line := range tc.expected {
+				assert.Contains(t, result, line)
+			}
+		})
+	}
+}
+
+func TestAddPluginLabelToMetricsMalformedInput(t *testing.T) {
+	result := addPluginLabelToMetrics("not valid prometheus text {{{", "my-plugin")
+	assert.Equal(t, "", result)
 }

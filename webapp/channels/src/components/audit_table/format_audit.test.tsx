@@ -2,12 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {Audit} from '@mattermost/types/audits';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import FormatAudit from './format_audit';
 import type {Props} from './format_audit';
@@ -22,7 +20,7 @@ describe('components/audit_table/audit_row/AuditRow', () => {
 
     const channelName = 'default-name';
     const userId = 'user_id_1';
-    const store = mockStore({
+    const state = {
         entities: {
             channels: {
                 channels: {
@@ -31,7 +29,7 @@ describe('components/audit_table/audit_row/AuditRow', () => {
                         name: channelName,
                         display_name: 'Default',
                         delete_at: 0,
-                        type: 'O',
+                        type: 'O' as const,
                         team_id: 'team_id',
                     },
                 },
@@ -44,17 +42,16 @@ describe('components/audit_table/audit_row/AuditRow', () => {
                 },
             },
         },
-    });
+    };
 
-    const wrapper = (props: Props) => {
-        return mountWithIntl(
-            <Provider store={store}>
-                <table>
-                    <tbody>
-                        <FormatAudit {...props}/>
-                    </tbody>
-                </table>
-            </Provider>,
+    const renderComponent = (props: Props) => {
+        return renderWithContext(
+            <table>
+                <tbody>
+                    <FormatAudit {...props}/>
+                </tbody>
+            </table>,
+            state,
         );
     };
     test('should match snapshot with channel audit', () => {
@@ -69,7 +66,8 @@ describe('components/audit_table/audit_row/AuditRow', () => {
         };
         const props = {...baseProps, audit};
 
-        expect(wrapper(props)).toMatchSnapshot();
+        const {container} = renderComponent(props);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with user audit', () => {
@@ -83,7 +81,8 @@ describe('components/audit_table/audit_row/AuditRow', () => {
             user_id: userId,
         };
         const props = {...baseProps, audit};
-        expect(wrapper(props)).toMatchSnapshot();
+        const {container} = renderComponent(props);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with user audit', () => {
@@ -97,16 +96,15 @@ describe('components/audit_table/audit_row/AuditRow', () => {
             user_id: userId,
         };
         const props = {...baseProps, audit};
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <table>
-                    <tbody>
-                        <FormatAudit {...props}/>
-                    </tbody>
-                </table>
-            </Provider>,
+        const {container} = renderWithContext(
+            <table>
+                <tbody>
+                    <FormatAudit {...props}/>
+                </tbody>
+            </table>,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

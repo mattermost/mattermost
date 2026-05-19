@@ -10,9 +10,10 @@
 // Stage: @prod
 // Group: @channels @scroll
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {postListOfMessages, scrollCurrentChannelFromTop} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Scroll', () => {
     let firstPostBeforeScroll;

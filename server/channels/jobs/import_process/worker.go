@@ -124,8 +124,16 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		defer jsonFile.Close()
 
 		extractContent := job.Data["extract_content"] == "true"
+
+		numWorkers := runtime.NumCPU()
+		if workersStr, ok := job.Data["workers"]; ok {
+			if n, err := strconv.Atoi(workersStr); err == nil && n > 0 {
+				numWorkers = n
+			}
+		}
+
 		// do the actual import.
-		lineNumber, appErr := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, extractContent, runtime.NumCPU(), model.ExportDataDir)
+		lineNumber, appErr := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir)
 		if appErr != nil {
 			job.Data["line_number"] = strconv.Itoa(lineNumber)
 			return appErr

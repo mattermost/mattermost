@@ -6,6 +6,7 @@ import React, {useRef, useState, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
@@ -14,7 +15,6 @@ import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePlu
 import GetPublicModal from 'components/get_public_link_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import WithTooltip from 'components/with_tooltip';
 
 import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
 import {trimFilename} from 'utils/file_utils';
@@ -405,7 +405,7 @@ export default function FileAttachment(props: Props) {
                 data-testid='post-image__column'
             >
                 {fileThumbnail}
-                <div className='post-image__details'>
+                <div className={classNames('post-image__details', {compact: compactDisplay})}>
                     {fileDetail}
                     {fileActions}
                     {filenameOverlay}

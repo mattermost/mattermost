@@ -14,8 +14,10 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {createPrivateChannel} from '../enterprise/elasticsearch_autocomplete/helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 const channelType = {
     all: 'Channel Type: All',

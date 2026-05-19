@@ -13,13 +13,14 @@
 import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
 
-import {getRandomId} from '../../../../utils';
-
 import {
     enableElasticSearch,
     searchAndVerifyChannel,
     searchAndVerifyUser,
 } from './helpers';
+
+import {getRandomId} from '@/utils';
+
 
 describe('Autocomplete with Elasticsearch - Renaming', () => {
     let testUser: UserProfile;

@@ -1,14 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import {generateId} from 'mattermost-redux/utils/helpers';
 
-import Markdown from 'components/markdown';
-
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper as UtilsTestHelper} from 'utils/test_helper';
 
 import Bot from './bot';
@@ -27,7 +24,7 @@ describe('components/integrations/bots/Bot', () => {
     it('regular bot', () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1'});
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        const wrapper = shallow(
+        renderWithContext(
             <Bot
                 bot={bot}
                 user={user}
@@ -39,41 +36,20 @@ describe('components/integrations/bots/Bot', () => {
             />,
         );
 
-        expect(wrapper.contains(bot.display_name + ' (@' + bot.username + ')')).toEqual(true);
-        expect(wrapper.contains(<Markdown message={bot.description}/>)).toEqual(true);
-        expect(wrapper.contains('plugin')).toEqual(true);
+        expect(screen.getByText(/\(@\)/)).toBeInTheDocument();
+        expect(screen.getByText(/plugin/)).toBeInTheDocument();
 
         // if bot managed by plugin, remove ability to edit from UI
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.create_token'
-                defaultMessage='Create New Token'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bots.manage.edit'
-                defaultMessage='Edit'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.disable'
-                defaultMessage='Disable'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.enable'
-                defaultMessage='Enable'
-            />,
-        )).toEqual(false);
+        expect(screen.queryByText('Create New Token')).not.toBeInTheDocument();
+        expect(screen.queryByText('Edit')).not.toBeInTheDocument();
+        expect(screen.queryByText(/^Disable$/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
     });
 
     it('app bot', () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1'});
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        const wrapper = shallow(
+        renderWithContext(
             <Bot
                 bot={bot}
                 user={user}
@@ -85,42 +61,21 @@ describe('components/integrations/bots/Bot', () => {
             />,
         );
 
-        expect(wrapper.contains(bot.display_name + ' (@' + bot.username + ')')).toEqual(true);
-        expect(wrapper.contains(<Markdown message={bot.description}/>)).toEqual(true);
-        expect(wrapper.contains('Apps Framework')).toEqual(true);
+        expect(screen.getByText(/\(@\)/)).toBeInTheDocument();
+        expect(screen.getByText(/Apps Framework/)).toBeInTheDocument();
 
-        // if bot managed by plugin, remove ability to edit from UI
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.create_token'
-                defaultMessage='Create New Token'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bots.manage.edit'
-                defaultMessage='Edit'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.disable'
-                defaultMessage='Disable'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.enable'
-                defaultMessage='Enable'
-            />,
-        )).toEqual(false);
+        // if bot managed by app framework, ability to edit from UI is retained
+        expect(screen.getByText('Create New Token')).toBeInTheDocument();
+        expect(screen.getByText('Edit')).toBeInTheDocument();
+        expect(screen.getByText('Disable')).toBeInTheDocument();
+        expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
     });
 
     it('disabled bot', () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1'});
         bot.delete_at = 100; // disabled
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        const wrapper = shallow(
+        renderWithContext(
             <Bot
                 bot={bot}
                 user={user}
@@ -131,40 +86,19 @@ describe('components/integrations/bots/Bot', () => {
                 fromApp={false}
             />,
         );
-        expect(wrapper.contains(bot.display_name + ' (@' + bot.username + ')')).toEqual(true);
-        expect(wrapper.contains(<Markdown message={bot.description}/>)).toEqual(true);
-        expect(wrapper.contains('plugin')).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.create_token'
-                defaultMessage='Create New Token'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bots.manage.edit'
-                defaultMessage='Edit'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.disable'
-                defaultMessage='Disable'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.enable'
-                defaultMessage='Enable'
-            />,
-        )).toEqual(true);
+        expect(screen.getByText(/\(@\)/)).toBeInTheDocument();
+        expect(screen.getByText(/plugin/)).toBeInTheDocument();
+        expect(screen.queryByText('Create New Token')).not.toBeInTheDocument();
+        expect(screen.queryByText('Edit')).not.toBeInTheDocument();
+        expect(screen.queryByText(/^Disable$/)).not.toBeInTheDocument();
+        expect(screen.getByText('Enable')).toBeInTheDocument();
     });
 
     it('bot with owner', () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: '1'});
         const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        const wrapper = shallow(
+        renderWithContext(
             <Bot
                 bot={bot}
                 owner={owner}
@@ -175,28 +109,13 @@ describe('components/integrations/bots/Bot', () => {
                 fromApp={false}
             />,
         );
-        expect(wrapper.contains(owner.username)).toEqual(true);
-        expect(wrapper.contains('plugin')).toEqual(false);
+        expect(screen.getByText(new RegExp(owner.username))).toBeInTheDocument();
+        expect(screen.queryByText(/plugin/)).not.toBeInTheDocument();
 
         // if bot is not managed by plugin, ability to edit from UI is retained
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.create_token'
-                defaultMessage='Create New Token'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bots.manage.edit'
-                defaultMessage='Edit'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='bot.manage.disable'
-                defaultMessage='Disable'
-            />,
-        )).toEqual(true);
+        expect(screen.getByText('Create New Token')).toBeInTheDocument();
+        expect(screen.getByText('Edit')).toBeInTheDocument();
+        expect(screen.getByText('Disable')).toBeInTheDocument();
     });
 
     it('bot with access tokens', () => {
@@ -210,7 +129,7 @@ describe('components/integrations/bots/Bot', () => {
             }),
         };
 
-        const wrapper = shallow(
+        renderWithContext(
             <Bot
                 bot={bot}
                 owner={undefined}
@@ -222,19 +141,9 @@ describe('components/integrations/bots/Bot', () => {
             />,
         );
 
-        expect(wrapper.contains(tokenId)).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='user.settings.tokens.deactivate'
-                defaultMessage='Disable'
-            />,
-        )).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='user.settings.tokens.activate'
-                defaultMessage='Enable'
-            />,
-        )).toEqual(false);
+        expect(screen.getByText(tokenId)).toBeInTheDocument();
+        expect(screen.getByText(/^Disable$/)).toBeInTheDocument();
+        expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
     });
 
     it('bot with disabled access tokens', () => {
@@ -250,7 +159,7 @@ describe('components/integrations/bots/Bot', () => {
             }),
         };
 
-        const wrapper = shallow(
+        renderWithContext(
             <Bot
                 bot={bot}
                 owner={undefined}
@@ -262,18 +171,8 @@ describe('components/integrations/bots/Bot', () => {
             />,
         );
 
-        expect(wrapper.contains(tokenId)).toEqual(true);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='user.settings.tokens.deactivate'
-                defaultMessage='Disable'
-            />,
-        )).toEqual(false);
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='user.settings.tokens.activate'
-                defaultMessage='Enable'
-            />,
-        )).toEqual(true);
+        expect(screen.getByText(tokenId)).toBeInTheDocument();
+        expect(screen.queryByText(/^Disable$/)).not.toBeInTheDocument();
+        expect(screen.getByText(/^Enable$/)).toBeInTheDocument();
     });
 });

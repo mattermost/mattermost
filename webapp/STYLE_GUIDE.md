@@ -100,7 +100,10 @@ The following guidelines should be applied to both new and existing code. Howeve
 
 ### Dependencies & Packages
 
-- **React Bootstrap**: Avoid using React Bootstrap directly. Use `GenericModal` from `@mattermost/components` instead of React Bootstrap's `Modal`.
+- **React Bootstrap**: Avoid using React Bootstrap directly.
+    - **Modals**: Use `GenericModal` from `@mattermost/components` instead of React Bootstrap's `Modal`.
+    - **Buttons**: Use `Button` from `@mattermost/shared` instead of React Bootstrap's `Button` or raw Bootstrap like `<button class="btn btn-primary">`.
+    - **Tooltips**: Use `WithTooltip` from `@mattermost/shared` instead of React Bootstrap's `OverlayTrigger` and/or `Tooltip`.
 - **MUI**: Consult with the team before using MUI. If it is used, wrap the usage in another component to avoid leaking implementation details.
 - **Popovers**: Use `WithTooltip` for simple tooltips and Floating UI for more advanced usage.
 - **Icons**: Prefer using icon components from `@mattermost/compass-icons` for icons.

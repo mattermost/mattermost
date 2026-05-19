@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import ManageTeamsDropdown from 'components/admin_console/manage_teams_modal/manage_teams_dropdown';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('ManageTeamsDropdown', () => {
@@ -31,11 +31,12 @@ describe('ManageTeamsDropdown', () => {
     };
 
     test('should match snapshot for team member', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ManageTeamsDropdown {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Team Member')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot for system admin', () => {
@@ -49,11 +50,12 @@ describe('ManageTeamsDropdown', () => {
             user,
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ManageTeamsDropdown {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('System Admin')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot for team admin', () => {
@@ -73,11 +75,12 @@ describe('ManageTeamsDropdown', () => {
             teamMember,
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ManageTeamsDropdown {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Team Admin')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot for guest', () => {
@@ -96,10 +99,11 @@ describe('ManageTeamsDropdown', () => {
             teamMember,
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ManageTeamsDropdown {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Guest')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 });
