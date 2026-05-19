@@ -345,11 +345,13 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 		actorUserId = generatedByUserID
 	}
 
-	if u, uErr := a.GetUser(actorUserId); uErr == nil {
-		out.ActorUsername = u.Username
-		out.ActorUserId = u.Id
-	} else {
-		rctx.Logger().Warn("Failed to fetch report generator user for flagged post report", mlog.String("user_id", generatedByUserID), mlog.Err(uErr))
+	if actorUserId != "" {
+		if u, uErr := a.GetUser(actorUserId); uErr == nil {
+			out.ActorUsername = u.Username
+			out.ActorUserId = u.Id
+		} else {
+			rctx.Logger().Warn("Failed to fetch report generator user for flagged post report", mlog.String("user_id", generatedByUserID), mlog.Err(uErr))
+		}
 	}
 
 	switch decodePropertyString(rctx, byName, ContentFlaggingPropertyNameStatus) {
