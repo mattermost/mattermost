@@ -57,6 +57,42 @@ var commonDateTimeFormats = []string{
 
 var PostActionRetainPropKeys = []string{PostPropsFromWebhook, PostPropsOverrideUsername, PostPropsOverrideIconURL}
 
+// PostActionPreserve captures post fields preserved across an interactive action update.
+type PostActionPreserve struct {
+	Retain               map[string]any
+	Remove               []string
+	OriginalProps        map[string]any
+	OriginalIsPinned     bool
+	OriginalHasReactions bool
+	RootPostId           string
+}
+
+// PostActionPreserveState returns retain/remove props and metadata used when applying integration responses.
+func (o *Post) PostActionPreserveState() PostActionPreserve {
+	retain := map[string]any{}
+	remove := []string{}
+	for _, key := range PostActionRetainPropKeys {
+		value, ok := o.GetProps()[key]
+		if ok {
+			retain[key] = value
+		} else {
+			remove = append(remove, key)
+		}
+	}
+	rootPostId := o.Id
+	if o.RootId != "" {
+		rootPostId = o.RootId
+	}
+	return PostActionPreserve{
+		Retain:               retain,
+		Remove:               remove,
+		OriginalProps:        o.GetProps(),
+		OriginalIsPinned:     o.IsPinned,
+		OriginalHasReactions: o.HasReactions,
+		RootPostId:           rootPostId,
+	}
+}
+
 type DoPostActionRequest struct {
 	SelectedOption string            `json:"selected_option,omitempty"`
 	Cookie         string            `json:"cookie,omitempty"`
@@ -1024,6 +1060,12 @@ func encryptPostActionCookie(plain string, secret []byte) (string, error) {
 	base64.StdEncoding.Encode(encoded, combined)
 
 	return string(encoded), nil
+}
+
+// EncryptPostActionCookie encrypts a plaintext post action cookie payload.
+// Exposed for testing.
+func EncryptPostActionCookie(plain string, secret []byte) (string, error) {
+	return encryptPostActionCookie(plain, secret)
 }
 
 func DecryptPostActionCookie(encoded string, secret []byte) (string, error) {

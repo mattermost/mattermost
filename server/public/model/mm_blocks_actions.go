@@ -5,9 +5,24 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 )
+
+var (
+	// ErrMmBlocksActionNotFound is returned when the action id is missing or not an executable mm_blocks action.
+	ErrMmBlocksActionNotFound = errors.New("mm_blocks action not found")
+	// ErrMmBlocksOpenURLEmpty is returned when an openURL action has no url.
+	ErrMmBlocksOpenURLEmpty = errors.New("openURL action requires a non-empty url")
+)
+
+// MmBlocksActionResolved is the outcome of resolving an mm_blocks action for execution.
+type MmBlocksActionResolved struct {
+	OpenURLGoto string
+	ExternalURL string
+	Context     map[string]any
+}
 
 const (
 	MmBlocksActionTypeExternal = "external"
@@ -91,6 +106,41 @@ func (m *MmBlocksActionCookie) ActionSpec(actionID string) *MmBlocksActionSpec {
 		return nil
 	}
 	return mmBlocksEntryMapToSpec(entryMap)
+}
+
+// ResolveMmBlocksAction resolves spec for execution: openURL returns OpenURLGoto; external returns ExternalURL and Context.
+func ResolveMmBlocksAction(spec *MmBlocksActionSpec, actionID string, clientQuery map[string]string) (*MmBlocksActionResolved, error) {
+	if spec == nil {
+		return nil, fmt.Errorf("mm_blocks action_id=%s: %w", actionID, ErrMmBlocksActionNotFound)
+	}
+	switch spec.Type {
+	case MmBlocksActionTypeOpenURL:
+		if spec.URL == "" {
+			return nil, ErrMmBlocksOpenURLEmpty
+		}
+		gotoURL, err := MergeQueryIntoURL(spec.URL, spec.Query)
+		if err != nil {
+			return nil, err
+		}
+		return &MmBlocksActionResolved{OpenURLGoto: gotoURL}, nil
+
+	case MmBlocksActionTypeExternal:
+		if spec.URL == "" {
+			return nil, fmt.Errorf("mm_blocks action_id=%s: %w", actionID, ErrMmBlocksActionNotFound)
+		}
+		upstreamURL, err := MergeQueryIntoURL(spec.URL, spec.Query)
+		if err != nil {
+			return nil, err
+		}
+		upstreamURL, err = MergeQueryIntoURL(upstreamURL, clientQuery)
+		if err != nil {
+			return nil, err
+		}
+		return &MmBlocksActionResolved{ExternalURL: upstreamURL, Context: spec.Context}, nil
+
+	default:
+		return nil, fmt.Errorf("mm_blocks action_id=%s: %w", actionID, ErrMmBlocksActionNotFound)
+	}
 }
 
 // MergeQueryIntoURL merges q into rawURL's query string; existing keys are overwritten by q.

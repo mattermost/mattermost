@@ -162,6 +162,235 @@ func TestPostActionCookies(t *testing.T) {
 	}
 }
 
+func TestDoPostActionCookieHandling(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	handler := &testHandler{t}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	secret := th.App.PostActionCookieSecret()
+	actionID := model.NewId()
+
+	buildLegacyCookiePost := func(channelID, userID string) (*model.Post, string) {
+		t.Helper()
+		post := &model.Post{
+			Id:        model.NewId(),
+			Type:      model.PostTypeEphemeral,
+			UserId:    userID,
+			ChannelId: channelID,
+			CreateAt:  model.GetMillis(),
+			UpdateAt:  model.GetMillis(),
+			Props: map[string]any{
+				model.PostPropsAttachments: []*model.MessageAttachment{
+					{
+						Actions: []*model.PostAction{
+							{
+								Id:   actionID,
+								Name: "action",
+								Type: model.PostActionTypeButton,
+								Integration: &model.PostActionIntegration{
+									URL: server.URL,
+									Context: map[string]any{
+										"test-key": "test-value",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		post = model.AddPostActionCookies(post, secret)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+		require.True(t, ok)
+		require.Len(t, attachments, 1)
+		require.Len(t, attachments[0].Actions, 1)
+		return post, attachments[0].Actions[0].Cookie
+	}
+
+	t.Run("invalid encrypted cookie returns bad request", func(t *testing.T) {
+		post, _ := buildLegacyCookiePost(th.BasicChannel.Id, th.BasicUser.Id)
+		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, actionID, "", "not-a-valid-cookie", nil, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("malformed cookie payload returns bad request", func(t *testing.T) {
+		post, _ := buildLegacyCookiePost(th.BasicChannel.Id, th.BasicUser.Id)
+		enc, encErr := model.EncryptPostActionCookie("not-json", secret)
+		require.NoError(t, encErr)
+		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, actionID, "", enc, nil, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("legacy cookie with nonexistent channel returns not found", func(t *testing.T) {
+		post, _ := buildLegacyCookiePost(th.BasicChannel.Id, th.BasicUser.Id)
+		enc, encErr := model.EncryptPostActionCookie(mustJSON(t, &model.PostActionCookie{
+			PostId:    post.Id,
+			ChannelId: model.NewId(),
+			Type:      model.PostActionTypeButton,
+			Integration: &model.PostActionIntegration{
+				URL: server.URL,
+			},
+		}), secret)
+		require.NoError(t, encErr)
+		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, actionID, "", enc, nil, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("legacy cookie without channel read permission returns forbidden", func(t *testing.T) {
+		client2 := th.CreateClient()
+		th.LoginBasic2WithClient(t, client2)
+		privateChannel := th.CreateChannelWithClient(t, client2, model.ChannelTypePrivate)
+
+		post, cookie := buildLegacyCookiePost(privateChannel.Id, th.BasicUser2.Id)
+		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, actionID, "", cookie, nil, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("mm_blocks cookie without channel read permission returns forbidden", func(t *testing.T) {
+		client2 := th.CreateClient()
+		th.LoginBasic2WithClient(t, client2)
+		privateChannel := th.CreateChannelWithClient(t, client2, model.ChannelTypePrivate)
+		mmActionID := "mm_blocks_act"
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			Type:      model.PostTypeEphemeral,
+			UserId:    th.BasicUser2.Id,
+			ChannelId: privateChannel.Id,
+			CreateAt:  model.GetMillis(),
+			UpdateAt:  model.GetMillis(),
+			Props: map[string]any{
+				model.PostPropsMmBlocksActions: map[string]any{
+					mmActionID: map[string]any{
+						"type": model.MmBlocksActionTypeExternal,
+						"url":  server.URL,
+					},
+				},
+			},
+		}
+		post = model.AddPostActionCookies(post, secret)
+		cookie, ok := post.GetProp(model.PostPropsMmBlocksActions).(string)
+		require.True(t, ok)
+		require.NotEmpty(t, cookie)
+
+		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, mmActionID, "", cookie, nil, model.PostActionIntegrationFormatMmBlock)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("mm_blocks cookie allows action when user can read channel", func(t *testing.T) {
+		mmActionID := "mm_blocks_act"
+		post := &model.Post{
+			Id:        model.NewId(),
+			Type:      model.PostTypeEphemeral,
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			UpdateAt:  model.GetMillis(),
+			Props: map[string]any{
+				model.PostPropsMmBlocksActions: map[string]any{
+					mmActionID: map[string]any{
+						"type": model.MmBlocksActionTypeExternal,
+						"url":  server.URL,
+						"context": map[string]any{
+							"test-key": "test-value",
+						},
+					},
+				},
+			},
+		}
+		post = model.AddPostActionCookies(post, secret)
+		cookie, ok := post.GetProp(model.PostPropsMmBlocksActions).(string)
+		require.True(t, ok)
+		require.NotEmpty(t, cookie)
+
+		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, mmActionID, "", cookie, nil, model.PostActionIntegrationFormatMmBlock)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("without cookie requires read post permission", func(t *testing.T) {
+		client2 := th.CreateClient()
+		th.LoginBasic2WithClient(t, client2)
+		privateChannel := th.CreateChannelWithClient(t, client2, model.ChannelTypePrivate)
+
+		post, _, err := client2.CreatePost(context.Background(), &model.Post{
+			ChannelId: privateChannel.Id,
+			Message:   "interactive",
+			Props: map[string]any{
+				model.PostPropsAttachments: []*model.MessageAttachment{
+					{
+						Actions: []*model.PostAction{
+							{
+								Id:   actionID,
+								Name: "action",
+								Type: model.PostActionTypeButton,
+								Integration: &model.PostActionIntegration{
+									URL: server.URL,
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, actionID, "", "", nil, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("without cookie allows action when user can read post", func(t *testing.T) {
+		post, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "interactive",
+			Props: map[string]any{
+				model.PostPropsAttachments: []*model.MessageAttachment{
+					{
+						Actions: []*model.PostAction{
+							{
+								Id:   actionID,
+								Name: "action",
+								Type: model.PostActionTypeButton,
+								Integration: &model.PostActionIntegration{
+									URL: server.URL,
+									Context: map[string]any{
+										"test-key": "test-value",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, actionID, "", "", nil, "")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+}
+
+func mustJSON(t *testing.T, v any) string {
+	t.Helper()
+	b, err := json.Marshal(v)
+	require.NoError(t, err)
+	return string(b)
+}
+
 func TestOpenDialog(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

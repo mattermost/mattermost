@@ -10,7 +10,7 @@ const ClientOAuth2 = require('client-oauth2');
 const webhookUtils = require('./utils/webhook_utils');
 const postMessageAs = require('./tests/plugins/post_message_as');
 
-const port = 3030;
+const port = 3000;
 
 const server = express();
 server.use(express.json());
@@ -180,7 +180,6 @@ function postSlackCompatibleMessageResponse(req, res) {
  * @see model.PostActionIntegrationResponse
  */
 function postMmBlocksIntegration(req, res) {
-    console.log('postMmBlocksIntegration', req.body);
     const userName = req.body && req.body.user_name ? req.body.user_name : 'unknown';
 
     res.setHeader('Content-Type', 'application/json');
@@ -195,8 +194,6 @@ function postMmBlocksIntegration(req, res) {
  * (persisted webhook post or ephemeral mm_blocks post).
  */
 function postMmBlocksIntegrationUpdate(req, res) {
-    console.log('postMmBlocksIntegrationUpdate', req.body);
-
     res.setHeader('Content-Type', 'application/json');
     return res.status(200).json({
         update: {
@@ -216,8 +213,6 @@ function postMmBlocksIntegrationUpdate(req, res) {
 
 /** Echoes URL query parameters Mattermost merged onto the integration request (action query + block query). */
 function postMmBlocksIntegrationEchoQuery(req, res) {
-    console.log('postMmBlocksIntegrationEchoQuery', req.query, req.body);
-
     const entries = Object.keys(req.query || {})
         .sort()
         .map((k) => `${k}=${String(req.query[k])}`);
@@ -232,8 +227,6 @@ function postMmBlocksIntegrationEchoQuery(req, res) {
 
 /** Echoes `context.test_marker` from the Mattermost integration POST body for mm_blocks external actions. */
 function postMmBlocksIntegrationEchoContext(req, res) {
-    console.log('postMmBlocksIntegrationEchoContext', req.body);
-
     const ctx = (req.body && req.body.context) || {};
     const marker =
         typeof ctx.test_marker === 'string' ? ctx.test_marker : JSON.stringify(ctx.test_marker ?? null);
@@ -247,8 +240,6 @@ function postMmBlocksIntegrationEchoContext(req, res) {
 
 /** Echoes `context.selected_option` from the Mattermost integration POST for mm_blocks static_select. */
 function postMmBlocksIntegrationStaticSelect(req, res) {
-    console.log('postMmBlocksIntegrationStaticSelect', req.body);
-
     const selected = req.body && req.body.context && req.body.context.selected_option;
     const label = typeof selected === 'string' ? selected : JSON.stringify(selected ?? null);
 

@@ -31,6 +31,35 @@ func TestMergeQueryIntoURL(t *testing.T) {
 	})
 }
 
+func TestResolveMmBlocksAction(t *testing.T) {
+	t.Run("openURL", func(t *testing.T) {
+		resolved, err := ResolveMmBlocksAction(&MmBlocksActionSpec{
+			Type:  MmBlocksActionTypeOpenURL,
+			URL:   "https://example.com/page",
+			Query: map[string]string{"a": "b"},
+		}, "open1", nil)
+		require.NoError(t, err)
+		assert.Contains(t, resolved.OpenURLGoto, "a=b")
+	})
+
+	t.Run("external merges client query", func(t *testing.T) {
+		resolved, err := ResolveMmBlocksAction(&MmBlocksActionSpec{
+			Type: MmBlocksActionTypeExternal,
+			URL:  "https://hooks.example.com/x",
+			Context: map[string]any{"k": "v"},
+		}, "ext1", map[string]string{"client": "q"})
+		require.NoError(t, err)
+		assert.Contains(t, resolved.ExternalURL, "client=q")
+		assert.Equal(t, "v", resolved.Context["k"])
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		_, err := ResolveMmBlocksAction(nil, "missing", nil)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrMmBlocksActionNotFound)
+	})
+}
+
 func TestPostGetMmBlocksActionSpec(t *testing.T) {
 	p := &Post{}
 	p.SetProps(StringInterface{
