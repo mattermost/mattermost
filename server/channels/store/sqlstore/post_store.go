@@ -245,7 +245,7 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 		}
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return posts, -1, errors.Wrap(err, "begin_transaction")
 	}
@@ -466,7 +466,7 @@ func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) 
 		post.ValidateProps(rctx.Logger())
 	}
 
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, -1, errors.Wrap(err, "begin_transaction")
 	}
@@ -970,7 +970,7 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 // Soft deletes a post
 // and cleans up the thread if it's a comment
 func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, deleteByID string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -1025,7 +1025,7 @@ func (s *SqlPostStore) PermanentDelete(rctx request.CTX, postID string) (err err
 }
 
 func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -1058,7 +1058,7 @@ func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 // - Read Receipts
 // - Thread replies if post is a root post
 func (s *SqlPostStore) PermanentDeleteAssociatedData(postIds []string) error {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -1112,7 +1112,7 @@ type postIds struct {
 
 func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error) {
 	results := []postIds{}
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -1200,7 +1200,7 @@ func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) er
 // deletes all reactions
 // no thread comment cleanup needed, since we are deleting threads and thread memberships
 func (s *SqlPostStore) PermanentDeleteByChannel(rctx request.CTX, channelId string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -3196,7 +3196,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 }
 
 func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -3304,7 +3304,7 @@ func (s *SqlPostStore) RefreshPostStats() error {
 // it only restores posts deleted by the specified deletedBy user ID, which in case of Content Flagging is
 // the Content Reviewer bot.
 func (s *SqlPostStore) RestoreContentFlaggedPost(flaggedPost *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

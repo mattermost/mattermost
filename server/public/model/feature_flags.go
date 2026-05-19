@@ -120,6 +120,14 @@ type FeatureFlags struct {
 
 	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
 	ManagedChannelCategories bool
+
+	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.
+	// Gates the per-channel Discoverable toggle and the channel-join-request flow that lets
+	// non-members find a private channel in Browse Channels and request to join it.
+	DiscoverableChannels bool
+
+	// Enable Mobile Ephemeral Mode for controlling data persistence on mobile devices
+	MobileEphemeralMode bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -176,6 +184,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AggregatePluginMetrics = false
 
 	f.ManagedChannelCategories = false
+
+	f.DiscoverableChannels = false
+
+	f.MobileEphemeralMode = false
 }
 
 // ToMap returns the feature flags as a map[string]string

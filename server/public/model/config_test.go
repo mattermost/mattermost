@@ -32,7 +32,7 @@ func TestConfigDefaults(t *testing.T) {
 	t.Run("nowhere nil when partially initialized", func(t *testing.T) {
 		var recursivelyUninitialize func(*Config, string, reflect.Value)
 		recursivelyUninitialize = func(config *Config, name string, v reflect.Value) {
-			if v.Type().Kind() == reflect.Ptr {
+			if v.Type().Kind() == reflect.Pointer {
 				// Ignoring these 2 settings.
 				// TODO: remove them completely in v8.0.
 				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
@@ -293,6 +293,59 @@ func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
 				})
 			}
 		}
+	}
+}
+
+func TestFileSettingsAzureRequestTimeoutBounds(t *testing.T) {
+	cases := []struct {
+		name         string
+		value        int64
+		configSetter func(*Config, *int64)
+		errID        string
+	}{
+		{"AzureRequestTimeoutMilliseconds zero", 0, func(cfg *Config, v *int64) { cfg.FileSettings.AzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.azure_timeout.app_error"},
+		{"AzureRequestTimeoutMilliseconds negative", -1, func(cfg *Config, v *int64) { cfg.FileSettings.AzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.azure_timeout.app_error"},
+		{"AzureRequestTimeoutMilliseconds above ceiling", maxAzureRequestTimeoutMilliseconds + 1, func(cfg *Config, v *int64) { cfg.FileSettings.AzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.azure_timeout.app_error"},
+		{"ExportAzureRequestTimeoutMilliseconds zero", 0, func(cfg *Config, v *int64) { cfg.FileSettings.ExportAzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.export_azure_timeout.app_error"},
+		{"ExportAzureRequestTimeoutMilliseconds above ceiling", maxAzureRequestTimeoutMilliseconds + 1, func(cfg *Config, v *int64) { cfg.FileSettings.ExportAzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.export_azure_timeout.app_error"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			tc.configSetter(cfg, NewPointer(tc.value))
+
+			err := cfg.FileSettings.isValid()
+			require.NotNil(t, err)
+			assert.Equal(t, tc.errID, err.Id)
+		})
+	}
+}
+
+func TestFileSettingsAzurePathPrefixTraversal(t *testing.T) {
+	cases := []struct {
+		name         string
+		configSetter func(*Config, *string)
+	}{
+		{
+			"AzurePathPrefix",
+			func(cfg *Config, value *string) { cfg.FileSettings.AzurePathPrefix = value },
+		},
+		{
+			"ExportAzurePathPrefix",
+			func(cfg *Config, value *string) { cfg.FileSettings.ExportAzurePathPrefix = value },
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			tc.configSetter(cfg, NewPointer("../escape"))
+
+			err := cfg.FileSettings.isValid()
+			require.NotNil(t, err)
+			assert.Equal(t, "model.config.is_valid.directory_traversal.app_error", err.Id)
+		})
 	}
 }
 
@@ -2884,10 +2937,10 @@ func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
 			fieldPath := path + "." + field.Name
 
 			elemType := field.Type
-			if elemType.Kind() == reflect.Ptr || elemType.Kind() == reflect.Slice {
+			if elemType.Kind() == reflect.Pointer || elemType.Kind() == reflect.Slice {
 				elemType = elemType.Elem()
 			}
-			if elemType.Kind() == reflect.Ptr {
+			if elemType.Kind() == reflect.Pointer {
 				elemType = elemType.Elem()
 			}
 			if elemType.Kind() == reflect.Struct {
@@ -2920,6 +2973,121 @@ func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
 	}
 
 	checkStruct(t, reflect.TypeFor[Config](), "Config")
+}
+
+func TestMobileEphemeralModeSettingsDefaults(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	require.False(t, *c.MobileEphemeralModeSettings.Enable)
+	require.Equal(t, MobileEphemeralModeDefaultDisconnectionTimeoutSeconds, *c.MobileEphemeralModeSettings.DisconnectionTimeoutSeconds)
+	require.Equal(t, MobileEphemeralModeDefaultOfflinePersistenceTimerHours, *c.MobileEphemeralModeSettings.OfflinePersistenceTimerHours)
+	require.Equal(t, MobileEphemeralModeDefaultAutoCacheCleanupDays, *c.MobileEphemeralModeSettings.AutoCacheCleanupDays)
+}
+
+func TestMobileEphemeralModeSettingsIsValid(t *testing.T) {
+	testCases := []struct {
+		name        string
+		settings    MobileEphemeralModeSettings
+		expectError bool
+		errorId     string
+	}{
+		{
+			name: "disabled settings should be valid",
+			settings: MobileEphemeralModeSettings{
+				Enable: NewPointer(false),
+			},
+			expectError: false,
+		},
+		{
+			name: "enabled with valid values",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(120),
+				OfflinePersistenceTimerHours: NewPointer(24),
+				AutoCacheCleanupDays:         NewPointer(7),
+			},
+			expectError: false,
+		},
+		{
+			name: "invalid disconnection timeout above max",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(MobileEphemeralModeMaxDisconnectionTimeoutSeconds + 1),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+		},
+		{
+			name: "invalid offline persistence above max",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(MobileEphemeralModeMaxOfflinePersistenceTimerHours + 1),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+		},
+		{
+			name: "invalid auto cache cleanup above max",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(MobileEphemeralModeMaxAutoCacheCleanupDays + 1),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+		},
+		{
+			name: "invalid negative disconnection timeout",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(-1),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+		},
+		{
+			name: "invalid negative offline persistence",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(-1),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+		},
+		{
+			name: "invalid negative auto cache cleanup",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(-1),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.settings.isValid()
+			if tc.expectError {
+				require.NotNil(t, err)
+				require.Equal(t, tc.errorId, err.Id)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
 }
 
 func TestNativeAppSettingsIsValid(t *testing.T) {

@@ -609,20 +609,24 @@ func TestMaskConditionValues_SharedOnlyText(t *testing.T) {
 func TestGetMaskedVisualAST_Wiring(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-
-	cpaID, cErr := th.App.CpaGroupID()
-	require.Nil(t, cErr)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	rctx := request.TestContext(t)
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+	cpaID := cpaGroup.ID
+
 	callerID := model.NewId()
 
 	// Create a plain public text field in the CPA group (no access mode = public).
 	// Non-protected fields are writable by any caller in the CPA group.
 	fieldName := "f_" + model.NewId()
 	field := &model.PropertyField{
-		GroupID: cpaID,
-		Name:    fieldName,
-		Type:    model.PropertyFieldTypeText,
+		GroupID:    cpaID,
+		Name:       fieldName,
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 	}
 	_, appErr := th.App.CreatePropertyField(rctx, field, false, "")
 	require.Nil(t, appErr)

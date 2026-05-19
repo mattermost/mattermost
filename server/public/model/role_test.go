@@ -5,6 +5,7 @@ package model
 
 import (
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -360,6 +361,106 @@ func TestManageAgentPermissionsDefinition(t *testing.T) {
 	assert.True(t, slices.ContainsFunc(AllPermissions, func(p *Permission) bool {
 		return p.Id == PermissionManageOthersAgent.Id
 	}), "manage_others_agent should be in AllPermissions")
+}
+
+func TestRoleIsValidWithoutId(t *testing.T) {
+	validRole := func() *Role {
+		return &Role{
+			Name:        "test_role",
+			DisplayName: "Test Role",
+			Description: "A test role.",
+			Permissions: []string{PermissionCreatePost.Id},
+		}
+	}
+
+	t.Run("valid role returns nil", func(t *testing.T) {
+		assert.NoError(t, validRole().IsValidWithoutId())
+	})
+
+	t.Run("empty name", func(t *testing.T) {
+		r := validRole()
+		r.Name = ""
+		assert.ErrorContains(t, r.IsValidWithoutId(), "invalid role name")
+	})
+
+	t.Run("name too long", func(t *testing.T) {
+		r := validRole()
+		r.Name = strings.Repeat("a", RoleNameMaxLength+1)
+		assert.ErrorContains(t, r.IsValidWithoutId(), "invalid role name")
+	})
+
+	t.Run("name with invalid characters", func(t *testing.T) {
+		r := validRole()
+		r.Name = "invalid-name"
+		assert.ErrorContains(t, r.IsValidWithoutId(), "invalid role name")
+	})
+
+	t.Run("empty display name", func(t *testing.T) {
+		r := validRole()
+		r.DisplayName = ""
+		assert.ErrorContains(t, r.IsValidWithoutId(), "display name must not be empty")
+	})
+
+	t.Run("display name too long", func(t *testing.T) {
+		r := validRole()
+		r.DisplayName = strings.Repeat("a", RoleDisplayNameMaxLength+1)
+		err := r.IsValidWithoutId()
+		assert.ErrorContains(t, err, "display name")
+		assert.ErrorContains(t, err, "exceeds maximum length")
+	})
+
+	t.Run("description too long", func(t *testing.T) {
+		r := validRole()
+		r.Description = strings.Repeat("a", RoleDescriptionMaxLength+1)
+		assert.ErrorContains(t, r.IsValidWithoutId(), "description exceeds maximum length")
+	})
+
+	t.Run("unknown permission", func(t *testing.T) {
+		r := validRole()
+		r.Permissions = []string{"not_a_real_permission"}
+		err := r.IsValidWithoutId()
+		require.ErrorContains(t, err, "unknown permission")
+		assert.ErrorContains(t, err, "not_a_real_permission")
+	})
+
+	t.Run("no permissions is valid", func(t *testing.T) {
+		r := validRole()
+		r.Permissions = nil
+		assert.NoError(t, r.IsValidWithoutId())
+	})
+}
+
+func TestRoleIsValid(t *testing.T) {
+	validRole := func() *Role {
+		return &Role{
+			Id:          NewId(),
+			Name:        "test_role",
+			DisplayName: "Test Role",
+			Permissions: []string{PermissionCreatePost.Id},
+		}
+	}
+
+	t.Run("valid role returns nil", func(t *testing.T) {
+		assert.NoError(t, validRole().IsValid())
+	})
+
+	t.Run("empty id", func(t *testing.T) {
+		r := validRole()
+		r.Id = ""
+		assert.ErrorContains(t, r.IsValid(), "invalid role id")
+	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		r := validRole()
+		r.Id = "not-a-valid-id!"
+		assert.ErrorContains(t, r.IsValid(), "invalid role id")
+	})
+
+	t.Run("propagates IsValidWithoutId error", func(t *testing.T) {
+		r := validRole()
+		r.DisplayName = ""
+		assert.ErrorContains(t, r.IsValid(), "display name must not be empty")
+	})
 }
 
 func TestManageAgentPermissionsDefaultRoles(t *testing.T) {

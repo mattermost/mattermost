@@ -36,6 +36,7 @@ const (
 
 	ImageDriverLocal = "local"
 	ImageDriverS3    = "amazons3"
+	ImageDriverAzure = "azureblob"
 
 	DatabaseDriverPostgres = "postgres"
 
@@ -136,6 +137,12 @@ const (
 	FileSettingsDefaultDirectory                   = "./data/"
 	FileSettingsDefaultS3UploadPartSizeBytes       = 5 * 1024 * 1024   // 5MB
 	FileSettingsDefaultS3ExportUploadPartSizeBytes = 100 * 1024 * 1024 // 100MB
+
+	// maxAzureRequestTimeoutMilliseconds caps the per-request timeout so a
+	// hung Azure call cannot keep a goroutine open indefinitely. Ten minutes
+	// is well beyond any realistic single-request workload and matches the
+	// upper end of Azure SDK retry guidance.
+	maxAzureRequestTimeoutMilliseconds = 10 * 60 * 1000
 
 	ImportSettingsDefaultDirectory     = "./import"
 	ImportSettingsDefaultRetentionDays = 30
@@ -1795,6 +1802,13 @@ type FileSettings struct {
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureStorageAccount                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureAccessKey                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureContainer                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureEndpoint                      *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureSSL                           *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
 	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
@@ -1813,6 +1827,13 @@ type FileSettings struct {
 	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureStorageAccount                *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureAccessKey                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureContainer                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureEndpoint                      *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureSSL                           *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportAzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1929,6 +1950,34 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3StorageClass = new("")
 	}
 
+	if s.AzureStorageAccount == nil {
+		s.AzureStorageAccount = NewPointer("")
+	}
+
+	if s.AzureAccessKey == nil {
+		s.AzureAccessKey = NewPointer("")
+	}
+
+	if s.AzureContainer == nil {
+		s.AzureContainer = NewPointer("")
+	}
+
+	if s.AzurePathPrefix == nil {
+		s.AzurePathPrefix = NewPointer("")
+	}
+
+	if s.AzureEndpoint == nil {
+		s.AzureEndpoint = NewPointer("")
+	}
+
+	if s.AzureSSL == nil {
+		s.AzureSSL = NewPointer(true)
+	}
+
+	if s.AzureRequestTimeoutMilliseconds == nil {
+		s.AzureRequestTimeoutMilliseconds = NewPointer(int64(30000))
+	}
+
 	if s.DedicatedExportStore == nil {
 		s.DedicatedExportStore = new(false)
 	}
@@ -1997,6 +2046,34 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExportAmazonS3StorageClass == nil {
 		s.ExportAmazonS3StorageClass = new("")
+	}
+
+	if s.ExportAzureStorageAccount == nil {
+		s.ExportAzureStorageAccount = NewPointer("")
+	}
+
+	if s.ExportAzureAccessKey == nil {
+		s.ExportAzureAccessKey = NewPointer("")
+	}
+
+	if s.ExportAzureContainer == nil {
+		s.ExportAzureContainer = NewPointer("")
+	}
+
+	if s.ExportAzurePathPrefix == nil {
+		s.ExportAzurePathPrefix = NewPointer("")
+	}
+
+	if s.ExportAzureEndpoint == nil {
+		s.ExportAzureEndpoint = NewPointer("")
+	}
+
+	if s.ExportAzureSSL == nil {
+		s.ExportAzureSSL = NewPointer(true)
+	}
+
+	if s.ExportAzureRequestTimeoutMilliseconds == nil {
+		s.ExportAzureRequestTimeoutMilliseconds = NewPointer(int64(30000))
 	}
 }
 
@@ -3365,6 +3442,61 @@ func (s *DataRetentionSettings) GetFileRetentionHours() int {
 	return DataRetentionSettingsDefaultFileRetentionDays * 24
 }
 
+const (
+	MobileEphemeralModeDefaultDisconnectionTimeoutSeconds  = 60
+	MobileEphemeralModeDefaultOfflinePersistenceTimerHours = 24
+	MobileEphemeralModeDefaultAutoCacheCleanupDays         = 7
+
+	MobileEphemeralModeMaxDisconnectionTimeoutSeconds  = 600
+	MobileEphemeralModeMaxOfflinePersistenceTimerHours = 72
+	MobileEphemeralModeMaxAutoCacheCleanupDays         = 60
+)
+
+type MobileEphemeralModeSettings struct {
+	Enable                       *bool `access:"environment_mobile_security"`
+	DisconnectionTimeoutSeconds  *int  `access:"environment_mobile_security"`
+	OfflinePersistenceTimerHours *int  `access:"environment_mobile_security"`
+	AutoCacheCleanupDays         *int  `access:"environment_mobile_security"`
+}
+
+func (s *MobileEphemeralModeSettings) SetDefaults() {
+	if s.Enable == nil {
+		s.Enable = NewPointer(false)
+	}
+	if s.DisconnectionTimeoutSeconds == nil {
+		s.DisconnectionTimeoutSeconds = NewPointer(MobileEphemeralModeDefaultDisconnectionTimeoutSeconds)
+	}
+	if s.OfflinePersistenceTimerHours == nil {
+		s.OfflinePersistenceTimerHours = NewPointer(MobileEphemeralModeDefaultOfflinePersistenceTimerHours)
+	}
+	if s.AutoCacheCleanupDays == nil {
+		s.AutoCacheCleanupDays = NewPointer(MobileEphemeralModeDefaultAutoCacheCleanupDays)
+	}
+}
+
+func (s *MobileEphemeralModeSettings) isValid() *AppError {
+	if s.Enable == nil || !*s.Enable {
+		return nil
+	}
+
+	if s.DisconnectionTimeoutSeconds == nil || *s.DisconnectionTimeoutSeconds < 0 || *s.DisconnectionTimeoutSeconds > MobileEphemeralModeMaxDisconnectionTimeoutSeconds {
+		return NewAppError("Config.IsValid", "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+			map[string]any{"Min": 0, "Max": MobileEphemeralModeMaxDisconnectionTimeoutSeconds}, "", http.StatusBadRequest)
+	}
+
+	if s.OfflinePersistenceTimerHours == nil || *s.OfflinePersistenceTimerHours < 0 || *s.OfflinePersistenceTimerHours > MobileEphemeralModeMaxOfflinePersistenceTimerHours {
+		return NewAppError("Config.IsValid", "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+			map[string]any{"Min": 0, "Max": MobileEphemeralModeMaxOfflinePersistenceTimerHours}, "", http.StatusBadRequest)
+	}
+
+	if s.AutoCacheCleanupDays == nil || *s.AutoCacheCleanupDays < 0 || *s.AutoCacheCleanupDays > MobileEphemeralModeMaxAutoCacheCleanupDays {
+		return NewAppError("Config.IsValid", "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+			map[string]any{"Min": 0, "Max": MobileEphemeralModeMaxAutoCacheCleanupDays}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 type JobSettings struct {
 	RunJobs                    *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	RunScheduler               *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
@@ -4002,6 +4134,7 @@ type Config struct {
 	AnalyticsSettings           AnalyticsSettings
 	ElasticsearchSettings       ElasticsearchSettings
 	DataRetentionSettings       DataRetentionSettings
+	MobileEphemeralModeSettings MobileEphemeralModeSettings
 	MessageExportSettings       MessageExportSettings
 	JobSettings                 JobSettings
 	PluginSettings              PluginSettings
@@ -4117,6 +4250,7 @@ func (o *Config) SetDefaults() {
 	o.NativeAppSettings.SetDefaults()
 	o.IntuneSettings.SetDefaults()
 	o.DataRetentionSettings.SetDefaults()
+	o.MobileEphemeralModeSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
@@ -4296,6 +4430,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.MobileEphemeralModeSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
 	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
 		return appErr
 	}
@@ -4396,7 +4534,7 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3) {
+	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3 || *s.DriverName == ImageDriverAzure) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -4421,6 +4559,10 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.amazons3_timeout.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
 	}
 
+	if *s.AzureRequestTimeoutMilliseconds <= 0 || *s.AzureRequestTimeoutMilliseconds > maxAzureRequestTimeoutMilliseconds {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_timeout.app_error", map[string]any{"Value": *s.AzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
+	}
+
 	if *s.AmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.AmazonS3StorageClass) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.AmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
@@ -4429,12 +4571,32 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.AmazonS3PathPrefix", "Value": *s.AmazonS3PathPrefix}, "", http.StatusBadRequest)
 	}
 
+	if strings.TrimSpace(*s.AzurePathPrefix) != *s.AzurePathPrefix {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.AzurePathPrefix", "Value": *s.AzurePathPrefix}, "", http.StatusBadRequest)
+	}
+
+	if strings.Contains(*s.AzurePathPrefix, "..") {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_traversal.app_error", map[string]any{"Setting": "FileSettings.AzurePathPrefix", "Value": *s.AzurePathPrefix}, "", http.StatusBadRequest)
+	}
+
 	if *s.ExportAmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.ExportAmazonS3StorageClass) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.ExportAmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
 
+	if *s.ExportAzureRequestTimeoutMilliseconds <= 0 || *s.ExportAzureRequestTimeoutMilliseconds > maxAzureRequestTimeoutMilliseconds {
+		return NewAppError("Config.IsValid", "model.config.is_valid.export_azure_timeout.app_error", map[string]any{"Value": *s.ExportAzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
+	}
+
 	if strings.TrimSpace(*s.ExportAmazonS3PathPrefix) != *s.ExportAmazonS3PathPrefix {
 		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.ExportAmazonS3PathPrefix", "Value": *s.ExportAmazonS3PathPrefix}, "", http.StatusBadRequest)
+	}
+
+	if strings.TrimSpace(*s.ExportAzurePathPrefix) != *s.ExportAzurePathPrefix {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_whitespace.app_error", map[string]any{"Setting": "FileSettings.ExportAzurePathPrefix", "Value": *s.ExportAzurePathPrefix}, "", http.StatusBadRequest)
+	}
+
+	if strings.Contains(*s.ExportAzurePathPrefix, "..") {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory_traversal.app_error", map[string]any{"Setting": "FileSettings.ExportAzurePathPrefix", "Value": *s.ExportAzurePathPrefix}, "", http.StatusBadRequest)
 	}
 
 	if strings.TrimSpace(*s.ExportDirectory) != *s.ExportDirectory {
@@ -5061,6 +5223,14 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.FileSettings.ExportAmazonS3SecretAccessKey = FakeSetting
 	}
 
+	if o.FileSettings.AzureAccessKey != nil && *o.FileSettings.AzureAccessKey != "" {
+		*o.FileSettings.AzureAccessKey = FakeSetting
+	}
+
+	if o.FileSettings.ExportAzureAccessKey != nil && *o.FileSettings.ExportAzureAccessKey != "" {
+		*o.FileSettings.ExportAzureAccessKey = FakeSetting
+	}
+
 	if o.EmailSettings.SMTPPassword != nil && *o.EmailSettings.SMTPPassword != "" {
 		*o.EmailSettings.SMTPPassword = FakeSetting
 	}
@@ -5288,7 +5458,7 @@ func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any
 		switch field.Kind() {
 		case reflect.Struct:
 			value = structToMapFilteredByTag(field.Interface(), typeOfTag, filterTag)
-		case reflect.Ptr:
+		case reflect.Pointer:
 			indirectType := field.Elem()
 			if indirectType.Kind() == reflect.Struct {
 				value = structToMapFilteredByTag(indirectType.Interface(), typeOfTag, filterTag)

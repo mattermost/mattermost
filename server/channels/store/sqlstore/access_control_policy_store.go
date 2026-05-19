@@ -79,8 +79,12 @@ func (s *storeAccessControlPolicy) toModel() (*model.AccessControlPolicy, error)
 }
 
 func fromModel(policy *model.AccessControlPolicy) (*storeAccessControlPolicy, error) {
+	imports := policy.Imports
+	if imports == nil {
+		imports = []string{}
+	}
 	data, err := json.Marshal(&accessControlPolicyV0_1{
-		Imports: policy.Imports,
+		Imports: imports,
 		Rules:   policy.Rules,
 		Roles:   policy.Roles,
 		Scope:   policy.Scope,
@@ -186,7 +190,7 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		return nil, err
 	}
 
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to start transaction")
 	}
@@ -303,7 +307,7 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 }
 
 func (s *SqlAccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "failed to start transaction")
 	}
@@ -360,7 +364,7 @@ func (s *SqlAccessControlPolicyStore) deleteT(_ request.CTX, tx *sqlxTxWrapper, 
 }
 
 func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to start transaction")
 	}
@@ -410,7 +414,7 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 }
 
 func (s *SqlAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to start transaction")
 	}
@@ -706,7 +710,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 			condition := sq.Expr(`Id IN (
 			SELECT parent_id FROM (
-				SELECT ch.TeamId, jsonb_array_elements_text(cp.Data -> 'imports') AS parent_id
+				SELECT ch.TeamId, jsonb_array_elements_text(COALESCE(NULLIF(cp.Data -> 'imports', 'null'::jsonb), '[]'::jsonb)) AS parent_id
 				FROM AccessControlPolicies cp
 				JOIN Channels ch ON ch.Id = cp.Id
 				WHERE cp.Type = 'channel'

@@ -107,6 +107,7 @@ export default function TeamPolicyEditor({
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [backClicked, setBackClicked] = useState(false);
+    const [hasMaskedRows, setHasMaskedRows] = useState(false);
 
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
@@ -262,7 +263,7 @@ export default function TeamPolicyEditor({
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
             return false;
         }
-        if (expression.includes('== ""') || expression.includes("== ''") || expression.includes('in []')) {
+        if (expression.includes('== ""') || expression.includes("== ''")) {
             setFormError(formatMessage({id: 'team_settings.policy_editor.error.incomplete_rule', defaultMessage: 'Please complete all attribute rules with a value'}));
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
             return false;
@@ -510,6 +511,23 @@ export default function TeamPolicyEditor({
                         </p>
                     </div>
                 </div>
+                {hasMaskedRows && (
+                    <div className='TeamPolicyEditor__masked-values-warning'>
+                        <SectionNotice
+                            type='warning'
+                            title={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.masked_values_warning.title'
+                                    defaultMessage='This policy contains restricted values'
+                                />
+                            }
+                            text={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.masked_values_warning.text',
+                                defaultMessage: 'Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.',
+                            })}
+                        />
+                    </div>
+                )}
                 <TableEditor
                     value={expression}
                     onChange={handleExpressionChange}
@@ -527,6 +545,7 @@ export default function TeamPolicyEditor({
                     // nothing to be excluded from in advisory mode, so the
                     // warning is misleading.
                     validateExpressionAgainstRequester={hasPrivateChannelInScope() ? abacActions.validateExpressionAgainstRequester : undefined}
+                    onMaskedStateChange={setHasMaskedRows}
                 />
             </div>
 
@@ -617,7 +636,7 @@ export default function TeamPolicyEditor({
                             <Button
                                 variant='destructive'
                                 onClick={() => setShowDeleteModal(true)}
-                                disabled={hasChannels()}
+                                disabled={hasChannels() || hasMaskedRows}
                             >
                                 <FormattedMessage
                                     id='admin.access_control.policy.edit_policy.delete_policy.delete'
@@ -689,12 +708,14 @@ export default function TeamPolicyEditor({
                         </div>
                     }
                 >
-                    <p>
-                        <FormattedMessage
-                            id='team_settings.policy_editor.delete_confirmation.body'
-                            defaultMessage='This action cannot be undone.'
-                        />
-                    </p>
+                    <>
+                        <p>
+                            <FormattedMessage
+                                id='team_settings.policy_editor.delete_confirmation.body'
+                                defaultMessage='This action cannot be undone.'
+                            />
+                        </p>
+                    </>
                 </GenericModal>
             )}
 

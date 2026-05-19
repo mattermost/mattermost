@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -37,9 +36,6 @@ type SqlXExecutor interface {
 	NamedExec(query string, arg any) (sql.Result, error)
 	Exec(query string, args ...any) (sql.Result, error)
 	ExecRaw(query string, args ...any) (sql.Result, error)
-	NamedQuery(query string, arg any) (*sqlx.Rows, error)
-	QueryRowX(query string, args ...any) *sqlx.Row
-	QueryX(query string, args ...any) (*sqlx.Rows, error)
 	Select(dest any, query string, args ...any) error
 }
 
@@ -165,6 +161,8 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
 	t.Run("GetDirectMessagesWithUnreadAndMentions", func(t *testing.T) { testGetDirectMessagesWithUnreadAndMentions(t, rctx, ss) })
 	t.Run("GetTeamChannelsWithUnreadAndMentions", func(t *testing.T) { testGetTeamChannelsWithUnreadAndMentions(t, rctx, ss) })
+	t.Run("SaveBoardChannel", func(t *testing.T) { testChannelStoreSaveBoardChannel(t, rctx, ss) })
+	t.Run("SaveRejectsBoardTypes", func(t *testing.T) { testChannelStoreSaveRejectsBoardTypes(t, rctx, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -8569,6 +8567,37 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, rctx request.CTX,
 	_, nErr = ss.Channel().Save(rctx, c6, -1)
 	require.NoError(t, nErr)
 
+	// Board channels must never reach the indexer
+	creatorID := model.NewId()
+	makeBoardView := func() *model.View {
+		kanban := &model.KanbanProps{
+			GroupBy: model.KanbanGroupBy{
+				FieldID: model.NewId(),
+				Columns: []model.KanbanColumn{
+					{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
+				},
+			},
+		}
+		props, _ := kanban.ToProps()
+		return &model.View{Type: model.ViewTypeKanban, CreatorId: creatorID, Title: "Indexing Board", Props: props}
+	}
+	openBoard, _, nErr := ss.Channel().SaveBoardChannel(rctx, &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Board Open",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpenBoard,
+		CreatorId:   creatorID,
+	}, -1, makeBoardView())
+	require.NoError(t, nErr)
+	privateBoard, _, nErr := ss.Channel().SaveBoardChannel(rctx, &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Board Private",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypePrivateBoard,
+		CreatorId:   creatorID,
+	}, -1, makeBoardView())
+	require.NoError(t, nErr)
+
 	// First and last channel should be outside the range
 	channels, err := ss.Channel().GetChannelsBatchForIndexing(c1.CreateAt, "", 4)
 	assert.NoError(t, err)
@@ -8583,6 +8612,14 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, rctx request.CTX,
 	channels, err = ss.Channel().GetChannelsBatchForIndexing(channels[1].CreateAt, channels[1].Id, 1)
 	assert.NoError(t, err)
 	assert.Len(t, channels, 0)
+
+	// Walk the entire range to confirm board channels are filtered out
+	allIndexed, err := ss.Channel().GetChannelsBatchForIndexing(c1.CreateAt-1, "", 100)
+	assert.NoError(t, err)
+	for _, ch := range allIndexed {
+		assert.NotEqual(t, openBoard.Id, ch.Id, "open board should not be returned for indexing")
+		assert.NotEqual(t, privateBoard.Id, ch.Id, "private board should not be returned for indexing")
+	}
 }
 
 func testGroupSyncedChannelCount(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -8849,6 +8886,199 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 		require.Len(t, unreads, 0)
 		require.Len(t, mentions, 0)
 		require.Len(t, times, 0)
+	})
+}
+
+func testChannelStoreSaveRejectsBoardTypes(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+
+	t.Run("Save rejects BO type", func(t *testing.T) {
+		ch := model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Board Open",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpenBoard,
+		}
+		_, err := ss.Channel().Save(rctx, &ch, -1)
+		require.Error(t, err)
+		var errInvalid *store.ErrInvalidInput
+		require.True(t, errors.As(err, &errInvalid), "expected ErrInvalidInput, got %T", err)
+	})
+
+	t.Run("Save rejects BP type", func(t *testing.T) {
+		ch := model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Board Private",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypePrivateBoard,
+		}
+		_, err := ss.Channel().Save(rctx, &ch, -1)
+		require.Error(t, err)
+		var errInvalid *store.ErrInvalidInput
+		require.True(t, errors.As(err, &errInvalid), "expected ErrInvalidInput, got %T", err)
+	})
+}
+
+func testChannelStoreSaveBoardChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	creatorID := model.NewId()
+
+	makeView := func(title string) *model.View {
+		kanban := &model.KanbanProps{
+			GroupBy: model.KanbanGroupBy{
+				FieldID: model.NewId(),
+				Columns: []model.KanbanColumn{
+					{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
+					{ID: model.NewId(), Name: "Done", OptionIDs: []string{model.NewId()}},
+				},
+			},
+		}
+		props, _ := kanban.ToProps()
+		return &model.View{
+			Type:      model.ViewTypeKanban,
+			CreatorId: creatorID,
+			Title:     title,
+			Props:     props,
+		}
+	}
+
+	t.Run("saves BO channel with kanban view successfully", func(t *testing.T) {
+		ch := model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Board Open",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpenBoard,
+			CreatorId:   creatorID,
+		}
+		view := makeView("My Kanban")
+
+		savedCh, savedView, err := ss.Channel().SaveBoardChannel(rctx, &ch, -1, view)
+		require.NoError(t, err)
+		require.NotEmpty(t, savedCh.Id)
+		require.Equal(t, model.ChannelTypeOpenBoard, savedCh.Type)
+		require.NotEmpty(t, savedView.Id)
+		require.Equal(t, savedCh.Id, savedView.ChannelId)
+		require.Equal(t, "My Kanban", savedView.Title)
+		require.Equal(t, model.ViewTypeKanban, savedView.Type)
+	})
+
+	t.Run("saves BP channel with view successfully", func(t *testing.T) {
+		ch := model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Board Private",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypePrivateBoard,
+			CreatorId:   creatorID,
+		}
+		view := makeView("Private Board View")
+
+		savedCh, savedView, err := ss.Channel().SaveBoardChannel(rctx, &ch, -1, view)
+		require.NoError(t, err)
+		require.NotEmpty(t, savedCh.Id)
+		require.Equal(t, model.ChannelTypePrivateBoard, savedCh.Type)
+		require.NotEmpty(t, savedView.Id)
+		require.Equal(t, savedCh.Id, savedView.ChannelId)
+	})
+
+	t.Run("rejects non-board type", func(t *testing.T) {
+		ch := model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Regular Open",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+			CreatorId:   creatorID,
+		}
+		view := makeView("Should Fail")
+
+		_, _, err := ss.Channel().SaveBoardChannel(rctx, &ch, -1, view)
+		require.Error(t, err)
+		var errInvalid *store.ErrInvalidInput
+		require.True(t, errors.As(err, &errInvalid), "expected ErrInvalidInput, got %T", err)
+	})
+
+	t.Run("rollback when view is invalid (empty title)", func(t *testing.T) {
+		chName := NewTestID()
+		ch := model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Board Rollback",
+			Name:        chName,
+			Type:        model.ChannelTypeOpenBoard,
+			CreatorId:   creatorID,
+		}
+		view := makeView("") // empty title -> invalid
+
+		_, _, err := ss.Channel().SaveBoardChannel(rctx, &ch, -1, view)
+		require.Error(t, err)
+
+		// Channel should not exist because the transaction was rolled back
+		_, getErr := ss.Channel().GetByName(teamID, chName, false)
+		require.Error(t, getErr, "channel should not exist after rollback")
+	})
+
+	t.Run("neither BO nor BP appears in PublicChannels", func(t *testing.T) {
+		chBO := model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Board Open Public Check",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpenBoard,
+			CreatorId:   creatorID,
+		}
+		savedBO, _, err := ss.Channel().SaveBoardChannel(rctx, &chBO, -1, makeView("BO View"))
+		require.NoError(t, err)
+
+		chBP := model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Board Private Public Check",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypePrivateBoard,
+			CreatorId:   creatorID,
+		}
+		savedBP, _, err := ss.Channel().SaveBoardChannel(rctx, &chBP, -1, makeView("BP View"))
+		require.NoError(t, err)
+
+		_, err = ss.Channel().GetPublicChannelsByIdsForTeam(teamID, []string{savedBO.Id, savedBP.Id})
+		// GetPublicChannelsByIdsForTeam returns an error when none of the IDs are found
+		// in the PublicChannels table, which is the expected behavior for board channels
+		require.Error(t, err, "board channels should not appear in PublicChannels")
+	})
+
+	t.Run("board channels respect MaxChannelsPerTeam", func(t *testing.T) {
+		limitTeamID := model.NewId()
+
+		// Create one regular channel to use up the limit
+		regularCh := model.Channel{
+			TeamId:      limitTeamID,
+			DisplayName: "Regular",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}
+		_, err := ss.Channel().Save(rctx, &regularCh, 1)
+		require.NoError(t, err)
+
+		// saveChannelT counts only O and P types for the limit check.
+		// When the O/P limit is already reached, a board channel creation
+		// with the same maxChannelsPerTeam will be rejected because the
+		// board type still enters the limit-check code path.
+		boardCh := model.Channel{
+			TeamId:      limitTeamID,
+			DisplayName: "Board After Limit",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpenBoard,
+			CreatorId:   creatorID,
+		}
+		_, _, err = ss.Channel().SaveBoardChannel(rctx, &boardCh, 1, makeView("Limit View"))
+		require.Error(t, err, "should be rejected when O/P channel count has reached the limit")
+
+		// But with a higher limit, the board channel should be created successfully
+		boardCh2 := model.Channel{
+			TeamId:      limitTeamID,
+			DisplayName: "Board With Room",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpenBoard,
+			CreatorId:   creatorID,
+		}
+		_, _, err = ss.Channel().SaveBoardChannel(rctx, &boardCh2, 10, makeView("Limit View 2"))
+		require.NoError(t, err)
 	})
 }
 
