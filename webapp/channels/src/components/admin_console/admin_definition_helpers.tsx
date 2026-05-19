@@ -74,6 +74,7 @@ export const validators = {
     isRequired: (text: MessageDescriptor | string) => (value: string) => new ValidationResult(Boolean(value), text),
     minValue: (min: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult((value >= min), text),
     maxValue: (max: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult((value <= max), text),
+    numberInRange: (min: number, max: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult(Number.isNaN(value) || (value >= min && value <= max), text),
 };
 
 export const usesLegacyOauth = (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
