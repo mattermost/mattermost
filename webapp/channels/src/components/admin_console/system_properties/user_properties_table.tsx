@@ -482,7 +482,6 @@ const NameCellWrapper = styled.div<{$hasError: boolean}>`
 
     ${({$hasError}) => $hasError && css`
         background: rgba(var(--error-text-color-rgb), 0.08);
-        box-shadow: inset 0 0 0 1px rgba(var(--error-text-color-rgb), 0.32);
 
         /* Reserve room for the absolutely-positioned error icon so long
            identifiers don't slide underneath it. */
