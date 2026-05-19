@@ -54,7 +54,7 @@ exports[`ImageGallery matches snapshot 1`] = `
         role="list"
       >
         <div
-          aria-label="Image 1 of 2: image1.png (PNG). Press Enter or Space to open in image viewer."
+          aria-label="Image 1 of 2: image1.png. Press Enter or Space to open in image viewer."
           class="image-gallery__item image-gallery__item--small"
           data-testid="image-gallery__item"
           role="listitem"
@@ -79,7 +79,7 @@ exports[`ImageGallery matches snapshot 1`] = `
           </div>
         </div>
         <div
-          aria-label="Image 2 of 2: image2.jpg (JPG). Press Enter or Space to open in image viewer."
+          aria-label="Image 2 of 2: image2.jpg. Press Enter or Space to open in image viewer."
           class="image-gallery__item image-gallery__item--small"
           data-testid="image-gallery__item"
           role="listitem"
