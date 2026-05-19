@@ -255,6 +255,21 @@ const (
 	// picker can surface "this rule alone wouldn't have allowed them — a
 	// sibling did". Simulation-only.
 	PolicySimulationBlameSourceSiblingSaved = "sibling_saved"
+	// PolicySimulationBlameSourceNoApplicableRule is the synthetic blame
+	// source the "this rule only" post-process emits when the rule the
+	// author is editing is silent on the subject — either a sibling
+	// rule's OR-bucket saved an otherwise-denied user, or the deny
+	// originated entirely outside the editing rule (upper-scoped policy,
+	// peer policy, etc.). The decision is normalized to a vacuous ALLOW
+	// like no_applicable_policy and the picker renders a neutral
+	// "This rule doesn't apply" pill from this entry instead of the
+	// misleading "Allowed · another rule" / plain "Allowed" chips that
+	// the sibling_saved / orphaned-deny branches used to surface.
+	// Simulation-only and only emitted under the "this_rule"
+	// EvaluationScope (the "All policies" view keeps the original
+	// sibling_saved chip because at that scope the other rule IS
+	// relevant context for the verdict).
+	PolicySimulationBlameSourceNoApplicableRule = "no_applicable_rule"
 )
 
 // PolicySimulationBlameOutcome enumerates the per-blame verdict the

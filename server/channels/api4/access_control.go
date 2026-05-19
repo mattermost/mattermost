@@ -58,6 +58,19 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Channel-scope policies are always available, but a channel policy
+	// that carries a permission-rule action (upload_file_attachment,
+	// download_file_attachment) is gated behind the channel-level
+	// sub-flag — that's the toggle that exposes the Channel Settings →
+	// Permissions Policy tab on the frontend. Membership-only channel
+	// policies stay unaffected. Helper enforces the PermissionPolicies
+	// umbrella too, so a request slipping in with the sub-flag on but
+	// the umbrella off is also rejected here.
+	if policy.Type == model.AccessControlPolicyTypeChannel && policy.HasPermissionRuleAction() && !c.App.Config().FeatureFlags.IsChannelPermissionPoliciesEnabled() {
+		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
@@ -467,11 +480,12 @@ func authorizeSimulatePolicy(c *Context, channelID, teamID string) (hasSystemPer
 //
 // Non-system admins may only simulate users who belong to the request's
 // channel (when channel_id is set) or team (team-scoped simulation).
-// The endpoint also requires the PermissionPolicies feature flag and an
+// The endpoint requires the PolicySimulation feature flag (which
+// itself depends on the PermissionPolicies umbrella) and an
 // Enterprise Advanced license. Returns 501 when ABAC is unavailable.
 func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.Config().FeatureFlags.PermissionPolicies {
-		c.Err = model.NewAppError("simulatePolicyForUsers", "api.access_control_policy.permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+	if !c.App.Config().FeatureFlags.IsPolicySimulationEnabled() {
+		c.Err = model.NewAppError("simulatePolicyForUsers", "api.access_control_policy.policy_simulation.feature_disabled", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -553,7 +567,8 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Redact protected CPA attribute values for non-system-admin
-	// callers.
+	// callers. Targets the user's actual attribute values shown in
+	// the Decision Details panel and per-leaf ActualValue strings.
 	c.App.RedactSimulationAttributesForCaller(c.AppContext, resp, hasSystemPermission)
 
 	js, err := json.Marshal(resp)

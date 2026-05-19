@@ -93,4 +93,60 @@ describe('aggregateDecisions', () => {
             false,
         )).toBe('allowed');
     });
+
+    test('not-applicable when every action is no_applicable_rule', () => {
+        // In the "this rule only" view the server replaces an
+        // orphaned-deny or sibling_saved verdict with a synthetic
+        // no_applicable_rule blame. The aggregate must treat it the
+        // same as no_applicable_policy so the row chip reads
+        // "doesn't apply" instead of misleading "allowed".
+        const inapplicable = {
+            decision: true,
+            blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE}],
+        };
+        expect(aggregateDecisions(
+            ['a', 'b'],
+            {a: inapplicable, b: inapplicable},
+            false,
+        )).toBe('not-applicable');
+    });
+
+    test('no_applicable_rule + real allow rolls up to allowed', () => {
+        const inapplicable = {
+            decision: true,
+            blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE}],
+        };
+        expect(aggregateDecisions(
+            ['a', 'b'],
+            {a: inapplicable, b: {decision: true}},
+            false,
+        )).toBe('allowed');
+    });
+
+    test('no_applicable_rule + real deny rolls up to denied', () => {
+        const inapplicable = {
+            decision: true,
+            blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE}],
+        };
+        expect(aggregateDecisions(
+            ['a', 'b'],
+            {a: inapplicable, b: {decision: false}},
+            false,
+        )).toBe('denied');
+    });
+
+    test('mixed no_applicable_rule + no_applicable_policy still rolls up to not-applicable', () => {
+        // The two synthetic markers can co-occur on different
+        // actions of the same row (e.g. one action falls outside
+        // the policy entirely, another falls outside this rule).
+        // Both count as inapplicable for the row-level rollup.
+        expect(aggregateDecisions(
+            ['a', 'b'],
+            {
+                a: {decision: true, blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY}]},
+                b: {decision: true, blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE}]},
+            },
+            false,
+        )).toBe('not-applicable');
+    });
 });

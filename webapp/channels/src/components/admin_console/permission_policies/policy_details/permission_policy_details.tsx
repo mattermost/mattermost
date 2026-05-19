@@ -4,6 +4,7 @@
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
@@ -11,6 +12,7 @@ import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/typ
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
+import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
@@ -130,6 +132,13 @@ function PermissionPolicyDetails({
 
     const {formatMessage} = useIntl();
     const abacActions = useChannelAccessControlActions();
+
+    // Gate the "Simulate rules" button + modal. The
+    // /cel/simulate_users endpoint returns 501 when this is off, so
+    // hiding the UI here keeps the author from clicking a button
+    // that would only surface a backend error. Mirror gate exists on
+    // the channel-settings Permissions Policy tab.
+    const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
 
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
@@ -557,13 +566,23 @@ function PermissionPolicyDetails({
                                             // "Simulate rules" since the modal
                                             // simulates the full rule set, not a
                                             // single expression.
-                                            onTestClick={() => setShowTest(true)}
-                                            testButtonLabel={
+                                            //
+                                            // PolicySimulation feature flag off →
+                                            // drop the override and the
+                                            // "Simulate rules" label; the editor
+                                            // then falls back to its default
+                                            // "Test access rule" button +
+                                            // TestResultsModal. The button is a
+                                            // separate, always-on feature; only
+                                            // the dual-lane simulation override
+                                            // is gated.
+                                            onTestClick={policySimulationEnabled ? () => setShowTest(true) : undefined}
+                                            testButtonLabel={policySimulationEnabled ? (
                                                 <FormattedMessage
                                                     id='admin.permission_policies.editor.simulate_rules'
                                                     defaultMessage='Simulate rules'
                                                 />
-                                            }
+                                            ) : undefined}
                                         />
                                     ) : (
                                         <TableEditor
@@ -580,13 +599,13 @@ function PermissionPolicyDetails({
                                             }}
                                             enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                                             actions={abacActions}
-                                            onTestClick={() => setShowTest(true)}
-                                            testButtonLabel={
+                                            onTestClick={policySimulationEnabled ? () => setShowTest(true) : undefined}
+                                            testButtonLabel={policySimulationEnabled ? (
                                                 <FormattedMessage
                                                     id='admin.permission_policies.editor.simulate_rules'
                                                     defaultMessage='Simulate rules'
                                                 />
-                                            }
+                                            ) : undefined}
                                         />
                                     )}
                                 </Card.Body>
@@ -757,7 +776,7 @@ function PermissionPolicyDetails({
                         </GenericModal>
                     )}
 
-                    {showTest && (
+                    {policySimulationEnabled && showTest && (
                         <SimulateAccessModal
                             onExited={() => setShowTest(false)}
                             policy={{

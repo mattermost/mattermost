@@ -2317,12 +2317,14 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 // that turns a full-stack simulator response into a "this rule only"
 // view. Upper-scoped blame entries (system_permission, peer_policy,
 // inherited channel_policy) and sibling_rule entries are dropped;
-// denies that have no remaining editing-rule-side blame flip back to
-// allow because the rule alone would not have denied. The simulator
-// already restricts contributions, so this filter is the defensive
-// backstop.
+// denies that have no remaining editing-rule-side blame surface as a
+// neutral no_applicable_rule chip — the older flip-to-plain-allow
+// behavior read as "this rule alone would have allowed this user"
+// which is wrong for a permission rule whose filter didn't grant.
+// The simulator already restricts contributions, so this filter is
+// the defensive backstop.
 func TestFilterResponseToEditingRuleScope(t *testing.T) {
-	t.Run("deny attributed only to upper-scoped policy flips to allow", func(t *testing.T) {
+	t.Run("deny attributed only to upper-scoped policy converts to no_applicable_rule", func(t *testing.T) {
 		resp := &model.PolicySimulationResponse{
 			Results: []model.PolicySimulationUserResult{{
 				User: &model.User{Id: "u1"},
@@ -2340,8 +2342,14 @@ func TestFilterResponseToEditingRuleScope(t *testing.T) {
 		filterResponseToEditingRuleScope(resp, "")
 
 		dec := resp.Results[0].Decisions["upload_file_attachment"]
-		assert.True(t, dec.Decision, "deny solely from upper-scoped blame must flip to allow")
-		assert.Empty(t, dec.Blame, "blame must be cleared when the deny no longer applies")
+		assert.True(t, dec.Decision, "deny solely from upper-scoped blame must normalize to a vacuous allow")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, dec.Blame[0].Source,
+			"the editing rule is silent on this user — must surface as no_applicable_rule, not a plain allow")
+		// Outcome stays empty (matches the no_applicable_policy
+		// convention) so the chip's hasBlame() helper — which filters
+		// informational outcome=allow entries — picks this marker up.
+		assert.Empty(t, dec.Blame[0].Outcome)
 	})
 
 	t.Run("deny with both this_rule and upper-scoped blame stays a deny but loses the upper entry", func(t *testing.T) {
@@ -2368,7 +2376,13 @@ func TestFilterResponseToEditingRuleScope(t *testing.T) {
 		assert.Equal(t, model.PolicySimulationBlameSourceThisRule, dec.Blame[0].Source)
 	})
 
-	t.Run("allow with sibling_saved blame is preserved", func(t *testing.T) {
+	t.Run("allow with sibling_saved alone gains a no_applicable_rule marker so the chip reads 'doesn't apply'", func(t *testing.T) {
+		// At the "this rule only" scope, the sibling that saved the
+		// user is by definition out of scope, so "Allowed · another
+		// rule" is misleading — the chip should read "this rule
+		// doesn't apply" instead. The sibling_saved entry stays in
+		// the blame list so the Decision Details modal can still
+		// build a trace from any expression attached to it.
 		resp := &model.PolicySimulationResponse{
 			Results: []model.PolicySimulationUserResult{{
 				User: &model.User{Id: "u3"},
@@ -2376,7 +2390,133 @@ func TestFilterResponseToEditingRuleScope(t *testing.T) {
 					"upload_file_attachment": {
 						Decision: true,
 						Blame: []model.PolicySimulationBlame{
-							{Source: model.PolicySimulationBlameSourceSiblingSaved},
+							{Source: model.PolicySimulationBlameSourceSiblingSaved, RuleName: "rule1"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision)
+		require.Len(t, dec.Blame, 2, "the synthetic marker is appended; sibling_saved stays for trace rendering")
+
+		sources := []string{dec.Blame[0].Source, dec.Blame[1].Source}
+		assert.Contains(t, sources, model.PolicySimulationBlameSourceSiblingSaved)
+		assert.Contains(t, sources, model.PolicySimulationBlameSourceNoApplicableRule)
+	})
+
+	t.Run("allow with this_rule allow + sibling_saved keeps the chip allowed (no marker injected)", func(t *testing.T) {
+		// When the editing rule itself granted the user (this_rule
+		// outcome=allow), a sibling_saved entry alongside is just
+		// supplementary "another rule also allowed" context. The
+		// rule DID contribute, so we must NOT inject the
+		// no_applicable_rule marker — the chip stays a plain
+		// "Allowed".
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u3a"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "rule1", Outcome: model.PolicySimulationBlameOutcomeAllow},
+							{Source: model.PolicySimulationBlameSourceSiblingSaved, RuleName: "rule1"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision)
+		require.Len(t, dec.Blame, 2)
+		for _, b := range dec.Blame {
+			assert.NotEqual(t, model.PolicySimulationBlameSourceNoApplicableRule, b.Source,
+				"this_rule allow means the rule did apply — must not inject no_applicable_rule")
+		}
+	})
+
+	t.Run("bare allow with empty blame (role mismatch) gains no_applicable_rule marker", func(t *testing.T) {
+		// The user-reported regression: when the editing rule
+		// targets channel_user and the picker drops in a guest
+		// (channel_guest), the simulator returns
+		// `{decision: true}` with NO blame at all — it's a vacuous
+		// allow because the rule doesn't apply to the candidate's
+		// role. The old default branch left this untouched and the
+		// chip rendered a misleading plain "Allowed". The filter
+		// must inject the no_applicable_rule marker so the picker
+		// shows "this rule doesn't apply" instead.
+		//
+		// User.Roles is set to a non-sysadmin role to lock down
+		// that the sysadmin carve-out introduced in a sibling test
+		// doesn't accidentally widen and skip the marker for
+		// regular users.
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u3b", Roles: model.SystemGuestRoleId},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision, "vacuous allow stays an allow — the chip handles the 'doesn't apply' rendering")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, dec.Blame[0].Source)
+	})
+
+	t.Run("system admin allow with empty blame stays a plain allow (no marker injected via role fallback)", func(t *testing.T) {
+		// Sysadmins inherit every channel-level role implicitly, so
+		// the simulator returns {decision: true} for them without a
+		// this_rule blame — same shape as the "role doesn't apply"
+		// vacuous allow used for guests. Without a sysadmin
+		// carve-out the picker would mis-label the sysadmin row as
+		// "this rule doesn't apply" when in fact the rule does
+		// apply via role fallback. Verifies the User.IsSystemAdmin
+		// check on the result row is wired correctly.
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "uadmin", Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision)
+		assert.Empty(t, dec.Blame, "sysadmin candidates must not get the no_applicable_rule marker — the rule applies to them via role fallback")
+	})
+
+	t.Run("system admin allow with sibling_saved blame still skips the marker (role fallback wins)", func(t *testing.T) {
+		// Same reasoning as the bare-allow sysadmin case: even if
+		// the simulator surfaces a sibling_saved blame for a
+		// sysadmin (rare; sysadmins normally bypass the OR-bucket
+		// machinery), the marker must NOT be injected — the rule
+		// still applies via role fallback regardless of which
+		// sibling carried the verdict.
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "uadmin2", Roles: model.SystemAdminRoleId},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSiblingSaved, RuleName: "rule1"},
 						},
 					},
 				},
@@ -2388,10 +2528,40 @@ func TestFilterResponseToEditingRuleScope(t *testing.T) {
 		dec := resp.Results[0].Decisions["upload_file_attachment"]
 		assert.True(t, dec.Decision)
 		require.Len(t, dec.Blame, 1)
-		assert.Equal(t, model.PolicySimulationBlameSourceSiblingSaved, dec.Blame[0].Source)
+		assert.Equal(t, model.PolicySimulationBlameSourceSiblingSaved, dec.Blame[0].Source,
+			"sibling_saved survives, but no_applicable_rule is NOT appended for sysadmins")
 	})
 
-	t.Run("inherited channel_policy blame is treated as upper-scoped", func(t *testing.T) {
+	t.Run("allow already attributed to no_applicable_policy is NOT shadowed by no_applicable_rule", func(t *testing.T) {
+		// When the simulator already explained "the whole policy
+		// doesn't apply to this user" via no_applicable_policy, the
+		// rule-scoped marker is strictly less informative — we
+		// deliberately don't append it so the chip continues to
+		// render the wider "policy doesn't apply" label.
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u3c"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceNoApplicablePolicy},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision)
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicablePolicy, dec.Blame[0].Source,
+			"the wider policy-level marker must survive untouched; no_applicable_rule must not shadow it")
+	})
+
+	t.Run("inherited channel_policy blame converts to no_applicable_rule", func(t *testing.T) {
 		resp := &model.PolicySimulationResponse{
 			Results: []model.PolicySimulationUserResult{{
 				User: &model.User{Id: "u4"},
@@ -2409,8 +2579,9 @@ func TestFilterResponseToEditingRuleScope(t *testing.T) {
 		filterResponseToEditingRuleScope(resp, "")
 
 		dec := resp.Results[0].Decisions["upload_file_attachment"]
-		assert.True(t, dec.Decision, "channel_policy blame is upper-scoped, so the deny must flip to allow")
-		assert.Empty(t, dec.Blame)
+		assert.True(t, dec.Decision, "channel_policy blame is upper-scoped, so the deny must normalize to vacuous allow")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, dec.Blame[0].Source)
 	})
 
 	t.Run("per-session decisions are filtered alongside the user-level ones", func(t *testing.T) {
@@ -2455,10 +2626,14 @@ func TestFilterResponseToEditingRuleScope(t *testing.T) {
 		filterResponseToEditingRuleScope(resp, "")
 
 		userDec := resp.Results[0].Decisions["upload_file_attachment"]
-		assert.True(t, userDec.Decision, "user-level deny solely from upper-scoped flips to allow")
+		assert.True(t, userDec.Decision, "user-level deny solely from upper-scoped normalizes to vacuous allow")
+		require.Len(t, userDec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, userDec.Blame[0].Source)
 
 		sess1Dec := resp.Results[0].Sessions[0].Decisions["upload_file_attachment"]
-		assert.True(t, sess1Dec.Decision, "session-level deny solely from upper-scoped flips to allow")
+		assert.True(t, sess1Dec.Decision, "session-level deny solely from upper-scoped normalizes to vacuous allow")
+		require.Len(t, sess1Dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, sess1Dec.Blame[0].Source)
 
 		sess2Dec := resp.Results[0].Sessions[1].Decisions["upload_file_attachment"]
 		assert.False(t, sess2Dec.Decision, "session-level deny with this_rule blame stays a deny")
@@ -2484,8 +2659,9 @@ func TestFilterResponseToEditingRuleScope(t *testing.T) {
 		filterResponseToEditingRuleScope(resp, "")
 
 		dec := resp.Results[0].Decisions["upload_file_attachment"]
-		assert.True(t, dec.Decision, "deny coming from a peer policy is irrelevant in this rule mode and must flip to allow")
-		assert.Empty(t, dec.Blame)
+		assert.True(t, dec.Decision, "deny coming from a peer policy is irrelevant in this rule mode and must normalize to vacuous allow")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, dec.Blame[0].Source)
 	})
 
 	// This is the regression that motivated the toggle rename: when
@@ -2511,8 +2687,9 @@ func TestFilterResponseToEditingRuleScope(t *testing.T) {
 		filterResponseToEditingRuleScope(resp, "channel_users")
 
 		dec := resp.Results[0].Decisions["upload_file_attachment"]
-		assert.True(t, dec.Decision, "sibling-rule deny must flip to allow when scoped to a specific editing rule")
-		assert.Empty(t, dec.Blame)
+		assert.True(t, dec.Decision, "sibling-rule deny must normalize to vacuous allow when scoped to a specific editing rule")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, dec.Blame[0].Source)
 	})
 
 	// When two different rules both emit this_rule blame on the same

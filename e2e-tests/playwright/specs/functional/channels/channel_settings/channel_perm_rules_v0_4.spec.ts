@@ -3,19 +3,24 @@
 
 /**
  * @objective E2E coverage for the v0.4 Permissions Policy tab in Channel Settings:
- *   - Tab visibility is gated by ABAC + license + PermissionPolicies feature flag.
+ *   - Tab visibility is gated by ABAC + license + the PermissionPolicies
+ *     umbrella + the ChannelPermissionPolicies sub-flag.
  *   - The list view exposes Add rule, search, and a paginated rules table.
  *   - Adding a permission rule (name, role, actions) and committing returns to the list.
  *   - Per-rule expression uses the same TableEditor as Membership Policy, but
  *     re-labelled "Simulate rules" — the button opens the dual-lane
- *     SimulateAccessModal instead of the legacy expression-only one.
+ *     SimulateAccessModal instead of the legacy expression-only one (additionally
+ *     gated by the PolicySimulation feature flag).
  *   - Duplicate rule names surface a save-time error.
  *
  * @reference Channel-scoped permission policies (v0.4)
  *
- * These tests skip themselves at runtime when the PermissionPolicies feature
- * flag is not enabled on the server — the tab is invisible in that case and
- * the workflow is not exercised. Run with `MM_FEATUREFLAGS_PERMISSIONPOLICIES=true`.
+ * These tests skip themselves at runtime when the PermissionPolicies umbrella
+ * OR the ChannelPermissionPolicies sub-flag is not enabled on the server —
+ * the tab is invisible in either case and the workflow is not exercised.
+ * Run with `MM_FEATUREFLAGS_PERMISSIONPOLICIES=true` AND
+ * `MM_FEATUREFLAGS_CHANNELPERMISSIONPOLICIES=true`. The "Simulate rules"
+ * button additionally requires `MM_FEATUREFLAGS_POLICYSIMULATION=true`.
  */
 
 import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
@@ -25,11 +30,15 @@ import {enableABACConfig, ensureDepartmentAttribute, createPrivateChannel} from 
 test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
     test.beforeEach(async ({pw}) => {
         await pw.skipIfNoLicense();
-        // Skip the suite when the feature flag is OFF on the server
-        // rather than relying on the tab's UI presence as a proxy —
-        // a UI-based guard would silently mask a regression in the
-        // tab visibility logic itself.
+        // Skip the suite when either flag is OFF on the server rather
+        // than relying on the tab's UI presence as a proxy — a
+        // UI-based guard would silently mask a regression in the tab
+        // visibility logic itself. Both flags must be on for the tab
+        // to render (the channel-scope sub-flag depends on the
+        // umbrella, mirroring `IsChannelPermissionPoliciesEnabled` on
+        // the server).
         await pw.skipIfFeatureFlagNotSet('PermissionPolicies', true);
+        await pw.skipIfFeatureFlagNotSet('ChannelPermissionPolicies', true);
     });
 
     test('MM-PP_v0_4_c1 Permissions Policy tab visible on private channel when feature flag enabled', async ({pw}) => {

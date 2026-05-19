@@ -59,6 +59,25 @@ func IsPermissionAction(action string) bool {
 	return allowedPermissionActionsV0_4[action]
 }
 
+// HasPermissionRuleAction reports whether ANY rule on this policy
+// carries a non-membership permission action (file upload/download).
+// Used by the API4 layer to gate channel-scope policies behind the
+// ChannelPermissionPolicies feature flag: if a channel policy
+// includes a permission rule and the flag is off, the request is
+// rejected before reaching the PAP. Returns false for a nil/empty
+// policy so callers can use it as a guard without nil checks.
+func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
+	if p == nil {
+		return false
+	}
+	for i := range p.Rules {
+		if slices.ContainsFunc(p.Rules[i].Actions, IsPermissionAction) {
+			return true
+		}
+	}
+	return false
+}
+
 // AccessControlAttribute represents a user attribute with its name and possible values
 type AccessControlAttribute struct {
 	Attribute PropertyField `json:"attribute"`

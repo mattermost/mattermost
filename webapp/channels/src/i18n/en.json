@@ -343,6 +343,7 @@
   "admin.access_control.simulate_access.activity.total": "{total, plural, one {# session} other {# sessions}}",
   "admin.access_control.simulate_access.blame.channel_policy": "parent policy",
   "admin.access_control.simulate_access.blame.no_applicable_policy": "policy doesn't apply to this user",
+  "admin.access_control.simulate_access.blame.no_applicable_rule": "this rule doesn't apply to this user",
   "admin.access_control.simulate_access.blame.peer_policy": "another policy",
   "admin.access_control.simulate_access.blame.sibling_rule": "another rule",
   "admin.access_control.simulate_access.blame.sibling_saved": "another rule",

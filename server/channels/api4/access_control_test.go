@@ -329,6 +329,135 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		CheckOKStatus(t, resp)
 	})
 
+	t.Run("CreateChannelPolicy with permission rules rejected when ChannelPermissionPolicies sub-flag is off", func(t *testing.T) {
+		// Channel-scope policies that ONLY have membership rules
+		// stay available even when the permission-rule sub-flag is
+		// off. As soon as a rule carries a non-membership action
+		// (upload_file_attachment / download_file_attachment) the
+		// API4 gate must reject with 501. Membership-only policies
+		// are exercised by the sibling "CreateAccessControlPolicy
+		// with channel scope permissions" test above; this one
+		// pins the permission-rule branch specifically.
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.ChannelPermissionPolicies = false
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+		})
+
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_4,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Name:       "Channel members can upload",
+					Role:       model.ChannelUserRoleId,
+					Expression: "user.attributes.department == 'engineering'",
+					Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+				},
+			},
+		}
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("CreateChannelPolicy with permission rules rejected when PermissionPolicies umbrella is off (sub-flag alone is not enough)", func(t *testing.T) {
+		// Dependency-direction guard: ChannelPermissionPolicies on
+		// its own must NOT be enough to bypass the gate. The
+		// IsChannelPermissionPoliciesEnabled helper requires the
+		// PermissionPolicies umbrella too, so a config that turns
+		// the sub-flag on but leaves the umbrella off still gets
+		// a 501. Mirrors the corresponding subtest in
+		// TestSimulatePolicyForUsers.
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+			cfg.FeatureFlags.ChannelPermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelPermissionPolicies = false
+		})
+
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_4,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Name:       "Channel members can download",
+					Role:       model.ChannelUserRoleId,
+					Expression: "user.attributes.department == 'engineering'",
+					Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+				},
+			},
+		}
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("CreateChannelPolicy with permission rules accepted when both flags are on", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		// Use a real private channel for the policy ID; channel-
+		// scope creation runs an eligibility check that fetches the
+		// channel even for system admins. The sibling
+		// "CreateAccessControlPolicy with channel scope permissions"
+		// test uses the same pattern.
+		ch := th.CreatePrivateChannel(t)
+
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       ch.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_4,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Name:       "Channel members can upload",
+					Role:       model.ChannelUserRoleId,
+					Expression: "user.attributes.department == 'engineering'",
+					Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+				},
+			},
+		}
+
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		// We only care that the gate let the request through to the
+		// PAP; the validation chain past this point is exercised by
+		// other tests, so the mock returns success straight away.
+		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(channelPolicy, nil).Times(1)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.ChannelPermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+			cfg.FeatureFlags.ChannelPermissionPolicies = false
+		})
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
 	t.Run("system admin cannot create a channel-scope policy on a team default channel", func(t *testing.T) {
 		// The api4 handler short-circuits validation for system admins, so the
 		// eligibility guard must live in the app layer. This test rides that
@@ -2425,7 +2554,7 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 func TestSimulatePolicyForUsers(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
-	t.Run("returns 501 when permission policies feature flag is disabled", func(t *testing.T) {
+	t.Run("returns 501 when umbrella PermissionPolicies flag is disabled", func(t *testing.T) {
 		// Set the Enterprise Advanced license up-front so any future
 		// license-level middleware ahead of the handler can't be the
 		// reason for a 501 here. With the license valid, the only
@@ -2440,6 +2569,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
+			cfg.FeatureFlags.PolicySimulation = true // sub-flag alone must not be enough
 		})
 
 		body := mustMarshal(t, model.PolicySimulationByUsersParams{
@@ -2449,9 +2579,35 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
 		// `DoAPIPost` surfaces any non-2xx response as an error
 		// carrying the server's AppError text, so we expect an error
-		// here ("Permission policies feature is not enabled.") and
+		// here ("Policy simulation feature is not enabled.") and
 		// assert the 501 status code on the response itself —
 		// matching the pattern in sibling sub-tests.
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("returns 501 when PolicySimulation sub-flag is disabled", func(t *testing.T) {
+		// PermissionPolicies on its own is not enough — the
+		// IsPolicySimulationEnabled helper requires the sub-flag too.
+		// This pins the dependency direction: turning the umbrella on
+		// must NOT silently enable simulation.
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.PolicySimulation = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+		})
+
+		body := mustMarshal(t, model.PolicySimulationByUsersParams{
+			Policy: &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel},
+			Users:  []model.PolicySimulationUserOverride{{UserID: model.NewId()}},
+		})
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
 		require.Error(t, err)
 		defer resp.Body.Close()
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -2469,9 +2625,11 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.PolicySimulation = true
 		})
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
+			cfg.FeatureFlags.PolicySimulation = false
 		})
 
 		body := mustMarshal(t, model.PolicySimulationByUsersParams{
@@ -2491,10 +2649,12 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.PolicySimulation = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
+			cfg.FeatureFlags.PolicySimulation = false
 		})
 
 		mockACS := &mocks.AccessControlServiceInterface{}
@@ -2516,10 +2676,12 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.PolicySimulation = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
+			cfg.FeatureFlags.PolicySimulation = false
 		})
 
 		mockACS := &mocks.AccessControlServiceInterface{}
@@ -2547,10 +2709,12 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.PolicySimulation = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
+			cfg.FeatureFlags.PolicySimulation = false
 		})
 
 		mockACS := &mocks.AccessControlServiceInterface{}

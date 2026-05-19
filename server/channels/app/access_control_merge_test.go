@@ -385,6 +385,61 @@ func TestConditionToCEL_UnknownOperatorWithValue(t *testing.T) {
 	assert.Equal(t, `user.attributes.Clearance futureOp "Secret"`, result)
 }
 
+// TestIsMembershipRule pins the helper that drives unnamed-rule pairing in
+// mergeStoredPolicyExpressions. The merge walks both stored and submitted
+// rules and pairs them by Name; v0.4 membership rules don't carry a Name,
+// so the helper picks them out by Action so a reordering edit can't accidentally
+// merge a permission rule's stored expression into the membership slot
+// (or vice versa).
+func TestIsMembershipRule(t *testing.T) {
+	t.Run("nil rule is not a membership rule", func(t *testing.T) {
+		assert.False(t, isMembershipRule(nil))
+	})
+
+	t.Run("named rule with membership action is not a membership rule", func(t *testing.T) {
+		// v0.4 permission rules always carry a Name; treat a non-empty Name as a
+		// permission rule even if its Actions happen to mention membership, so a
+		// rename can't accidentally collide with the membership slot.
+		rule := &model.AccessControlPolicyRule{
+			Name:    "Custom",
+			Actions: []string{model.AccessControlPolicyActionMembership},
+		}
+		assert.False(t, isMembershipRule(rule))
+	})
+
+	t.Run("unnamed rule without membership action is not a membership rule", func(t *testing.T) {
+		// Anonymous non-membership rules can't be safely identified across the
+		// submit boundary; mergeStoredPolicyExpressions deliberately skips them
+		// rather than mispair, so this helper must report false too.
+		rule := &model.AccessControlPolicyRule{
+			Actions: []string{model.AccessControlPolicyActionUploadFileAttachment},
+		}
+		assert.False(t, isMembershipRule(rule))
+	})
+
+	t.Run("unnamed rule with membership action is a membership rule", func(t *testing.T) {
+		rule := &model.AccessControlPolicyRule{
+			Actions: []string{model.AccessControlPolicyActionMembership},
+		}
+		assert.True(t, isMembershipRule(rule))
+	})
+
+	t.Run("unnamed rule with membership action among others is a membership rule", func(t *testing.T) {
+		rule := &model.AccessControlPolicyRule{
+			Actions: []string{
+				model.AccessControlPolicyActionUploadFileAttachment,
+				model.AccessControlPolicyActionMembership,
+			},
+		}
+		assert.True(t, isMembershipRule(rule))
+	})
+
+	t.Run("empty actions list is not a membership rule", func(t *testing.T) {
+		rule := &model.AccessControlPolicyRule{}
+		assert.False(t, isMembershipRule(rule))
+	})
+}
+
 func TestMergeConditionValues(t *testing.T) {
 	t.Run("no hidden values returns submitted as-is", func(t *testing.T) {
 		submitted := model.Condition{Attribute: "user.attributes.Program", Operator: "in", Value: []any{"Alpha"}}

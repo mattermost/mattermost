@@ -26,6 +26,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
+import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
@@ -172,6 +173,12 @@ function ChannelSettingsPermissionsPolicyTab({
     const {formatMessage} = useIntl();
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
+
+    // Gate the "Simulate rules" button + modal. The
+    // /cel/simulate_users endpoint returns 501 when this is off, so
+    // hiding the UI here keeps the author from clicking a button
+    // that would only surface a backend error.
+    const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
 
     const actions = useChannelAccessControlActions(channel.id);
     const {policies: systemPolicies} = useChannelSystemPolicies(channel);
@@ -605,6 +612,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 onCancel={cancelEditor}
                 onCommit={commitDraft}
                 buildSimulationPolicy={buildSimulationPolicy}
+                policySimulationEnabled={policySimulationEnabled}
             />
         );
     }
@@ -887,6 +895,14 @@ type PermissionRuleEditorProps = {
      * policy is sent to the simulate endpoint as-is.
      */
     buildSimulationPolicy: (draft: EditableRule) => AccessControlPolicy;
+
+    /**
+     * Whether the policy-simulation sub-feature is enabled. When
+     * false the "Simulate rules" button and modal are suppressed —
+     * the /cel/simulate_users endpoint returns 501 in that case so
+     * the modal would only ever surface a backend error.
+     */
+    policySimulationEnabled: boolean;
 };
 
 function PermissionRuleEditor({
@@ -902,6 +918,7 @@ function PermissionRuleEditor({
     onCancel,
     onCommit,
     buildSimulationPolicy,
+    policySimulationEnabled,
 }: PermissionRuleEditorProps) {
     const {formatMessage} = useIntl();
     const [draft, setDraft] = useState<EditableRule>(initial);
@@ -1068,13 +1085,23 @@ function PermissionRuleEditor({
                             // how their rule interacts with system permission
                             // policies. Re-label "Test access rule" → "Simulate
                             // rules" to match the modal's full rule-set scope.
-                            onTestClick={() => setShowTest(true)}
-                            testButtonLabel={
+                            //
+                            // When the PolicySimulation feature flag is off
+                            // we stop passing the override entirely — the
+                            // `onTestClick` slot is what swaps the built-in
+                            // expression test for the dual-lane simulation,
+                            // so falling back to undefined restores the
+                            // editor's default "Test access rule" button
+                            // (TestResultsModal). The test button itself is
+                            // a separate, always-on feature; only the
+                            // simulation override is gated.
+                            onTestClick={policySimulationEnabled ? () => setShowTest(true) : undefined}
+                            testButtonLabel={policySimulationEnabled ? (
                                 <FormattedMessage
                                     id='admin.permission_policies.editor.simulate_rules'
                                     defaultMessage='Simulate rules'
                                 />
-                            }
+                            ) : undefined}
                         />
                     )}
                 </div>
@@ -1219,7 +1246,7 @@ function PermissionRuleEditor({
                 </Button>
             </div>
 
-            {showTest && (
+            {policySimulationEnabled && showTest && (
                 <SimulateAccessModal
                     isStacked={true}
                     onExited={() => setShowTest(false)}

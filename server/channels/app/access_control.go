@@ -209,42 +209,109 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		return appErr
 	}
 
-	for i, rule := range policy.Rules {
-		if i >= len(existingPolicy.Rules) {
+	// Pair submitted and stored rules by Name so that a reorder /
+	// insert / delete in the editor doesn't swap one rule's masked
+	// values into a sibling rule's expression. v0.4 permission rules
+	// are required to carry a unique Name; the membership rule (no
+	// Name) is pinned by its membership Action so it round-trips
+	// through reorders too.
+	storedByName := make(map[string]*model.AccessControlPolicyRule, len(existingPolicy.Rules))
+	var storedMembership *model.AccessControlPolicyRule
+	for i := range existingPolicy.Rules {
+		r := &existingPolicy.Rules[i]
+		switch {
+		case r.Name != "":
+			storedByName[r.Name] = r
+		case isMembershipRule(r):
+			if storedMembership == nil {
+				storedMembership = r
+			}
+		}
+	}
+
+	pairedNames := make(map[string]bool, len(existingPolicy.Rules))
+	membershipPaired := false
+
+	for i := range policy.Rules {
+		rule := &policy.Rules[i]
+		var stored *model.AccessControlPolicyRule
+		switch {
+		case rule.Name != "":
+			stored = storedByName[rule.Name]
+			if stored != nil {
+				pairedNames[rule.Name] = true
+			}
+		case isMembershipRule(rule):
+			if !membershipPaired {
+				stored = storedMembership
+				membershipPaired = true
+			}
+		}
+		if stored == nil {
+			// New rule with no corresponding stored entry — nothing to
+			// re-inject. The validate step (when run from the save
+			// path) is what rejects forbidden literals on a brand-new
+			// rule; the merge has nothing useful to do here.
 			continue
 		}
-		storedExpr := existingPolicy.Rules[i].Expression
-		if storedExpr == "" || storedExpr == "true" {
+		if stored.Expression == "" || stored.Expression == "true" {
 			continue
 		}
-		mergedExpr, appErr := a.mergeExpressionWithMaskedValues(rctx, policy.ID, rule.Expression, storedExpr, callerID)
+		mergedExpr, appErr := a.mergeExpressionWithMaskedValues(rctx, policy.ID, rule.Expression, stored.Expression, callerID)
 		if appErr != nil {
 			return appErr
 		}
-		policy.Rules[i].Expression = mergedExpr
+		rule.Expression = mergedExpr
 	}
 
-	// Any stored rules beyond the submitted set were dropped by the caller. If any of those
-	// contain values the caller cannot see, block the save — otherwise we'd silently widen
-	// access by removing a rule whose hidden conditions the caller could not audit.
-	if len(existingPolicy.Rules) > len(policy.Rules) {
-		for i := len(policy.Rules); i < len(existingPolicy.Rules); i++ {
-			storedExpr := existingPolicy.Rules[i].Expression
-			if storedExpr == "" || storedExpr == "true" {
+	// Any stored rule the caller didn't include in the submission was
+	// dropped. If a dropped rule carries values the caller couldn't
+	// see, block the save — otherwise we'd silently widen access by
+	// removing a rule whose hidden conditions the caller could not
+	// audit. Same side-channel reasoning as the per-condition
+	// deletion guard inside mergeExpressionWithMaskedValues.
+	for i := range existingPolicy.Rules {
+		stored := &existingPolicy.Rules[i]
+		switch {
+		case stored.Name != "":
+			if pairedNames[stored.Name] {
 				continue
 			}
-			hasMasked, appErr := a.expressionHasMaskedValuesForCaller(rctx, storedExpr, callerID)
-			if appErr != nil {
-				return appErr
+		case isMembershipRule(stored):
+			if membershipPaired {
+				continue
 			}
-			if hasMasked {
-				return model.NewAppError("mergeStoredPolicyExpressions", "app.pap.save_policy.masked_rule_deleted", nil,
-					"cannot remove a rule that contains attribute values you do not hold", http.StatusForbidden)
-			}
+		default:
+			// Legacy anonymous non-membership rule — can't safely
+			// identify it across the submission boundary, skip the
+			// guard rather than reject every save.
+			continue
+		}
+		if stored.Expression == "" || stored.Expression == "true" {
+			continue
+		}
+		hasMasked, appErr := a.expressionHasMaskedValuesForCaller(rctx, stored.Expression, callerID)
+		if appErr != nil {
+			return appErr
+		}
+		if hasMasked {
+			return model.NewAppError("MergeStoredPolicyExpressions", "app.pap.save_policy.masked_rule_deleted", nil,
+				"cannot remove a rule that contains attribute values you do not hold", http.StatusForbidden)
 		}
 	}
 
 	return nil
+}
+
+// isMembershipRule reports whether a rule is the policy's membership
+// rule. v0.4 membership rules carry no Name (the editor never names
+// them) and surface the membership action; this is the same pair we
+// use to round-trip the membership rule through the editor on save.
+func isMembershipRule(rule *model.AccessControlPolicyRule) bool {
+	if rule == nil || rule.Name != "" {
+		return false
+	}
+	return slices.Contains(rule.Actions, model.AccessControlPolicyActionMembership)
 }
 
 // expressionHasMaskedValuesForCaller reports whether storedExpr contains any value the caller cannot see.
@@ -535,6 +602,28 @@ func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model
 		return nil, model.NewAppError("SimulateAccessControlPolicyForUsers", "app.pap.simulate.unavailable", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
+	// The editor masks raw CEL literal values for callers who don't
+	// hold them on every GET / search response, replacing them with
+	// the "--------" sentinel. The frontend hands that masked policy
+	// right back to us when the admin clicks "Simulate access", so
+	// without re-injecting the stored hidden values the simulator
+	// would evaluate the sentinel as a literal — every condition
+	// would compare against "--------" and the verdicts would be
+	// meaningless.
+	//
+	// Reuse the same per-rule merge the save path uses to re-inject
+	// the stored hidden values so the simulator evaluates the real
+	// CEL. We deliberately do NOT run the save-side write-path value
+	// validation here: simulate doesn't persist anything, so
+	// rejecting submissions that carry forbidden literal values is a
+	// save-only invariant. The merge alone is what makes the
+	// simulator see the unmasked policy.
+	if a.Config().FeatureFlags.AttributeValueMasking {
+		if appErr := a.mergeStoredPolicyExpressions(rctx, params.Policy, rctx.Session().UserId); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	resp, appErr := acs.SimulatePolicyForUsers(rctx, params)
 	if appErr != nil {
 		return nil, appErr
@@ -544,6 +633,20 @@ func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model
 		enrichBlameForDraftScope(rctx, acs, params.Policy, resp)
 		if isThisRuleScope(params.EvaluationScope) {
 			filterResponseToEditingRuleScope(resp, params.RuleName)
+		}
+
+		// mergeStoredPolicyExpressions re-injected the stored hidden
+		// values so the simulator could evaluate the real CEL — and
+		// enrichBlameForDraftScope just copied those unmasked
+		// expressions into Blame.Expression / MergedRules / the
+		// evaluation tree. Re-mask every literal-bearing surface
+		// before the response leaves the server so the caller never
+		// sees a value they couldn't see via the policy GET path.
+		// Same flag gate as the merge above: either both run or
+		// neither does, so the response always matches the policy
+		// state that produced it.
+		if a.Config().FeatureFlags.AttributeValueMasking {
+			a.MaskSimulationPolicyLiteralsForCaller(rctx, resp, rctx.Session().UserId)
 		}
 	}
 
@@ -1146,31 +1249,134 @@ func importsEqual(a, b []string) bool {
 // rules in the same policy are never kept in this mode.
 func filterResponseToEditingRuleScope(resp *model.PolicySimulationResponse, editingRuleName string) {
 	for i := range resp.Results {
-		resp.Results[i].Decisions = filterDecisionsToEditingRuleScope(resp.Results[i].Decisions, editingRuleName)
+		// System admins are subject to ABAC the same as any other
+		// user, BUT they don't carry the channel-level role tokens
+		// (channel_user / channel_guest / channel_admin) the
+		// simulator pairs rules against — they inherit them
+		// implicitly. The simulator returns a bare {decision: true}
+		// for sysadmin candidates without a this_rule blame, which
+		// looks identical to the "rule doesn't apply (role
+		// mismatch)" vacuous allow the filter relies on. Without a
+		// sysadmin carve-out the marker would mislabel sysadmin
+		// rows as "this rule doesn't apply" when in fact the rule
+		// does apply via role fallback — the sysadmin is allowed
+		// by the same rule the picker is testing. We pass the flag
+		// down to filterDecisionsToEditingRuleScope so it can skip
+		// the no_applicable_rule injection for those rows.
+		callerIsSystemAdmin := false
+		if u := resp.Results[i].User; u != nil {
+			callerIsSystemAdmin = u.IsSystemAdmin()
+		}
+		resp.Results[i].Decisions = filterDecisionsToEditingRuleScope(resp.Results[i].Decisions, editingRuleName, callerIsSystemAdmin)
 		for j := range resp.Results[i].Sessions {
-			resp.Results[i].Sessions[j].Decisions = filterDecisionsToEditingRuleScope(resp.Results[i].Sessions[j].Decisions, editingRuleName)
+			resp.Results[i].Sessions[j].Decisions = filterDecisionsToEditingRuleScope(resp.Results[i].Sessions[j].Decisions, editingRuleName, callerIsSystemAdmin)
 		}
 	}
 }
 
-func filterDecisionsToEditingRuleScope(decisions map[string]model.PolicySimulationActionDecision, editingRuleName string) map[string]model.PolicySimulationActionDecision {
+func filterDecisionsToEditingRuleScope(decisions map[string]model.PolicySimulationActionDecision, editingRuleName string, candidateIsSystemAdmin bool) map[string]model.PolicySimulationActionDecision {
 	if len(decisions) == 0 {
 		return decisions
 	}
 	for action, dec := range decisions {
 		filtered := filterBlameToEditingRuleScope(dec.Blame, editingRuleName)
-		if !dec.Decision && len(filtered) == 0 {
-			// The deny had no editing-rule cause — flip to allow so
-			// the picker accurately reports "this rule alone would
-			// have allowed this user."
+
+		switch {
+		case !dec.Decision && len(filtered) == 0:
+			// DENY with no editing-rule contribution at all (only
+			// upper-scoped / peer / sibling-rule denies, all of which
+			// were just filtered out). The editing rule is silent on
+			// this user, so we surface "doesn't apply" rather than
+			// the old flip-to-plain-allow — that read as "this rule
+			// alone would have allowed this user" which isn't true
+			// for a permission rule whose filter didn't grant.
+			//
+			// Outcome is left empty (not OutcomeAllow) to match the
+			// existing no_applicable_policy convention: the chip's
+			// hasBlame helper filters informational outcome=allow
+			// entries out, so a vacuous-allow synthetic must NOT set
+			// outcome=allow or the chip will skip it.
 			dec.Decision = true
-			dec.Blame = nil
-		} else {
+			dec.Blame = []model.PolicySimulationBlame{{
+				Source: model.PolicySimulationBlameSourceNoApplicableRule,
+			}}
+		case dec.Decision && !hasThisRuleAllow(filtered) && !hasNoApplicablePolicy(filtered) && !candidateIsSystemAdmin:
+			// ALLOW without the editing rule actively granting. This
+			// covers three real-world simulator outputs:
+			//
+			//   1. sibling_saved present — this rule denied, an
+			//      OR-merged sibling allowed.
+			//   2. Bare {decision: true} with empty blame — the
+			//      simulator emits a vacuous allow when the editing
+			//      rule's role doesn't match the candidate's role
+			//      (e.g. testing a channel_user rule against a guest
+			//      user), or the rule's action set doesn't overlap.
+			//   3. Only upper-scoped allow blame survived the
+			//      filter — same idea: the editing rule itself was
+			//      silent on this user.
+			//
+			// In every case the editing rule didn't contribute a
+			// grant, so in "this rule only" view the chip should read
+			// "this rule doesn't apply". Append (don't replace) so
+			// any sibling_saved expression stays available for the
+			// Decision Details trace.
+			//
+			// Three carve-outs:
+			//   - no_applicable_policy already attributes the verdict
+			//     to the WHOLE policy being silent on this user;
+			//     that's strictly more informative and we don't
+			//     shadow it.
+			//   - candidateIsSystemAdmin — sysadmins inherit every
+			//     channel-level role implicitly, so a bare
+			//     {decision: true} for a sysadmin candidate is a
+			//     legitimate allow via role fallback, NOT a "rule
+			//     doesn't apply" signal. The simulator just doesn't
+			//     emit a this_rule blame entry for the fallback path.
+			//   - this_rule allow + sibling_saved (handled by the
+			//     hasThisRuleAllow guard above) — the rule did
+			//     contribute, sibling is supplementary.
+			dec.Blame = append(filtered, model.PolicySimulationBlame{
+				Source: model.PolicySimulationBlameSourceNoApplicableRule,
+			})
+		default:
 			dec.Blame = filtered
 		}
+
 		decisions[action] = dec
 	}
 	return decisions
+}
+
+// hasThisRuleAllow reports whether any blame entry is an
+// informational this_rule entry with outcome=allow — i.e. the
+// editing rule itself granted the subject. When this is true we
+// must NOT convert to no_applicable_rule: the rule did contribute,
+// any sibling_saved entry alongside is just supplementary
+// "another rule also allowed" context.
+func hasThisRuleAllow(blames []model.PolicySimulationBlame) bool {
+	for _, b := range blames {
+		if b.Source == model.PolicySimulationBlameSourceThisRule && b.Outcome == model.PolicySimulationBlameOutcomeAllow {
+			return true
+		}
+	}
+	return false
+}
+
+// hasNoApplicablePolicy reports whether the simulator already
+// marked the response with a no_applicable_policy synthetic blame
+// — the policy as a whole doesn't govern this user. We use the
+// same "outcome != allow" gate the chip's hasBlame helper uses so
+// our detection lines up with what the picker will actually
+// render; this prevents us from shadowing a wider
+// "policy doesn't apply" verdict with a narrower
+// "this rule doesn't apply" pill.
+func hasNoApplicablePolicy(blames []model.PolicySimulationBlame) bool {
+	for _, b := range blames {
+		if b.Source == model.PolicySimulationBlameSourceNoApplicablePolicy && b.Outcome != model.PolicySimulationBlameOutcomeAllow {
+			return true
+		}
+	}
+	return false
 }
 
 // editingRuleBlameSources lists the blame sources that originate inside
@@ -1178,6 +1384,10 @@ func filterDecisionsToEditingRuleScope(decisions map[string]model.PolicySimulati
 // applies). Anything else — peer_policy (same scope, different policy),
 // system_permission, channel_policy, and even sibling_rule (same policy,
 // different rule) — is dropped when the caller asks for "this rule only".
+//
+// no_applicable_rule is not listed here because it's emitted POST-filter
+// by filterDecisionsToEditingRuleScope itself, not by the simulator.
+// Listing it here would have no effect; the filter would never see one.
 var editingRuleBlameSources = map[string]struct{}{
 	model.PolicySimulationBlameSourceThisRule:           {},
 	model.PolicySimulationBlameSourceSiblingSaved:       {},

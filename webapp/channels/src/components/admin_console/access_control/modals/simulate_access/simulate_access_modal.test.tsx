@@ -858,6 +858,86 @@ describe('SimulateAccessModal — picker UX', () => {
         expect(ruleTwo).toHaveTextContent('"Helios" in user.attributes.Program');
     });
 
+    // "This rule only" view of the sibling_saved scenario: the
+    // server's filterResponseToEditingRuleScope post-process appends
+    // a no_applicable_rule marker so the chip can render "this rule
+    // doesn't apply" instead of the misleading "Allowed · another
+    // rule" — at this scope the sibling that saved the verdict is
+    // out of scope, so the author needs to see that THIS rule didn't
+    // contribute, not that some unnamed other rule did. The
+    // sibling_saved entry stays on the blame so the details modal
+    // can still render the trace.
+    it('no_applicable_rule blame renders the "this rule doesn\'t apply" chip in this-rule-only mode', async () => {
+        const user = TestHelper.getUserMock({id: 'unar', username: 'narrow', roles: 'system_user'});
+        mockSearchProfiles.mockResolvedValue({data: [user]});
+
+        const draft: AccessControlPolicy = {
+            id: 'p1',
+            name: 'p1',
+            type: 'channel',
+            rules: [{
+                name: 'Strict',
+                role: 'channel_user',
+                actions: ['upload_file_attachment'],
+                expression: '"Orion" in user.attributes.Program',
+            }],
+        };
+
+        mockSimulatePolicyForUsers.mockResolvedValue({
+            data: {
+                results: [{
+                    user,
+                    decisions: {
+                        upload_file_attachment: {
+                            decision: true,
+                            blame: [
+
+                                // What the server returns for the
+                                // "this rule only" view: sibling_saved
+                                // stays for trace rendering, and the
+                                // post-process appends the
+                                // no_applicable_rule marker so the
+                                // chip can pick it up over the
+                                // sibling_saved label.
+                                {
+                                    source: POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED,
+                                    rule_name: 'Strict',
+                                    role: 'channel_user',
+                                    expression: '"Orion" in user.attributes.Program',
+                                },
+                                {
+                                    source: POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE,
+                                },
+                            ],
+                        },
+                    },
+                }],
+                total: 1,
+            },
+        });
+
+        renderWithContext(
+            <SimulateAccessModal
+                onExited={jest.fn()}
+                policy={draft}
+                actions={['upload_file_attachment']}
+                ruleName='Strict'
+                targetRole=''
+                targetScope='system'
+            />,
+        );
+
+        await pickUser(user);
+
+        // The chip must read "this rule doesn't apply" and pick the
+        // dedicated test id — NOT the allow-saved chip and NOT the
+        // plain allow chip.
+        const chip = await screen.findByTestId('simulate-access-row-chip-not-applicable-rule');
+        expect(chip).toHaveTextContent(/this rule doesn't apply/i);
+        expect(screen.queryByTestId('simulate-access-row-chip-allow-saved')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('simulate-access-row-chip-allow')).not.toBeInTheDocument();
+    });
+
     it('peer_policy blame surfaces the peer policy name on the chip and inside the details modal', async () => {
         const user = TestHelper.getUserMock({id: 'upeer', username: 'peer', roles: 'system_user'});
         mockSearchProfiles.mockResolvedValue({data: [user]});

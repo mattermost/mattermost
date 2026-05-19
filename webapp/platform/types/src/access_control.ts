@@ -187,6 +187,18 @@ export type AccessControlVisualASTNode = {
     value: any;
     value_type: number;
     attribute_type: string;
+
+    /**
+     * True when the server stripped one or more literal values from this
+     * condition because the caller doesn't hold them. The visual AST
+     * masker drops single-value literals to null and removes hidden
+     * elements from multi-value lists, so a row that round-trips
+     * unchanged on save needs this flag to know its `value` slot is a
+     * placeholder, not a real empty input. The picker uses it to
+     * render a locked masked chip instead of an empty input that the
+     * caller could accidentally overwrite.
+     */
+    has_masked_values?: boolean;
 }
 
 /**
@@ -226,7 +238,16 @@ export type AccessControlPolicyActiveUpdate = {
  *                         Treated as opaque (no expression exposed).
  * - `system_permission` — deny came from a TRULY higher-scoped permission
  *                         policy. Treated as opaque.
- * - `no_applicable_policy` — synthetic vacuous-allow marker.
+ * - `no_applicable_policy` — synthetic vacuous-allow marker emitted when the
+ *                         whole draft policy doesn't apply to a candidate user
+ *                         (e.g. a system_user user added to a system_admin
+ *                         policy).
+ * - `no_applicable_rule` — synthetic vacuous-allow marker emitted under the
+ *                         "this rule only" view when the rule the author is
+ *                         editing is silent on a candidate user. Distinct
+ *                         from no_applicable_policy because the policy as a
+ *                         whole may still grant the verdict via a sibling
+ *                         rule — only THIS rule didn't.
  */
 export const POLICY_SIMULATION_BLAME_SOURCES = {
     THIS_RULE: 'this_rule',
@@ -235,6 +256,7 @@ export const POLICY_SIMULATION_BLAME_SOURCES = {
     SYSTEM_PERMISSION: 'system_permission',
     PEER_POLICY: 'peer_policy',
     NO_APPLICABLE_POLICY: 'no_applicable_policy',
+    NO_APPLICABLE_RULE: 'no_applicable_rule',
     SIBLING_SAVED: 'sibling_saved',
 } as const;
 

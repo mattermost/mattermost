@@ -13,7 +13,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense, isChannelPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -151,7 +151,16 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     );
 
     const channelAdminABACControlEnabled = useSelector(isChannelAccessControlEnabled);
-    const permissionPoliciesEnabled = useSelector(isPermissionPoliciesEnabled);
+
+    // Channel-scope permission rules sit behind a dedicated sub-flag
+    // (ChannelPermissionPolicies) that depends on the umbrella
+    // PermissionPolicies flag — `isChannelPermissionPoliciesEnabled`
+    // enforces that dependency so we don't have to check both flags
+    // at every call site. The server rejects channel policies with
+    // permission rules when this is off (`api.access_control_policy.
+    // channel_permission_policies.feature_disabled`); hiding the tab
+    // here keeps the UI consistent with that gate.
+    const channelPermissionPoliciesEnabled = useSelector(isChannelPermissionPoliciesEnabled);
 
     const isPolicyEligibleChannelType = channel.type === Constants.PRIVATE_CHANNEL || channel.type === Constants.OPEN_CHANNEL;
 
@@ -162,10 +171,11 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const isDefaultChannel = channel.name === Constants.DEFAULT_CHANNEL || channel.name === Constants.OFFTOPIC_CHANNEL;
     const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && isPolicyEligibleChannelType && !channel.group_constrained && !isDefaultChannel && !channel.shared;
 
-    // Permissions Policy is gated by both the ABAC license + setting AND the
-    // PermissionPolicies feature flag. Same channel-eligibility rules as the
-    // Membership Policy tab.
-    const shouldShowPermissionsPolicyTab = shouldShowAccessRulesTab && permissionPoliciesEnabled;
+    // Permissions Policy is gated by the ABAC license + setting AND the
+    // channel-scope permission-policies sub-flag (which itself requires
+    // the PermissionPolicies umbrella). Same channel-eligibility rules
+    // as the Membership Policy tab.
+    const shouldShowPermissionsPolicyTab = shouldShowAccessRulesTab && channelPermissionPoliciesEnabled;
 
     const shouldShowArchiveTab = channel.name !== Constants.DEFAULT_CHANNEL &&
         ((channel.type === Constants.PRIVATE_CHANNEL && canArchivePrivateChannels) ||

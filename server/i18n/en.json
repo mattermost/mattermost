@@ -60,6 +60,14 @@
     "translation": "Permission policies feature is not enabled."
   },
   {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "Channel-level permission policies feature is not enabled."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "Policy simulation feature is not enabled."
+  },
+  {
     "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
     "translation": "All users in the simulation must be members of the team or channel in the request."
   },

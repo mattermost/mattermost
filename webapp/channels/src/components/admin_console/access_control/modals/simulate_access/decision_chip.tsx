@@ -43,6 +43,10 @@ const blameSourceMessages = defineMessages({
         id: 'admin.access_control.simulate_access.blame.no_applicable_policy',
         defaultMessage: "policy doesn't apply to this user",
     },
+    [POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE]: {
+        id: 'admin.access_control.simulate_access.blame.no_applicable_rule',
+        defaultMessage: "this rule doesn't apply to this user",
+    },
     [POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED]: {
         id: 'admin.access_control.simulate_access.blame.sibling_saved',
         defaultMessage: 'another rule',
@@ -104,6 +108,29 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
     }
 
     if (decision.decision) {
+        // "This rule doesn't apply to this user" — the post-process
+        // injects no_applicable_rule whenever the editing rule is
+        // silent on the subject in the "this rule only" view (either
+        // a sibling rule's OR-bucket saved the user, or the deny
+        // came entirely from outside the editing rule). Checked
+        // before no_applicable_policy because the rule-scoped marker
+        // is strictly narrower: the policy as a whole may still
+        // apply, just not this rule.
+        if (hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE)) {
+            return (
+                <span
+                    className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
+                    data-testid='simulate-access-row-chip-not-applicable-rule'
+                >
+                    <MinusCircleOutlineIcon
+                        size={ICON_SIZE}
+                        className='SimulateAccessModal__rowChipIcon'
+                    />
+                    <FormattedMessage {...blameSourceMessages[POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE]}/>
+                </span>
+            );
+        }
+
         // The simulator marks "policy doesn't apply to this user" rows
         // with a synthetic vacuous ALLOW + a single no_applicable_policy
         // blame entry. Render as a softer neutral chip so the author isn't
@@ -125,7 +152,9 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
 
         // ALLOW with sibling_saved blame: the editing rule alone would
         // have denied. Surface that inline so authors can spot
-        // "OR-saved" allows.
+        // "OR-saved" allows. Only reached when no_applicable_rule
+        // wasn't injected — i.e. we're in the "All policies" view
+        // where the sibling IS relevant context for the verdict.
         if (hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED)) {
             return (
                 <span

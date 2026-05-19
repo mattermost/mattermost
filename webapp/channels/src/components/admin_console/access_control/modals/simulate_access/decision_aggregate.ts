@@ -10,8 +10,9 @@ import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control'
  *
  *   - 'pending'       — at least one action has no decision yet (debounce
  *                       in flight or row freshly added).
- *   - 'not-applicable' — every decision carries `no_applicable_policy`
- *                       blame (the draft policy doesn't govern this user).
+ *   - 'not-applicable' — every decision carries `no_applicable_policy` or
+ *                       `no_applicable_rule` blame (the draft policy /
+ *                       editing rule doesn't govern this user).
  *   - 'allowed'       — every action allows AND none are not-applicable.
  *   - 'denied'        — every action denies.
  *   - 'mixed'         — at least one allow + at least one deny in the same
@@ -44,11 +45,11 @@ export type AggregateDecisionState =
  * Counting rules:
  *  - actions missing from `decisions` count as pending (we haven't gotten
  *    a verdict yet).
- *  - decisions tagged with `no_applicable_policy` blame are vacuous
- *    allows; they only roll up to 'not-applicable' when EVERY action is
- *    inapplicable. Mixed rows (one inapplicable + one real allow/deny)
- *    fold the inapplicable side into the real side so the chip reflects
- *    the actionable decisions.
+ *  - decisions tagged with `no_applicable_policy` or `no_applicable_rule`
+ *    blame are vacuous allows; they only roll up to 'not-applicable' when
+ *    EVERY action is inapplicable. Mixed rows (one inapplicable + one real
+ *    allow/deny) fold the inapplicable side into the real side so the
+ *    chip reflects the actionable decisions.
  */
 export function aggregateDecisions(
     actions: string[],
@@ -77,7 +78,13 @@ export function aggregateDecisions(
             denies++;
             continue;
         }
-        if (dec.blame?.some((b) => b.source === POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY && b.outcome !== 'allow')) {
+        if (dec.blame?.some((b) =>
+            (
+                b.source === POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY ||
+                b.source === POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE
+            ) &&
+            b.outcome !== 'allow',
+        )) {
             inapplicable++;
             continue;
         }
