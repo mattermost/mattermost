@@ -126,6 +126,9 @@ func TestDesanitizeRemovesAllFakeSettings(t *testing.T) {
 func populateStrings(v reflect.Value, value string) {
 	switch v.Kind() {
 	case reflect.Pointer:
+		if v.IsNil() && v.CanSet() {
+			v.Set(reflect.New(v.Type().Elem()))
+		}
 		if !v.IsNil() {
 			if v.Elem().Kind() == reflect.String {
 				if v.Elem().String() == "" {

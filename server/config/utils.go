@@ -113,7 +113,11 @@ func desanitize(actual, target *model.Config) {
 	if target.AutoTranslationSettings.LibreTranslate != nil &&
 		target.AutoTranslationSettings.LibreTranslate.APIKey != nil &&
 		*target.AutoTranslationSettings.LibreTranslate.APIKey == model.FakeSetting {
-		target.AutoTranslationSettings.LibreTranslate.APIKey = actual.AutoTranslationSettings.LibreTranslate.APIKey
+		if actual.AutoTranslationSettings.LibreTranslate != nil {
+			target.AutoTranslationSettings.LibreTranslate.APIKey = actual.AutoTranslationSettings.LibreTranslate.APIKey
+		} else {
+			target.AutoTranslationSettings.LibreTranslate.APIKey = nil
+		}
 	}
 
 	for id, settings := range target.PluginSettings.Plugins {
