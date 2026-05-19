@@ -95,6 +95,7 @@ interface CELEditorProps {
      *  permission-rule editor render "Simulate rules" instead of the
      *  default "Test access rule" copy. */
     testButtonLabel?: React.ReactNode;
+    hasMaskedRows?: boolean;
 }
 
 // TODO: this is just a sample schema for the editor, we need to get the actual schema from the server
@@ -111,6 +112,7 @@ function CELEditor({
     userAttributes,
     onTestClick,
     testButtonLabel,
+    hasMaskedRows = false,
 }: CELEditorProps): JSX.Element {
     const intl = useIntl();
     const [editorState, setEditorState] = useState({
@@ -274,12 +276,12 @@ function CELEditor({
         };
     }, []); // Only run once on mount
 
-    // Update the editor's readOnly state when disabled prop changes
+    // Update the editor's readOnly state when disabled or hasMaskedRows changes
     useEffect(() => {
         if (monacoRef.current) {
-            monacoRef.current.updateOptions({readOnly: disabled});
+            monacoRef.current.updateOptions({readOnly: disabled || hasMaskedRows});
         }
-    }, [disabled]);
+    }, [disabled, hasMaskedRows]);
 
     // Helper function to determine current validation state
     const getValidationState = useCallback(() => {
@@ -355,6 +357,19 @@ function CELEditor({
         <div className={`cel-editor ${className}`}>
             <MonacoLanguageProvider schemas={schemas}/>
 
+            {hasMaskedRows && (
+                <div
+                    className='cel-editor__masked-banner'
+                    role='alert'
+                >
+                    <i className='icon icon-alert-outline'/>
+                    <FormattedMessage
+                        id='admin.access_control.cel.masked_values_banner'
+                        defaultMessage='This expression contains restricted values. Switch to Simple mode to edit the values you have access to.'
+                    />
+                </div>
+            )}
+
             <div
                 className='cel-editor__container'
                 data-status-color={editorState.statusBarColor}
@@ -411,8 +426,16 @@ function CELEditor({
                 </div>
                 <TestButton
                     onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
-                    disabled={disabled || !editorState.expression || !editorState.isValid || editorState.isValidating}
                     label={testButtonLabel}
+                    disabled={disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
+                    disabledTooltip={
+                        hasMaskedRows ?
+                            intl.formatMessage({
+                                id: 'admin.access_control.cel_editor.masked_values_tooltip',
+                                defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
+                            }) :
+                            undefined
+                    }
                 />
             </div>
             {/* Built-in expression-only modal. Suppressed when the

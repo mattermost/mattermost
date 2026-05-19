@@ -257,11 +257,30 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		if stored.Expression == "" || stored.Expression == "true" {
 			continue
 		}
-		mergedExpr, appErr := a.mergeExpressionWithMaskedValues(rctx, policy.ID, rule.Expression, stored.Expression, callerID)
+		// Snapshot the caller-submitted expression so we can tell
+		// post-merge whether mergeExpressionWithMaskedValues actually
+		// re-injected hidden literals (vs. echoing the submission
+		// back unchanged). Doing this here, before the merge call,
+		// lets the Actions-locking guard below use a plain `!=` check
+		// regardless of whether `rule` is a pointer or a copy.
+		submittedExpr := rule.Expression
+		mergedExpr, appErr := a.mergeExpressionWithMaskedValues(rctx, policy.ID, submittedExpr, stored.Expression, callerID)
 		if appErr != nil {
 			return appErr
 		}
 		rule.Expression = mergedExpr
+		// If hidden values were re-injected into the expression, the
+		// caller was working from a masked view of this rule. Lock
+		// Actions to the stored value too — without this, a caller
+		// who sees "--------" could swap the action type (e.g.
+		// "membership" → "upload_file_attachment") and the merge
+		// would restore the hidden CEL value while silently removing
+		// the original access restriction. Pair-by-Name/membership
+		// (above) makes `stored` the right anchor here even if the
+		// caller reordered or inserted rules in the editor.
+		if mergedExpr != submittedExpr {
+			rule.Actions = stored.Actions
+		}
 	}
 
 	// Any stored rule the caller didn't include in the submission was
@@ -456,8 +475,16 @@ func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, policyID, submit
 		// regardless of the stored operator. After we restore the original operator,
 		// the value shape may not match (e.g., "==" with a []any value). Normalize
 		// scalar operators to a single string from the array.
+		//
+		// When the stored scalar value is hidden, always use hiddenValues[0] directly
+		// rather than taking arr[0] from the merged list. Without this guard a crafted
+		// submission of `in ["caller-visible"]` would pass validateConditionValues,
+		// land in mergeConditionValues as a []any, and arr[0] would be the attacker's
+		// value — silently overwriting the stored hidden value.
 		if isScalarOperator(merged.Operator) {
-			if arr, ok := merged.Value.([]any); ok {
+			if len(hiddenValues) > 0 {
+				merged.Value = hiddenValues[0]
+			} else if arr, ok := merged.Value.([]any); ok {
 				if len(arr) == 0 {
 					merged.Value = nil
 				} else if s, ok := arr[0].(string); ok {
@@ -1565,6 +1592,33 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 	attributes, appErr := acs.GetPolicyRuleAttributes(rctx, channelID, action)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	if len(attributes) == 0 {
+		return attributes, nil
+	}
+
+	// Strip source_only and shared_only fields: their values must not be
+	// exposed to channel members through the invite modal / members sidebar.
+	// Fail closed: if the CPA group or a field cannot be resolved, omit that
+	// field rather than leaking its values.
+	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	if appErr != nil {
+		return map[string][]string{}, nil
+	}
+
+	for fieldName := range attributes {
+		// Read directly from the store so this security filter sees the raw
+		// access_mode, unaffected by property read hooks for the request caller.
+		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByName(rctx.Context(), cpaGroup.ID, "", fieldName)
+		if fieldErr != nil {
+			delete(attributes, fieldName)
+			continue
+		}
+		switch field.GetAccessMode() {
+		case model.PropertyAccessModeSourceOnly, model.PropertyAccessModeSharedOnly:
+			delete(attributes, fieldName)
+		}
 	}
 
 	return attributes, nil

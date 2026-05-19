@@ -187,17 +187,6 @@ export type AccessControlVisualASTNode = {
     value: any;
     value_type: number;
     attribute_type: string;
-
-    /**
-     * True when the server stripped one or more literal values from this
-     * condition because the caller doesn't hold them. The visual AST
-     * masker drops single-value literals to null and removes hidden
-     * elements from multi-value lists, so a row that round-trips
-     * unchanged on save needs this flag to know its `value` slot is a
-     * placeholder, not a real empty input. The picker uses it to
-     * render a locked masked chip instead of an empty input that the
-     * caller could accidentally overwrite.
-     */
     has_masked_values?: boolean;
 }
 

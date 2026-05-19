@@ -655,6 +655,7 @@ type WebhookStore interface {
 	GetIncomingByTeam(teamID string, offset, limit int) ([]*model.IncomingWebhook, error)
 	GetIncomingByTeamByUser(teamID string, userID string, offset, limit int) ([]*model.IncomingWebhook, error)
 	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error)
+	UpdateIncomingLastUsed(webhookID string, lastUsed int64) error
 	GetIncomingByChannel(channelID string) ([]*model.IncomingWebhook, error)
 	DeleteIncoming(webhookID string, timestamp int64) error
 	PermanentDeleteIncomingByChannel(channelID string) error
