@@ -52,7 +52,7 @@ func appendHumanStringsFromMmBlockMap(m map[string]any, out *[]string) {
 	switch typ {
 	case "text":
 		if s, ok := m["text"].(string); ok {
-			appendTrimmedNonEmptyString(out, s)
+			appendNonWhitespaceOnlyMessage(out, s)
 		}
 	case "container":
 		appendHumanStringsFromMmBlocksArray(m["content"], out)
@@ -102,11 +102,13 @@ func appendHumanStringsFromBlockKitTree(v any, out *[]string) {
 		switch typ {
 		case "markdown":
 			if s, ok := blockMap["text"].(string); ok {
-				appendTrimmedNonEmptyString(out, s)
+				appendNonWhitespaceOnlyMessage(out, s)
 			}
 		case "section":
-			if s, ok := blockMap["text"].(string); ok {
-				appendTrimmedNonEmptyString(out, s)
+			if textBlock, ok := blockMap["text"].(map[string]any); ok {
+				if s, ok := textBlock["text"].(string); ok {
+					appendNonWhitespaceOnlyMessage(out, s)
+				}
 			}
 			if fields, ok := blockMap["fields"].([]any); ok {
 				for _, field := range fields {
@@ -116,13 +118,13 @@ func appendHumanStringsFromBlockKitTree(v any, out *[]string) {
 					}
 					fieldText, ok := fieldMap["text"].(string)
 					if ok {
-						appendTrimmedNonEmptyString(out, fieldText)
+						appendNonWhitespaceOnlyMessage(out, fieldText)
 					}
 				}
 			}
 		case "header":
 			if s, ok := blockMap["text"].(string); ok {
-				appendTrimmedNonEmptyString(out, s)
+				appendNonWhitespaceOnlyMessage(out, s)
 			}
 		}
 	}
@@ -157,7 +159,7 @@ func appendHumanStringsFromAdaptiveCardsItem(item any, out *[]string) {
 	switch typ {
 	case "TextBlock":
 		if s, ok := itemMap["text"].(string); ok {
-			appendTrimmedNonEmptyString(out, s)
+			appendNonWhitespaceOnlyMessage(out, s)
 		}
 	case "Container":
 		if items, ok := itemMap["items"].([]any); ok {

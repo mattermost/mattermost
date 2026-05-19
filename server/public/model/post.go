@@ -732,27 +732,27 @@ func (o *Post) HasUnsafeLinks() bool {
 // It is intended for mention checks, search indexing, and similar uses alongside integration metadata.
 func (o *Post) AllStrings() []string {
 	var out []string
-	appendTrimmedNonEmptyString(&out, o.Message)
+	appendNonWhitespaceOnlyMessage(&out, o.Message)
 	for _, attachment := range o.Attachments() {
 		if attachment == nil {
 			continue
 		}
-		appendTrimmedNonEmptyString(&out, attachment.AuthorName)
-		appendTrimmedNonEmptyString(&out, attachment.Title)
-		appendTrimmedNonEmptyString(&out, attachment.Text)
-		appendTrimmedNonEmptyString(&out, attachment.Pretext)
-		appendTrimmedNonEmptyString(&out, attachment.Footer)
+		appendNonWhitespaceOnlyMessage(&out, attachment.AuthorName)
+		appendNonWhitespaceOnlyMessage(&out, attachment.Title)
+		appendNonWhitespaceOnlyMessage(&out, attachment.Text)
+		appendNonWhitespaceOnlyMessage(&out, attachment.Pretext)
+		appendNonWhitespaceOnlyMessage(&out, attachment.Footer)
 		for _, field := range attachment.Fields {
 			if field == nil {
 				continue
 			}
-			appendTrimmedNonEmptyString(&out, field.Title)
+			appendNonWhitespaceOnlyMessage(&out, field.Title)
 			if field.Value == nil {
 				continue
 			}
 			switch v := field.Value.(type) {
 			case string:
-				appendTrimmedNonEmptyString(&out, v)
+				appendNonWhitespaceOnlyMessage(&out, v)
 			default:
 				if s := strings.TrimSpace(fmt.Sprint(v)); s != "" {
 					out = append(out, s)
@@ -787,10 +787,11 @@ func (o *Post) InteractiveBlocksImageURLs() []string {
 	return out
 }
 
-func appendTrimmedNonEmptyString(out *[]string, s string) {
-	if t := strings.TrimSpace(s); t != "" {
-		*out = append(*out, t)
+func appendNonWhitespaceOnlyMessage(out *[]string, s string) {
+	if strings.TrimSpace(s) == "" {
+		return
 	}
+	*out = append(*out, s)
 }
 
 // nonEmptyInteractivePayloadPropKeys lists non-empty interactive payload props (mm_blocks,

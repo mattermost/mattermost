@@ -89,7 +89,7 @@ func TestPostGetMmBlocksActionSpec(t *testing.T) {
 			"act1": map[string]any{
 				"type":    MmBlocksActionTypeExternal,
 				"url":     "https://hooks.example.com/x?keep=yes",
-				"context": `{"k":"v"}`,
+				"context": map[string]any{"k": "v"},
 				"query":   map[string]any{"a": "1", "keep": "no"},
 			},
 			"open1": map[string]any{
@@ -121,22 +121,6 @@ func TestPostGetMmBlocksActionSpec_encryptedProp(t *testing.T) {
 		PostPropsMmBlocksActions: "opaque-ciphertext",
 	})
 	assert.Nil(t, p.GetMmBlocksActionSpec("any"))
-}
-
-func TestPostGetMmBlocksActionSpec_mapContext(t *testing.T) {
-	p := &Post{}
-	p.SetProps(StringInterface{
-		PostPropsMmBlocksActions: map[string]any{
-			"act1": map[string]any{
-				"type":    MmBlocksActionTypeExternal,
-				"url":     "https://hooks.example.com/x",
-				"context": map[string]any{"k": "v"},
-			},
-		},
-	})
-	spec := p.GetMmBlocksActionSpec("act1")
-	require.NotNil(t, spec)
-	assert.Equal(t, "v", spec.Context["k"])
 }
 
 func TestMmBlocksActionCookie_ActionSpec(t *testing.T) {
@@ -195,7 +179,7 @@ func TestAddMmBlocksActionCookies_ReplacesWithEncryptedString(t *testing.T) {
 			"a1": map[string]any{
 				"type":    MmBlocksActionTypeExternal,
 				"url":     "https://example.com/hook?keep=1",
-				"context": `{"k":"v"}`,
+				"context": map[string]any{"k": "v"},
 				"query":   map[string]any{"keep": "2", "a": "b"},
 			},
 		},

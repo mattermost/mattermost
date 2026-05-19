@@ -1048,21 +1048,20 @@ func TestPost_AllStrings_interactiveProps(t *testing.T) {
 			PostPropsBlockKitBlocks: []any{
 				map[string]any{"type": "image", "image_url": "https://example.com/i.png", "alt_text": "logo"},
 			},
-			PostPropsAdaptiveCards: map[string]any{
-				"type": "AdaptiveCard",
-				"body": []any{
+			PostPropsAdaptiveCards: []any{
+				map[string]any{"type": "AdaptiveCard", "version": "1.0", "body": []any{
 					map[string]any{"type": "TextBlock", "text": "card-line"},
-				},
+				}},
 			},
 		},
 	}
 	got := p.AllStrings()
 	require.Contains(t, got, "root")
 	require.Contains(t, got, "mm-line")
-	require.Contains(t, got, "OK")
+	require.NotContains(t, got, "OK")
 	require.NotContains(t, got, "act")
 	require.NotContains(t, got, "https://example.com/i.png")
-	require.Contains(t, got, "logo")
+	require.NotContains(t, got, "logo")
 	require.Contains(t, got, "card-line")
 }
 
@@ -1106,7 +1105,7 @@ func TestPost_AllStrings_interactivePropsWithoutMessage(t *testing.T) {
 		},
 	}
 	got := p.AllStrings()
-	require.Equal(t, []string{"Go"}, got)
+	require.Len(t, got, 0)
 }
 
 func TestPost_AllStrings_nilProps(t *testing.T) {

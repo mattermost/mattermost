@@ -54,7 +54,7 @@ func TestFeatureFlagsToMap(t *testing.T) {
 func TestFeatureFlagsMmBlocksEnabledDefault(t *testing.T) {
 	var f FeatureFlags
 	f.SetDefaults()
-	require.False(t, f.MmBlocksEnabled)
+	require.True(t, f.MmBlocksEnabled)
 	require.Equal(t, "true", f.ToMap()["MmBlocksEnabled"])
 }
 

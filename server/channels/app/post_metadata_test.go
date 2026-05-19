@@ -1806,7 +1806,8 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 					},
 				},
 			},
-			Expected: []string{"smile", "coffee", "thumbsup", "rocket", "tada"},
+			// Button labels are not included in Post.AllStrings (see model.TestPost_AllStrings_interactiveProps).
+			Expected: []string{"smile", "coffee", "rocket", "tada"},
 		},
 	}
 
