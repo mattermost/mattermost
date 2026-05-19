@@ -121,11 +121,11 @@ const ImageGallery = (props: Props) => {
 
     // Ref to store ResizeObserver instance for proper cleanup
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
-    const timeoutIdRef = useRef<NodeJS.Timeout>();
+    const timeoutIdRef = useRef<ReturnType<typeof setTimeout>>();
     const rafIdRef = useRef<number>();
     const lastProcessedWidthRef = useRef<number | null>(null);
     const debouncedResizeRef = useRef<(() => void) | null>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout>();
+    const focusTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
     useEffect(() => {
         const THROTTLE_DELAY = 16; // ~60fps
