@@ -2288,7 +2288,7 @@ func TestDoPostActionMmBlocksActions(t *testing.T) {
 					actionID: map[string]any{
 						"type":    model.MmBlocksActionTypeExternal,
 						"url":     ts.URL + "/base?existing=1",
-						"context": `{"k":"v"}`,
+						"context": map[string]any{"k": "v"},
 						"query": map[string]any{
 							"fromAction": "yes",
 							"existing":   "2",
