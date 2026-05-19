@@ -138,6 +138,71 @@ describe('FilePreview', () => {
         });
     });
 
+    /** Direct handler coverage: thumbnails for archived/deleted files are non-links, but guards must stay aligned. */
+    const thumbnailClickMouseEvent = () =>
+        ({
+            preventDefault: jest.fn(),
+            stopPropagation: jest.fn(),
+            blur: jest.fn(),
+            target: document.createElement('a'),
+        }) as unknown as React.MouseEvent<HTMLElement>;
+
+    test('should not open preview modal via handler when attachment is archived', () => {
+        const openModalFn = jest.fn();
+        const archivedInfos = [{...fileInfos[0], archived: true}];
+        const instance = new FilePreview({
+            enableSVGs: false,
+            fileInfos: archivedInfos,
+            uploadsInProgress: [],
+            uploadsProgressPercent: {},
+            actions: {openModal: openModalFn},
+        });
+
+        instance.handleThumbnailPreviewClick(thumbnailClickMouseEvent(), 0);
+
+        expect(openModalFn).not.toHaveBeenCalled();
+    });
+
+    test('should not open preview modal via handler when attachment has delete_at set', () => {
+        const openModalFn = jest.fn();
+        const deletedInfos = [{...fileInfos[0], delete_at: 999}];
+        const instance = new FilePreview({
+            enableSVGs: false,
+            fileInfos: deletedInfos,
+            uploadsInProgress: [],
+            uploadsProgressPercent: {},
+            actions: {openModal: openModalFn},
+        });
+
+        instance.handleThumbnailPreviewClick(thumbnailClickMouseEvent(), 0);
+
+        expect(openModalFn).not.toHaveBeenCalled();
+    });
+
+    test('should render non-interactive thumbnail wrapper when attachment is archived or deleted', () => {
+        const {container, rerender} = renderWithContext(
+            <FilePreview
+                {...baseProps}
+                fileInfos={[{...fileInfos[0], archived: true}]}
+                uploadsInProgress={[]}
+            />,
+        );
+
+        expect(container.querySelector('.post-image__thumbnail')).toBeTruthy();
+        expect(container.querySelector('a.post-image__thumbnail')).not.toBeInTheDocument();
+
+        rerender(
+            <FilePreview
+                {...baseProps}
+                fileInfos={[{...fileInfos[0], delete_at: 1}]}
+                uploadsInProgress={[]}
+            />,
+        );
+
+        expect(container.querySelector('a.post-image__thumbnail')).not.toBeInTheDocument();
+        expect(screen.queryAllByRole('link', {name: /file thumbnail/i})).toHaveLength(0);
+    });
+
     test('should not render an SVG when SVGs are disabled', () => {
         const props = {
             ...baseProps,
