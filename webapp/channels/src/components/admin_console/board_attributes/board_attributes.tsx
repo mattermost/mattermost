@@ -58,7 +58,7 @@ export default function BoardAttributes(props: Props) {
                             />
                             <FormattedMessage
                                 id='admin.board_attributes.section_subtitle'
-                                defaultMessage='Customize the attribute available by default in cards across every board on the system.'
+                                defaultMessage='Customize the attributes available by default in cards across every board on the system.'
                             />
                         </hgroup>
                     </SectionHeader>
