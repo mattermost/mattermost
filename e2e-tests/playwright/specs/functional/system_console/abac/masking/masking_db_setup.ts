@@ -82,6 +82,43 @@ export async function getStoredPolicyRuleExpressions(policyId: string): Promise<
     return rows.map((r) => (r.expression ?? '').trim()).filter((s) => s.length > 0);
 }
 
+/**
+ * Hard-delete a CPA field directly in the DB by setting deleteat.
+ * Use this instead of the API for fields that were flipped to protected=true
+ * via setFieldAsSharedOnly / setFieldAsSourceOnly — the API rejects deletes
+ * for protected fields (403), so calling it from a finally block silently
+ * leaves the field behind and the 200-field global limit fills up over time.
+ */
+export async function deleteFieldFromDB(fieldId: string): Promise<void> {
+    if (!/^[a-z0-9]{26}$/.test(fieldId)) {
+        throw new Error(`deleteFieldFromDB: refusing to use untrusted field id ${JSON.stringify(fieldId)}`);
+    }
+    await runQuery(
+        `UPDATE propertyfields
+            SET deleteat = EXTRACT(EPOCH FROM NOW())::bigint * 1000
+          WHERE id = $1`,
+        [fieldId],
+    );
+}
+
+/**
+ * Soft-delete all CPA fields whose name starts with the given prefix.
+ * Used in beforeAll to purge orphaned test fields from previous failed runs,
+ * including protected ones that the API cannot delete.
+ */
+export async function purgeFieldsByPrefix(prefix: string): Promise<void> {
+    if (!/^[A-Za-z0-9_-]+$/.test(prefix)) {
+        throw new Error(`purgeFieldsByPrefix: refusing untrusted prefix ${JSON.stringify(prefix)}`);
+    }
+    await runQuery(
+        `UPDATE propertyfields
+            SET deleteat = EXTRACT(EPOCH FROM NOW())::bigint * 1000
+          WHERE name LIKE $1
+            AND deleteat = 0`,
+        [`${prefix}%`],
+    );
+}
+
 async function setFieldAccessMode(fieldId: string, accessMode: string): Promise<void> {
     if (!/^[a-z0-9]{26}$/.test(fieldId)) {
         throw new Error(`setFieldAccessMode: refusing to use untrusted field id ${JSON.stringify(fieldId)}`);

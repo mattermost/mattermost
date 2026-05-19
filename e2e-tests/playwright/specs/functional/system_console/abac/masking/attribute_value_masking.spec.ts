@@ -20,7 +20,13 @@ import {enableUserManagedAttributes} from '../support';
 // masking pipeline — the AttributeValueMasking feature flag is loaded at
 // server boot and cannot be flipped at runtime, so any API-level fetch returns
 // the masked view and can't verify what was actually persisted.
-import {setFieldAsSharedOnly, setFieldAsSourceOnly, getStoredPolicyRuleExpressions} from './masking_db_setup';
+import {
+    setFieldAsSharedOnly,
+    setFieldAsSourceOnly,
+    getStoredPolicyRuleExpressions,
+    deleteFieldFromDB,
+    purgeFieldsByPrefix,
+} from './masking_db_setup';
 
 /**
  * Attribute-Value Masking E2E Tests
@@ -102,7 +108,10 @@ async function createMaskingMultiselectField(client: Client4, fieldName: string,
 }
 
 /**
- * Delete a CPA field by ID. Best-effort — never throws.
+ * Delete a CPA field by ID. Tries the API first; falls back to a direct DB
+ * soft-delete for fields that were flipped to protected=true via
+ * setFieldAsSharedOnly / setFieldAsSourceOnly (the API returns 403 for those).
+ * Never throws.
  */
 async function deleteCPAField(client: Client4, fieldId: string): Promise<void> {
     if (!fieldId) {
@@ -113,7 +122,12 @@ async function deleteCPAField(client: Client4, fieldId: string): Promise<void> {
             method: 'DELETE',
         });
     } catch {
-        // best-effort
+        // API failed (e.g. 403 for protected fields) — fall back to DB delete.
+        try {
+            await deleteFieldFromDB(fieldId);
+        } catch {
+            // best-effort
+        }
     }
 }
 
@@ -302,6 +316,14 @@ async function getPolicyIdFromURL(page: Page): Promise<string> {
 // ---------------------------------------------------------------------------
 
 test.describe('Attribute-Value Masking', () => {
+    // Purge any orphaned Masking* CPA fields left by previous failed runs so we
+    // don't hit the 200-field global limit mid-suite. Uses a direct DB delete
+    // so protected fields (set via setFieldAsSharedOnly/setFieldAsSourceOnly)
+    // are removed — the API rejects deletes for those with 403.
+    test.beforeAll(async () => {
+        await purgeFieldsByPrefix('Masking');
+    });
+
     test('MM-68508-1: Full masking round-trip in Simple editor', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
