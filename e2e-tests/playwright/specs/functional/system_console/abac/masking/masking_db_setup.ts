@@ -21,7 +21,8 @@
 
 import {Client} from 'pg';
 
-const DEFAULT_DB_URL = 'postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes';
+const DEFAULT_DB_URL =
+    'postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes';
 
 function resolveDbUrl(): string {
     return process.env.MM_TEST_DB_URL ?? DEFAULT_DB_URL;
