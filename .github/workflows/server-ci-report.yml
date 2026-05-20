@@ -131,9 +131,11 @@ jobs:
           && steps.report.outputs.failed == '0'
           && github.event.workflow_run.event == 'pull_request'
           && env.WEBHOOK_URL_FLAKY_TEST != ''
+          && env.WEBHOOK_AUTH_TOKEN_FLAKY_TEST != ''
         continue-on-error: true
         env:
           WEBHOOK_URL_FLAKY_TEST: ${{ secrets.WEBHOOK_URL_FLAKY_TEST }}
+          WEBHOOK_AUTH_TOKEN_FLAKY_TEST: ${{ secrets.WEBHOOK_AUTH_TOKEN_FLAKY_TEST }}
           FLAKY_SUMMARY: ${{ steps.report.outputs.flaky_summary }}
           PR_NUMBER: ${{ steps.incoming-pr.outputs.NUMBER }}
           REPO: ${{ github.repository }}
@@ -148,5 +150,6 @@ jobs:
             --connect-timeout 5 \
             --max-time 30 \
             -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $WEBHOOK_AUTH_TOKEN_FLAKY_TEST" \
             -d "$PAYLOAD" \
             "$WEBHOOK_URL_FLAKY_TEST"
