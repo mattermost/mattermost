@@ -79,9 +79,6 @@ type FeatureFlags struct {
 
 	ContentFlagging bool
 
-	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
-	InteractiveDialogAppsForm bool
-
 	EnableMattermostEntry bool
 
 	// DEPRECATED: Mobile SSO SAML code-exchange flow - disabled by default
@@ -159,7 +156,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeValueMasking = false
 	f.PermissionPolicies = false
 	f.ContentFlagging = true
-	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
 
 	// DEPRECATED: Disabled by default - mobile clients use direct SSO callback flow
