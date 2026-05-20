@@ -2,17 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useLayoutEffect, useMemo, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 import {useLocation} from 'react-router-dom';
 
 import {Preferences} from 'mattermost-redux/constants';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getMyPreferences, getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import type {AppDispatch} from 'stores/redux_store';
 
 import {applyTheme} from 'utils/utils';
 import DesktopApp from 'utils/desktop_api';
@@ -65,8 +62,7 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     // Track OS dark-mode state reactively.
     const [osDark, setOsDark] = useState(osIsDarkNow);
 
-    const currentUserId = useSelector(getCurrentUserId);
-    const isLoggedIn = Boolean(currentUserId);
+    const isLoggedIn = useSelector((state: GlobalState) => Boolean(getCurrentUserId(state)));
 
     // Whether the user opted in to OS sync.
     // Falls back to localStorage while Redux preferences are still loading from
@@ -174,21 +170,6 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
         DesktopApp.updateTheme(effectiveTheme);
     }, [effectiveTheme]);
 
-    // When OS sync is active, persist the effective theme to the server so that
-    // mobile clients (iOS/Android) — which read the saved theme preference — also
-    // switch automatically when the OS dark/light mode changes.
-    // Skip when in admin console: the quartz override there is cosmetic only.
-    useEffect(() => {
-        if (!syncWithOS || !isLoggedIn || isAdminConsole) {
-            return;
-        }
-        dispatch(savePreferences(currentUserId, [{
-            user_id: currentUserId,
-            category: Preferences.CATEGORY_THEME,
-            name: '',
-            value: JSON.stringify(effectiveTheme),
-        }]));
-    }, [effectiveTheme, syncWithOS, isLoggedIn, isAdminConsole, currentUserId, dispatch]);
 
     // Re-apply synchronously before the browser paints on every navigation
     // to prevent a flash of the wrong theme when returning from a plugin route.
