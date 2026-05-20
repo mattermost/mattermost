@@ -463,7 +463,7 @@ describe('selectors/getAllChannelIconOverrideNames', () => {
         const channelB = makeChannel({id: 'b'});
         const channelC = makeChannel({id: 'c'});
         const state = makeStateWithChannels(
-            [{id: '1', pluginId: 'mbe', matcher: (ch: Channel) => ch.id === 'b', iconName: 'shield-outline'}],
+            [{id: '1', pluginId: 'mbe', matcher: (_: GlobalState, ch: Channel) => ch.id === 'b', iconName: 'shield-outline'}],
             {a: channelA, b: channelB, c: channelC},
         );
         const result = getAllChannelIconOverrideNames(state);
@@ -473,7 +473,7 @@ describe('selectors/getAllChannelIconOverrideNames', () => {
     it('matcher receives full state', () => {
         const channel = makeChannel({id: 'ch-1'});
         let capturedState: GlobalState | undefined;
-        const matcher = jest.fn((_c: Channel, s: GlobalState) => {
+        const matcher = jest.fn((s: GlobalState) => {
             capturedState = s;
             return false;
         });
@@ -503,7 +503,7 @@ describe('selectors/getAllChannelIconOverrideNames', () => {
     it('wrapper falls back to per-channel iteration for non-cached refs', () => {
         const cachedX = makeChannel({id: 'x', display_name: 'cached'});
         const synthetic = {...cachedX, display_name: 'synthetic'};
-        const matcher = jest.fn((ch: Channel) => ch.display_name === 'synthetic');
+        const matcher = jest.fn((_: GlobalState, ch: Channel) => ch.display_name === 'synthetic');
         const state = makeStateWithChannels(
             [{id: '1', pluginId: 'mbe', matcher, iconName: 'shield-outline'}],
             {x: cachedX},
