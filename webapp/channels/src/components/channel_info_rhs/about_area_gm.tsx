@@ -106,24 +106,25 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                 </Usernames>
             </UsersArea>
 
-            <ChannelHeader>
-                <EditableArea
-                    content={channel.header && (
-                        <LineLimiter
-                            maxLines={4}
-                            lineHeight={20}
-                            moreText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.more', defaultMessage: 'more'})}
-                            lessText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.less', defaultMessage: 'less'})}
-                        >
-                            <Markdown message={channel.header}/>
-                        </LineLimiter>
-                    )}
-                    editable={true}
-                    onEdit={actions.editChannelHeader}
-                    editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
-                    emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.add_channel_header', defaultMessage: 'Add a channel header'})}
-                />
-            </ChannelHeader>
+            {channel.header && (
+                <ChannelHeader>
+                    <EditableArea
+                        content={(
+                            <LineLimiter
+                                maxLines={4}
+                                lineHeight={20}
+                                moreText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.more', defaultMessage: 'more'})}
+                                lessText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.less', defaultMessage: 'less'})}
+                            >
+                                <Markdown message={channel.header}/>
+                            </LineLimiter>
+                        )}
+                        editable={true}
+                        onEdit={actions.editChannelHeader}
+                        editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
+                    />
+                </ChannelHeader>
+            )}
 
             <ChannelId>
                 {formatMessage({id: 'channel_info_rhs.about_area_id', defaultMessage: 'ID:'})} {channel.id}
