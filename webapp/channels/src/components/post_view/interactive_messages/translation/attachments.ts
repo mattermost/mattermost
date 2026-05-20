@@ -375,22 +375,7 @@ function translateAttachmentActions(actions: unknown[]) {
             continue;
         }
         const act = action as Record<string, unknown>;
-        if (act.type === 'button') {
-            const text = typeof act.name === 'string' ? act.name : '';
-            const actionId = typeof act.id === 'string' ? act.id : '';
-            if (!text || !actionId) {
-                continue;
-            }
-            result.content.push({
-                type: 'button',
-                action_id: actionId,
-                text,
-                style: normaliseButtonStyle(typeof act.style === 'string' ? act.style : undefined),
-                tooltip: typeof act.tooltip === 'string' ? act.tooltip : undefined,
-                disabled: act.disabled === true ? true : undefined,
-                cookie: typeof act.cookie === 'string' ? act.cookie : undefined,
-            });
-        } else if (act.type === 'select') {
+        if (act.type === 'select') {
             const placeholder = typeof act.name === 'string' ? act.name : '';
             const actionId = typeof act.id === 'string' ? act.id : '';
             if (!actionId) {
@@ -414,6 +399,22 @@ function translateAttachmentActions(actions: unknown[]) {
                 disabled: act.disabled === true ? true : undefined,
                 cookie: typeof act.cookie === 'string' ? act.cookie : undefined,
                 data_source: typeof act.data_source === 'string' ? act.data_source : undefined,
+            });
+        } else {
+            // Legacy attachment actions without `type` render as buttons (see message_attachment.tsx).
+            const text = typeof act.name === 'string' ? act.name : '';
+            const actionId = typeof act.id === 'string' ? act.id : '';
+            if (!text || !actionId) {
+                continue;
+            }
+            result.content.push({
+                type: 'button',
+                action_id: actionId,
+                text,
+                style: normaliseButtonStyle(typeof act.style === 'string' ? act.style : undefined),
+                tooltip: typeof act.tooltip === 'string' ? act.tooltip : undefined,
+                disabled: act.disabled === true ? true : undefined,
+                cookie: typeof act.cookie === 'string' ? act.cookie : undefined,
             });
         }
     }

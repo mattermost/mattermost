@@ -53,12 +53,12 @@ describe('Interactive Menu', () => {
         // # Post an incoming webhook for interactive menu with search options
         cy.postIncomingWebhook({url: incomingWebhook.url, data: searchOptionsPayload, waitFor: 'attachment-pretext'});
 
-        // # Get message attachment from the last post
+        // # Get mm_blocks from the last post
         cy.getLastPostId().then((postId) => {
-            cy.get(`#messageAttachmentList_${postId}`).as('messageAttachmentList');
+            cy.getPostMmBlocks(postId).as('postMmBlocks');
         });
 
-        cy.get('@messageAttachmentList').within(() => {
+        cy.get('@postMmBlocks').within(() => {
             cy.findByPlaceholderText('Select an option...').click().clear().type('sea');
 
             // * Message attachment menu dropdown should now be open

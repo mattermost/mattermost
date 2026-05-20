@@ -12,7 +12,7 @@
 
 import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
 import type {CSSProperties, KeyboardEvent, MouseEvent} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
@@ -52,7 +52,9 @@ import GenericChannelProvider from 'components/suggestion/generic_channel_provid
 import GenericUserProvider from 'components/suggestion/generic_user_provider';
 import MenuActionProvider from 'components/suggestion/menu_action_provider';
 
-import {ModalIdentifiers} from 'utils/constants';
+import {ActionTypes, ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import './block_renderer.scss';
 
@@ -212,6 +214,7 @@ const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
         return (
             <StaticSelectElement
                 element={block}
+                postId={postId}
                 onAction={onAction}
             />
         );
@@ -431,11 +434,31 @@ type MmBlocksSelectProvider = GenericUserProvider | GenericChannelProvider | Men
 
 type StaticSelectElementProps = {
     element: MmStaticSelectBlock;
+    postId: string;
     onAction: ActionHandler;
 };
 
-const StaticSelectElement = ({element, onAction}: StaticSelectElementProps) => {
+function staticSelectDisplayValue(
+    element: MmStaticSelectBlock,
+    reduxText: string | undefined,
+): string {
+    if (reduxText) {
+        return reduxText;
+    }
+    const opts = element.options ?? [];
+    if (element.initial_option) {
+        const sel = opts.find((o) => o.value === element.initial_option);
+        return sel ? sel.text : '';
+    }
+    return '';
+}
+
+const StaticSelectElement = ({element, postId, onAction}: StaticSelectElementProps) => {
     const dispatch = useDispatch();
+    const reduxSelection = useSelector((state: GlobalState) => {
+        const actions = state.views.posts.menuActions[postId];
+        return element.action_id ? secureGetFromRecord(actions, element.action_id) : undefined;
+    });
 
     const wrapAutocompleteUsers = useCallback(
         (username: string) => dispatch(autocompleteUsers(username)) as Promise<UserAutocomplete>,
@@ -463,14 +486,7 @@ const StaticSelectElement = ({element, onAction}: StaticSelectElementProps) => {
         return [];
     }, [element.data_source, element.options, wrapAutocompleteUsers, wrapAutocompleteChannels]);
 
-    const [value, setValue] = useState(() => {
-        const opts = element.options ?? [];
-        if (element.initial_option) {
-            const sel = opts.find((o) => o.value === element.initial_option);
-            return sel ? sel.text : '';
-        }
-        return '';
-    });
+    const value = staticSelectDisplayValue(element, reduxSelection?.text);
 
     const handleSelected = useCallback(
         (selected: Selected) => {
@@ -494,10 +510,22 @@ const StaticSelectElement = ({element, onAction}: StaticSelectElementProps) => {
                 selectedOption = option.value;
             }
 
+            dispatch({
+                type: ActionTypes.SELECT_ATTACHMENT_MENU_ACTION,
+                data: {
+                    postId,
+                    actions: {
+                        [element.action_id]: {
+                            text,
+                            value: selectedOption,
+                        },
+                    },
+                },
+            });
+
             onAction(element.action_id, selectedOption, element.query, element.cookie);
-            setValue(text);
         },
-        [element.action_id, element.cookie, element.data_source, element.query, onAction],
+        [dispatch, element.action_id, element.cookie, element.data_source, element.query, onAction, postId],
     );
 
     const isDynamicSource = element.data_source === 'users' || element.data_source === 'channels';

@@ -7,7 +7,7 @@
 // and renders the result via the Block Renderer. Action dispatch delegates to
 // the existing doPostAction layer, consistent with Attachments.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useDispatch} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
@@ -25,11 +25,13 @@ type Props = {
 
 const InteractiveMessages = ({post}: Props) => {
     const dispatch = useDispatch();
+    const [actionError, setActionError] = useState<string | null>(null);
 
     const mmBlocksActionsProp = (post.props as Record<string, unknown> | undefined)?.mm_blocks_actions;
     const mmBlocksActionsCookie = typeof mmBlocksActionsProp === 'string' ? mmBlocksActionsProp : undefined;
 
     const handleAction = useCallback(async (actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string) => {
+        setActionError(null);
         const integrationFormat = getPostInteractiveIntegrationFormat(post.props as Record<string, unknown>);
         let actionCookie = '';
         if (integrationFormat === 'attachment') {
@@ -37,14 +39,26 @@ const InteractiveMessages = ({post}: Props) => {
         } else {
             actionCookie = mmBlocksActionsCookie ?? '';
         }
-        const result = await dispatch(doPostActionWithCookie(post.id, actionId, actionCookie, selectedOption ?? '', query, integrationFormat));
-        const goToLocation =
-            typeof result.data === 'object' &&
-            result.data !== null &&
-            'goto_location' in result.data &&
-            typeof result.data.goto_location === 'string' ? result.data.goto_location : undefined;
-        if (goToLocation) {
-            applyIntegrationGotoLocation(goToLocation);
+        try {
+            const result = await dispatch(doPostActionWithCookie(post.id, actionId, actionCookie, selectedOption ?? '', query, integrationFormat));
+            if (result.error) {
+                const message = typeof result.error.message === 'string' && result.error.message ?
+                    result.error.message :
+                    undefined;
+                setActionError(message ?? 'Action failed to execute');
+                return;
+            }
+            const goToLocation =
+                typeof result.data === 'object' &&
+                result.data !== null &&
+                'goto_location' in result.data &&
+                typeof result.data.goto_location === 'string' ? result.data.goto_location : undefined;
+            if (goToLocation) {
+                applyIntegrationGotoLocation(goToLocation);
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : undefined;
+            setActionError(message ?? 'Action failed to execute');
         }
     }, [dispatch, post.id, post.props, mmBlocksActionsCookie]);
 
@@ -54,12 +68,19 @@ const InteractiveMessages = ({post}: Props) => {
     }
 
     return (
-        <BlockRenderer
-            blocks={blocks}
-            postId={post.id}
-            onAction={handleAction}
-            imagesMetadata={post.metadata?.images}
-        />
+        <>
+            <BlockRenderer
+                blocks={blocks}
+                postId={post.id}
+                onAction={handleAction}
+                imagesMetadata={post.metadata?.images}
+            />
+            {actionError && (
+                <div className='has-error'>
+                    <label className='control-label'>{actionError}</label>
+                </div>
+            )}
+        </>
     );
 };
 
