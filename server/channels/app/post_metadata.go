@@ -1073,6 +1073,10 @@ func (a *App) makeLinkMetadataClient(rctx request.CTX) *http.Client {
 	client := a.HTTPService().MakeClient(false)
 	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 10 {
+			return fmt.Errorf("stopped after %d redirects", len(via))
+		}
+
 		if !a.isLinkAllowedForPreview(rctx, req.URL.String()) {
 			return fmt.Errorf("redirect target %q is disabled for link previews", req.URL.Redacted())
 		}
