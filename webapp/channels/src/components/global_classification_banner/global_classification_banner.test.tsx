@@ -231,7 +231,6 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('does not render when linked field is not in store', () => {
-        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
         const value = makeSystemValue('opt1');
 
         renderWithContext(
