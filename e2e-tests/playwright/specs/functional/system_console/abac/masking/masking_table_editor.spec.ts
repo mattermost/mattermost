@@ -18,11 +18,13 @@ import {
 } from './masking_helpers';
 import {getStoredPolicyRuleExpressions, purgeFieldsByPrefix, setFieldAsSharedOnly} from './masking_db_setup';
 
+const fieldPrefix = 'MaskingTE';
+
 test.describe('Attribute-Value Masking - Table Editor', () => {
-    // Purge any orphaned Masking* CPA fields left by previous failed runs so we
+    // Purge any orphaned MaskingTE* CPA fields left by previous failed runs so we
     // don't hit the 200-field global limit mid-suite.
     test.beforeAll(async () => {
-        await purgeFieldsByPrefix('Masking');
+        await purgeFieldsByPrefix(fieldPrefix);
     });
 
     test('MM-68508-1: Full masking round-trip in Simple editor', async ({pw}) => {
@@ -37,7 +39,7 @@ test.describe('Attribute-Value Masking - Table Editor', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
 
@@ -117,7 +119,7 @@ test.describe('Attribute-Value Masking - Table Editor', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
@@ -193,7 +195,7 @@ test.describe('Attribute-Value Masking - Table Editor', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
@@ -256,7 +258,7 @@ test.describe('Attribute-Value Masking - Table Editor', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
 
@@ -327,7 +329,7 @@ test.describe('Attribute-Value Masking - Table Editor', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
@@ -405,7 +407,7 @@ test.describe('Attribute-Value Masking - Table Editor', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');

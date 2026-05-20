@@ -18,9 +18,11 @@ import {
 } from './masking_helpers';
 import {purgeFieldsByPrefix, setFieldAsSharedOnly} from './masking_db_setup';
 
+const fieldPrefix = 'MaskingVT';
+
 test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
     test.beforeAll(async () => {
-        await purgeFieldsByPrefix('Masking');
+        await purgeFieldsByPrefix(fieldPrefix);
     });
 
     test('MM-68508-7: Caller holding all policy values sees them all unmasked', async ({pw}) => {
@@ -35,7 +37,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
 
@@ -70,21 +72,18 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
 
             // Test access rule button should be enabled
             const testRulesBtn = page.locator('button').filter({hasText: 'Test access rule'});
-            if (await testRulesBtn.isVisible({timeout: 3000})) {
-                await expect(testRulesBtn).not.toBeDisabled();
-            }
+            await expect(testRulesBtn).toBeVisible();
+            await expect(testRulesBtn).toBeEnabled();
 
             // CEL mode is editable (no read-only)
             const advancedBtn = page.getByRole('button', {name: /advanced/i});
-            if (await advancedBtn.isVisible({timeout: 3000})) {
-                await advancedBtn.click();
-                await page.waitForTimeout(1000);
-                const monacoEditor = page.locator('.monaco-editor').first();
-                if (await monacoEditor.isVisible({timeout: 3000})) {
-                    const ariaReadOnly = await monacoEditor.getAttribute('aria-readonly');
-                    expect(ariaReadOnly).not.toBe('true');
-                }
-            }
+            await expect(advancedBtn).toBeVisible();
+            await advancedBtn.click();
+            await page.waitForTimeout(1000);
+            const monacoEditor = page.locator('.monaco-editor').first();
+            await expect(monacoEditor).toBeVisible();
+            const ariaReadOnly = await monacoEditor.getAttribute('aria-readonly');
+            expect(ariaReadOnly).not.toBe('true');
         } finally {
             for (const id of policyIds) {
                 try {
@@ -113,7 +112,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
@@ -135,10 +134,10 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
 
             // Add a rule row
             const addAttributeBtn = page.getByRole('button', {name: /add attribute/i});
-            if ((await addAttributeBtn.isVisible({timeout: 3000})) && !(await addAttributeBtn.isDisabled())) {
-                await addAttributeBtn.click();
-                await page.waitForTimeout(500);
-            }
+            await expect(addAttributeBtn).toBeVisible();
+            await expect(addAttributeBtn).toBeEnabled();
+            await addAttributeBtn.click();
+            await page.waitForTimeout(500);
 
             // Still no masked chip after adding a blank row
             await expect(page.locator('.select__multi-value--masked')).not.toBeVisible();
@@ -158,7 +157,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
         }
     });
 
-    test('MM-68508-9: Masked row is fully read-only; merge-on-save preserves hidden values', async ({pw}) => {
+    test('MM-68508-9: Masked row is fully read-only', async ({pw}) => {
         // The masked row's value selector is locked — callers cannot add or remove values
         // through it. This is intentional: any direct modification could silently drop
         // hidden values, and the merge logic gates write-path edits on shared_only fields.
@@ -173,7 +172,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
@@ -199,9 +198,8 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
 
             // Value selector on the masked row must be disabled
             const valueSelector = page.locator('[data-testid="valueSelectorMenuButton"]').first();
-            if (await valueSelector.isVisible({timeout: 3000})) {
-                await expect(valueSelector).toBeDisabled();
-            }
+            await expect(valueSelector).toBeVisible({timeout: 3000});
+            await expect(valueSelector).toBeDisabled();
 
             // Attribute selector locked
             await expect(page.locator('[data-testid="attributeSelectorMenuButton"]').first()).toHaveClass(/disabled/);
@@ -234,7 +232,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
@@ -293,7 +291,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
             await enableMaskingFlag(adminClient);
 
             // adminUser holds "Building 1"; policy value is "Building 7" (not held)
-            const fieldName = `MaskingLocation_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Loc_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Building 1');
@@ -358,7 +356,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingTeam_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Team_${pw.random.id()}`;
             const fieldId = await createMaskingMultiselectField(adminClient, fieldName, ['Alpha', 'Bravo']);
             fieldIds.push(fieldId);
 

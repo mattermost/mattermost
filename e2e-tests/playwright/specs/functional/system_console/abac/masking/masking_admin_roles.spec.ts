@@ -22,9 +22,11 @@ import {
 } from './masking_helpers';
 import {purgeFieldsByPrefix, setFieldAsSharedOnly, setFieldAsSourceOnly} from './masking_db_setup';
 
+const fieldPrefix = 'MaskingAR';
+
 test.describe('Attribute-Value Masking - Admin Roles', () => {
     test.beforeAll(async () => {
-        await purgeFieldsByPrefix('Masking');
+        await purgeFieldsByPrefix(fieldPrefix);
     });
 
     test('MM-68508-18: Team admin cannot delete a policy with masked values even after removing all channels', async ({
@@ -45,7 +47,7 @@ test.describe('Attribute-Value Masking - Admin Roles', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
 
@@ -66,8 +68,11 @@ test.describe('Attribute-Value Masking - Admin Roles', () => {
             policyIds.push(policyId);
             await setFieldAsSharedOnly(fieldId);
 
-            // Assign team to policy so it shows up in team settings
+            // Assign team and a channel to the policy so team settings shows the policy
+            // and the Remove link is present to exercise the "even after removing all channels" path.
             await adminClient.addToTeam(team.id, adminUser.id);
+            const channel = await createPrivateChannel(adminClient, team.id);
+            await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
             try {
                 await (adminClient as any).doFetch(
                     `${(adminClient as any).getBaseRoute()}/access_control_policies/${policyId}/teams`,
@@ -97,13 +102,12 @@ test.describe('Attribute-Value Masking - Admin Roles', () => {
                 if (await deleteBtn.isVisible({timeout: 3000})) {
                     await expect(deleteBtn).toBeDisabled();
 
-                    // Remove the channel (if any) — button must STAY disabled due to masked values
+                    // Remove the channel — button must STAY disabled due to masked values
                     const removeLink = teamSettings.container.getByText('Remove').first();
-                    if (await removeLink.isVisible({timeout: 2000})) {
-                        await removeLink.click();
-                        await page.waitForTimeout(300);
-                        await expect(deleteBtn).toBeDisabled();
-                    }
+                    await expect(removeLink).toBeVisible({timeout: 5000});
+                    await removeLink.click();
+                    await page.waitForTimeout(300);
+                    await expect(deleteBtn).toBeDisabled();
                 }
 
                 await teamSettings.close();
@@ -159,7 +163,7 @@ test.describe('Attribute-Value Masking - Admin Roles', () => {
 
             const teamAdmin = await createTeamAdmin(adminClient, team.id);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, teamAdmin.id, fieldId, 'Alpha');
@@ -299,7 +303,7 @@ test.describe('Attribute-Value Masking - Admin Roles', () => {
             await adminClient.addToChannel(user.id, channel.id);
             await adminClient.updateChannelMemberRoles(channel.id, user.id, 'channel_user channel_admin');
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, user.id, fieldId, 'Alpha');
@@ -386,9 +390,9 @@ test.describe('Attribute-Value Masking - Admin Roles', () => {
             await enableMaskingFlag(adminClient);
 
             const id = pw.random.id();
-            const publicFieldName = `MaskingPublic_${id}`;
-            const sharedFieldName = `MaskingShared_${id}`;
-            const sourceFieldName = `MaskingSource_${id}`;
+            const publicFieldName = `${fieldPrefix}Pub_${id}`;
+            const sharedFieldName = `${fieldPrefix}Sh_${id}`;
+            const sourceFieldName = `${fieldPrefix}Src_${id}`;
 
             // Create all three fields as public first — the API rejects protected
             // access modes without a source_plugin_id, so we flip them via DB after creation.
