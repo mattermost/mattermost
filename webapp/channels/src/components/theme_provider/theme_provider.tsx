@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {useSelector} from 'react-redux';
 import {useLocation} from 'react-router-dom';
 
@@ -169,10 +169,15 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
         DesktopApp.updateTheme(effectiveTheme);
     }, [effectiveTheme]);
 
-    // Plugins/products (e.g. Playbooks) call applyTheme with the raw saved
-    // theme from their own bundle during mount, overwriting CSS variables after
-    // ThemeProvider has already set the correct effective theme.  Re-applying
-    // via setTimeout(0) runs after all synchronous mount code in the new route.
+    // Re-apply synchronously before the browser paints on every navigation
+    // to prevent a flash of the wrong theme when returning from a plugin route.
+    useLayoutEffect(() => {
+        applyTheme(effectiveTheme);
+    }, [location.pathname, effectiveTheme]);
+
+    // Plugins/products (e.g. Playbooks) may call applyTheme in their own
+    // useEffect after our useLayoutEffect. setTimeout(0) runs after all effects
+    // have settled, correcting any post-paint override by the plugin bundle.
     useEffect(() => {
         const id = setTimeout(() => applyTheme(effectiveTheme), 0);
         return () => clearTimeout(id);

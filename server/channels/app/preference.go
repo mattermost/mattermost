@@ -13,12 +13,49 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+// forcedTheme is returned for every GET preferences response.
+// Locking to quartz keeps OS-sync working on web (dark→onyx, light→quartz)
+// while ensuring mobile clients always render the light theme.
+const forcedTheme = `{"type":"quartz"}`
+
+// injectForcedTheme replaces any theme preference with forcedTheme and
+// injects one if the user has none saved yet.
+func injectForcedTheme(userID string, prefs model.Preferences) model.Preferences {
+	found := false
+	for i, p := range prefs {
+		if p.Category == model.PreferenceCategoryTheme {
+			prefs[i].Value = forcedTheme
+			found = true
+		}
+	}
+	if !found {
+		prefs = append(prefs, model.Preference{
+			UserId:   userID,
+			Category: model.PreferenceCategoryTheme,
+			Name:     "",
+			Value:    forcedTheme,
+		})
+	}
+	return prefs
+}
+
+// stripThemePreferences removes theme preferences so users cannot persist changes.
+func stripThemePreferences(prefs model.Preferences) model.Preferences {
+	out := prefs[:0]
+	for _, p := range prefs {
+		if p.Category != model.PreferenceCategoryTheme {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
 func (a *App) GetPreferencesForUser(rctx request.CTX, userID string) (model.Preferences, *model.AppError) {
 	preferences, err := a.Srv().Store().Preference().GetAll(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetPreferencesForUser", "app.preference.get_all.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	return preferences, nil
+	return injectForcedTheme(userID, preferences), nil
 }
 
 func (a *App) GetPreferenceByCategoryForUser(rctx request.CTX, userID string, category string) (model.Preferences, *model.AppError) {
@@ -47,6 +84,12 @@ func (a *App) UpdatePreferences(rctx request.CTX, userID string, preferences mod
 			return model.NewAppError("savePreferences", "api.preference.update_preferences.set.app_error", nil,
 				"userId="+userID+", preference.UserId="+preference.UserId, http.StatusForbidden)
 		}
+	}
+
+	// Theme is admin-controlled — silently discard any theme changes.
+	preferences = stripThemePreferences(preferences)
+	if len(preferences) == 0 {
+		return nil
 	}
 
 	if err := a.Srv().Store().Preference().Save(preferences); err != nil {
@@ -93,6 +136,12 @@ func (a *App) DeletePreferences(rctx request.CTX, userID string, preferences mod
 				"userId="+userID+", preference.UserId="+preference.UserId, http.StatusForbidden)
 			return err
 		}
+	}
+
+	// Theme is admin-controlled — silently discard theme deletions.
+	preferences = stripThemePreferences(preferences)
+	if len(preferences) == 0 {
+		return nil
 	}
 
 	for _, preference := range preferences {
