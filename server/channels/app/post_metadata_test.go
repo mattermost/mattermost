@@ -15,6 +15,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -2212,6 +2213,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		return th
 	}
 
+	var opengraphRequests atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()
 
@@ -2244,6 +2246,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			writeImage(int(height), int(width))
 		} else if strings.HasPrefix(r.URL.Path, "/opengraph") {
+			opengraphRequests.Add(1)
 			writeHTML(params["title"][0])
 		} else if strings.HasPrefix(r.URL.Path, "/json") {
 			w.Header().Set("Content-Type", "application/json")
@@ -2462,6 +2465,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		targetURL := strings.Replace(server.URL, "http://127.0.0.1", "http://@127.0.0.1", 1) + "/opengraph?title=RestrictedRedirect&name=" + t.Name()
 		requestURL := strings.Replace(server.URL, "127.0.0.1", "localhost", 1) + "/redirect?target=" + url.QueryEscape(targetURL)
 		timestamp := int64(1547510400000)
+		opengraphRequestsBefore := opengraphRequests.Load()
 
 		og, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, "")
 
@@ -2469,6 +2473,22 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "disabled for link previews")
+		assert.Equal(t, opengraphRequestsBefore, opengraphRequests.Load())
+	})
+
+	t.Run("should get data when redirect target is allowed", func(t *testing.T) {
+		th := setup(t)
+
+		targetURL := server.URL + "/opengraph?title=AllowedRedirect&name=" + t.Name()
+		requestURL := strings.Replace(server.URL, "127.0.0.1", "localhost", 1) + "/redirect?target=" + url.QueryEscape(targetURL)
+		timestamp := int64(1547510400000)
+
+		og, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, "")
+
+		require.NotNil(t, og)
+		assert.Nil(t, img)
+		assert.NoError(t, err)
+		assert.Equal(t, "AllowedRedirect", og.Title)
 	})
 
 	t.Run("should cache OpenGraph results", func(t *testing.T) {
