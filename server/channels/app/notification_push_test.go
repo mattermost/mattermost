@@ -1136,7 +1136,7 @@ func TestBuildFullPushNotificationMessagePriorityTitles(t *testing.T) {
 			channelType:   model.ChannelTypeOpen,
 			channelName:   "Town Square",
 			rootID:        model.NewId(),
-			expectedTitle: "Town Square",
+			expectedTitle: "Reply in Town Square",
 		},
 		"generic no channel keeps channel title hidden": {
 			priority:       model.PostPriorityUrgent,
