@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {savePreferences, saveTheme, deleteTeamSpecificThemes} from 'mattermost-redux/actions/preferences';
+import {savePreferences, deletePreferences, saveTheme, deleteTeamSpecificThemes} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getMyPreferences, getTheme, getThemePreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
@@ -41,6 +41,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             deleteTeamSpecificThemes,
             openModal,
             savePreferences,
+            deletePreferences,
         }, dispatch),
     };
 }

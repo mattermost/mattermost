@@ -39,6 +39,7 @@ type Props = {
         deleteTeamSpecificThemes: () => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
+        deletePreferences: (userId: string, preferences: PreferenceType[]) => void;
     };
 };
 
@@ -120,8 +121,23 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         };
         this.props.actions.savePreferences(this.props.currentUserId, [syncPref]);
 
-        // Only save the selected theme when sync-with-OS is off.
-        if (!this.state.syncWithOS) {
+        if (this.state.syncWithOS) {
+            // When OS sync is on we don't want a saved theme preference on the
+            // server — mobile clients fall back to getDefaultThemeByAppearance()
+            // (OS-aware) only when no server preference exists.
+            // Delete global theme pref ('') and any team-specific ones so that
+            // mobile clients pick up the OS dark/light mode automatically.
+            const themePrefsToDelete: PreferenceType[] = [
+                {
+                    user_id: this.props.currentUserId,
+                    category: Preferences.CATEGORY_THEME,
+                    name: '',
+                    value: '',
+                },
+            ];
+            this.props.actions.deletePreferences(this.props.currentUserId, themePrefsToDelete);
+            await this.props.actions.deleteTeamSpecificThemes();
+        } else {
             await this.props.actions.saveTheme(teamId, this.state.theme);
 
             if (this.state.applyToAllTeams) {
