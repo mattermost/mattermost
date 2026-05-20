@@ -1,0 +1,17 @@
+FROM mattermost/golang-bullseye:1.26.3@sha256:3ae112b7dc291665c5582b9d768fc2adb4cdc3afbbd3fc82e03a10cd711e1a60
+ARG NODE_VERSION=20.11.1
+
+RUN apt-get update && apt-get install -y make git apt-transport-https ca-certificates curl software-properties-common build-essential zip xmlsec1 jq pgloader gnupg
+
+# Download and install node via nvm
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+RUN bash -c "source /root/.nvm/nvm.sh && nvm install $NODE_VERSION && nvm use $NODE_VERSION && nvm alias default $NODE_VERSION"
+
+# Make node and npm globally available
+ENV PATH="/root/.nvm/versions/node/v$NODE_VERSION/bin:$PATH"
+
+RUN git config --global --add safe.directory /mattermost
+
+# Remove any existing entrypoint, and use bash as the default command
+ENTRYPOINT []
+CMD ["bash"]

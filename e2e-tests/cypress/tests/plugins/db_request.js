@@ -1,0 +1,139 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+const mapKeys = require('lodash.mapkeys');
+
+function convertKeysToLowercase(obj) {
+    return mapKeys(obj, (_, k) => {
+        return k.toLowerCase();
+    });
+}
+
+function getKnexClient({client, connection}) {
+    return require('knex')({client, connection});
+}
+
+// Reuse DB client connection
+let knexClient;
+
+const dbGetActiveUserSessions = async ({dbConfig, params: {username, userId, limit}}) => {
+    if (!knexClient) {
+        knexClient = getKnexClient(dbConfig);
+    }
+
+    const maxLimit = 50;
+
+    try {
+        let user;
+        if (username) {
+            user = await knexClient('users').where('username', username).first();
+            user = convertKeysToLowercase(user);
+        }
+
+        const now = Date.now();
+        const sessions = await knexClient('sessions').
+            where('userid', user ? user.id : userId).
+            where('expiresat', '>', now).
+            orderBy('lastactivityat', 'desc').
+            limit(limit && limit <= maxLimit ? limit : maxLimit);
+
+        return {
+            user,
+            sessions: sessions.map((session) => convertKeysToLowercase(session)),
+        };
+    } catch (error) {
+        const errorMessage = 'Failed to get active user sessions from the database.';
+        return {error, errorMessage};
+    }
+};
+
+const dbGetUser = async ({dbConfig, params: {username}}) => {
+    if (!knexClient) {
+        knexClient = getKnexClient(dbConfig);
+    }
+
+    try {
+        const user = await knexClient('users').where('username', username).first();
+
+        return {user: convertKeysToLowercase(user)};
+    } catch (error) {
+        const errorMessage = 'Failed to get a user from the database.';
+        return {error, errorMessage};
+    }
+};
+
+const dbGetUserSession = async ({dbConfig, params: {sessionId}}) => {
+    if (!knexClient) {
+        knexClient = getKnexClient(dbConfig);
+    }
+
+    try {
+        const session = await knexClient('sessions').
+            where('id', '=', sessionId).
+            first();
+
+        return {session: convertKeysToLowercase(session)};
+    } catch (error) {
+        const errorMessage = 'Failed to get a user session from the database.';
+        return {error, errorMessage};
+    }
+};
+
+const dbUpdateUserSession = async ({dbConfig, params: {sessionId, userId, fieldsToUpdate = {}}}) => {
+    if (!knexClient) {
+        knexClient = getKnexClient(dbConfig);
+    }
+
+    try {
+        let user = await knexClient('users').where('id', userId).first();
+        if (!user) {
+            return {errorMessage: `No user found with id: ${userId}.`};
+        }
+
+        delete fieldsToUpdate.id;
+        delete fieldsToUpdate.userid;
+
+        user = convertKeysToLowercase(user);
+
+        await knexClient('sessions').
+            where('id', '=', sessionId).
+            where('userid', '=', user.id).
+            update(fieldsToUpdate);
+
+        const session = await knexClient('sessions').
+            where('id', '=', sessionId).
+            where('userid', '=', user.id).
+            first();
+
+        return {session: convertKeysToLowercase(session)};
+    } catch (error) {
+        const errorMessage = 'Failed to update a user session from the database.';
+        return {error, errorMessage};
+    }
+};
+
+const dbRefreshPostStats = async ({dbConfig}) => {
+    if (!knexClient) {
+        knexClient = getKnexClient(dbConfig);
+    }
+
+    try {
+        await knexClient.raw('REFRESH MATERIALIZED VIEW posts_by_team_day;');
+        await knexClient.raw('REFRESH MATERIALIZED VIEW bot_posts_by_team_day;');
+
+        return {
+            success: true,
+        };
+    } catch (error) {
+        const errorMessage = 'Failed to refresh post statistics materialized views.';
+        return {error, errorMessage};
+    }
+};
+
+module.exports = {
+    dbGetActiveUserSessions,
+    dbGetUser,
+    dbGetUserSession,
+    dbUpdateUserSession,
+    dbRefreshPostStats,
+};

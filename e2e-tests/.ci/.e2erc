@@ -1,0 +1,128 @@
+# shellcheck disable=SC2148,SC2155
+
+# Function definitions
+mme2e_log () { echo "[$(date +%Y-%m-%dT%H:%M:%S%Z)]" "$@"; }
+mme2e_get_current_shopt_arg () {
+  # This function lets you get the current value of shell options, e.g. pipefail or allexport, in the form
+  # of arguments to pass to the 'set' shell function, in order to restore its value later
+  SHOPT_ARG=${1:?}
+  case $(set -o | sed -n -E "s/^${SHOPT_ARG}[[:space:]]+(o..?)$/\1/p") in
+    on) echo -n "-o ${SHOPT_ARG}";;
+    off) echo -n "+o ${SHOPT_ARG}";;
+    *) return 1;;
+  esac
+}
+mme2e_load_env_file () {
+  # This loads the ./env file. Variables are automatically exported
+  [ -f ./env ] || return 0
+  MME2E_PREVIOUS_ALLEXPORT=$(mme2e_get_current_shopt_arg allexport)
+  set -o allexport
+  mme2e_log "Loading env file"
+  . ./env
+  # shellcheck disable=SC2086
+  set ${MME2E_PREVIOUS_ALLEXPORT}
+}
+mme2e_generate_envfile_from_var_names () {
+  # Read var names from stdin, one per line
+  while read -r VARIABLE; do
+    [ -z "${!VARIABLE:-}" ] || echo "${VARIABLE}=${!VARIABLE}";
+  done
+}
+mme2e_wait_command_success () {
+  COMMAND=${1?}
+  RETRY_MESSAGE=${2?}
+  RETRIES_LEFT=${3:-1}
+  RETRIES_INTERVAL=${4:-10}
+  MME2E_PREVIOUS_PIPEFAIL=$(mme2e_get_current_shopt_arg pipefail)
+  set -o pipefail
+  until bash -c "${COMMAND}"; do
+    RETRIES_LEFT=$((RETRIES_LEFT - 1))
+    [ "$RETRIES_LEFT" -le "0" ] && break
+    mme2e_log "${RETRY_MESSAGE} ($RETRIES_LEFT retries left, sleeping $RETRIES_INTERVAL seconds)"
+    sleep "$RETRIES_INTERVAL"
+  done
+  # shellcheck disable=SC2086
+  set ${MME2E_PREVIOUS_PIPEFAIL}
+  if [ "$RETRIES_LEFT" = "0" ]; then
+    return 1
+  fi
+}
+mme2e_wait_service_healthy () {
+  DC_COMMAND="${DC_COMMAND:-$MME2E_DC_SERVER}"
+  SERVICE_NAME=${1?}
+  RETRIES_LEFT=${2:-1}
+  RETRIES_INTERVAL=${3:-10}
+  mme2e_wait_command_success "${DC_COMMAND} ps ${SERVICE_NAME} | grep -qE '\(healthy\)'" "Waiting for ${SERVICE_NAME} container to be healthy" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
+}
+mme2e_wait_image () {
+  IMAGE_NAME=${1?}
+  RETRIES_LEFT=${2:-1}
+  RETRIES_INTERVAL=${3:-10}
+  mme2e_wait_command_success "docker pull --platform linux/amd64 $IMAGE_NAME" "Waiting for docker image ${IMAGE_NAME} to be available" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
+}
+mme2e_is_token_in_list() {
+  local TOKEN=$1
+  local LIST=$2
+  grep -qE "(^| )$TOKEN( |$)" <<<"$LIST"
+}
+
+# Call prerequisite utility functions
+mme2e_load_env_file
+
+# Utility variables
+# NB: these assume you `source` them from the directory this file is in
+# Set up base docker compose file and export
+export MME2E_DC_SERVER="docker compose -p mmserver -f ./server.yml"
+export MME2E_DC_DASHBOARD="docker compose -p mmdashboard -f ./dashboard/docker/docker-compose.yml -f ./dashboard.override.yml"
+export MME2E_UID=$(id -u)
+export MME2E_OSTYPE=$(docker version -f '{{ .Client.Os }}')
+export MME2E_ARCHTYPE=$(docker version -f '{{ .Client.Arch }}')
+export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
+
+# Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose-mmserver' in your shell
+# NB: this only works in interactive shells
+alias docker-compose-mmserver='${MME2E_DC_SERVER}'
+alias docker-compose-mmdashboard='${MME2E_DC_DASHBOARD}'
+
+# Default values for optional variables
+export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mattermost-enterprise-edition:$(git rev-parse --short=7 HEAD)"
+export BROWSER_DEFAULT="chrome"
+export SERVER_DEFAULT="onprem"
+export TEST_DEFAULT="cypress"
+export ENABLED_DOCKER_SERVICES_DEFAULT="postgres inbucket"
+export BRANCH_DEFAULT=$(git branch --show-current || echo -n "unknown")
+export BUILD_ID_DEFAULT=$(date +%s)
+export CI_BASE_URL_DEFAULT="localhost"
+# Test tool default overrides
+case "${TEST:-$TEST_DEFAULT}" in
+  cypress )
+    export TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke' ;;
+  playwright )
+    export TEST_FILTER_DEFAULT='--grep @smoke' ;;
+  * )
+    export TEST_FILTER_DEFAULT='' ;;
+esac
+# OS specific defaults overrides
+case $MME2E_OSTYPE in
+  linux )
+    export IS_LINUX="-linux"
+    ;;
+  darwin )
+    export BROWSER_DEFAULT="electron"
+    export IS_LINUX=""
+    ;;
+  * )
+esac
+
+# Populate the optional variables that are used in the docker-compose file
+export SERVER_IMAGE=${SERVER_IMAGE:-$SERVER_IMAGE_DEFAULT}
+export BROWSER=${BROWSER:-$BROWSER_DEFAULT}
+export SERVER=${SERVER:-$SERVER_DEFAULT}
+export TEST=${TEST:-$TEST_DEFAULT}
+export ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES:-$ENABLED_DOCKER_SERVICES_DEFAULT}
+export TEST_FILTER=${TEST_FILTER:-$TEST_FILTER_DEFAULT}
+export BRANCH_UNSANITIZED=${BRANCH:-$BRANCH_DEFAULT}
+export BRANCH=${BRANCH_UNSANITIZED::50} # The automation dashboard only accepts branch names up to 50 characters
+export BUILD_ID_UNSANITIZED=${BUILD_ID:-$BUILD_ID_DEFAULT}
+export BUILD_ID=${BUILD_ID_UNSANITIZED::64} # The automation dashboard only accepts build IDs up to 64 characters
+export CI_BASE_URL=${CI_BASE_URL:-$CI_BASE_URL_DEFAULT}

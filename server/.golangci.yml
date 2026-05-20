@@ -1,0 +1,284 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - bodyclose
+    - canonicalheader
+    - containedctx       # storing context.Context in a struct is an established pattern here
+    - contextcheck
+    - cyclop
+    - depguard
+    - dogsled            # test helpers return many values; blank-heavy destructuring is idiomatic
+    - dupl
+    - dupword
+    - embeddedstructfieldcheck
+    - err113
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - exhaustruct
+    - forbidigo
+    - forcetypeassert
+    - funcorder
+    - funlen
+    - gocheckcompilerdirectives  # //go:fix is a valid directive in Go 1.24+; linter doesn't know it yet
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godoclint
+    - godot
+    - godox
+    - gomoddirectives    # replace directives in go.mod are intentional forks
+    - gomodguard         # deprecated since v2.12.0; replaced by gomodguard_v2 (enabled via default: all)
+    - goprintffuncname   # Ephemeral → Ephemeralf rename is a plugin API breaking change; deferred
+    - gosec
+    - gosmopolitan
+    - iface              # identical job interfaces are intentional — type-safe scheduling without coupling
+    - inamedparam
+    - interfacebloat
+    - intrange
+    - iotamixing         # const blocks intentionally mix iota with explicit values (ABI stability, ASCII)
+    - ireturn
+    - lll
+    - maintidx
+    - mnd
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr             # intentionally dropping errors is common here (graceful degradation, security non-disclosure, fallbacks)
+    - nilnil
+    - nlreturn
+    - noctx
+    - noinlineerr
+    - nolintlint
+    - nonamedreturns
+    - paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared        # variable named 'copy' is intentional; already suppressed for revive
+    - promlinter         # metric renames are a breaking change; deferred
+    - protogetter
+    - recvcheck
+    - sqlclosecheck      # wrapper functions return *sqlx.Rows to callers who close them; not a real leak
+    - tagalign
+    - tagliatelle
+    - testableexamples
+    - testifylint
+    - testpackage
+    - thelper
+    - tparallel
+    - unparam
+    - usestdlibvars
+    - usetesting
+    - varnamelen
+    - wastedassign
+    - wrapcheck
+    - wsl
+    - wsl_v5
+  settings:
+    govet:
+      disable:
+        - fieldalignment
+      enable-all: true
+    unqueryvet:
+      check-sql-builders: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - std-error-handling
+    rules:
+      - linters:
+          - unused
+        text: SetupEnterprise
+      - linters:
+          - revive
+        text: var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block
+      - linters:
+          - revive
+        path: enterprise
+        text: var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block
+      - linters:
+          - misspell
+        path: platform/shared/markdown/html_entities.go
+      - linters:
+          - staticcheck
+        text: SA1019
+      - linters:
+          - staticcheck
+        text: ST1023
+      - linters:
+          - staticcheck
+        text: ST1012
+      - linters:
+          - staticcheck
+        text: ST1005
+      - linters:
+          - staticcheck
+        text: QF1011
+      - linters:
+          - staticcheck
+        text: QF1001
+      - linters:
+          - staticcheck
+        text: QF1003
+      - linters:
+          - staticcheck
+        text: QF1012
+      - linters:
+          - staticcheck
+        text: QT1019
+      - linters:
+          - staticcheck
+        text: QF1008
+      - linters:
+          - staticcheck
+        text: QF1004
+      - linters:
+          - staticcheck
+        text: ST1019
+      - linters:
+          - staticcheck
+        text: QF1006
+      - linters:
+          - staticcheck
+        text: QF1002
+      - linters:
+          - staticcheck
+        text: QF1007
+      - linters:
+          - errcheck
+        path: "\
+          channels/store/localcachelayer/autotranslation_layer.go|\
+          channels/store/localcachelayer/channel_layer.go|\
+          channels/store/localcachelayer/channel_layer_test.go|\
+          channels/store/localcachelayer/emoji_layer.go|\
+          channels/store/localcachelayer/emoji_layer_test.go|\
+          channels/store/localcachelayer/file_info_layer.go|\
+          channels/store/localcachelayer/file_info_layer_test.go|\
+          channels/store/localcachelayer/post_layer.go|\
+          channels/store/localcachelayer/post_layer_test.go|\
+          channels/store/localcachelayer/reaction_layer.go|\
+          channels/store/localcachelayer/reaction_layer_test.go|\
+          channels/store/localcachelayer/role_layer.go|\
+          channels/store/localcachelayer/role_layer_test.go|\
+          channels/store/localcachelayer/scheme_layer.go|\
+          channels/store/localcachelayer/scheme_layer_test.go|\
+          channels/store/localcachelayer/team_layer.go|\
+          channels/store/localcachelayer/terms_of_service_layer.go|\
+          channels/store/localcachelayer/terms_of_service_layer_test.go|\
+          channels/store/localcachelayer/user_layer.go|\
+          channels/store/localcachelayer/webhook_layer.go|\
+          channels/store/localcachelayer/webhook_layer_test.go|\
+          channels/store/retrylayer/retrylayer_test.go|\
+          channels/store/searchtest/channel_layer.go|\
+          channels/store/searchtest/cjk_plugins.go|\
+          channels/store/searchtest/file_info_layer.go|\
+          channels/store/searchtest/helper.go|\
+          channels/store/searchtest/post_layer.go|\
+          channels/store/searchtest/user_layer.go|\
+          channels/store/sqlstore/command_store.go|\
+          channels/store/sqlstore/integrity_test.go|\
+          channels/store/sqlstore/session_store.go|\
+          channels/store/sqlstore/store.go|\
+          channels/store/storetest/channel_bookmark.go|\
+          channels/store/storetest/channel_store.go|\
+          channels/store/storetest/channel_store_categories.go|\
+          channels/store/storetest/file_info_store.go|\
+          channels/store/storetest/group_store.go|\
+          channels/store/storetest/job_store.go|\
+          channels/store/storetest/post_persistent_notification_store.go|\
+          channels/store/storetest/post_store.go|\
+          channels/store/storetest/product_notices_store.go|\
+          channels/store/storetest/role_store.go|\
+          channels/store/storetest/scheme_store.go|\
+          channels/store/storetest/shared_channel_store.go|\
+          channels/store/storetest/team_store.go|\
+          channels/store/storetest/thread_store.go|\
+          channels/store/storetest/user_store.go|\
+          cmd/mattermost/commands/cmdtestlib.go|\
+          cmd/mattermost/commands/db.go|\
+          cmd/mattermost/commands/export.go|\
+          cmd/mattermost/commands/import.go|\
+          cmd/mattermost/commands/jobserver.go|\
+          cmd/mattermost/commands/server.go|\
+          cmd/mattermost/commands/server_test.go|\
+          cmd/mattermost/commands/test.go|\
+          cmd/mattermost/commands/version.go|\
+          platform/services/cache/lru_striped.go|\
+          platform/services/cache/lru_striped_bench_test.go|\
+          platform/services/cache/lru_striped_test.go|\
+          platform/services/cache/lru_test.go|\
+          platform/services/docextractor/combine.go|\
+          platform/services/docextractor/pdf.go|\
+          platform/services/imageproxy/atmos_camo_test.go|\
+          platform/services/imageproxy/local.go|\
+          platform/services/imageproxy/local_test.go|\
+          platform/services/remotecluster/invitation.go|\
+          platform/services/remotecluster/ping_test.go|\
+          platform/services/remotecluster/send_test.go|\
+          platform/services/remotecluster/sendfile.go|\
+          platform/services/remotecluster/sendprofileImage_test.go|\
+          platform/services/sharedchannel/attachment.go|\
+          platform/services/sharedchannel/channelinvite.go|\
+          platform/services/sharedchannel/permalink_test.go|\
+          platform/services/sharedchannel/sync_recv.go|\
+          platform/services/sharedchannel/sync_send.go|\
+          platform/services/slackimport/slackimport.go|\
+          platform/services/telemetry/telemetry.go|\
+          platform/services/telemetry/telemetry_test.go|\
+          platform/services/upgrader/upgrader_linux.go|\
+          platform/services/upgrader/upgrader_linux_test.go|\
+          platform/shared/filestore/filesstore_test.go|\
+          platform/shared/filestore/s3store.go|\
+          platform/shared/filestore/s3store_test.go|\
+          platform/shared/mail/inbucket.go|\
+          platform/shared/mail/mail.go|\
+          platform/shared/mail/mail_test.go|\
+          platform/shared/mfa/mfa.go|\
+          platform/shared/templates/templates_test.go|\
+          public/model/channel.go|\
+          public/model/client4.go|\
+          public/model/config.go|\
+          public/model/incoming_webhook.go|\
+          public/model/license.go|\
+          public/model/link_metadata.go|\
+          public/model/post.go|\
+          public/model/preference.go|\
+          public/model/user.go|\
+          public/model/utils.go|\
+          public/model/websocket_client.go|\
+          public/model/websocket_message_test.go|\
+          public/plugin/http.go|\
+          public/plugin/supervisor_test.go|\
+          public/shared/mlog/default.go|\
+          public/shared/mlog/global_test.go|\
+          public/shared/mlog/mlog.go"
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+      rewrite-rules:
+        - pattern: interface{}
+          replacement: any
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - mock.*
+issues:
+  max-issues-per-linter: 0 # no maximum
+  max-same-issues: 0 # no maximum

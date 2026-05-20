@@ -1,0 +1,42 @@
+codecov:
+  require_ci_to_pass: false
+  # Wait for all coverage uploads (4 server shards + 1 webapp) before
+  # computing status. Without this, Codecov may report partial coverage
+  # from the first shard to finish, showing a misleading drop on the PR.
+  notify:
+    after_n_builds: 5
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+        informational: true
+    patch:
+      default:
+        target: 50%
+        informational: true
+
+  # Exclude generated code, mocks, and test infrastructure from reporting.
+  # Go compiles these into the test binary, so they appear in cover.out,
+  # but they aren't production code and inflate the denominator.
+  ignore:
+    - "server/**/retrylayer/**"
+    - "server/**/timerlayer/**"
+    - "server/**/*_serial_gen.go"
+    - "server/**/mocks/**"
+    - "server/**/storetest/**"
+    - "server/**/plugintest/**"
+    - "server/**/searchtest/**"
+
+flags:
+  server:
+    after_n_builds: 4 # 4 server test shards
+  webapp:
+    after_n_builds: 1 # 1 merged webapp upload
+
+comment:
+  layout: "condensed_header,diff,flags"
+  behavior: default
+  require_changes: true

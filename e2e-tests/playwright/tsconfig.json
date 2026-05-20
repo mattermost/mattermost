@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "target": "es2022",
+        "lib": ["esnext", "dom"],
+        "types": ["node"],
+        "declaration": true,
+        "declarationDir": "dist",
+        "strict": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "composite": true,
+        "strictNullChecks": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "paths": {
+            "@/asset": ["./asset"]
+        }
+    },
+    "include": ["./**/*"],
+    "exclude": ["node_modules", "playwright-report", "lib"]
+}

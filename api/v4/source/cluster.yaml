@@ -1,0 +1,25 @@
+  /api/v4/cluster/status:
+    get:
+      tags:
+        - cluster
+      summary: Get cluster status
+      description: >
+        Get a list of all healthy nodes, including local information and
+        status of each one. If a node is not present, it means it is not
+        healthy.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: GetClusterStatus
+      responses:
+        "200":
+          description: Cluster status retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClusterInfo"
+        "403":
+          $ref: "#/components/responses/Forbidden"

@@ -1,0 +1,361 @@
+  /api/v4/reports/users:
+    get:
+      tags:
+        - reports
+      summary: Get a list of paged and sorted users for admin reporting purposes
+      description: >
+        Get a list of paged users for admin reporting purposes, based on provided parameters.
+        
+        ##### Permissions
+        
+        Requires `sysconsole_read_user_management_users`.
+
+      operationId: GetUsersForReporting
+      parameters:
+        - name: sort_column
+          in: query
+          description: The column to sort the users by. Must be one of ("CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email") or the API will return an error.
+          schema:
+            type: string
+            default: 'Username'
+        - name: direction
+          in: query
+          description: The direction to accept paging values from. Will return values ahead of the cursor if "prev", and below the cursor if "next". Default is "next".
+          schema:
+            type: string
+            default: 'next'
+        - name: sort_direction
+          in: query
+          description: The sorting direction. Must be one of ("asc", "desc"). Will default to 'asc' if not specified or the input is invalid.
+          schema:
+            type: string
+            default: 'asc'
+        - name: page_size
+          in: query
+          description: The maximum number of users to return.
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+        - name: from_column_value
+          in: query
+          description: The value of the sorted column corresponding to the cursor to read from. Should be blank for the first page asked for.
+          schema:
+            type: string
+        - name: from_id
+          in: query
+          description: The value of the user id corresponding to the cursor to read from. Should be blank for the first page asked for.
+          schema:
+            type: string
+        - name: date_range
+          in: query
+          description: The date range of the post statistics to display. Must be one of ("last30days", "previousmonth", "last6months", "alltime"). Will default to 'alltime' if the input is not valid.
+          schema:
+            type: string
+            default: 'alltime'
+        - name: role_filter
+          in: query
+          description: Filter users by their role.
+          schema:
+            type: string
+        - name: team_filter
+          in: query
+          description: Filter users by a specified team ID.
+          schema:
+            type: string
+        - name: has_no_team
+          in: query
+          description: If true, show only users that have no team. Will ignore provided "team_filter" if true.
+          schema:
+            type: boolean
+        - name: hide_active
+          in: query
+          description: If true, show only users that are inactive. Cannot be used at the same time as "hide_inactive"
+          schema:
+            type: boolean
+        - name: hide_inactive
+          in: query
+          description: If true, show only users that are active. Cannot be used at the same time as "hide_active"
+          schema:
+            type: boolean
+        - name: search_term
+          in: query
+          description: A filtering search term that allows filtering by Username, FirstName, LastName, Nickname or Email
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User page retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserReport"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/reports/users/count:
+    get:
+      tags:
+        - reports
+      summary: Gets the full count of users that match the filter.
+      description: >
+        Get the full count of users admin reporting purposes, based on provided parameters.
+        
+        ##### Permissions
+        
+        Requires `sysconsole_read_user_management_users`.
+      operationId: GetUserCountForReporting
+      parameters:
+        - name: role_filter
+          in: query
+          description: Filter users by their role.
+          schema:
+            type: string
+        - name: team_filter
+          in: query
+          description: Filter users by a specified team ID.
+          schema:
+            type: string
+        - name: has_no_team
+          in: query
+          description: If true, show only users that have no team. Will ignore provided "team_filter" if true.
+          schema:
+            type: boolean
+        - name: hide_active
+          in: query
+          description: If true, show only users that are inactive. Cannot be used at the same time as "hide_inactive"
+          schema:
+            type: boolean
+        - name: hide_inactive
+          in: query
+          description: If true, show only users that are active. Cannot be used at the same time as "hide_active"
+          schema:
+            type: boolean
+        - name: search_term
+          in: query
+          description: A filtering search term that allows filtering by Username, FirstName, LastName, Nickname or Email
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User count retrieval successful
+          content:
+            application/json:
+              schema:
+                type: number
+  /api/v4/reports/users/export:
+    post:
+      tags:
+        - reports
+      summary: Starts a job to export the users to a report file.
+      description: >
+        Starts a job to export the users to a report file.
+
+        ##### Permissions
+
+        Requires `sysconsole_read_user_management_users`.
+      operationId: StartBatchUsersExport
+      parameters:
+        - name: date_range
+          in: query
+          description: The date range of the post statistics to display. Must be one of ("last30days", "previousmonth", "last6months", "alltime"). Will default to 'alltime' if the input is not valid.
+          schema:
+            type: string
+            default: 'alltime'
+      responses:
+        "200":
+          description: Job successfully started
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserReport"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/reports/posts:
+    post:
+      tags:
+        - reports
+      summary: Get posts for reporting and compliance purposes using cursor-based pagination
+      description: >
+        Get posts from a specific channel for reporting, compliance, and auditing purposes.
+        This endpoint uses cursor-based pagination to efficiently retrieve large datasets.
+
+        The cursor is an opaque, base64-encoded token that contains all pagination state.
+        Clients should treat the cursor as an opaque string and pass it back unchanged.
+        When a cursor is provided, query parameters from the initial request are embedded
+        in the cursor and take precedence over request body parameters.
+
+        ##### Permissions
+
+        Requires `manage_system` permission (system admin only).
+
+        ##### License
+
+        Requires an Enterprise license (or higher).
+
+        ##### Features
+
+        - Cursor-based pagination for efficient large dataset retrieval
+        - Support for both create_at and update_at time fields
+        - Ascending or descending sort order
+        - Time range filtering with optional end_time
+        - Include/exclude deleted posts
+        - Exclude system posts (any type starting with "system_")
+        - Optional metadata enrichment (file info, reactions, emojis, priority, acknowledgements)
+      operationId: GetPostsForReporting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_id
+              properties:
+                channel_id:
+                  type: string
+                  description: The ID of the channel to retrieve posts from
+                cursor:
+                  type: string
+                  description: >
+                    Opaque cursor string for pagination. Omit or use empty string for the first request.
+                    For subsequent requests, use the exact cursor value from the previous response's next_cursor.
+                    The cursor is base64-encoded and contains all pagination state including time, post ID,
+                    and query parameters. Do not attempt to parse or modify the cursor value.
+                  default: ""
+                start_time:
+                  type: integer
+                  format: int64
+                  description: >
+                    Optional start time for query range in Unix milliseconds. Only used for the first request (ignored when cursor is provided).
+                    - For "asc" (ascending): starts retrieving from this time going forward
+                    - For "desc" (descending): starts retrieving from this time going backward
+                    If omitted, defaults to 0 for ascending or MaxInt64 for descending.
+                time_field:
+                  type: string
+                  enum: [create_at, update_at]
+                  default: create_at
+                  description: >
+                    Which timestamp field to use for sorting and filtering.
+                    Use "create_at" to retrieve posts by creation time, or "update_at" to
+                    retrieve posts by last modification time.
+                sort_direction:
+                  type: string
+                  enum: [asc, desc]
+                  default: asc
+                  description: >
+                    Sort direction for pagination. Use "asc" to retrieve posts from oldest
+                    to newest, or "desc" to retrieve from newest to oldest.
+                per_page:
+                  type: integer
+                  minimum: 1
+                  maximum: 1000
+                  default: 100
+                  description: Number of posts to return per page. Maximum 1000.
+                include_deleted:
+                  type: boolean
+                  default: false
+                  description: >
+                    If true, include posts that have been deleted (DeleteAt > 0).
+                    By default, only non-deleted posts are returned.
+                exclude_system_posts:
+                  type: boolean
+                  default: false
+                  description: >
+                    If true, exclude all system posts.
+                include_metadata:
+                  type: boolean
+                  default: false
+                  description: >
+                    If true, enrich posts with additional metadata including file information,
+                    reactions, custom emojis, priority, and acknowledgements. Note that this
+                    may increase response time for large result sets.
+            examples:
+              first_page_ascending:
+                summary: First page, ascending order
+                value:
+                  channel_id: "4xp9fdt77pncbef59f4k1qe83o"
+                  cursor: ""
+                  per_page: 100
+              subsequent_page:
+                summary: Subsequent page using cursor
+                value:
+                  channel_id: "4xp9fdt77pncbef59f4k1qe83o"
+                  cursor: "MTphYmMxMjM6Y3JlYXRlX2F0OmZhbHNlOmZhbHNlOmFzYzoxNjM1NzI0ODAwMDAwOnBvc3QxMjM"
+                  per_page: 100
+              time_range_query:
+                summary: Query with time range starting from specific time
+                value:
+                  channel_id: "4xp9fdt77pncbef59f4k1qe83o"
+                  cursor: ""
+                  start_time: 1635638400000
+                  per_page: 100
+              descending_order:
+                summary: Descending order from recent
+                value:
+                  channel_id: "4xp9fdt77pncbef59f4k1qe83o"
+                  cursor: ""
+                  sort_direction: "desc"
+                  per_page: 100
+      responses:
+        "200":
+          description: Posts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/Post"
+                    description: Map of post IDs to post objects
+                  next_cursor:
+                    type: object
+                    nullable: true
+                    description: >
+                      Opaque cursor for retrieving the next page. If null, there are no more pages.
+                      Pass the cursor string from this object in the next request.
+                    properties:
+                      cursor:
+                        type: string
+                        description: Base64-encoded opaque cursor string containing pagination state
+              examples:
+                with_more_pages:
+                  summary: Response with more pages available
+                  value:
+                    posts:
+                      "post_id_1": { "id": "post_id_1", "message": "First post", "create_at": 1635638400000 }
+                      "post_id_2": { "id": "post_id_2", "message": "Second post", "create_at": 1635638500000 }
+                    next_cursor:
+                      cursor: "MTphYmMxMjM6Y3JlYXRlX2F0OmZhbHNlOmZhbHNlOmFzYzoxNjM1NjM4NTAwMDAwOnBvc3RfaWRfMg"
+                last_page:
+                  summary: Last page (no more results)
+                  value:
+                    posts:
+                      "post_id_99": { "id": "post_id_99", "message": "Last post", "create_at": 1635724800000 }
+                    next_cursor: null
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

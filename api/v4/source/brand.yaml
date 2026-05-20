@@ -1,0 +1,89 @@
+  /api/v4/brand/image:
+    get:
+      tags:
+        - brand
+      summary: Get brand image
+      description: >
+        Get the previously uploaded brand image. Returns 404 if no brand image
+        has been uploaded.
+
+        ##### Permissions
+
+        No permission required.
+      operationId: GetBrandImage
+      responses:
+        "200":
+          description: Brand image retrieval successful
+          content:
+            application/json:
+              schema:
+                type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    post:
+      tags:
+        - brand
+      summary: Upload brand image
+      description: |
+        Uploads a brand image.
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: UploadBrandImage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  description: The image to be uploaded
+                  type: string
+                  format: binary
+              required:
+                - image
+      responses:
+        "201":
+          description: Brand image upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - brand
+      summary: Delete current brand image
+      description: >
+        Deletes the previously uploaded brand image. Returns 404 if no brand
+        image has been uploaded.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+        __Minimum server version: 5.6__
+      operationId: DeleteBrandImage
+      responses:
+        "200":
+          description: Brand image succesfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

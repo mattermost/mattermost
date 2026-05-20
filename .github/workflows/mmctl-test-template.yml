@@ -1,0 +1,112 @@
+name: mmctl CI
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+      datasource:
+        required: true
+        type: string
+      drivername:
+        required: true
+        type: string
+      logsartifact:
+        required: true
+        type: string
+      go-version:
+        required: true
+        type: string
+      fips-enabled:
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  test:
+    name: ${{ inputs.name }}
+    runs-on: ubuntu-22.04
+    env:
+      COMPOSE_PROJECT_NAME: ghactions
+    steps:
+      - name: buildenv/docker-login
+        # Only FIPS requires login for private build container. (Forks won't have credentials.)
+        if: inputs.fips-enabled
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup BUILD_IMAGE
+        id: build
+        run: |
+          if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
+            echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
+            echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
+          else
+            echo "BUILD_IMAGE=mattermost/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
+            echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Store required variables for publishing results
+        run: |
+          echo "${{ inputs.name }}" > server/test-name
+          echo "${{ github.event.pull_request.number }}" > server/pr-number
+      - name: Run docker compose
+        env:
+          POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
+        run: |
+          cd server/build
+          docker compose --ansi never run --rm start_dependencies
+          cat ../tests/custom-schema-objectID.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+          cat ../tests/custom-schema-cpa.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+          cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker compose --ansi never ps
+
+      - name: Run mmctl Tests
+        env:
+          BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
+        run: |
+          if [[ ${{ github.ref_name }} == 'master' ]]; then
+            export TESTFLAGS="-timeout 90m -race"
+          else
+            export TESTFLAGS="-timeout 30m"
+          fi
+          docker run --net ghactions_mm-test \
+            --ulimit nofile=8096:8096 \
+            --env-file=server/build/dotenv/test.env \
+            --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
+            --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            --env MMCTL_TESTFLAGS="$TESTFLAGS" \
+            --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \
+            -v $PWD:/mattermost \
+            -w /mattermost/server \
+            $BUILD_IMAGE \
+            make test-mmctl BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+
+      - name: Stop docker compose
+        run: |
+          cd server/build
+          docker compose --ansi never stop
+
+      - name: Save mmctl test report to Zephyr Scale
+        if: ${{ always() && hashFiles('server/report.xml') != '' && github.event_name != 'pull_request' && (github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
+        uses: ./.github/actions/save-junit-report-tms
+        with:
+          report-path: server/report.xml
+          zephyr-api-key: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
+          build-image: ${{ steps.build.outputs.BUILD_IMAGE }}
+
+      - name: Archive logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: ${{ steps.build.outputs.LOG_ARTIFACT_NAME }}
+          path: |
+            server/gotestsum.json
+            server/report.xml
+            server/test-name
+            server/pr-number

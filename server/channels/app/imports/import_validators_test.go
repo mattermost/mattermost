@@ -1,0 +1,2078 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package imports
+
+import (
+	"fmt"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+)
+
+func TestIsRootJsonlFile(t *testing.T) {
+	assert.True(t, IsRootJsonlFile("import.jsonl"))
+	assert.True(t, IsRootJsonlFile("export.jsonl"))
+	assert.False(t, IsRootJsonlFile("data/export.jsonl"))
+	assert.False(t, IsRootJsonlFile("data/attachments/report.jsonl"))
+	assert.False(t, IsRootJsonlFile("data/deep/nested/file.jsonl"))
+	assert.False(t, IsRootJsonlFile("import.json"))
+	assert.False(t, IsRootJsonlFile("import.zip"))
+	assert.False(t, IsRootJsonlFile("data/photo.jpg"))
+	assert.False(t, IsRootJsonlFile(""))
+}
+
+func TestImportValidateSchemeImportData(t *testing.T) {
+	// Test with minimum required valid properties and team scope.
+	data := SchemeImportData{
+		Name:        new("name"),
+		DisplayName: new("display name"),
+		Scope:       new("team"),
+		DefaultTeamAdminRole: &RoleImportData{
+			Name:        new("name"),
+			DisplayName: new("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
+		DefaultTeamUserRole: &RoleImportData{
+			Name:        new("name"),
+			DisplayName: new("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
+		DefaultTeamGuestRole: &RoleImportData{
+			Name:        new("name"),
+			DisplayName: new("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
+		DefaultChannelAdminRole: &RoleImportData{
+			Name:        new("name"),
+			DisplayName: new("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
+		DefaultChannelUserRole: &RoleImportData{
+			Name:        new("name"),
+			DisplayName: new("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
+		DefaultChannelGuestRole: &RoleImportData{
+			Name:        new("name"),
+			DisplayName: new("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
+	}
+
+	err := ValidateSchemeImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with various invalid names.
+	data.Name = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid name.")
+
+	// Test with empty string
+	data.Name = new("")
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid name.")
+
+	// Test with numbers
+	data.Name = new(strings.Repeat("1234567890", 100))
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid name.")
+
+	data.Name = new("name")
+
+	// Test with invalid display name.
+	data.DisplayName = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid display name.")
+
+	// Test with display name.
+	data.DisplayName = new("")
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid display name.")
+
+	// Test display name with numbers
+	data.DisplayName = new(strings.Repeat("1234567890", 100))
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid display name.")
+
+	data.DisplayName = new("display name")
+
+	// Test with various missing roles.
+	data.DefaultTeamAdminRole = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to missing role.")
+
+	data.DefaultTeamAdminRole = &RoleImportData{
+		Name:        new("name"),
+		DisplayName: new("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+
+	data.DefaultTeamUserRole = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to missing role.")
+
+	data.DefaultTeamUserRole = &RoleImportData{
+		Name:        new("name"),
+		DisplayName: new("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+	data.DefaultChannelAdminRole = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to missing role.")
+
+	data.DefaultChannelAdminRole = &RoleImportData{
+		Name:        new("name"),
+		DisplayName: new("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+	data.DefaultChannelUserRole = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to missing role.")
+
+	data.DefaultChannelUserRole = &RoleImportData{
+		Name:        new("name"),
+		DisplayName: new("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+
+	// Test with various invalid roles.
+	data.DefaultTeamAdminRole.Name = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid role.")
+
+	data.DefaultTeamAdminRole.Name = new("name")
+	data.DefaultTeamUserRole.Name = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid role.")
+
+	data.DefaultTeamUserRole.Name = new("name")
+	data.DefaultChannelAdminRole.Name = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid role.")
+
+	data.DefaultChannelAdminRole.Name = new("name")
+	data.DefaultChannelUserRole.Name = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid role.")
+
+	data.DefaultChannelUserRole.Name = new("name")
+
+	// Change to a Channel scope role, and check with missing or extra roles again.
+	data.Scope = new("channel")
+	data.DefaultTeamAdminRole = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to spurious role.")
+
+	data.DefaultTeamAdminRole = &RoleImportData{
+		Name:        new("name"),
+		DisplayName: new("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+	data.DefaultTeamUserRole = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to spurious role.")
+
+	data.DefaultTeamUserRole = &RoleImportData{
+		Name:        new("name"),
+		DisplayName: new("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+	data.DefaultTeamGuestRole = nil
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to spurious role.")
+
+	data.DefaultTeamGuestRole = nil
+	data.DefaultTeamUserRole = nil
+	data.DefaultTeamAdminRole = nil
+	err = ValidateSchemeImportData(&data)
+	require.Nil(t, err, "Should have succeeded.")
+
+	// Test with all combinations of optional parameters.
+	data.Description = new(strings.Repeat("1234567890", 1024))
+	err = ValidateSchemeImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid description.")
+
+	data.Description = new("description")
+	err = ValidateSchemeImportData(&data)
+	require.Nil(t, err, "Should have succeeded.")
+}
+
+func TestImportValidateRoleImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	data := RoleImportData{
+		Name:        new("name"),
+		DisplayName: new("display name"),
+	}
+	err := ValidateRoleImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with various invalid names.
+	data.Name = nil
+	err = ValidateRoleImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid name.")
+
+	data.Name = new("")
+	err = ValidateRoleImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid name.")
+
+	data.Name = new(strings.Repeat("1234567890", 100))
+	err = ValidateRoleImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid name.")
+
+	data.Name = new("name")
+
+	// Test with invalid display name.
+	data.DisplayName = nil
+	err = ValidateRoleImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid display name.")
+
+	data.DisplayName = new("")
+	err = ValidateRoleImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid display name.")
+
+	data.DisplayName = new(strings.Repeat("1234567890", 100))
+	err = ValidateRoleImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid display name.")
+
+	data.DisplayName = new("display name")
+
+	// Test with various valid/invalid permissions.
+	data.Permissions = &[]string{}
+	err = ValidateRoleImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
+	err = ValidateRoleImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	data.Permissions = &[]string{"invite_user", "add_user_to_team", "derp"}
+	err = ValidateRoleImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to invalid permission.")
+
+	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
+
+	// Test with various valid/invalid descriptions.
+	data.Description = new(strings.Repeat("1234567890", 1024))
+	err = ValidateRoleImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to invalid description.")
+
+	data.Description = new("description")
+	err = ValidateRoleImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+}
+
+func TestImportValidateTeamImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	data := TeamImportData{
+		Name:        new("teamname"),
+		DisplayName: new("Display Name"),
+		Type:        new("O"),
+	}
+	err := ValidateTeamImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with various invalid names.
+	data = TeamImportData{
+		DisplayName: new("Display Name"),
+		Type:        new("O"),
+	}
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to missing name.")
+
+	data.Name = new(strings.Repeat("abcdefghij", 7))
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long name.")
+
+	data.Name = new("login")
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to reserved word in name.")
+
+	data.Name = new("Test::''ASD")
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to non alphanum characters in name.")
+
+	data.Name = new("A")
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to short name.")
+
+	// Test team various invalid display names.
+	data = TeamImportData{
+		Name: new("teamname"),
+		Type: new("O"),
+	}
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to missing display_name.")
+
+	data.DisplayName = new("")
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to empty display_name.")
+
+	data.DisplayName = new(strings.Repeat("abcdefghij", 7))
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long display_name.")
+
+	// Test with various valid and invalid types.
+	data = TeamImportData{
+		Name:        new("teamname"),
+		DisplayName: new("Display Name"),
+	}
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to missing type.")
+
+	data.Type = new("A")
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid type.")
+
+	data.Type = new("I")
+	err = ValidateTeamImportData(&data)
+	require.Nil(t, err, "Should have succeeded with valid type.")
+
+	// Test with all the combinations of optional parameters.
+	data = TeamImportData{
+		Name:            new("teamname"),
+		DisplayName:     new("Display Name"),
+		Type:            new("O"),
+		Description:     new("The team description."),
+		AllowOpenInvite: new(true),
+	}
+	err = ValidateTeamImportData(&data)
+	require.Nil(t, err, "Should have succeeded with valid optional properties.")
+
+	data.AllowOpenInvite = new(false)
+	err = ValidateTeamImportData(&data)
+	require.Nil(t, err, "Should have succeeded with allow open invites false.")
+
+	data.Description = new(strings.Repeat("abcdefghij ", 26))
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long description.")
+
+	// Test with an empty scheme name.
+	data.Description = new("abcdefg")
+	data.Scheme = new("")
+	err = ValidateTeamImportData(&data)
+	require.NotNil(t, err, "Should have failed due to empty scheme name.")
+
+	// Test with a valid scheme name.
+	data.Scheme = new("abcdefg")
+	err = ValidateTeamImportData(&data)
+	require.Nil(t, err, "Should have succeeded with valid scheme name.")
+}
+
+func TestImportValidateChannelImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	chanTypeOpen := model.ChannelTypeOpen
+	data := ChannelImportData{
+		Team:        new("teamname"),
+		Name:        new("channelname"),
+		DisplayName: new("Display Name"),
+		Type:        &chanTypeOpen,
+	}
+	err := ValidateChannelImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with missing team.
+	data = ChannelImportData{
+		Name:        new("channelname"),
+		DisplayName: new("Display Name"),
+		Type:        &chanTypeOpen,
+	}
+	err = ValidateChannelImportData(&data)
+	require.NotNil(t, err, "Should have failed due to missing team.")
+
+	// Test with various invalid names.
+	data = ChannelImportData{
+		Team:        new("teamname"),
+		DisplayName: new("Display Name"),
+		Type:        &chanTypeOpen,
+	}
+	err = ValidateChannelImportData(&data)
+	require.NotNil(t, err, "Should have failed due to missing name.")
+
+	data.Name = new(strings.Repeat("abcdefghij", 7))
+	err = ValidateChannelImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long name.")
+
+	data.Name = new("Test::''ASD")
+	err = ValidateChannelImportData(&data)
+	require.NotNil(t, err, "Should have failed due to non alphanum characters in name.")
+
+	data.Name = new("A")
+	err = ValidateChannelImportData(&data)
+	require.Nil(t, err, "Should not have failed due to uppercased name.")
+
+	// Test team various invalid display names.
+	data = ChannelImportData{
+		Team: new("teamname"),
+		Name: new("channelname"),
+		Type: &chanTypeOpen,
+	}
+	err = ValidateChannelImportData(&data)
+	require.Nil(t, err, "Should have accepted having an empty display_name.")
+	require.Equal(t, data.Name, data.DisplayName, "Name and DisplayName should be the same if DisplayName is missing")
+
+	data.DisplayName = new("")
+	err = ValidateChannelImportData(&data)
+	require.Nil(t, err, "Should have accepted having an empty display_name.")
+	require.Equal(t, data.Name, data.DisplayName, "Name and DisplayName should be the same if DisplayName is missing")
+
+	data.DisplayName = new(strings.Repeat("abcdefghij", 7))
+	err = ValidateChannelImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long display_name.")
+
+	// Test with various valid and invalid types.
+	data = ChannelImportData{
+		Team:        new("teamname"),
+		Name:        new("channelname"),
+		DisplayName: new("Display Name"),
+	}
+	err = ValidateChannelImportData(&data)
+	require.NotNil(t, err, "Should have failed due to missing type.")
+
+	invalidType := model.ChannelType("A")
+	data.Type = &invalidType
+	err = ValidateChannelImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid type.")
+
+	chanTypePr := model.ChannelTypePrivate
+	data.Type = &chanTypePr
+	err = ValidateChannelImportData(&data)
+	require.Nil(t, err, "Should have succeeded with valid type.")
+
+	// Test with all the combinations of optional parameters.
+	data = ChannelImportData{
+		Team:        new("teamname"),
+		Name:        new("channelname"),
+		DisplayName: new("Display Name"),
+		Type:        &chanTypeOpen,
+		Header:      new("Channel Header Here"),
+		Purpose:     new("Channel Purpose Here"),
+	}
+	err = ValidateChannelImportData(&data)
+	require.Nil(t, err, "Should have succeeded with valid optional properties.")
+
+	data.Header = new(strings.Repeat("abcdefghij ", 103))
+	err = ValidateChannelImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long header.")
+
+	data.Header = new("Channel Header Here")
+	data.Purpose = new(strings.Repeat("abcdefghij ", 26))
+	err = ValidateChannelImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long purpose.")
+
+	// Test with an empty scheme name.
+	data.Purpose = new("abcdefg")
+	data.Scheme = new("")
+	err = ValidateChannelImportData(&data)
+	require.NotNil(t, err, "Should have failed due to empty scheme name.")
+
+	// Test with a valid scheme name.
+	data.Scheme = new("abcdefg")
+	err = ValidateChannelImportData(&data)
+	require.Nil(t, err, "Should have succeeded with valid scheme name.")
+}
+
+func TestImportValidateUserImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	data := UserImportData{
+		Username: new("bob"),
+		Email:    new("bob@example.com"),
+	}
+	err := ValidateUserImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Invalid Usernames.
+	data.Username = nil
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to nil Username.")
+
+	data.Username = new("")
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to 0 length Username.")
+
+	data.Username = new(strings.Repeat("abcdefghij", 7))
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to too long Username.")
+
+	data.Username = new("i am a username with spaces and !!!")
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to invalid characters in Username.")
+
+	data.Username = new("bob")
+
+	// Unexisting Picture Image
+	data.ProfileImage = new("not-existing-file")
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to not existing profile image file.")
+
+	// Invalid image path
+	data.ProfileImage = new("../invalid/path/file.jpg")
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to invalid profile image file path.")
+	require.Equal(t, "app.import.validate_user_import_data.invalid_image_path.error", err.Id)
+
+	data.ProfileImage = nil
+
+	// Invalid Emails
+	data.Email = nil
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to nil Email.")
+
+	data.Email = new("")
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to 0 length Email.")
+
+	data.Email = new(strings.Repeat("abcdefghij", 13))
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to too long Email.")
+
+	data.Email = new("bob@example.com")
+
+	// Empty AuthService indicates user/password auth.
+	data.AuthService = new("")
+	checkNoError(t, ValidateUserImportData(&data))
+
+	data.AuthService = new("saml")
+	data.AuthData = new(strings.Repeat("abcdefghij", 15))
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to too long auth data.")
+
+	data.AuthData = new("bobbytables")
+	err = ValidateUserImportData(&data)
+	require.Nil(t, err, "Validation should have succeeded with valid auth service and auth data.")
+
+	// Test a valid User with all fields populated.
+	testsDir, _ := fileutils.FindDir("tests")
+	data = UserImportData{
+		Avatar: Avatar{
+			ProfileImage: new(filepath.Join(testsDir, "test.png")),
+		},
+		Username:    new("bob"),
+		Email:       new("bob@example.com"),
+		AuthService: new("ldap"),
+		AuthData:    new("bob"),
+		Nickname:    new("BobNick"),
+		FirstName:   new("Bob"),
+		LastName:    new("Blob"),
+		Position:    new("The Boss"),
+		Roles:       new("system_user"),
+		Locale:      new("en"),
+	}
+	err = ValidateUserImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with not-all lowercase username
+	data.Username = new("Bob")
+	err = ValidateUserImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid even the username has uppercase letters.")
+
+	// Test various invalid optional field values.
+	data.Nickname = new(strings.Repeat("abcdefghij", 7))
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to too long Nickname.")
+
+	data.Nickname = new("BobNick")
+
+	data.FirstName = new(strings.Repeat("abcdefghij", 7))
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to too long First Name.")
+
+	data.FirstName = new("Bob")
+
+	data.LastName = new(strings.Repeat("abcdefghij", 7))
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to too long Last name.")
+
+	data.LastName = new("Blob")
+
+	data.Position = new(strings.Repeat("abcdefghij", 13))
+	err = ValidateUserImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to too long Position.")
+
+	data.Position = new("The Boss")
+
+	data.Roles = nil
+	err = ValidateUserImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	data.Roles = new("")
+	err = ValidateUserImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	data.Roles = new("system_user")
+
+	// Try various valid/invalid notify props.
+	data.NotifyProps = &UserNotifyPropsImportData{}
+
+	data.NotifyProps.Desktop = new("invalid")
+	checkError(t, ValidateUserImportData(&data))
+
+	data.NotifyProps.Desktop = model.NewPointer(model.UserNotifyAll)
+	data.NotifyProps.DesktopSound = new("invalid")
+	checkError(t, ValidateUserImportData(&data))
+
+	data.NotifyProps.DesktopSound = new("true")
+	data.NotifyProps.Email = new("invalid")
+	checkError(t, ValidateUserImportData(&data))
+
+	data.NotifyProps.Email = new("true")
+	data.NotifyProps.Mobile = new("invalid")
+	checkError(t, ValidateUserImportData(&data))
+
+	data.NotifyProps.Mobile = model.NewPointer(model.UserNotifyAll)
+	data.NotifyProps.MobilePushStatus = new("invalid")
+	checkError(t, ValidateUserImportData(&data))
+
+	data.NotifyProps.MobilePushStatus = model.NewPointer(model.StatusOnline)
+	data.NotifyProps.ChannelTrigger = new("invalid")
+	checkError(t, ValidateUserImportData(&data))
+
+	data.NotifyProps.ChannelTrigger = new("true")
+	data.NotifyProps.CommentsTrigger = new("invalid")
+	checkError(t, ValidateUserImportData(&data))
+
+	data.NotifyProps.CommentsTrigger = model.NewPointer(model.CommentsNotifyRoot)
+	data.NotifyProps.MentionKeys = new("valid")
+	checkNoError(t, ValidateUserImportData(&data))
+
+	// Test the email batching interval validators
+	// Happy paths
+	data.EmailInterval = new("immediately")
+	checkNoError(t, ValidateUserImportData(&data))
+
+	data.EmailInterval = new("fifteen")
+	checkNoError(t, ValidateUserImportData(&data))
+
+	data.EmailInterval = new("hour")
+	checkNoError(t, ValidateUserImportData(&data))
+
+	// Invalid values
+	data.EmailInterval = new("invalid")
+	checkError(t, ValidateUserImportData(&data))
+
+	data.EmailInterval = new("")
+	checkError(t, ValidateUserImportData(&data))
+}
+
+func TestImportValidateUserAuth(t *testing.T) {
+	tests := []struct {
+		authService *string
+		authData    *string
+		isValid     bool
+	}{
+		{nil, nil, true},
+		{new(""), new(""), true},
+		{new("foo"), new("foo"), false},
+		{nil, new(""), true},
+		{new(""), nil, true},
+		{model.NewPointer(model.ServiceOpenid), new("foo@bar.baz"), true},
+
+		{new("foo"), nil, false},
+		{new("foo"), new(""), false},
+		{nil, new("foo"), false},
+		{new(""), new("foo"), false},
+	}
+
+	for _, test := range tests {
+		data := UserImportData{
+			Username:    new("bob"),
+			Email:       new("bob@example.com"),
+			AuthService: test.authService,
+			AuthData:    test.authData,
+		}
+		err := ValidateUserImportData(&data)
+
+		if test.isValid {
+			require.Nil(t, err, fmt.Sprintf("authService: %v, authData: %v", test.authService, test.authData))
+		} else {
+			require.NotNil(t, err, fmt.Sprintf("authService: %v, authData: %v", test.authService, test.authData))
+		}
+	}
+}
+
+func TestImportValidateBotImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	data := BotImportData{
+		Username:    new("bob"),
+		DisplayName: new("Display Name"),
+		Owner:       new("owner"),
+	}
+	err := ValidateBotImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with not-all lowercase username
+	data.Username = new("Bob")
+	err = ValidateBotImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid even the username has uppercase letters.")
+
+	// Test with various invalid names.
+	data.Username = nil
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to nil Username.")
+
+	data.Username = new("")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to 0 length Username.")
+
+	data.Username = new(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long Username.")
+
+	data.Username = new("i am a username with spaces and !!!")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid characters in Username.")
+
+	data.Username = new("bob")
+
+	// Invalid Display Name.
+	data.DisplayName = new(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.DisplayName = new("Display Name")
+
+	// Invalid Owner Name.
+	data.Owner = nil
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.Owner = new("")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.Owner = new(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long OwnerID.")
+
+	// Invalid profile image path
+	data.ProfileImage = new("../invalid/path/file.jpg")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid profile image file path.")
+	require.Equal(t, "app.import.validate_user_import_data.invalid_image_path.error", err.Id)
+}
+
+func TestImportValidateUserTeamsImportData(t *testing.T) {
+	// Invalid Name.
+	data := []UserTeamImportData{
+		{
+			Roles: new("team_admin team_user"),
+		},
+	}
+	err := ValidateUserTeamsImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid name.")
+
+	data[0].Name = new("teamname")
+
+	// Valid (nil roles)
+	data[0].Roles = nil
+	err = ValidateUserTeamsImportData(&data)
+	require.Nil(t, err, "Should have succeeded with empty roles.")
+
+	// Valid (empty roles)
+	data[0].Roles = new("")
+	err = ValidateUserTeamsImportData(&data)
+	require.Nil(t, err, "Should have succeeded with empty roles.")
+
+	// Valid (with roles)
+	data[0].Roles = new("team_admin team_user")
+	err = ValidateUserTeamsImportData(&data)
+	require.Nil(t, err, "Should have succeeded with valid roles.")
+
+	// Valid (with JSON string of theme)
+	data[0].Theme = new(`{"awayIndicator":"#DBBD4E","buttonBg":"#23A1FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`)
+	err = ValidateUserTeamsImportData(&data)
+	require.Nil(t, err, "Should have succeeded with valid theme.")
+
+	// Invalid (invalid JSON string of theme)
+	data[0].Theme = new(`This is the invalid string which cannot be marshalled to JSON object :) + {"#DBBD4E","buttonBg", "#23A1FF", buttonColor`)
+	err = ValidateUserTeamsImportData(&data)
+	require.NotNil(t, err, "Should have fail with invalid JSON string of theme.")
+
+	// Invalid (valid JSON but invalid theme description)
+	data[0].Theme = new(`{"somekey": 25, "json_obj1": {"color": "#DBBD4E","buttonBg": "#23A1FF"}}`)
+	err = ValidateUserTeamsImportData(&data)
+	require.NotNil(t, err, "Should have fail with valid JSON which contains invalid string of theme description.")
+
+	data[0].Theme = nil
+}
+
+func TestImportValidateUserChannelsImportData(t *testing.T) {
+	// Invalid Name.
+	data := []UserChannelImportData{
+		{
+			Roles: new("channel_admin channel_user"),
+		},
+	}
+	err := ValidateUserChannelsImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid name.")
+	data[0].Name = new("channelname")
+
+	// Valid (nil roles)
+	data[0].Roles = nil
+	err = ValidateUserChannelsImportData(&data)
+	require.Nil(t, err, "Should have succeeded with empty roles.")
+
+	// Valid (empty roles)
+	data[0].Roles = new("")
+	err = ValidateUserChannelsImportData(&data)
+	require.Nil(t, err, "Should have succeeded with empty roles.")
+
+	// Valid (with roles)
+	data[0].Roles = new("channel_admin channel_user")
+	err = ValidateUserChannelsImportData(&data)
+	require.Nil(t, err, "Should have succeeded with valid roles.")
+
+	// Empty notify props.
+	data[0].NotifyProps = &UserChannelNotifyPropsImportData{}
+	err = ValidateUserChannelsImportData(&data)
+	require.Nil(t, err, "Should have succeeded with empty notify props.")
+
+	// Invalid desktop notify props.
+	data[0].NotifyProps.Desktop = new("invalid")
+	err = ValidateUserChannelsImportData(&data)
+	require.NotNil(t, err, "Should have failed with invalid desktop notify props.")
+
+	// Invalid mobile notify props.
+	data[0].NotifyProps.Desktop = new("mention")
+	data[0].NotifyProps.Mobile = new("invalid")
+	err = ValidateUserChannelsImportData(&data)
+	require.NotNil(t, err, "Should have failed with invalid mobile notify props.")
+
+	// Invalid mark_unread notify props.
+	data[0].NotifyProps.Mobile = new("mention")
+	data[0].NotifyProps.MarkUnread = new("invalid")
+	err = ValidateUserChannelsImportData(&data)
+	require.NotNil(t, err, "Should have failed with invalid mark_unread notify props.")
+
+	// Valid notify props.
+	data[0].NotifyProps.MarkUnread = new("mention")
+	err = ValidateUserChannelsImportData(&data)
+	require.Nil(t, err, "Should have succeeded with valid notify props.")
+}
+
+func TestImportValidateReactionImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	parentCreateAt := model.GetMillis() - 100
+	data := ReactionImportData{
+		User:      new("username"),
+		EmojiName: new("emoji"),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err := ValidateReactionImportData(&data, parentCreateAt)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with missing required properties.
+	data = ReactionImportData{
+		EmojiName: new("emoji"),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to missing required property.")
+
+	data = ReactionImportData{
+		User:     new("username"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to missing required property.")
+
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new("emoji"),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to missing required property.")
+
+	// Test with invalid emoji name.
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new(strings.Repeat("1234567890", 500)),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to too long emoji name.")
+
+	// Test with invalid CreateAt
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new("emoji"),
+		CreateAt:  new(int64(0)),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
+
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new("emoji"),
+		CreateAt:  new(parentCreateAt - 100),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due parent with newer create-at value.")
+}
+
+func TestImportValidateReplyImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	parentCreateAt := model.GetMillis() - 100
+	maxPostSize := 10000
+	data := ReplyImportData{
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err := ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with missing required properties.
+	data = ReplyImportData{
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to missing required property.")
+
+	data = ReplyImportData{
+		User:     new("username"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to missing required property.")
+
+	data = ReplyImportData{
+		User:    new("username"),
+		Message: new("message"),
+	}
+	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to missing required property.")
+
+	// Test with invalid message.
+	data = ReplyImportData{
+		User:     new("username"),
+		Message:  new(strings.Repeat("0", maxPostSize+1)),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to too long message.")
+
+	// Test with invalid CreateAt
+	data = ReplyImportData{
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(int64(0)),
+	}
+	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
+
+	// Test with invalid attachment path.
+	data = ReplyImportData{
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+		Attachments: &[]AttachmentImportData{
+			{
+				Path: new("invalid/../../../path/to/file.txt"),
+			},
+		},
+	}
+	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to invalid attachment path.")
+	require.Equal(t, err.Id, "app.import.validate_reply_import_data.attachment.error")
+}
+
+func TestImportValidatePostImportData(t *testing.T) {
+	maxPostSize := 10000
+
+	t.Run("Test with minimum required valid properties", func(t *testing.T) {
+		data := PostImportData{
+			Team:     new("teamname"),
+			Channel:  new("channelname"),
+			User:     new("username"),
+			Message:  new("message"),
+			CreateAt: new(model.GetMillis()),
+		}
+		err := ValidatePostImportData(&data, maxPostSize)
+		require.Nil(t, err, "Validation failed but should have been valid.")
+	})
+
+	t.Run("Test with missing required properties", func(t *testing.T) {
+		data := PostImportData{
+			Channel:  new("channelname"),
+			User:     new("username"),
+			Message:  new("message"),
+			CreateAt: new(model.GetMillis()),
+		}
+		err := ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.team_missing.error")
+
+		data = PostImportData{
+			Team:     new("teamname"),
+			User:     new("username"),
+			Message:  new("message"),
+			CreateAt: new(model.GetMillis()),
+		}
+		err = ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.channel_missing.error")
+
+		data = PostImportData{
+			Team:     new("teamname"),
+			Channel:  new("channelname"),
+			Message:  new("message"),
+			CreateAt: new(model.GetMillis()),
+		}
+		err = ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.user_missing.error")
+
+		data = PostImportData{
+			Team:     new("teamname"),
+			Channel:  new("channelname"),
+			User:     new("username"),
+			CreateAt: new(model.GetMillis()),
+		}
+		err = ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.message_missing.error")
+
+		data = PostImportData{
+			Team:    new("teamname"),
+			Channel: new("channelname"),
+			User:    new("username"),
+			Message: new("message"),
+		}
+		err = ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.create_at_missing.error")
+	})
+
+	t.Run("Test with invalid message", func(t *testing.T) {
+		data := PostImportData{
+			Team:     new("teamname"),
+			Channel:  new("channelname"),
+			User:     new("username"),
+			Message:  new(strings.Repeat("0", maxPostSize+1)),
+			CreateAt: new(model.GetMillis()),
+		}
+		err := ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to too long message.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.message_length.error")
+	})
+
+	t.Run("Test with invalid CreateAt", func(t *testing.T) {
+		data := PostImportData{
+			Team:     new("teamname"),
+			Channel:  new("channelname"),
+			User:     new("username"),
+			Message:  new("message"),
+			CreateAt: new(int64(0)),
+		}
+		err := ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to 0 create-at value.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.create_at_zero.error")
+	})
+
+	t.Run("Test with valid all optional parameters", func(t *testing.T) {
+		postCreateAt := model.GetMillis()
+		repliesCreateAt := postCreateAt + 1
+		reactionsCreateAt := postCreateAt + 2
+
+		reactions := []ReactionImportData{{
+			User:      new("username"),
+			EmojiName: new("emoji"),
+			CreateAt:  new(reactionsCreateAt),
+		}}
+
+		replies := []ReplyImportData{{
+			User:     new("username"),
+			Message:  new("message"),
+			CreateAt: new(repliesCreateAt),
+		}}
+
+		data := PostImportData{
+			Team:      new("teamname"),
+			Channel:   new("channelname"),
+			User:      new("username"),
+			Message:   new("message"),
+			CreateAt:  new(postCreateAt),
+			Reactions: &reactions,
+			Replies:   &replies,
+		}
+		err := ValidatePostImportData(&data, maxPostSize)
+		require.Nil(t, err, "Should have succeeded.")
+	})
+
+	t.Run("Test with props too large", func(t *testing.T) {
+		props := model.StringInterface{
+			"attachment": strings.Repeat("a", model.PostPropsMaxRunes),
+		}
+
+		data := PostImportData{
+			Team:     new("teamname"),
+			Channel:  new("channelname"),
+			User:     new("username"),
+			Message:  new("message"),
+			Props:    &props,
+			CreateAt: new(model.GetMillis()),
+		}
+		err := ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to long props.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.props_too_large.error")
+	})
+
+	t.Run("Test with invalid attachment path", func(t *testing.T) {
+		data := PostImportData{
+			Team:     new("teamname"),
+			Channel:  new("channelname"),
+			User:     new("username"),
+			Message:  new("message"),
+			CreateAt: new(model.GetMillis()),
+			Attachments: &[]AttachmentImportData{
+				{
+					Path: new("invalid/../../../path/to/file.txt"),
+				},
+			},
+		}
+		err := ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err)
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.attachment.error")
+	})
+}
+
+func TestImportValidateDirectChannelImportData(t *testing.T) {
+	// Test with valid number of members for direct message.
+	data := DirectChannelImportData{
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+		},
+	}
+	err := ValidateDirectChannelImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with valid number of members for group message.
+	data = DirectChannelImportData{
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+		},
+	}
+	err = ValidateDirectChannelImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with all the combinations of optional parameters.
+	data = DirectChannelImportData{
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+		},
+		Header: new("Channel Header Here"),
+	}
+	err = ValidateDirectChannelImportData(&data)
+	require.Nil(t, err, "Should have succeeded with valid optional properties.")
+
+	// Test with invalid Header.
+	data.Header = new(strings.Repeat("abcdefghij ", 103))
+	err = ValidateDirectChannelImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long header.")
+
+	// Test with different combinations of invalid member counts.
+	data = DirectChannelImportData{
+		Participants: []*DirectChannelMemberImportData{},
+	}
+	err = ValidateDirectChannelImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to invalid number of members.")
+
+	data = DirectChannelImportData{
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: new(model.NewId()),
+			},
+		},
+	}
+	err = ValidateDirectChannelImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to invalid number of members.")
+
+	data = DirectChannelImportData{
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+		},
+	}
+	err = ValidateDirectChannelImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to invalid number of members.")
+
+	// Test with invalid FavoritedBy
+	member1 := model.NewId()
+	member2 := model.NewId()
+	data = DirectChannelImportData{
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: new(model.NewId()),
+			},
+			{
+				Username: new(model.NewId()),
+			},
+		},
+		FavoritedBy: &[]string{
+			member1,
+			model.NewId(),
+		},
+	}
+	err = ValidateDirectChannelImportData(&data)
+	require.NotNil(t, err, "Validation should have failed due to non-member favorited.")
+
+	// Test with valid FavoritedBy
+	data = DirectChannelImportData{
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: new(member1),
+			},
+			{
+				Username: new(member2),
+			},
+		},
+		FavoritedBy: &[]string{
+			member1,
+			member2,
+		},
+	}
+	err = ValidateDirectChannelImportData(&data)
+	require.Nil(t, err, "Validation should succeed with valid favorited member")
+}
+
+func TestImportValidateDirectPostImportData(t *testing.T) {
+	maxPostSize := 10000
+
+	// Test with minimum required valid properties.
+	data := DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err := ValidateDirectPostImportData(&data, maxPostSize)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with missing required properties.
+	data = DirectPostImportData{
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to missing required property.")
+
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to missing required property.")
+
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     new("username"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to missing required property.")
+
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:    new("username"),
+		Message: new("message"),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to missing required property.")
+
+	// Test with invalid numbers of channel members.
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{},
+		User:           new("username"),
+		Message:        new("message"),
+		CreateAt:       new(model.GetMillis()),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to unsuitable number of members.")
+
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+		},
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to unsuitable number of members.")
+
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to unsuitable number of members.")
+
+	// Test with group message number of members.
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with invalid message.
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     new("username"),
+		Message:  new(strings.Repeat("0", maxPostSize+1)),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to too long message.")
+
+	// Test with invalid CreateAt
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(int64(0)),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
+
+	// Test with invalid FlaggedBy
+	member1 := model.NewId()
+	member2 := model.NewId()
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			member1,
+			member2,
+		},
+		FlaggedBy: &[]string{
+			member1,
+			model.NewId(),
+		},
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Validation should have failed due to non-member flagged.")
+
+	// Test with valid FlaggedBy
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			member1,
+			member2,
+		},
+		FlaggedBy: &[]string{
+			member1,
+			member2,
+		},
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.Nil(t, err, "Validation should succeed with post flagged by members")
+
+	// Test with valid all optional parameters.
+	reactions := []ReactionImportData{{
+		User:      new("username"),
+		EmojiName: new("emoji"),
+		CreateAt:  new(model.GetMillis()),
+	}}
+
+	replies := []ReplyImportData{{
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+	}}
+
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			member1,
+			member2,
+		},
+		FlaggedBy: &[]string{
+			member1,
+			member2,
+		},
+		User:      new("username"),
+		Message:   new("message"),
+		CreateAt:  new(model.GetMillis()),
+		Reactions: &reactions,
+		Replies:   &replies,
+	}
+
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.Nil(t, err, "Validation should succeed with valid optional parameters")
+
+	// Test with invalid attachment path.
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     new("username"),
+		Message:  new("message"),
+		CreateAt: new(model.GetMillis()),
+		Attachments: &[]AttachmentImportData{
+			{
+				Path: new("invalid/../../../path/to/file.txt"),
+			},
+		},
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to invalid attachment path.")
+	require.Equal(t, err.Id, "app.import.validate_direct_post_import_data.attachment.error")
+}
+
+func TestImportValidateEmojiImportData(t *testing.T) {
+	testCases := []struct {
+		testName          string
+		name              *string
+		image             *string
+		expectError       bool
+		expectSystemEmoji bool
+	}{
+		{"success", new("parrot2"), new("/path/to/image"), false, false},
+		{"system emoji", new("smiley"), new("/path/to/image"), true, true},
+		{"empty name", new(""), new("/path/to/image"), true, false},
+		{"empty image", new("parrot2"), new(""), true, false},
+		{"empty name and image", new(""), new(""), true, false},
+		{"nil name", nil, new("/path/to/image"), true, false},
+		{"nil image", new("parrot2"), nil, true, false},
+		{"nil name and image", nil, nil, true, false},
+		{"invalid image path", new("parrot2"), new("../invalid/path/to/emoji.png"), true, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			data := EmojiImportData{
+				Name:  tc.name,
+				Image: tc.image,
+			}
+
+			err := ValidateEmojiImportData(&data)
+			if tc.expectError {
+				require.NotNil(t, err)
+				assert.Equal(t, tc.expectSystemEmoji, err.Id == "model.emoji.system_emoji_name.app_error")
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestImportValidateThreadFollowerImportData(t *testing.T) {
+	testCases := []struct {
+		testName    string
+		input       *ThreadFollowerImportData
+		expectError bool
+	}{
+		{
+			testName: "success",
+			input: &ThreadFollowerImportData{
+				LastViewed:     new(int64(0)),
+				UnreadMentions: new(int64(0)),
+				User:           new("user1"),
+			},
+			expectError: false,
+		},
+		{
+			testName:    "nil",
+			input:       nil,
+			expectError: true,
+		},
+		{
+			testName: "nil user",
+			input: &ThreadFollowerImportData{
+				LastViewed:     new(int64(0)),
+				UnreadMentions: new(int64(0)),
+				User:           nil,
+			},
+			expectError: true,
+		},
+		{
+			testName: "empty user",
+			input: &ThreadFollowerImportData{
+				LastViewed:     new(int64(0)),
+				UnreadMentions: new(int64(0)),
+				User:           new(""),
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			err := ValidateThreadFollowerImportData(tc.input)
+			if tc.expectError {
+				require.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func checkError(t *testing.T, err *model.AppError) {
+	require.NotNil(t, err, "Should have returned an error.")
+}
+
+func checkNoError(t *testing.T, err *model.AppError) {
+	require.Nil(t, err, "Unexpected Error: %v", err)
+}
+
+func TestValidateGuestRoles(t *testing.T) {
+	testCases := []struct {
+		name        string
+		input       UserImportData
+		expectError bool
+	}{
+		{
+			name: "Valid case: User is a guest in all places",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "Invalid case: User is a guest in a team but not in another team",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+					{
+						Roles: model.NewPointer(model.TeamUserRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelUserRoleId)},
+						},
+					},
+				},
+			},
+			expectError: true,
+		},
+		{
+			name: "Invalid case: User is a guest in a team but not in another team and has no channel membership",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+					{
+						Roles:    model.NewPointer(model.TeamUserRoleId),
+						Channels: &[]UserChannelImportData{},
+					},
+				},
+			},
+			expectError: true,
+		},
+		{
+			name: "Valid case: User is system guest with no teams",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+			},
+			expectError: false,
+		},
+		{
+			name: "Valid case: User is system guest with empty teams array",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{},
+			},
+			expectError: false,
+		},
+		{
+			name: "Invalid case: User has mixed roles",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamUserRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+				},
+			},
+			expectError: true,
+		},
+		{
+			name: "Valid case: User is system guest with team guest role but no channels",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles:    model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "Valid case: User is system guest with team guest role and nil channels",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name:        "Valid case: User does not have any role defined in any place",
+			input:       UserImportData{},
+			expectError: false,
+		},
+		{
+			name: "Valid case: User is not a guest in any place",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemUserRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamAdminRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelAdminRoleId)},
+						},
+					},
+				},
+			},
+			expectError: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateGuestRoles(tc.input)
+			if tc.expectError {
+				assert.NotNil(t, err, tc.name)
+			} else {
+				assert.Nil(t, err, tc.name)
+			}
+		})
+	}
+}
+
+func TestValidateAttachmentPathForImport(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		path         string
+		basePath     string
+		expectedPath string
+		expectedRes  bool
+	}{
+		{
+			name:         "valid relative path",
+			path:         "valid/path/to/attachment",
+			basePath:     "data",
+			expectedPath: "data/valid/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid absolute path",
+			path:         "/valid/path/to/attachment",
+			basePath:     "data",
+			expectedPath: "data/valid/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid relative path with empty base",
+			path:         "data/file.jpg",
+			basePath:     "",
+			expectedPath: "data/file.jpg",
+			expectedRes:  true,
+		},
+		{
+			name:         "absolute path with empty base is converted to relative",
+			path:         "/data/file.jpg",
+			basePath:     "",
+			expectedPath: "data/file.jpg",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with dot segments",
+			path:         "path/./to/attachment",
+			basePath:     "data",
+			expectedPath: "data/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with internal parent reference",
+			path:         "path/to/../to/attachment",
+			basePath:     "data",
+			expectedPath: "data/path/to/attachment",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with filename containing dots",
+			path:         "path/to/file..txt",
+			basePath:     "data",
+			expectedPath: "data/path/to/file..txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with default base path",
+			path:         "file.txt",
+			basePath:     "",
+			expectedPath: "file.txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid path with spaces",
+			path:         "path/to/file with spaces.jpg",
+			basePath:     "data",
+			expectedPath: "data/path/to/file with spaces.jpg",
+			expectedRes:  true,
+		},
+		{
+			name:         "invalid path with parent directory traversal",
+			path:         "../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid path with multiple parent directory traversal",
+			path:         "../../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid path with parent directory traversal in middle",
+			path:         "path/../../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid absolute path with traversal",
+			path:         "/path/../../../not/valid",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "invalid relative path with substring in path",
+			path:         "../data_dir/attachment",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "empty path",
+			path:         "",
+			basePath:     "data",
+			expectedPath: "data",
+			expectedRes:  true,
+		},
+		{
+			name:         "path is just a dot",
+			path:         ".",
+			basePath:     "data",
+			expectedPath: "data",
+			expectedRes:  true,
+		},
+		{
+			name:         "path with only parent reference",
+			path:         "..",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		// Additional security test cases
+		{
+			name:         "valid path with double dots in filename",
+			path:         "....//file.txt",
+			basePath:     "data",
+			expectedPath: "data/..../file.txt",
+			expectedRes:  true, // Double dots in filename are valid, not traversal
+		},
+		{
+			name:         "valid path with quadruple dots in filename",
+			path:         "..../file.txt",
+			basePath:     "data",
+			expectedPath: "data/..../file.txt",
+			expectedRes:  true, // Quadruple dots in filename are valid, not traversal
+		},
+		{
+			name:         "valid path with backslashes (treated as literal on Unix)",
+			path:         "path\\..\\..\\file.txt",
+			basePath:     "data",
+			expectedPath: "data/path\\..\\..\\file.txt",
+			expectedRes:  true, // Backslashes are literal characters on Unix systems
+		},
+		{
+			name:         "valid path with mixed separators (backslash literal)",
+			path:         "path\\../file.txt",
+			basePath:     "data",
+			expectedPath: "data/path\\../file.txt",
+			expectedRes:  true, // Backslash is literal, only forward slash is normalized
+		},
+		{
+			name:         "valid URL encoded characters (treated as literals)",
+			path:         "%2e%2e%2ffile.txt",
+			basePath:     "data",
+			expectedPath: "data/%2e%2e%2ffile.txt",
+			expectedRes:  true, // URL encoding should be treated as literal characters
+		},
+		{
+			name:         "valid null byte in filename (treated as literal)",
+			path:         "file.txt\x00../etc/passwd",
+			basePath:     "data",
+			expectedPath: "data/file.txt\x00../etc/passwd",
+			expectedRes:  true, // Null bytes should be treated as literal characters
+		},
+		{
+			name:         "invalid complex traversal pattern",
+			path:         "./././../../../file.txt",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "valid path with multiple slashes (normalized)",
+			path:         "path///../file.txt",
+			basePath:     "data",
+			expectedPath: "data/file.txt",
+			expectedRes:  true, // Multiple slashes get normalized, no traversal occurs
+		},
+		{
+			name:         "invalid deep traversal attempt",
+			path:         "../../../../../../../../../etc/passwd",
+			basePath:     "data",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "valid path with multiple internal dots",
+			path:         "path/to/file...with...dots.txt",
+			basePath:     "data",
+			expectedPath: "data/path/to/file...with...dots.txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "invalid traversal with valid-looking suffix",
+			path:         "../trusted_NOT/secrets.txt",
+			basePath:     "/trusted",
+			expectedPath: "",
+			expectedRes:  false,
+		},
+		{
+			name:         "valid path with base path containing special chars",
+			path:         "file.txt",
+			basePath:     "data-dir_v1.0",
+			expectedPath: "data-dir_v1.0/file.txt",
+			expectedRes:  true,
+		},
+		{
+			name:         "valid Windows-style paths (backslashes literal on Unix)",
+			path:         "..\\..\\windows\\system32\\config",
+			basePath:     "data",
+			expectedPath: "data/..\\..\\windows\\system32\\config",
+			expectedRes:  true, // Backslashes are literal on Unix, no traversal
+		},
+		{
+			name:         "valid path with Unicode characters",
+			path:         "path/to/файл.txt",
+			basePath:     "data",
+			expectedPath: "data/path/to/файл.txt",
+			expectedRes:  true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			path, ok := ValidateAttachmentPathForImport(tc.path, tc.basePath)
+			require.Equal(t, tc.expectedPath, path)
+			require.Equal(t, tc.expectedRes, ok)
+		})
+	}
+}
+
+func TestValidateAttachmentImportData(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		data *AttachmentImportData
+		err  string
+	}{
+		{
+			name: "nil data",
+		},
+		{
+			name: "empty path",
+			data: &AttachmentImportData{},
+		},
+		{
+			name: "valid absolute path",
+			data: &AttachmentImportData{
+				Path: new("/valid/path/to/attachment"),
+			},
+		},
+		{
+			name: "invalid relative path",
+			data: &AttachmentImportData{
+				Path: new("../attachment"),
+			},
+			err: "BulkImport: app.import.validate_attachment_import_data.invalid_path.error",
+		},
+		{
+			name: "invalid relative path",
+			data: &AttachmentImportData{
+				Path: new("path/to/../../../attachment"),
+			},
+			err: "BulkImport: app.import.validate_attachment_import_data.invalid_path.error",
+		},
+
+		{
+			name: "invalid relative path",
+			data: &AttachmentImportData{
+				Path: new("../data_dir/attachment"),
+			},
+			err: "BulkImport: app.import.validate_attachment_import_data.invalid_path.error",
+		},
+
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: new("./path/to/attachment"),
+			},
+		},
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: new("path/../to/attachment"),
+			},
+		},
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: new("path/to/attachment"),
+			},
+		},
+		{
+			name: "valid relative path",
+			data: &AttachmentImportData{
+				Path: new("path/to/attachment/attachment..ext"),
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidateAttachmentImportData(tc.data)
+			if tc.err != "" {
+				require.NotNil(t, err, "Expected error but got none")
+				require.EqualError(t, err, tc.err, "Expected error did not match")
+			} else {
+				require.Nil(t, err, "Expected no error but got one")
+			}
+		})
+	}
+}

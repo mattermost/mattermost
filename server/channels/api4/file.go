@@ -1,0 +1,1030 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package api4
+
+import (
+	"bytes"
+	"crypto/subtle"
+	"encoding/json"
+	"io"
+	"mime"
+	"mime/multipart"
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
+)
+
+const (
+	FileTeamId = "noteam"
+
+	PreviewImageType   = "image/jpeg"
+	ThumbnailImageType = "image/jpeg"
+)
+
+const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
+
+func (api *API) InitFile() {
+	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods(http.MethodGet)
+	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo)).Methods(http.MethodGet)
+
+	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam)).Methods(http.MethodPost)
+	api.BaseRoutes.Files.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchFilesInAllTeams)).Methods(http.MethodPost)
+
+	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods(http.MethodGet, http.MethodHead)
+}
+
+func parseMultipartRequestHeader(req *http.Request) (boundary string, err error) {
+	v := req.Header.Get("Content-Type")
+	if v == "" {
+		return "", http.ErrNotMultipart
+	}
+	d, params, err := mime.ParseMediaType(v)
+	if err != nil || d != "multipart/form-data" {
+		return "", http.ErrNotMultipart
+	}
+	boundary, ok := params["boundary"]
+	if !ok {
+		return "", http.ErrMissingBoundary
+	}
+
+	return boundary, nil
+}
+
+func multipartReader(req *http.Request, stream io.Reader) (*multipart.Reader, error) {
+	boundary, err := parseMultipartRequestHeader(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if stream != nil {
+		return multipart.NewReader(stream, boundary), nil
+	}
+
+	return multipart.NewReader(req.Body, boundary), nil
+}
+
+func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().FileSettings.EnableFileAttachments {
+		c.Err = model.NewAppError("uploadFileStream",
+			"api.file.attachments.disabled.app_error",
+			nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Parse the post as a regular form (in practice, use the URL values
+	// since we never expect a real application/x-www-form-urlencoded
+	// form).
+	if r.Form == nil {
+		err := r.ParseForm()
+		if err != nil {
+			c.Err = model.NewAppError("uploadFileStream",
+				"api.file.upload_file.read_request.app_error",
+				nil, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
+
+	if r.ContentLength == 0 {
+		c.Err = model.NewAppError("uploadFileStream",
+			"api.file.upload_file.read_request.app_error",
+			nil, "Content-Length should not be 0", http.StatusBadRequest)
+		return
+	}
+
+	timestamp := time.Now()
+	var fileUploadResponse *model.FileUploadResponse
+
+	_, err := parseMultipartRequestHeader(r)
+	switch err {
+	case nil:
+		fileUploadResponse = uploadFileMultipart(c, r, nil, timestamp)
+
+	case http.ErrNotMultipart:
+		fileUploadResponse = uploadFileSimple(c, r, timestamp)
+
+	default:
+		c.Err = model.NewAppError("uploadFileStream",
+			"api.file.upload_file.read_request.app_error",
+			nil, err.Error(), http.StatusBadRequest)
+	}
+	if c.Err != nil {
+		return
+	}
+
+	// Write the response values to the output upon return
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(fileUploadResponse); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// uploadFileSimple uploads a file from a simple POST with the file in the request body
+func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.FileUploadResponse {
+	// Simple POST with the file in the body and all metadata in the args.
+	c.RequireChannelId()
+	c.RequireFilename()
+	if c.Err != nil {
+		return nil
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUploadFileSimple, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
+
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
+		c.SetPermissionError(model.PermissionUploadFile)
+		return nil
+	}
+
+	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, c.Params.ChannelId, model.AccessControlPolicyActionUploadFileAttachment) {
+		c.Err = model.NewAppError("uploadFileSimple", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		return nil
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if err != nil {
+		c.Err = model.NewAppError("uploadFileSimple",
+			"api.file.upload_file.get_channel.app_error",
+			nil, err.Error(), http.StatusBadRequest)
+		return nil
+	}
+
+	restrictDM, appErr := c.App.CheckIfChannelIsRestrictedDM(c.AppContext, channel)
+	if appErr != nil {
+		c.Err = appErr
+		return nil
+	}
+
+	if restrictDM {
+		c.Err = model.NewAppError("uploadFileSimple", "api.file.upload_file.restricted_dm.error", nil, "", http.StatusBadRequest)
+		return nil
+	}
+
+	clientId := r.Form.Get("client_id")
+	model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
+
+	creatorId := c.AppContext.Session().UserId
+	if isBookmark, err := strconv.ParseBool(r.URL.Query().Get(model.BookmarkFileOwner)); err == nil && isBookmark {
+		creatorId = model.BookmarkFileOwner
+		model.AddEventParameterToAuditRec(auditRec, model.BookmarkFileOwner, true)
+	}
+
+	info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, c.Params.Filename, r.Body,
+		app.UploadFileSetTeamId(FileTeamId),
+		app.UploadFileSetUserId(creatorId),
+		app.UploadFileSetTimestamp(timestamp),
+		app.UploadFileSetContentLength(r.ContentLength),
+		app.UploadFileSetClientId(clientId))
+	if appErr != nil {
+		c.Err = appErr
+		return nil
+	}
+	model.AddEventParameterAuditableToAuditRec(auditRec, "file", info)
+
+	fileUploadResponse := &model.FileUploadResponse{
+		FileInfos: []*model.FileInfo{info},
+	}
+	if clientId != "" {
+		fileUploadResponse.ClientIds = []string{clientId}
+	}
+	auditRec.Success()
+	return fileUploadResponse
+}
+
+// uploadFileMultipart parses and uploads file(s) from a mime/multipart
+// request.  It pre-buffers up to the first part which is either the (a)
+// `channel_id` value, or (b) a file. Then in case of (a) it re-processes the
+// entire message recursively calling itself in stream mode. In case of (b) it
+// calls to uploadFileMultipartLegacy for legacy support
+func uploadFileMultipart(c *Context, r *http.Request, asStream io.Reader, timestamp time.Time) *model.FileUploadResponse {
+	expectClientIds := true
+	var clientIds []string
+	resp := model.FileUploadResponse{
+		FileInfos: []*model.FileInfo{},
+		ClientIds: []string{},
+	}
+
+	var buf *bytes.Buffer
+	var mr *multipart.Reader
+	var err error
+	if asStream == nil {
+		// We need to buffer until we get the channel_id, or the first file.
+		buf = &bytes.Buffer{}
+		mr, err = multipartReader(r, io.TeeReader(r.Body, buf))
+	} else {
+		mr, err = multipartReader(r, asStream)
+	}
+	if err != nil {
+		c.Err = model.NewAppError("uploadFileMultipart",
+			"api.file.upload_file.read_request.app_error",
+			nil, err.Error(), http.StatusBadRequest)
+		return nil
+	}
+
+	nFiles := 0
+NextPart:
+	for {
+		part, err := mr.NextPart()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			c.Err = model.NewAppError("uploadFileMultipart",
+				"api.file.upload_file.read_request.app_error",
+				nil, err.Error(), http.StatusBadRequest)
+			return nil
+		}
+
+		// Parse any form fields in the multipart.
+		formname := part.FormName()
+		if formname == "" {
+			continue
+		}
+		filename := part.FileName()
+		if filename == "" {
+			var b bytes.Buffer
+			_, err = io.CopyN(&b, part, maxMultipartFormDataBytes)
+			if err != nil && err != io.EOF {
+				c.Err = model.NewAppError("uploadFileMultipart",
+					"api.file.upload_file.read_form_value.app_error",
+					map[string]any{"Formname": formname},
+					err.Error(), http.StatusBadRequest)
+				return nil
+			}
+			v := b.String()
+
+			switch formname {
+			case "channel_id":
+				if c.Params.ChannelId != "" && c.Params.ChannelId != v {
+					c.Err = model.NewAppError("uploadFileMultipart",
+						"api.file.upload_file.multiple_channel_ids.app_error",
+						nil, "", http.StatusBadRequest)
+					return nil
+				}
+				if v != "" {
+					c.Params.ChannelId = v
+				}
+
+				// Got channel_id, re-process the entire post
+				// in the streaming mode.
+				if asStream == nil {
+					return uploadFileMultipart(c, r, io.MultiReader(buf, r.Body), timestamp)
+				}
+
+			case "client_ids":
+				if !expectClientIds {
+					c.SetInvalidParam("client_ids")
+					return nil
+				}
+				clientIds = append(clientIds, v)
+
+			default:
+				c.SetInvalidParam(formname)
+				return nil
+			}
+
+			continue NextPart
+		}
+
+		isBookmark := false
+		if val, queryErr := strconv.ParseBool(r.URL.Query().Get(model.BookmarkFileOwner)); queryErr == nil {
+			isBookmark = val
+		}
+
+		// A file part.
+
+		if c.Params.ChannelId == "" && asStream == nil {
+			// Got file before channel_id, fall back to legacy buffered mode
+			mr, err = multipartReader(r, io.MultiReader(buf, r.Body))
+			if err != nil {
+				c.Err = model.NewAppError("uploadFileMultipart",
+					"api.file.upload_file.read_request.app_error",
+					nil, err.Error(), http.StatusBadRequest)
+				return nil
+			}
+
+			return uploadFileMultipartLegacy(c, mr, timestamp, isBookmark)
+		}
+
+		c.RequireChannelId()
+		if c.Err != nil {
+			return nil
+		}
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
+			c.SetPermissionError(model.PermissionUploadFile)
+			return nil
+		}
+
+		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, c.Params.ChannelId, model.AccessControlPolicyActionUploadFileAttachment) {
+			c.Err = model.NewAppError("uploadFileMultipart", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+			return nil
+		}
+
+		channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+		if appErr != nil {
+			c.Err = model.NewAppError("uploadFileMultipart",
+				"api.file.upload_file.get_channel.app_error",
+				nil, appErr.Error(), http.StatusBadRequest)
+			return nil
+		}
+
+		restrictDM, appErr := c.App.CheckIfChannelIsRestrictedDM(c.AppContext, channel)
+		if appErr != nil {
+			c.Err = appErr
+			return nil
+		}
+
+		if restrictDM {
+			c.Err = model.NewAppError("uploadFileSimple", "api.file.upload_file.restricted_dm.error", nil, "", http.StatusBadRequest)
+			return nil
+		}
+
+		// If there's no clientIds when the first file comes, expect
+		// none later.
+		if nFiles == 0 && len(clientIds) == 0 {
+			expectClientIds = false
+		}
+
+		// Must have a exactly one client ID for each file.
+		clientId := ""
+		if expectClientIds {
+			if nFiles >= len(clientIds) {
+				c.SetInvalidParam("client_ids")
+				return nil
+			}
+
+			clientId = clientIds[nFiles]
+		}
+
+		auditRec := c.MakeAuditRecord(model.AuditEventUploadFileMultipart, model.AuditStatusFail)
+		model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
+		model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
+
+		creatorId := c.AppContext.Session().UserId
+		if isBookmark {
+			creatorId = model.BookmarkFileOwner
+			model.AddEventParameterToAuditRec(auditRec, model.BookmarkFileOwner, true)
+		}
+
+		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, filename, part,
+			app.UploadFileSetTeamId(FileTeamId),
+			app.UploadFileSetUserId(creatorId),
+			app.UploadFileSetTimestamp(timestamp),
+			app.UploadFileSetContentLength(-1),
+			app.UploadFileSetClientId(clientId))
+		if appErr != nil {
+			c.Err = appErr
+			c.LogAuditRec(auditRec)
+			return nil
+		}
+		model.AddEventParameterAuditableToAuditRec(auditRec, "file", info)
+
+		auditRec.Success()
+		c.LogAuditRec(auditRec)
+
+		// add to the response
+		resp.FileInfos = append(resp.FileInfos, info)
+		if expectClientIds {
+			resp.ClientIds = append(resp.ClientIds, clientId)
+		}
+
+		nFiles++
+	}
+
+	// Verify that the number of ClientIds matched the number of files.
+	if expectClientIds && len(clientIds) != nFiles {
+		c.Err = model.NewAppError("uploadFileMultipart",
+			"api.file.upload_file.incorrect_number_of_client_ids.app_error",
+			map[string]any{"NumClientIds": len(clientIds), "NumFiles": nFiles},
+			"", http.StatusBadRequest)
+		return nil
+	}
+
+	return &resp
+}
+
+// uploadFileMultipartLegacy reads, buffers, and then uploads the message,
+// borrowing from http.ParseMultipartForm.  If successful it returns a
+// *model.FileUploadResponse filled in with the individual model.FileInfo's.
+func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
+	timestamp time.Time, isBookmark bool) *model.FileUploadResponse {
+	// Parse the entire form.
+	form, err := mr.ReadForm(*c.App.Config().FileSettings.MaxFileSize)
+	if err != nil {
+		c.Err = model.NewAppError("uploadFileMultipartLegacy",
+			"api.file.upload_file.read_request.app_error",
+			nil, err.Error(), http.StatusInternalServerError)
+		return nil
+	}
+
+	// get and validate the channel Id, permission to upload there.
+	if len(form.Value["channel_id"]) == 0 {
+		c.SetInvalidParam("channel_id")
+		return nil
+	}
+	channelId := form.Value["channel_id"][0]
+	c.Params.ChannelId = channelId
+	c.RequireChannelId()
+	if c.Err != nil {
+		return nil
+	}
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile); !ok {
+		c.SetPermissionError(model.PermissionUploadFile)
+		return nil
+	}
+
+	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, channelId, model.AccessControlPolicyActionUploadFileAttachment) {
+		c.Err = model.NewAppError("uploadFileMultipartLegacy", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		return nil
+	}
+
+	// Check that we have either no client IDs, or one per file.
+	clientIds := form.Value["client_ids"]
+	fileHeaders := form.File["files"]
+	if len(clientIds) != 0 && len(clientIds) != len(fileHeaders) {
+		c.Err = model.NewAppError("uploadFilesMultipartBuffered",
+			"api.file.upload_file.incorrect_number_of_client_ids.app_error",
+			map[string]any{"NumClientIds": len(clientIds), "NumFiles": len(fileHeaders)},
+			"", http.StatusBadRequest)
+		return nil
+	}
+
+	resp := model.FileUploadResponse{
+		FileInfos: []*model.FileInfo{},
+		ClientIds: []string{},
+	}
+
+	for i, fileHeader := range fileHeaders {
+		f, err := fileHeader.Open()
+		if err != nil {
+			c.Err = model.NewAppError("uploadFileMultipartLegacy",
+				"api.file.upload_file.read_request.app_error",
+				nil, err.Error(), http.StatusBadRequest)
+			return nil
+		}
+
+		clientId := ""
+		if len(clientIds) > 0 {
+			clientId = clientIds[i]
+		}
+
+		auditRec := c.MakeAuditRecord(model.AuditEventUploadFileMultipartLegacy, model.AuditStatusFail)
+		defer c.LogAuditRec(auditRec)
+		model.AddEventParameterToAuditRec(auditRec, "channel_id", channelId)
+		model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
+
+		creatorId := c.AppContext.Session().UserId
+		if isBookmark {
+			creatorId = model.BookmarkFileOwner
+			model.AddEventParameterToAuditRec(auditRec, model.BookmarkFileOwner, true)
+		}
+
+		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, fileHeader.Filename, f,
+			app.UploadFileSetTeamId(FileTeamId),
+			app.UploadFileSetUserId(creatorId),
+			app.UploadFileSetTimestamp(timestamp),
+			app.UploadFileSetContentLength(-1),
+			app.UploadFileSetClientId(clientId))
+		f.Close()
+		if appErr != nil {
+			c.Err = appErr
+			c.LogAuditRec(auditRec)
+			return nil
+		}
+		model.AddEventParameterAuditableToAuditRec(auditRec, "file", info)
+
+		auditRec.Success()
+		c.LogAuditRec(auditRec)
+
+		resp.FileInfos = append(resp.FileInfos, info)
+		if clientId != "" {
+			resp.ClientIds = append(resp.ClientIds, clientId)
+		}
+	}
+
+	return &resp
+}
+
+func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireFileId()
+	if c.Err != nil {
+		return
+	}
+
+	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFile, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "force_download", forceDownload)
+
+	fileInfos, storeErr := c.App.Srv().Store().FileInfo().GetByIds([]string{c.Params.FileId}, true, true, false)
+	if storeErr != nil {
+		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusInternalServerError)
+		setInaccessibleFileHeader(w, c.Err)
+		return
+	} else if len(fileInfos) == 0 {
+		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusNotFound)
+		setInaccessibleFileHeader(w, c.Err)
+		return
+	}
+
+	fileInfo := fileInfos[0]
+
+	channel, err := c.App.GetChannel(c.AppContext, fileInfo.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	isContentReviewer := false
+	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get(model.AsContentReviewerParam))
+	if asContentReviewer {
+		requireContentFlaggingEnabled(c)
+		if c.Err != nil {
+			return
+		}
+
+		flaggedPostId := r.URL.Query().Get("flagged_post_id")
+		requireFlaggedPost(c, flaggedPostId)
+		if c.Err != nil {
+			return
+		}
+
+		if flaggedPostId != fileInfo.PostId {
+			c.Err = model.NewAppError("getFile", "api.file.get_file.invalid_flagged_post.app_error", nil, "file_id="+fileInfo.Id+", flagged_post_id="+flaggedPostId, http.StatusBadRequest)
+			return
+		}
+
+		requireTeamContentReviewer(c, c.AppContext.Session().UserId, channel.TeamId)
+		if c.Err != nil {
+			return
+		}
+
+		isContentReviewer = true
+	}
+
+	// at this point we may have fetched a deleted file info and
+	// if the user is not a content reviewer, the request should fail as
+	// fetching deleted file info is only allowed for content reviewers of the specific post
+	if fileInfo.DeleteAt != 0 && !isContentReviewer {
+		c.Err = model.NewAppError("getFile", "app.file_info.get.app_error", nil, "", http.StatusNotFound)
+		setInaccessibleFileHeader(w, c.Err)
+		return
+	}
+
+	model.AddEventParameterAuditableToAuditRec(auditRec, "file", fileInfo)
+
+	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if !isContentReviewer {
+		if fileInfo.CreatorId == model.BookmarkFileOwner {
+			if !perm {
+				c.SetPermissionError(model.PermissionReadChannelContent)
+				return
+			}
+		} else if fileInfo.CreatorId != c.AppContext.Session().UserId && !perm {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	}
+
+	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, fileInfo.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		c.Err = model.NewAppError("getFile", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Run plugin hook before file download
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, fileInfo, c.AppContext.Session().UserId, r.Header.Get(model.ConnectionId), model.FileDownloadTypeFile)
+
+	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
+		c.Err = model.NewAppError("getFile", "api.file.get_file.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
+		return
+	}
+
+	fileReader, err := c.App.FileReader(fileInfo.Path)
+
+	if err != nil {
+		c.Err = err
+		c.Err.StatusCode = http.StatusNotFound
+		return
+	}
+	defer fileReader.Close()
+
+	auditRec.Success()
+
+	web.WriteFileResponse(fileInfo.Name, fileInfo.MimeType, fileInfo.Size, time.Unix(0, fileInfo.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+}
+
+func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireFileId()
+	if c.Err != nil {
+		return
+	}
+
+	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
+	if err != nil {
+		c.Err = err
+		setInaccessibleFileHeader(w, err)
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, info.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !perm {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		c.Err = model.NewAppError("getFileThumbnail", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Run plugin hook before file thumbnail download
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, c.AppContext.Session().UserId, r.Header.Get(model.ConnectionId), model.FileDownloadTypeThumbnail)
+
+	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
+		c.Err = model.NewAppError("getFileThumbnail", "api.file.get_file_thumbnail.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
+		return
+	}
+
+	if info.ThumbnailPath == "" {
+		c.Err = model.NewAppError("getFileThumbnail", "api.file.get_file_thumbnail.no_thumbnail.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
+		return
+	}
+
+	fileReader, err := c.App.FileReader(info.ThumbnailPath)
+	if err != nil {
+		c.Err = err
+		c.Err.StatusCode = http.StatusNotFound
+		return
+	}
+	defer fileReader.Close()
+
+	web.WriteFileResponse(info.Name, ThumbnailImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFileThumbnail, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "file_id", c.Params.FileId)
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+}
+
+func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireFileId()
+	if c.Err != nil {
+		return
+	}
+
+	if !*c.App.Config().FileSettings.EnablePublicLink {
+		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFileLink, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
+	if err != nil {
+		c.Err = err
+		setInaccessibleFileHeader(w, err)
+		return
+	}
+	model.AddEventParameterAuditableToAuditRec(auditRec, "file", info)
+
+	channel, err := c.App.GetChannel(c.AppContext, info.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !perm {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		c.Err = model.NewAppError("getFileLink", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if info.PostId == "" && info.CreatorId != model.BookmarkFileOwner {
+		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
+		return
+	}
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+
+	resp := make(map[string]string)
+	link := c.App.GeneratePublicLink(c.GetSiteURLHeader(), info)
+	resp["link"] = link
+
+	auditRec.Success()
+
+	if _, err := w.Write([]byte(model.MapToJSON(resp))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireFileId()
+	if c.Err != nil {
+		return
+	}
+
+	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
+	if err != nil {
+		c.Err = err
+		setInaccessibleFileHeader(w, err)
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, info.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !perm {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		c.Err = model.NewAppError("getFilePreview", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Check if preview exists before running hook (no point in running hook if there's no preview)
+	if info.PreviewPath == "" {
+		c.Err = model.NewAppError("getFilePreview", "api.file.get_file_preview.no_preview.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
+		return
+	}
+
+	// Run plugin hook before file preview download
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, c.AppContext.Session().UserId, r.Header.Get(model.ConnectionId), model.FileDownloadTypePreview)
+
+	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
+		c.Err = model.NewAppError("getFilePreview", "api.file.get_file_preview.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
+		return
+	}
+
+	fileReader, err := c.App.FileReader(info.PreviewPath)
+	if err != nil {
+		c.Err = err
+		c.Err.StatusCode = http.StatusNotFound
+		return
+	}
+	defer fileReader.Close()
+
+	web.WriteFileResponse(info.Name, PreviewImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFilePreview, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "file_id", c.Params.FileId)
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+}
+
+func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireFileId()
+	if c.Err != nil {
+		return
+	}
+
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
+	if err != nil {
+		c.Err = err
+		setInaccessibleFileHeader(w, err)
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, info.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !perm {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, info.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		c.Err = model.NewAppError("getFileInfo", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	w.Header().Set("Cache-Control", "max-age=2592000, private")
+	if err := json.NewEncoder(w).Encode(info); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFileInfo, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "file_id", c.Params.FileId)
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+}
+
+func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireFileId()
+	if c.Err != nil {
+		return
+	}
+
+	if !*c.App.Config().FileSettings.EnablePublicLink {
+		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
+	if err != nil {
+		c.Err = err
+		setInaccessibleFileHeader(w, err)
+		return
+	}
+
+	hash := r.URL.Query().Get("h")
+
+	if hash == "" {
+		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
+		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
+		return
+	}
+
+	if subtle.ConstantTimeCompare([]byte(hash), []byte(app.GeneratePublicLinkHash(info.Id, *c.App.Config().FileSettings.PublicLinkSalt))) != 1 {
+		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
+		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
+		return
+	}
+
+	// Run plugin hook before public file download (no user session for public files)
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, "", r.Header.Get(model.ConnectionId), model.FileDownloadTypePublic)
+
+	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
+		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_file.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
+		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
+		return
+	}
+
+	fileReader, err := c.App.FileReader(info.Path)
+	if err != nil {
+		c.Err = err
+		c.Err.StatusCode = http.StatusNotFound
+		return
+	}
+	defer fileReader.Close()
+
+	web.WriteFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, false, w, r)
+}
+
+func searchFilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	searchFiles(c, w, r, c.Params.TeamId)
+}
+
+func searchFilesInAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+	searchFiles(c, w, r, "")
+}
+
+func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID string) {
+	var params model.SearchParameter
+	jsonErr := json.NewDecoder(r.Body).Decode(&params)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchFiles", "api.post.search_files.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
+		return
+	}
+
+	if params.Terms == nil || *params.Terms == "" {
+		c.SetInvalidParam("terms")
+		return
+	}
+	terms := *params.Terms
+
+	timeZoneOffset := 0
+	if params.TimeZoneOffset != nil {
+		timeZoneOffset = *params.TimeZoneOffset
+	}
+
+	isOrSearch := false
+	if params.IsOrSearch != nil {
+		isOrSearch = *params.IsOrSearch
+	}
+
+	page := 0
+	if params.Page != nil {
+		page = *params.Page
+	}
+
+	perPage := 60
+	if params.PerPage != nil {
+		perPage = *params.PerPage
+	}
+
+	includeDeletedChannels := false
+	if params.IncludeDeletedChannels != nil {
+		includeDeletedChannels = *params.IncludeDeletedChannels
+	}
+
+	startTime := time.Now()
+
+	results, allFilesHaveMembership, err := c.App.SearchFilesInTeamForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+
+	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+	metrics := c.App.Metrics()
+	if metrics != nil {
+		metrics.IncrementFilesSearchCounter()
+		metrics.ObserveFilesSearchDuration(elapsedTime)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(results); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventSearchFiles, model.AuditStatusSuccess)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "search_params", params)
+
+	if !allFilesHaveMembership {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+
+	auditRec.Success()
+}
+
+func setInaccessibleFileHeader(w http.ResponseWriter, appErr *model.AppError) {
+	// File is inaccessible due to cloud plan's limit.
+	if appErr.Id == "app.file.cloud.get.app_error" {
+		w.Header().Set(model.HeaderFirstInaccessibleFileTime, "1")
+	}
+}

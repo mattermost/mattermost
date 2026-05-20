@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "outDir": "dist",
+        "target": "ES2022",
+        "esModuleInterop": true,
+        "strict": true,
+        "declaration": true,
+        "moduleResolution": "bundler",
+        "module": "ESNext",
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "rootDir": "src",
+        "paths": {
+            "@/*": ["./src/*"]
+        }
+    },
+    "include": ["src"],
+    "exclude": ["node_modules"]
+}

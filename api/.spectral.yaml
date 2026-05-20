@@ -1,0 +1,14 @@
+extends: '@ibm-cloud/openapi-ruleset'
+rules:
+  operation-tags: off
+  property-case-convention: off
+  request-body-object: off
+  operation-operationId: error
+  operation-summary: warn
+  array-responses: off
+  parameter-description: error
+  parameter-description: off
+  parameter-case-convention: info
+  no-$ref-siblings: off
+  enum-case-convention: off
+  path-segment-case-convention: info 

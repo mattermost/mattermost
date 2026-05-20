@@ -1,0 +1,1 @@
+DROP INDEX IF exists idx_posts_create_at_id;

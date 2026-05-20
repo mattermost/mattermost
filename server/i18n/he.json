@@ -1,0 +1,186 @@
+[
+  {
+    "id": "September",
+    "translation": "ספטמבר"
+  },
+  {
+    "id": "October",
+    "translation": "אוקטובר"
+  },
+  {
+    "id": "November",
+    "translation": "נובמבר"
+  },
+  {
+    "id": "May",
+    "translation": "מאי"
+  },
+  {
+    "id": "March",
+    "translation": "מרץ"
+  },
+  {
+    "id": "June",
+    "translation": "יוני"
+  },
+  {
+    "id": "July",
+    "translation": "יולי"
+  },
+  {
+    "id": "January",
+    "translation": "ינואר"
+  },
+  {
+    "id": "February",
+    "translation": "פברואר"
+  },
+  {
+    "id": "December",
+    "translation": "דצמבר"
+  },
+  {
+    "id": "August",
+    "translation": "אוגוסט"
+  },
+  {
+    "id": "April",
+    "translation": "אפריל"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "טקסט אישור לא חוקי."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 אינו מוגדר או נתמך בשרת זה."
+  },
+  {
+    "id": "api.admin.saml.metadata.app_error",
+    "translation": "אירעה שגיאה בעת בניית הנתונים של ספק השירות."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "לא ניתן היה לפתוח את קובץ התעודה."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "אין קובץ תחת 'תעודה' בבקשה."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "אין קובץ תחת 'תעודה' בבקשה."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "לא הצליח לשמור קובץ תעודה."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "אחסון תמונות לא הוגדר."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "לא הצליח לשמור קובץ תעודה."
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_make_default",
+    "translation": "הפוך לברירת מחדל"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.safari",
+    "translation": "גרסה 16.2+"
+  },
+  {
+    "id": "system.message.name",
+    "translation": "מערכת"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "לא הצליח למצוא את הפקודה."
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.firefox",
+    "translation": "השג את גרסת דפדפן פיירפוקס העדכנית ביותר"
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "לא הצליח למחוק תמונת מותג, לא נמצא."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "שגיאה בקריאת קובץ לוגים."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP לא זמין."
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "לא הצליח לנתח מידע נכנס."
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.chrome",
+    "translation": "השג את גרסת דפדפן כרום העדכנית ביותר"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "או"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.chrome",
+    "translation": "גרסה 116+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.edge",
+    "translation": "גרסה 116+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.firefox",
+    "translation": "גרסה 102+"
+  },
+  {
+    "id": "web.error.unsupported_browser.open_system_browser.edge",
+    "translation": "פתח דפדפן Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.windows",
+    "translation": "חלונות 10+"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.windows",
+    "translation": "מדריך התקנה"
+  },
+  {
+    "id": "web.error.unsupported_browser.learn_more",
+    "translation": "למד עוד על דפדפנים נתמכים."
+  },
+  {
+    "id": "web.error.unsupported_browser.download_the_app",
+    "translation": "הורד את היישומון"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.safari",
+    "translation": "השג את גרסת דפדפן ספארי העדכנית ביותר"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.chrome",
+    "translation": "גוגל כרום"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.edge",
+    "translation": "מייקרוספט אדג'"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.firefox",
+    "translation": "פיירפוקס"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.safari",
+    "translation": "ספארי"
+  },
+  {
+    "id": "web.error.unsupported_browser.download",
+    "translation": "הורד את היישומון"
+  }
+]

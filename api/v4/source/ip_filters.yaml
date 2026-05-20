@@ -1,0 +1,92 @@
+  /api/v4/ip_filtering:
+    get:
+      tags:
+        - ip
+        - filtering
+      summary: Get all IP filters
+      description: >
+        Retrieve a list of IP filters applied to the workspace
+
+        __Minimum server version__: 9.1
+        __Note:__ This is intended for internal use and only applicable to Cloud workspaces
+      operationId: GetIPFilters
+      responses:
+        "200":
+          description: IP Filters returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: "#/components/schemas/AllowedIPRange"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    post:
+      tags:
+        - ip
+        - filtering
+      summary: Get all IP filters
+      description: >
+        Adjust IP Filters applied to the workspace
+
+        __Minimum server version__: 9.1
+        __Note:__ This is intended for internal use and only applicable to Cloud workspaces
+      operationId: ApplyIPFilters
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items: 
+                $ref: "#/components/schemas/AllowedIPRange"
+        description: IP Filters to apply
+        required: true
+      responses:
+        "200":
+          description: IP Filters returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: "#/components/schemas/AllowedIPRange"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ip_filtering/my_ip:
+    get:
+      tags:
+        - ip
+        - filtering
+      summary: Get all IP filters
+      description: >
+        Retrieve your current IP address as seen by the workspace
+
+        __Minimum server version__: 9.1
+        __Note:__ This is intended for internal use and only applicable to Cloud workspaces
+      operationId: MyIP
+      responses:
+        "200":
+          description: IP address returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ip:
+                    type: string
+                    description: Your current IP address
+                    example: "192.168.0.1"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

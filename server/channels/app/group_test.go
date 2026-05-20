@@ -1,0 +1,520 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package app
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
+)
+
+// TestGetGroup tests basic group retrieval and verifies that ViewUsersRestrictions
+// are properly applied when fetching member IDs to prevent guest users from
+// enumerating user IDs they shouldn't have access to.
+func TestGetGroup(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("basic retrieval", func(t *testing.T) {
+		group := th.CreateGroup(t)
+
+		g, err := th.App.GetGroup(group.Id, nil, nil)
+		require.Nil(t, err)
+		require.NotNil(t, g)
+
+		nilGroup, err := th.App.GetGroup(model.NewId(), nil, nil)
+		require.NotNil(t, err)
+		require.Nil(t, nilGroup)
+	})
+
+	t.Run("include member count", func(t *testing.T) {
+		group := th.CreateGroup(t)
+
+		g, err := th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: false}, nil)
+		require.Nil(t, err)
+		require.Nil(t, g.MemberCount)
+
+		g, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: true}, nil)
+		require.Nil(t, err)
+		require.NotNil(t, g.MemberCount)
+	})
+
+	t.Run("member IDs respect view restrictions", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
+
+		team := th.CreateTeam(t)
+		channel := th.CreateChannel(t, team)
+
+		th.LinkUserToTeam(t, user1, team)
+		th.AddUserToChannel(t, user1, channel)
+
+		id := model.NewId()
+		groupWithUserIds := &model.GroupWithUserIds{
+			Group: model.Group{
+				DisplayName:    "dn_" + id,
+				Name:           new("name" + id),
+				Source:         model.GroupSourceCustom,
+				AllowReference: true,
+			},
+			UserIds: []string{user1.Id, user2.Id, user3.Id},
+		}
+		group, err := th.App.CreateGroupWithUserIds(groupWithUserIds)
+		require.Nil(t, err)
+
+		opts := &model.GetGroupOpts{IncludeMemberIDs: true}
+
+		g, appErr := th.App.GetGroup(group.Id, opts, nil)
+		require.Nil(t, appErr)
+		assert.Len(t, g.MemberIDs, 3)
+
+		g, appErr = th.App.GetGroup(group.Id, opts, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
+		require.Nil(t, appErr)
+		assert.Len(t, g.MemberIDs, 1)
+		assert.Contains(t, g.MemberIDs, user1.Id)
+
+		g, appErr = th.App.GetGroup(group.Id, opts, &model.ViewUsersRestrictions{Teams: []string{team.Id}})
+		require.Nil(t, appErr)
+		assert.Len(t, g.MemberIDs, 1)
+		assert.Contains(t, g.MemberIDs, user1.Id)
+
+		g, appErr = th.App.GetGroup(group.Id, opts, &model.ViewUsersRestrictions{Channels: []string{}, Teams: []string{}})
+		require.Nil(t, appErr)
+		assert.Empty(t, g.MemberIDs)
+	})
+}
+
+func TestGetGroupByRemoteID(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	group := th.CreateGroup(t)
+
+	g, err := th.App.GetGroupByRemoteID(*group.RemoteId, model.GroupSourceLdap)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.GetGroupByRemoteID(model.NewId(), model.GroupSourceLdap)
+	require.NotNil(t, err)
+	require.Nil(t, g)
+}
+
+func TestGetGroupsByType(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.CreateGroup(t)
+	th.CreateGroup(t)
+	th.CreateGroup(t)
+
+	groups, err := th.App.GetGroupsBySource(model.GroupSourceLdap)
+	require.Nil(t, err)
+	require.NotEmpty(t, groups)
+
+	groups, err = th.App.GetGroupsBySource(model.GroupSource("blah"))
+	require.Nil(t, err)
+	require.Empty(t, groups)
+}
+
+func TestCreateGroup(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	id := model.NewId()
+	group := &model.Group{
+		DisplayName: "dn_" + id,
+		Name:        new("name" + id),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    new(model.NewId()),
+	}
+
+	g, err := th.App.CreateGroup(group)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.CreateGroup(group)
+	require.NotNil(t, err)
+	require.Nil(t, g)
+
+	t.Run("should check if the group mention is in use as a username", func(t *testing.T) {
+		user := th.CreateUser(t)
+		usernameGroup := &model.Group{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        &user.Username,
+			Source:      model.GroupSourceLdap,
+			RemoteId:    new(model.NewId()),
+		}
+		g, err = th.App.CreateGroup(usernameGroup)
+		require.NotNil(t, err)
+		require.Equal(t, "app.group.username_conflict", err.Id)
+		require.Nil(t, g)
+	})
+}
+
+func TestUpdateGroup(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	group := th.CreateGroup(t)
+	group.DisplayName = model.NewId()
+
+	g, err := th.App.UpdateGroup(group)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	user := th.CreateUser(t)
+	g.Name = &user.Username
+	g, err = th.App.UpdateGroup(g)
+	require.NotNil(t, err)
+	require.Nil(t, g)
+}
+
+func TestDeleteGroup(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	group := th.CreateGroup(t)
+
+	g, err := th.App.DeleteGroup(group.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.DeleteGroup(group.Id)
+	require.NotNil(t, err)
+	require.Nil(t, g)
+}
+
+func TestUndeleteGroup(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	group := th.CreateGroup(t)
+
+	g, err := th.App.DeleteGroup(group.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.RestoreGroup(group.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.RestoreGroup(group.Id)
+	require.NotNil(t, err)
+	require.Nil(t, g)
+}
+
+func TestCreateOrRestoreGroupMember(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group := th.CreateGroup(t)
+
+	g, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+}
+
+func TestDeleteGroupMember(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group := th.CreateGroup(t)
+	groupMember, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, groupMember)
+
+	groupMember, err = th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId)
+	require.Nil(t, err)
+	require.NotNil(t, groupMember)
+
+	groupMember, err = th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId)
+	require.NotNil(t, err)
+	require.Nil(t, groupMember)
+}
+
+func TestUpsertGroupSyncable(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group := th.CreateGroup(t)
+	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
+
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	// can update again without error
+	gs, err = th.App.UpsertGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	gs, err = th.App.DeleteGroupSyncable(gs.GroupId, gs.SyncableId, gs.Type)
+	require.Nil(t, err)
+	require.NotEqual(t, int64(0), gs.DeleteAt)
+
+	// Un-deleting works
+	gs.DeleteAt = 0
+	gs, err = th.App.UpsertGroupSyncable(gs)
+	require.Nil(t, err)
+	require.Equal(t, int64(0), gs.DeleteAt)
+}
+
+func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group1 := th.CreateGroup(t)
+	group2 := th.CreateGroup(t)
+
+	team := th.CreateTeam(t)
+	team.GroupConstrained = new(true)
+	team, err := th.App.UpdateTeam(team)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
+	require.Nil(t, err)
+
+	channel := th.CreateChannel(t, team)
+
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group2.Id, channel.Id, false))
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "group_not_associated_to_synced_team")
+
+	gs, err := th.App.GetGroupSyncable(group2.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, gs)
+	require.NotNil(t, err)
+
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group1.Id, channel.Id, false))
+	require.Nil(t, err)
+}
+
+func TestGetGroupSyncable(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group := th.CreateGroup(t)
+	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
+
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	gs, err = th.App.GetGroupSyncable(group.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+}
+
+func TestGetGroupSyncables(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group := th.CreateGroup(t)
+
+	// Create a group team
+	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
+
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	groupTeams, err := th.App.GetGroupSyncables(group.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+
+	require.NotEmpty(t, groupTeams)
+}
+
+func TestDeleteGroupSyncable(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group := th.CreateGroup(t)
+	groupChannel := model.NewGroupChannel(group.Id, th.BasicChannel.Id, false)
+
+	gs, err := th.App.UpsertGroupSyncable(groupChannel)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	gs, err = th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	gs, err = th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	require.NotNil(t, err)
+	require.Nil(t, gs)
+}
+
+func TestGetGroupsByChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group := th.CreateGroup(t)
+
+	// Create a group channel
+	groupSyncable := &model.GroupSyncable{
+		GroupId:    group.Id,
+		AutoAdd:    false,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	}
+
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	groups, _, err := th.App.GetGroupsByChannel(th.BasicChannel.Id, opts)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: new(false)}}, groups)
+	require.NotNil(t, groups[0].SchemeAdmin)
+
+	groups, _, err = th.App.GetGroupsByChannel(model.NewId(), opts)
+	require.Nil(t, err)
+	require.Empty(t, groups)
+}
+
+func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group := th.CreateGroup(t)
+
+	// Create a group channel
+	groupSyncable := &model.GroupSyncable{
+		GroupId:    group.Id,
+		AutoAdd:    false,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	}
+
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	groups, err := th.App.GetGroupsAssociatedToChannelsByTeam(th.BasicTeam.Id, opts)
+	require.Nil(t, err)
+
+	assert.Equal(t, map[string][]*model.GroupWithSchemeAdmin{
+		th.BasicChannel.Id: {
+			{Group: *group, SchemeAdmin: new(false)},
+		},
+	}, groups)
+	require.NotNil(t, groups[th.BasicChannel.Id][0].SchemeAdmin)
+
+	groups, err = th.App.GetGroupsAssociatedToChannelsByTeam(model.NewId(), opts)
+	require.Nil(t, err)
+	require.Empty(t, groups)
+}
+
+func TestGetGroupsByTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group := th.CreateGroup(t)
+
+	// Create a group team
+	groupSyncable := &model.GroupSyncable{
+		GroupId:    group.Id,
+		AutoAdd:    false,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	}
+
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	groups, _, err := th.App.GetGroupsByTeam(th.BasicTeam.Id, model.GroupSearchOpts{})
+	require.Nil(t, err)
+	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: new(false)}}, groups)
+	require.NotNil(t, groups[0].SchemeAdmin)
+
+	groups, _, err = th.App.GetGroupsByTeam(model.NewId(), model.GroupSearchOpts{})
+	require.Nil(t, err)
+	require.Empty(t, groups)
+}
+
+func TestGetGroups(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	group := th.CreateGroup(t)
+
+	groups, err := th.App.GetGroups(0, 60, model.GroupSearchOpts{}, nil)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []*model.Group{group}, groups)
+}
+
+func TestUserIsInAdminRoleGroup(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group1 := th.CreateGroup(t)
+	group2 := th.CreateGroup(t)
+
+	g, err := th.App.UpsertGroupMember(group1.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.UpsertGroupMember(group2.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group1.Id,
+		AutoAdd:    false,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, err)
+
+	groupSyncable2, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group2.Id,
+		AutoAdd:    false,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, err)
+
+	// no syncables are set to scheme admin true, so this returns false
+	actual, err := th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.False(t, actual)
+
+	// set a syncable to be scheme admins
+	groupSyncable2.SchemeAdmin = true
+	_, err = th.App.UpdateGroupSyncable(groupSyncable2)
+	require.Nil(t, err)
+
+	// a syncable is set to scheme admin true, so this returns true
+	actual, err = th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.True(t, actual)
+
+	// delete the syncable, should be false again
+	_, appErr := th.App.DeleteGroupSyncable(group2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, appErr)
+	actual, err = th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.False(t, actual)
+}

@@ -1,0 +1,127 @@
+  /api/v4/compliance/reports:
+    post:
+      tags:
+        - compliance
+      summary: Create report
+      description: |
+        Create and save a compliance report.
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: CreateComplianceReport
+      responses:
+        "201":
+          description: Compliance report creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Compliance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    get:
+      tags:
+        - compliance
+      summary: Get reports
+      description: >
+        Get a list of compliance reports previously created by page, selected
+        with `page` and `per_page` query parameters.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: GetComplianceReports
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of reports per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Compliance reports retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Compliance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/compliance/reports/{report_id}":
+    get:
+      tags:
+        - compliance
+      summary: Get a report
+      description: |
+        Get a compliance reports previously created.
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: GetComplianceReport
+      parameters:
+        - name: report_id
+          in: path
+          description: Compliance report GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Compliance report retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Compliance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/compliance/reports/{report_id}/download":
+    get:
+      tags:
+        - compliance
+      summary: Download a report
+      description: |
+        Download the full contents of a report as a file.
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: DownloadComplianceReport
+      parameters:
+        - name: report_id
+          in: path
+          description: Compliance report GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The compliance report file
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

@@ -1,0 +1,36 @@
+name: "Web app setup"
+description: "Set up NPM and dependencies"
+
+runs:
+  using: "composite"
+  steps:
+    - name: ci/setup-node
+      uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      with:
+        node-version-file: ".nvmrc"
+    - name: ci/cache-node-modules
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      id: cache-node-modules
+      with:
+        path: |
+          webapp/node_modules
+          webapp/channels/node_modules
+          webapp/platform/client/node_modules
+          webapp/platform/components/node_modules
+          webapp/platform/shared/node_modules
+          webapp/platform/types/node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json') }}
+    - name: ci/get-node-modules
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: webapp
+      run: |
+        make node_modules
+    - name: ci/build-platform-packages
+      # These are built automatically when depenedencies are installed, but they aren't cached properly, so we need to
+      # manually build them when the cache is hit. They aren't worth caching because they have too many dependencies.
+      if: steps.cache-node-modules.outputs.cache-hit == 'true'
+      shell: bash
+      working-directory: webapp
+      run: |
+        npm run postinstall

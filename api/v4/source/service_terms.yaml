@@ -1,0 +1,45 @@
+  /api/v4/terms_of_service:
+    get:
+      tags:
+        - terms of service
+      summary: Get latest terms of service
+      description: |
+        Get latest terms of service from the server
+
+        __Minimum server version__: 5.4
+        ##### Permissions
+        Must be authenticated.
+      operationId: GetTermsOfService
+      responses:
+        "200":
+          description: Terms of service fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TermsOfService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags:
+        - terms of service
+      summary: Creates a new terms of service
+      description: |
+        Creates new terms of service
+
+        __Minimum server version__: 5.4
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: CreateTermsOfService
+      responses:
+        "200":
+          description: terms of service fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TermsOfService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"

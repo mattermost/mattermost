@@ -1,0 +1,24 @@
+## Upload sentry results when Server CI Master is completed
+name: Sentry Upload
+
+on:
+  workflow_run:
+    workflows:
+      - "Server CI"
+    types:
+      - completed
+
+jobs:
+  sentry:
+    name: Send build info to sentry
+    runs-on: ubuntu-22.04
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.MM_SERVER_SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.MM_SERVER_SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.MM_SERVER_SENTRY_PROJECT }}
+    steps:
+      - name: cd/Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: cd/Create Sentry release
+        uses: getsentry/action-release@dab6548b3c03c4717878099e43782cf5be654289 # v3.5.0
+

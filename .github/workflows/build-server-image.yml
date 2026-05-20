@@ -1,0 +1,114 @@
+name: BuildEnv Docker Image
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - server/build/Dockerfile.buildenv
+      - server/build/Dockerfile.buildenv-fips
+      - .github/workflows/build-server-image.yml
+  pull_request:
+    paths:
+      - server/build/Dockerfile.buildenv
+      - server/build/Dockerfile.buildenv-fips
+      - .github/workflows/build-server-image.yml
+  workflow_dispatch:
+
+env:
+  CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
+
+# Permissions required for chainguard-dev/setup-chainctl
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-image:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: buildenv/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: buildenv/docker-login
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: buildenv/build
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        with:
+          provenance: false
+          file: server/build/Dockerfile.buildenv
+          load: true
+          push: false
+          pull: false
+          tags: mattermost/mattermost-build-server:test
+
+      - name: buildenv/test
+        run: |
+          docker run --rm mattermost/mattermost-build-server:test /bin/sh -c "go version && node --version"
+
+      - name: buildenv/calculate-golang-version
+        id: go
+        run: |
+          GO_VERSION=$(docker run --rm mattermost/mattermost-build-server:test go version | awk '{print $3}' | sed 's/go//')
+          echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: buildenv/push
+        if: github.ref == 'refs/heads/master'
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        with:
+          provenance: false
+          file: server/build/Dockerfile.buildenv
+          load: false
+          push: true
+          pull: true
+          tags: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
+
+  build-image-fips:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: chainguard-dev/setup-chainctl@c125f765e82b09a42af3185f3214465314d75c5d # v0.5.0
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
+      - name: buildenv/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: buildenv/docker-login
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: buildenv/build
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        with:
+          provenance: false
+          file: server/build/Dockerfile.buildenv-fips
+          load: true
+          push: false
+          pull: false
+          tags: mattermost/mattermost-build-server-fips:test
+
+      - name: buildenv/test
+        run: |
+          docker run --rm --entrypoint bash mattermost/mattermost-build-server-fips:test -c "go version && node --version"
+
+      - name: buildenv/calculate-golang-version
+        id: go
+        run: |
+          GO_VERSION=$(docker run --rm --entrypoint bash mattermost/mattermost-build-server-fips:test -c "go version" | awk '{print $3}' | sed 's/go//')
+          echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: buildenv/push
+        if: github.ref == 'refs/heads/master'
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        with:
+          provenance: false
+          file: server/build/Dockerfile.buildenv-fips
+          load: false
+          push: true
+          pull: true
+          tags: mattermost/mattermost-build-server-fips:${{ steps.go.outputs.GO_VERSION }}

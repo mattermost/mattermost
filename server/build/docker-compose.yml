@@ -1,0 +1,77 @@
+services:
+  postgres:
+    extends:
+        file: docker-compose.common.yml
+        service: postgres
+    tmpfs: /var/lib/postgresql/data
+  minio:
+    extends:
+        file: docker-compose.common.yml
+        service: minio
+  azurite:
+    extends:
+        file: docker-compose.common.yml
+        service: azurite
+  inbucket:
+    extends:
+        file: docker-compose.common.yml
+        service: inbucket
+  openldap:
+    extends:
+        file: docker-compose.common.yml
+        service: openldap
+  elasticsearch:
+    extends:
+        file: docker-compose.common.yml
+        service: elasticsearch
+  opensearch:
+    extends:
+        file: docker-compose.common.yml
+        service: opensearch
+  redis:
+    extends:
+        file: docker-compose.common.yml
+        service: redis
+  dejavu:
+    extends:
+        file: docker-compose.common.yml
+        service: dejavu
+  keycloak:
+    extends:
+        file: docker-compose.common.yml
+        service: keycloak
+  prometheus:
+    extends:
+        file: docker-compose.common.yml
+        service: prometheus
+  grafana:
+    extends:
+        file: docker-compose.common.yml
+        service: grafana
+  loki:
+    extends:
+        file: docker-compose.common.yml
+        service: loki
+  otel-collector:
+    extends:
+        file: docker-compose.common.yml
+        service: otel-collector
+
+  start_dependencies:
+    image: mattermost/mattermost-wait-for-dep:latest
+    networks:
+      - mm-test
+    depends_on:
+      - postgres
+      - minio
+      - azurite
+      - inbucket
+      - openldap
+      - elasticsearch
+      - opensearch
+      - redis
+    command: postgres:5432 minio:9000 azurite:10000 inbucket:9001 openldap:389 elasticsearch:9200 opensearch:9201 redis:6379
+
+networks:
+  mm-test:
+    driver: bridge

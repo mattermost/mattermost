@@ -1,0 +1,33 @@
+name: Opensearch Docker Image
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - server/build/Dockerfile.opensearch
+      - .github/workflows/build-opensearch-image.yml
+
+jobs:
+  build-image:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: opensearch/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: opensearch/docker-login
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+
+      - name: opensearch/build-and-push
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        with:
+          provenance: false
+          file: server/build/Dockerfile.opensearch
+          push: true
+          pull: true
+          tags: mattermostdevelopment/mattermost-opensearch:2.7.0
+          build-args: |
+            OPENSEARCH_VERSION=2.7.0

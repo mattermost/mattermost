@@ -1,0 +1,359 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package platform
+
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"net/http/pprof"
+	"path"
+	"runtime"
+	"strings"
+	"sync"
+	"text/template"
+	"time"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
+	dto "github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/expfmt"
+	prommodel "github.com/prometheus/common/model"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+)
+
+const (
+	TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
+	cpuProfileDuration                              = 5 * time.Second
+)
+
+type platformMetrics struct {
+	server *http.Server
+	router *mux.Router
+	lock   sync.Mutex
+	logger *mlog.Logger
+
+	metricsImpl einterfaces.MetricsInterface
+
+	cfgFn      func() *model.Config
+	listenAddr string
+
+	getPluginsEnv func() *plugin.Environment
+}
+
+// resetMetrics resets the metrics server. Clears the metrics if the metrics are disabled by the config.
+func (ps *PlatformService) resetMetrics() error {
+	if !*ps.Config().MetricsSettings.Enable {
+		if ps.metrics != nil {
+			return ps.metrics.stopMetricsServer()
+		}
+		return nil
+	}
+
+	if ps.metrics != nil {
+		if err := ps.metrics.stopMetricsServer(); err != nil {
+			return err
+		}
+	}
+
+	ps.metrics = &platformMetrics{
+		cfgFn:       ps.Config,
+		metricsImpl: ps.metricsIFace,
+		logger:      ps.logger,
+		getPluginsEnv: func() *plugin.Environment {
+			if ps.pluginEnv == nil {
+				return nil
+			}
+			return ps.pluginEnv.GetPluginsEnvironment()
+		},
+	}
+
+	if err := ps.metrics.initMetricsRouter(); err != nil {
+		return err
+	}
+
+	if ps.metricsIFace != nil {
+		ps.metricsIFace.Register()
+	}
+
+	return ps.metrics.startMetricsServer()
+}
+
+func (pm *platformMetrics) stopMetricsServer() error {
+	pm.lock.Lock()
+	defer pm.lock.Unlock()
+
+	if pm.server != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
+		defer cancel()
+
+		if err := pm.server.Shutdown(ctx); err != nil {
+			return fmt.Errorf("could not shutdown metrics server: %v", err)
+		}
+
+		pm.logger.Info("Metrics and profiling server is stopped")
+	}
+
+	return nil
+}
+
+func (pm *platformMetrics) startMetricsServer() error {
+	var notify chan struct{}
+	pm.lock.Lock()
+	defer func() {
+		if notify != nil {
+			<-notify
+		}
+		pm.lock.Unlock()
+	}()
+
+	l, err := net.Listen("tcp", *pm.cfgFn().MetricsSettings.ListenAddress)
+	if err != nil {
+		return err
+	}
+
+	notify = make(chan struct{})
+	pm.server = &http.Server{
+		Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(pm.router),
+		ReadTimeout:  time.Duration(*pm.cfgFn().ServiceSettings.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(*pm.cfgFn().ServiceSettings.WriteTimeout) * time.Second,
+	}
+
+	go func() {
+		close(notify)
+		if err := pm.server.Serve(l); err != nil && err != http.ErrServerClosed {
+			pm.logger.Fatal(err.Error())
+		}
+	}()
+
+	pm.listenAddr = l.Addr().String()
+	pm.logger.Info("Metrics and profiling server is started", mlog.String("address", pm.listenAddr))
+	return nil
+}
+
+func (pm *platformMetrics) initMetricsRouter() error {
+	pm.router = mux.NewRouter()
+	runtime.SetBlockProfileRate(*pm.cfgFn().MetricsSettings.BlockProfileRate)
+
+	metricsPage := `
+			<html>
+				<body>{{if .}}
+					<div><a href="/metrics">Metrics</a></div>{{end}}
+					<div><a href="/debug/pprof/">Profiling Root</a></div>
+					<div><a href="/debug/pprof/cmdline">Profiling Command Line</a></div>
+					<div><a href="/debug/pprof/symbol">Profiling Symbols</a></div>
+					<div><a href="/debug/pprof/goroutine">Profiling Goroutines</a></div>
+					<div><a href="/debug/pprof/heap">Profiling Heap</a></div>
+					<div><a href="/debug/pprof/threadcreate">Profiling Threads</a></div>
+					<div><a href="/debug/pprof/block">Profiling Blocking</a></div>
+					<div><a href="/debug/pprof/trace">Profiling Execution Trace</a></div>
+					<div><a href="/debug/pprof/profile">Profiling CPU</a></div>
+				</body>
+			</html>
+		`
+	metricsPageTmpl, err := template.New("page").Parse(metricsPage)
+	if err != nil {
+		return errors.Wrap(err, "failed to create template")
+	}
+
+	rootHandler := func(w http.ResponseWriter, r *http.Request) {
+		if err := metricsPageTmpl.Execute(w, pm.metricsImpl != nil); err != nil {
+			pm.logger.Error("Failed to execute template", mlog.Err(err))
+		}
+	}
+
+	pm.router.HandleFunc("/", rootHandler)
+	pm.router.StrictSlash(true)
+
+	pm.router.Handle("/debug", http.RedirectHandler("/", http.StatusMovedPermanently))
+	pm.router.HandleFunc("/debug/pprof/", pprof.Index)
+	pm.router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	pm.router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	pm.router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	pm.router.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	// Manually add support for paths linked to by index page at /debug/pprof/
+	pm.router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+	pm.router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+	pm.router.Handle("/debug/pprof/allocs", pprof.Handler("allocs"))
+	pm.router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
+	pm.router.Handle("/debug/pprof/block", pprof.Handler("block"))
+	pm.router.Handle("/debug/pprof/mutex", pprof.Handler("mutex"))
+
+	// Plugins metrics route
+	pluginsMetricsRoute := pm.router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/metrics").Subrouter()
+	pluginsMetricsRoute.HandleFunc("", pm.servePluginMetricsRequest)
+	pluginsMetricsRoute.HandleFunc("/{anything:.*}", pm.servePluginMetricsRequest)
+
+	return nil
+}
+
+func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *http.Request) {
+	pluginID := mux.Vars(r)["plugin_id"]
+
+	pluginsEnvironment := pm.getPluginsEnv()
+	if pluginsEnvironment == nil {
+		appErr := model.NewAppError("ServePluginMetricsRequest", "app.plugin.disabled.app_error",
+			nil, "Enable plugins to serve plugin metric requests", http.StatusNotImplemented)
+		mlog.Error(appErr.Error())
+		w.WriteHeader(appErr.StatusCode)
+		w.Header().Set("Content-Type", "application/json")
+		if _, writeErr := w.Write([]byte(appErr.ToJSON())); writeErr != nil {
+			mlog.Error("Failed to write error response", mlog.Err(writeErr))
+		}
+		return
+	}
+
+	hooks, err := pluginsEnvironment.HooksForPlugin(pluginID)
+	if err != nil {
+		mlog.Debug("Access to route for non-existent plugin",
+			mlog.String("missing_plugin_id", pluginID),
+			mlog.String("url", r.URL.String()),
+			mlog.Err(err))
+		http.NotFound(w, r)
+		return
+	}
+
+	subpath, err := utils.GetSubpathFromConfig(pm.cfgFn())
+	if err != nil {
+		appErr := model.NewAppError("ServePluginMetricsRequest", "app.plugin.subpath_parse.app_error",
+			nil, "Failed to parse SiteURL subpath", http.StatusInternalServerError).Wrap(err)
+		mlog.Error(appErr.Error())
+		w.WriteHeader(appErr.StatusCode)
+		w.Header().Set("Content-Type", "application/json")
+		if _, writeErr := w.Write([]byte(appErr.ToJSON())); writeErr != nil {
+			mlog.Error("Failed to write error response", mlog.Err(writeErr))
+		}
+		return
+	}
+
+	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", pluginID, "metrics"))
+
+	// Passing an empty plugin context for the time being. To be decided whether we
+	// should support forms of authentication in the future.
+	hooks.ServeMetrics(&plugin.Context{}, w, r)
+}
+
+func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
+	if ps.metrics == nil {
+		return
+	}
+
+	if route == "/metrics" && ps.Config().FeatureFlags.AggregatePluginMetrics {
+		h = ps.wrapMetricsHandler(h)
+	}
+
+	ps.metrics.router.Handle(route, h)
+}
+
+func (ps *PlatformService) wrapMetricsHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var buf bytes.Buffer
+
+		// Strip Accept-Encoding to force plaintext response (no gzip)
+		plainReq := r.Clone(r.Context())
+		plainReq.Header.Del("Accept-Encoding")
+
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, plainReq)
+		buf.Write(rec.Body.Bytes())
+
+		if ps.pluginEnv != nil {
+			if env := ps.pluginEnv.GetPluginsEnvironment(); env != nil {
+				env.RunMultiPluginHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+					pluginRec := httptest.NewRecorder()
+					pluginReq, err := http.NewRequestWithContext(r.Context(), "GET", "/metrics", nil)
+					if err != nil {
+						return true
+					}
+
+					hooks.ServeMetrics(&plugin.Context{}, pluginRec, pluginReq)
+
+					if pluginRec.Code == http.StatusOK && pluginRec.Body.Len() > 0 {
+						if labeledMetrics := addPluginLabelToMetrics(pluginRec.Body.String(), manifest.Id); labeledMetrics != "" {
+							buf.WriteString("\n")
+							buf.WriteString(labeledMetrics)
+						}
+					}
+
+					return true
+				}, plugin.ServeMetricsID)
+			}
+		}
+
+		// Copy content type from main metrics response
+		if contentType := rec.Header().Get("Content-Type"); contentType != "" {
+			w.Header().Set("Content-Type", contentType)
+		}
+		w.WriteHeader(rec.Code)
+		if _, writeErr := w.Write(buf.Bytes()); writeErr != nil {
+			mlog.Error("Failed to write to HandleMetrics's response writer", mlog.Err(writeErr))
+		}
+	})
+}
+
+// addPluginLabelToMetrics adds a plugin_id label to all metrics in the Prometheus text format.
+// It parses using expfmt, mutates the label sets in-place, then re-encodes.
+// Returns an empty string and logs a warning if any parsing or encoding error occurs.
+func addPluginLabelToMetrics(metricsText, pluginID string) string {
+	parser := expfmt.NewTextParser(prommodel.LegacyValidation)
+	families, err := parser.TextToMetricFamilies(strings.NewReader(metricsText))
+	if err != nil {
+		mlog.Warn("Failed to parse plugin metrics", mlog.String("plugin_id", pluginID), mlog.Err(err))
+		return ""
+	}
+
+	pluginIDLabel := &dto.LabelPair{
+		Name:  new("plugin_id"),
+		Value: new(pluginID),
+	}
+
+	var result strings.Builder
+	enc := expfmt.NewEncoder(&result, expfmt.FmtText)
+	for name, family := range families {
+		for _, metric := range family.Metric {
+			replaced := false
+			for _, l := range metric.Label {
+				if l.GetName() == "plugin_id" {
+					l.Value = new(pluginID)
+					replaced = true
+					break
+				}
+			}
+			if !replaced {
+				metric.Label = append(metric.Label, pluginIDLabel)
+			}
+		}
+		if encErr := enc.Encode(family); encErr != nil {
+			mlog.Warn("Failed to encode plugin metrics", mlog.String("plugin_id", pluginID), mlog.String("family", name), mlog.Err(encErr))
+			return ""
+		}
+	}
+	if closer, ok := enc.(expfmt.Closer); ok {
+		closer.Close()
+	}
+
+	return result.String()
+}
+
+func (ps *PlatformService) RestartMetrics() error {
+	return ps.resetMetrics()
+}
+
+func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {
+	if ps.metrics == nil {
+		return nil
+	}
+
+	return ps.metricsIFace
+}
