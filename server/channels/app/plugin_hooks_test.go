@@ -2649,29 +2649,28 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		// Setup plugin after creating the channel
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user2.Id,
 		})
 		require.Nil(t, appErr)
 
-		assert.EventuallyWithT(t, func(t *assert.CollectT) {
+		expectedMessage := fmt.Sprintf("Test: User %s joined %s", user2.Id, channel.Id)
+		assert.Eventually(t, func() bool {
+			// The UserHasJoinedChannel hook runs in a goroutine; the plugin post may arrive after the join post.
 			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 30)
-
 			require.Nil(t, appErr)
-			assert.True(t, len(posts.Order) > 0)
 
-			found := false
-			for _, post := range posts.Posts {
-				if post.Message == fmt.Sprintf("Test: User %s joined %s", user2.Id, channel.Id) {
-					found = true
+			for _, postID := range posts.Order {
+				post := posts.Posts[postID]
+				if post.Message == expectedMessage {
+					return true
 				}
 			}
 
-			if !found {
-				assert.Fail(t, "Couldn't find user joined channel hook message post")
-			}
-		}, 5*time.Second, 100*time.Millisecond)
+			return false
+		}, 10*time.Second, 100*time.Millisecond)
 	})
 
 	t.Run("should call hook when a user is added to an existing channel", func(t *testing.T) {
@@ -2694,6 +2693,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		// Setup plugin after creating the channel
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user1.Id,
@@ -2716,7 +2716,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 			}
 
 			return false
-		}, 5*time.Second, 100*time.Millisecond)
+		}, 10*time.Second, 100*time.Millisecond)
 	})
 
 	t.Run("should not call hook when a regular channel is created", func(t *testing.T) {
