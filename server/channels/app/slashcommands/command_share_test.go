@@ -127,10 +127,6 @@ func TestShareProviderDoCommand(t *testing.T) {
 	})
 }
 
-// TestShareProviderGetAutoCompleteListItemsPermission verifies that ShareProvider's dynamic
-// autocomplete for `/share-channel invite --connectionID` and `/share-channel uninvite --connectionID`
-// requires the manage_shared_channels permission and does not leak remote cluster metadata
-// (RemoteId / DisplayName / SiteURL) to unprivileged callers.
 func TestShareProviderGetAutoCompleteListItemsPermission(t *testing.T) {
 	connectionIDArg := func() *model.AutocompleteArg {
 		return &model.AutocompleteArg{Name: "connectionID"}
@@ -153,19 +149,17 @@ func TestShareProviderGetAutoCompleteListItemsPermission(t *testing.T) {
 		return rc
 	}
 
-	// assertNoRemoteLeak enforces that none of the seeded remote cluster's identifying
-	// fields appear in any returned autocomplete item.
-	assertNoRemoteLeak := func(t *testing.T, items []model.AutocompleteListItem, rc *model.RemoteCluster) {
+	assertNoRemoteData := func(t *testing.T, items []model.AutocompleteListItem, rc *model.RemoteCluster) {
 		t.Helper()
 		for i, item := range items {
-			assert.NotContains(t, item.Item, rc.RemoteId, "item[%d].Item leaked RemoteId", i)
-			assert.NotContains(t, item.HelpText, rc.RemoteId, "item[%d].HelpText leaked RemoteId", i)
-			assert.NotContains(t, item.HelpText, rc.DisplayName, "item[%d].HelpText leaked DisplayName", i)
-			assert.NotContains(t, item.HelpText, rc.SiteURL, "item[%d].HelpText leaked SiteURL", i)
+			assert.NotContains(t, item.Item, rc.RemoteId, "item[%d].Item contained RemoteId", i)
+			assert.NotContains(t, item.HelpText, rc.RemoteId, "item[%d].HelpText contained RemoteId", i)
+			assert.NotContains(t, item.HelpText, rc.DisplayName, "item[%d].HelpText contained DisplayName", i)
+			assert.NotContains(t, item.HelpText, rc.SiteURL, "item[%d].HelpText contained SiteURL", i)
 		}
 	}
 
-	t.Run("invite without manage_shared_channels permission must not leak remote cluster data", func(t *testing.T) {
+	t.Run("invite without manage_shared_channels permission returns no remote cluster data", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
 		require.False(t, th.App.HasPermissionTo(th.BasicUser.Id, model.PermissionManageSharedChannels),
@@ -186,15 +180,13 @@ func TestShareProviderGetAutoCompleteListItemsPermission(t *testing.T) {
 
 		items, err := commandProvider.GetAutoCompleteListItems(th.Context, th.App, args, connectionIDArg(), "/share-channel invite ", "")
 
-		// Acceptable secure behavior: either an empty list (preferred per ticket mitigation),
-		// or a non-nil error with an empty list. Either way, no remote cluster data may leak.
 		if err == nil {
 			assert.Empty(t, items, "expected empty autocomplete list when caller lacks manage_shared_channels")
 		}
-		assertNoRemoteLeak(t, items, rc)
+		assertNoRemoteData(t, items, rc)
 	})
 
-	t.Run("uninvite without manage_shared_channels permission must not leak remote cluster data", func(t *testing.T) {
+	t.Run("uninvite without manage_shared_channels permission returns no remote cluster data", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
 		require.False(t, th.App.HasPermissionTo(th.BasicUser.Id, model.PermissionManageSharedChannels),
@@ -218,7 +210,7 @@ func TestShareProviderGetAutoCompleteListItemsPermission(t *testing.T) {
 		if err == nil {
 			assert.Empty(t, items, "expected empty autocomplete list when caller lacks manage_shared_channels")
 		}
-		assertNoRemoteLeak(t, items, rc)
+		assertNoRemoteData(t, items, rc)
 	})
 
 	t.Run("invite with manage_shared_channels permission returns remote cluster data", func(t *testing.T) {
@@ -284,15 +276,6 @@ func TestShareProviderGetAutoCompleteListItemsPermission(t *testing.T) {
 	})
 }
 
-// TestShareProviderGetAutoCompleteListItemsAdjacentRoles encodes secure behavior for
-// privilege variants the original ticket did not spell out:
-//   - A guest user (system_guest role) must NEVER receive remote cluster metadata via the
-//     /share-channel invite|uninvite autocomplete, because system_guest does not grant
-//     manage_shared_channels.
-//   - A system admin must STILL receive remote cluster metadata, because system_admin
-//     inherits manage_shared_channels via AllPermissions. This guards against a future
-//     refactor over-restricting the autocomplete (e.g. swapping HasPermissionTo for a
-//     team/channel-scoped check that would not match how DoCommand is gated).
 func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 	connectionIDArg := func() *model.AutocompleteArg {
 		return &model.AutocompleteArg{Name: "connectionID"}
@@ -315,17 +298,17 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 		return rc
 	}
 
-	assertNoRemoteLeak := func(t *testing.T, items []model.AutocompleteListItem, rc *model.RemoteCluster) {
+	assertNoRemoteData := func(t *testing.T, items []model.AutocompleteListItem, rc *model.RemoteCluster) {
 		t.Helper()
 		for i, item := range items {
-			assert.NotContains(t, item.Item, rc.RemoteId, "item[%d].Item leaked RemoteId", i)
-			assert.NotContains(t, item.HelpText, rc.RemoteId, "item[%d].HelpText leaked RemoteId", i)
-			assert.NotContains(t, item.HelpText, rc.DisplayName, "item[%d].HelpText leaked DisplayName", i)
-			assert.NotContains(t, item.HelpText, rc.SiteURL, "item[%d].HelpText leaked SiteURL", i)
+			assert.NotContains(t, item.Item, rc.RemoteId, "item[%d].Item contained RemoteId", i)
+			assert.NotContains(t, item.HelpText, rc.RemoteId, "item[%d].HelpText contained RemoteId", i)
+			assert.NotContains(t, item.HelpText, rc.DisplayName, "item[%d].HelpText contained DisplayName", i)
+			assert.NotContains(t, item.HelpText, rc.SiteURL, "item[%d].HelpText contained SiteURL", i)
 		}
 	}
 
-	t.Run("guest user must not receive remote cluster data on invite autocomplete", func(t *testing.T) {
+	t.Run("guest user receives no remote cluster data on invite autocomplete", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
 		guest := th.createGuest(t)
@@ -349,10 +332,10 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 		if err == nil {
 			assert.Empty(t, items, "expected empty autocomplete list for guest on invite")
 		}
-		assertNoRemoteLeak(t, items, rc)
+		assertNoRemoteData(t, items, rc)
 	})
 
-	t.Run("guest user must not receive remote cluster data on uninvite autocomplete", func(t *testing.T) {
+	t.Run("guest user receives no remote cluster data on uninvite autocomplete", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
 		guest := th.createGuest(t)
@@ -376,10 +359,10 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 		if err == nil {
 			assert.Empty(t, items, "expected empty autocomplete list for guest on uninvite")
 		}
-		assertNoRemoteLeak(t, items, rc)
+		assertNoRemoteData(t, items, rc)
 	})
 
-	t.Run("system admin still receives remote cluster data on invite via inherited permission", func(t *testing.T) {
+	t.Run("system admin receives remote cluster data on invite", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
 		require.True(t, th.App.HasPermissionTo(th.SystemAdminUser.Id, model.PermissionManageSharedChannels),
@@ -412,7 +395,7 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 		require.True(t, found, "expected seeded RemoteId %q to appear for system admin", rc.RemoteId)
 	})
 
-	t.Run("system admin still receives remote cluster data on uninvite via inherited permission", func(t *testing.T) {
+	t.Run("system admin receives remote cluster data on uninvite", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
 		require.True(t, th.App.HasPermissionTo(th.SystemAdminUser.Id, model.PermissionManageSharedChannels),
