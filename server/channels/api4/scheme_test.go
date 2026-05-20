@@ -424,12 +424,6 @@ func TestGetTeamsForScheme(t *testing.T) {
 	CheckNotImplementedStatus(t, ri6)
 }
 
-// TestGetTeamsForScheme_SanitizesPrivilegedFieldsForUserManager verifies that
-// GET /schemes/{schemeId}/teams strips invite_id from private (invite-only)
-// teams when the caller is a System Manager. The handler must call
-// App.SanitizeTeams, matching every other team-returning endpoint in
-// server/channels/api4/team.go. The system admin must still see invite_id and
-// email populated as a positive control.
 func TestGetTeamsForScheme_SanitizesPrivilegedFieldsForUserManager(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -469,11 +463,6 @@ func TestGetTeamsForScheme_SanitizesPrivilegedFieldsForUserManager(t *testing.T)
 	require.Equal(t, knownInviteID, privateTeam.InviteId)
 	require.Equal(t, knownEmail, privateTeam.Email)
 
-	// The System Manager role has PermissionSysconsoleReadUserManagementTeams
-	// (allowing the call) and ancillarily grants PermissionManageTeam via
-	// PermissionSysconsoleWriteUserManagementTeams (see role.go
-	// SysconsoleAncillaryPermissions), but it does NOT grant PermissionInviteUser.
-	// App.SanitizeTeam therefore strips invite_id while preserving email.
 	th.LoginSystemManager(t)
 
 	t.Run("system manager response is sanitized", func(t *testing.T) {
@@ -481,14 +470,7 @@ func TestGetTeamsForScheme_SanitizesPrivilegedFieldsForUserManager(t *testing.T)
 		require.NoError(t, err)
 		require.Len(t, teams, 1)
 		assert.Equal(t, privateTeam.Id, teams[0].Id)
-		assert.Empty(t, teams[0].InviteId,
-			"invite_id must be stripped for callers without PermissionInviteUser on the team; got %q", teams[0].InviteId)
-		// Email is intentionally not asserted here: system_manager retains
-		// PermissionManageTeam via the ancillary expansion of
-		// PermissionSysconsoleWriteUserManagementTeams (see role.go
-		// SysconsoleAncillaryPermissions), so App.SanitizeTeam preserves
-		// email — consistent with every other team-returning endpoint in
-		// server/channels/api4/team.go.
+		assert.Empty(t, teams[0].InviteId)
 	})
 
 	t.Run("system admin response is not sanitized", func(t *testing.T) {
@@ -496,10 +478,8 @@ func TestGetTeamsForScheme_SanitizesPrivilegedFieldsForUserManager(t *testing.T)
 		require.NoError(t, err)
 		require.Len(t, teams, 1)
 		assert.Equal(t, privateTeam.Id, teams[0].Id)
-		assert.Equal(t, knownInviteID, teams[0].InviteId,
-			"system admin retains invite_id (positive control)")
-		assert.Equal(t, knownEmail, teams[0].Email,
-			"system admin retains email (positive control)")
+		assert.Equal(t, knownInviteID, teams[0].InviteId)
+		assert.Equal(t, knownEmail, teams[0].Email)
 	})
 }
 
