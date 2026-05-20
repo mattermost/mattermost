@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {PostPriority} from '@mattermost/types/posts';
+
 import {MarkUnread} from 'mattermost-redux/constants/channels';
 
 import testConfigureStore from 'tests/test_store';
