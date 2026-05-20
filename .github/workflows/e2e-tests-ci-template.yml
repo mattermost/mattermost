@@ -154,7 +154,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -248,7 +248,7 @@ jobs:
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -305,7 +305,7 @@ jobs:
           sudo dmesg | tail -500 >"$DIAG/host.dmesg.tail.txt" 2>&1
           sudo dmesg | grep -iE 'apparmor|denied|oom|killed|openldap|slapd' >"$DIAG/host.dmesg.relevant.txt" 2>&1
       - name: ci/upload-docker-diagnostics
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: docker-diagnostics-${{ inputs.TEST }}-${{ matrix.os }}-${{ matrix.worker_index }}
@@ -313,7 +313,7 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
       - name: ci/e2e-test-store-results
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: e2e-test-results-${{ inputs.TEST }}-${{ matrix.os }}-${{ matrix.worker_index }}
@@ -345,13 +345,13 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/download-artifacts
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: e2e-test-results-${{ inputs.TEST }}-*
           path: e2e-tests/${{ inputs.TEST }}/
           merge-multiple: true
       - name: ci/upload-report-global
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-test-results-${{ inputs.TEST }}
           path: |
@@ -359,7 +359,7 @@ jobs:
             e2e-tests/${{ inputs.TEST }}/results/
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -386,7 +386,7 @@ jobs:
       # The results dir may have been modified as part of the reporting: re-upload
       - name: ci/upload-report-global
         if: "${{ inputs.enable_reporting }}"
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e-test-results-${{ inputs.TEST }}
           path: |
@@ -397,7 +397,7 @@ jobs:
       # Configure AWS credentials
       - name: ci/aws-configure
         if: (inputs.TEST == 'playwright')
-        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}

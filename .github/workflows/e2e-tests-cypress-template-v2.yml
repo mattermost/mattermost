@@ -208,7 +208,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: ".nvmrc"
       - name: ci/cache-cypress-deps
@@ -216,7 +216,7 @@ jobs:
         # cypress's postinstall, not into node_modules). Both must be cached;
         # otherwise workers see "cypress npm package installed but binary missing".
         id: cache-cypress
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             e2e-tests/cypress/node_modules
@@ -306,11 +306,11 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: ".nvmrc"
       - name: ci/restore-cypress-deps
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             e2e-tests/cypress/node_modules
@@ -339,7 +339,7 @@ jobs:
         run: make cloud-teardown
       - name: ci/upload-debug-artifacts
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-debug-${{ matrix.worker_index }}
           path: |
