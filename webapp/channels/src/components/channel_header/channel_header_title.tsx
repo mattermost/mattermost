@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import type {ReactNode} from 'react';
 import React, {memo} from 'react';
 import {useSelector} from 'react-redux';
@@ -10,14 +11,13 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
-import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import ChannelDecoratorRenderer from 'components/channel_decorator_renderer/channel_decorator_renderer';
+import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 
 import {useChannelDecorators} from 'hooks/useChannelDecorators';
-import {useChannelIconOverrideName} from 'hooks/useChannelIconOverrideName';
 import {getArchiveIconComponent} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 
