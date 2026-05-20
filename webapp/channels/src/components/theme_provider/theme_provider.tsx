@@ -169,6 +169,15 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
         DesktopApp.updateTheme(effectiveTheme);
     }, [effectiveTheme]);
 
+    // Plugins/products (e.g. Playbooks) call applyTheme with the raw saved
+    // theme from their own bundle during mount, overwriting CSS variables after
+    // ThemeProvider has already set the correct effective theme.  Re-applying
+    // via setTimeout(0) runs after all synchronous mount code in the new route.
+    useEffect(() => {
+        const id = setTimeout(() => applyTheme(effectiveTheme), 0);
+        return () => clearTimeout(id);
+    }, [location.pathname, effectiveTheme]);
+
     const context = useMemo(() => ({
         startUsingUserTheme: () => setUsingUserTheme((count) => count + 1),
         stopUsingUserTheme: () => setUsingUserTheme((count) => count - 1),

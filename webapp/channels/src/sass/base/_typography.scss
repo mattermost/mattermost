@@ -105,17 +105,26 @@ ol {
     cursor: pointer;
 }
 
-// Inter font — replaces Metropolis for heading text.
+// Jost font — replaces Metropolis for heading text.
+// Closest geometric match to Metropolis with full Cyrillic support.
 // Loaded in two subsets so Cyrillic glyphs are served from a separate
 // (smaller) file while Latin is handled by the main file.
 
-/* inter - cyrillic subset */
+/* jost - cyrillic subset */
 @font-face {
     font-family: 'Metropolis';
     font-style: normal;
     font-weight: 300;
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-    src: url('../fonts/Inter-cyrillic-only-300-normal.woff2') format('woff2');
+    src: url('../fonts/Jost-cyrillic-300-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Metropolis';
+    font-style: italic;
+    font-weight: 300;
+    unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    src: url('../fonts/Jost-cyrillic-300-italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -123,7 +132,15 @@ ol {
     font-style: normal;
     font-weight: 400;
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-    src: url('../fonts/Inter-cyrillic-only-400-normal.woff2') format('woff2');
+    src: url('../fonts/Jost-cyrillic-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Metropolis';
+    font-style: italic;
+    font-weight: 400;
+    unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    src: url('../fonts/Jost-cyrillic-400-italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -131,17 +148,25 @@ ol {
     font-style: normal;
     font-weight: 600;
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-    src: url('../fonts/Inter-cyrillic-only-600-normal.woff2') format('woff2');
+    src: url('../fonts/Jost-cyrillic-600-normal.woff2') format('woff2');
 }
 
-/* inter - latin + latin-ext subset */
+@font-face {
+    font-family: 'Metropolis';
+    font-style: italic;
+    font-weight: 600;
+    unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    src: url('../fonts/Jost-cyrillic-600-italic.woff2') format('woff2');
+}
+
+/* jost - latin subset */
 @font-face {
     font-family: 'Metropolis';
     font-style: normal;
     font-weight: 300;
     src:
-        url('../fonts/Inter-latin-300-normal.woff2') format('woff2'),
-        url('../fonts/Inter-latin-300-normal.woff') format('woff');
+        url('../fonts/Jost-latin-300-normal.woff2') format('woff2'),
+        url('../fonts/Jost-latin-300-normal.woff') format('woff');
 }
 
 @font-face {
@@ -149,8 +174,8 @@ ol {
     font-style: italic;
     font-weight: 300;
     src:
-        url('../fonts/Inter-latin-300-italic.woff2') format('woff2'),
-        url('../fonts/Inter-latin-300-italic.woff') format('woff');
+        url('../fonts/Jost-latin-300-italic.woff2') format('woff2'),
+        url('../fonts/Jost-latin-300-italic.woff') format('woff');
 }
 
 @font-face {
@@ -158,8 +183,8 @@ ol {
     font-style: normal;
     font-weight: 400;
     src:
-        url('../fonts/Inter-latin-400-normal.woff2') format('woff2'),
-        url('../fonts/Inter-latin-400-normal.woff') format('woff');
+        url('../fonts/Jost-latin-400-normal.woff2') format('woff2'),
+        url('../fonts/Jost-latin-400-normal.woff') format('woff');
 }
 
 @font-face {
@@ -167,8 +192,8 @@ ol {
     font-style: italic;
     font-weight: 400;
     src:
-        url('../fonts/Inter-latin-400-italic.woff2') format('woff2'),
-        url('../fonts/Inter-latin-400-italic.woff') format('woff');
+        url('../fonts/Jost-latin-400-italic.woff2') format('woff2'),
+        url('../fonts/Jost-latin-400-italic.woff') format('woff');
 }
 
 @font-face {
@@ -176,8 +201,8 @@ ol {
     font-style: normal;
     font-weight: 600;
     src:
-        url('../fonts/Inter-latin-600-normal.woff2') format('woff2'),
-        url('../fonts/Inter-latin-600-normal.woff') format('woff');
+        url('../fonts/Jost-latin-600-normal.woff2') format('woff2'),
+        url('../fonts/Jost-latin-600-normal.woff') format('woff');
 }
 
 @font-face {
@@ -185,8 +210,8 @@ ol {
     font-style: italic;
     font-weight: 600;
     src:
-        url('../fonts/Inter-latin-600-italic.woff2') format('woff2'),
-        url('../fonts/Inter-latin-600-italic.woff') format('woff');
+        url('../fonts/Jost-latin-600-italic.woff2') format('woff2'),
+        url('../fonts/Jost-latin-600-italic.woff') format('woff');
 }
 
 /* open-sans-300 - vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic */
