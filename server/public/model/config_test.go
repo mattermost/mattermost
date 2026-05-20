@@ -1597,7 +1597,6 @@ func TestConfigSanitize(t *testing.T) {
 	*c.OpenIdSettings.Secret = "secret"
 	*c.ServiceSettings.GoogleDeveloperKey = "google-api-key"
 	*c.ServiceSettings.GiphySdkKey = "giphy-sdk-key"
-	*c.ElasticsearchSettings.ClientKey = "/path/to/client-key.pem"
 	*c.AutoTranslationSettings.LibreTranslate.APIKey = "libre-api-key"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
@@ -1620,7 +1619,6 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
-	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.ClientKey)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GoogleDeveloperKey)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GiphySdkKey)
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceReplicas[0])
