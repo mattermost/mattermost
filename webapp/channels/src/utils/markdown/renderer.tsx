@@ -248,9 +248,7 @@ export default class Renderer extends marked.Renderer {
         '/> '}${text.replace(taskListReg, '')}</li>`;
         }
 
-        // Added a span because if not whitespace nodes only
-        // works in Firefox but not in Webkit
-        return `<li><span>${text}</span></li>`;
+        return `<li>${text}</li>`;
     }
 
     public text(txt: string) {
