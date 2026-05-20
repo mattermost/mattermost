@@ -81,6 +81,16 @@ function PolicyDetails({
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
+
+    // Derive masked-rows state directly from the expression rather than relying
+    // on a callback from TableEditor: TableEditor unmounts on mode switches, and
+    // on remount its rows-derived flag flickers false-then-true while the async
+    // AST round-trip is in flight, briefly opening gates (CEL read-only, delete,
+    // banner) that should stay closed. The "--------" sentinel is what the
+    // server emits in raw CEL for any value the caller can't see, so its
+    // presence in the expression is a stable signal independent of editor
+    // lifecycle.
+    const hasMaskedRows = useMemo(() => expression.includes('"--------"'), [expression]);
     const [channelChanges, setChannelChanges] = useState<ChannelChanges>({
         removed: {},
         added: {},
@@ -197,6 +207,14 @@ function PolicyDetails({
                 if (result.error) {
                     if (result.error.server_error_id === 'app.pap.save_policy.name_exists.app_error') {
                         setServerError(formatMessage({id: 'admin.access_control.edit_policy.name_exists', defaultMessage: 'A policy with this name already exists. Please choose a different name.'}));
+                    } else if (result.error.server_error_id === 'app.pap.save_policy.invalid_value') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.invalid_value', defaultMessage: 'Invalid value.'}));
+                    } else if (result.error.server_error_id === 'app.pap.save_policy.self_exclusion') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.self_exclusion', defaultMessage: 'You do not satisfy one or more conditions in this policy. Contact a System Admin for assistance.'}));
+                    } else if (result.error.server_error_id === 'app.pap.save_policy.masked_condition_deleted') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.masked_condition_deleted', defaultMessage: 'You cannot remove a condition that contains attribute values you do not have permission to view.'}));
+                    } else if (result.error.server_error_id === 'app.pap.save_policy.masked_rule_deleted') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.masked_rule_deleted', defaultMessage: 'You cannot remove a rule that contains attribute values you do not have permission to view.'}));
                     } else {
                         setServerError(result.error.message);
                     }
@@ -506,6 +524,23 @@ function PolicyDetails({
                             />
                         </Card.Header>
                         <Card.Body>
+                            {hasMaskedRows && (
+                                <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={
+                                            <FormattedMessage
+                                                id='admin.access_control.policy.edit_policy.masked_values_warning.title'
+                                                defaultMessage='This policy contains restricted values'
+                                            />
+                                        }
+                                        text={formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.masked_values_warning.text',
+                                            defaultMessage: 'Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.',
+                                        })}
+                                    />
+                                </div>
+                            )}
                             {editorMode === 'cel' ? (
                                 <CELEditor
                                     value={expression}
@@ -516,6 +551,7 @@ function PolicyDetails({
                                     }}
                                     onValidate={() => {}}
                                     disabled={noUsableAttributes}
+                                    hasMaskedRows={hasMaskedRows}
                                     userAttributes={autocompleteResult.
                                         filter((attr) => {
                                             if (accessControlSettings.EnableUserManagedAttributes) {
@@ -613,6 +649,23 @@ function PolicyDetails({
                             expanded={true}
                             className={'console delete-policy'}
                         >
+                            {hasMaskedRows && (
+                                <div className='admin-console__warning-notice EditPolicy__delete-masked-values-warning'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={
+                                            <FormattedMessage
+                                                id='admin.access_control.policy.edit_policy.delete_policy.masked_values_warning.title'
+                                                defaultMessage='This policy contains restricted values - Deletion not allowed'
+                                            />
+                                        }
+                                        text={formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.delete_policy.masked_values_warning.text',
+                                            defaultMessage: 'Removing this policy could affect access for users you cannot fully account for.',
+                                        })}
+                                    />
+                                </div>
+                            )}
                             <Card.Header>
                                 <TitleAndButtonCardHeader
                                     title={
@@ -646,7 +699,7 @@ function PolicyDetails({
                                         }
                                         setShowDeleteConfirmationModal(true);
                                     }}
-                                    isDisabled={hasChannels()}
+                                    isDisabled={hasChannels() || hasMaskedRows}
                                 />
                             </Card.Header>
                         </Card>
@@ -698,10 +751,12 @@ function PolicyDetails({
                     confirmButtonVariant='destructive'
                     compassDesign={true}
                 >
-                    <FormattedMessage
-                        id='admin.access_control.policy.edit_policy.delete_confirmation.message'
-                        defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
-                    />
+                    <>
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.delete_confirmation.message'
+                            defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
+                        />
+                    </>
                 </GenericModal>
             )}
 
