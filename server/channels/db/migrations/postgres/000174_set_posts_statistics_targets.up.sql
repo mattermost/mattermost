@@ -1,3 +1,0 @@
-ALTER TABLE posts ALTER COLUMN rootid SET STATISTICS 5000;
-ALTER TABLE posts ALTER COLUMN channelid SET STATISTICS 5000;
-ANALYZE posts (rootid, channelid);

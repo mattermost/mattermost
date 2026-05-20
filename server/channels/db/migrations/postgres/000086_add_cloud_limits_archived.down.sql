@@ -1,1 +1,0 @@
-ALTER TABLE teams DROP COLUMN IF EXISTS CloudLimitsArchived;

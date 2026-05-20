@@ -1,1 +1,0 @@
-ALTER TABLE drafts DROP COLUMN IF EXISTS priority;

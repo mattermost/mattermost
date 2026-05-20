@@ -1,1 +1,0 @@
-ALTER TABLE channels ADD COLUMN IF NOT EXISTS DefaultCategoryName varchar(64) NOT NULL DEFAULT '';

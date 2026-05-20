@@ -1,9 +1,0 @@
-@use 'utils/variables';
-
-#user-group-popover .popover-content {
-    padding: 0;
-}
-
-.user-group-popover-floating-overlay {
-    z-index: variables.$z-index-user-group-popover;
-}

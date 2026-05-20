@@ -1,5 +1,0 @@
-<!-- this empty mj attribute tag is required by MJML to compile successfully -->
-<mj-attributes/>
-
-<mj-include type="css" path="message_attachment.css"/>
-<mj-include type="css" css-inline="inline" path="message_attachment.css"/>

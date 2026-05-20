@@ -1,3 +1,0 @@
-DROP INDEX IF EXISTS idx_jobs_type;
-
-DROP TABLE IF EXISTS jobs;

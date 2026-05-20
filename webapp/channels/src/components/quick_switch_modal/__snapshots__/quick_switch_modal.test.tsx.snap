@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
-
-exports[`components/QuickSwitchModal should match snapshot 1`] = `
-<div
-  aria-hidden="true"
-/>
-`;

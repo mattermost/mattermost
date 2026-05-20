@@ -1092,6 +1092,32 @@ func (a *App) DoUploadFileExpectModification(rctx request.CTX, now time.Time, ra
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
 	}
 
+	allowedExtensions := []string{
+		".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg",
+		".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+		".txt", ".md", ".csv", ".json", ".xml",
+		".zip", ".tar", ".gz",
+		".mp4", ".mov", ".avi",
+		".mp3", ".wav",
+	}
+
+	ext := strings.ToLower(filepath.Ext(filename))
+	if ext == "" {
+		return nil, data, model.NewAppError("DoUploadFile", "api.file.upload_file.no_extension", nil, "", http.StatusBadRequest)
+	}
+
+	allowed := false
+	for _, allowedExt := range allowedExtensions {
+		if ext == allowedExt {
+			allowed = true
+			break
+		}
+	}
+	if !allowed {
+		return nil, data, model.NewAppError("DoUploadFile", "api.file.upload_file.invalid_extension",
+			map[string]any{"Extension": ext}, "", http.StatusBadRequest)
+	}
+
 	var rejectionError *model.AppError
 	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {

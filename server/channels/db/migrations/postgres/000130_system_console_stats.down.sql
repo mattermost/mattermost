@@ -1,5 +1,0 @@
-DROP MATERIALIZED VIEW IF EXISTS posts_by_team_day;
-
-DROP MATERIALIZED VIEW IF EXISTS bot_posts_by_team_day;
-
-DROP MATERIALIZED VIEW IF EXISTS file_stats;

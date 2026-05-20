@@ -1,1 +1,0 @@
--- It is intentionally to not have a rollback for adding configuration files table.

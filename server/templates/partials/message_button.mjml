@@ -1,5 +1,0 @@
-<mj-column width=100%>
-    <mj-raw>{{if .MessageURL}}</mj-raw>
-    <mj-button href="{{.MessageURL}}" padding="16px 0px 0px 0px" css-class="messageButton">{{$.Props.MessageButton}}</mj-button>
-    <mj-raw>{{end}}</mj-raw>
-</mj-column>

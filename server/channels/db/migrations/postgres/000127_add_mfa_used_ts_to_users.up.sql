@@ -1,1 +1,0 @@
-ALTER TABLE Users ADD COLUMN IF NOT EXISTS MfaUsedTimestamps jsonb NULL;

@@ -2405,6 +2405,14 @@
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
+    "id": "api.file.upload_file.invalid_extension",
+    "translation": "File extension '{{.Extension}}' is not allowed. Allowed types: images, documents, archives, audio, video."
+  },
+  {
+    "id": "api.file.upload_file.no_extension",
+    "translation": "File must have an extension"
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
