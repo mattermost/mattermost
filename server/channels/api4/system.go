@@ -572,17 +572,17 @@ func testFileStore(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if checkHasNilFields(&cfg.FileSettings) {
-		c.Err = model.NewAppError("testFileStore", "api.file.test_connection_settings_nil.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
 	// PermissionTestS3 is kept for backwards compatibility -- it was named
 	// after the only supported test endpoint at the time it was introduced.
 	// The new /file/test endpoint is backend-agnostic but reuses the same
 	// permission to avoid a role migration.
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
+		return
+	}
+
+	if checkHasNilFields(&cfg.FileSettings) {
+		c.Err = model.NewAppError("testFileStore", "api.file.test_connection_settings_nil.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
