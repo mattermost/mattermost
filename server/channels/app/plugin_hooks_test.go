@@ -2649,7 +2649,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		// Setup plugin after creating the channel
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID), "plugin %q failed to activate", pluginID)
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user2.Id,
@@ -2693,7 +2693,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		// Setup plugin after creating the channel
 		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID), "plugin %q failed to activate", pluginID)
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user1.Id,
