@@ -1105,13 +1105,13 @@ func TestBuildFullPushNotificationMessagePriorityTitles(t *testing.T) {
 			priority:      model.PostPriorityUrgent,
 			channelType:   model.ChannelTypeDirect,
 			channelName:   "@sender",
-			expectedTitle: "URGENT Direct message",
+			expectedTitle: "URGENT Direct Message",
 		},
 		"urgent group message root post": {
 			priority:      model.PostPriorityUrgent,
 			channelType:   model.ChannelTypeGroup,
 			channelName:   "sender, receiver",
-			expectedTitle: "URGENT Group message",
+			expectedTitle: "URGENT Group Message",
 		},
 		"important channel root post": {
 			priority:      model.PostPriorityImportant,
@@ -1123,13 +1123,13 @@ func TestBuildFullPushNotificationMessagePriorityTitles(t *testing.T) {
 			priority:      model.PostPriorityImportant,
 			channelType:   model.ChannelTypeDirect,
 			channelName:   "@sender",
-			expectedTitle: "IMPORTANT Direct message",
+			expectedTitle: "IMPORTANT Direct Message",
 		},
 		"important group message root post": {
 			priority:      model.PostPriorityImportant,
 			channelType:   model.ChannelTypeGroup,
 			channelName:   "sender, receiver",
-			expectedTitle: "IMPORTANT Group message",
+			expectedTitle: "IMPORTANT Group Message",
 		},
 		"priority reply keeps channel title": {
 			priority:      model.PostPriorityUrgent,

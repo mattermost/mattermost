@@ -227,11 +227,11 @@ describe('notification_actions', () => {
 
         test.each([
             ['urgent channel message', 'channel_id', Constants.OPEN_CHANNEL, PostPriority.URGENT, 'URGENT message in Utopia'],
-            ['urgent direct message', 'channel_id', Constants.DM_CHANNEL, PostPriority.URGENT, 'URGENT Direct message'],
-            ['urgent group message', 'gm_channel', Constants.GM_CHANNEL, PostPriority.URGENT, 'URGENT Group message'],
+            ['urgent direct message', 'channel_id', Constants.DM_CHANNEL, PostPriority.URGENT, 'URGENT Direct Message'],
+            ['urgent group message', 'gm_channel', Constants.GM_CHANNEL, PostPriority.URGENT, 'URGENT Group Message'],
             ['important channel message', 'channel_id', Constants.OPEN_CHANNEL, PostPriority.IMPORTANT, 'IMPORTANT message in Utopia'],
-            ['important direct message', 'channel_id', Constants.DM_CHANNEL, PostPriority.IMPORTANT, 'IMPORTANT Direct message'],
-            ['important group message', 'gm_channel', Constants.GM_CHANNEL, PostPriority.IMPORTANT, 'IMPORTANT Group message'],
+            ['important direct message', 'channel_id', Constants.DM_CHANNEL, PostPriority.IMPORTANT, 'IMPORTANT Direct Message'],
+            ['important group message', 'gm_channel', Constants.GM_CHANNEL, PostPriority.IMPORTANT, 'IMPORTANT Group Message'],
         ])('should notify user with priority title for %s', async (_name, channelId, channelType, priority, expectedTitle) => {
             post = {
                 ...post,

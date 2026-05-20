@@ -178,9 +178,9 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
 const getPriorityNotificationTitle = (priority: PostPriority | '' | undefined, channelType: Channel['type'] | undefined, channelTitle: string) => {
     if (priority === PostPriority.IMPORTANT) {
         if (channelType === Constants.DM_CHANNEL) {
-            return Utils.localizeMessage({id: 'notification.priority.important.dm', defaultMessage: 'IMPORTANT Direct message'});
+            return Utils.localizeMessage({id: 'notification.priority.important.dm', defaultMessage: 'IMPORTANT Direct Message'});
         } else if (channelType === Constants.GM_CHANNEL) {
-            return Utils.localizeMessage({id: 'notification.priority.important.gm', defaultMessage: 'IMPORTANT Group message'});
+            return Utils.localizeMessage({id: 'notification.priority.important.gm', defaultMessage: 'IMPORTANT Group Message'});
         }
 
         return Utils.localizeMessage(
@@ -191,9 +191,9 @@ const getPriorityNotificationTitle = (priority: PostPriority | '' | undefined, c
 
     if (priority === PostPriority.URGENT) {
         if (channelType === Constants.DM_CHANNEL) {
-            return Utils.localizeMessage({id: 'notification.priority.urgent.dm', defaultMessage: 'URGENT Direct message'});
+            return Utils.localizeMessage({id: 'notification.priority.urgent.dm', defaultMessage: 'URGENT Direct Message'});
         } else if (channelType === Constants.GM_CHANNEL) {
-            return Utils.localizeMessage({id: 'notification.priority.urgent.gm', defaultMessage: 'URGENT Group message'});
+            return Utils.localizeMessage({id: 'notification.priority.urgent.gm', defaultMessage: 'URGENT Group Message'});
         }
 
         return Utils.localizeMessage(

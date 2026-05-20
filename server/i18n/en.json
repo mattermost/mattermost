@@ -3276,11 +3276,11 @@
   },
   {
     "id": "api.push_notification.title.important_dm",
-    "translation": "IMPORTANT Direct message"
+    "translation": "IMPORTANT Direct Message"
   },
   {
     "id": "api.push_notification.title.important_gm",
-    "translation": "IMPORTANT Group message"
+    "translation": "IMPORTANT Group Message"
   },
   {
     "id": "api.push_notification.title.urgent_channel",
@@ -3288,11 +3288,11 @@
   },
   {
     "id": "api.push_notification.title.urgent_dm",
-    "translation": "URGENT Direct message"
+    "translation": "URGENT Direct Message"
   },
   {
     "id": "api.push_notification.title.urgent_gm",
-    "translation": "URGENT Group message"
+    "translation": "URGENT Group Message"
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
