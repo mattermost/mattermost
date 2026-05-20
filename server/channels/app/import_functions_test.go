@@ -4201,17 +4201,26 @@ func TestImportImportDirectChannel(t *testing.T) {
 		// scheme flags on participants, the resulting channel members must
 		// still default to SchemeUser=true so the client receives a usable
 		// role for the DM channel.
+		//
+		// Uses fresh users so there is no pre-existing channel and the
+		// participants are not skipped by the LastViewedAt freshness guard
+		// in importDirectChannel. That guarantees UpdateMultipleMembers is
+		// actually invoked with the import-built members, which is where
+		// the bug manifests.
+		dmUserA := th.CreateUser(t)
+		dmUserB := th.CreateUser(t)
+
 		data := imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
-				{Username: new(th.BasicUser.Username)},
-				{Username: new(th.BasicUser2.Username)},
+				{Username: new(dmUserA.Username)},
+				{Username: new(dmUserB.Username)},
 			},
 		}
 
 		appErr := th.App.importDirectChannel(th.Context, &data, false)
 		require.Nil(t, appErr)
 
-		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, dmUserA.Id, dmUserB.Id)
 		require.Nil(t, appErr)
 
 		members, appErr := th.App.GetChannelMembersPage(th.Context, channel.Id, 0, 100)
@@ -4227,18 +4236,23 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 	t.Run("Import a GM channel without scheme flags defaults SchemeUser to true", func(t *testing.T) {
 		// Regression test for MM-68914 covering the group channel path.
+		// Uses fresh users for the same reasons as the DM case above.
+		gmUserA := th.CreateUser(t)
+		gmUserB := th.CreateUser(t)
+		gmUserC := th.CreateUser(t)
+
 		data := imports.DirectChannelImportData{
 			Participants: []*imports.DirectChannelMemberImportData{
-				{Username: new(th.BasicUser.Username)},
-				{Username: new(th.BasicUser2.Username)},
-				{Username: new(user3.Username)},
+				{Username: new(gmUserA.Username)},
+				{Username: new(gmUserB.Username)},
+				{Username: new(gmUserC.Username)},
 			},
 		}
 
 		appErr := th.App.importDirectChannel(th.Context, &data, false)
 		require.Nil(t, appErr)
 
-		channel, appErr := th.App.GetGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		channel, appErr := th.App.GetGroupChannel(th.Context, []string{gmUserA.Id, gmUserB.Id, gmUserC.Id})
 		require.Nil(t, appErr)
 
 		members, appErr := th.App.GetChannelMembersPage(th.Context, channel.Id, 0, 100)
