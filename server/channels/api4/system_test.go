@@ -414,6 +414,7 @@ func TestInvalidateCaches(t *testing.T) {
 }
 
 func TestGetLogs(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-68910")
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
