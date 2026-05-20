@@ -53,9 +53,6 @@ const (
 	PropertyFieldObjectTypeTemplate = "template"
 
 	PropertyFieldObjectTypeSystem = "system"
-
-	// NOTE: Temporarily using this until CPA is migrated to v2
-	ClassificationMarkingsPropertyGroupName = "classification_markings"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.
