@@ -239,19 +239,68 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                 </div>,
             );
 
-            // Theme selection is managed by the administrator — only OS sync is available.
-            inputs.push(
-                <div
-                    key='themeLockedNotice'
-                    className='help-text'
-                    style={{marginBottom: '8px'}}
-                >
-                    <FormattedMessage
-                        id='user.settings.display.theme.adminManaged'
-                        defaultMessage='The colour theme is set by your administrator. You can choose whether it follows your OS dark/light mode above.'
-                    />
-                </div>,
-            );
+            // Theme pickers are shown only when OS sync is off.
+            if (!this.state.syncWithOS) {
+                if (this.props.allowCustomThemes) {
+                    inputs.push(
+                        <div
+                            key='premadeCustom'
+                            className='user-settings__radio-group-inline'
+                        >
+                            <div className='radio radio-inline'>
+                                <label>
+                                    <input
+                                        id='standardThemes'
+                                        type='radio'
+                                        name='theme'
+                                        checked={!displayCustom}
+                                        onChange={this.updateType.bind(this, 'premade')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.display.theme.premadeThemes'
+                                        defaultMessage='Premade Themes'
+                                    />
+                                </label>
+                            </div>
+                            <div className='radio radio-inline'>
+                                <label>
+                                    <input
+                                        id='customThemes'
+                                        type='radio'
+                                        name='theme'
+                                        checked={displayCustom}
+                                        onChange={this.updateType.bind(this, 'custom')}
+                                    />
+                                    <FormattedMessage
+                                        id='user.settings.display.theme.customTheme'
+                                        defaultMessage='Custom Theme'
+                                    />
+                                </label>
+                            </div>
+                        </div>,
+                    );
+
+                    inputs.push(premade, custom);
+
+                    inputs.push(
+                        <div key='otherThemes'>
+                            <br/>
+                            <ExternalLink
+                                id='otherThemes'
+                                href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
+                                location='user_settings_theme'
+                            >
+                                <FormattedMessage
+                                    id='user.settings.display.theme.otherThemes'
+                                    defaultMessage='See other themes'
+                                />
+                            </ExternalLink>
+                        </div>,
+                    );
+                } else {
+                    inputs.push(premade);
+                }
+            }
 
             let allTeamsCheckbox = null;
             if (this.state.showAllTeamsCheckbox && !this.state.syncWithOS) {
