@@ -1260,6 +1260,7 @@ func (s *apiRPCServer) ReceiveSharedChannelAttachmentSyncMsg(args *Z_ReceiveShar
 	defer dataReader.Close()
 
 	returns.A, returns.B = hook.ReceiveSharedChannelAttachmentSyncMsg(args.A, args.B, args.C, dataReader)
+	returns.B = encodableError(returns.B)
 	return nil
 }
 

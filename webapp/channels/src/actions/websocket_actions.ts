@@ -155,12 +155,11 @@ import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
 import {
-    GROUP_NAME,
-    OBJECT_TYPE,
-    TARGET_TYPE,
-    TARGET_ID,
-    LINKED_OBJECT_TYPE,
-    SYSTEM_FIELD_TARGET_ID,
+    CLASSIFICATIONS_GROUP_NAME,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+    CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_ID,
 } from 'components/admin_console/classification_markings/utils';
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
@@ -345,17 +344,22 @@ export function reconnect() {
     // Refresh classification fields and values on reconnect when the feature flag is active
     if (getFeatureFlagValue(state, 'ClassificationMarkings') === 'true') {
         dispatch(
-            fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID),
+            fetchPropertyFields(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
+            ),
         );
         dispatch(
             fetchPropertyFields(
-                GROUP_NAME,
-                LINKED_OBJECT_TYPE,
-                TARGET_TYPE,
-                SYSTEM_FIELD_TARGET_ID,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
             ),
         );
-        dispatch(fetchSystemPropertyValues(GROUP_NAME));
+        dispatch(fetchSystemPropertyValues(CLASSIFICATIONS_GROUP_NAME));
     }
 
     if (state.websocket.lastDisconnectAt) {
