@@ -56,29 +56,6 @@
             white-space: pre-wrap;
         }
 
-        ul,
-        ol {
-            p {
-                margin-bottom: 0;
-            }
-
-            li {
-                > span:has(> p + p) {
-                    display: block;
-                }
-
-                > span > p:only-child,
-                > span:has(> p:first-child:last-of-type + ul) > p:first-child,
-                > span:has(> p:first-child:last-of-type + ol) > p:first-child {
-                    display: inline;
-                }
-
-                > span:has(> p + p) > p + p {
-                    margin-top: 0.75em;
-                }
-            }
-        }
-
         ul + p,
         ol + p {
             margin-top: 0.6em;
@@ -1441,20 +1418,6 @@
             }
 
             li {
-                > span:has(> p + p) {
-                    display: block;
-                }
-
-                > span > p:only-child,
-                > span:has(> p:first-child:last-of-type + ul) > p:first-child,
-                > span:has(> p:first-child:last-of-type + ol) > p:first-child {
-                    display: inline;
-                }
-
-                > span:has(> p + p) > p + p {
-                    margin-top: 0.75em;
-                }
-
                 ul {
                     padding: 0 0 0 20px;
                     margin: 0;

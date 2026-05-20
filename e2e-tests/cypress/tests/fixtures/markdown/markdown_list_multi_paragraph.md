@@ -1,3 +1,0 @@
-- First paragraph
-
-  Second paragraph
