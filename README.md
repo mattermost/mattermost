@@ -2,55 +2,6 @@
 
 I just add OIDC Auth for LDAP/Keycloak support and will do fix some UI
 
-## Примечание по лицензированию Mattermost
-
-Mattermost использует гибридную модель лицензирования.
-
-Официальные собранные бинарные версии Mattermost, распространяемые Mattermost, Inc., могут использоваться в соответствии с условиями MIT-COMPILED-LICENSE.
-
-Однако модификация исходного кода Mattermost может подпадать под требования лицензии GNU AGPL v3.
-
-Требования AGPL могут применяться, если вы:
-
-- модифицируете исходный код Mattermost;
-- собираете и распространяете изменённую версию Mattermost;
-- предоставляете пользователям сетевой сервис на основе модифицированного Mattermost;
-- создаёте производную работу на основе core-компонентов Mattermost.
-
-В таких случаях исходный код модификаций может подлежать обязательному раскрытию в соответствии с условиями AGPLv3.
-
-Данный репозиторий не заявляет никаких прав на товарные знаки Mattermost.  
-“Mattermost” и связанные обозначения принадлежат Mattermost, Inc.
-
-Официальная информация:
-- https://mattermost.com/licensing/
-- https://mattermost.com/trademark-standards-of-use/
-
-## Mattermost Licensing Notes
-
-Mattermost uses a hybrid licensing model.
-
-Official compiled Mattermost binaries provided by Mattermost, Inc. can be used under the terms described in the MIT-COMPILED-LICENSE.
-
-However, modifications to the Mattermost source code may fall under the GNU AGPL v3 license obligations.
-
-AGPL obligations may apply if you:
-
-- modify Mattermost source code;
-- build and distribute a modified Mattermost binary;
-- provide a modified Mattermost-based network service;
-- or create a derivative work based on Mattermost core components.
-
-In such cases, the corresponding modified source code may need to be made available under AGPLv3 terms.
-
-This repository does not claim ownership of Mattermost trademarks.  
-“Mattermost” and related marks belong to Mattermost, Inc.
-
-For official licensing details, see:
-- https://mattermost.com/licensing/
-- https://mattermost.com/trademark-standards-of-use/
-
-
 ## Docs
 If you need to install Docker Image:
 ```sh
@@ -146,3 +97,50 @@ Quick check after restart:
 docker compose logs -f --tail=100 mattermost-patched
 ```
 
+## Mattermost Licensing Notes
+
+Mattermost uses a hybrid licensing model.
+
+Official compiled Mattermost binaries provided by Mattermost, Inc. can be used under the terms described in the MIT-COMPILED-LICENSE.
+
+However, modifications to the Mattermost source code may fall under the GNU AGPL v3 license obligations.
+
+AGPL obligations may apply if you:
+
+- modify Mattermost source code;
+- build and distribute a modified Mattermost binary;
+- provide a modified Mattermost-based network service;
+- or create a derivative work based on Mattermost core components.
+
+In such cases, the corresponding modified source code may need to be made available under AGPLv3 terms.
+
+This repository does not claim ownership of Mattermost trademarks.  
+“Mattermost” and related marks belong to Mattermost, Inc.
+
+For official licensing details, see:
+- https://mattermost.com/licensing/
+- https://mattermost.com/trademark-standards-of-use/
+
+## Примечание по лицензированию Mattermost
+
+Mattermost использует гибридную модель лицензирования.
+
+Официальные собранные бинарные версии Mattermost, распространяемые Mattermost, Inc., могут использоваться в соответствии с условиями MIT-COMPILED-LICENSE.
+
+Однако модификация исходного кода Mattermost может подпадать под требования лицензии GNU AGPL v3.
+
+Требования AGPL могут применяться, если вы:
+
+- модифицируете исходный код Mattermost;
+- собираете и распространяете изменённую версию Mattermost;
+- предоставляете пользователям сетевой сервис на основе модифицированного Mattermost;
+- создаёте производную работу на основе core-компонентов Mattermost.
+
+В таких случаях исходный код модификаций может подлежать обязательному раскрытию в соответствии с условиями AGPLv3.
+
+Данный репозиторий не заявляет никаких прав на товарные знаки Mattermost.  
+“Mattermost” и связанные обозначения принадлежат Mattermost, Inc.
+
+Официальная информация:
+- https://mattermost.com/licensing/
+- https://mattermost.com/trademark-standards-of-use/
