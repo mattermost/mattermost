@@ -191,6 +191,32 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
         );
     }
 
+    // In "all policies" mode, the fail-secure path produces
+    // Decision=false with a no_applicable_* blame when the action is
+    // governed but the subject's role doesn't match. Render the same
+    // neutral "doesn't apply" pill rather than a hard "Denied" chip so
+    // the UX stays consistent regardless of evaluation scope.
+    if (hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE) ||
+        hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY)) {
+        const source = hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE) ?
+            POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE :
+            POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY;
+        return (
+            <span
+                className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
+                data-testid={source === POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_RULE ?
+                    'simulate-access-row-chip-not-applicable-rule' :
+                    'simulate-access-row-chip-not-applicable'}
+            >
+                <MinusCircleOutlineIcon
+                    size={ICON_SIZE}
+                    className='SimulateAccessModal__rowChipIcon'
+                />
+                <FormattedMessage {...blameSourceMessages[source]}/>
+            </span>
+        );
+    }
+
     const blame = pickPrimaryDenyBlame(decision.blame);
     const blameLabel = blame ? blameSourceLabel(blame, formatMessage) : '';
 

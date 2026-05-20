@@ -528,14 +528,11 @@ type PolicySimulationUserOverride struct {
 const (
 	// PolicyEvaluationScopeThisRule evaluates ONLY the rule the author is
 	// editing — sibling rules in the same policy, system permission
-	// policies, and any other peer policies are excluded. This is the
-	// authoring-time "what does this rule alone do?" view: useful for
-	// iterating on a single rule's expression without other rules
-	// shadowing or compensating for it. Parent inheritance is still
-	// honoured (engine.GetScopedRule returns child∧parent), so the
-	// preview reflects what the rule would do at evaluation time, just
-	// without the sibling rules' contribution. Default when the request
-	// omits EvaluationScope.
+	// policies, imported parent policies, and any other peer policies are
+	// excluded. This is the authoring-time "what does this rule alone do?"
+	// view: useful for iterating on a single rule's expression without
+	// other rules shadowing or compensating for it. Default when the
+	// request omits EvaluationScope.
 	PolicyEvaluationScopeThisRule = "this_rule"
 	// PolicyEvaluationScopeAll co-evaluates every contributing program —
 	// the entire draft policy (all rules), persisted system permission

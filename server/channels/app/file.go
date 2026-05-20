@@ -1628,25 +1628,28 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) (*model.
 // backing array, so the caller's cached Subject is not mutated.
 //
 // Errors from GetSubjectChannelRole (e.g. transient channel-member store
-// failures) are surfaced as a structured warn log; the channel-scope role
-// is then left empty. This is safe to keep as a soft failure because the
-// resource-policy evaluator now fails secure on a missing channel role
-// when the policy governs the requested action (PolicyGovernsAction in
-// the engine cache). Without that downstream guard, swallowing the error
-// here would let a DB blip turn into an ABAC bypass — the log surface is
-// kept so operators can still detect the underlying infra issue.
-func (a *App) attachChannelScopedRole(rctx request.CTX, subject model.Subject, userID, channelID string) model.Subject {
+// failures) are propagated as an AppError. Callers MUST treat the error as
+// a denial — a transient DB blip is distinguishable from "no channel role"
+// (legitimate non-member), and conflating the two could let infra hiccups
+// silently degrade ABAC enforcement even with the downstream
+// PolicyGovernsAction fail-secure in place. Defense in depth: both layers
+// should fail closed independently. Callers should NOT stamp an empty
+// channel role in the error path — Subject is returned unchanged so the
+// caller can use it for logging without leaking a partially populated
+// scope onto downstream evaluators.
+func (a *App) attachChannelScopedRole(rctx request.CTX, subject model.Subject, userID, channelID string) (model.Subject, *model.AppError) {
 	channelRole, appErr := a.GetSubjectChannelRole(rctx, userID, channelID)
 	if appErr != nil {
 		rctx.Logger().Warn(
-			"Failed to resolve channel-scoped role for ABAC subject; treating as no channel role (resource-lane fail-secure will apply when the policy governs the action)",
+			"Failed to resolve channel-scoped role for ABAC subject; treating as denial (transient lookup failure must not silently bypass ABAC)",
 			mlog.String("user_id", userID),
 			mlog.String("channel_id", channelID),
 			mlog.Err(appErr),
 		)
+		return subject, appErr
 	}
 	subject.SetScopedRole(model.AccessControlSubjectScopeChannel, channelRole)
-	return subject
+	return subject, nil
 }
 
 // hasFileDownloadPermission evaluates the ABAC download_file_attachment policy
@@ -1662,7 +1665,14 @@ func (a *App) hasFileDownloadPermission(rctx request.CTX, userID string, channel
 		return true
 	}
 
-	subjectForChannel := a.attachChannelScopedRole(rctx, *subject, userID, channelID)
+	subjectForChannel, attachErr := a.attachChannelScopedRole(rctx, *subject, userID, channelID)
+	if attachErr != nil {
+		// Channel-role lookup failed (e.g. transient ChannelMember store
+		// error). Fail-secure: refuse access rather than evaluating against
+		// a subject missing its channel scope. The warn log was already
+		// emitted by attachChannelScopedRole.
+		return false
+	}
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
 		Subject:  subjectForChannel,
 		Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},

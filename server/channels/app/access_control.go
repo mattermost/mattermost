@@ -2145,11 +2145,33 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) 
 		return model.ChannelUserRoleId, nil
 	}
 
-	for token := range strings.FieldsSeq(cm.Roles) {
-		switch token {
-		case model.ChannelAdminRoleId, model.ChannelUserRoleId, model.ChannelGuestRoleId:
-			return token, nil
-		}
+	// Inspect the Roles tokens deterministically rather than returning
+	// whichever recognised token appears first in the space-separated
+	// string. The legacy first-match-wins behaviour silently downgraded
+	// a channel admin whose Roles happened to list
+	// `channel_user channel_admin` (in either order, depending on how
+	// the row was migrated).
+	//
+	// channel_admin is checked first because admin and user tokens
+	// STACK on legacy rows — a promoted member carries both. Picking
+	// admin when present matches the stacked-token reality.
+	//
+	// channel_guest is a separate lane: it represents an external
+	// guest account, NOT a lower rung of the admin/user hierarchy.
+	// In healthy data it never co-occurs with channel_user /
+	// channel_admin (the SchemeGuest switch case above handles the
+	// modern path), so checking it after the stacked-pair tokens is
+	// purely defensive — only reached when SchemeGuest wasn't set
+	// and `channel_guest` is the sole recognised token in the row.
+	tokens := strings.Fields(cm.Roles)
+	if slices.Contains(tokens, model.ChannelAdminRoleId) {
+		return model.ChannelAdminRoleId, nil
+	}
+	if slices.Contains(tokens, model.ChannelUserRoleId) {
+		return model.ChannelUserRoleId, nil
+	}
+	if slices.Contains(tokens, model.ChannelGuestRoleId) {
+		return model.ChannelGuestRoleId, nil
 	}
 
 	// ChannelMember row exists but neither the scheme flags nor the
