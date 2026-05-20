@@ -36,7 +36,7 @@ const ChannelHeaderTitle = ({
     remoteNames,
 }: Props) => {
     const channel = useSelector(getCurrentChannel);
-    const overrideName = useChannelIconOverrideName(channel);
+    const overrideName = useChannelIconOverrideName(channel ?? undefined);
 
     if (!channel) {
         return null;

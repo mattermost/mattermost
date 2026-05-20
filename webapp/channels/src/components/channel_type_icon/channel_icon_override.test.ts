@@ -6,36 +6,13 @@ import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from 'types/store';
 import type {ChannelIconOverrideRegistration} from 'types/store/plugins';
 
-import {clearLoggedMatcherErrors, getAllChannelIconOverrideNames, getChannelIconClassNameForChannel, getChannelIconOverrideForChannel} from './channel_icon_override';
+import {clearLoggedMatcherErrors, getChannelIconClassNameForChannel, getChannelIconOverrideForChannel} from './channel_icon_override';
 
 function makeState(overrides: ChannelIconOverrideRegistration[] = []): GlobalState {
     return {
         plugins: {
             components: {
                 ChannelIconOverride: overrides,
-            },
-        },
-        entities: {
-            channels: {
-                channels: {},
-            },
-        },
-    } as unknown as GlobalState;
-}
-
-function makeStateWithChannels(
-    overrides: ChannelIconOverrideRegistration[],
-    channels: Record<string, Channel>,
-): GlobalState {
-    return {
-        plugins: {
-            components: {
-                ChannelIconOverride: overrides,
-            },
-        },
-        entities: {
-            channels: {
-                channels,
             },
         },
     } as unknown as GlobalState;
@@ -83,11 +60,6 @@ describe('selectors/getChannelIconClassNameForChannel', () => {
         it('returns icon-globe when channel is undefined', () => {
             const state = makeState();
             expect(getChannelIconClassNameForChannel(state, undefined)).toBe('icon-globe');
-        });
-
-        it('returns icon-globe when channel is null', () => {
-            const state = makeState();
-            expect(getChannelIconClassNameForChannel(state, null)).toBe('icon-globe');
         });
     });
 
@@ -272,11 +244,6 @@ describe('selectors/getChannelIconOverrideForChannel', () => {
             const state = makeState();
             expect(getChannelIconOverrideForChannel(state, undefined)).toBeNull();
         });
-
-        it('returns null when channel is null', () => {
-            const state = makeState();
-            expect(getChannelIconOverrideForChannel(state, null)).toBeNull();
-        });
     });
 
     describe('with overrides', () => {
@@ -368,159 +335,3 @@ describe('selectors/getChannelIconOverrideForChannel', () => {
     });
 });
 
-describe('selectors/getAllChannelIconOverrideNames', () => {
-    beforeEach(() => {
-        clearLoggedMatcherErrors();
-    });
-
-    it('reference equality on identical state', () => {
-        const channel = makeChannel({id: 'ch-1'});
-        const state = makeStateWithChannels(
-            [{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}],
-            {'ch-1': channel},
-        );
-        const result1 = getAllChannelIconOverrideNames(state);
-        const result2 = getAllChannelIconOverrideNames(state);
-        expect(result1).toBe(result2);
-    });
-
-    it('selector invalidation: changing channels ref returns fresh map', () => {
-        const channel = makeChannel({id: 'ch-1'});
-        const overrides = [{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}] as ChannelIconOverrideRegistration[];
-        const state1 = makeStateWithChannels(overrides, {'ch-1': channel});
-        const state2 = makeStateWithChannels(overrides, {'ch-1': channel});
-        const result1 = getAllChannelIconOverrideNames(state1);
-        const result2 = getAllChannelIconOverrideNames(state2);
-        expect(result1).not.toBe(result2);
-    });
-
-    it('selector invalidation: changing ChannelIconOverride ref returns fresh map', () => {
-        const channel = makeChannel({id: 'ch-1'});
-        const channels = {'ch-1': channel};
-        const state1 = makeStateWithChannels(
-            [{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}],
-            channels,
-        );
-        const state2 = makeStateWithChannels(
-            [{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}],
-            channels,
-        );
-        const result1 = getAllChannelIconOverrideNames(state1);
-        const result2 = getAllChannelIconOverrideNames(state2);
-        expect(result1).not.toBe(result2);
-    });
-
-    it('selector invalidation: changing irrelevant state slot returns fresh map', () => {
-        const channel = makeChannel({id: 'ch-1'});
-        const channels = {'ch-1': channel};
-        const overrides = [{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}] as ChannelIconOverrideRegistration[];
-        const state1 = {
-            ...makeStateWithChannels(overrides, channels),
-            entities: {channels: {channels}, users: {profiles: {}}},
-        } as unknown as GlobalState;
-        const state2 = {
-            ...makeStateWithChannels(overrides, channels),
-            entities: {channels: {channels}, users: {profiles: {extra: true}}},
-        } as unknown as GlobalState;
-        const result1 = getAllChannelIconOverrideNames(state1);
-        const result2 = getAllChannelIconOverrideNames(state2);
-        expect(result1).not.toBe(result2);
-    });
-
-    it('empty overrides fast path returns frozen shared ref for two different state refs', () => {
-        const channel = makeChannel({id: 'ch-1'});
-        const state1 = makeStateWithChannels([], {'ch-1': channel});
-        const state2 = makeStateWithChannels([], {'ch-2': makeChannel({id: 'ch-2'})});
-        const result1 = getAllChannelIconOverrideNames(state1);
-        const result2 = getAllChannelIconOverrideNames(state2);
-        expect(result1).toBe(result2);
-        expect(Object.isFrozen(result1)).toBe(true);
-    });
-
-    it('empty overrides fast path: undefined overrides returns same frozen shared ref as empty array', () => {
-        const channel = makeChannel({id: 'ch-1'});
-        const stateWithUndefinedOverrides = {
-            plugins: {
-                components: {
-                    ChannelIconOverride: undefined,
-                },
-            },
-            entities: {
-                channels: {
-                    channels: {'ch-1': channel},
-                },
-            },
-        } as unknown as GlobalState;
-        const stateWithEmptyOverrides = makeStateWithChannels([], {'ch-1': channel});
-        const result1 = getAllChannelIconOverrideNames(stateWithUndefinedOverrides);
-        const result2 = getAllChannelIconOverrideNames(stateWithEmptyOverrides);
-        expect(result1).toBe(result2);
-        expect(Object.isFrozen(result1)).toBe(true);
-    });
-
-    it('multi-channel iteration: only matching channels appear in result', () => {
-        const channelA = makeChannel({id: 'a'});
-        const channelB = makeChannel({id: 'b'});
-        const channelC = makeChannel({id: 'c'});
-        const state = makeStateWithChannels(
-            [{id: '1', pluginId: 'mbe', matcher: (_: GlobalState, ch: Channel) => ch.id === 'b', iconName: 'shield-outline'}],
-            {a: channelA, b: channelB, c: channelC},
-        );
-        const result = getAllChannelIconOverrideNames(state);
-        expect(result).toEqual({b: 'shield-outline'});
-    });
-
-    it('matcher receives full state', () => {
-        const channel = makeChannel({id: 'ch-1'});
-        let capturedState: GlobalState | undefined;
-        const matcher = jest.fn((s: GlobalState) => {
-            capturedState = s;
-            return false;
-        });
-        const state = makeStateWithChannels(
-            [{id: '1', pluginId: 'mbe', matcher, iconName: 'shield-outline'}],
-            {'ch-1': channel},
-        );
-        getAllChannelIconOverrideNames(state);
-        expect(capturedState).toBe(state);
-    });
-
-    it('wrapper uses cached-ref map path: second call does not invoke matcher again', () => {
-        const channel = makeChannel({id: 'ch-1'});
-        const matcher = jest.fn().mockReturnValue(true);
-        const state = makeStateWithChannels(
-            [{id: '1', pluginId: 'mbe', matcher, iconName: 'shield-outline'}],
-            {'ch-1': channel},
-        );
-        const result1 = getChannelIconOverrideForChannel(state, channel);
-        expect(result1).toBe('shield-outline');
-        const callCount = matcher.mock.calls.length;
-        const result2 = getChannelIconOverrideForChannel(state, channel);
-        expect(result2).toBe('shield-outline');
-        expect(matcher.mock.calls.length).toBe(callCount);
-    });
-
-    it('wrapper falls back to per-channel iteration for non-cached refs', () => {
-        const cachedX = makeChannel({id: 'x', display_name: 'cached'});
-        const synthetic = {...cachedX, display_name: 'synthetic'};
-        const matcher = jest.fn((_: GlobalState, ch: Channel) => ch.display_name === 'synthetic');
-        const state = makeStateWithChannels(
-            [{id: '1', pluginId: 'mbe', matcher, iconName: 'shield-outline'}],
-            {x: cachedX},
-        );
-        expect(getChannelIconOverrideForChannel(state, synthetic)).toBe('shield-outline');
-        expect(getChannelIconOverrideForChannel(state, cachedX)).toBeNull();
-    });
-
-    it('wrapper falls back for channels absent from the cache', () => {
-        const someChannel = makeChannel({id: 'absent'});
-        const matchingState = makeStateWithChannels(
-            [{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}],
-            {},
-        );
-        expect(getChannelIconOverrideForChannel(matchingState, someChannel)).toBe('shield-outline');
-
-        const noMatchState = makeStateWithChannels([], {});
-        expect(getChannelIconOverrideForChannel(noMatchState, someChannel)).toBeNull();
-    });
-});
