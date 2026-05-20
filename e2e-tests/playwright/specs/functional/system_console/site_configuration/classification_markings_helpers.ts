@@ -100,7 +100,10 @@ export async function setupClassificationField(
         target_type: TARGET_TYPE,
         target_id: '',
         attrs: {
-            options: levels.map((l) => ({id: l.id ?? '', name: l.name, color: l.color, rank: l.rank})),
+            // Send empty IDs and let the access_control hook auto-assign valid
+            // 26-char UUIDs. Caller-supplied synthetic IDs like 'lvl-secret'
+            // would fail IsValidId. Tests resolve back to real IDs via name.
+            options: levels.map((l) => ({id: '', name: l.name, color: l.color, rank: l.rank})),
         },
         permission_field: 'admin',
         permission_values: 'admin',
@@ -129,15 +132,25 @@ export async function setupClassificationFieldWithGlobalBanner(
     const enabled = bannerOpts.enabled ?? true;
 
     // Resolve the option ID for the requested level (only needed when enabled).
+    // bannerOpts.levelId is a synthetic test handle (e.g. 'lvl-secret'); the
+    // server assigned the real UUID. Translate synthetic → name → real ID.
     let optionId = '';
     if (enabled && bannerOpts.levelId) {
+        const requestedLevel = levels.find((l) => l.id === bannerOpts.levelId);
+        if (!requestedLevel) {
+            const known = levels.map((l) => `${l.id ?? '<empty>'} (${l.name})`).join(', ');
+            throw new Error(
+                `setupClassificationFieldWithGlobalBanner: unknown synthetic level ID "${bannerOpts.levelId}". ` +
+                    `Known: [${known}]`,
+            );
+        }
         const options = (templateField.attrs?.options ?? []) as Array<{id: string; name: string}>;
-        const matchedOption = options.find((o) => o.id === bannerOpts.levelId);
+        const matchedOption = options.find((o) => o.name === requestedLevel.name);
         if (!matchedOption) {
             const available = options.map((o) => `${o.name} (${o.id})`).join(', ');
             throw new Error(
-                `setupClassificationFieldWithGlobalBanner: unknown level ID "${bannerOpts.levelId}". ` +
-                    `Available options on template field ${templateField.id}: [${available}]`,
+                `setupClassificationFieldWithGlobalBanner: level "${requestedLevel.name}" not in template field ` +
+                    `${templateField.id}. Available: [${available}]`,
             );
         }
         optionId = matchedOption.id;
