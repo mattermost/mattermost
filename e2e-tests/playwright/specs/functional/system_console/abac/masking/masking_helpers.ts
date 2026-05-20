@@ -216,7 +216,7 @@ export async function searchPoliciesExpression(page: Page, term: string): Promis
  */
 export async function getPolicyIdFromURL(page: Page): Promise<string> {
     const url = page.url();
-    const editMatch = url.match(/edit_policy\/([A-Za-z0-9]+)/);
+    const editMatch = url.match(/edit_policy\/([A-Za-z0-9]{26})(?:[/?#]|$)/);
     if (editMatch) {
         return editMatch[1];
     }

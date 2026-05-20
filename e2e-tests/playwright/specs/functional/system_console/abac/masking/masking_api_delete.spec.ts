@@ -20,9 +20,11 @@ import {
 } from './masking_helpers';
 import {getStoredPolicyRuleExpressions, purgeFieldsByPrefix, setFieldAsSharedOnly} from './masking_db_setup';
 
+const fieldPrefix = 'MaskingAD';
+
 test.describe('Attribute-Value Masking - API Redaction and Delete', () => {
     test.beforeAll(async () => {
-        await purgeFieldsByPrefix('Masking');
+        await purgeFieldsByPrefix(fieldPrefix);
     });
 
     test('MM-68508-12: GET /policies/{id} does not leak raw CEL when values are masked', async ({pw}) => {
@@ -37,7 +39,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
@@ -103,7 +105,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
@@ -162,7 +164,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
@@ -231,7 +233,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
@@ -315,7 +317,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
@@ -340,9 +342,8 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', () => {
 
             // UI: Delete Policy button must be disabled when masked values present
             const deleteBtn = page.getByRole('button', {name: /^delete$/i}).last();
-            if (await deleteBtn.isVisible({timeout: 5000})) {
-                await expect(deleteBtn).toBeDisabled();
-            }
+            await expect(deleteBtn).toBeVisible({timeout: 5000});
+            await expect(deleteBtn).toBeDisabled();
 
             expect(policyId).toMatch(/^[A-Za-z0-9]{26}$/);
 
@@ -394,8 +395,8 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const programFieldName = `MaskingProgram_${pw.random.id()}`;
-            const clearanceFieldName = `MaskingClearance_${pw.random.id()}`;
+            const programFieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
+            const clearanceFieldName = `${fieldPrefix}Clear_${pw.random.id()}`;
             const programFieldId = await createMaskingTextField(adminClient, programFieldName);
             const clearanceFieldId = await createMaskingTextField(adminClient, clearanceFieldName);
             fieldIds.push(programFieldId, clearanceFieldId);
@@ -501,7 +502,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', () => {
             await enableUserManagedAttributes(adminClient);
             await enableMaskingFlag(adminClient);
 
-            const fieldName = `MaskingProgram_${pw.random.id()}`;
+            const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
