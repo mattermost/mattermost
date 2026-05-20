@@ -18,7 +18,13 @@ import {getChannelIconOverrideForChannel} from './channel_icon_override';
  * which handles override resolution and rendering. Use this hook only when you
  * need the raw icon name for an SVG render path (resolve via
  * `compassIconForName(name)` and render the resulting component).
+ *
+ * Matcher cost: the resolver iterates every registered matcher on every call. The
+ * framework does not memoize across dispatches because the matcher contract takes
+ * full Redux state and we cannot know what slices it reads. Plugins with expensive
+ * matchers should memoize internally using `createSelector` keyed on the slices
+ * the matcher actually consults.
  */
-export function useChannelIconOverrideName(channel?: Channel | null): IconGlyphTypes | null {
+export function useChannelIconOverrideName(channel?: Channel): IconGlyphTypes | null {
     return useSelector((state: GlobalState) => getChannelIconOverrideForChannel(state, channel));
 }

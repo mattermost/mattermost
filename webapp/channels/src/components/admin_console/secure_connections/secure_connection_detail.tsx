@@ -426,7 +426,7 @@ const TabsWrapper = styled.div`
 
 const ChannelIcon = ({channelId}: {channelId: string}) => {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
-    const overrideName = useChannelIconOverrideName(channel);
+    const overrideName = useChannelIconOverrideName(channel ?? undefined);
     const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
     const IconComponent = OverrideIcon ?? getChannelIconComponent(channel);
 
