@@ -1042,9 +1042,7 @@ func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*openg
 		res, err = client.Do(request)
 		if err != nil {
 			rctx.Logger().Warn("error fetching OG image data", mlog.Err(err))
-		}
-
-		if res != nil {
+		} else if res != nil {
 			body = res.Body
 			contentType = res.Header.Get("Content-Type")
 		}
