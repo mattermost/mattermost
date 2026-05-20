@@ -5959,6 +5959,10 @@
     "translation": "Failed to update flagged post status when undeleting flagged post "
   },
   {
+    "id": "app.data_spillage.keep_post.refetch.app_error",
+    "translation": "Failed to re-fetch the flagged post after restoring it."
+  },
+  {
     "id": "app.data_spillage.keep_post.undelete.app_error",
     "translation": "Failed to update post in database when attempting to undelete the flagged post and associated data."
   },

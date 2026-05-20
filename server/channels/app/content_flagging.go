@@ -908,6 +908,15 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		if rErr := a.Srv().Store().Post().RestoreContentFlaggedPost(flaggedPost, statusField.ID, contentFlaggingManagedField.ID); rErr != nil {
 			return model.NewAppError("KeepFlaggedPost", "app.data_spillage.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(rErr)
 		}
+
+		// Re-fetch from master so the in-memory post reflects the restored DeleteAt
+		// before we broadcast it on the websocket. Otherwise recipients receive a
+		// stale payload with DeleteAt > 0 and continue to hide the post.
+		refreshedPost, rErr := a.Srv().Store().Post().GetSingle(store.RequestContextWithMaster(rctx), flaggedPost.Id, false)
+		if rErr != nil {
+			return model.NewAppError("KeepFlaggedPost", "app.data_spillage.keep_post.refetch.app_error", nil, "", http.StatusInternalServerError).Wrap(rErr)
+		}
+		flaggedPost = refreshedPost
 	}
 
 	commentBytes, marshalErr := json.Marshal(actionRequest.Comment)
