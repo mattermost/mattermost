@@ -20,15 +20,14 @@ describe('Image Gallery', () => {
     before(() => {
         cy.apiInitSetup({loginAfter: true}).then((initData) => {
             team = initData.team;
-            Cypress.env('team', team);
         });
     });
 
     beforeEach(() => {
         // Create a unique channel for each test
-        cy.apiCreateChannel(Cypress.env('team').id, `test-channel-${Date.now()}`, 'Test Channel').then(({channel: newChannel}) => {
+        cy.apiCreateChannel(team.id, `test-channel-${Date.now()}`, 'Test Channel').then(({channel: newChannel}) => {
             channel = newChannel;
-            cy.visit(`/${Cypress.env('team').name}/channels/${channel.name}`);
+            cy.visit(`/${team.name}/channels/${channel.name}`);
             cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
             cy.get('#post_textbox', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
             interceptFileUpload();
