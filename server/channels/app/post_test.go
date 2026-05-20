@@ -2197,6 +2197,117 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
 		})
 	})
+
+	t.Run("preserves existing props when update has nil props", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		attachments := []any{map[string]any{
+			"text": "Click me",
+			"actions": []any{map[string]any{
+				"id":   "action1",
+				"name": "Button",
+				"integration": map[string]any{
+					"url": "http://example.com/action",
+				},
+			}},
+		}}
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsAttachments: attachments,
+			},
+		}
+
+		createdPost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		// Update with nil props — attachments should be preserved
+		updatePost := createdPost.Clone()
+		updatePost.Message = "edited message"
+		updatePost.Props = nil
+
+		updatedPost, _, err := th.App.UpdatePost(th.Context, updatePost, nil)
+		require.Nil(t, err)
+		assert.Equal(t, "edited message", updatedPost.Message)
+		assert.NotNil(t, updatedPost.GetProps()[model.PostPropsAttachments], "attachments should be preserved when props is nil in the update")
+	})
+
+	t.Run("merges new props with existing props on update", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		attachments := []any{map[string]any{
+			"text": "Click me",
+			"actions": []any{map[string]any{
+				"id":   "action1",
+				"name": "Button",
+				"integration": map[string]any{
+					"url": "http://example.com/action",
+				},
+			}},
+		}}
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsAttachments: attachments,
+				"custom_key":               "original_value",
+			},
+		}
+
+		createdPost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		// Update with new props — existing props should be merged, not replaced
+		updatePost := createdPost.Clone()
+		updatePost.Message = "edited message"
+		updatePost.Props = model.StringInterface{
+			"new_key": "new_value",
+		}
+
+		updatedPost, _, err := th.App.UpdatePost(th.Context, updatePost, nil)
+		require.Nil(t, err)
+		assert.Equal(t, "new_value", updatedPost.GetProps()["new_key"], "new prop should be present")
+		assert.NotNil(t, updatedPost.GetProps()[model.PostPropsAttachments], "attachments should be preserved after merge")
+	})
+
+	t.Run("SafeUpdate skips prop merging", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				"original_key": "original_value",
+			},
+		}
+
+		createdPost, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		// With SafeUpdate=true, props on the update are ignored
+		updatePost := createdPost.Clone()
+		updatePost.Message = "safely updated message"
+		updatePost.Props = model.StringInterface{
+			"new_key": "new_value",
+		}
+
+		safeUpdateOptions := &model.UpdatePostOptions{SafeUpdate: true}
+		updatedPost, _, err := th.App.UpdatePost(th.Context, updatePost, safeUpdateOptions)
+		require.Nil(t, err)
+		assert.Equal(t, "safely updated message", updatedPost.Message)
+		// SafeUpdate should not apply prop changes
+		assert.Nil(t, updatedPost.GetProps()["new_key"], "SafeUpdate should not apply prop updates")
+		assert.Equal(t, "original_value", updatedPost.GetProps()["original_key"], "original props should remain unchanged with SafeUpdate")
+	})
 }
 
 func TestSearchPostsForUser(t *testing.T) {
