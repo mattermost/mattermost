@@ -999,8 +999,7 @@ func (a *App) getLinkMetadataFromOEmbed(rctx request.CTX, requestURL string, pro
 	request.Header.Add("Accept", "application/json")
 	request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
 
-	client := a.HTTPService().MakeClient(false)
-	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+	client := a.makeLinkMetadataClient(rctx)
 
 	res, err := client.Do(request)
 	if err != nil {
@@ -1037,8 +1036,7 @@ func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*openg
 		request.Header.Add("Accept", "text/html;q=0.8")
 		request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
 
-		client := a.HTTPService().MakeClient(false)
-		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+		client := a.makeLinkMetadataClient(rctx)
 
 		var res *http.Response
 		res, err = client.Do(request)
@@ -1071,6 +1069,20 @@ func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*openg
 	og = model.TruncateOpenGraph(og) // remove unwanted length of texts
 
 	return og, image, err
+}
+
+func (a *App) makeLinkMetadataClient(rctx request.CTX) *http.Client {
+	client := a.HTTPService().MakeClient(false)
+	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if !a.isLinkAllowedForPreview(rctx, req.URL.String()) {
+			return fmt.Errorf("redirect target %q is disabled for link previews", req.URL.Redacted())
+		}
+
+		return nil
+	}
+
+	return client
 }
 
 // resolveMetadataURL resolves a given URL relative to the server's site URL.

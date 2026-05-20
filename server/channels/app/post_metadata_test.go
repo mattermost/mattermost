@@ -2269,6 +2269,8 @@ func TestGetLinkMetadata(t *testing.T) {
 					writeHTML("mixed")
 				}
 			}
+		} else if strings.HasPrefix(r.URL.Path, "/redirect") {
+			http.Redirect(w, r, params.Get("target"), http.StatusFound)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -2448,6 +2450,25 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.NotNil(t, og)
 		assert.Nil(t, img)
 		assert.NoError(t, err)
+	})
+
+	t.Run("should not get data when redirect target is restricted", func(t *testing.T) {
+		th := setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.RestrictLinkPreviews = "127.0.0.1"
+		})
+
+		require.Contains(t, server.URL, "127.0.0.1")
+		targetURL := strings.Replace(server.URL, "http://127.0.0.1", "http://@127.0.0.1", 1) + "/opengraph?title=RestrictedRedirect&name=" + t.Name()
+		requestURL := strings.Replace(server.URL, "127.0.0.1", "localhost", 1) + "/redirect?target=" + url.QueryEscape(targetURL)
+		timestamp := int64(1547510400000)
+
+		og, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, "")
+
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "disabled for link previews")
 	})
 
 	t.Run("should cache OpenGraph results", func(t *testing.T) {
