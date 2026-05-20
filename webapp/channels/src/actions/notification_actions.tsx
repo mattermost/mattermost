@@ -6,6 +6,7 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {logError} from 'mattermost-redux/actions/errors';
@@ -134,7 +135,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
             return {data: skipNotificationReason};
         }
 
-        const title = getNotificationTitle(channel, msgProps, isCrtReply);
+        const title = getNotificationTitle(channel, msgProps, isCrtReply, post);
         const body = getNotificationBody(state, post, msgProps);
 
         //Play a sound if explicitly set in settings
@@ -174,7 +175,37 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
     };
 }
 
-const getNotificationTitle = (channel: Pick<Channel, 'type' | 'display_name'>, msgProps: NewPostMessageProps, isCrtReply: boolean) => {
+const getPriorityNotificationTitle = (priority: PostPriority | '' | undefined, channelType: Channel['type'] | undefined, channelTitle: string) => {
+    if (priority === PostPriority.IMPORTANT) {
+        if (channelType === Constants.DM_CHANNEL) {
+            return Utils.localizeMessage({id: 'notification.priority.important.dm', defaultMessage: 'IMPORTANT Direct message'});
+        } else if (channelType === Constants.GM_CHANNEL) {
+            return Utils.localizeMessage({id: 'notification.priority.important.gm', defaultMessage: 'IMPORTANT Group message'});
+        }
+
+        return Utils.localizeMessage(
+            {id: 'notification.priority.important.channel', defaultMessage: 'IMPORTANT message in {channelName}'},
+            {channelName: channelTitle},
+        );
+    }
+
+    if (priority === PostPriority.URGENT) {
+        if (channelType === Constants.DM_CHANNEL) {
+            return Utils.localizeMessage({id: 'notification.priority.urgent.dm', defaultMessage: 'URGENT Direct message'});
+        } else if (channelType === Constants.GM_CHANNEL) {
+            return Utils.localizeMessage({id: 'notification.priority.urgent.gm', defaultMessage: 'URGENT Group message'});
+        }
+
+        return Utils.localizeMessage(
+            {id: 'notification.priority.urgent.channel', defaultMessage: 'URGENT message in {channelName}'},
+            {channelName: channelTitle},
+        );
+    }
+
+    return '';
+};
+
+const getNotificationTitle = (channel: Pick<Channel, 'type' | 'display_name'>, msgProps: NewPostMessageProps, isCrtReply: boolean, post: Post) => {
     let title = Utils.localizeMessage({id: 'channel_loader.title', defaultMessage: 'Posted'});
     if (channel.type === Constants.DM_CHANNEL) {
         title = Utils.localizeMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
@@ -192,6 +223,10 @@ const getNotificationTitle = (channel: Pick<Channel, 'type' | 'display_name'>, m
 
     if (isCrtReply) {
         title = Utils.localizeMessage({id: 'notification.crt', defaultMessage: 'Reply in {title}'}, {title});
+    }
+
+    if (!isCrtReply && !post.root_id) {
+        title = getPriorityNotificationTitle(post.metadata?.priority?.priority, channel.type || msgProps.channel_type, title) || title;
     }
 
     return title;

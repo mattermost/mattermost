@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {PostPriority} from '@mattermost/types/posts';
 import {MarkUnread} from 'mattermost-redux/constants/channels';
 
 import testConfigureStore from 'tests/test_store';
@@ -220,6 +221,59 @@ describe('notification_actions', () => {
                 expect(getHistory().push).toHaveBeenCalledWith('/team/channels/utopia');
                 expect(window.focus).toHaveBeenCalled();
                 window.focus = focus;
+            });
+        });
+
+        test.each([
+            ['urgent channel message', 'channel_id', Constants.OPEN_CHANNEL, PostPriority.URGENT, 'URGENT message in Utopia'],
+            ['urgent direct message', 'channel_id', Constants.DM_CHANNEL, PostPriority.URGENT, 'URGENT Direct message'],
+            ['urgent group message', 'gm_channel', Constants.GM_CHANNEL, PostPriority.URGENT, 'URGENT Group message'],
+            ['important channel message', 'channel_id', Constants.OPEN_CHANNEL, PostPriority.IMPORTANT, 'IMPORTANT message in Utopia'],
+            ['important direct message', 'channel_id', Constants.DM_CHANNEL, PostPriority.IMPORTANT, 'IMPORTANT Direct message'],
+            ['important group message', 'gm_channel', Constants.GM_CHANNEL, PostPriority.IMPORTANT, 'IMPORTANT Group message'],
+        ])('should notify user with priority title for %s', async (_name, channelId, channelType, priority, expectedTitle) => {
+            post = {
+                ...post,
+                root_id: '',
+                channel_id: channelId,
+                metadata: {
+                    priority: {
+                        priority,
+                    },
+                },
+            };
+            msgProps = {
+                ...msgProps,
+                post: JSON.stringify(post),
+                channel_type: channelType,
+            };
+            baseState.entities.channels.channels[channelId].type = channelType;
+
+            const store = testConfigureStore(baseState);
+
+            return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                    title: expectedTitle,
+                }));
+            });
+        });
+
+        test('should not use priority title for thread reply notifications', async () => {
+            post = {
+                ...post,
+                metadata: {
+                    priority: {
+                        priority: PostPriority.URGENT,
+                    },
+                },
+            };
+
+            const store = testConfigureStore(baseState);
+
+            return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                    title: 'Utopia',
+                }));
             });
         });
 
