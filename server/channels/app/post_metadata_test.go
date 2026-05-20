@@ -1312,7 +1312,7 @@ func TestGetImagesForPost(t *testing.T) {
 		th := Setup(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1,::1"
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 		})
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -2203,7 +2203,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		th := Setup(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1,::1"
 		})
 
 		err := platform.PurgeLinkCache()
