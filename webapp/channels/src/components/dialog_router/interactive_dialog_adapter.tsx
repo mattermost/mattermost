@@ -270,11 +270,23 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 }
             }
 
+            // Convert boolean values to string ("true"/"false") before submission
+            // to ensure consistent typing for plugins expecting map[string]string
+            const stringifiedSubmission: {[x: string]: string} = {};
+            for (const key of Object.keys(finalSubmission)) {
+                const val = finalSubmission[key];
+                if (typeof val === 'boolean') {
+                    stringifiedSubmission[key] = String(val);
+                } else {
+                    stringifiedSubmission[key] = val as string;
+                }
+            }
+
             const legacySubmission: DialogSubmission = {
                 url: this.props.url || '',
                 callback_id: this.props.callbackId || '',
                 state: dialogState, // Dialog state for multiform step tracking
-                submission: finalSubmission as {[x: string]: string},
+                submission: stringifiedSubmission,
                 user_id: '', // Populated by submitInteractiveDialog action
                 channel_id: '', // Populated by submitInteractiveDialog action
                 team_id: '', // Populated by submitInteractiveDialog action
