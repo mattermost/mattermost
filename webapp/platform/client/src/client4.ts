@@ -2749,6 +2749,13 @@ export default class Client4 {
         );
     };
 
+    doPostActionWithQuery = (postId: string, actionId: string, query: Record<string, string>) => {
+        return this.doFetch<PostActionResponse>(
+            `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
+            {method: 'post', body: JSON.stringify({query})},
+        );
+    };
+
     // Files Routes
 
     getFileUrl(fileId: string, timestamp: number) {
