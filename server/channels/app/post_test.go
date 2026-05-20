@@ -1009,7 +1009,7 @@ func TestCreatePost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "cactus/go-camo"
+			*cfg.ImageProxySettings.ImageProxyType = model.ImageProxyTypeCactusCamo
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})
@@ -1501,7 +1501,7 @@ func TestPatchPost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "cactus/go-camo"
+			*cfg.ImageProxySettings.ImageProxyType = model.ImageProxyTypeCactusCamo
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})
@@ -1956,7 +1956,7 @@ func TestUpdatePost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "cactus/go-camo"
+			*cfg.ImageProxySettings.ImageProxyType = model.ImageProxyTypeCactusCamo
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})

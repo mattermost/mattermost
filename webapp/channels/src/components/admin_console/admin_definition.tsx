@@ -1556,6 +1556,10 @@ const AdminDefinition: AdminDefinitionType = {
                                     value: 'local',
                                     display_name: defineMessage({id: 'local', defaultMessage: 'local'}),
                                 },
+                                {
+                                    value: 'atmos/camo',
+                                    display_name: defineMessage({id: 'atmos/go-camo', defaultMessage: 'atmos/camo (deprecated — please migrate to cactus/go-camo)'}),
+                                },
                             ],
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.IMAGE_PROXY)),

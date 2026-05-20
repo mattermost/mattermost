@@ -49,7 +49,7 @@ func TestGetImage(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ImageProxySettings.Enable = new(true)
-			cfg.ImageProxySettings.ImageProxyType = new("cactus/go-camo")
+			cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeCactusCamo)
 			cfg.ImageProxySettings.RemoteImageProxyOptions = new("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac")
 			cfg.ImageProxySettings.RemoteImageProxyURL = new("https://proxy.foo.bar")
 		})
