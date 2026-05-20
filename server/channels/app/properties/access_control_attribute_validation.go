@@ -161,7 +161,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
 	}
 	var options model.PropertyOptions[*model.CustomProfileAttributesSelectOption]
-	if err := json.Unmarshal(data, &options); err != nil {
+	if err = json.Unmarshal(data, &options); err != nil {
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
 	}
 
@@ -170,7 +170,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 			options[i].ID = model.NewId()
 		}
 	}
-	if err := options.IsValid(); err != nil {
+	if err = options.IsValid(); err != nil {
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
 	}
 
@@ -179,7 +179,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
 	}
 	var canonical []any
-	if err := json.Unmarshal(normalized, &canonical); err != nil {
+	if err = json.Unmarshal(normalized, &canonical); err != nil {
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
 	}
 	field.Attrs[model.PropertyFieldAttributeOptions] = canonical
