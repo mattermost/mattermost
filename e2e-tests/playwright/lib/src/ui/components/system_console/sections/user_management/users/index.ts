@@ -117,7 +117,17 @@ export default class Users {
      * Search for users by typing in the search input
      */
     async searchUsers(searchTerm: string) {
+        const responsePromise = this.page.waitForResponse(
+            (response) =>
+                response.url().includes('/api/v4/reports/users') &&
+                !response.url().includes('/count') &&
+                response.request().method() === 'GET' &&
+                response.ok(),
+            {timeout: 30_000},
+        );
         await this.searchInput.fill(searchTerm);
+        // SystemUsersSearch debounces dispatch by 500ms before fetching.
+        await responsePromise.catch(() => {});
         await this.isLoadingComplete();
     }
 

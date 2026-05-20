@@ -110,10 +110,38 @@ export class UsersTable {
 
         // Wait for table to stabilize
         await this.waitForLoadingComplete();
+        await this.waitForUsersReportReload();
 
         // Return the new sort direction
         const newSort = await header.getAttribute('aria-sort');
         return (newSort as 'ascending' | 'descending' | 'none') ?? 'none';
+    }
+
+    /**
+     * Read all visible email cells in one pass (avoids torn reads while the table re-renders).
+     */
+    async getVisibleEmails(): Promise<string[]> {
+        const texts = await this.bodyRows.locator('.emailColumn').allTextContents();
+        return texts.map((text) => text.trim()).filter(Boolean);
+    }
+
+    /**
+     * Wait for the users report GET (sort/search) to finish.
+     */
+    async waitForUsersReportReload() {
+        await this.container
+            .page()
+            .waitForResponse(
+                (response) =>
+                    response.url().includes('/api/v4/reports/users') &&
+                    !response.url().includes('/count') &&
+                    response.request().method() === 'GET' &&
+                    response.ok(),
+                {timeout: 30_000},
+            )
+            .catch(() => {
+                // Fast cached responses may complete before the listener attaches.
+            });
     }
 
     /**
