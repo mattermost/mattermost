@@ -21,6 +21,7 @@ import (
 func TestRevokeSessionsFromAllUsersInvalidatesWebConnSession(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
+	defer th.TearDown()
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
