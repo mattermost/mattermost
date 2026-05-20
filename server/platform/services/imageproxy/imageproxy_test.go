@@ -120,9 +120,9 @@ func TestGetUnproxiedImageURL(t *testing.T) {
 
 func TestOnConfigChange(t *testing.T) {
 	t.Run("should switch between backends", func(t *testing.T) {
-		proxy := makeTestAtmosCamoProxy()
+		proxy := makeTestCactusGoCamoProxy()
 
-		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*AtmosCamoBackend).siteURL.String())
+		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*CactusGoCamoBackend).siteURL.String())
 
 		newConfig := proxy.ConfigService.Config().Clone()
 		newConfig.ImageProxySettings.ImageProxyType = model.NewPointer(model.ImageProxyTypeLocal)
@@ -132,11 +132,11 @@ func TestOnConfigChange(t *testing.T) {
 		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*LocalBackend).baseURL.String())
 
 		newConfig = proxy.ConfigService.Config().Clone()
-		newConfig.ImageProxySettings.ImageProxyType = model.NewPointer(model.ImageProxyTypeAtmosCamo)
+		newConfig.ImageProxySettings.ImageProxyType = model.NewPointer(model.ImageProxyTypeCactusCamo)
 
 		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
 
-		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*AtmosCamoBackend).siteURL.String())
+		require.Equal(t, "https://mattermost.example.com", proxy.backend.(*CactusGoCamoBackend).siteURL.String())
 	})
 
 	t.Run("for local proxy, should update site URL when that changes", func(t *testing.T) {
