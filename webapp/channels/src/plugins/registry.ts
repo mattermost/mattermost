@@ -28,7 +28,6 @@ import {
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
 import {clearLoggedDecoratorErrors} from 'selectors/channel_decorator';
-import {clearLoggedMatcherErrors} from 'selectors/channel_icon_override';
 import store from 'stores/redux_store';
 
 import {compassIconForName} from 'components/channel_type_icon';
