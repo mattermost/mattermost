@@ -5955,12 +5955,12 @@
     "translation": "Failed to marshal reviewer comment"
   },
   {
-    "id": "app.data_spillage.keep_post.status_update.app_error",
-    "translation": "Failed to update flagged post status when undeleting flagged post "
-  },
-  {
     "id": "app.data_spillage.keep_post.refetch.app_error",
     "translation": "Failed to re-fetch the flagged post after restoring it."
+  },
+  {
+    "id": "app.data_spillage.keep_post.status_update.app_error",
+    "translation": "Failed to update flagged post status when undeleting flagged post "
   },
   {
     "id": "app.data_spillage.keep_post.undelete.app_error",
