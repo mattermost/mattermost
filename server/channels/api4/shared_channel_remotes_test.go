@@ -147,3 +147,41 @@ func TestGetSharedChannelRemotes_ReturnsEmptyForNonSharedChannel(t *testing.T) {
 	require.NotNil(t, result)
 	require.Empty(t, result)
 }
+
+func TestGetSharedChannelRemotes_ReturnsEmptyForStaleSharedChannelRemote(t *testing.T) {
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	require.NoError(t, th.App.Srv().Store().Channel().SetShared(channel.Id, true))
+
+	remote, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "stale-remote",
+		DisplayName: "Stale Remote",
+		SiteURL:     "http://stale.example.com",
+		CreatorId:   th.BasicUser.Id,
+		Token:       model.NewId(),
+		LastPingAt:  model.GetMillis(),
+	})
+	require.Nil(t, appErr)
+
+	_, err := th.App.Srv().Store().SharedChannel().SaveRemote(&model.SharedChannelRemote{
+		ChannelId:         channel.Id,
+		RemoteId:          remote.RemoteId,
+		CreatorId:         th.BasicUser.Id,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: true,
+	})
+	require.NoError(t, err)
+
+	url := fmt.Sprintf("/sharedchannels/%s/remotes", channel.Id)
+	resp, err := th.Client.DoAPIGet(context.Background(), url, "")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var result []*model.RemoteClusterInfo
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+
+	require.NotNil(t, result)
+	require.Empty(t, result)
+}
