@@ -43,7 +43,7 @@ const messages = defineMessages({
 });
 
 function getSearchWords(searchTerm: string) {
-    return searchTerm.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    return searchTerm.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 }
 
 function channelMatchesSearchTerm(channel: Channel, searchTerm: string) {

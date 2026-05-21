@@ -279,6 +279,47 @@ describe('InvitationModal', () => {
         expect(guestChannels).toEqual([nativeMobileChannel]);
     });
 
+    it('matches invitable channels using fuzzy word prefixes for non-ASCII names', async () => {
+        const greekChannel = TestHelper.getChannelMock({
+            id: 'greek-channel',
+            display_name: 'Ελληνικά Συζήτηση',
+            name: 'greek-discussion',
+        });
+        const marketingChannel = TestHelper.getChannelMock({
+            id: 'marketing-channel',
+            display_name: 'Marketing',
+            name: 'marketing',
+        });
+
+        props = {
+            ...props,
+            invitableChannels: [greekChannel, marketingChannel],
+        };
+
+        const ref = React.createRef<InvitationModal>();
+
+        renderWithContext(
+            <InvitationModal
+                {...props}
+                ref={ref}
+            />,
+            state,
+        );
+
+        act(() => {
+            ref.current!.setState({
+                invite: {
+                    ...ref.current!.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
+        });
+
+        const guestChannels = await ref.current!.channelsLoader('ελλην συζ');
+
+        expect(guestChannels).toEqual([greekChannel]);
+    });
+
     it('returns server channel search results for guest invites', async () => {
         const nativeMobileChannel = TestHelper.getChannelMock({
             id: 'native-mobile-channel',
