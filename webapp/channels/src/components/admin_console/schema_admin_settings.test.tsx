@@ -605,6 +605,123 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(radioButtons.length).toBeGreaterThan(0);
     });
 
+    test('button with sourceConfig forwards the pending in-form config to the action', async () => {
+        const action = jest.fn();
+        const buttonSchema = {
+            id: 'TestButtonConfig',
+            name: 'test_button_config',
+            name_default: 'Test Button Config',
+            settings: [
+                {
+                    key: 'FileSettings.AmazonS3AccessKeyId',
+                    label: 'access-key-label',
+                    label_default: 'Access Key',
+                    type: 'text',
+                    default: '',
+                },
+                {
+                    key: 'TestS3',
+                    label: 'test-s3-button',
+                    label_default: 'Test Connection',
+                    type: 'button',
+                    action,
+                    sourceConfig: true,
+                    skipSaveNeeded: true,
+                    error_message: 'admin.test.fail',
+                    error_message_default: 'fail: {error}',
+                },
+            ],
+        } as unknown as AdminDefinitionSubSectionSchema;
+
+        const initialConfig = {
+            FileSettings: {
+                AmazonS3AccessKeyId: 'saved-key',
+            },
+        } as Partial<AdminConfig>;
+
+        renderWithContext(
+            <SchemaAdminSettings
+                {...DefaultProps}
+                config={initialConfig}
+                environmentConfig={{}}
+                schema={buttonSchema}
+                patchConfig={jest.fn()}
+            />,
+        );
+
+        const input = screen.getByRole('textbox', {name: /access-key-label/i});
+        await userEvent.clear(input);
+        await userEvent.type(input, 'pending-key');
+
+        const button = screen.getByRole('button', {name: /test-s3-button/i});
+        await userEvent.click(button);
+
+        await waitFor(() => {
+            expect(action).toHaveBeenCalledTimes(1);
+        });
+
+        const sourceData = action.mock.calls[0][2];
+        expect(typeof sourceData).toBe('object');
+        expect(sourceData?.FileSettings?.AmazonS3AccessKeyId).toBe('pending-key');
+    });
+
+    test('button without sourceConfig forwards the sourceUrlKey state value as a string', async () => {
+        const action = jest.fn();
+        const buttonSchema = {
+            id: 'TestButtonUrl',
+            name: 'test_button_url',
+            name_default: 'Test Button Url',
+            settings: [
+                {
+                    key: 'ServiceSettings.SiteURL',
+                    label: 'site-url-label',
+                    label_default: 'Site URL',
+                    type: 'text',
+                    default: '',
+                },
+                {
+                    key: 'TestSiteURL',
+                    label: 'test-site-button',
+                    label_default: 'Test Live URL',
+                    type: 'button',
+                    action,
+                    skipSaveNeeded: true,
+                    error_message: 'admin.test.fail',
+                    error_message_default: 'fail: {error}',
+                },
+            ],
+        } as unknown as AdminDefinitionSubSectionSchema;
+
+        const initialConfig = {
+            ServiceSettings: {
+                SiteURL: 'http://saved.example',
+            },
+        } as Partial<AdminConfig>;
+
+        renderWithContext(
+            <SchemaAdminSettings
+                {...DefaultProps}
+                config={initialConfig}
+                environmentConfig={{}}
+                schema={buttonSchema}
+                patchConfig={jest.fn()}
+            />,
+        );
+
+        const input = screen.getByRole('textbox', {name: /site-url-label/i});
+        await userEvent.clear(input);
+        await userEvent.type(input, 'http://pending.example');
+
+        const button = screen.getByRole('button', {name: /test-site-button/i});
+        await userEvent.click(button);
+
+        await waitFor(() => {
+            expect(action).toHaveBeenCalledTimes(1);
+        });
+
+        expect(action.mock.calls[0][2]).toBe('http://pending.example');
+    });
+
     test('should call patchConfig on form submission', async () => {
         const mockPatchConfig = jest.fn(() => Promise.resolve({data: true}));
 

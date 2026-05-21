@@ -1,15 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import nock from 'nock';
 import React from 'react';
+
+import {Client4} from 'mattermost-redux/client';
 
 import * as Actions from 'actions/admin_actions.jsx';
 import configureStore from 'store';
+
+Client4.setUrl('http://localhost:8065');
 
 describe('Actions.Admin', () => {
     let store;
     beforeEach(async () => {
         store = await configureStore();
+        nock.cleanAll();
     });
 
     test('Register a plugin adds the plugin to the state', async () => {
@@ -66,5 +72,37 @@ describe('Actions.Admin', () => {
                     pluginId: 'plugin-id',
                     component: React.Component,
                 }}});
+    });
+
+    test('testS3Connection forwards the provided config to the server', async () => {
+        const config = {FileSettings: {AmazonS3AccessKeyId: 'pending-key', AmazonS3SecretAccessKey: 'pending-secret'}};
+        const success = jest.fn();
+        const error = jest.fn();
+
+        const scope = nock(Client4.getBaseRoute()).
+            post('/file/s3_test', config).
+            reply(200, {status: 'OK'});
+
+        await Actions.testS3Connection(success, error, config);
+
+        expect(scope.isDone()).toBe(true);
+        expect(success).toHaveBeenCalled();
+        expect(error).not.toHaveBeenCalled();
+    });
+
+    test('testSmtp forwards the provided config to the server', async () => {
+        const config = {EmailSettings: {SMTPServer: 'smtp.pending.example', SMTPUsername: 'pending-user'}};
+        const success = jest.fn();
+        const error = jest.fn();
+
+        const scope = nock(Client4.getBaseRoute()).
+            post('/email/test', config).
+            reply(200, {status: 'OK'});
+
+        await Actions.testSmtp(success, error, config);
+
+        expect(scope.isDone()).toBe(true);
+        expect(success).toHaveBeenCalled();
+        expect(error).not.toHaveBeenCalled();
     });
 });
