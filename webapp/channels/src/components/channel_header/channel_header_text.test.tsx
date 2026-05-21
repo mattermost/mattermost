@@ -3,13 +3,22 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import * as modalActions from 'actions/views/modals';
+
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderText from './channel_header_text';
 
 describe('ChannelHeaderText', () => {
     const defaultTeamId = TestHelper.getTeamMock().id;
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
     test('should render channel header text when header exists for a channel', () => {
         const channel = TestHelper.getChannelMock({header: 'Test Header'});
@@ -66,33 +75,65 @@ describe('ChannelHeaderText', () => {
         expect(container.childNodes.length).toBe(0);
     });
 
-    test('should return null for DM channels without header', () => {
+    test('should show add header button for DM channels without header', () => {
         const channel = TestHelper.getChannelMock({type: 'D', header: ''});
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
             />,
         );
 
-        expect(container.childNodes.length).toBe(0);
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
     });
 
-    test('should return null for GM channels without header', () => {
+    test('should show add header button for GM channels without header', () => {
         const channel = TestHelper.getChannelMock({type: 'G', header: ''});
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
             />,
         );
 
-        expect(container.childNodes.length).toBe(0);
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
     });
 
-    test('should return null for public channels without header regardless of permissions', () => {
+    test('should return null for public channels without header when user lacks permissions', () => {
+        const channel = TestHelper.getChannelMock({
+            type: 'O',
+            header: '',
+        });
+
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+            {
+                entities: {
+                    channels: {
+                        channels: {
+                            [channel.id]: channel,
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            channel_user: {
+                                permissions: [],
+                            },
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+    });
+
+    test('should show add header button for public channels without header when user has permissions', () => {
         const channel = TestHelper.getChannelMock({
             type: 'O',
             header: '',
@@ -132,7 +173,7 @@ describe('ChannelHeaderText', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
@@ -140,6 +181,26 @@ describe('ChannelHeaderText', () => {
             state,
         );
 
-        expect(container.childNodes.length).toBe(0);
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
+    test('should open edit channel header modal when add header button is clicked', async () => {
+        const channel = TestHelper.getChannelMock({type: 'G', header: ''});
+        const openModal = jest.spyOn(modalActions, 'openModal');
+
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+        );
+
+        await userEvent.click(screen.getByText('Add a channel header'));
+
+        expect(openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel},
+        });
     });
 });
