@@ -362,23 +362,18 @@ describe('PluginRegistry — registerComposerPlaceholderSuffix', () => {
         expect(id.length).toBeGreaterThan(0);
     });
 
-    it('(c) unregisterComposerPlaceholderSuffix dispatches REMOVED_PLUGIN_COMPONENT_BY_ID removing the entry', () => {
-        const registry = new PluginRegistry(PLUGIN_ID);
-        const id = registry.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (encrypted)'});
-        expect(getSuffixes()).toHaveLength(1);
-
-        registry.unregisterComposerPlaceholderSuffix({id});
-        expect(getSuffixes()).toHaveLength(0);
-    });
-
-    it('(d) unregister is scoped to this plugin — other plugin entries survive', () => {
+    it('(c) REMOVED_WEBAPP_PLUGIN sweeps all suffix registrations for that plugin', () => {
         const registry = new PluginRegistry(PLUGIN_ID);
         const otherRegistry = new PluginRegistry('other_plugin');
 
-        const id = registry.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (a)'});
-        otherRegistry.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (b)'});
+        registry.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (a)'});
+        registry.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (b)'});
+        otherRegistry.registerComposerPlaceholderSuffix({matcher: () => true, text: ' (c)'});
 
-        registry.unregisterComposerPlaceholderSuffix({id});
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
 
         const suffixes = getSuffixes();
         expect(suffixes).toHaveLength(1);
