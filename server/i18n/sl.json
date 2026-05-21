@@ -12659,5 +12659,457 @@
   {
     "id": "web.error.unsupported_desktop_app.download_button",
     "translation": ""
+  },
+  {
+    "id": "app.create_basic_user.save_member.conflict.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.extract.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": ""
+  },
+  {
+    "id": "web.incoming_webhook.parse_multipart.app_error",
+    "translation": ""
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": ""
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": ""
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": ""
+  },
+  {
+    "id": "api.invalid_channel",
+    "translation": ""
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": ""
+  },
+  {
+    "id": "api.license.request_trial_license.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.no_license",
+    "translation": ""
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.install_marketplace_plugin.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.recover.save.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": ""
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.create_initial_sidebar_categories.internal_error",
+    "translation": ""
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.user.update.finding.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.remove_bundle.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.terms_of_service.get.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.job.save.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": ""
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": ""
+  },
+  {
+    "id": "app.team.permanentdeleteteam.internal_error",
+    "translation": ""
+  },
+  {
+    "id": "app.user.get_new_users.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.role.get_by_name.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.elasticsearch.start.parse_server_version.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.command.deletecommand.internal_error",
+    "translation": ""
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.role.get_by_names.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.invalid_version.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": ""
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.job.unable_to_download_job",
+    "translation": ""
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": ""
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": ""
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.email.rate_limit_exceeded.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": ""
+  },
+  {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": ""
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": ""
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": ""
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.emoji.get_by_name.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": ""
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": ""
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": ""
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_make_default",
+    "translation": ""
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": ""
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.error",
+    "translation": ""
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.job.update.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.oauth.remove_access_data.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": ""
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": ""
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.internal_error",
+    "translation": ""
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.post.delete.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.marketplace_client.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.marketplace_client.failed_to_fetch",
+    "translation": ""
+  },
+  {
+    "id": "app.system.permanent_delete_by_name.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.job.error",
+    "translation": ""
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.upload.upload_data.move_file.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.post.is_valid.hashtags.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
+    "translation": ""
+  },
+  {
+    "id": "app.reaction.bulk_get_for_post_ids.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.role.save.invalid_role.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.update_error",
+    "translation": ""
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.restart.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": ""
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": ""
+  },
+  {
+    "id": "app.group.id.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": ""
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": ""
+  },
+  {
+    "id": "web.incoming_webhook.parse_form.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.templates.remove_expired_license.subject",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.import.import_user_teams.save_preferences.error",
+    "translation": ""
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": ""
+  },
+  {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": ""
   }
 ]
