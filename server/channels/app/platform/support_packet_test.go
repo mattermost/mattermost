@@ -273,6 +273,12 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusDisabled, d.ElasticSearch.Status)
 		assert.Empty(t, d.ElasticSearch.ServerVersion)
 		assert.Empty(t, d.ElasticSearch.ServerPlugins)
+
+		/* OAuth Providers (all disabled by default) */
+		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.GitLab.Status)
+		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Google.Status)
+		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Office365.Status)
+		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.OpenID.Status)
 	})
 
 	t.Run("filestore fails", func(t *testing.T) {
@@ -822,6 +828,171 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		assert.Equal(t, model.StatusFail, packet.Notifications.Email.Status)
 		assert.NotEmpty(t, packet.Notifications.Email.Error)
+	})
+
+	t.Run("OpenID disabled", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = model.NewPointer(false)
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusDisabled, packet.OAuthProviders.OpenID.Status)
+		assert.Empty(t, packet.OAuthProviders.OpenID.Error)
+	})
+
+	t.Run("OpenID reachable via discovery endpoint", func(t *testing.T) {
+		idp := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			require.Equal(t, "/.well-known/openid-configuration", r.URL.Path)
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"issuer":"https://idp.example.com","authorization_endpoint":"https://idp.example.com/auth"}`))
+		}))
+		defer idp.Close()
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = model.NewPointer(true)
+			cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer(idp.URL + "/.well-known/openid-configuration")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.OpenIdSettings.Enable = model.NewPointer(false)
+				cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer("")
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusOk, packet.OAuthProviders.OpenID.Status)
+		assert.Empty(t, packet.OAuthProviders.OpenID.Error)
+	})
+
+	t.Run("OpenID discovery endpoint returns invalid JSON", func(t *testing.T) {
+		idp := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`not-json`))
+		}))
+		defer idp.Close()
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = model.NewPointer(true)
+			cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer(idp.URL + "/.well-known/openid-configuration")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.OpenIdSettings.Enable = model.NewPointer(false)
+				cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer("")
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.OAuthProviders.OpenID.Status)
+		assert.Contains(t, packet.OAuthProviders.OpenID.Error, "valid JSON")
+	})
+
+	t.Run("OpenID discovery endpoint missing issuer field", func(t *testing.T) {
+		idp := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"authorization_endpoint":"https://idp.example.com/auth"}`))
+		}))
+		defer idp.Close()
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = model.NewPointer(true)
+			cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer(idp.URL + "/.well-known/openid-configuration")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.OpenIdSettings.Enable = model.NewPointer(false)
+				cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer("")
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.OAuthProviders.OpenID.Status)
+		assert.Contains(t, packet.OAuthProviders.OpenID.Error, "issuer")
+	})
+
+	t.Run("OpenID discovery endpoint unreachable", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = model.NewPointer(true)
+			cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer("http://127.0.0.1:1/.well-known/openid-configuration")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.OpenIdSettings.Enable = model.NewPointer(false)
+				cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer("")
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.OAuthProviders.OpenID.Status)
+		assert.NotEmpty(t, packet.OAuthProviders.OpenID.Error)
+	})
+
+	t.Run("GitLab enabled with reachable token endpoint", func(t *testing.T) {
+		// GitLab has no DiscoveryEndpoint by default, so we fall through to the
+		// TokenEndpoint host probe. Token endpoints reject GETs, so any HTTP
+		// response (including 4xx/5xx) is treated as reachable.
+		idp := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}))
+		defer idp.Close()
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = model.NewPointer(true)
+			cfg.GitLabSettings.DiscoveryEndpoint = model.NewPointer("")
+			cfg.GitLabSettings.TokenEndpoint = model.NewPointer(idp.URL + "/oauth/token")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.GitLabSettings.Enable = model.NewPointer(false)
+				cfg.GitLabSettings.TokenEndpoint = model.NewPointer("")
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusOk, packet.OAuthProviders.GitLab.Status)
+		assert.Empty(t, packet.OAuthProviders.GitLab.Error)
+	})
+
+	t.Run("GitLab enabled with unreachable token endpoint", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = model.NewPointer(true)
+			cfg.GitLabSettings.DiscoveryEndpoint = model.NewPointer("")
+			cfg.GitLabSettings.TokenEndpoint = model.NewPointer("http://127.0.0.1:1/oauth/token")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.GitLabSettings.Enable = model.NewPointer(false)
+				cfg.GitLabSettings.TokenEndpoint = model.NewPointer("")
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.OAuthProviders.GitLab.Status)
+		assert.NotEmpty(t, packet.OAuthProviders.GitLab.Error)
+	})
+
+	t.Run("GitLab enabled with no endpoints configured", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = model.NewPointer(true)
+			cfg.GitLabSettings.DiscoveryEndpoint = model.NewPointer("")
+			cfg.GitLabSettings.TokenEndpoint = model.NewPointer("")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.GitLabSettings.Enable = model.NewPointer(false)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.OAuthProviders.GitLab.Status)
+		assert.Contains(t, packet.OAuthProviders.GitLab.Error, "no discovery or token endpoint")
 	})
 }
 
