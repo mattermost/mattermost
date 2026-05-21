@@ -12,10 +12,10 @@ import {
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import {ActionTypes, RHSStates, Threads} from 'utils/constants';
+import {ActionTypes, RHSStates, Threads, PLATFORM_NOTIFICATION_ACTIVITY_MAX} from 'utils/constants';
 
 import type {MMAction} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
+import type {MentionRhsPanel, PlatformNotificationRecord, RhsState} from 'types/store/rhs';
 
 function selectedPostId(state = '', action: MMAction) {
     switch (action.type) {
@@ -423,6 +423,63 @@ function shouldFocusRHS(state = false, action: MMAction) {
     }
 }
 
+const DEFAULT_MENTION_RHS_PANEL: MentionRhsPanel = 'mentions';
+
+function mentionRhsPanel(state: MentionRhsPanel = DEFAULT_MENTION_RHS_PANEL, action: MMAction): MentionRhsPanel {
+    switch (action.type) {
+    case ActionTypes.SET_MENTION_RHS_PANEL:
+        return (action as unknown as {panel: MentionRhsPanel}).panel;
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (action.state !== RHSStates.MENTION) {
+            return DEFAULT_MENTION_RHS_PANEL;
+        }
+        return state;
+    case UserTypes.LOGOUT_SUCCESS:
+        return DEFAULT_MENTION_RHS_PANEL;
+    default:
+        return state;
+    }
+}
+
+function platformNotifications(state: PlatformNotificationRecord[] = [], action: MMAction): PlatformNotificationRecord[] {
+    switch (action.type) {
+    case ActionTypes.HYDRATE_PLATFORM_NOTIFICATIONS: {
+        const incoming = (action as unknown as {data: PlatformNotificationRecord[]}).data;
+        if (!Array.isArray(incoming)) {
+            return state;
+        }
+        const byPostId = new Map<string, PlatformNotificationRecord>();
+        for (const r of incoming) {
+            byPostId.set(r.postId, r);
+        }
+        for (const r of state) {
+            const existing = byPostId.get(r.postId);
+            if (!existing || existing.recordedAt < r.recordedAt) {
+                byPostId.set(r.postId, r);
+            }
+        }
+        return Array.from(byPostId.values()).
+            sort((a, b) => b.recordedAt - a.recordedAt).
+            slice(0, PLATFORM_NOTIFICATION_ACTIVITY_MAX);
+    }
+    case ActionTypes.RECORD_PLATFORM_NOTIFICATION: {
+        const entry = (action as unknown as {data: PlatformNotificationRecord}).data;
+        const withoutDup = state.filter((r) => r.postId !== entry.postId);
+        return [entry, ...withoutDup].slice(0, PLATFORM_NOTIFICATION_ACTIVITY_MAX);
+    }
+    case ActionTypes.REMOVE_PLATFORM_NOTIFICATION: {
+        const id = (action as unknown as {data: string}).data;
+        return state.filter((r) => r.id !== id);
+    }
+    case ActionTypes.CLEAR_PLATFORM_NOTIFICATIONS:
+        return [];
+    case UserTypes.LOGOUT_SUCCESS:
+        return [];
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     selectedPostId,
     selectedPostFocussedAt,
@@ -446,4 +503,6 @@ export default combineReducers({
     isMenuOpen,
     editChannelMembers,
     shouldFocusRHS,
+    mentionRhsPanel,
+    platformNotifications,
 });

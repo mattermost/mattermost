@@ -96,6 +96,8 @@ export type Props = {
     matches?: string[];
     term?: string;
     isMentionSearch?: boolean;
+    /** When true, omits the search-result channel/thread title row (e.g. Activity sidebar already shows context). */
+    hideSearchChannelHeader?: boolean;
     location: keyof typeof Locations;
     actions: {
         markPostAsUnread: (post: Post, location: string) => void;
@@ -147,6 +149,8 @@ function PostComponent(props: Props) {
     const {formatMessage} = useIntl();
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
+    const showSearchChannelHeader = !props.hideSearchChannelHeader &&
+        (Boolean(isSearchResultItem) || (props.location !== Locations.CENTER && props.isFlagged));
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const isModal = props.location === Locations.MODAL;
     const postRef = useRef<HTMLDivElement>(null);
@@ -743,7 +747,7 @@ function PostComponent(props: Props) {
                 {props.isChannelAutotranslated && isTranslating && (
                     <div className='post-message__shimmer'/>
                 )}
-                {(Boolean(isSearchResultItem) || (props.location !== Locations.CENTER && props.isFlagged)) &&
+                {showSearchChannelHeader &&
                     <div
                         className='search-channel__name__container'
                         aria-hidden='true'

@@ -12,6 +12,21 @@ import type {RHSStates} from 'utils/constants';
 
 export type SearchType = '' | 'files' | 'messages';
 
+export type MentionRhsPanel = 'activity' | 'mentions';
+
+export type PlatformNotificationRecord = {
+    id: string;
+    recordedAt: number;
+    postId: Post['id'];
+    channelId: Channel['id'];
+    teamId: Team['id'];
+    channelDisplayName: string;
+    contextLabel: string;
+    permalinkUrl: string;
+    isThreadReply: boolean;
+    previewBody: string;
+};
+
 export type FakePost = {
     id: Post['id'];
     exists: boolean;
@@ -45,6 +60,8 @@ export type RhsViewState = {
     editChannelMembers: boolean;
     size: SidebarSize;
     shouldFocusRHS: boolean;
+    mentionRhsPanel: MentionRhsPanel;
+    platformNotifications: PlatformNotificationRecord[];
 };
 
 export type RhsState = typeof RHSStates[keyof typeof RHSStates] | null;

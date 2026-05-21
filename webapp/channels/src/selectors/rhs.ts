@@ -240,3 +240,11 @@ export function getIsRhsExpanded(state: GlobalState): boolean {
 export function getIsEditingMembers(state: GlobalState): boolean {
     return state.views.rhs.editChannelMembers === true;
 }
+
+export function getMentionRhsPanel(state: GlobalState) {
+    return state.views.rhs.mentionRhsPanel;
+}
+
+export function getPlatformNotifications(state: GlobalState) {
+    return state.views.rhs.platformNotifications;
+}

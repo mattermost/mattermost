@@ -1,0 +1,53 @@
+.RhsNotificationActivity {
+    padding-top: 8px;
+
+    &--empty {
+        padding-top: 0;
+    }
+
+    &__toolbar {
+        display: flex;
+        justify-content: flex-end;
+        padding: 0 16px 8px 24px;
+    }
+
+    &__list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__item {
+        margin: 0;
+        padding: 0;
+    }
+}
+
+.MentionSidebarTabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px 16px 12px;
+    border-bottom: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
+
+    &__tab {
+        flex: 1;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            color: var(--center-channel-color);
+        }
+
+        &--active {
+            background: rgba(var(--button-bg-rgb), 0.08);
+            color: var(--button-bg);
+        }
+    }
+}

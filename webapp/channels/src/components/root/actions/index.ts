@@ -20,6 +20,7 @@ import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {checkIsFirstAdmin, getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {redirectUserToDefaultTeam, emitUserLoggedOutEvent} from 'actions/global_actions';
+import {hydratePlatformNotificationActivity} from 'actions/views/rhs';
 
 import {reloadPage} from 'utils/browser_utils';
 import {StoragePrefixes} from 'utils/constants';
@@ -70,6 +71,7 @@ export function loadConfigAndMe(): ThunkActionFunc<Promise<{isLoaded: boolean; i
 
             dispatch(getMyTeamUnreads(isCollapsedThreadsEnabled(getState())));
             dispatch(getServerLimits());
+            dispatch(hydratePlatformNotificationActivity());
         } catch (error) {
             dispatch(logError(error as ServerError));
             return {

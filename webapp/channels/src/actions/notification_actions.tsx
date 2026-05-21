@@ -26,7 +26,8 @@ import {getChannelURL, getPermalinkURL} from 'selectors/urls';
 import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
-import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions, DesktopSound} from 'utils/constants';
+import Constants, {ActionTypes, NotificationLevels, UserStatuses, IgnoreChannelMentions, DesktopSound} from 'utils/constants';
+import {syncPlatformNotificationActivityToStorage} from 'utils/platform_notification_activity_storage';
 import DesktopApp from 'utils/desktop_api';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
@@ -36,7 +37,7 @@ import {getFocusedPopoutInfo} from 'utils/popouts/focus';
 import {cjkrPattern} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
-import type {ActionFuncAsync, GlobalState} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
 
 import {runDesktopNotificationHooks} from './hooks';
 import type {NewPostMessageProps} from './new_post';
@@ -103,6 +104,91 @@ export function getDesktopNotificationSound(channelMember: ChannelMembership | u
     return DesktopNotificationSounds.BING;
 }
 
+function getSidebarNotificationContextLabel(state: GlobalState, msgProps: NewPostMessageProps, isCrtReply: boolean): string {
+    const currentUserId = getCurrentUserId(state);
+    let mentions: string[] = [];
+    if (msgProps.mentions) {
+        try {
+            mentions = JSON.parse(msgProps.mentions);
+        } catch {
+            mentions = [];
+        }
+    }
+    const isMention = mentions.includes(currentUserId);
+    if (isCrtReply && isMention) {
+        return Utils.localizeMessage({id: 'notification.sidebar.context.thread_mention', defaultMessage: 'Mention in thread'});
+    }
+    if (isCrtReply) {
+        return Utils.localizeMessage({id: 'notification.sidebar.context.thread_message', defaultMessage: 'Message in thread'});
+    }
+    if (isMention) {
+        return Utils.localizeMessage({id: 'notification.sidebar.context.mention', defaultMessage: 'Mention'});
+    }
+    return Utils.localizeMessage({id: 'notification.sidebar.context.message', defaultMessage: 'Message'});
+}
+
+/**
+ * Records one Activity sidebar entry for every incoming post the user would be notified about,
+ * including when no desktop toast fires (e.g. channel or thread already open).
+ */
+export function recordPlatformNotificationForActivity(post: Post, msgProps: NewPostMessageProps): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const state = getState();
+        const teamId = msgProps.team_id || '';
+
+        const channel = makeGetChannel()(state, post.channel_id) || {
+            id: post.channel_id,
+            name: msgProps.channel_name,
+            display_name: msgProps.channel_display_name,
+            type: msgProps.channel_type,
+        } as Channel;
+        const user = getCurrentUser(state);
+        const member = getMyChannelMember(state, post.channel_id);
+        const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
+        const forceNotification = Boolean(post.props?.force_notification);
+
+        const skipForActivity = shouldSkipNotification(
+            state,
+            post,
+            msgProps,
+            user,
+            channel,
+            member,
+            forceNotification,
+            isCrtReply,
+            true,
+        );
+        if (skipForActivity) {
+            return {data: false};
+        }
+
+        const recordState = getState();
+        const channelDisplayName = channel.display_name || msgProps.channel_display_name || '';
+        const body = getNotificationBody(recordState, post, msgProps);
+        const url = isCrtReply ? getPermalinkURL(recordState, teamId, post.id) : getChannelURL(recordState, channel, teamId);
+
+        dispatch({
+            type: ActionTypes.RECORD_PLATFORM_NOTIFICATION,
+            data: {
+                id: `${post.id}:${Date.now()}`,
+                recordedAt: Date.now(),
+                postId: post.id,
+                channelId: channel.id,
+                teamId,
+                channelDisplayName,
+                contextLabel: getSidebarNotificationContextLabel(recordState, msgProps, isCrtReply),
+                permalinkUrl: url,
+                isThreadReply: isCrtReply,
+                previewBody: body,
+            },
+        });
+
+        syncPlatformNotificationActivityToStorage(getState());
+
+        return {data: true};
+    };
+}
+
 export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProps): ActionFuncAsync<NotificationResult> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -120,6 +206,8 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
         const forceNotification = Boolean(post.props?.force_notification);
 
+        dispatch(recordPlatformNotificationForActivity(post, msgProps));
+
         const skipNotificationReason = shouldSkipNotification(
             state,
             post,
@@ -129,6 +217,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
             member,
             forceNotification,
             isCrtReply,
+            false,
         );
         if (skipNotificationReason) {
             return {data: skipNotificationReason};
@@ -163,14 +252,14 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
             return {data: {status: 'not_sent', reason: 'desktop_notification_hook', data: String(hookResult)}};
         }
 
-        const result = dispatch(notifyMe(argsAfterHooks.title, argsAfterHooks.body, channel.id, teamId, argsAfterHooks.silent, argsAfterHooks.soundName, argsAfterHooks.url));
+        const notifyDispatchResult = await dispatch(notifyMe(argsAfterHooks.title, argsAfterHooks.body, channel.id, teamId, argsAfterHooks.silent, argsAfterHooks.soundName, argsAfterHooks.url));
 
         //Don't add extra sounds on native desktop clients
         if (desktopSoundEnabled && !isDesktopApp() && !isMobile()) {
             ding(soundName);
         }
 
-        return result;
+        return notifyDispatchResult;
     };
 }
 
@@ -259,6 +348,7 @@ function shouldSkipNotification(
     member: ChannelMembership | undefined,
     skipChecks: boolean,
     isCrtReply: boolean,
+    ignoreFocusAndChannelVisibility = false,
 ) {
     const currentUserId = getCurrentUserId(state);
     if ((currentUserId === post.user_id && post.props.from_webhook !== 'true')) {
@@ -394,26 +484,28 @@ function shouldSkipNotification(
         return {status: 'not_sent', reason: 'not_following_thread'};
     }
 
-    // Notify if you're not looking in the right channel or when
-    // the window itself is not active
-    const activeChannel = getCurrentChannel(state);
-    const channelId = channel ? channel.id : null;
-    const focusedPopout = getFocusedPopoutInfo();
+    if (!ignoreFocusAndChannelVisibility) {
+        // Notify if you're not looking in the right channel or when
+        // the window itself is not active
+        const activeChannel = getCurrentChannel(state);
+        const channelId = channel ? channel.id : null;
+        const focusedPopout = getFocusedPopoutInfo();
 
-    if (state.views.browser.focused) {
-        if (isCrtReply) {
-            if (isThreadOpen(state, post.root_id)) {
+        if (state.views.browser.focused) {
+            if (isCrtReply) {
+                if (isThreadOpen(state, post.root_id)) {
+                    return {status: 'not_sent', reason: 'thread_is_open', data: post.root_id};
+                }
+            } else if (activeChannel && activeChannel.id === channelId) {
+                return {status: 'not_sent', reason: 'channel_is_open', data: activeChannel?.id};
+            }
+        } else if (focusedPopout) {
+            if (isCrtReply && focusedPopout.threadId === post.root_id) {
                 return {status: 'not_sent', reason: 'thread_is_open', data: post.root_id};
             }
-        } else if (activeChannel && activeChannel.id === channelId) {
-            return {status: 'not_sent', reason: 'channel_is_open', data: activeChannel?.id};
-        }
-    } else if (focusedPopout) {
-        if (isCrtReply && focusedPopout.threadId === post.root_id) {
-            return {status: 'not_sent', reason: 'thread_is_open', data: post.root_id};
-        }
-        if (!isCrtReply && !focusedPopout.threadId && focusedPopout.channelId === channelId) {
-            return {status: 'not_sent', reason: 'channel_is_open', data: channelId};
+            if (!isCrtReply && !focusedPopout.threadId && focusedPopout.channelId === channelId) {
+                return {status: 'not_sent', reason: 'channel_is_open', data: channelId};
+            }
         }
     }
 

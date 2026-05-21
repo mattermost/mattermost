@@ -11,6 +11,7 @@ import {getSearchMatches, getSearchResults} from 'mattermost-redux/selectors/ent
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {makeAddDateSeparatorsForSearchResults} from 'mattermost-redux/utils/post_list';
 
+import {setMentionRhsPanel} from 'actions/views/rhs';
 import {
     getSearchResultsTerms,
     getSearchResultsType,
@@ -19,6 +20,8 @@ import {
     getIsSearchingPinnedPost,
     getIsSearchGettingMore,
     getCurrentSearchForSearchTeam,
+    getMentionRhsPanel,
+    getPlatformNotifications,
 } from 'selectors/rhs';
 
 import type {GlobalState} from 'types/store';
@@ -81,9 +84,14 @@ function makeMapStateToProps() {
             isSearchFilesAtEnd: currentSearch.isFilesEnd,
             searchPage: currentSearch.params?.page,
             currentTeamName,
+            mentionRhsPanel: getMentionRhsPanel(state),
+            platformNotifications: getPlatformNotifications(state),
         };
     };
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export default connect<StateProps, {}, OwnProps, GlobalState>(makeMapStateToProps)(SearchResults);
+export default connect<StateProps, {setMentionRhsPanel: typeof setMentionRhsPanel}, OwnProps, GlobalState>(
+    makeMapStateToProps,
+    {setMentionRhsPanel},
+)(SearchResults);

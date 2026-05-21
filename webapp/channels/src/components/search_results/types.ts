@@ -6,7 +6,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import type {SearchFilterType} from 'components/search/types';
 
-import type {SearchType} from 'types/store/rhs';
+import type {MentionRhsPanel, PlatformNotificationRecord, SearchType} from 'types/store/rhs';
 
 export type OwnProps = {
     channelDisplayName?: string;
@@ -43,6 +43,12 @@ export type StateProps = {
     isSearchGettingMore: boolean;
     isSearchAtEnd: boolean;
     isSearchFilesAtEnd: boolean;
+    mentionRhsPanel: MentionRhsPanel;
+    platformNotifications: PlatformNotificationRecord[];
 };
 
-export type Props = OwnProps & StateProps;
+export type DispatchProps = {
+    setMentionRhsPanel: (panel: MentionRhsPanel) => void;
+};
+
+export type Props = OwnProps & StateProps & DispatchProps;

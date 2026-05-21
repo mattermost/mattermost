@@ -21,7 +21,7 @@ import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel 
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserMentionKeys, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {
     getSearchType,
@@ -38,9 +38,59 @@ import {SidebarSize} from 'components/resizable_sidebar/constants';
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
+import {
+    readPlatformNotificationActivityFromStorage,
+    syncPlatformNotificationActivityToStorage,
+} from 'utils/platform_notification_activity_storage';
 
 import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
+import type {MentionRhsPanel, RhsState} from 'types/store/rhs';
+
+export function setMentionRhsPanel(panel: MentionRhsPanel) {
+    return {
+        type: ActionTypes.SET_MENTION_RHS_PANEL,
+        panel,
+    };
+}
+
+export function hydratePlatformNotificationActivity(): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const state = getState();
+        const userId = getCurrentUserId(state);
+        if (!userId) {
+            return {data: false};
+        }
+        const list = readPlatformNotificationActivityFromStorage(state, userId);
+        if (list.length === 0) {
+            return {data: false};
+        }
+        dispatch({
+            type: ActionTypes.HYDRATE_PLATFORM_NOTIFICATIONS,
+            data: list,
+        });
+        syncPlatformNotificationActivityToStorage(getState());
+        return {data: true};
+    };
+}
+
+export function clearPlatformNotificationRecord(recordId: string): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        dispatch({
+            type: ActionTypes.REMOVE_PLATFORM_NOTIFICATION,
+            data: recordId,
+        });
+        syncPlatformNotificationActivityToStorage(getState());
+        return {data: true};
+    };
+}
+
+export function clearAllPlatformNotificationRecords(): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        dispatch({type: ActionTypes.CLEAR_PLATFORM_NOTIFICATIONS});
+        syncPlatformNotificationActivityToStorage(getState());
+        return {data: true};
+    };
+}
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean> {
     return (dispatch, getState) => {
@@ -260,7 +310,7 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
         dispatch(updateSearchResultsTerms(searchTerms));
         dispatch(updateSearchResultsType(searchType));
 
-        return dispatch(performSearch(searchTerms, teamId));
+        return dispatch(performSearch(searchTerms, teamId, isMentionSearch));
     };
 }
 
@@ -475,6 +525,7 @@ export function showMentions(): ActionFunc<boolean> {
                 type: ActionTypes.UPDATE_RHS_STATE,
                 state: RHSStates.MENTION,
             },
+            setMentionRhsPanel('mentions'),
         ]));
 
         return {data: true};

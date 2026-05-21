@@ -32,6 +32,8 @@ import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 
+import RhsNotificationActivity from 'components/rhs_notification_activity/rhs_notification_activity';
+
 import type {RhsState, SearchType} from 'types/store/rhs';
 
 import FilesFilterMenu from './files_filter_menu';
@@ -41,6 +43,7 @@ import SearchLimitsBanner from './search_limits_banner';
 import type {Props} from './types';
 
 import './search_results.scss';
+import '../rhs_notification_activity/rhs_notification_activity.scss';
 
 const GET_MORE_BUFFER = 30;
 
@@ -146,6 +149,9 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         handleSearchHintSelection,
         searchFilterType,
         setSearchFilterType,
+        mentionRhsPanel,
+        platformNotifications,
+        setMentionRhsPanel,
     } = props;
 
     const noResults = (!results || !Array.isArray(results) || results.length === 0);
@@ -176,8 +182,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         noResultsProps.variant = NoResultsVariant.Mentions;
 
         titleDescriptor = defineMessage({
-            id: 'search_header.title2',
-            defaultMessage: 'Recent Mentions',
+            id: 'search_header.notifications',
+            defaultMessage: 'Notifications',
         });
     } else if (isFlaggedPosts) {
         noResultsProps.variant = NoResultsVariant.FlaggedPosts;
@@ -243,6 +249,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
 
     const formattedTitle = intl.formatMessage(titleDescriptor);
 
+    const isMentionActivityPanel = isMentionSearch && mentionRhsPanel === 'activity';
+
     const handleOptionSelection = (term: string): void => {
         handleSearchHintSelection?.();
         updateSearchTerms(term);
@@ -275,6 +283,12 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     }, [isMentionSearch, isFlaggedPosts, isPinnedPosts, isChannelFiles, intl, searchTerms, searchType, currentTeam?.name, currentChannel?.name, searchTeamId]);
 
     switch (true) {
+    case isMentionActivityPanel:
+        contentItems = (
+            <RhsNotificationActivity notifications={platformNotifications}/>
+        );
+        loadingMorePostsComponent = null;
+        break;
     case isLoading:
         contentItems = (
             <div className='sidebar--right__subheader a11y__section'>
@@ -392,6 +406,49 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 </h2>
                 {props.channelDisplayName && <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>}
             </SearchResultsHeader>
+            {isMentionSearch && (
+                <div
+                    className='MentionSidebarTabs'
+                    role='tablist'
+                    aria-label={intl.formatMessage({
+                        id: 'search_header.notifications_tabs.label',
+                        defaultMessage: 'Notification sidebar sections',
+                    })}
+                >
+                    <button
+                        id='mentionSidebarTabActivity'
+                        type='button'
+                        role='tab'
+                        aria-controls='mentionSidebarTabPanel'
+                        aria-selected={mentionRhsPanel === 'activity'}
+                        className={classNames('MentionSidebarTabs__tab', {
+                            'MentionSidebarTabs__tab--active': mentionRhsPanel === 'activity',
+                        })}
+                        onClick={() => setMentionRhsPanel('activity')}
+                    >
+                        <FormattedMessage
+                            id='search_header.notifications_tab.activity'
+                            defaultMessage='Activity'
+                        />
+                    </button>
+                    <button
+                        id='mentionSidebarTabMentions'
+                        type='button'
+                        role='tab'
+                        aria-controls='mentionSidebarTabPanel'
+                        aria-selected={mentionRhsPanel === 'mentions'}
+                        className={classNames('MentionSidebarTabs__tab', {
+                            'MentionSidebarTabs__tab--active': mentionRhsPanel === 'mentions',
+                        })}
+                        onClick={() => setMentionRhsPanel('mentions')}
+                    >
+                        <FormattedMessage
+                            id='search_header.notifications_tab.mentions'
+                            defaultMessage='Mentions'
+                        />
+                    </button>
+                </div>
+            )}
             {isMessagesSearch &&
                 <MessageOrFileSelector
                     selected={searchType}
@@ -431,7 +488,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     className={classNames([
                         'search-items-container post-list__table a11y__region',
                         {
-                            'no-results': (noResults && searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE) || (noFileResults && (searchType === DataSearchTypes.FILES_SEARCH_TYPE || isChannelFiles)),
+                            'no-results':
+                                ((noResults && searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE) ||
+                                    (noFileResults && (searchType === DataSearchTypes.FILES_SEARCH_TYPE || isChannelFiles))) &&
+                                !(isMentionSearch && mentionRhsPanel === 'activity'),
                             'channel-files-container': isChannelFiles,
                         },
                     ])}
@@ -446,7 +506,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     })}
                 >
                     <div
-                        id={`${searchType}Panel`}
+                        id={isMentionSearch ? 'mentionSidebarTabPanel' : `${searchType}Panel`}
                         className='files-or-messages-panel'
                     >
                         {contentItems}

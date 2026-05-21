@@ -1,0 +1,121 @@
+.RhsNotificationCard {
+    padding: 8px 0 16px;
+    border-bottom: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &__channelRowWrap {
+        display: flex;
+        align-items: flex-start;
+        gap: 2px;
+        padding: 8px 12px 8px 24px;
+    }
+
+    &__dismiss {
+        flex-shrink: 0;
+        margin-top: 2px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        &:hover {
+            color: var(--center-channel-color);
+        }
+    }
+
+    &__channelRow {
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
+        flex: 1;
+        min-width: 0;
+        padding: 0;
+        margin: 0;
+        border: none;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        color: inherit;
+        font: inherit;
+
+        &:hover {
+            .RhsNotificationCard__contextLabel,
+            .RhsNotificationCard__channelName {
+                opacity: 1;
+            }
+        }
+    }
+
+    &__atIcon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        border-radius: 34px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+
+        .icon {
+            font-size: 10px;
+            line-height: 1;
+        }
+    }
+
+    &__channelMeta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        min-width: 0;
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__contextLabel {
+        flex-shrink: 0;
+        font-weight: 600;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__divider {
+        width: 1px;
+        height: 16px;
+        flex-shrink: 0;
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    &__channelName {
+        font-weight: 400;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__body {
+        padding: 0 8px 0 16px;
+
+        .post {
+            padding: 0;
+            margin: 0;
+        }
+    }
+
+    &__fallback {
+        padding: 8px 24px;
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--center-channel-color);
+        word-break: break-word;
+    }
+
+    &__threadFooter {
+        padding: 4px 16px 0 28px;
+
+        .ThreadFooter {
+            padding-left: 8px;
+        }
+    }
+}
