@@ -5,7 +5,7 @@ import cloneDeep from 'lodash/cloneDeep';
 
 import {WebSocketEvents} from '@mattermost/client';
 
-import {CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
@@ -25,6 +25,8 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import realConfigureStore from 'store';
 import store from 'stores/redux_store';
 
+import {invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
+
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
@@ -32,6 +34,7 @@ import Constants, {ActionTypes, UserStatuses} from 'utils/constants';
 
 import {
     handleChannelUpdatedEvent,
+    handleChannelAccessControlUpdatedEvent,
     handleEvent,
     handleNewPostEvent,
     handleNewPostEvents,
@@ -114,6 +117,11 @@ jest.mock('actions/views/channel', () => ({
 jest.mock('plugins', () => ({
     ...jest.requireActual('plugins'),
     loadPluginsIfNecessary: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('components/common/hooks/useAccessControlAttributes', () => ({
+    EntityType: {Channel: 'channel'},
+    invalidateAccessControlAttributesCache: jest.fn(),
 }));
 
 let mockState = {
@@ -874,6 +882,47 @@ describe('handleChannelUpdatedEvent', () => {
     });
 });
 
+describe('handleChannelAccessControlUpdatedEvent', () => {
+    beforeEach(() => {
+        invalidateAccessControlAttributesCache.mockClear();
+    });
+
+    test('dispatches RECEIVED_CHANNEL with parsed channel and invalidates attribute cache', () => {
+        const testStore = configureStore({});
+        const channel = {
+            id: 'channel-ac-1',
+            team_id: 'team-1',
+            policy_enforced: true,
+        };
+        const msg = {
+            data: {
+                channel: JSON.stringify(channel),
+            },
+        };
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([
+            {
+                type: ChannelTypes.RECEIVED_CHANNEL,
+                data: channel,
+            },
+        ]);
+        expect(invalidateAccessControlAttributesCache).toHaveBeenCalledTimes(1);
+        expect(invalidateAccessControlAttributesCache).toHaveBeenCalledWith('channel', 'channel-ac-1');
+    });
+
+    test('returns early when msg.data.channel is missing', () => {
+        const testStore = configureStore({});
+        const msg = {data: {}};
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([]);
+        expect(invalidateAccessControlAttributesCache).not.toHaveBeenCalled();
+    });
+});
+
 describe('handleCloudSubscriptionChanged', () => {
     const baseSubscription = {
         id: 'basesub',
@@ -1630,6 +1679,146 @@ describe('handleCustomAttributeCRUD', () => {
             const user = testStore.getState().entities.users.profiles.user1;
             expect(user.custom_profile_attributes).toBeTruthy();
             expect(user.custom_profile_attributes[field1.id]).toEqual('some value');
+        });
+    });
+});
+
+describe('handleChannelConvertedEvent', () => {
+    const channelId = 'converted-channel';
+
+    beforeEach(() => {
+        store.dispatch.mockClear();
+        mockState = {
+            ...mockState,
+            entities: {
+                ...mockState.entities,
+                channels: {
+                    ...mockState.entities.channels,
+                    channels: {
+                        ...mockState.entities.channels.channels,
+                        [channelId]: {
+                            id: channelId,
+                            team_id: 'currentTeamId',
+                            type: Constants.PRIVATE_CHANNEL,
+                            name: 'test-channel',
+                        },
+                    },
+                },
+            },
+        };
+    });
+
+    test('should update channel type from private to public when channel_type is O', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+                channel_type: Constants.OPEN_CHANNEL,
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: expect.objectContaining({
+                id: channelId,
+                type: Constants.OPEN_CHANNEL,
+            }),
+        });
+    });
+
+    test('should update channel type from public to private when channel_type is P', () => {
+        mockState.entities.channels.channels[channelId].type = Constants.OPEN_CHANNEL;
+
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+                channel_type: Constants.PRIVATE_CHANNEL,
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: expect.objectContaining({
+                id: channelId,
+                type: Constants.PRIVATE_CHANNEL,
+            }),
+        });
+    });
+
+    test('should fall back to private when channel_type is not present (backwards compat)', () => {
+        mockState.entities.channels.channels[channelId].type = Constants.OPEN_CHANNEL;
+
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: expect.objectContaining({
+                id: channelId,
+                type: Constants.PRIVATE_CHANNEL,
+            }),
+        });
+    });
+
+    test('should not dispatch when channel is not in state', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: 'nonexistent-channel',
+                channel_type: Constants.OPEN_CHANNEL,
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).not.toHaveBeenCalledWith(
+            expect.objectContaining({type: 'RECEIVED_CHANNEL'}),
+        );
+    });
+
+    test('should not dispatch when channel_id is missing', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {},
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).not.toHaveBeenCalledWith(
+            expect.objectContaining({type: 'RECEIVED_CHANNEL'}),
+        );
+    });
+
+    test('should preserve other channel properties when updating type', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+                channel_type: Constants.OPEN_CHANNEL,
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: {
+                id: channelId,
+                team_id: 'currentTeamId',
+                type: Constants.OPEN_CHANNEL,
+                name: 'test-channel',
+            },
         });
     });
 });

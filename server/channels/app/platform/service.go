@@ -97,6 +97,7 @@ type PlatformService struct {
 	esWatcher *searchEngineWatcher
 
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
+	samlDiagnostic einterfaces.SamlDiagnosticInterface
 
 	Jobs *jobs.JobServer
 
@@ -485,6 +486,14 @@ func (ps *PlatformService) ShutdownMetrics() error {
 	return nil
 }
 
+// GetMetricsRouter returns the metrics router. This is primarily used for testing.
+func (ps *PlatformService) GetMetricsRouter() http.Handler {
+	if ps.metrics != nil {
+		return ps.metrics.router
+	}
+	return nil
+}
+
 func (ps *PlatformService) ShutdownConfig() error {
 	ps.RemoveConfigListener(ps.configListenerId)
 
@@ -524,6 +533,10 @@ func (ps *PlatformService) initEnterprise() {
 
 	if ldapDiagnosticInterface != nil {
 		ps.ldapDiagnostic = ldapDiagnosticInterface(ps)
+	}
+
+	if samlDiagnosticInterface != nil {
+		ps.samlDiagnostic = samlDiagnosticInterface(ps)
 	}
 
 	if licenseInterface != nil {
@@ -657,6 +670,10 @@ func (ps *PlatformService) ExportFileBackend() filestore.FileBackend {
 
 func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
 	return ps.ldapDiagnostic
+}
+
+func (ps *PlatformService) SamlDiagnostic() einterfaces.SamlDiagnosticInterface {
+	return ps.samlDiagnostic
 }
 
 // DatabaseTypeAndSchemaVersion returns the database type and current version of the schema

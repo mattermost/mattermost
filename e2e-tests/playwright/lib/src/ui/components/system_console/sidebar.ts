@@ -80,6 +80,7 @@ export default class SystemConsoleSidebar {
         return this.environment.mobileSecurity;
     }
     get notifications() {
+        // Rendered under Site Configuration (`site`); URL is environment/notifications.
         return this.siteConfiguration.notifications;
     }
     get pluginManagement() {
@@ -97,6 +98,7 @@ class SidebarSection {
     }
 
     async click() {
+        await this.link.scrollIntoViewIfNeeded();
         await this.link.click();
     }
 
@@ -149,7 +151,7 @@ class ReportingCategory extends SidebarCategory {
     constructor(container: Locator) {
         super(container);
         this.workspaceOptimization = this.section('Workspace Optimization');
-        this.siteStatistics = this.section('Site Statistics');
+        this.siteStatistics = this.section('System Statistics');
         this.teamStatistics = this.section('Team Statistics');
         this.serverLogs = this.section('Server Logs');
     }

@@ -6,6 +6,7 @@ import {defineMessage, FormattedDate, FormattedMessage, useIntl} from 'react-int
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {ClientLicense, License} from '@mattermost/types/config';
 
 import {previewLicense, uploadLicense} from 'mattermost-redux/actions/admin';
@@ -295,8 +296,8 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                 </div>
                 <div className='content-footer'>
                     <div className='btn-upload-wrapper'>
-                        <button
-                            className='btn btn-primary'
+                        <Button
+                            emphasis='primary'
                             onClick={handleOnClose}
                             id='done-button'
                         >
@@ -304,7 +305,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                                 id='admin.license.modal.done'
                                 defaultMessage='Done'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </>

@@ -9,11 +9,11 @@
 export type ClientLicense = Record<string, string>;
 
 /**
- * Returns true if the server has a license that includes autotranslation (Entry or Advanced).
+ * Returns true if the server has a license that includes autotranslation
  * Use with test.skip(!hasAutotranslationLicense(license.SkuShortName), '...') in autotranslation specs.
  */
 export function hasAutotranslationLicense(skuShortName: string): boolean {
-    return skuShortName === 'entry' || skuShortName === 'advanced';
+    return skuShortName === 'enterprise' || skuShortName === 'entry' || skuShortName === 'advanced';
 }
 
 /**
@@ -35,4 +35,21 @@ export function hasSharedChannelsLicense(license: ClientLicense | null | undefin
  */
 export function hasCustomPermissionsSchemesLicense(license: ClientLicense | null | undefined): boolean {
     return license?.CustomPermissionsSchemes === 'true';
+}
+
+/**
+ * Mirrors webapp `getLicenseTier` (utils/constants) for client `SkuShortName` values.
+ */
+export function licenseTier(skuShortName: string): number {
+    switch (skuShortName) {
+        case 'professional':
+            return 10;
+        case 'enterprise':
+            return 20;
+        case 'entry':
+        case 'advanced':
+            return 30;
+        default:
+            return 0;
+    }
 }

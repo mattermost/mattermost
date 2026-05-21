@@ -35,6 +35,64 @@ func TestChannelPatch(t *testing.T) {
 	require.Equal(t, *p.GroupConstrained, *o.GroupConstrained)
 }
 
+func TestChannelPatchDiscoverable(t *testing.T) {
+	t.Run("applies discoverable when set", func(t *testing.T) {
+		on := true
+		p := &ChannelPatch{Discoverable: &on}
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypePrivate}
+		o.Patch(p)
+		require.True(t, o.Discoverable)
+	})
+
+	t.Run("clears discoverable when set to false", func(t *testing.T) {
+		off := false
+		p := &ChannelPatch{Discoverable: &off}
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypePrivate, Discoverable: true}
+		o.Patch(p)
+		require.False(t, o.Discoverable)
+	})
+
+	t.Run("nil discoverable leaves channel untouched", func(t *testing.T) {
+		o := Channel{Id: NewId(), Name: NewId(), Type: ChannelTypePrivate, Discoverable: true}
+		o.Patch(&ChannelPatch{})
+		require.True(t, o.Discoverable)
+	})
+}
+
+func TestChannelIsValidDiscoverable(t *testing.T) {
+	base := Channel{
+		Id:          NewId(),
+		CreateAt:    GetMillis(),
+		UpdateAt:    GetMillis(),
+		DisplayName: "x",
+		Name:        "valid-name",
+		Header:      "h",
+		Purpose:     "p",
+	}
+
+	t.Run("discoverable=false is valid on any type", func(t *testing.T) {
+		c := base
+		c.Type = ChannelTypeOpen
+		require.Nil(t, c.IsValid())
+	})
+
+	t.Run("discoverable=true requires private channel", func(t *testing.T) {
+		c := base
+		c.Type = ChannelTypeOpen
+		c.Discoverable = true
+		require.NotNil(t, c.IsValid(), "discoverable=true on public channel must be rejected")
+
+		c.Type = ChannelTypeDirect
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypeGroup
+		require.NotNil(t, c.IsValid())
+
+		c.Type = ChannelTypePrivate
+		require.Nil(t, c.IsValid())
+	})
+}
+
 func TestChannelIsValid(t *testing.T) {
 	o := Channel{}
 
@@ -87,6 +145,39 @@ func TestChannelIsValid(t *testing.T) {
 	require.NotNil(t, o.IsValid())
 }
 
+func TestChannelIsValidBoard(t *testing.T) {
+	t.Run("rejects non-board type", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpen, TeamId: NewId(), DisplayName: "Board"}
+		err := c.IsValidBoard()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid_board.type.app_error", err.Id)
+	})
+
+	t.Run("rejects missing team_id", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpenBoard, DisplayName: "Board"}
+		err := c.IsValidBoard()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid_board.team_id.app_error", err.Id)
+	})
+
+	t.Run("rejects empty display name", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpenBoard, TeamId: NewId()}
+		err := c.IsValidBoard()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid_board.display_name.app_error", err.Id)
+	})
+
+	t.Run("accepts valid open board", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypeOpenBoard, TeamId: NewId(), DisplayName: "Board"}
+		require.Nil(t, c.IsValidBoard())
+	})
+
+	t.Run("accepts valid private board", func(t *testing.T) {
+		c := &Channel{Type: ChannelTypePrivateBoard, TeamId: NewId(), DisplayName: "Board"}
+		require.Nil(t, c.IsValidBoard())
+	})
+}
+
 func TestChannelBannerBackgroundColorValidation(t *testing.T) {
 	o := Channel{
 		Id:       NewId(),
@@ -97,8 +188,8 @@ func TestChannelBannerBackgroundColorValidation(t *testing.T) {
 		Header:   "valid-header",
 		Purpose:  "valid-purpose",
 		BannerInfo: &ChannelBannerInfo{
-			Enabled: NewPointer(true),
-			Text:    NewPointer("Banner Text"),
+			Enabled: new(true),
+			Text:    new("Banner Text"),
 		},
 	}
 
@@ -108,44 +199,44 @@ func TestChannelBannerBackgroundColorValidation(t *testing.T) {
 	require.Equal(t, "model.channel.is_valid.banner_info.background_color.empty.app_error", o.IsValid().Id)
 
 	// Test with empty background color
-	o.BannerInfo.BackgroundColor = NewPointer("")
+	o.BannerInfo.BackgroundColor = new("")
 	require.NotNil(t, o.IsValid())
 	require.Equal(t, "model.channel.is_valid.banner_info.background_color.empty.app_error", o.IsValid().Id)
 
 	// Test with invalid background color (no # prefix)
-	o.BannerInfo.BackgroundColor = NewPointer("FF0000")
+	o.BannerInfo.BackgroundColor = new("FF0000")
 	require.NotNil(t, o.IsValid())
 	require.Equal(t, "model.channel.is_valid.banner_info.background_color.invalid.app_error", o.IsValid().Id)
 
 	// Test with invalid background color (invalid characters)
-	o.BannerInfo.BackgroundColor = NewPointer("#GGGGGG")
+	o.BannerInfo.BackgroundColor = new("#GGGGGG")
 	require.NotNil(t, o.IsValid())
 	require.Equal(t, "model.channel.is_valid.banner_info.background_color.invalid.app_error", o.IsValid().Id)
 
 	// Test with invalid background color (wrong length)
-	o.BannerInfo.BackgroundColor = NewPointer("#FF00")
+	o.BannerInfo.BackgroundColor = new("#FF00")
 	require.NotNil(t, o.IsValid())
 	require.Equal(t, "model.channel.is_valid.banner_info.background_color.invalid.app_error", o.IsValid().Id)
 
 	// Test with invalid background color (wrong length)
-	o.BannerInfo.BackgroundColor = NewPointer("#FF00000")
+	o.BannerInfo.BackgroundColor = new("#FF00000")
 	require.NotNil(t, o.IsValid())
 	require.Equal(t, "model.channel.is_valid.banner_info.background_color.invalid.app_error", o.IsValid().Id)
 
 	// Test with valid 6-digit hex color
-	o.BannerInfo.BackgroundColor = NewPointer("#FF0000")
+	o.BannerInfo.BackgroundColor = new("#FF0000")
 	require.Nil(t, o.IsValid())
 
 	// Test with valid 6-digit hex color (lowercase)
-	o.BannerInfo.BackgroundColor = NewPointer("#ff0000")
+	o.BannerInfo.BackgroundColor = new("#ff0000")
 	require.Nil(t, o.IsValid())
 
 	// Test with valid 3-digit hex color
-	o.BannerInfo.BackgroundColor = NewPointer("#F00")
+	o.BannerInfo.BackgroundColor = new("#F00")
 	require.Nil(t, o.IsValid())
 
 	// Test with valid 3-digit hex color (lowercase)
-	o.BannerInfo.BackgroundColor = NewPointer("#f00")
+	o.BannerInfo.BackgroundColor = new("#f00")
 	require.Nil(t, o.IsValid())
 }
 
@@ -193,8 +284,8 @@ func TestSanitize(t *testing.T) {
 		CreatorId:         NewId(),
 		SchemeId:          &schemaId,
 		Props:             make(map[string]any),
-		GroupConstrained:  NewPointer(true),
-		Shared:            NewPointer(true),
+		GroupConstrained:  new(true),
+		Shared:            new(true),
 		TotalMsgCountRoot: 1,
 		PolicyID:          &schemaId,
 		LastRootPostAt:    1,

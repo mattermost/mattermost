@@ -42,9 +42,15 @@ const (
 	PermissionLevelSysadmin PermissionLevel = "sysadmin"
 	PermissionLevelMember   PermissionLevel = "member"
 
-	PropertyFieldObjectTypePost    = "post"
-	PropertyFieldObjectTypeChannel = "channel"
-	PropertyFieldObjectTypeUser    = "user"
+	PropertyFieldObjectTypePost     = "post"
+	PropertyFieldObjectTypeChannel  = "channel"
+	PropertyFieldObjectTypeUser     = "user"
+	PropertyFieldObjectTypeTemplate = "template"
+
+	PropertyFieldObjectTypeSystem = "system"
+
+	// NOTE: Temporarily using this until CPA is migrated to v2
+	ClassificationMarkingsPropertyGroupName = "classification_markings"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.
@@ -62,6 +68,8 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypePost,
 	PropertyFieldObjectTypeChannel,
 	PropertyFieldObjectTypeUser,
+	PropertyFieldObjectTypeTemplate,
+	PropertyFieldObjectTypeSystem,
 }
 
 type PropertyField struct {
@@ -77,6 +85,7 @@ type PropertyField struct {
 	PermissionField   *PermissionLevel  `json:"permission_field,omitempty"`
 	PermissionValues  *PermissionLevel  `json:"permission_values,omitempty"`
 	PermissionOptions *PermissionLevel  `json:"permission_options,omitempty"`
+	LinkedFieldID     *string           `json:"linked_field_id,omitempty"`
 	CreateAt          int64             `json:"create_at"`
 	UpdateAt          int64             `json:"update_at"`
 	DeleteAt          int64             `json:"delete_at"`
@@ -98,6 +107,7 @@ func (pf *PropertyField) Auditable() map[string]any {
 		"permission_field":   pf.PermissionField,
 		"permission_values":  pf.PermissionValues,
 		"permission_options": pf.PermissionOptions,
+		"linked_field_id":    pf.LinkedFieldID,
 		"create_at":          pf.CreateAt,
 		"update_at":          pf.UpdateAt,
 		"delete_at":          pf.DeleteAt,
@@ -210,6 +220,11 @@ func (pf *PropertyField) IsValid() error {
 				return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "must be a valid ID for team or channel target type"}, "id="+pf.ID, http.StatusBadRequest)
 			}
 		}
+
+		// System-object fields attach to the system itself; they cannot be scoped below the system level.
+		if pf.ObjectType == PropertyFieldObjectTypeSystem && pf.TargetType != string(PropertyFieldTargetLevelSystem) {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "must be system for system object type"}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	} else {
 		// PSAv1 properties cannot have permissions or be protected
 		if pf.Protected {
@@ -236,6 +251,18 @@ func (pf *PropertyField) IsValid() error {
 		pf.Type != PropertyFieldTypeUser &&
 		pf.Type != PropertyFieldTypeMultiuser {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	// LinkedFieldID validation: if set, must be a valid 26-char ID.
+	// Empty string is allowed as a transient signal for unlinking; callers
+	// must canonicalize it to nil before persistence.
+	if pf.LinkedFieldID != nil && *pf.LinkedFieldID != "" && !IsValidId(*pf.LinkedFieldID) {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "linked_field_id", "Reason": "invalid id"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	// Template fields are canonical schema definitions and must not link to other fields
+	if pf.ObjectType == PropertyFieldObjectTypeTemplate && pf.LinkedFieldID != nil && *pf.LinkedFieldID != "" {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "linked_field_id", "Reason": "template fields cannot have a linked field"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	if pf.CreateAt == 0 {
@@ -277,20 +304,22 @@ func (pf *PropertyField) IsValid() error {
 }
 
 type PropertyFieldPatch struct {
-	Name       *string            `json:"name"`
-	Type       *PropertyFieldType `json:"type"`
-	Attrs      *StringInterface   `json:"attrs"`
-	TargetID   *string            `json:"target_id"`
-	TargetType *string            `json:"target_type"`
+	Name          *string            `json:"name"`
+	Type          *PropertyFieldType `json:"type"`
+	Attrs         *StringInterface   `json:"attrs"`
+	TargetID      *string            `json:"target_id"`
+	TargetType    *string            `json:"target_type"`
+	LinkedFieldID *string            `json:"linked_field_id,omitempty"`
 }
 
 func (pfp *PropertyFieldPatch) Auditable() map[string]any {
 	return map[string]any{
-		"name":        pfp.Name,
-		"type":        pfp.Type,
-		"attrs":       pfp.Attrs,
-		"target_id":   pfp.TargetID,
-		"target_type": pfp.TargetType,
+		"name":            pfp.Name,
+		"type":            pfp.Type,
+		"attrs":           pfp.Attrs,
+		"target_id":       pfp.TargetID,
+		"target_type":     pfp.TargetType,
+		"linked_field_id": pfp.LinkedFieldID,
 	}
 }
 
@@ -360,6 +389,15 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch, mergeAttrs bool) {
 	if patch.TargetType != nil {
 		pf.TargetType = *patch.TargetType
 	}
+
+	if patch.LinkedFieldID != nil {
+		if *patch.LinkedFieldID == "" {
+			// Empty string means unlink — clear to NULL
+			pf.LinkedFieldID = nil
+		} else {
+			pf.LinkedFieldID = patch.LinkedFieldID
+		}
+	}
 }
 
 // IsPSAv1 returns true if this property field uses the legacy PSAv1 schema.
@@ -428,6 +466,7 @@ type PropertyFieldSearchOpts struct {
 	ObjectType     string
 	TargetType     string
 	TargetIDs      []string
+	LinkedFieldID  string
 	SinceUpdateAt  int64 // UpdatedAt after which to send the items
 	IncludeDeleted bool
 	Cursor         PropertyFieldSearchCursor

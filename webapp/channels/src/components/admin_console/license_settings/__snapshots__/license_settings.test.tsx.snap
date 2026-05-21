@@ -85,7 +85,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
                       class="purchase-card"
                     >
                       <button
-                        class="btn contact-us btn-primary"
+                        class="btn btn-primary contact-us"
                       >
                         Contact Sales
                       </button>
@@ -564,7 +564,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
                       class="purchase-card"
                     >
                       <button
-                        class="btn contact-us btn-primary"
+                        class="btn btn-primary contact-us"
                       >
                         Contact Sales
                       </button>
@@ -1065,7 +1065,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn contact-us btn-primary"
+                        class="btn btn-primary contact-us"
                       >
                         Contact Sales
                       </button>
@@ -1118,7 +1118,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -1612,7 +1612,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="purchase-card"
                   >
                     <button
-                      class="btn contact-us btn-tertiary"
+                      class="btn btn-primary contact-us"
                     >
                       Contact Sales
                     </button>
@@ -1727,7 +1727,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn contact-us btn-primary"
+                        class="btn btn-primary contact-us"
                       >
                         Contact Sales
                       </button>
@@ -1780,7 +1780,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -2274,7 +2274,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="purchase-card"
                   >
                     <button
-                      class="btn contact-us btn-tertiary"
+                      class="btn btn-primary contact-us"
                     >
                       Contact Sales
                     </button>
@@ -2375,7 +2375,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn contact-us btn-primary"
+                        class="btn btn-primary contact-us"
                       >
                         Contact Sales
                       </button>
@@ -2428,7 +2428,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -2938,7 +2938,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="purchase-card"
                   >
                     <button
-                      class="btn contact-us btn-tertiary"
+                      class="btn btn-primary contact-us"
                     >
                       Contact Sales
                     </button>
@@ -3039,7 +3039,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn contact-us btn-primary"
+                        class="btn btn-primary contact-us"
                       >
                         Contact Sales
                       </button>
@@ -3092,7 +3092,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -3586,7 +3586,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="purchase-card"
                   >
                     <button
-                      class="btn contact-us btn-tertiary"
+                      class="btn btn-primary contact-us"
                     >
                       Contact Sales
                     </button>
@@ -3687,7 +3687,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn contact-us btn-primary"
+                        class="btn btn-primary contact-us"
                       >
                         Contact Sales
                       </button>
@@ -3740,7 +3740,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -4235,7 +4235,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="purchase-card"
                   >
                     <button
-                      class="btn contact-us btn-tertiary"
+                      class="btn btn-primary contact-us"
                     >
                       Contact Sales
                     </button>
@@ -4336,7 +4336,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn contact-us btn-primary"
+                        class="btn btn-primary contact-us"
                       >
                         Contact Sales
                       </button>
@@ -4389,7 +4389,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -4889,7 +4889,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     class="purchase-card"
                   >
                     <button
-                      class="btn contact-us btn-tertiary"
+                      class="btn btn-primary contact-us"
                     >
                       Contact Sales
                     </button>
@@ -5035,7 +5035,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -5456,7 +5456,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="purchase-card"
                   >
                     <button
-                      class="btn contact-us btn-tertiary"
+                      class="btn btn-primary contact-us"
                     >
                       Contact Sales
                     </button>
@@ -5997,7 +5997,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="btn contact-us btn-tertiary btn-full"
+                    class="btn btn-tertiary contact-us btn-full"
                   >
                     Contact Sales
                   </button>
@@ -6543,7 +6543,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                   class="purchase_buttons"
                 >
                   <button
-                    class="btn contact-us btn-tertiary btn-full"
+                    class="btn btn-tertiary contact-us btn-full"
                   >
                     Contact Sales
                   </button>
@@ -6657,7 +6657,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn contact-us btn-primary"
+                        class="btn btn-primary contact-us"
                       >
                         Contact Sales
                       </button>
@@ -8013,7 +8013,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="btn contact-us btn-tertiary btn-full"
+                    class="btn btn-tertiary contact-us btn-full"
                   >
                     Contact Sales
                   </button>
@@ -8103,7 +8103,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -8597,7 +8597,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="purchase-card"
                   >
                     <button
-                      class="btn contact-us btn-tertiary"
+                      class="btn btn-primary contact-us"
                     >
                       Contact Sales
                     </button>
@@ -8698,7 +8698,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn contact-us btn-primary"
+                        class="btn btn-primary contact-us"
                       >
                         Contact Sales
                       </button>
@@ -8751,7 +8751,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -9245,7 +9245,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="purchase-card"
                   >
                     <button
-                      class="btn contact-us btn-tertiary"
+                      class="btn btn-primary contact-us"
                     >
                       Contact Sales
                     </button>

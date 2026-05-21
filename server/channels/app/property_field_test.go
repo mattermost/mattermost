@@ -13,18 +13,31 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// registerTestPropertyGroup creates a fresh, unmanaged PSAv2 property group
+// for tests that exercise generic PropertyField CRUD.
+func registerTestPropertyGroup(tb testing.TB, th *TestHelper) string {
+	tb.Helper()
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "test_" + model.NewId(),
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(tb, appErr)
+	return group.ID
+}
+
 func TestCreatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := registerTestPropertyGroup(t, th)
 
 	t.Run("should create a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Non-Protected Field",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Non-Protected Field",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
@@ -115,20 +128,21 @@ func TestUpdatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := registerTestPropertyGroup(t, th)
 
 	t.Run("should update a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Field to Update",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Field to Update",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		created.Name = "Updated Field Name"
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.Nil(t, appErr)
 		assert.Equal(t, "Updated Field Name", updated.Name)
 	})
@@ -149,7 +163,7 @@ func TestUpdatePropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		created.Name = "Attempted Update"
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, "app.property_field.update.protected.app_error", appErr.Id)
@@ -172,23 +186,25 @@ func TestUpdatePropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		created.Name = "Successfully Updated Protected"
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, true, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, true, "")
 		require.Nil(t, appErr)
 		assert.Equal(t, "Successfully Updated Protected", updated.Name)
 	})
 
 	t.Run("should reject an invalid update", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Field for Invalid Update",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Field for Invalid Update",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		// Try to update with empty name (invalid)
 		created.Name = ""
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 	})
@@ -198,19 +214,22 @@ func TestUpdatePropertyFields(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := registerTestPropertyGroup(t, th)
 
 	t.Run("should update multiple non-protected fields without bypass", func(t *testing.T) {
 		field1 := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Batch Field 1",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Batch Field 1",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		field2 := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Batch Field 2",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Batch Field 2",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 
 		created1, appErr := th.App.CreatePropertyField(th.Context, field1, false, "")
@@ -221,16 +240,18 @@ func TestUpdatePropertyFields(t *testing.T) {
 		created1.Name = "Updated Batch 1"
 		created2.Name = "Updated Batch 2"
 
-		updated, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{created1, created2}, false, "")
+		updated, _, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{created1, created2}, false, "")
 		require.Nil(t, appErr)
 		require.Len(t, updated, 2)
 	})
 
 	t.Run("should reject batch update if any field is protected without bypass", func(t *testing.T) {
 		nonProtected := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Non-Protected in Batch",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Non-Protected in Batch",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		protected := &model.PropertyField{
 			GroupID:           groupID,
@@ -252,7 +273,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 		createdNonProtected.Name = "Updated Non-Protected"
 		createdProtected.Name = "Updated Protected"
 
-		updated, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdNonProtected, createdProtected}, false, "")
+		updated, _, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdNonProtected, createdProtected}, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, "app.property_field.update.protected.app_error", appErr.Id)
@@ -270,9 +291,11 @@ func TestUpdatePropertyFields(t *testing.T) {
 
 	t.Run("should allow batch update with protected fields when bypass is true", func(t *testing.T) {
 		nonProtected := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Non-Protected Bypass Batch",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Non-Protected Bypass Batch",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		protected := &model.PropertyField{
 			GroupID:           groupID,
@@ -294,14 +317,14 @@ func TestUpdatePropertyFields(t *testing.T) {
 		createdNonProtected.Name = "Bypass Updated Non-Protected"
 		createdProtected.Name = "Bypass Updated Protected"
 
-		updated, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdNonProtected, createdProtected}, true, "")
+		updated, _, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdNonProtected, createdProtected}, true, "")
 		require.Nil(t, appErr)
 		require.Len(t, updated, 2)
 	})
 
 	t.Run("should fail to update if any field comes from a different property group", func(t *testing.T) {
 		// Create a field in a different group
-		otherGroup, appErr := th.App.RegisterPropertyGroup(th.Context, "test-other-group")
+		otherGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_other_group", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
 
 		fieldInOtherGroup := &model.PropertyField{
@@ -314,9 +337,11 @@ func TestUpdatePropertyFields(t *testing.T) {
 
 		// Create a field in the main group
 		fieldInMainGroup := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Field in Main Group",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Field in Main Group",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		createdMain, appErr := th.App.CreatePropertyField(th.Context, fieldInMainGroup, false, "")
 		require.Nil(t, appErr)
@@ -325,7 +350,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 		createdMain.Name = "Updated Main"
 		createdOther.Name = "Updated Other"
 
-		_, appErr = th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdMain, createdOther}, false, "")
+		_, _, appErr = th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdMain, createdOther}, false, "")
 		require.NotNil(t, appErr)
 
 		// Verify neither field was updated
@@ -339,18 +364,185 @@ func TestUpdatePropertyFields(t *testing.T) {
 	})
 }
 
+func TestCreatePropertyFieldVersionEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("should reject creating a v2 field on a v1 group", func(t *testing.T) {
+		group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v1_group_reject_v2_field", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "V2 Field on V1 Group",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, created)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should reject creating a v1 field on a v2 group", func(t *testing.T) {
+		group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v2_group_reject_v1_field", Version: model.PropertyGroupVersionV2})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "V1 Field on V2 Group",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+			// No ObjectType → PSAv1 field
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, created)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should allow creating a v1 field on a v1 group", func(t *testing.T) {
+		group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v1_group_allow_v1_field", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "V1 Field on V1 Group",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+			// No ObjectType → PSAv1 field
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, created.ID)
+	})
+
+	t.Run("should allow creating a v2 field on a v2 group", func(t *testing.T) {
+		group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v2_group_allow_v2_field", Version: model.PropertyGroupVersionV2})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "V2 Field on V2 Group",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, created.ID)
+	})
+}
+
+func TestUpdatePropertyFieldVersionEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("should reject updating a v2 field on a v1 group", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v1_group_update_reject_v2", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+
+		// Create a v1 field on the v1 group (allowed)
+		field := &model.PropertyField{
+			GroupID:    v1Group.ID,
+			Name:       "V1 Field for Update Test",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		// Attempt to update it as a v2 field (add ObjectType to make it v2)
+		created.ObjectType = model.PropertyFieldObjectTypeUser
+		created.TargetType = string(model.PropertyFieldTargetLevelSystem)
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, v1Group.ID, created, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should reject updating a v1 field on a v2 group", func(t *testing.T) {
+		v2Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v2_group_update_reject_v1", Version: model.PropertyGroupVersionV2})
+		require.Nil(t, appErr)
+
+		// Create a v2 field on the v2 group (allowed)
+		field := &model.PropertyField{
+			GroupID:    v2Group.ID,
+			Name:       "V2 Field for Update Test",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		// Attempt to update it as a v1 field (remove ObjectType to make it v1)
+		created.ObjectType = ""
+		created.TargetType = "user"
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, v2Group.ID, created, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should allow updating a v1 field on a v1 group", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v1_group_update_allow_v1", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    v1Group.ID,
+			Name:       "V1 Field Update Allowed",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		created.Name = "V1 Field Updated"
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, v1Group.ID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "V1 Field Updated", updated.Name)
+	})
+
+	t.Run("should allow updating a v2 field on a v2 group", func(t *testing.T) {
+		v2Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v2_group_update_allow_v2", Version: model.PropertyGroupVersionV2})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    v2Group.ID,
+			Name:       "V2 Field Update Allowed",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		created.Name = "V2 Field Updated"
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, v2Group.ID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "V2 Field Updated", updated.Name)
+	})
+}
+
 func TestDeletePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := registerTestPropertyGroup(t, th)
 
 	t.Run("should delete a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Field to Delete",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Field to Delete",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
@@ -420,7 +612,8 @@ func TestDeletePropertyField(t *testing.T) {
 			GroupID:    groupID,
 			Name:       "User Targeted Field",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
@@ -479,14 +672,15 @@ func TestGetPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := registerTestPropertyGroup(t, th)
 
 	t.Run("should get an existing field", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Field to Get",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Field to Get",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
@@ -507,19 +701,22 @@ func TestGetPropertyFields(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := registerTestPropertyGroup(t, th)
 
 	t.Run("should get multiple fields", func(t *testing.T) {
 		field1 := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Multi Get Field 1",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Multi Get Field 1",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		field2 := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Multi Get Field 2",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Multi Get Field 2",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 
 		created1, appErr := th.App.CreatePropertyField(th.Context, field1, false, "")
@@ -537,14 +734,15 @@ func TestSearchPropertyFields(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := registerTestPropertyGroup(t, th)
 
 	t.Run("should search for fields", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Searchable Field",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Searchable Field",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		_, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
@@ -556,5 +754,283 @@ func TestSearchPropertyFields(t *testing.T) {
 		results, appErr := th.App.SearchPropertyFields(th.Context, groupID, opts)
 		require.Nil(t, appErr)
 		assert.NotEmpty(t, results)
+	})
+}
+
+func TestCreatePropertyField_SystemCanonicalization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("system object: TargetType+TargetID and Permission* are canonicalized", func(t *testing.T) {
+		member := model.PermissionLevelMember
+		field := &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "System Canonicalize",
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeSystem,
+			TargetType:        "channel",
+			TargetID:          model.NewId(),
+			PermissionField:   &member,
+			PermissionValues:  &member,
+			PermissionOptions: &member,
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, string(model.PropertyFieldTargetLevelSystem), created.TargetType)
+		assert.Empty(t, created.TargetID)
+		require.NotNil(t, created.PermissionField)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+		require.NotNil(t, created.PermissionOptions)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
+	})
+}
+
+func TestCreatePropertyField_TrimName(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("trims whitespace around name", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "  trim-me  ",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "trim-me", created.Name)
+	})
+}
+
+func TestUpdatePropertyField_TrimNameOnUpdate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("trims whitespace on update", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Trim Update",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		created.Name = "  trimmed-on-update  "
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "trimmed-on-update", updated.Name)
+	})
+}
+
+func TestUpdatePropertyField_LinkedFieldInvariants(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	makeLinkedPair := func(t *testing.T) (template, linked *model.PropertyField) {
+		t.Helper()
+		tmpl := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "tmpl-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": model.NewId(), "name": "opt1"},
+				},
+			},
+		}
+		createdTmpl, appErr := th.App.CreatePropertyField(th.Context, tmpl, false, "")
+		require.Nil(t, appErr)
+
+		linkedID := createdTmpl.ID
+		linkedField := &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+		return createdTmpl, createdLinked
+	}
+
+	t.Run("type immutable on linked field", func(t *testing.T) {
+		_, linked := makeLinkedPair(t)
+		linked.Type = model.PropertyFieldTypeText
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "app.property_field.update.linked_type_change.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("options immutable on linked field", func(t *testing.T) {
+		_, linked := makeLinkedPair(t)
+		linked.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []map[string]any{
+				{"id": model.NewId(), "name": "different"},
+			},
+		}
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "app.property_field.update.linked_options_change.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("link target immutable: cannot change to different target", func(t *testing.T) {
+		altTmpl, linked := makeLinkedPair(t)
+		// Create another template to point to
+		_ = altTmpl
+		newTmpl := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "tmpl-alt-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": model.NewId(), "name": "x"},
+				},
+			},
+		}
+		createdNew, appErr := th.App.CreatePropertyField(th.Context, newTmpl, false, "")
+		require.Nil(t, appErr)
+
+		newID := createdNew.ID
+		linked.LinkedFieldID = &newID
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "app.property_field.update.cannot_change_link_target.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("cannot link a previously-unlinked field", func(t *testing.T) {
+		unlinked := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "unlinked-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		createdUnlinked, appErr := th.App.CreatePropertyField(th.Context, unlinked, false, "")
+		require.Nil(t, appErr)
+
+		// Create a template to link to
+		tmpl := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "tmpl-late-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		createdTmpl, appErr := th.App.CreatePropertyField(th.Context, tmpl, false, "")
+		require.Nil(t, appErr)
+		tID := createdTmpl.ID
+
+		createdUnlinked.LinkedFieldID = &tID
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdUnlinked, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "app.property_field.update.cannot_link_existing.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+}
+
+func TestUpdatePropertyField_LinkedFieldNoOpPatchOK(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("setting Type to current value on a linked field passes", func(t *testing.T) {
+		// Build template + linked
+		tmpl := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "tmpl-noop-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": model.NewId(), "name": "n"},
+				},
+			},
+		}
+		createdTmpl, appErr := th.App.CreatePropertyField(th.Context, tmpl, false, "")
+		require.Nil(t, appErr)
+		linkedID := createdTmpl.ID
+
+		linked := &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "linked-noop-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linked, false, "")
+		require.Nil(t, appErr)
+
+		// No-op update: Type unchanged.
+		createdLinked.Name = "linked-renamed"
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdLinked, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "linked-renamed", updated.Name)
+	})
+}
+
+func TestUpdatePropertyField_LinkedFieldUnlinkAllowed(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("plugin path: setting LinkedFieldID = nil on a linked field unlinks it", func(t *testing.T) {
+		tmpl := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "tmpl-unlink-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		createdTmpl, appErr := th.App.CreatePropertyField(th.Context, tmpl, false, "")
+		require.Nil(t, appErr)
+		linkedID := createdTmpl.ID
+
+		linked := &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "linked-unlink-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linked, false, "")
+		require.Nil(t, appErr)
+
+		createdLinked.LinkedFieldID = nil
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdLinked, false, "")
+		require.Nil(t, appErr)
+		assert.Nil(t, updated.LinkedFieldID)
 	})
 }

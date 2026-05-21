@@ -874,7 +874,19 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false})
+	// Grant mm_blocks_actions write access only when the plugin's update
+	// actually includes the prop, AND the value passes validation.
+	// Otherwise the freeze in UpdatePost preserves whatever the original
+	// post had — plugins that update unrelated fields don't accidentally
+	// drop or corrupt mm_blocks_actions.
+	allowMmBlocksActionsUpdate := false
+	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
+		if err := model.ValidateMmBlocksActions(post); err != nil {
+			return nil, model.NewAppError("UpdatePost", "plugin.api.update_post.mm_blocks_actions.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		allowMmBlocksActionsUpdate = true
+	}
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate})
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1481,6 +1493,10 @@ func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
 	return api.app.UnregisterPluginForSharedChannels(pluginID)
 }
 
+func (api *PluginAPI) UnregisterPluginRemoteForSharedChannels(remoteID string) error {
+	return api.app.UnregisterPluginRemoteForSharedChannels(api.id, remoteID)
+}
+
 func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	scShared, err := api.app.ShareChannel(api.ctx, sc)
 	if errors.Is(err, model.ErrChannelAlreadyShared) {
@@ -1592,7 +1608,7 @@ func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	updatedField, appErr := api.app.UpdatePropertyField(api.psaPluginContext(), groupID, field, false, "")
+	updatedField, _, appErr := api.app.UpdatePropertyField(api.psaPluginContext(), groupID, field, false, "")
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1686,7 +1702,18 @@ func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyVa
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
-	group, appErr := api.app.RegisterPropertyGroup(api.psaPluginContext(), name)
+	if name == model.DeprecatedCPAPropertyGroupName {
+		return nil, fmt.Errorf(
+			"the group name %q has been renamed to %q; use %q instead",
+			model.DeprecatedCPAPropertyGroupName,
+			model.AccessControlPropertyGroupName,
+			model.AccessControlPropertyGroupName,
+		)
+	}
+	group, appErr := api.app.RegisterPropertyGroup(api.psaPluginContext(), &model.PropertyGroup{
+		Name:    name,
+		Version: model.PropertyGroupVersionV1,
+	})
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1694,11 +1721,21 @@ func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, 
 }
 
 func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
+	name = migrateDeprecatedPropertyGroupName(name)
 	group, appErr := api.app.GetPropertyGroup(api.psaPluginContext(), name)
 	if appErr != nil {
 		return nil, appErr
 	}
 	return group, nil
+}
+
+// migrateDeprecatedPropertyGroupName maps the deprecated "custom_profile_attributes"
+// group name to the current "access_control" name for backward compatibility.
+func migrateDeprecatedPropertyGroupName(name string) string {
+	if name == model.DeprecatedCPAPropertyGroupName {
+		return model.AccessControlPropertyGroupName
+	}
+	return name
 }
 
 func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
@@ -1710,7 +1747,7 @@ func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*m
 }
 
 func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	updatedFields, appErr := api.app.UpdatePropertyFields(api.psaPluginContext(), groupID, fields, false, "")
+	updatedFields, _, appErr := api.app.UpdatePropertyFields(api.psaPluginContext(), groupID, fields, false, "")
 	if appErr != nil {
 		return nil, appErr
 	}

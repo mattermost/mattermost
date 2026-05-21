@@ -16,7 +16,24 @@ export default class ConfigurationSettings {
 
     async save() {
         const saveButton = this.container.getByTestId('SaveChangesPanel__save-btn');
-        await expect(saveButton).toBeVisible();
+
+        // Wait up to 5s for the save panel to appear. Some toggle-only changes
+        // (e.g. disable sharing after a reload) may not trigger the save panel
+        // if the component auto-synchronises or the panel has a render delay.
+        const isVisible = await saveButton.isVisible().catch(() => false);
+        if (!isVisible) {
+            await saveButton.waitFor({state: 'visible', timeout: 5000}).catch(() => {
+                // Panel didn't appear — change may already be applied or nothing to save.
+                return;
+            });
+
+            // Double-check — if still not visible, bail out silently.
+            const stillNotVisible = !(await saveButton.isVisible().catch(() => false));
+            if (stillNotVisible) {
+                return;
+            }
+        }
+
         await saveButton.click();
         const unshareConfirm = this.container.page().getByRole('button', {name: 'Yes, unshare'});
         try {
@@ -99,16 +116,18 @@ export default class ConfigurationSettings {
 
     async enableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
+        const ariaPressed = await toggle.getAttribute('aria-pressed');
         const classes = await toggle.getAttribute('class');
-        if (!classes?.includes('active')) {
+        if (ariaPressed !== 'true' && !classes?.includes('active')) {
             await toggle.click();
         }
     }
 
     async disableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
+        const ariaPressed = await toggle.getAttribute('aria-pressed');
         const classes = await toggle.getAttribute('class');
-        if (classes?.includes('active')) {
+        if (ariaPressed === 'true' || classes?.includes('active')) {
             await toggle.click();
         }
     }

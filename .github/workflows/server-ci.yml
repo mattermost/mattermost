@@ -81,6 +81,23 @@ jobs:
         run: make modules-tidy
       - name: Check modules
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
+  check-go-fix:
+    name: Check go fix
+    needs: go
+    runs-on: ubuntu-22.04
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run setup-go-work
+        run: make setup-go-work
+      - name: Run go fix
+        run: go fix ./...
+      - name: Check go fix
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please run 'go fix ./...' and commit the changes"; git diff; exit 1; fi
   check-style:
     name: check-style
     needs: go
@@ -215,6 +232,7 @@ jobs:
       drivername: postgres
       # Each shard gets a unique artifact name so they don't collide
       logsartifact: "postgres-server-test-logs-shard-${{ matrix.shard }}"
+      enablecoverage: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
       shard-index: ${{ matrix.shard }}
@@ -229,6 +247,7 @@ jobs:
       artifact-pattern: postgres-server-test-logs-shard-*
       artifact-name: postgres-server-test-logs
       save-timing-cache: true
+      all-shards-passed: ${{ needs.test-postgres-normal.result == 'success' }}
 
   test-elasticsearch-v8:
     name: Elasticsearch v8 Compatibility
@@ -275,29 +294,6 @@ jobs:
       artifact-pattern: postgres-server-fips-test-logs-shard-*
       artifact-name: postgres-server-fips-test-logs
 
-  test-coverage:
-    name: "Coverage (shard ${{ matrix.shard }})"
-    if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
-    needs: go
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [0, 1, 2, 3]
-    uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
-    with:
-      name: "Coverage (shard ${{ matrix.shard }})"
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
-      drivername: postgres
-      logsartifact: "coverage-server-test-logs-shard-${{ matrix.shard }}"
-      fullyparallel: true
-      allow-failure: true
-      enablecoverage: true
-      go-version: ${{ needs.go.outputs.version }}
-      fips-enabled: false
-      # runner: ubuntu-22.04 # Coverage is non-blocking (allow-failure), no need for 8-core
-      shard-index: ${{ matrix.shard }}
-      shard-total: 4
   test-mmctl:
     name: Run mmctl tests
     needs: go

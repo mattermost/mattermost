@@ -14,6 +14,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
+// shouldRedactExpressions reports whether raw CEL expressions should be masked for this caller.
+// Masking is attribute-based, not permission-based: system admins who do not hold all values
+// in a policy must also receive redacted raw expressions.
+func shouldRedactExpressions(c *Context) bool {
+	return c.App.Config().FeatureFlags.AttributeBasedAccessControl &&
+		c.App.Config().FeatureFlags.AttributeValueMasking
+}
+
 func (api *API) InitAccessControlPolicy() {
 	if !api.srv.Config().FeatureFlags.AttributeBasedAccessControl {
 		return
@@ -133,6 +141,10 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec.AddEventObjectType("access_control_policy")
 	auditRec.AddEventResultState(np)
 
+	if shouldRedactExpressions(c) {
+		c.App.MaskPolicyExpressions(c.AppContext, np, c.AppContext.Session().UserId)
+	}
+
 	js, err := json.Marshal(np)
 	if err != nil {
 		c.Err = model.NewAppError("createAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -183,6 +195,10 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	if shouldRedactExpressions(c) {
+		c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
 	}
 
 	js, err := json.Marshal(policy)
@@ -488,6 +504,12 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 		policies = filtered
 	}
 
+	if shouldRedactExpressions(c) {
+		for _, p := range policies {
+			c.App.MaskPolicyExpressions(c.AppContext, p, c.AppContext.Session().UserId)
+		}
+	}
+
 	result := model.AccessControlPoliciesWithCount{
 		Policies: policies,
 		Total:    total,
@@ -619,6 +641,12 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
+
+	if shouldRedactExpressions(c) {
+		for _, p := range policies {
+			c.App.MaskPolicyExpressions(c.AppContext, p, c.AppContext.Session().UserId)
+		}
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(policies); err != nil {
@@ -870,7 +898,6 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 	opts := model.ChannelSearchOpts{
 		Deleted:                     props.Deleted,
 		IncludeDeleted:              props.IncludeDeleted,
-		Private:                     true,
 		ExcludeGroupConstrained:     true,
 		TeamIds:                     teamIds,
 		ParentAccessControlPolicyId: policyID,
@@ -996,7 +1023,16 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	visualAST, appErr := c.App.ExpressionToVisualAST(c.AppContext, cel.Expression)
+	var visualAST *model.VisualExpression
+	var appErr *model.AppError
+
+	// Masking is attribute-based, not permission-based: all admins receive a
+	// filtered AST based on what they themselves hold, regardless of role.
+	if shouldRedactExpressions(c) {
+		visualAST, appErr = c.App.GetMaskedVisualAST(c.AppContext, cel.Expression, c.AppContext.Session().UserId)
+	} else {
+		visualAST, appErr = c.App.ExpressionToVisualAST(c.AppContext, cel.Expression)
+	}
 	if appErr != nil {
 		c.Err = appErr
 		return

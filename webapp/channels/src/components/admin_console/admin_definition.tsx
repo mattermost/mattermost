@@ -57,6 +57,7 @@ import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchable
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
+import ClassificationMarkings, {searchableStrings as classificationMarkingsSearchableStrings} from './classification_markings';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsMagicLinkSetting, {searchableStrings as magicLinkSearchableStrings} from './custom_enable_disable_guest_accounts_magic_link_setting';
@@ -218,6 +219,25 @@ const SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11 = 'Canonical1.1';
 //   - remove_action: An store action to remove the file.
 //   - fileType: A list of extensions separated by ",". E.g. ".jpg,.png,.gif".
 
+const reportAProblemTypeOptions = [
+    {
+        display_name: defineMessage({id: 'admin.support.problemType.defaultLink', defaultMessage: 'Default'}),
+        value: 'default',
+    },
+    {
+        display_name: defineMessage({id: 'admin.support.problemType.email', defaultMessage: 'Email address'}),
+        value: 'email',
+    },
+    {
+        display_name: defineMessage({id: 'admin.support.problemType.customLink', defaultMessage: 'Custom link'}),
+        value: 'link',
+    },
+    {
+        display_name: defineMessage({id: 'admin.support.problemType.hide', defaultMessage: 'Hide link'}),
+        value: 'hidden',
+    },
+];
+
 const adminDefinitionMessages = defineMessages({
     data_retention_title: {id: 'admin.data_retention.title', defaultMessage: 'Data Retention Policy'},
     ip_filtering_title: {id: 'admin.sidebar.ip_filtering', defaultMessage: 'IP Filtering'},
@@ -353,7 +373,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_analytics: {
                 url: 'reporting/system_analytics',
-                title: defineMessage({id: 'admin.sidebar.siteStatistics', defaultMessage: 'Site Statistics'}),
+                title: defineMessage({id: 'admin.sidebar.systemStatistics', defaultMessage: 'System Statistics'}),
                 searchableStrings: systemAnalyticsSearchableStrings,
                 schema: {
                     id: 'SystemAnalytics',
@@ -2161,10 +2181,15 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.developer.title', defaultMessage: 'Developer Settings'}),
                     settings: [
                         {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.service.testingWarning', defaultMessage: 'Warning: Testing commands are intended only for isolated non-production environments with test users and sample data. Never enable this setting in production.'}),
+                            banner_type: 'warning',
+                        },
+                        {
                             type: 'bool',
                             key: 'ServiceSettings.EnableTesting',
                             label: defineMessage({id: 'admin.service.testingTitle', defaultMessage: 'Enable Testing Commands:'}),
-                            help_text: defineMessage({id: 'admin.service.testingDescription', defaultMessage: 'When true, /test slash command is enabled to load test accounts, data and text formatting. Changing this requires a server restart before taking effect.'}),
+                            help_text: defineMessage({id: 'admin.service.testingDescription', defaultMessage: 'When true, the /test slash command is enabled to load test accounts, data, and text formatting. Use this setting only in isolated non-production environments and never in production. Changing this requires a server restart before taking effect.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
                         },
                         {
@@ -2348,6 +2373,76 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                             ],
                         },
+                        {
+                            key: 'MobileSecuritySettings.EphemeralMode',
+                            title: 'Mobile Ephemeral Mode',
+                            description: defineMessage({id: 'admin.mobileSecurity.sections.ephemeralMode.description', defaultMessage: 'Configure data persistence and cache management policies for mobile devices.'}),
+                            license_sku: LicenseSkus.EnterpriseAdvanced,
+                            component: LicensedSectionContainer,
+                            componentProps: {
+                                requiredSku: LicenseSkus.EnterpriseAdvanced,
+                                featureDiscoveryConfig: {
+                                    featureName: 'mobile_ephemeral_mode',
+                                    title: defineMessage({id: 'admin.mobileSecurity.ephemeralMode_feature_discovery.title', defaultMessage: 'Control mobile data persistence with Mobile Ephemeral Mode'}),
+                                    description: defineMessage({id: 'admin.mobileSecurity.ephemeralMode_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, you can enable Mobile Ephemeral Mode to enforce data persistence policies on mobile devices. Configure disconnection timeouts, offline data retention, and automatic cache cleanup.'}),
+                                    learnMoreURL: 'https://docs.mattermost.com',
+                                },
+                            },
+                            isHidden: it.configIsFalse('FeatureFlags', 'MobileEphemeralMode'),
+                            settings: [
+                                {
+                                    type: 'banner',
+                                    label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.banner', defaultMessage: 'Changes to these settings are delivered to connected devices in real time. Offline devices will continue operating under their last-known settings until they re-establish a server connection. Timer state persists across app and device restarts.'}),
+                                    banner_type: 'info',
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'MobileEphemeralModeSettings.Enable',
+                                    label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableTitle', defaultMessage: 'Enable Mobile Ephemeral Mode:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableDescription', defaultMessage: 'When enabled, mobile clients will follow the server-configured ephemeral data policies. Disconnected devices will clean up cached data based on the configured timers.'}),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'MobileEphemeralModeSettings.DisconnectionTimeoutSeconds',
+                                    label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeoutTitle', defaultMessage: 'Disconnection Timeout (seconds):'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeoutDescription', defaultMessage: 'Grace period after losing server connection before the device is considered offline. Helps avoid false triggers from brief network interruptions. Values below 5 are not recommended.'}),
+                                    placeholder: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeout.placeholder', defaultMessage: 'E.g.: 60'}),
+                                    isDisabled: it.stateIsFalse('MobileEphemeralModeSettings.Enable'),
+                                    validate: validators.numberInRange(0, 600, defineMessage({
+                                        id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeout.range',
+                                        defaultMessage: 'Must be a number between 0 and 600 seconds (10 minutes).',
+                                    })),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'MobileEphemeralModeSettings.OfflinePersistenceTimerHours',
+                                    label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistenceTitle', defaultMessage: 'Offline Persistence Timer (hours):'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistenceDescription', defaultMessage: 'How long cached content is kept after the device goes offline. When the timer expires, cached content is deleted but session credentials are preserved. Set to 0 for immediate cleanup.'}),
+                                    disabled_help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistence.disabled', defaultMessage: 'How long cached content is kept after the device goes offline. When the timer expires, cached content is deleted but session credentials are preserved. Set to 0 for immediate cleanup. Requires Mobile Ephemeral Mode to be enabled and Auto Cache Cleanup to be greater than 0.'}),
+                                    placeholder: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistence.placeholder', defaultMessage: 'E.g.: 24'}),
+                                    isDisabled: it.any(
+                                        it.stateIsFalse('MobileEphemeralModeSettings.Enable'),
+                                        it.stateEquals('MobileEphemeralModeSettings.AutoCacheCleanupDays', 0),
+                                    ),
+                                    validate: validators.numberInRange(0, 72, defineMessage({
+                                        id: 'admin.mobileSecurity.ephemeralMode.offlinePersistence.range',
+                                        defaultMessage: 'Must be a number between 0 and 72 hours (3 days).',
+                                    })),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'MobileEphemeralModeSettings.AutoCacheCleanupDays',
+                                    label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanupTitle', defaultMessage: 'Auto Cache Cleanup (days):'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanupDescription', defaultMessage: 'Controls the maximum age of any content cached on the device, regardless of connection status. Prevents unbounded accumulation of sensitive data. Set to 0 for zero-persistence mode where content is never persisted to disk.'}),
+                                    placeholder: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanup.placeholder', defaultMessage: 'E.g.: 7'}),
+                                    isDisabled: it.stateIsFalse('MobileEphemeralModeSettings.Enable'),
+                                    validate: validators.numberInRange(0, 60, defineMessage({
+                                        id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanup.range',
+                                        defaultMessage: 'Must be a number between 0 and 60 days.',
+                                    })),
+                                },
+                            ],
+                        },
                     ],
                 },
             },
@@ -2486,57 +2581,32 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'SupportSettings.ReportAProblemType',
                             label: defineMessage({id: 'admin.support.reportAProblemTypeTitle', defaultMessage: 'Report a Problem:'}),
-                            help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescription', defaultMessage: 'Select how the ‘Report a Problem’ option behaves. Choosing ‘Custom link’ or ‘Email address’ allows you to provide a URL or address in the next field. ‘Hide link’ removes the ‘Report a Problem’ option from the app.'}),
-                            options: [
-                                {
-                                    display_name: defineMessage({id: 'admin.support.problemType.defaultLink', defaultMessage: 'Default link'}),
-                                    value: 'default',
-                                },
-                                {
-                                    display_name: defineMessage({id: 'admin.support.problemType.email', defaultMessage: 'Email address'}),
-                                    value: 'email',
-                                },
-                                {
-                                    display_name: defineMessage({id: 'admin.support.problemType.customLink', defaultMessage: 'Custom link'}),
-                                    value: 'link',
-                                },
-                                {
-                                    display_name: defineMessage({id: 'admin.support.problemType.hide', defaultMessage: 'Hide link'}),
-                                    value: 'hidden',
-                                },
-                            ],
+                            help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescriptionLicensed', defaultMessage: 'By default, selecting "Report a Problem" from the help menu opens a pre-filled email draft to the Mattermost technical support team. You may provide a custom URL or email address for end user support by choosing "Custom link" or "Email address". "Hide link" removes the "Report a Problem" option from the app.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                            isHidden: it.any(
+                                it.isFreeEdition,
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                            ),
+                            options: reportAProblemTypeOptions,
                         },
                         {
-                            type: 'text',
-                            key: 'defaultLicensedReportAProblemLink',
-                            label: defineMessage({id: 'admin.support.reportAProblemDefaultLinkTitle', defaultMessage: 'Default Report a Problem Link:'}),
-                            help_text: defineMessage({id: 'admin.support.reportAProblemDefaultLinkDescription', defaultMessage: 'Users will be directed to this link when they choose ‘Report a Problem’.'}),
-                            default: 'https://mattermost.com/pl/report_a_problem_licensed',
-                            isDisabled: it.all(),
+                            type: 'dropdown',
+                            key: 'SupportSettings.ReportAProblemType',
+                            label: defineMessage({id: 'admin.support.reportAProblemTypeTitle', defaultMessage: 'Report a Problem:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescriptionUnlicensed', defaultMessage: 'By default, selecting "Report a Problem" from the help menu opens the [Mattermost troubleshooting forums](https://mattermost.com/pl/report_a_problem_unlicensed). You may provide a custom URL or email address for end user support by choosing "Custom link" or "Email address". "Hide link" removes the "Report a Problem" option from the app.'}),
+                            help_text_markdown: true,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                             isHidden: it.any(
+                                it.not(it.isFreeEdition),
                                 it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
-                                it.not(it.licensed),
                             ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'defaultUnlicensedReportAProblemLink',
-                            label: defineMessage({id: 'admin.support.reportAProblemDefaultLinkTitle', defaultMessage: 'Default Report a Problem Link:'}),
-                            help_text: defineMessage({id: 'admin.support.reportAProblemDefaultLinkDescription', defaultMessage: 'Users will be directed to this link when they choose ‘Report a Problem’.'}),
-                            default: 'https://mattermost.com/pl/report_a_problem_unlicensed',
-                            isDisabled: it.all(),
-                            isHidden: it.any(
-                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
-                                it.licensed,
-                            ),
+                            options: reportAProblemTypeOptions,
                         },
                         {
                             type: 'text',
                             key: 'SupportSettings.ReportAProblemLink',
                             label: defineMessage({id: 'admin.support.reportAProblemLinkTitle', defaultMessage: 'Custom Report a Problem Link:'}),
-                            help_text: defineMessage({id: 'admin.support.reportAProblemLinkDescription', defaultMessage: 'Enter the URL that users will be directed to when they choose ‘Report a Problem’.'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemLinkDescription', defaultMessage: 'Enter the URL that users will be directed to when they choose "Report a Problem".'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                             ),
@@ -2555,7 +2625,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'SupportSettings.ReportAProblemMail',
                             label: defineMessage({id: 'admin.support.reportAProblemEmailTitle', defaultMessage: 'Report a Problem Email Address:'}),
-                            help_text: defineMessage({id: 'admin.support.reportAProblemEmailDescription', defaultMessage: 'Enter the email address that users will be prompted to send a message to when they choose ‘Report a Problem’.'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemEmailDescription', defaultMessage: 'Enter the email address that users will be prompted to send a message to when they choose "Report a Problem".'}),
                             isDisabled: (it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION))),
                             isHidden: it.any(
                                 it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
@@ -2572,7 +2642,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'SupportSettings.AllowDownloadLogs',
                             label: defineMessage({id: 'admin.support.problemAllowDownloadTitle', defaultMessage: 'Allow Mobile App Log Downloads:'}),
-                            help_text: defineMessage({id: 'admin.support.problemAllowDownloadDescription', defaultMessage: 'When enabled, users can download app logs for troubleshooting. If a ‘Report a Problem’ link is shown, logs can be downloaded as part of that flow; if the ‘Report a Problem’ link is hidden, logs remain accessible as a separate option.'}),
+                            help_text: defineMessage({id: 'admin.support.problemAllowDownloadDescription', defaultMessage: 'When enabled, users can download app logs for troubleshooting. If a "Report a Problem" link is shown, logs can be downloaded as part of that flow; if the "Report a Problem" link is hidden, logs remain accessible as a separate option.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                         },
                         {
@@ -2702,11 +2772,10 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
-                            key: 'TeamSettings.EnableManagedChannelCategories',
-                            label: defineMessage({id: 'admin.team.managedChannelCategoriesTitle', defaultMessage: 'Managed channel categories:'}),
-                            help_text: defineMessage({id: 'admin.team.managedChannelCategoriesDescription', defaultMessage: 'Enables teams to have fixed sidebar categories to organize channels for all members of the team. Channel admins can create categories and organize their channels.'}),
+                            key: 'TeamSettings.EnableChannelCategorySorting',
+                            label: defineMessage({id: 'admin.team.enableChannelCategorySortingTitle', defaultMessage: 'Channel category sorting:'}),
+                            help_text: defineMessage({id: 'admin.team.enableChannelCategorySortingDescription', defaultMessage: 'When true, channel admins can choose a default sidebar category when creating or editing a channel. New channel members will automatically have a category created that contains the channel for them when joining the channel.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
-                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                         },
                         {
                             type: 'bool',
@@ -3013,6 +3082,20 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.configIsFalse('FeatureFlags', 'NotificationMonitoring'),
                         },
                     ],
+                },
+            },
+            classification_markings: {
+                url: 'site_config/classification_markings',
+                title: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
+                searchableStrings: classificationMarkingsSearchableStrings,
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                    it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
+                ),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'ClassificationMarkings',
+                    component: ClassificationMarkings,
                 },
             },
             announcement_banner: {
@@ -4146,7 +4229,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.saml.getSamlMetadataFromIDPUrl', defaultMessage: 'Get SAML Metadata from IdP'}),
                             loading: defineMessage({id: 'admin.saml.getSamlMetadataFromIDPFetching', defaultMessage: 'Fetching...'}),
                             error_message: defineMessage({id: 'admin.saml.getSamlMetadataFromIDPFail', defaultMessage: 'SAML Metadata URL did not connect and pull data successfully'}),
-                            success_message: defineMessage({id: 'admin.saml.getSamlMetadataFromIDPSuccess', defaultMessage: 'SAML Metadata retrieved successfully. Two fields below have been updated'}),
+                            success_message: defineMessage({id: 'admin.saml.getSamlMetadataFromIDPSuccess', defaultMessage: 'SAML Metadata retrieved successfully. Two fields and one certificate have been updated'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
                                 it.stateIsFalse('SamlSettings.Enable'),
@@ -6424,13 +6507,6 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalSettings.YoutubeReferrerPolicy',
                             label: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.title', defaultMessage: 'YouTube Referrer Policy:'}),
                             help_text: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.desc', defaultMessage: 'When true, the referrer policy for embedded YouTube videos will be set to "strict-origin-when-cross-origin" which resolves issues where YouTube video previews display as unavailable, while balancing the need to protect user privacy with some degree of referral data to support web functionalities, like analytics, logging, and third-party integrations. When false, the referrer policy will be set to "no-referrer" which enhances user privacy by not disclosing the source URL, but limits the ability to track user engagement and traffic sources in analytics tools.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalSettings.ExperimentalChannelCategorySorting',
-                            label: defineMessage({id: 'admin.experimental.channelCategorySorting.title', defaultMessage: 'Channel Category Sorting:'}),
-                            help_text: defineMessage({id: 'admin.experimental.channelCategorySorting.desc', defaultMessage: 'When true, channels will be automatically sorted into categories based on their names using a "/" delimiter.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

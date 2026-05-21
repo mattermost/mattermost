@@ -8,6 +8,8 @@ import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineM
 import {useSelector} from 'react-redux';
 
 import AlertOutlineIcon from '@mattermost/compass-icons/components/alert-outline';
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
@@ -19,7 +21,6 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import ExternalLink from 'components/external_link';
 import Tag from 'components/widgets/tag/tag';
-import WithTooltip from 'components/with_tooltip';
 
 import {FileTypes, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
@@ -93,16 +94,18 @@ const EnterpriseEditionLeftPanel = ({
     const isEntrySku = unsanitizedLicense.SkuShortName === LicenseSkus.Entry;
 
     const viewPlansButton = isAirGapped ? null : (
-        <button
+        <Button
             id='enterprise_edition_view_plans'
             onClick={openPricingModal}
-            className='btn btn-tertiary btn-sm PlanDetails__viewPlansButton'
+            emphasis='tertiary'
+            size='sm'
+            className='PlanDetails__viewPlansButton'
         >
             {formatMessage({
                 id: 'workspace_limits.menu_limit.view_plans',
                 defaultMessage: 'View plans',
             })}
-        </button>
+        </Button>
     );
 
     // For Entry SKU, render a simplified panel
@@ -160,8 +163,8 @@ const EnterpriseEditionLeftPanel = ({
                             })}
                             disabled={!isLicenseSetByEnvVar}
                         >
-                            <button
-                                className='btn btn-primary upload-license-btn'
+                            <Button
+                                emphasis='primary'
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isLicenseSetByEnvVar}
                             >
@@ -170,7 +173,7 @@ const EnterpriseEditionLeftPanel = ({
                                     id='admin.license.uploadLicense'
                                     defaultMessage='Upload license'
                                 />
-                            </button>
+                            </Button>
                         </WithTooltip>
                         <input
                             ref={fileInputRef}
@@ -218,15 +221,16 @@ const EnterpriseEditionLeftPanel = ({
             <div className='licenseInformation'>
                 <div className='licenseInformation__Header'>
                     <span className='licenseInformation__Title'>{'License details'}</span>
-                    <button
-                        className='btn btn-primary btn-sm add-seats-button '
+                    <Button
+                        emphasis='primary'
+                        size='sm'
                         onClick={openContactSales}
                     >
                         <FormattedMessage
                             id={'admin.license.enterpriseEdition.add.seats'}
                             defaultMessage='+ Add seats'
                         />
-                    </button>
+                    </Button>
                 </div>
                 {
                     renderLicenseContent(
@@ -463,8 +467,8 @@ const renderAddNewLicenseButton = (
                 })}
                 disabled={!isLicenseSetByEnvVar}
             >
-                <button
-                    className={'btn btn-secondary'}
+                <Button
+                    emphasis='secondary'
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isLicenseSetByEnvVar}
                 >
@@ -472,7 +476,7 @@ const renderAddNewLicenseButton = (
                         id='admin.license.keyAddNew'
                         defaultMessage='Add a new license'
                     />
-                </button>
+                </Button>
             </WithTooltip>
             <input
                 ref={fileInputRef}
@@ -512,16 +516,16 @@ const renderRemoveButton = (
     return (
         <>
             <div className='remove-button'>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-danger'
+                    variant='destructive'
                     onClick={handleRemove}
                     disabled={isDisabled}
                     id='remove-button'
                     data-testid='remove-button'
                 >
                     {removeButtonText}
-                </button>
+                </Button>
             </div>
         </>
     );

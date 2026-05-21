@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
@@ -18,6 +19,13 @@ const (
 	PropertyValueTargetTypePost    = "post"
 	PropertyValueTargetTypeUser    = "user"
 	PropertyValueTargetTypeChannel = "channel"
+	PropertyValueTargetTypeSystem  = "system"
+
+	// PropertyValueSystemTargetID is the canonical TargetID sentinel for
+	// values whose TargetType is "system". System-object values attach to
+	// the Mattermost instance itself rather than to a user/channel/post,
+	// so there is no 26-char entity ID available; this sentinel stands in.
+	PropertyValueSystemTargetID = "system"
 )
 
 type PropertyValue struct {
@@ -32,6 +40,15 @@ type PropertyValue struct {
 	DeleteAt   int64           `json:"delete_at"`
 	CreatedBy  string          `json:"created_by"`
 	UpdatedBy  string          `json:"updated_by"`
+}
+
+// isValidPropertyValueTargetID accepts the canonical system sentinel when
+// the value targets the system, and a 26-char entity ID otherwise.
+func isValidPropertyValueTargetID(targetType, targetID string) bool {
+	if targetType == PropertyValueTargetTypeSystem {
+		return targetID == PropertyValueSystemTargetID
+	}
+	return IsValidId(targetID)
 }
 
 func (pv *PropertyValue) PreSave() {
@@ -50,7 +67,7 @@ func (pv *PropertyValue) IsValid() error {
 		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "id", "Reason": "invalid id"}, "", http.StatusBadRequest)
 	}
 
-	if !IsValidId(pv.TargetID) {
+	if !isValidPropertyValueTargetID(pv.TargetType, pv.TargetID) {
 		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "invalid id"}, "id="+pv.ID, http.StatusBadRequest)
 	}
 
@@ -134,4 +151,61 @@ type PropertyValueSearch struct {
 type PropertyValuePatchItem struct {
 	FieldID string          `json:"field_id"`
 	Value   json.RawMessage `json:"value"`
+}
+
+// SanitizePropertyValue normalizes a raw property value's JSON:
+//   - a top-level JSON string has surrounding whitespace trimmed;
+//   - a top-level JSON array of strings has each element trimmed and empty
+//     entries dropped;
+//   - any other shape (numbers, booleans, objects, nested arrays) passes
+//     through unchanged.
+//
+// Returns the original bytes when no change is needed so callers can
+// compare by identity if they want to skip writes.
+func SanitizePropertyValue(raw json.RawMessage) json.RawMessage {
+	if len(raw) == 0 {
+		return raw
+	}
+
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		trimmed := strings.TrimSpace(s)
+		if trimmed == s {
+			return raw
+		}
+		out, err := json.Marshal(trimmed)
+		if err != nil {
+			return raw
+		}
+		return out
+	}
+
+	var arr []string
+	if err := json.Unmarshal(raw, &arr); err == nil {
+		filtered := make([]string, 0, len(arr))
+		changed := false
+		for _, v := range arr {
+			t := strings.TrimSpace(v)
+			if t != v {
+				changed = true
+			}
+			if t == "" {
+				if v != "" {
+					changed = true
+				}
+				continue
+			}
+			filtered = append(filtered, t)
+		}
+		if !changed && len(filtered) == len(arr) {
+			return raw
+		}
+		out, err := json.Marshal(filtered)
+		if err != nil {
+			return raw
+		}
+		return out
+	}
+
+	return raw
 }

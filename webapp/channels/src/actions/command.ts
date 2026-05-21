@@ -81,7 +81,7 @@ export function executeCommand(message: string, args: CommandArgs): ActionFuncAs
             if (!channel) {
                 return {data: {silentFailureReason: new Error('cannot find current channel')}};
             }
-            if (channel.type === Constants.PRIVATE_CHANNEL) {
+            if (channel.type === Constants.PRIVATE_CHANNEL || channel.policy_enforced) {
                 dispatch(openModal({modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL, dialogType: LeaveChannelModal, dialogProps: {channel}}));
                 return {data: {frontendHandled: true}};
             }

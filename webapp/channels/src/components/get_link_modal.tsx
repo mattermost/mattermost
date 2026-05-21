@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+
+import {Button} from '@mattermost/shared/components/button';
 
 type Props = {
     show: boolean;
@@ -83,11 +86,14 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
 
         if (document.queryCommandSupported('copy')) {
             copyLink = (
-                <button
+                <Button
                     id='linkModalCopyLink'
                     data-copy-btn='true'
                     type='button'
-                    className={`btn ${this.state.copiedLink ? 'btn-primary btn-success' : 'btn-primary'} pull-left`}
+                    emphasis='primary'
+                    className={classNames({
+                        'btn-success': this.state.copiedLink,
+                    }, 'pull-left')}
                     onClick={this.copyLink}
                 >
                     {this.state.copiedLink ? (
@@ -107,7 +113,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                             />
                         </>
                     )}
-                </button>
+                </Button>
             );
         }
 
@@ -143,17 +149,17 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                     {linkText}
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         id='linkModalCloseButton'
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='get_link.close'
                             defaultMessage='Close'
                         />
-                    </button>
+                    </Button>
                     {copyLink}
                 </Modal.Footer>
             </Modal>
