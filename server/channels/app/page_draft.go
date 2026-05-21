@@ -5,7 +5,6 @@ package app
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -30,7 +29,7 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 		mlog.String("wiki_id", wikiId),
 		mlog.String("page_id", pageId),
 		mlog.String("title", title),
-		mlog.Int("last_update_at", int(lastUpdateAt)))
+		mlog.Int("last_update_at", lastUpdateAt))
 
 	if wiki == nil {
 		var wikiErr *model.AppError
@@ -127,7 +126,7 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 	}
 
 	// Notify other users of active editor
-	a.BroadcastPageDraftUpdated(wikiId, combinedDraft)
+	a.BroadcastPageDraftUpdated(rctx, wiki, combinedDraft)
 
 	result = "success"
 	return combinedDraft, nil
@@ -200,7 +199,7 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, pageId string) *
 	}
 
 	// Notify other users that this editor stopped editing
-	a.BroadcastPageDraftDeleted(wiki.Id, pageId, userId)
+	a.BroadcastPageDraftDeleted(rctx, wiki, pageId, userId)
 
 	return nil
 }
@@ -223,7 +222,7 @@ func (a *App) MovePageDraft(rctx request.CTX, userId, wikiId, pageId, newParentI
 		}
 	}
 
-	a.BroadcastPageDraftMoved(wiki.Id, pageId, userId)
+	a.BroadcastPageDraftMoved(rctx, wiki, pageId, userId)
 
 	return nil
 }
@@ -375,21 +374,18 @@ func (a *App) validateCircularReference(rctx request.CTX, pageId, parentId strin
 	return nil
 }
 
-func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *model.PageDraft, isUpdate bool) *model.AppError {
+func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *model.PageDraft) *model.AppError {
 	rawStatus, exists := draft.Props[model.PagePropsPageStatus]
 	if !exists {
 		return nil
 	}
 
-	// Try string type assertion
 	statusValue, ok := rawStatus.(string)
 	if !ok {
-		// If not a string, try to convert to string
-		if rawStatus != nil {
-			statusValue = fmt.Sprintf("%v", rawStatus)
-		} else {
-			return nil
-		}
+		rctx.Logger().Warn("applyDraftPageStatus: status prop is not a string, ignoring",
+			mlog.String("page_id", page.Id),
+			mlog.Any("raw_status", rawStatus))
+		return nil
 	}
 
 	if statusValue == "" {
@@ -400,7 +396,6 @@ func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *mo
 		rctx.Logger().Warn("Failed to set page status from draft props",
 			mlog.String("page_id", page.Id),
 			mlog.String("status", statusValue),
-			mlog.Bool("is_update", isUpdate),
 			mlog.Err(err))
 		return err
 	}
@@ -459,7 +454,7 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, existin
 
 	// Apply status from draft. Content was saved successfully so we return the page
 	// regardless; log at Warn so the failure is visible without implying a hard error.
-	if statusErr := a.applyDraftPageStatus(rctx, page, draft, existingPage != nil); statusErr != nil {
+	if statusErr := a.applyDraftPageStatus(rctx, page, draft); statusErr != nil {
 		rctx.Logger().Warn("Failed to apply draft page status during publish",
 			mlog.String("page_id", page.Id), mlog.Err(statusErr))
 	}
@@ -668,45 +663,107 @@ func (a *App) BroadcastWikiDeleted(wiki *model.Wiki, links []*model.WikiLink) {
 	}
 }
 
-// BroadcastPageDraftUpdated broadcasts a draft update to all source channels linked
-// to the wiki. Only metadata is included; content is never broadcast cross-user.
-// Routing is owned by publishToLinkedSourceChannels; we don't seed broadcast.ChannelId
-// with the backing channel because that helper overwrites it per linked source.
-func (a *App) BroadcastPageDraftUpdated(wikiId string, draft *model.PageDraft) {
+// publishDraftEventToWikiAuthorizedUsers publishes a draft-activity WebSocket event only to
+// channel members who have read_wiki permission on the wiki's team. This prevents editor
+// identity (who is editing which page) from leaking to arbitrary members of a linked source
+// channel who have no wiki access.
+//
+// Implementation: batch-fetch team memberships for each source channel's members and check
+// read_wiki via role grants. Members not found in the team (or whose role lacks read_wiki)
+// are added to OmitUsers on the channel-scoped broadcast so the hub filters them out.
+func (a *App) publishDraftEventToWikiAuthorizedUsers(rctx request.CTX, wiki *model.Wiki, message *model.WebSocketEvent) {
+	links, err := a.Srv().Store().WikiLink().GetByWiki(wiki.Id)
+	if err != nil {
+		a.Log().Warn("Failed to fetch wiki links for draft broadcast", mlog.Err(err))
+		return
+	}
+	for _, link := range links {
+		memberIds, err := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(link.SourceId)
+		if err != nil {
+			a.Log().Warn("Failed to fetch channel members for draft broadcast",
+				mlog.String("channel_id", link.SourceId), mlog.Err(err))
+			continue
+		}
+		if len(memberIds) == 0 {
+			continue
+		}
+
+		// Batch-check team membership + role grants for all channel members.
+		authorizedSet := make(map[string]bool, len(memberIds))
+		if wiki.TeamId != "" {
+			teamMembers, tmErr := a.GetTeamMembersByIds(wiki.TeamId, memberIds, nil)
+			if tmErr == nil {
+				for _, tm := range teamMembers {
+					if tm.DeleteAt == 0 && a.RolesGrantPermission(tm.GetRoles(), model.PermissionReadWiki.Id) {
+						authorizedSet[tm.UserId] = true
+					}
+				}
+			} else {
+				a.Log().Warn("Failed to fetch team members for draft broadcast", mlog.Err(tmErr))
+			}
+		}
+		// Fall back to team-scoped check for users not covered by the batch team-member
+		// fetch (e.g. system admins added to the channel outside normal team flow).
+		for _, uid := range memberIds {
+			if !authorizedSet[uid] && a.HasPermissionToTeam(rctx, uid, wiki.TeamId, model.PermissionReadWiki) {
+				authorizedSet[uid] = true
+			}
+		}
+
+		var omitUsers map[string]bool
+		for _, uid := range memberIds {
+			if !authorizedSet[uid] {
+				if omitUsers == nil {
+					omitUsers = make(map[string]bool)
+				}
+				omitUsers[uid] = true
+			}
+		}
+		msg := message.SetBroadcast(&model.WebsocketBroadcast{
+			ChannelId:           link.SourceId,
+			OmitUsers:           omitUsers,
+			ReliableClusterSend: true,
+		})
+		a.Publish(msg)
+	}
+}
+
+// BroadcastPageDraftUpdated broadcasts a draft update to wiki-authorized users in linked
+// source channels. Only metadata is included; content is never broadcast cross-user.
+func (a *App) BroadcastPageDraftUpdated(rctx request.CTX, wiki *model.Wiki, draft *model.PageDraft) {
 	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", "", "", nil, "")
 	message.Add("page_id", draft.PageId)
 	message.Add("user_id", draft.UserId)
 	message.Add("timestamp", draft.UpdateAt)
-	a.publishToLinkedSourceChannels(wikiId, message)
+	a.publishDraftEventToWikiAuthorizedUsers(rctx, wiki, message)
 }
 
-// BroadcastPageDraftDeleted broadcasts a draft deletion to source channels linked
-// to the wiki. The deleted_at timestamp lets clients suppress stale refetches that
-// would otherwise restore the draft (HA race condition).
-func (a *App) BroadcastPageDraftDeleted(wikiId, pageId, userId string) {
+// BroadcastPageDraftDeleted broadcasts a draft deletion to wiki-authorized users in linked
+// source channels. The deleted_at timestamp lets clients suppress stale refetches.
+func (a *App) BroadcastPageDraftDeleted(rctx request.CTX, wiki *model.Wiki, pageId, userId string) {
 	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftDeleted, "", "", "", nil, "")
 	message.Add("page_id", pageId)
 	message.Add("user_id", userId)
 	message.Add("deleted_at", model.GetMillis())
-	a.publishToLinkedSourceChannels(wikiId, message)
+	a.publishDraftEventToWikiAuthorizedUsers(rctx, wiki, message)
 }
 
-// BroadcastPageDraftMoved broadcasts a draft parent change to source channels linked to the wiki.
-// The frontend handler treats every PageDraftUpdated event as an update regardless of payload
-// shape, so the moved-from/to identity is intentionally not included.
-func (a *App) BroadcastPageDraftMoved(wikiId, pageId, userId string) {
+// BroadcastPageDraftMoved broadcasts a draft parent change to wiki-authorized users in linked
+// source channels.
+func (a *App) BroadcastPageDraftMoved(rctx request.CTX, wiki *model.Wiki, pageId, userId string) {
 	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", "", "", nil, "")
 	message.Add("page_id", pageId)
 	message.Add("user_id", userId)
-	a.publishToLinkedSourceChannels(wikiId, message)
+	a.publishDraftEventToWikiAuthorizedUsers(rctx, wiki, message)
 }
 
-// BroadcastPageEditorStopped broadcasts that a user has stopped editing a page.
-func (a *App) BroadcastPageEditorStopped(wikiId, pageId, userId string) {
+// BroadcastPageEditorStopped broadcasts that a user has stopped editing a page to
+// wiki-authorized users in linked source channels.
+func (a *App) BroadcastPageEditorStopped(rctx request.CTX, wiki *model.Wiki, pageId, userId string) {
 	message := model.NewWebSocketEvent(model.WebsocketEventPageEditorStopped, "", "", "", nil, "")
 	message.Add("page_id", pageId)
 	message.Add("user_id", userId)
-	a.publishToLinkedSourceChannels(wikiId, message)
+	a.publishDraftEventToWikiAuthorizedUsers(rctx, wiki, message)
 }
 
 // PublishPageDraft publishes a draft as a page.
@@ -743,16 +800,23 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 	// For updates, save original state for potential rollback
 	var originalMessage string
 	var originalParentId string
+	var originalStatus string
 	if !isNewPage {
 		originalParentId = existingPage.PageParentId
 		originalMessage = existingPage.Message
+		if s, sErr := a.GetPageStatus(rctx, opts.PageId); sErr == nil {
+			originalStatus = s
+		} else {
+			rctx.Logger().Warn("PublishPageDraft: failed to fetch original page status, status rollback will be skipped",
+				mlog.String("page_id", opts.PageId), mlog.Err(sErr))
+		}
 	}
 
 	rctx.Logger().Info("PublishPageDraft: applying draft to page",
 		mlog.String("page_id", opts.PageId),
 		mlog.String("wiki_id", opts.WikiId),
 		mlog.String("user_id", userId),
-		mlog.Int("base_edit_at", int(opts.BaseEditAt)),
+		mlog.Int("base_edit_at", opts.BaseEditAt),
 		mlog.Bool("is_new_page", isNewPage),
 	)
 	savedPost, err := a.applyDraftToPage(rctx, draft, existingPage, opts.WikiId, opts.ParentId, opts.Title, opts.SearchText, opts.Content, userId, opts.BaseEditAt, opts.Force)
@@ -779,11 +843,21 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 			}
 		} else {
 			// For updates: restore original content (even when original message was empty)
-			if rollbackErr := a.rollbackPageUpdate(rctx, savedPost.Id, originalMessage, originalParentId, opts.ParentId, wiki.ChannelId); rollbackErr != nil {
+			if rollbackErr := a.rollbackPageUpdate(rctx, savedPost.Id, opts.WikiId, userId, originalMessage, originalParentId, opts.ParentId, wiki.ChannelId); rollbackErr != nil {
 				rctx.Logger().Error("CRITICAL: Failed to rollback page update after draft deletion failure - data inconsistency",
 					mlog.String("page_id", savedPost.Id),
 					mlog.String("draft_id", opts.PageId),
 					mlog.Err(rollbackErr))
+			}
+			// Restore original status — SetPageStatus was called inside applyDraftToPage.
+			// Skip if originalStatus is empty (status fetch failed before publish).
+			if originalStatus != "" {
+				if statusRollbackErr := a.SetPageStatus(rctx, savedPost.Id, originalStatus); statusRollbackErr != nil {
+					rctx.Logger().Error("CRITICAL: Failed to rollback page status after draft deletion failure - data inconsistency",
+						mlog.String("page_id", savedPost.Id),
+						mlog.String("original_status", originalStatus),
+						mlog.Err(statusRollbackErr))
+				}
 			}
 		}
 		return nil, model.NewAppError("PublishPageDraft", "app.draft.publish.delete_draft_failed.app_error",
@@ -791,7 +865,7 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 	}
 
 	// Update child draft references - less critical, log error but don't fail the operation
-	if updateErr := a.updateChildDraftParentReferences(rctx, userId, opts.WikiId, opts.PageId, savedPost.Id); updateErr != nil {
+	if updateErr := a.updateChildDraftParentReferences(rctx, userId, opts.WikiId, wiki, opts.PageId, savedPost.Id); updateErr != nil {
 		rctx.Logger().Warn("Failed to update child draft parent references - child drafts may have stale parent IDs",
 			mlog.String("page_id", savedPost.Id), mlog.Err(updateErr))
 	}
@@ -806,7 +880,9 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 
 // rollbackPageUpdate restores a page to its original state after a failed publish operation.
 // This is used when draft deletion fails after a page update was successfully applied.
-func (a *App) rollbackPageUpdate(rctx request.CTX, pageId string, originalMessage string, originalParentId, newParentId, channelId string) *model.AppError {
+// It broadcasts the restored state so clients that already received the PagePublished event
+// revert their local view rather than displaying stale published content.
+func (a *App) rollbackPageUpdate(rctx request.CTX, pageId, wikiId, userId, originalMessage, originalParentId, newParentId, channelId string) *model.AppError {
 	// Restore original content via UpdatePageWithContent
 	if _, err := a.Srv().Store().Page().UpdatePageWithContent(rctx, pageId, "", originalMessage); err != nil {
 		return model.NewAppError("rollbackPageUpdate", "app.draft.rollback.content_restore_failed",
@@ -825,6 +901,16 @@ func (a *App) rollbackPageUpdate(rctx request.CTX, pageId string, originalMessag
 		}
 	}
 
+	// Broadcast the restored state. Clients that received PagePublished before the rollback
+	// will update to the pre-publish content; clients that haven't yet refreshed will get
+	// the correct state. Use master to guarantee read-after-write consistency.
+	if restoredPage, fetchErr := a.GetPage(RequestContextWithMaster(rctx), pageId); fetchErr == nil {
+		a.BroadcastPagePublished(restoredPage, wikiId, "", userId)
+	} else {
+		rctx.Logger().Warn("Failed to fetch page for rollback broadcast; clients may show stale published content",
+			mlog.String("page_id", pageId), mlog.Err(fetchErr))
+	}
+
 	rctx.Logger().Info("Successfully rolled back page update",
 		mlog.String("page_id", pageId),
 		mlog.String("original_parent", originalParentId))
@@ -833,44 +919,30 @@ func (a *App) rollbackPageUpdate(rctx request.CTX, pageId string, originalMessag
 }
 
 // CheckPageDraftExists checks if a page draft exists for the given pageId, userId, and wikiId.
-// Returns (exists, updateAt, error).
-func (a *App) CheckPageDraftExists(rctx request.CTX, pageId, userId, wikiId string) (bool, int64, *model.AppError) {
-	draft, err := a.Srv().Store().Draft().GetPageDraft(pageId, userId, wikiId)
+func (a *App) CheckPageDraftExists(rctx request.CTX, pageId, userId, wikiId string) (bool, *model.AppError) {
+	_, err := a.Srv().Store().Draft().GetPageDraft(pageId, userId, wikiId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
-			return false, 0, nil
+			return false, nil
 		}
-		return false, 0, model.NewAppError("CheckPageDraftExists", "app.draft.page_draft_exists.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return false, model.NewAppError("CheckPageDraftExists", "app.draft.page_draft_exists.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return true, draft.UpdateAt, nil
+	return true, nil
 }
 
-func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId, oldPageId, newPageId string) *model.AppError {
-	// Use batch update to update all matching drafts in a single query
+func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId string, wiki *model.Wiki, oldPageId, newPageId string) *model.AppError {
 	updatedDrafts, err := a.Srv().Store().Draft().BatchUpdateDraftParentId(userId, wikiId, oldPageId, newPageId)
 	if err != nil {
 		return model.NewAppError("updateChildDraftParentReferences", "app.draft.batch_update_parent.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Broadcast WebSocket events for each updated draft.
-	// Fetch wiki links once to avoid N+1 store calls across the broadcast loop.
-	wikiLinks, linksErr := a.Srv().Store().WikiLink().GetByWiki(wikiId)
-	if linksErr != nil {
-		rctx.Logger().Warn("Failed to fetch wiki links for draft broadcast", mlog.Err(linksErr))
-	}
 	for _, draft := range updatedDrafts {
 		message := model.NewWebSocketEvent(model.WebsocketEventPageDraftUpdated, "", "", "", nil, "")
 		message.Add("page_id", draft.RootId)
 		message.Add("user_id", draft.UserId)
 		message.Add("timestamp", draft.UpdateAt)
-		for _, link := range wikiLinks {
-			msg := message.SetBroadcast(&model.WebsocketBroadcast{
-				ChannelId:           link.SourceId,
-				ReliableClusterSend: true,
-			})
-			a.Publish(msg)
-		}
+		a.publishDraftEventToWikiAuthorizedUsers(rctx, wiki, message)
 	}
 
 	return nil

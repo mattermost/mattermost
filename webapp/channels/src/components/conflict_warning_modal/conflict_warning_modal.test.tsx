@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
+import {screen, fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Post} from '@mattermost/types/posts';
@@ -22,7 +22,7 @@ describe('components/ConflictWarningModal', () => {
         channel_id: 'channel123',
         root_id: '',
         original_id: '',
-        message: 'test content',
+        message: 'Published paragraph A\n\nPublished paragraph B',
         type: '',
         props: {
             title: 'Test Page',
@@ -40,9 +40,10 @@ describe('components/ConflictWarningModal', () => {
 
     const baseProps = {
         currentPage: mockPost,
-        onViewChanges: jest.fn(),
+        draftContent: 'Draft paragraph A\n\nDraft paragraph B',
         onContinueEditing: jest.fn(),
         onOverwrite: jest.fn(),
+        onDiscard: jest.fn(() => Promise.resolve()),
     };
 
     const initialState = {
@@ -62,104 +63,115 @@ describe('components/ConflictWarningModal', () => {
         jest.clearAllMocks();
     });
 
-    test('should render modal with correct title', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
+    // The confirm button label is dynamic (Compare versions / Continue editing / Overwrite now)
+    // and can collide with option-button labels, so we locate it by the GenericModal class.
+    const clickConfirm = () => {
+        // GenericModal renders the primary action with class `confirm`, or `delete` when
+        // confirmButtonVariant='destructive' (e.g. when Overwrite is selected).
+        const btn = document.querySelector('button.GenericModal__button.confirm, button.GenericModal__button.delete') as HTMLButtonElement | null;
+        if (!btn) {
+            throw new Error('Confirm button not found');
+        }
+        fireEvent.click(btn);
+    };
 
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
+    test('renders modal with title and the three option-select choices using new label "Compare versions"', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
         expect(screen.getByText('Page conflict')).toBeInTheDocument();
-        expect(screen.getByText(/Your changes are saved, but another team member updated this page/)).toBeInTheDocument();
-    });
 
-    test('should display current page title and modified by info', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
-
-        expect(screen.getByText('Test Page')).toBeInTheDocument();
-        expect(screen.getByText(/Page:/)).toBeInTheDocument();
-        expect(screen.getByText(/Modified:/)).toBeInTheDocument();
-    });
-
-    test('should show three options', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
-
-        expect(screen.getByText('Review and merge changes')).toBeInTheDocument();
+        // "Compare versions" appears as both an option title and the confirm button label
+        // when the default ('review') option is selected.
+        expect(screen.getAllByText('Compare versions').length).toBeGreaterThanOrEqual(1);
         expect(screen.getByText('Continue editing my draft')).toBeInTheDocument();
         expect(screen.getByText('Overwrite published version')).toBeInTheDocument();
     });
 
-    test('should have Review changes option selected by default', () => {
+    test('Confirm on Compare versions transitions to diff-view with both pane regions and three action buttons', () => {
         renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
 
-        expect(screen.getByText('Review changes')).toBeInTheDocument();
+        clickConfirm();
+
+        expect(screen.getByTestId('conflict-diff-panel')).toBeInTheDocument();
+        expect(screen.getByRole('region', {name: 'Your draft'})).toBeInTheDocument();
+        expect(screen.getByRole('region', {name: 'Published version'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Back to my draft/i})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Keep published version/i})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Overwrite published version/i})).toBeInTheDocument();
+        expect(screen.getByText(/Your version replaces the published page/i)).toBeInTheDocument();
+        expect(screen.getByText(/The published version is kept; your draft is deleted/i)).toBeInTheDocument();
     });
 
-    test('should call onViewChanges when Review changes is confirmed', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
-
-        const confirmButton = screen.getByText('Review changes');
-        fireEvent.click(confirmButton);
-
-        expect(baseProps.onViewChanges).toHaveBeenCalledTimes(1);
+    test('null draftContent renders "Unable to preview draft content." in left pane', () => {
+        renderWithContext(<ConflictWarningModal {...{...baseProps, draftContent: null}}/>, initialState);
+        clickConfirm();
+        expect(screen.getByText('Unable to preview draft content.')).toBeInTheDocument();
     });
 
-    test('should change confirm button when Continue editing option is selected', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
-
-        const continueOption = screen.getByText('Continue editing my draft');
-        fireEvent.click(continueOption);
-
-        expect(screen.getByText('Continue editing')).toBeInTheDocument();
+    test('empty-string draftContent renders "Your draft has no content."', () => {
+        renderWithContext(<ConflictWarningModal {...{...baseProps, draftContent: ''}}/>, initialState);
+        clickConfirm();
+        expect(screen.getByText('Your draft has no content.')).toBeInTheDocument();
     });
 
-    test('should call onContinueEditing when Continue editing is confirmed', () => {
+    test('identical draft and published shows inline notice without entering diff-view', () => {
+        const identical = {
+            ...baseProps,
+            draftContent: mockPost.message,
+        };
+        renderWithContext(<ConflictWarningModal {...identical}/>, initialState);
+        clickConfirm();
+        expect(screen.getByText('Your draft matches the published version.')).toBeInTheDocument();
+        expect(screen.queryByTestId('conflict-diff-panel')).not.toBeInTheDocument();
+    });
+
+    test('Keep published version calls onDiscard and shows discarding spinner', async () => {
         renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
+        clickConfirm();
 
-        const continueOption = screen.getByText('Continue editing my draft');
-        fireEvent.click(continueOption);
+        fireEvent.click(screen.getByRole('button', {name: /Keep published version/i}));
 
-        const confirmButton = screen.getByText('Continue editing');
-        fireEvent.click(confirmButton);
+        await waitFor(() => {
+            expect(baseProps.onDiscard).toHaveBeenCalledTimes(1);
+        });
+    });
 
+    test('Keep published version rejection shows inline error and resets state', async () => {
+        const props = {
+            ...baseProps,
+            onDiscard: jest.fn(() => Promise.reject(new Error('boom'))),
+        };
+        renderWithContext(<ConflictWarningModal {...props}/>, initialState);
+        clickConfirm();
+        fireEvent.click(screen.getByRole('button', {name: /Keep published version/i}));
+
+        await waitFor(() => {
+            expect(screen.getByText('Failed to discard draft. Try again.')).toBeInTheDocument();
+        });
+        expect(screen.getByRole('button', {name: /Back to my draft/i})).not.toBeDisabled();
+    });
+
+    test('Continue editing my draft path calls onContinueEditing', () => {
+        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
+        fireEvent.click(screen.getByText('Continue editing my draft'));
+        clickConfirm();
         expect(baseProps.onContinueEditing).toHaveBeenCalledTimes(1);
     });
 
-    test('should change confirm button to red when Overwrite option is selected', () => {
+    test('Overwrite published version path on option-select calls onOverwrite', () => {
         renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
-
-        const overwriteOption = screen.getByText('Overwrite published version');
-        fireEvent.click(overwriteOption);
-
-        expect(screen.getByText('Overwrite page')).toBeInTheDocument();
-    });
-
-    test('should call onOverwrite when Overwrite page is confirmed', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
-
-        const overwriteOption = screen.getByText('Overwrite published version');
-        fireEvent.click(overwriteOption);
-
-        const confirmButton = screen.getByText('Overwrite page');
-        fireEvent.click(confirmButton);
-
+        fireEvent.click(screen.getAllByText('Overwrite published version')[0]);
+        clickConfirm();
         expect(baseProps.onOverwrite).toHaveBeenCalledTimes(1);
     });
 
-    test('should call onContinueEditing when Back to editing button is clicked', () => {
+    test('Back to my draft from diff-view calls onContinueEditing', () => {
         renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
-
-        const cancelButton = screen.getByText('Back to editing');
-        fireEvent.click(cancelButton);
-
+        clickConfirm();
+        fireEvent.click(screen.getByRole('button', {name: /Back to my draft/i}));
         expect(baseProps.onContinueEditing).toHaveBeenCalledTimes(1);
     });
 
-    test('should render close button in header', () => {
-        renderWithContext(<ConflictWarningModal {...baseProps}/>, initialState);
-
-        const closeButton = screen.getByRole('button', {name: /close/i});
-        expect(closeButton).toBeInTheDocument();
-    });
-
-    test('should show Untitled when page has no title', () => {
+    test('shows Untitled when page has no title', () => {
         const propsWithoutTitle = {
             ...baseProps,
             currentPage: {
@@ -167,9 +179,7 @@ describe('components/ConflictWarningModal', () => {
                 props: {},
             },
         };
-
         renderWithContext(<ConflictWarningModal {...propsWithoutTitle}/>, initialState);
-
         expect(screen.getByText('Untitled')).toBeInTheDocument();
     });
 });

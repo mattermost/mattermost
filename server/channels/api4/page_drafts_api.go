@@ -116,18 +116,15 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.Title = strings.TrimSpace(req.Title)
+	if req.Title == "" {
+		c.Err = model.NewAppError("savePageDraft", "api.page.save_draft.title_empty.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 	if len(req.Title) > model.MaxPageTitleLength {
 		c.Err = model.NewAppError("savePageDraft", "api.page.save_draft.title_too_long.app_error",
 			map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
 		return
 	}
-
-	c.Logger.Debug("Received page draft save request",
-		mlog.String("wiki_id", c.Params.WikiId),
-		mlog.String("page_id", c.Params.PageId),
-		mlog.Int("content_length", len(req.Content)),
-		mlog.Int("last_update_at", int(req.LastUpdateAt)),
-		mlog.Int("props_count", len(req.Props)))
 
 	pageDraft, appErr := c.App.SavePageDraftWithMetadata(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId, req.Content, req.Title, req.LastUpdateAt, req.Props)
 	if appErr != nil {
@@ -138,10 +135,6 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddEventResultState(pageDraft)
 	auditRec.AddEventObjectType("page_draft")
-
-	c.Logger.Debug("Returning page draft from savePageDraft handler",
-		mlog.String("page_id", pageDraft.PageId),
-		mlog.Any("props", pageDraft.Props))
 
 	if err := json.NewEncoder(w).Encode(pageDraft); err != nil {
 		c.Logger.Warn("Error encoding page draft response", mlog.Err(err))
@@ -160,11 +153,6 @@ func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	c.Logger.Debug("API: deletePageDraft called",
-		mlog.String("wiki_id", c.Params.WikiId),
-		mlog.String("page_id", c.Params.PageId),
-		mlog.String("user_id", c.AppContext.Session().UserId))
-
 	if _, _, ok := c.GetWikiForRead(); !ok {
 		return
 	}
@@ -177,13 +165,14 @@ func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventPriorState(pageDraft)
+
 	if appErr := c.App.DeletePageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId); appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddEventPriorState(pageDraft)
 	auditRec.AddEventObjectType("page_draft")
 
 	ReturnStatusOK(w)
@@ -234,6 +223,9 @@ func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
+		if !c.CheckPagePermission(parentPage, app.PageOperationRead) {
+			return
+		}
 		parentWikiId, appErr := c.App.GetWikiIdForPage(c.AppContext, parentPage.Id)
 		if appErr != nil {
 			c.Err = appErr
@@ -246,6 +238,7 @@ func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.AddMeta("new_parent_id", req.ParentId)
+	auditRec.AddEventPriorState(pageDraft)
 
 	if appErr := c.App.MovePageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.PageId, req.ParentId); appErr != nil {
 		c.Err = appErr
@@ -253,7 +246,6 @@ func movePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddEventPriorState(pageDraft)
 	auditRec.AddEventObjectType("page_draft")
 
 	ReturnStatusOK(w)
@@ -316,6 +308,10 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.Title = strings.TrimSpace(req.Title)
+	if req.Title == "" {
+		c.Err = model.NewAppError("createPageDraft", "api.page.create_draft.title_empty.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 	if len(req.Title) > model.MaxPageTitleLength {
 		c.Err = model.NewAppError("createPageDraft", "api.page.save_draft.title_too_long.app_error",
 			map[string]any{"MaxLength": model.MaxPageTitleLength}, "", http.StatusBadRequest)
@@ -334,15 +330,25 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		if parentErr != nil {
 			// Parent is not a published page - check if it's a draft
 			// This allows creating child drafts under draft parents (not yet published)
-			parentDraftExists, _, draftErr := c.App.CheckPageDraftExists(c.AppContext, req.PageParentId, c.AppContext.Session().UserId, c.Params.WikiId)
+
+			parentDraftExists, draftErr := c.App.CheckPageDraftExists(c.AppContext, req.PageParentId, c.AppContext.Session().UserId, c.Params.WikiId)
 			if draftErr != nil || !parentDraftExists {
+				var wrapErr error
+				if draftErr != nil {
+					wrapErr = draftErr
+				} else {
+					wrapErr = parentErr
+				}
 				c.Err = model.NewAppError("createPageDraft", "api.draft.create.invalid_parent.app_error",
-					nil, "parent page or draft not found", http.StatusBadRequest).Wrap(parentErr)
+					nil, "parent page or draft not found", http.StatusBadRequest).Wrap(wrapErr)
 				return
 			}
 			// Parent exists as a draft for this user - no wiki validation needed since
 			// drafts are wiki-scoped and we'll save the child with the same wiki ID
 		} else {
+			if !c.CheckPagePermission(parentPage, app.PageOperationRead) {
+				return
+			}
 			parentWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, parentPage.Id)
 			if wikiErr != nil || parentWikiId == "" {
 				c.Err = model.NewAppError("createPageDraft", "api.wiki.page_wiki_not_set.app_error", nil, "", http.StatusBadRequest)
@@ -360,11 +366,6 @@ func createPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	pageId := model.NewId()
 
 	placeholderContent := model.EmptyTipTapJSON
-
-	c.Logger.Debug("Creating new page draft",
-		mlog.String("wiki_id", c.Params.WikiId),
-		mlog.String("page_id", pageId),
-		mlog.String("page_parent_id", req.PageParentId))
 
 	props := map[string]any{
 		model.PagePropsTitle: req.Title,
@@ -482,10 +483,10 @@ func notifyEditorStopped(c *Context, w http.ResponseWriter, r *http.Request) {
 	// stale indicators clear even when the page is gone or never existed
 	// (deleted, moved, or never-published draft). The audience is the linked
 	// source channels of this wiki, resolved by BroadcastPageEditorStopped via
-	// publishToLinkedSourceChannels → WikiLinkStore.GetByWiki. A forged pageId
+	// publishDraftEventToWikiAuthorizedUsers → WikiLinkStore.GetByWiki. A forged pageId
 	// is harmless: no client has that key in its map.
 	userId := c.AppContext.Session().UserId
-	c.App.BroadcastPageEditorStopped(wiki.Id, c.Params.PageId, userId)
+	c.App.BroadcastPageEditorStopped(c.AppContext, wiki, c.Params.PageId, userId)
 
 	ReturnStatusOK(w)
 }

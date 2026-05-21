@@ -20,6 +20,7 @@ import {
     uniqueName,
     withRolePermissions,
     SHORT_WAIT,
+    MODAL_CLOSE_TIMEOUT,
     WEBSOCKET_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
@@ -349,7 +350,7 @@ test.skip(
             // User 2 should choose to overwrite to save their changes
             const overwriteOption = conflictModal.getByRole('button', {name: 'Overwrite published version'});
             await overwriteOption.click();
-            const overwriteButton = conflictModal.getByRole('button', {name: /Overwrite page/i});
+            const overwriteButton = conflictModal.getByRole('button', {name: 'Overwrite now', exact: true});
             await overwriteButton.click();
             await user2Page.waitForLoadState('networkidle');
         }
@@ -448,8 +449,8 @@ test(
             // Select "Overwrite published version" option
             const overwriteOption2 = conflictModal2.getByRole('button', {name: 'Overwrite published version'});
             await overwriteOption2.click();
-            // Confirm by clicking "Overwrite page" button
-            const overwriteButton2 = conflictModal2.getByRole('button', {name: /Overwrite page/i});
+            // Confirm by clicking "Overwrite now" button
+            const overwriteButton2 = conflictModal2.getByRole('button', {name: 'Overwrite now', exact: true});
             await overwriteButton2.click();
             await page2.waitForLoadState('networkidle');
         }
@@ -469,9 +470,13 @@ test(
         const conflictModal = page1.locator('[data-testid="conflict-warning-modal"]').first();
         await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
-        // # User 1: Click Back to editing to preserve first-write-wins behavior
-        const cancelButton = conflictModal.getByRole('button', {name: /Back to editing/i});
-        await cancelButton.click();
+        // # User 1: Choose "Continue editing my draft" to preserve first-write-wins behavior
+        //   (no destructive action — modal closes and user1 stays in edit mode with their draft)
+        const continueOption = conflictModal.getByRole('button', {name: 'Continue editing my draft'});
+        await continueOption.click();
+        await page1.waitForTimeout(SHORT_WAIT);
+        const continueConfirm = conflictModal.getByRole('button', {name: 'Continue editing', exact: true});
+        await continueConfirm.click();
         await page1.waitForTimeout(SHORT_WAIT);
 
         // * Verify modal closes
@@ -571,8 +576,8 @@ test(
             // Select "Overwrite published version" option
             const overwriteOption2 = conflictModal2.getByRole('button', {name: 'Overwrite published version'});
             await overwriteOption2.click();
-            // Confirm by clicking "Overwrite page" button
-            const overwriteButton2 = conflictModal2.getByRole('button', {name: /Overwrite page/i});
+            // Confirm by clicking "Overwrite now" button
+            const overwriteButton2 = conflictModal2.getByRole('button', {name: 'Overwrite now', exact: true});
             await overwriteButton2.click();
             await page2.waitForLoadState('networkidle');
         }
@@ -596,11 +601,11 @@ test(
         await overwriteOption.click();
         await page1.waitForTimeout(SHORT_WAIT);
 
-        // * Verify "Overwrite page" button is now visible (red button)
-        const overwriteButton = conflictModal.getByRole('button', {name: /Overwrite page/i});
+        // * Verify "Overwrite now" confirm button is now active (red/destructive)
+        const overwriteButton = conflictModal.getByRole('button', {name: 'Overwrite now', exact: true});
         await expect(overwriteButton).toBeVisible();
 
-        // # User 1: Click Overwrite page to confirm
+        // # User 1: Click Overwrite now to confirm
         await overwriteButton.click();
 
         // * Verify User 1's content now replaces User 2's (escape hatch worked)
@@ -894,9 +899,14 @@ test(
         const conflictModal = user2Page.locator('[data-testid="conflict-warning-modal"]').first();
         await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
-        // # Click "Back to editing" button
-        const backButton = conflictModal.getByRole('button', {name: /Back to editing/i});
-        await backButton.click();
+        // # Choose "Continue editing my draft" → "Continue editing" (semantic equivalent of
+        //   the legacy "Back to editing" button — closes the modal without overwriting and
+        //   keeps the user in edit mode with their unsaved draft intact).
+        const continueOption = conflictModal.getByRole('button', {name: 'Continue editing my draft'});
+        await continueOption.click();
+        await user2Page.waitForTimeout(SHORT_WAIT);
+        const continueConfirm = conflictModal.getByRole('button', {name: 'Continue editing', exact: true});
+        await continueConfirm.click();
         await user2Page.waitForTimeout(SHORT_WAIT);
 
         // * Verify modal closes
@@ -944,7 +954,7 @@ test(
         const originalContent = 'Original content';
         const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
-        // # User 1 enters edit mode
+        // # User 1 enters edit mode (this sets the baseline for User 1 — original content)
         const pageNode1 = getPageTreeNodeByTitle(page1, pageTitle);
         await pageNode1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode1.click();
@@ -952,18 +962,14 @@ test(
         await expect(getPageViewerContent(page1)).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await enterEditMode(page1);
 
-        // # User 1 makes a change and publishes
-        const editor1 = await getEditorAndWait(page1);
-        await editor1.click();
-        await editor1.pressSequentially(' - User 1 changes');
-        await publishPage(page1);
-
-        // # Create user2 and add to channel
+        // # Create user2 and add to channel BEFORE User 1 publishes, so User 2 can enter
+        //   edit mode against the same baseline. Otherwise User 2's baseline already includes
+        //   User 1's publish and no conflict can occur.
         const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
         const {page: user2Page} = await pw.testBrowser.login(user2);
 
-        // # User 2 navigates to page and enters edit mode
+        // # User 2 navigates to page and enters edit mode (baseline = original content)
         const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
@@ -977,12 +983,19 @@ test(
         await expect(getPageViewerContent(user2Page)).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await enterEditMode(user2Page);
 
-        // # User 2 makes a different change
+        // # User 2 makes a different change first (and autosaves), so the draft is captured
+        //   against the original baseline.
         const editor2 = await getEditorAndWait(user2Page);
         await editor2.click();
         await editor2.clear();
         await editor2.pressSequentially('User 2 draft changes');
         await waitForAutoSave(user2Page);
+
+        // # NOW User 1 publishes, making User 2's baseline stale.
+        const editor1 = await getEditorAndWait(page1);
+        await editor1.click();
+        await editor1.pressSequentially(' - User 1 changes');
+        await publishPage(page1);
 
         // # User 2 tries to publish — should get conflict modal (User 1 already published)
         const publishButton2 = getPublishButton(user2Page);
@@ -1019,95 +1032,418 @@ test(
 );
 
 /**
- * @objective Verify "Review and merge" stays on the conflict modal and shows an inline diff
- * instead of navigating away to the published page.
+ * Helper: provoke a publish conflict between User A and User B on a shared page.
+ * Returns User B's page (which has the conflict modal open) plus the published page text and the
+ * draft text User B typed. Caller is responsible for closing userBPage.
+ */
+async function provokeConflict(
+    pw: Parameters<Parameters<typeof test>[2]>[0]['pw'],
+    sharedPagesSetup: Parameters<Parameters<typeof test>[2]>[0]['sharedPagesSetup'],
+    opts: {userBDraftText: string; userAPublishedText: string; pageTitlePrefix: string},
+) {
+    const {team, user: user1, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
+
+    const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
+
+    const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
+    const pageTitle = uniqueName(opts.pageTitlePrefix);
+    const createdPage = await createPageThroughUI(page1, pageTitle, 'Original content');
+
+    const pageNode1 = getPageTreeNodeByTitle(page1, pageTitle);
+    await pageNode1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await pageNode1.click();
+    await page1.waitForLoadState('networkidle');
+    await expect(getPageViewerContent(page1)).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await enterEditMode(page1);
+
+    const {user: userB} = await createTestUserInChannel(pw, adminClient, team, channel, 'userb');
+    const {page: userBPage} = await pw.testBrowser.login(userB);
+
+    const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
+    await userBPage.goto(wikiPageUrl);
+    await userBPage.waitForLoadState('networkidle');
+
+    const userBHierarchyPanel = getHierarchyPanel(userBPage);
+    await userBHierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+    const pageNodeB = getPageTreeNodeByTitle(userBPage, pageTitle);
+    await pageNodeB.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await pageNodeB.click();
+    await expect(getPageViewerContent(userBPage)).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await enterEditMode(userBPage);
+
+    const editorB = await getEditorAndWait(userBPage);
+    await editorB.click();
+    // Select all + delete forces a content-change event so the editor's
+    // latestContentRef gets updated to ""; a bare .clear() on a contenteditable
+    // doesn't always propagate through TipTap's onUpdate hook, leaving the
+    // ref stuck at the initial page content (breaks empty-draft tests).
+    await userBPage.keyboard.press('ControlOrMeta+A');
+    await userBPage.keyboard.press('Delete');
+    if (opts.userBDraftText.length > 0) {
+        await editorB.pressSequentially(opts.userBDraftText);
+    }
+    await waitForAutoSave(userBPage);
+
+    const editor1 = await getEditorAndWait(page1);
+    await editor1.click();
+    await editor1.clear();
+    await editor1.pressSequentially(opts.userAPublishedText);
+    await publishPage(page1);
+
+    const publishButtonB = getPublishButton(userBPage);
+    await publishButtonB.click();
+    await userBPage.waitForLoadState('networkidle');
+
+    const conflictModal = userBPage.locator('[data-testid="conflict-warning-modal"]').first();
+    await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+
+    return {userBPage, page1, conflictModal, createdPage, wiki, channel};
+}
+
+/**
+ * @objective A22 — Verify "Compare versions" (renamed from "Review and merge changes") transitions
+ * the conflict modal to a diff-view state showing both versions simultaneously, without navigation.
  *
- * NOTE: This test will fail until onViewChanges is fixed to show an inline diff panel
- * instead of calling history.push. Currently navigates away from the page on click.
- *
- * @precondition
- * Pages/Wiki feature is enabled on the server
+ * NOTE: Fails until conflict_warning_modal.tsx implements the two-step state machine per
+ * plans/feedback-bugs-fix-plan.md A22. Currently the modal shows "Review and merge changes" and
+ * the option calls history.push instead of transitioning state.
  */
 test(
-    'review and merge shows inline diff inside modal not navigation away',
+    'A22: Compare versions transitions to diff-view inside modal',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
-        const {team, user: user1, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, uniqueName('Test Channel'), 'O', [user1.id]);
+        const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
+            userAPublishedText: 'User A update',
+            userBDraftText: 'User B draft text',
+            pageTitlePrefix: 'A22 DiffView Page',
+        });
 
-        // # User A creates wiki and page, publishes it
-        const {page: page1} = await loginAndNavigateToChannel(pw, user1, team.name, channel.name);
+        // * Assertion: option label is "Compare versions" (rename per A22 plan)
+        const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
+        await expect(compareOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-        const wiki = await createWikiThroughUI(page1, uniqueName('Test Wiki'));
-        const pageTitle = 'Review And Merge Test Page';
-        const originalContent = 'Original content';
-        const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
-
-        // # User A enters edit mode and opens page
-        const pageNode1 = getPageTreeNodeByTitle(page1, pageTitle);
-        await pageNode1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-        await pageNode1.click();
-        await page1.waitForLoadState('networkidle');
-        await expect(getPageViewerContent(page1)).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await enterEditMode(page1);
-
-        // # Create User B and add to channel
-        const {user: userB} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
-
-        const {page: userBPage} = await pw.testBrowser.login(userB);
-
-        // # User B navigates to the page and enters edit mode
-        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, createdPage.id, channel.id);
-        await userBPage.goto(wikiPageUrl);
-        await userBPage.waitForLoadState('networkidle');
-
-        const userBHierarchyPanel = getHierarchyPanel(userBPage);
-        await userBHierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
-
-        const pageNodeB = getPageTreeNodeByTitle(userBPage, pageTitle);
-        await pageNodeB.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-        await pageNodeB.click();
-        await expect(getPageViewerContent(userBPage)).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await enterEditMode(userBPage);
-
-        // # User B types their draft content
-        const userBDraftText = 'User B draft text';
-        const editorB = await getEditorAndWait(userBPage);
-        await editorB.click();
-        await editorB.clear();
-        await editorB.pressSequentially(userBDraftText);
-        await waitForAutoSave(userBPage);
-
-        // # User A simultaneously edits and publishes an update
-        const editor1 = await getEditorAndWait(page1);
-        await editor1.click();
-        await editor1.clear();
-        await editor1.pressSequentially('User A update');
-        await publishPage(page1);
-
-        // # User B tries to publish — gets conflict modal
-        const publishButtonB = getPublishButton(userBPage);
-        await publishButtonB.click();
-        await userBPage.waitForLoadState('networkidle');
-
-        const conflictModal = userBPage.locator('[data-testid="conflict-warning-modal"]').first();
-        await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
-
-        // # User B clicks "Review and merge" option
+        // # Transition to diff-view
         const urlBefore = userBPage.url();
-        const reviewAndMergeOption = conflictModal.getByRole('button', {name: /Review and merge|Review changes/i});
-        await reviewAndMergeOption.click();
+        await compareOption.click();
+        const confirmInOptionSelect = conflictModal.getByRole('button', {name: /Confirm|Next/i});
+        if (await confirmInOptionSelect.isVisible()) {
+            await confirmInOptionSelect.click();
+        }
         await userBPage.waitForTimeout(SHORT_WAIT);
 
-        // * After fix: URL must not change and modal must remain visible
-        await expect(conflictModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // * Assertions: URL unchanged, modal remains visible, diff panel renders both versions
         await expect(userBPage).toHaveURL(urlBefore, {timeout: ELEMENT_TIMEOUT});
-
-        // * After fix: diff panel shows both versions simultaneously
+        await expect(conflictModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
         const diffPanel = userBPage.locator('[data-testid="conflict-diff-panel"], .conflict-diff-panel').first();
         await expect(diffPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await expect(diffPanel).toContainText('User B draft text');
         await expect(diffPanel).toContainText('User A update');
+
+        // * Assertions: two scrollable panels with aria-label regions
+        const draftRegion = userBPage.getByRole('region', {name: /Your draft/i});
+        const publishedRegion = userBPage.getByRole('region', {name: /Published version/i});
+        await expect(draftRegion).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(publishedRegion).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Assertion: at least one paragraph in each pane has diff-highlight class (paragraph hash differs)
+        const highlightedInDraft = draftRegion.locator('[class*="paragraph-diff"], [data-paragraph-changed="true"]').first();
+        const highlightedInPublished = publishedRegion.locator('[class*="paragraph-diff"], [data-paragraph-changed="true"]').first();
+        await expect(highlightedInDraft).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(highlightedInPublished).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Assertion: three action buttons with concrete labels and subtitles
+        await expect(conflictModal.getByRole('button', {name: /Overwrite published version/i})).toBeVisible();
+        await expect(conflictModal.getByRole('button', {name: /Keep published version/i})).toBeVisible();
+        await expect(conflictModal.getByRole('button', {name: /Back to my draft/i})).toBeVisible();
+        await expect(conflictModal).toContainText(/Your version replaces the published page/i);
+        await expect(conflictModal).toContainText(/The published version is kept; your draft is deleted/i);
+
+        await userBPage.close();
+    },
+);
+
+/**
+ * @objective A22 — Verify the option-select state cannot be dismissed by Escape, no X button is
+ * rendered, and clicking outside the modal does not dismiss it.
+ */
+test(
+    'A22: option-select state blocks Escape, X, and backdrop dismissal',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
+            userAPublishedText: 'User A update',
+            userBDraftText: 'User B draft',
+            pageTitlePrefix: 'A22 Dismiss Page',
+        });
+
+        // * Assertion: Escape does not dismiss
+        await userBPage.keyboard.press('Escape');
+        await userBPage.waitForTimeout(SHORT_WAIT);
+        await expect(conflictModal).toBeVisible();
+
+        // * Assertion: no close X button rendered
+        const closeButton = conflictModal.locator('[aria-label="Close"], .close, .modal-close').first();
+        await expect(closeButton).not.toBeVisible();
+
+        // * Assertion: clicking the backdrop does not dismiss
+        const viewport = userBPage.viewportSize();
+        if (viewport) {
+            await userBPage.mouse.click(5, 5);
+            await userBPage.waitForTimeout(SHORT_WAIT);
+            await expect(conflictModal).toBeVisible();
+        }
+
+        await userBPage.close();
+    },
+);
+
+/**
+ * @objective A22 — Verify identical draft+published content does NOT enter diff-view but instead
+ * shows an inline notice and auto-closes within ~2 seconds.
+ */
+test(
+    'A22: identical content shows inline notice and auto-closes',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        // Identical content: both User A and User B type the same text — the conflict still arises
+        // (Update-At timestamp mismatch) but content hashes match.
+        const sharedText = 'Shared identical content';
+        const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
+            userAPublishedText: sharedText,
+            userBDraftText: sharedText,
+            pageTitlePrefix: 'A22 Identical Page',
+        });
+
+        const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
+        await compareOption.click();
+        const confirm = conflictModal.getByRole('button', {name: /Confirm|Next/i});
+        if (await confirm.isVisible()) {
+            await confirm.click();
+        }
+
+        // * Assertion: inline notice on option-select card, NO diff-view transition
+        await expect(conflictModal).toContainText(/Your draft matches the published version\./i, {timeout: ELEMENT_TIMEOUT});
+        const diffPanel = userBPage.locator('[data-testid="conflict-diff-panel"], .conflict-diff-panel').first();
+        await expect(diffPanel).not.toBeVisible();
+
+        // * Assertion: modal auto-closes (2s timer + fade-out animation, allow 5s).
+        await expect(conflictModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        await userBPage.close();
+    },
+);
+
+/**
+ * @objective A22 — Verify empty-content paths show explanatory text in the diff panes
+ * rather than blank scrollable regions.
+ */
+test(
+    'A22: empty draft shows "Your draft has no content." in left pane',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
+            userAPublishedText: 'Published version with content',
+            userBDraftText: '',
+            pageTitlePrefix: 'A22 Empty Draft Page',
+        });
+
+        const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
+        await compareOption.click();
+        const confirm = conflictModal.getByRole('button', {name: /Confirm|Next/i});
+        if (await confirm.isVisible()) {
+            await confirm.click();
+        }
+
+        const draftRegion = userBPage.getByRole('region', {name: /Your draft/i});
+        await expect(draftRegion).toContainText(/Your draft has no content\./i, {timeout: ELEMENT_TIMEOUT});
+
+        await userBPage.close();
+    },
+);
+
+/**
+ * @objective A22 — Verify "Keep published version" enters an isDiscarding state with spinner,
+ * disables all three buttons, and removes the modal from the Redux registry on success.
+ */
+test(
+    'A22: Keep published version shows discarding state and removes modal from Redux on success',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
+            userAPublishedText: 'User A update',
+            userBDraftText: 'User B draft',
+            pageTitlePrefix: 'A22 Discard Success Page',
+        });
+
+        // # Slow down the discard endpoint so the "Discarding…" loading state stays
+        //   long enough for the test to observe it; otherwise the optimistic-fast
+        //   response closes the modal before we can poll.
+        await userBPage.route(/\/api\/v4\/wikis\/[^/]+\/drafts\/[^/]+(\?|$)/, async (route) => {
+            if (route.request().method() === 'DELETE') {
+                await new Promise((resolve) => setTimeout(resolve, 1500));
+            }
+            await route.continue();
+        });
+
+        const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
+        await compareOption.click();
+        const confirm = conflictModal.getByRole('button', {name: /Confirm|Next/i});
+        if (await confirm.isVisible()) {
+            await confirm.click();
+        }
+
+        const keepPublishedBtn = conflictModal.getByRole('button', {name: /Keep published version/i});
+        const overwriteBtn = conflictModal.getByRole('button', {name: /Overwrite published version/i});
+        const backBtn = conflictModal.getByRole('button', {name: /Back to my draft/i});
+
+        await keepPublishedBtn.click();
+
+        // * Assertion: button label transitions to "Discarding..." and shows a spinner
+        await expect(conflictModal).toContainText(/Discarding/i, {timeout: ELEMENT_TIMEOUT});
+        const spinner = conflictModal.locator('.fa-spinner, [class*="spinner"], [role="progressbar"]').first();
+        await expect(spinner).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // * Assertion: all three buttons disabled while isDiscarding=true
+        await expect(overwriteBtn).toBeDisabled();
+        await expect(backBtn).toBeDisabled();
+
+        // * Assertion: on success, modal is REMOVED from the Redux modal registry (not just hidden)
+        await expect(conflictModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+        const modalOpen = await userBPage.evaluate(() => {
+            const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
+                views: {modals: {modalState: Record<string, {open: boolean}>}};
+            };
+            return state.views.modals.modalState?.PAGE_CONFLICT_WARNING?.open ?? false;
+        });
+        expect(modalOpen, 'Modal must be removed from Redux registry on successful discard').toBe(false);
+
+        await userBPage.close();
+    },
+);
+
+/**
+ * @objective A22 — Verify that when onDiscard rejects (e.g. server error), an inline error appears,
+ * isDiscarding resets, the modal stays open, and "Back to my draft" becomes active again.
+ */
+test(
+    'A22: Keep published version failure path shows inline error and resets state',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
+            userAPublishedText: 'User A update',
+            userBDraftText: 'User B draft',
+            pageTitlePrefix: 'A22 Discard Fail Page',
+        });
+
+        // # Mock the page-draft delete endpoint to fail. The actual URL is
+        //   /api/v4/wikis/{wikiId}/drafts/{pageId}, not /api/v4/drafts.
+        await userBPage.route(/\/api\/v4\/wikis\/[^/]+\/drafts\/[^/]+(\?|$)/, (route) => {
+            if (route.request().method() === 'DELETE') {
+                route.fulfill({status: 500, body: '{"message":"Forced failure"}'});
+            } else {
+                route.continue();
+            }
+        });
+
+        const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
+        await compareOption.click();
+        const confirm = conflictModal.getByRole('button', {name: /Confirm|Next/i});
+        if (await confirm.isVisible()) {
+            await confirm.click();
+        }
+
+        const keepPublishedBtn = conflictModal.getByRole('button', {name: /Keep published version/i});
+        await keepPublishedBtn.click();
+
+        // * Assertion: inline error appears, modal stays open
+        await expect(conflictModal).toContainText(/Failed to discard draft\. Try again\./i, {timeout: ELEMENT_TIMEOUT});
+        await expect(conflictModal).toBeVisible();
+
+        // * Assertion: "Back to my draft" is re-enabled after failure
+        const backBtn = conflictModal.getByRole('button', {name: /Back to my draft/i});
+        await expect(backBtn).toBeEnabled({timeout: ELEMENT_TIMEOUT});
+
+        await userBPage.close();
+    },
+);
+
+/**
+ * @objective A22 — Verify keyboard tab order in diff-view is:
+ * Back button → left region → right region → action buttons.
+ */
+test(
+    'A22: diff-view keyboard tab order',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
+            userAPublishedText: 'User A update',
+            userBDraftText: 'User B draft',
+            pageTitlePrefix: 'A22 TabOrder Page',
+        });
+
+        const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
+        await compareOption.click();
+        const confirm = conflictModal.getByRole('button', {name: /Confirm|Next/i});
+        if (await confirm.isVisible()) {
+            await confirm.click();
+        }
+
+        // # Focus the Back button explicitly as the starting point
+        const backBtn = conflictModal.getByRole('button', {name: /Back to my draft/i});
+        await backBtn.focus();
+
+        // * Sequence of focused elements after consecutive Tab presses
+        const focusedRoles: string[] = [];
+        for (let i = 0; i < 4; i++) {
+            await userBPage.keyboard.press('Tab');
+            const role = await userBPage.evaluate(() => document.activeElement?.getAttribute('role') ?? document.activeElement?.tagName ?? '');
+            focusedRoles.push(role);
+        }
+
+        // First Tab → left region (role=region), second → right region, third+ → action buttons
+        expect(focusedRoles[0]?.toLowerCase(), 'First Tab from Back must land on left region').toMatch(/region/i);
+        expect(focusedRoles[1]?.toLowerCase(), 'Second Tab must land on right region').toMatch(/region/i);
+        expect(focusedRoles[2]?.toLowerCase(), 'Third Tab must land on an action button').toMatch(/button/i);
+
+        await userBPage.close();
+    },
+);
+
+/**
+ * @objective A22 — Verify "Back to my draft" exits diff-view via onContinueEditing, and the
+ * subsequent publish does NOT re-trigger the conflict modal (chain into A21).
+ */
+test(
+    'A22: Back to my draft routes through onContinueEditing and clears stale baseline (A21 chain)',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
+            userAPublishedText: 'User A update',
+            userBDraftText: 'User B draft',
+            pageTitlePrefix: 'A22 BackChain Page',
+        });
+
+        const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
+        await compareOption.click();
+        const confirm = conflictModal.getByRole('button', {name: /Confirm|Next/i});
+        if (await confirm.isVisible()) {
+            await confirm.click();
+        }
+
+        const backBtn = conflictModal.getByRole('button', {name: /Back to my draft/i});
+        await backBtn.click();
+
+        // * Modal closes, returning to the draft editor
+        await expect(conflictModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Without further edits, publish again. A21's fix must already be in place — baseline
+        // ORIGINAL_PAGE_EDIT_AT should now equal the published page's update_at, so no spurious conflict.
+        const publishBtn = getPublishButton(userBPage);
+        await publishBtn.click();
+        await userBPage.waitForTimeout(WEBSOCKET_WAIT);
+
+        await expect(conflictModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
         await userBPage.close();
     },

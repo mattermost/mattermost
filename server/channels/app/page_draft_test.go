@@ -5,6 +5,7 @@ package app
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
@@ -363,18 +364,16 @@ func TestCheckPageDraftExists(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, draft)
 
-		exists, updateAt, appErr := th.App.CheckPageDraftExists(th.Context, pageId, th.BasicUser.Id, createdWiki.Id)
+		exists, appErr := th.App.CheckPageDraftExists(th.Context, pageId, th.BasicUser.Id, createdWiki.Id)
 		require.Nil(t, appErr)
 		require.True(t, exists)
-		require.Greater(t, updateAt, int64(0))
 	})
 
 	t.Run("returns false for non-existent draft", func(t *testing.T) {
 		nonExistentPageId := model.NewId()
-		exists, updateAt, appErr := th.App.CheckPageDraftExists(th.Context, nonExistentPageId, th.BasicUser.Id, createdWiki.Id)
+		exists, appErr := th.App.CheckPageDraftExists(th.Context, nonExistentPageId, th.BasicUser.Id, createdWiki.Id)
 		require.Nil(t, appErr)
 		require.False(t, exists)
-		require.Equal(t, int64(0), updateAt)
 	})
 
 	t.Run("returns false for different user", func(t *testing.T) {
@@ -385,7 +384,7 @@ func TestCheckPageDraftExists(t *testing.T) {
 		require.NotNil(t, draft)
 
 		otherUser := th.CreateUser(t)
-		exists, _, appErr := th.App.CheckPageDraftExists(th.Context, pageId, otherUser.Id, createdWiki.Id)
+		exists, appErr := th.App.CheckPageDraftExists(th.Context, pageId, otherUser.Id, createdWiki.Id)
 		require.Nil(t, appErr)
 		require.False(t, exists)
 	})
@@ -600,4 +599,56 @@ func TestMovePageDraft(t *testing.T) {
 		appErr := th.App.MovePageDraft(rctx, th.BasicUser.Id, createdWiki.Id, model.NewId(), "")
 		require.NotNil(t, appErr)
 	})
+}
+
+// TestBroadcastPageDraftUpdated_FiltersUnauthorizedUsers asserts that draft activity events
+// are only delivered to channel members who have read_wiki permission on the wiki's team.
+// Users who are in a linked source channel but NOT team members (and thus have no read_wiki)
+// must not receive the event — otherwise editing identity leaks to arbitrary channel members.
+func TestBroadcastPageDraftUpdated_FiltersUnauthorizedUsers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Ensure team_user has read_wiki (mirrors the permissions migration in production).
+	th.AddPermissionToRole(t, model.PermissionReadWiki.Id, model.TeamUserRoleId)
+
+	wiki, appErr := th.App.CreateWiki(th.Context, &model.Wiki{Title: "Broadcast Test Wiki", TeamId: th.BasicTeam.Id}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.LinkWikiToChannel(th.Context, wiki.Id, th.BasicChannel.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	// Create a user who is added to BasicChannel but is NOT a member of BasicTeam.
+	// This user has no read_wiki grant and must be blocked from receiving draft events.
+	foreignUser := th.CreateUser(t)
+	_, appErr = th.App.AddUserToChannel(th.Context, foreignUser, th.BasicChannel, true)
+	require.Nil(t, appErr)
+
+	authorizedEvents, closeAuth := connectFakeWebSocket(t, th, th.BasicUser.Id, "",
+		[]model.WebsocketEventType{model.WebsocketEventPageDraftUpdated})
+	defer closeAuth()
+
+	unauthorizedEvents, closeUnauth := connectFakeWebSocket(t, th, foreignUser.Id, "",
+		[]model.WebsocketEventType{model.WebsocketEventPageDraftUpdated})
+	defer closeUnauth()
+
+	draft := &model.PageDraft{
+		PageId: model.NewId(),
+		UserId: th.BasicUser.Id,
+	}
+	th.App.BroadcastPageDraftUpdated(th.Context, wiki, draft)
+
+	select {
+	case ev := <-authorizedEvents:
+		require.Equal(t, model.WebsocketEventPageDraftUpdated, ev.EventType())
+	case <-time.After(5 * time.Second):
+		t.Fatal("authorized user did not receive page_draft_updated event")
+	}
+
+	select {
+	case <-unauthorizedEvents:
+		t.Fatal("BUG #11: unauthorized user received page_draft_updated event — editor identity leaked to non-wiki-member")
+	case <-time.After(500 * time.Millisecond):
+		// Expected: no event delivered to non-team-member.
+	}
 }

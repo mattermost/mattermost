@@ -802,3 +802,47 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		require.Equal(t, savedDraft.Message, retrievedDraft.Message)
 	})
 }
+
+// TestPublishPageDraftAtomicityInvariant documents issue #10:
+// PublishPageDraft first writes the page (CreateWikiPage or UpdatePage), then
+// deletes the draft. If draft deletion fails, a rollback is attempted — but
+// there is no guarantee the rollback succeeds or that a WS "page rolled back"
+// event is broadcast to connected clients.
+//
+// This test covers the successful forward path and asserts the post-publish
+// invariant: the page exists AND the draft is gone. It cannot inject a
+// mid-publish crash without a mock store; that scenario is left as a follow-up.
+// The comment at the assertion site documents what a partial failure looks like.
+func TestPublishPageDraftAtomicityInvariant(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	wiki, err := th.App.CreateWiki(th.Context, &model.Wiki{Title: "Atomicity Wiki"}, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	pageId := model.NewId()
+	content := createTipTapContent("issue #10 atomicity test content")
+
+	_, saveErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, pageId, content, "Atomicity Draft", 0, nil)
+	require.Nil(t, saveErr)
+
+	publishedPage, pubErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, model.PublishPageDraftOptions{
+		WikiId: wiki.Id,
+		PageId: pageId,
+		Title:  "Atomicity Draft",
+	})
+	require.Nil(t, pubErr)
+	require.NotNil(t, publishedPage)
+
+	// Invariant: after successful publish, page exists AND draft is gone.
+	_, getPageErr := th.App.GetPage(th.Context, publishedPage.Id)
+	require.Nil(t, getPageErr, "published page must be readable after PublishPageDraft")
+
+	_, getDraftErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, wiki.Id, pageId, false)
+	// BUG #10: if draft deletion fails (and rollback also fails), the draft
+	// would still exist here while the page is also live — a half-published state
+	// that clients cannot detect because no rollback WS event is emitted.
+	require.NotNil(t, getDraftErr, "draft must be deleted after successful publish (issue #10: non-atomic delete+create gap)")
+}

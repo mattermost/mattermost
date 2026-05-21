@@ -3,7 +3,7 @@
 
 import * as PageDraftActions from 'actions/page_drafts';
 
-import {debounceSavePageDraft} from './draft_autosave';
+import {cancelDebounceSavePageDraft, debounceSavePageDraft, flushDebounceSavePageDraft} from './draft_autosave';
 
 jest.mock('actions/page_drafts');
 
@@ -17,7 +17,9 @@ describe('draft_autosave', () => {
 
     afterEach(() => {
         jest.useRealTimers();
-        debounceSavePageDraft.cancel();
+        cancelDebounceSavePageDraft('wiki123', 'page123');
+        cancelDebounceSavePageDraft('wiki1', 'page1');
+        cancelDebounceSavePageDraft('wiki2', 'page2');
     });
 
     describe('debounceSavePageDraft', () => {
@@ -112,7 +114,7 @@ describe('draft_autosave', () => {
             jest.advanceTimersByTime(250);
 
             // Cancel before debounce completes
-            debounceSavePageDraft.cancel();
+            cancelDebounceSavePageDraft(wikiId, pageId);
 
             jest.advanceTimersByTime(500);
 
@@ -125,7 +127,7 @@ describe('draft_autosave', () => {
             debounceSavePageDraft(mockDispatch, channelId, wikiId, pageId, message, title);
 
             // Flush immediately
-            debounceSavePageDraft.flush();
+            flushDebounceSavePageDraft(wikiId, pageId);
 
             expect(mockSavePageDraft).toHaveBeenCalledTimes(1);
             expect(mockSavePageDraft).toHaveBeenCalledWith(channelId, wikiId, pageId, message, title);
