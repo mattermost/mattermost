@@ -130,7 +130,6 @@ export type ClientConfig = {
     FeatureFlagAttributeBasedAccessControl: string;
     FeatureFlagPermissionPolicies: string;
     FeatureFlagWebSocketEventScope: string;
-    FeatureFlagInteractiveDialogAppsForm: string;
     FeatureFlagContentFlagging: string;
     FeatureFlagClassificationMarkings: string;
     FeatureFlagManagedChannelCategories: string;

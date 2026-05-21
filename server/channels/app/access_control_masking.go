@@ -362,9 +362,11 @@ func mergeConditionValues(submitted model.Condition, hiddenValues []string) mode
 		merged.Value = result
 
 	case string:
-		// Empty string and the masked-token sentinel both mean "no real value
-		// submitted here"; restore from hidden values.
-		if (v == "" || v == maskedTokenValue) && len(hiddenValues) > 0 {
+		// For scalar conditions the caller cannot edit a value they cannot see.
+		// Always restore the stored hidden value regardless of what was submitted,
+		// preventing a crafted save from overwriting a hidden stored value with a
+		// different caller-visible string that passes validateConditionValues.
+		if len(hiddenValues) > 0 {
 			merged.Value = hiddenValues[0]
 		}
 
@@ -545,6 +547,13 @@ func conditionToCEL(cond model.Condition) string {
 			orParts = append(orParts, celStringLiteral(v)+" in "+attr)
 		}
 		if len(orParts) == 1 {
+			// When the sole value is the masked-token sentinel, duplicate it into a
+			// two-branch OR so that the parser can recover hasAnyOf on the next read.
+			// A standalone "tok in attr" is promoted to hasAllOf by
+			// mergeMultiselectConditions, which would display the wrong operator in the UI.
+			if values[0] == maskedTokenValue {
+				return "(" + orParts[0] + " || " + orParts[0] + ")"
+			}
 			return orParts[0]
 		}
 		return "(" + strings.Join(orParts, " || ") + ")"
@@ -750,8 +759,14 @@ func (a *App) GetMaskedExpression(rctx request.CTX, expression string, callerID 
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
 	fieldsByName := a.fetchConditionFields(rctxWithCaller, visualAST.Conditions, cpaGroupID)
 
+	hasMasked := false
 	for i := range visualAST.Conditions {
-		a.maskConditionValuesWithToken(rctxWithCaller, callerID, &visualAST.Conditions[i], cpaGroupID, fieldsByName)
+		if a.maskConditionValuesWithToken(rctxWithCaller, callerID, &visualAST.Conditions[i], cpaGroupID, fieldsByName) {
+			hasMasked = true
+		}
+	}
+	if !hasMasked {
+		return expression, nil
 	}
 
 	return buildCELFromConditions(visualAST.Conditions), nil
@@ -761,27 +776,30 @@ func (a *App) GetMaskedExpression(rctx request.CTX, expression string, callerID 
 // preserving expression structure so the visual AST endpoint can still parse it.
 // fieldsByName is pre-fetched by the caller to avoid N+1 lookups; a missing entry
 // is treated as fail-closed (whole value masked).
-func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, condition *model.Condition, cpaGroupID string, fieldsByName map[string]*model.PropertyField) {
+// maskConditionValuesWithToken replaces non-held values with the masked token in place.
+// Returns true if any value was masked.
+func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, condition *model.Condition, cpaGroupID string, fieldsByName map[string]*model.PropertyField) bool {
 	if condition.ValueType == model.AttrValue {
-		return
+		return false
 	}
 
 	fieldName := extractFieldName(condition.Attribute)
 	if fieldName == "" {
-		return
+		return false
 	}
 
 	field, ok := fieldsByName[fieldName]
 	if !ok {
 		condition.Value = maskedTokenValue // fail closed
-		return
+		return true
 	}
 
 	switch field.GetAccessMode() {
 	case model.PropertyAccessModePublic:
-		return
+		return false
 	case model.PropertyAccessModeSourceOnly:
 		condition.Value = maskedTokenValue
+		return true
 	case model.PropertyAccessModeSharedOnly:
 		var visibleNames map[string]struct{}
 		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
@@ -789,15 +807,17 @@ func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, co
 		} else {
 			visibleNames = a.getCallerTextValues(rctx, callerID, field, cpaGroupID)
 		}
-		replaceHiddenValuesWithToken(condition, visibleNames)
+		return replaceHiddenValuesWithToken(condition, visibleNames)
 	default:
 		condition.Value = maskedTokenValue
+		return true
 	}
 }
 
 // replaceHiddenValuesWithToken keeps visible values and appends a single masked token if any were hidden.
 // One token regardless of count prevents count-based inference about the number of hidden values.
-func replaceHiddenValuesWithToken(condition *model.Condition, visibleNames map[string]struct{}) {
+// Returns true if any value was replaced.
+func replaceHiddenValuesWithToken(condition *model.Condition, visibleNames map[string]struct{}) bool {
 	switch v := condition.Value.(type) {
 	case []any:
 		var result []any
@@ -817,11 +837,14 @@ func replaceHiddenValuesWithToken(condition *model.Condition, visibleNames map[s
 			result = append(result, maskedTokenValue)
 		}
 		condition.Value = result
+		return hasMasked
 	case string:
 		if _, visible := visibleNames[v]; !visible {
 			condition.Value = maskedTokenValue
+			return true
 		}
 	}
+	return false
 }
 
 // MaskPolicyExpressions masks non-held literal values in all policy rule expressions, in place.
@@ -867,9 +890,14 @@ func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessContro
 		if ast == nil {
 			continue
 		}
+		hasMasked := false
 		for j := range ast.Conditions {
-			a.maskConditionValuesWithToken(rctxWithCaller, callerID, &ast.Conditions[j], cpaGroupID, fieldsByName)
+			if a.maskConditionValuesWithToken(rctxWithCaller, callerID, &ast.Conditions[j], cpaGroupID, fieldsByName) {
+				hasMasked = true
+			}
 		}
-		policy.Rules[i].Expression = buildCELFromConditions(ast.Conditions)
+		if hasMasked {
+			policy.Rules[i].Expression = buildCELFromConditions(ast.Conditions)
+		}
 	}
 }

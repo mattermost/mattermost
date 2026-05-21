@@ -427,7 +427,8 @@ test.describe('System Console - User Attributes Management', () => {
     /**
      * @objective Verify that clearing the auto-derived CEL identifier (Name)
      * after entering a Display Name shows the empty-name validation warning
-     * and disables the Save button.
+     * in both the offending Name cell (red icon) and a banner below the table,
+     * and that Save remains disabled.
      */
     test('shows validation warning for empty attribute name', {tag: '@user_attributes'}, async ({pw}) => {
         const {systemConsolePage} = await setupTest(pw);
@@ -452,49 +453,116 @@ test.describe('System Console - User Attributes Management', () => {
         await nameInput.clear();
         await nameInput.blur();
 
-        // * Verify validation warning about empty name is shown
-        await expect(sp.validationMessage('Please enter an attribute name.')).toBeVisible();
+        // * Verify the in-cell error icon is rendered for the offending row
+        await expect(sp.identifierValidationError()).toBeVisible();
+
+        // * Verify the bottom banner with the title and body copy is rendered
+        await expect(sp.validationBannerByTitle('Please enter an attribute name.')).toBeVisible();
+        await expect(sp.validationBannerByTitle(/missing a Name/)).toBeVisible();
 
         // * Verify Save button is disabled due to validation error
         await expect(sp.saveButton).toBeDisabled();
     });
 
     /**
-     * @objective Verify that entering a duplicate attribute name shows a "must be
-     * unique" warning and disables the Save button.
-     *
-     * @precondition
-     * A custom profile attribute named "UniqueName_<timestamp>" exists via API setup.
+     * @objective Verify that two pending fields with the same Name surface the
+     * `name_unique` validation: both rows display the in-cell error icon, a
+     * single banner appears below the table, and Save stays disabled.
      */
-    test.fixme('shows validation warning for duplicate attribute names', {tag: '@user_attributes'}, async ({pw}) => {
-        const {adminClient, systemConsolePage} = await setupTest(pw);
+    test('shows validation warning for duplicate attribute names', {tag: '@user_attributes'}, async ({pw}) => {
+        const {systemConsolePage} = await setupTest(pw);
         const sp = systemConsolePage.systemProperties;
 
-        // # Create an attribute via API (name must be a valid CEL identifier — no spaces)
-        const uniqueDupName = `unique_name_${Date.now()}`;
-        const attributes: CustomProfileAttribute[] = [{name: uniqueDupName, type: 'text'}];
-        const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+        const dupName = `dup_${Date.now()}`;
 
         // # Navigate to User Attributes page
         await sp.goto();
 
-        // # Add a new attribute with the same name
+        // # Add the first new attribute with the duplicate name. We commit the
+        // # value via lastNameInput() here, then resolve the row by value below
+        // # so subsequent addAttribute() calls don't cause `.last()` to slide
+        // # onto the second row.
         await sp.addAttribute();
+        await sp.lastNameInput().fill(dupName);
+        await sp.lastNameInput().blur();
 
-        // Use lastNameInput() so concurrent UAAE/ABAC rows don't shift the index.
-        const newNameInput = sp.lastNameInput();
-        await newNameInput.clear();
-        await newNameInput.fill(uniqueDupName);
-        await newNameInput.blur();
+        // # Add the second new attribute with the same name (triggers name_unique)
+        await sp.addAttribute();
+        const secondNameInput = sp.lastNameInput();
+        await secondNameInput.fill(dupName);
+        await secondNameInput.blur();
 
-        // * Verify validation warning about duplicate name is shown
-        await expect(sp.validationMessage('Attribute names must be unique.').first()).toBeVisible();
+        // * Both rows should display the in-cell error icon
+        await expect(sp.identifierValidationError()).toHaveCount(2);
+
+        // * A single name_unique banner is rendered below the table
+        await expect(sp.validationBannerByTitle('Attribute names must be unique.')).toHaveCount(1);
+        await expect(sp.validationBannerByTitle(/share the same Name/)).toBeVisible();
 
         // * Verify Save button is disabled
         await expect(sp.saveButton).toBeDisabled();
-
-        await cleanupFields(adminClient, fieldsMap);
     });
+
+    /**
+     * @objective Verify the `name_taken` validation path: renaming a persisted
+     * field to free its name, then renaming a second persisted field to take
+     * the freed name, surfaces the in-cell icon and bottom banner. This is the
+     * only sequence that reaches the `NameTaken` branch — duplicate-pending
+     * fields trigger `NameUnique` first.
+     *
+     * @precondition
+     * Two custom profile attributes (`taken_a`, `taken_b`) exist via API setup.
+     */
+    test(
+        'shows validation warning when a persisted attribute name is taken',
+        {tag: '@user_attributes'},
+        async ({pw}) => {
+            const {adminClient, systemConsolePage} = await setupTest(pw);
+            const sp = systemConsolePage.systemProperties;
+
+            // # Create two persisted attributes via API
+            const uid = Date.now();
+            const nameA = `taken_a_${uid}`;
+            const nameB = `taken_b_${uid}`;
+            const freedName = `taken_freed_${uid}`;
+            const attributes: CustomProfileAttribute[] = [
+                {name: nameA, type: 'text'},
+                {name: nameB, type: 'text'},
+            ];
+            const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+
+            try {
+                // # Navigate to User Attributes page
+                await sp.goto();
+
+                // # Rename A first — frees the original `taken_a_*` name
+                const inputA = sp.nameInputByValue(nameA);
+                await expect(inputA).toBeVisible();
+                await inputA.focus();
+                await inputA.fill(freedName);
+                await sp.page.keyboard.press('Tab');
+
+                // # Rename B to the now-freed name — reaches the NameTaken branch
+                const inputB = sp.nameInputByValue(nameB);
+                await expect(inputB).toBeVisible();
+                await inputB.focus();
+                await inputB.fill(nameA);
+                await sp.page.keyboard.press('Tab');
+
+                // * Verify the offending row carries the in-cell error icon
+                await expect(sp.identifierValidationError()).toHaveCount(1);
+
+                // * Verify the bottom banner with the name_taken title and body
+                await expect(sp.validationBannerByTitle('Attribute name already taken.')).toBeVisible();
+                await expect(sp.validationBannerByTitle(/already used by another attribute/)).toBeVisible();
+
+                // * Verify Save button is disabled
+                await expect(sp.saveButton).toBeDisabled();
+            } finally {
+                await cleanupFields(adminClient, fieldsMap);
+            }
+        },
+    );
 
     /**
      * @objective Verify changing an attribute type from Text to Phone via the type
@@ -643,6 +711,55 @@ test.describe('System Console - User Attributes Management', () => {
         await expect(sp.nameInputByValue('updated_persistent')).toBeVisible();
 
         await cleanupFields(adminClient, await getFieldsMap(adminClient));
+    });
+
+    /**
+     * @objective Verify that two distinct name validation errors produce two
+     * stacked banners below the table (one per type), both offending rows
+     * carry the in-cell error icon, and that fixing one row removes only the
+     * matching banner while the other persists.
+     */
+    test('stacks one banner per distinct validation error type', {tag: '@user_attributes'}, async ({pw}) => {
+        const {systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
+        // # Navigate to User Attributes page
+        await sp.goto();
+
+        // # Row 1: trigger name_required (fill Display Name, clear auto-Name, blur)
+        await sp.addAttribute();
+        const firstDisplayName = sp.lastDisplayNameInput();
+        await firstDisplayName.fill('Job Title');
+        await firstDisplayName.blur();
+        const firstNameInput = sp.lastNameInput();
+        await expect(firstNameInput).toHaveValue('job_title');
+        await firstNameInput.clear();
+        await firstNameInput.blur();
+
+        // # Row 2: trigger name_invalid_cel (reserved CEL keyword)
+        await sp.addAttribute();
+        const secondNameInput = sp.lastNameInput();
+        await secondNameInput.fill('true');
+        await secondNameInput.blur();
+
+        // * Both banners stack at the bottom of the table
+        await expect(sp.validationBannerByTitle('Please enter an attribute name.')).toBeVisible();
+        await expect(sp.validationBannerByTitle(/Identifier must start with a letter or underscore/)).toBeVisible();
+
+        // * Both offending Name cells carry the in-cell error icon
+        await expect(sp.identifierValidationError()).toHaveCount(2);
+
+        // * Save button stays disabled while any banner is present
+        await expect(sp.saveButton).toBeDisabled();
+
+        // # Fix the second row (give it a valid name) — only the CEL banner should disappear
+        await secondNameInput.fill('valid_name');
+        await secondNameInput.blur();
+
+        await expect(sp.validationBannerByTitle(/Identifier must start with a letter or underscore/)).toHaveCount(0);
+        await expect(sp.validationBannerByTitle('Please enter an attribute name.')).toBeVisible();
+        await expect(sp.identifierValidationError()).toHaveCount(1);
+        await expect(sp.saveButton).toBeDisabled();
     });
 
     /**
