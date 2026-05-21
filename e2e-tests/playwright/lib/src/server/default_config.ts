@@ -779,7 +779,6 @@ const defaultServerConfig: AdminConfig = {
         AttributeBasedAccessControl: true,
         PermissionPolicies: true,
         ContentFlagging: true,
-        InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
         AutoTranslation: true,
@@ -790,6 +789,7 @@ const defaultServerConfig: AdminConfig = {
         IntegratedBoards: true,
         CJKSearch: false,
         ManagedChannelCategories: false,
+        MobileEphemeralMode: true,
     },
     ImportSettings: {
         Directory: './import',
@@ -867,5 +867,11 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
+    },
+    MobileEphemeralModeSettings: {
+        Enable: false,
+        DisconnectionTimeoutSeconds: 60,
+        OfflinePersistenceTimerHours: 24,
+        AutoCacheCleanupDays: 7,
     },
 };

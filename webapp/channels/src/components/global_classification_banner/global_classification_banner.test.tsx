@@ -11,12 +11,12 @@ import {Client4} from 'mattermost-redux/client';
 import {
     DISPLAY_BANNER_BOTTOM,
     DISPLAY_BANNER_TOP,
-    GROUP_NAME,
-    LINKED_OBJECT_TYPE,
-    OBJECT_TYPE,
-    SYSTEM_FIELD_TARGET_ID,
-    SYSTEM_VALUE_TARGET_ID,
-    TARGET_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_ID,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_GROUP_NAME,
+    CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+    CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -35,11 +35,11 @@ const LINKED_FIELD_ID = 'linked_field1';
 function makeTemplateField(options: Array<{id: string; name: string; color: string}>): PropertyField {
     return {
         id: TEMPLATE_FIELD_ID,
-        group_id: GROUP_NAME,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
         name: 'classification',
         type: 'select',
-        object_type: OBJECT_TYPE,
-        target_type: TARGET_TYPE,
+        object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: '',
         create_at: 1000,
         update_at: 1000,
@@ -56,12 +56,12 @@ function makeTemplateField(options: Array<{id: string; name: string; color: stri
 function makeLinkedField(actions: string[], options: Array<{id: string; name: string; color: string}> = []): PropertyField {
     return {
         id: LINKED_FIELD_ID,
-        group_id: GROUP_NAME,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
         name: 'system_classification',
         type: 'select',
-        object_type: LINKED_OBJECT_TYPE,
-        target_type: TARGET_TYPE,
-        target_id: SYSTEM_FIELD_TARGET_ID,
+        object_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         linked_field_id: TEMPLATE_FIELD_ID,
         create_at: 2000,
         update_at: 2000,
@@ -78,9 +78,9 @@ function makeLinkedField(actions: string[], options: Array<{id: string; name: st
 function makeSystemValue(optionId: string): PropertyValue<string> {
     return {
         id: 'value1',
-        target_id: SYSTEM_VALUE_TARGET_ID,
-        target_type: LINKED_OBJECT_TYPE,
-        group_id: GROUP_NAME,
+        target_id: CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
+        target_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
         field_id: LINKED_FIELD_ID,
         value: optionId,
         create_at: 3000,
@@ -317,10 +317,10 @@ describe('GlobalClassificationBanner', () => {
         );
 
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
-            GROUP_NAME,
-            LINKED_OBJECT_TYPE,
-            TARGET_TYPE,
-            SYSTEM_FIELD_TARGET_ID,
+            CLASSIFICATIONS_GROUP_NAME,
+            CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_ID,
             expect.anything(),
         );
     });

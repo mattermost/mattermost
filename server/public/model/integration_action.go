@@ -16,7 +16,9 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"net/url"
 	"reflect"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -55,16 +57,30 @@ var commonDateTimeFormats = []string{
 	ISODateTimeNoSecondsFormat,    // ISO datetime without seconds
 }
 
-var PostActionRetainPropKeys = []string{PostPropsFromWebhook, PostPropsOverrideUsername, PostPropsOverrideIconURL}
+var PostActionRetainPropKeys = []string{
+	PostPropsFromWebhook,
+	PostPropsFromBot,
+	PostPropsFromPlugin,
+	PostPropsOverrideUsername,
+	PostPropsOverrideIconURL,
+}
 
 type DoPostActionRequest struct {
-	SelectedOption string `json:"selected_option,omitempty"`
-	Cookie         string `json:"cookie,omitempty"`
+	SelectedOption string            `json:"selected_option,omitempty"`
+	Cookie         string            `json:"cookie,omitempty"`
+	Query          map[string]string `json:"query,omitempty"`
 }
 
 const (
 	PostActionDataSourceUsers    = "users"
 	PostActionDataSourceChannels = "channels"
+
+	MaxMmBlocksActionsPerPost  = 50
+	MaxMmBlocksActionKeyLength = 64
+
+	MaxActionQueryEntries     = 50
+	MaxActionQueryKeyLength   = 128
+	MaxActionQueryValueLength = 2048
 )
 
 type PostAction struct {
@@ -873,6 +889,7 @@ func (o *Post) StripActionIntegrations() {
 			action.Integration = nil
 		}
 	}
+	o.StripMmBlocksActionSecrets()
 }
 
 func (o *Post) GetAction(id string) *PostAction {
@@ -882,6 +899,137 @@ func (o *Post) GetAction(id string) *PostAction {
 				return action
 			}
 		}
+	}
+	if spec := o.GetMmBlocksActionSpec(id); spec != nil && spec.Type == MmBlocksActionTypeExternal && spec.URL != "" {
+		// Synthesize a PostAction so the existing click pipeline can
+		// dispatch without branching on action source. Pre-merge the
+		// spec's static per-action query into the URL here; per-click
+		// query (from DoPostActionRequest.Query) is merged on top by the
+		// caller via MergeQueryIntoURL, with per-click overriding static
+		// values on overlapping keys.
+		url := spec.URL
+		if len(spec.Query) > 0 {
+			merged, err := MergeQueryIntoURL(spec.URL, spec.Query)
+			if err != nil {
+				// Spec URL is malformed. ValidateMmBlocksActions
+				// should have rejected it at save time, so this is a
+				// belt-and-suspenders guard. Returning nil routes the
+				// caller through the standard "action not found"
+				// 404 path rather than firing a request to a URL
+				// that's missing the static query params.
+				return nil
+			}
+			url = merged
+		}
+		return &PostAction{
+			Id:   id,
+			Type: PostActionTypeButton,
+			Integration: &PostActionIntegration{
+				URL:     url,
+				Context: spec.Context,
+			},
+		}
+	}
+	return nil
+}
+
+var mmBlocksActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9]+$`)
+
+// ValidateMmBlocksActions verifies the post's mm_blocks_actions prop has the
+// expected shape and bounds. Each entry must coerce to a valid spec via
+// mmBlocksEntryMapToSpec.
+func ValidateMmBlocksActions(o *Post) error {
+	raw := o.GetProp(PostPropsMmBlocksActions)
+	if raw == nil {
+		return nil
+	}
+	actions, ok := coerceToStringAnyMap(raw)
+	if !ok {
+		return fmt.Errorf("mm_blocks_actions must be a map")
+	}
+	if len(actions) > MaxMmBlocksActionsPerPost {
+		return fmt.Errorf("mm_blocks_actions exceeds maximum of %d entries", MaxMmBlocksActionsPerPost)
+	}
+	for key, entry := range actions {
+		if len(key) > MaxMmBlocksActionKeyLength {
+			return fmt.Errorf("mm_blocks_actions key exceeds %d chars", MaxMmBlocksActionKeyLength)
+		}
+		if !mmBlocksActionIDRegex.MatchString(key) {
+			return fmt.Errorf("mm_blocks_actions key %q must be alphanumeric", key)
+		}
+		entryMap, ok := coerceToStringAnyMap(entry)
+		if !ok {
+			return fmt.Errorf("mm_blocks_actions entry %q must be an object", key)
+		}
+		spec := mmBlocksEntryMapToSpec(entryMap)
+		if spec == nil {
+			return fmt.Errorf("mm_blocks_actions entry %q has invalid type or shape", key)
+		}
+		if spec.Type == MmBlocksActionTypeExternal {
+			if err := validateIntegrationURL(spec.URL); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q: %w", key, err)
+			}
+			// Bound the per-spec static query so a bot cannot stash
+			// unbounded data in the post that gets merged into the
+			// outgoing URL on every click.
+			if err := ValidateActionQuery(spec.Query); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q static query: %w", key, err)
+			}
+			// Bound entry count and key length on the static context.
+			// Values are arbitrary JSON, so size is constrained by the
+			// outer post-size limit; we cap entries to prevent crafted
+			// posts from inflating GetAction's clone cost.
+			if len(spec.Context) > MaxActionQueryEntries {
+				return fmt.Errorf("mm_blocks_actions entry %q context exceeds maximum of %d entries", key, MaxActionQueryEntries)
+			}
+			for k := range spec.Context {
+				if len(k) > MaxActionQueryKeyLength {
+					return fmt.Errorf("mm_blocks_actions entry %q context key exceeds %d chars", key, MaxActionQueryKeyLength)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// ValidateActionQuery bounds the size of user-supplied per-click query
+// parameters so a crafted post cannot trigger unbounded memory use in the
+// plugin-request path.
+func ValidateActionQuery(q map[string]string) error {
+	if len(q) > MaxActionQueryEntries {
+		return fmt.Errorf("query exceeds maximum of %d entries", MaxActionQueryEntries)
+	}
+	for key, value := range q {
+		if len(key) > MaxActionQueryKeyLength {
+			return fmt.Errorf("query key exceeds %d chars", MaxActionQueryKeyLength)
+		}
+		if len(value) > MaxActionQueryValueLength {
+			return fmt.Errorf("query value for %q exceeds %d chars", key, MaxActionQueryValueLength)
+		}
+	}
+	return nil
+}
+
+func validateIntegrationURL(rawURL string) error {
+	if rawURL == "" {
+		return fmt.Errorf("must have a non-empty URL")
+	}
+	if !(strings.HasPrefix(rawURL, "/plugins/") || strings.HasPrefix(rawURL, "plugins/") || IsValidHTTPURL(rawURL)) {
+		return fmt.Errorf("must have a valid integration URL")
+	}
+	// Reject path-traversal segments. /plugins/ URLs are routed by the
+	// local server, so a `..` segment can escape the plugin namespace and
+	// hit unrelated server routes. url.Parse decodes percent-encoded path
+	// bytes into u.Path, which is the same single decode pass that
+	// doPluginRequest performs at dispatch — so encoded forms like
+	// %2e%2e%2f are caught here symmetrically with how the router would
+	// resolve them.
+	u, parseErr := url.Parse(rawURL)
+	if parseErr != nil {
+		return fmt.Errorf("must have a valid integration URL: %w", parseErr)
+	}
+	if strings.Contains(u.Path, "/../") || strings.HasSuffix(u.Path, "/..") {
+		return fmt.Errorf("integration URL must not contain path traversal segments")
 	}
 	return nil
 }

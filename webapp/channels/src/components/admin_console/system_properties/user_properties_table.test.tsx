@@ -12,8 +12,13 @@ import {Client4} from 'mattermost-redux/client';
 import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
-import {UserPropertiesTable, useUserPropertiesTable} from './user_properties_table';
-import {ValidationWarningNameInvalidCEL} from './user_properties_utils';
+import {UserPropertiesTable, ValidationBanners, useUserPropertiesTable} from './user_properties_table';
+import {
+    ValidationWarningNameInvalidCEL,
+    ValidationWarningNameRequired,
+    ValidationWarningNameUnique,
+    ValidationWarningOptionsRequired,
+} from './user_properties_utils';
 
 jest.mock('./user_properties_delete_modal', () => ({
     useUserPropertyFieldDelete: jest.fn(() => ({
@@ -176,30 +181,42 @@ describe('UserPropertiesTable', () => {
         expect(deletedInput).toBeDisabled();
     });
 
+    const renderWithBanners = (fields: UserPropertyField[], collection = collectionFromArray(fields)) => {
+        return renderWithContext(
+            <>
+                <UserPropertiesTable
+                    data={collection}
+                    canCreate={true}
+                    createField={createField}
+                    updateField={updateField}
+                    deleteField={deleteField}
+                    reorderField={reorderField}
+                />
+                <ValidationBanners warnings={collection.warnings}/>
+            </>,
+        );
+    };
+
     it('displays validation warnings', async () => {
         const fields = [...baseFields];
         const collection = collectionFromArray(fields);
 
         // Add validation warnings
         collection.warnings = {
-            field1: {name: 'user_properties.validation.name_required'},
+            field1: {name: ValidationWarningNameRequired},
         };
 
-        renderWithContext(
-            <UserPropertiesTable
-                data={collection}
-                canCreate={true}
-                createField={createField}
-                updateField={updateField}
-                deleteField={deleteField}
-                reorderField={reorderField}
-            />,
-        );
+        renderWithBanners(fields, collection);
 
-        // Validation error should be shown
         await waitFor(() => {
             expect(screen.getByText('Please enter an attribute name.')).toBeInTheDocument();
         });
+
+        // * Banner body copy renders below the table
+        expect(screen.getByText(/1 attribute is missing a Name/)).toBeInTheDocument();
+
+        // * Offending row's Name cell carries the icon
+        expect(screen.getAllByTestId('property-field-validation-error')).toHaveLength(1);
     });
 
     it('shows CEL validation error for invalid identifiers', async () => {
@@ -208,12 +225,17 @@ describe('UserPropertiesTable', () => {
             field1: {name: ValidationWarningNameInvalidCEL},
         };
 
-        renderComponent(baseFields, collection);
+        renderWithBanners(baseFields, collection);
 
         await waitFor(() => {
             expect(screen.getByText(/Identifier must start with a letter or underscore/)).toBeInTheDocument();
         });
-        expect(screen.getByTestId('property-field-validation-error')).toBeInTheDocument();
+
+        // * Banner body copy renders below the table
+        expect(screen.getByText(/The highlighted Name is not a valid identifier/)).toBeInTheDocument();
+
+        // * Cell-level icon carries the existing test id
+        expect(screen.getAllByTestId('property-field-validation-error')).toHaveLength(1);
     });
 
     it('editing display_name of a legacy invalid-named field does not fire CEL warning', async () => {
@@ -238,11 +260,67 @@ describe('UserPropertiesTable', () => {
             [legacyField.id]: {name: ValidationWarningNameInvalidCEL},
         };
 
-        renderComponent([legacyField], collection);
+        renderWithBanners([legacyField], collection);
 
         await waitFor(() => {
             expect(screen.getByText(/Reserved CEL words are not allowed/)).toBeInTheDocument();
         });
+
+        // * Banner body copy renders below the table
+        expect(screen.getByText(/The highlighted Name is not a valid identifier/)).toBeInTheDocument();
+    });
+
+    it('stacks one banner per distinct validation error type', async () => {
+        const fields: UserPropertyField[] = [
+            baseFields[0],
+            baseFields[1],
+            {
+                ...baseFields[0],
+                id: 'field3',
+                name: '',
+            },
+        ];
+        const collection = collectionFromArray(fields);
+        collection.warnings = {
+            field1: {name: ValidationWarningNameInvalidCEL},
+            field2: {name: ValidationWarningNameUnique},
+            field3: {name: ValidationWarningNameRequired},
+        };
+
+        const {container} = renderWithBanners(fields, collection);
+
+        // * Each unique error type produces a banner with its body copy
+        await waitFor(() => {
+            expect(screen.getByText(/The highlighted Name is not a valid identifier/)).toBeInTheDocument();
+        });
+        expect(screen.getByText(/1 attribute shares the same Name/)).toBeInTheDocument();
+        expect(screen.getByText(/1 attribute is missing a Name/)).toBeInTheDocument();
+
+        // * Three offending rows each carry the in-cell icon
+        expect(screen.getAllByTestId('property-field-validation-error')).toHaveLength(3);
+
+        // * Banners render in the canonical order: required → invalid CEL → unique → taken
+        const banners = container.querySelectorAll('.AlertBanner');
+        expect(banners).toHaveLength(3);
+        expect(banners[0]).toHaveTextContent(/Please enter an attribute name/);
+        expect(banners[1]).toHaveTextContent(/Identifier must start with a letter or underscore/);
+        expect(banners[2]).toHaveTextContent(/Attribute names must be unique/);
+    });
+
+    it('ignores attrs-only warnings: no name-cell icon and no banner', () => {
+        const fields = [baseFields[0]];
+        const collection = collectionFromArray(fields);
+        collection.warnings = {
+            [fields[0].id]: {attrs: ValidationWarningOptionsRequired},
+        };
+
+        const {container} = renderWithBanners(fields, collection);
+
+        // * The Name cell does not light up for options-only warnings
+        expect(screen.queryByTestId('property-field-validation-error')).not.toBeInTheDocument();
+
+        // * No warning banner is rendered below the table
+        expect(container.querySelector('.AlertBanner')).toBeNull();
     });
 
     it('autofocuses name input for new text field', () => {
@@ -765,8 +843,13 @@ describe('useUserPropertiesTable grandfather regression', () => {
         await userEvent.type(renamedInput, 'for');
         fireEvent.blur(renamedInput);
 
+        // * Banner title + body copy are rendered below the table
         await waitFor(() => {
             expect(screen.getByText(/Identifier must start with a letter or underscore/)).toBeInTheDocument();
         });
+        expect(screen.getByText(/The highlighted Name is not a valid identifier/)).toBeInTheDocument();
+
+        // * Cell-level icon resolves via the preserved testid
+        expect(screen.getAllByTestId('property-field-validation-error')).toHaveLength(1);
     });
 });

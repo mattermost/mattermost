@@ -14,8 +14,8 @@ import {setupContentFlagging, createPost} from './../support';
  * 4. Login as the reviewer and navigate to the content review DM
  * 5. Verify the deletion report summary table is posted in the reviewer's thread
  */
-test.fixme('Reviewer receives a deletion report summary after removing a flagged post', async ({pw}) => {
-    const {adminClient, team, user: reviewerUser, userClient: reviewerUserClient} = await pw.initSetup();
+test('Reviewer receives a deletion report summary after removing a flagged post', async ({pw}) => {
+    const {adminClient, team, user: reviewerUser} = await pw.initSetup();
 
     // Create author user..
     const authorUser = await pw.random.user('author');
@@ -28,18 +28,27 @@ test.fixme('Reviewer receives a deletion report summary after removing a flagged
     const message = `Sensitive 2 post by @${authorUser.username} to be removed`;
     const {post} = await createPost(adminClient, authorUserClient, team, authorUser, message);
 
-    // Flag and remove the post
+    // Flag the post
     await adminClient.flagPost(post.id, 'Classification mismatch', 'This message contains sensitive data');
 
     // Login as reviewer and navigate to content review DM
-    const {channelsPage} = await pw.testBrowser.login(reviewerUser);
+    const {channelsPage, contentReviewPage} = await pw.testBrowser.login(reviewerUser);
     await channelsPage.goto(team.name, '@content-review');
     await channelsPage.toBeVisible();
 
     const lastPost = await channelsPage.centerView.getLastPost();
     await lastPost.toContainText(message);
 
-    await reviewerUserClient.removeFlaggedPost(post.id, 'Removing: data spillage confirmed');
+    // Remove the post via the UI. The remove flow still routes through the
+    // skip-confirm step (destructive action), unlike the keep flow which now
+    // bypasses it.
+    await contentReviewPage.setReportCardByPostID(post.id);
+    await contentReviewPage.openViewDetails();
+    await contentReviewPage.waitForRHSVisible();
+    await contentReviewPage.openViewDetails();
+    await contentReviewPage.clickRemoveMessage();
+    await contentReviewPage.enterConfirmationComment('Removing: data spillage confirmed');
+    await contentReviewPage.confirmRemoveWithoutReport();
 
     await channelsPage.goto(team.name, '@content-review');
     await channelsPage.toBeVisible();

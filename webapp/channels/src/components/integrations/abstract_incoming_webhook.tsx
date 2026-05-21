@@ -142,6 +142,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             delete_at: this.props.initialHook?.delete_at || 0,
             team_id: this.props.initialHook?.team_id || '',
             user_id: this.props.initialHook?.user_id || '',
+            last_used: this.props.initialHook?.last_used || 0,
         };
 
         this.props.action(hook).then(() => this.setState({saving: false}));
