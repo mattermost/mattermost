@@ -75,7 +75,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.getByText('Comments')).toBeInTheDocument();
+            expect(screen.getByRole('heading', {name: 'Comments'})).toBeInTheDocument();
             expect(screen.getByText('Test Page')).toBeInTheDocument();
         });
 
@@ -92,8 +92,8 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.getByText('Page Comments')).toBeInTheDocument();
-            expect(screen.getByText('All Threads')).toBeInTheDocument();
+            expect(screen.getByRole('tab', {name: 'Comments'})).toBeInTheDocument();
+            expect(screen.getByText('Page Threads')).toBeInTheDocument();
         });
 
         test('should render header action buttons', () => {
@@ -160,7 +160,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            const allThreadsTab = screen.getByText('All Threads');
+            const allThreadsTab = screen.getByText('Page Threads');
             await user.click(allThreadsTab);
 
             expect(setWikiRhsActiveTab).toHaveBeenCalledWith('all_threads');
@@ -415,7 +415,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.getByRole('heading', {name: 'Thread'})).toBeInTheDocument();
+            expect(screen.getByRole('heading', {name: 'Comment Thread'})).toBeInTheDocument();
         });
 
         test('should not render tabs when focusedInlineCommentId is set', () => {
@@ -426,8 +426,8 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.queryByText('Page Comments')).not.toBeInTheDocument();
-            expect(screen.queryByText('All Threads')).not.toBeInTheDocument();
+            expect(screen.queryByText('Comments')).not.toBeInTheDocument();
+            expect(screen.queryByText('Page Threads')).not.toBeInTheDocument();
         });
     });
 });

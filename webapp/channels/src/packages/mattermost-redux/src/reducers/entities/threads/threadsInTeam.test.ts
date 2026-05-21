@@ -5,7 +5,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToMany} from '@mattermost/types/utilities';
 
-import {ThreadTypes, WikiTypes} from 'mattermost-redux/action_types';
+import {PostTypes, ThreadTypes} from 'mattermost-redux/action_types';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import {handleFollowChanged, threadsInTeamReducer, unreadThreadsInTeamReducer} from './threadsInTeam';
@@ -99,18 +99,23 @@ describe('unreadThreadsInTeam', () => {
     });
 });
 
-describe('DELETED_PAGE thread cleanup', () => {
+describe('page deletion thread cleanup', () => {
+    // deletePage dispatches POST_REMOVED alongside DELETED_PAGE so that the
+    // threads reducers stay isolated from wiki action types.
     const extra = {threads: {}} as ExtraData;
+    const postRemovedForPage = (pageId: string) => ({
+        type: PostTypes.POST_REMOVED,
+        data: {id: pageId, root_id: ''},
+    });
 
     test('threadsInTeamReducer removes a page thread when the page is deleted', () => {
         const state: RelationOneToMany<Team, UserThread> = deepFreeze({
             team_a: ['pageId', 'otherThread'],
         });
 
-        const nextState: RelationOneToMany<Team, UserThread> = threadsInTeamReducer(state, {
-            type: WikiTypes.DELETED_PAGE,
-            data: {id: 'pageId', wikiId: 'wiki_a'},
-        }, extra);
+        const nextState: RelationOneToMany<Team, UserThread> = threadsInTeamReducer(
+            state, postRemovedForPage('pageId'), extra,
+        );
 
         expect(nextState).not.toBe(state);
         expect(nextState.team_a).toEqual(['otherThread']);
@@ -121,10 +126,9 @@ describe('DELETED_PAGE thread cleanup', () => {
             team_a: ['otherThread'],
         });
 
-        const nextState = threadsInTeamReducer(state, {
-            type: WikiTypes.DELETED_PAGE,
-            data: {id: 'pageId', wikiId: 'wiki_a'},
-        }, extra);
+        const nextState = threadsInTeamReducer(
+            state, postRemovedForPage('pageId'), extra,
+        );
 
         expect(nextState).toBe(state);
     });
@@ -134,25 +138,11 @@ describe('DELETED_PAGE thread cleanup', () => {
             team_a: ['pageId', 'otherThread'],
         });
 
-        const nextState: RelationOneToMany<Team, UserThread> = unreadThreadsInTeamReducer(state, {
-            type: WikiTypes.DELETED_PAGE,
-            data: {id: 'pageId', wikiId: 'wiki_a'},
-        }, extra);
+        const nextState: RelationOneToMany<Team, UserThread> = unreadThreadsInTeamReducer(
+            state, postRemovedForPage('pageId'), extra,
+        );
 
         expect(nextState).not.toBe(state);
         expect(nextState.team_a).toEqual(['otherThread']);
-    });
-
-    test('DELETED_PAGE payload without root_id is handled (pages are never thread replies)', () => {
-        // handlePostRemoved reads post.root_id; for pages it is absent (undefined/falsy),
-        // which correctly takes the root-removal branch instead of the reply branch.
-        const state: RelationOneToMany<Team, UserThread> = deepFreeze({
-            team_a: ['pageId'],
-        });
-
-        expect(() => threadsInTeamReducer(state, {
-            type: WikiTypes.DELETED_PAGE,
-            data: {id: 'pageId', wikiId: 'wiki_a'},
-        }, extra)).not.toThrow();
     });
 });

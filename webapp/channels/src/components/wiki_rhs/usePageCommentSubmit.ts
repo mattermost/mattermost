@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback, useState} from 'react';
+import {useCallback, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -18,8 +18,8 @@ type UsePageCommentSubmitResult = {
     message: string;
     submitting: boolean;
     submitError: string | null;
-    handleChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-    handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+    handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     handleSubmit: () => Promise<void>;
 };
 
@@ -32,11 +32,13 @@ export function usePageCommentSubmit(pageId: string, onSuccess?: () => void): Us
     const [message, setMessage] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const submittingRef = useRef(false);
 
     const handleSubmit = useCallback(async () => {
-        if (!message.trim() || submitting || !page) {
+        if (!message.trim() || submittingRef.current || !page) {
             return;
         }
+        submittingRef.current = true;
         setSubmitting(true);
         const result = await dispatch(submitPageComment(pageId, {
             message,
@@ -47,6 +49,7 @@ export function usePageCommentSubmit(pageId: string, onSuccess?: () => void): Us
             createAt: 0,
             updateAt: 0,
         }));
+        submittingRef.current = false;
         if (!isMounted()) {
             return;
         }
@@ -58,11 +61,11 @@ export function usePageCommentSubmit(pageId: string, onSuccess?: () => void): Us
             setMessage('');
             onSuccess?.();
         }
-    }, [dispatch, isMounted, message, onSuccess, page, pageId, submitting]);
+    }, [dispatch, isMounted, message, onSuccess, page, pageId]);
 
-    const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value), []);
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setMessage(e.target.value), []);
 
-    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
             handleSubmit();

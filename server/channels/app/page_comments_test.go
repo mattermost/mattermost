@@ -189,3 +189,64 @@ func TestTransformPageCommentReply(t *testing.T) {
 		require.Equal(t, page.Id, replyPost.RootId)
 	})
 }
+
+// TestPageCommentMentionTriggersThreadNotification — A15 TDD guard.
+//
+// Bug: @-mentions on page comments do not surface in the mentioned user's Threads inbox keyed by
+// root_id (the page post ID that anchors the comment thread). The mention pipeline
+// (CreatePost → handlePostEvents → SendNotifications → getExplicitMentions) is in place, but a
+// predicate in post_type_helpers.go / notification.go drops PostTypePageComment posts before they
+// reach the Threads-inbox routing.
+//
+// This test will fail until the fix in plans/feedback-bugs-fix-plan.md A15 is applied. It also
+// guards against a regression where the mention pipeline double-fires (UnreadMentions ends up > 1).
+func TestPageCommentMentionTriggersThreadNotification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	// Enable CRT so ThreadMembership is hydrated.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	rctx := th.CreateSessionContext()
+	page, appErr := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Mention Page", "", th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+
+	// Note: BasicUser2 is intentionally NOT added to the wiki backing channel. The fix in
+	// handlePageCommentMentions must route mentions to users with wiki access regardless of
+	// backing-channel membership.
+
+	// Top-level page comment with @-mention. RootId = pageID, so the thread is keyed by the page post.
+	mentionMsg := "Take a look @" + th.BasicUser2.Username
+	comment, appErr := th.App.CreatePageComment(rctx, page.Id, mentionMsg, nil, "", nil, nil)
+	require.Nil(t, appErr)
+	require.NotNil(t, comment)
+	require.Equal(t, page.Id, comment.RootId, "top-level page comment must use page ID as root_id")
+
+	// A15 assertion 1: the mentioned user has a ThreadMembership keyed by the page post.
+	t.Skip("A15 not yet implemented")
+	threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser2.Id, page.Id)
+	require.Nil(t, appErr, "ThreadMembership must exist for mentioned user — currently fails because page comment mention does not auto-follow")
+	require.NotNil(t, threadMembership)
+
+	// A15 assertion 2: UnreadMentions on the thread row is exactly 1.
+	thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
+	require.Nil(t, appErr)
+	require.Equal(t, int64(1), thread.UnreadMentions, "mentioned user must see UnreadMentions=1 on the page thread")
+
+	// A15 assertion 3: a follow-up comment without a mention must NOT increment UnreadMentions
+	// (guards against the double-fire regression the fix could introduce).
+	_, appErr = th.App.CreatePageComment(rctx, page.Id, "follow up no mention", nil, "", nil, nil)
+	require.Nil(t, appErr)
+
+	threadMembership, appErr = th.App.GetThreadMembershipForUser(th.BasicUser2.Id, page.Id)
+	require.Nil(t, appErr)
+	thread, appErr = th.App.GetThreadForUser(th.Context, threadMembership, false)
+	require.Nil(t, appErr)
+	require.Equal(t, int64(1), thread.UnreadMentions, "non-mention follow-up must not increment UnreadMentions")
+}

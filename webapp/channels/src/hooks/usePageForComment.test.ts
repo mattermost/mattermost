@@ -71,18 +71,20 @@ describe('usePageForComment', () => {
         mockFetchPage.mockReturnValue((() => Promise.resolve({data: makePage()})) as any);
     });
 
-    test('returns null when comment is null', () => {
+    test('returns loading status when comment is null', () => {
         mockGetPageById.mockReturnValue(undefined);
         const {result} = renderHook(() => usePageForComment(null));
-        expect(result.current).toBeNull();
+        expect(result.current.page).toBeNull();
+        expect(result.current.status).toBe('loading');
         expect(mockFetchPage).not.toHaveBeenCalled();
     });
 
-    test('returns null and does not fetch for a non-page-comment post', () => {
+    test('returns loading status and does not fetch for a non-page-comment post', () => {
         mockGetPageById.mockReturnValue(undefined);
         const notComment = makeComment({type: 'custom_post' as any});
         const {result} = renderHook(() => usePageForComment(notComment));
-        expect(result.current).toBeNull();
+        expect(result.current.page).toBeNull();
+        expect(result.current.status).toBe('loading');
         expect(mockFetchPage).not.toHaveBeenCalled();
     });
 
@@ -93,12 +95,30 @@ describe('usePageForComment', () => {
         expect(mockFetchPage).not.toHaveBeenCalled();
     });
 
-    test('returns the cached page without fetching when already loaded', () => {
+    test('returns the cached page with loaded status without fetching when already in store', () => {
         const page = makePage();
         mockGetPageById.mockReturnValue(page);
         const {result} = renderHook(() => usePageForComment(makeComment()));
-        expect(result.current).toEqual(page);
+        expect(result.current.page).toEqual(page);
+        expect(result.current.status).toBe('loaded');
         expect(mockFetchPage).not.toHaveBeenCalled();
+    });
+
+    test('returns missing status after fetch settles with no page in store', async () => {
+        mockGetPageById.mockReturnValue(undefined);
+        let resolveFetch: ((value: unknown) => void) | undefined;
+        mockFetchPage.mockReturnValue((() => new Promise((resolve) => {
+            resolveFetch = resolve;
+        })) as any);
+
+        const {result} = renderHook(() => usePageForComment(makeComment()));
+        expect(result.current.status).toBe('loading');
+
+        resolveFetch?.({data: null});
+        await waitFor(() => {
+            expect(result.current.status).toBe('missing');
+            expect(result.current.page).toBeNull();
+        });
     });
 
     test('dispatches fetchPage when page is not in store', () => {

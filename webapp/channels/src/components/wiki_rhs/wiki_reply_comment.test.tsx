@@ -47,7 +47,7 @@ describe('components/wiki_rhs/WikiReplyComment', () => {
         renderWithContext(<WikiReplyComment pageId={pageId}/>, getInitialState());
 
         expect(screen.getByTestId('comment-create')).toBeInTheDocument();
-        expect(screen.getByTestId('reply_textbox')).toBeInTheDocument();
+        expect(screen.getByRole('textbox')).toBeInTheDocument();
         expect(screen.getByTestId('reply_submit')).toBeInTheDocument();
     });
 
@@ -67,18 +67,18 @@ describe('components/wiki_rhs/WikiReplyComment', () => {
         const button = screen.getByTestId('reply_submit') as HTMLButtonElement;
         expect(button.disabled).toBe(true);
 
-        fireEvent.change(screen.getByTestId('reply_textbox'), {target: {value: '   '}});
+        fireEvent.input(screen.getByRole('textbox'), {target: {value: '   '}});
         expect(button.disabled).toBe(true);
 
-        fireEvent.change(screen.getByTestId('reply_textbox'), {target: {value: 'hello'}});
+        fireEvent.input(screen.getByRole('textbox'), {target: {value: 'hello'}});
         expect(button.disabled).toBe(false);
     });
 
     test('submitting clears the message and dispatches submitPageComment with the right channel id', async () => {
         renderWithContext(<WikiReplyComment pageId={pageId}/>, getInitialState());
 
-        const textarea = screen.getByTestId('reply_textbox') as HTMLTextAreaElement;
-        fireEvent.change(textarea, {target: {value: 'hello world'}});
+        const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
+        fireEvent.input(textarea, {target: {value: 'hello world'}});
 
         await userEvent.click(screen.getByTestId('reply_submit'));
 
@@ -104,8 +104,8 @@ describe('components/wiki_rhs/WikiReplyComment', () => {
 
         renderWithContext(<WikiReplyComment pageId={pageId}/>, getInitialState());
 
-        const textarea = screen.getByTestId('reply_textbox') as HTMLTextAreaElement;
-        fireEvent.change(textarea, {target: {value: 'will fail'}});
+        const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
+        fireEvent.input(textarea, {target: {value: 'will fail'}});
         await userEvent.click(screen.getByTestId('reply_submit'));
 
         await waitFor(() => {
@@ -119,8 +119,8 @@ describe('components/wiki_rhs/WikiReplyComment', () => {
     test('Ctrl+Enter triggers submit', async () => {
         renderWithContext(<WikiReplyComment pageId={pageId}/>, getInitialState());
 
-        const textarea = screen.getByTestId('reply_textbox');
-        fireEvent.change(textarea, {target: {value: 'shortcut'}});
+        const textarea = screen.getByRole('textbox');
+        fireEvent.input(textarea, {target: {value: 'shortcut'}});
         fireEvent.keyDown(textarea, {key: 'Enter', ctrlKey: true});
 
         await waitFor(() => {
@@ -131,8 +131,8 @@ describe('components/wiki_rhs/WikiReplyComment', () => {
     test('plain Enter does NOT submit', () => {
         renderWithContext(<WikiReplyComment pageId={pageId}/>, getInitialState());
 
-        const textarea = screen.getByTestId('reply_textbox');
-        fireEvent.change(textarea, {target: {value: 'no submit'}});
+        const textarea = screen.getByRole('textbox');
+        fireEvent.input(textarea, {target: {value: 'no submit'}});
         fireEvent.keyDown(textarea, {key: 'Enter'});
 
         expect(mockSubmitPageComment).not.toHaveBeenCalled();
@@ -149,7 +149,7 @@ describe('components/wiki_rhs/WikiReplyComment', () => {
 
         const {unmount} = renderWithContext(<WikiReplyComment pageId={pageId}/>, getInitialState());
 
-        fireEvent.change(screen.getByTestId('reply_textbox'), {target: {value: 'will unmount'}});
+        fireEvent.input(screen.getByRole('textbox'), {target: {value: 'will unmount'}});
         await userEvent.click(screen.getByTestId('reply_submit'));
 
         unmount();

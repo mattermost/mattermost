@@ -4,7 +4,10 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import Textbox from 'components/textbox';
+
 import {usePageCommentSubmit} from './usePageCommentSubmit';
+import {useWikiCommentTextbox} from './useWikiCommentTextbox';
 
 import './wiki_reply_comment.scss';
 
@@ -17,6 +20,8 @@ type Props = {
 const WikiReplyComment = ({pageId}: Props) => {
     const {formatMessage} = useIntl();
     const {page, message, submitting, submitError, handleChange, handleKeyDown, handleSubmit} = usePageCommentSubmit(pageId);
+
+    const {channelId, maxPostSize, useChannelMentions} = useWikiCommentTextbox();
 
     if (!page) {
         return null;
@@ -35,18 +40,25 @@ const WikiReplyComment = ({pageId}: Props) => {
             >
                 {formatMessage({id: 'wiki_rhs.reply.shortcut_hint', defaultMessage: 'Press Ctrl+Enter to send'})}
             </span>
-            <textarea
-                className='WikiReplyComment__textarea'
-                data-testid='reply_textbox'
-                aria-label={formatMessage({id: 'wiki_rhs.reply.label', defaultMessage: 'Reply to page comment'})}
-                aria-describedby='wiki-reply-shortcut-hint'
+            <label
+                htmlFor='wiki-reply-textbox'
+                className='sr-only'
+            >
+                {formatMessage({id: 'wiki_rhs.reply.aria_label', defaultMessage: 'Reply text input'})}
+            </label>
+            <Textbox
+                id='wiki-reply-textbox'
+                channelId={channelId}
                 value={message}
                 onChange={handleChange}
+                onKeyPress={() => {}}
                 onKeyDown={handleKeyDown}
-                placeholder={formatMessage({
+                createMessage={formatMessage({
                     id: 'wiki_rhs.reply.placeholder',
                     defaultMessage: 'Reply...',
                 })}
+                characterLimit={maxPostSize}
+                useChannelMentions={useChannelMentions}
                 disabled={submitting}
             />
             {submitError && (

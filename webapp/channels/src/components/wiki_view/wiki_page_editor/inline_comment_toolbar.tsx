@@ -57,7 +57,11 @@ const InlineCommentToolbar = ({editor, onCreateComment, onAIRewrite}: Props) => 
                 return text.length > 0;
             }}
         >
-            <div className='inline-comment-toolbar'>
+            <div
+                className='inline-comment-toolbar'
+                role='toolbar'
+                aria-label='Inline comment toolbar'
+            >
                 {onAIRewrite && (
                     <button
                         type='button'

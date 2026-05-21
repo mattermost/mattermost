@@ -11,8 +11,10 @@ import type {Post} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {getPageComments} from 'actions/pages';
-import {makeGetPublishedPages} from 'selectors/pages';
+import {logError} from 'mattermost-redux/actions/errors';
+
+import {getPageComments, fetchPages} from 'actions/pages';
+import {makeGetPublishedPages, arePagesLoaded} from 'selectors/pages';
 
 import LoadingScreen from 'components/loading_screen';
 
@@ -20,6 +22,7 @@ import WebSocketClient from 'client/web_websocket_client';
 import {useIsMounted} from 'hooks/useIsMounted';
 import {SocketEvents} from 'utils/constants';
 import {pageInlineCommentHasAnchor, getPageTitle} from 'utils/page_utils';
+import {applyResolutionFilter, ResolutionFilterBar} from './resolution_filter';
 
 import type {GlobalState} from 'types/store';
 
@@ -32,19 +35,24 @@ type PageThread = {
 
 type Props = {
     wikiId: string;
-    onThreadClick: (pageId: string, threadId: string) => void;
+    onThreadClick: (pageId: string, threadId: string, anchorId?: string) => void;
 };
 
 const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const [loading, setLoading] = useState(true);
+    const [fetchingPages, setFetchingPages] = useState(true);
+    const [resolutionFilter, setResolutionFilter] = useState<'all' | 'open' | 'resolved'>('open');
+    const [fetchPagesError, setFetchPagesError] = useState<string | false>(false);
     const [pageThreads, setPageThreads] = useState<PageThread[]>([]);
     const getPublishedPages = useMemo(() => makeGetPublishedPages(), []);
     const pages = useSelector((state: GlobalState) => getPublishedPages(state, wikiId));
+    const loaded = useSelector((state: GlobalState) => arePagesLoaded(state, wikiId));
     const didInitialLoad = useRef(false);
     const isMounted = useIsMounted();
     const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
+    const fetchingPagesRef = useRef(false);
 
     // Store pages in a ref so fetchAllThreads can access current pages without depending on the array reference
     const pagesRef = useRef(pages);
@@ -53,7 +61,49 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
     // Create a stable string of page IDs to use as dependency - only changes when actual page set changes
     const pageIds = useMemo(() => pages.map((p) => p.id).sort().join(','), [pages]);
 
+    // filteredPageThreads must be declared before any early returns to satisfy Rules of Hooks
+    const filteredPageThreads = useMemo(() => {
+        return pageThreads.map((pageThread) => {
+            const filtered = applyResolutionFilter(pageThread.threads, resolutionFilter);
+            return {...pageThread, threads: filtered, threadCount: filtered.length};
+        }).filter((pageThread) => pageThread.threads.length > 0);
+    }, [pageThreads, resolutionFilter]);
+
+    useEffect(() => {
+        if (loaded) {
+            setFetchingPages(false);
+            return;
+        }
+
+        // Guard against concurrent dispatches; skip retry only for the same wiki that errored.
+        if (fetchingPagesRef.current || fetchPagesError === wikiId) {
+            return;
+        }
+
+        // Capture wikiId at dispatch time so a late resolution from a previous
+        // wiki cannot poison state for the current one (sets error/loading
+        // against the wrong wiki).
+        const requestedWikiId = wikiId;
+        fetchingPagesRef.current = true;
+        dispatch(fetchPages(wikiId)).
+            catch((err) => {
+                if (isMounted() && requestedWikiId === wikiId) {
+                    dispatch(logError(err));
+                    setFetchPagesError(requestedWikiId);
+                }
+            }).
+            finally(() => {
+                fetchingPagesRef.current = false;
+                if (isMounted() && requestedWikiId === wikiId) {
+                    setFetchingPages(false);
+                }
+            });
+    }, [dispatch, wikiId, loaded, isMounted, fetchPagesError]);
+
     const fetchAllThreads = useCallback(async () => {
+        if (fetchingPages) {
+            return;
+        }
         const currentPages = pagesRef.current;
         if (!currentPages || currentPages.length === 0) {
             if (isMounted()) {
@@ -102,7 +152,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
         setPageThreads(threadsData);
         setLoading(false);
         didInitialLoad.current = true;
-    }, [dispatch, wikiId, pageIds, untitledText, isMounted]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [dispatch, wikiId, pageIds, untitledText, isMounted, fetchingPages]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         fetchAllThreads();
@@ -135,7 +185,18 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
         };
     }, []);
 
-    if (loading) {
+    if (fetchPagesError === wikiId) {
+        return (
+            <div className='WikiRHS__empty-state'>
+                <FormattedMessage
+                    id='wiki.comments.load_error'
+                    defaultMessage='Failed to load threads. Refresh the page to try again.'
+                />
+            </div>
+        );
+    }
+
+    if (loading || fetchingPages) {
         return (
             <div className='WikiRHS__all-threads-loading'>
                 <LoadingScreen/>
@@ -165,13 +226,35 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
             className='WikiRHS__all-threads'
             data-testid='wiki-rhs-all-threads'
         >
-            {pageThreads.map((pageThread) => (
+            <ResolutionFilterBar
+                value={resolutionFilter}
+                onChange={setResolutionFilter}
+                ariaLabel={formatMessage({id: 'wiki.comments.filter_label', defaultMessage: 'Filter threads'})}
+            />
+            {filteredPageThreads.length === 0 && (
+                <div
+                    className='WikiRHS__empty-state'
+                    data-testid='wiki-rhs-all-threads-empty'
+                >
+                    <i className='icon-comment-outline'/>
+                    <p>
+                        <FormattedMessage
+                            id='wiki.comments.no_threads_for_filter'
+                            defaultMessage='No threads match the current filter'
+                        />
+                    </p>
+                </div>
+            )}
+            {filteredPageThreads.map((pageThread) => (
                 <div
                     key={pageThread.pageId}
                     className='WikiRHS__page-thread-group'
                 >
                     <div className='WikiRHS__page-thread-header'>
-                        <i className='icon-file-document-outline'/>
+                        <i
+                            className='icon-file-document-outline'
+                            aria-hidden='true'
+                        />
                         <span className='WikiRHS__page-thread-title'>
                             {pageThread.pageTitle}
                         </span>
@@ -188,15 +271,26 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
                             const anchorText = anchor?.text ? unescape(anchor.text) : '';
                             const truncatedText = anchorText.length > 60 ? `${anchorText.substring(0, 60)}...` : anchorText;
 
+                            const accessibleLabel = formatMessage(
+                                {id: 'wiki_rhs.thread_item.aria_label', defaultMessage: 'Open thread on {pageTitle}: {preview}'},
+                                {
+                                    pageTitle: pageThread.pageTitle,
+                                    preview: truncatedText || formatMessage({id: 'wiki_rhs.comment_thread_fallback', defaultMessage: 'Comment thread'}),
+                                },
+                            );
                             return (
                                 <button
                                     key={thread.id}
                                     className='WikiRHS__thread-item'
-                                    onClick={() => onThreadClick(pageThread.pageId, thread.id)}
+                                    onClick={() => onThreadClick(pageThread.pageId, thread.id, (thread.props?.inline_anchor as {id?: string} | undefined)?.id)}
                                     data-testid={`wiki-rhs-thread-${thread.id}`}
+                                    aria-label={accessibleLabel}
                                 >
                                     <div className='WikiRHS__thread-item-icon'>
-                                        <i className='icon-message-text-outline'/>
+                                        <i
+                                            className='icon-message-text-outline'
+                                            aria-hidden='true'
+                                        />
                                     </div>
                                     <div className='WikiRHS__thread-item-content'>
                                         <div className='WikiRHS__thread-item-text'>

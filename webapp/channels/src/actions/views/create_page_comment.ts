@@ -4,6 +4,7 @@
 import {batchActions} from 'redux-batched-actions';
 
 import type {CreatePostReturnType} from 'mattermost-redux/actions/posts';
+import {logError} from 'mattermost-redux/actions/errors';
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {createPageComment as createPageCommentAction, createPageCommentReply} from 'actions/pages';
@@ -66,18 +67,15 @@ export function submitPageComment(
         const pendingInlineAnchor = getPendingInlineAnchor(state);
 
         let response;
-        if (focusedInlineCommentId) {
-            response = await dispatch(createPageCommentReply(wikiId, pageId, focusedInlineCommentId, draft.message));
-        } else if (pendingInlineAnchor) {
-            // Creating a new inline comment with anchor
-            // Set submitting state to prevent UI flash during transition
+        if (pendingInlineAnchor) {
+            // A new anchor selection wins over any previously-viewed thread: a fresh anchor means
+            // the user is starting a new thread, not replying to the stale focused one.
+            dispatch(setFocusedInlineCommentId(null));
             dispatch(setSubmittingComment(true));
 
-            // Capture anchor before await to use in the API call
             const anchorForCreate = pendingInlineAnchor;
             response = await dispatch(createPageCommentAction(wikiId, pageId, draft.message, anchorForCreate));
 
-            // Clear pending anchor and focus on the new comment using batch to avoid multiple renders
             if (!response.error && response.data?.id) {
                 dispatch(batchActions([
                     setPendingInlineAnchor(null),
@@ -85,8 +83,12 @@ export function submitPageComment(
                     setSubmittingComment(false),
                 ]));
             } else {
-                // Clear submitting state on error
                 dispatch(setSubmittingComment(false));
+            }
+        } else if (focusedInlineCommentId) {
+            response = await dispatch(createPageCommentReply(wikiId, pageId, focusedInlineCommentId, draft.message));
+            if (response.error) {
+                dispatch(logError(response.error));
             }
         } else {
             response = await dispatch(createPageCommentAction(wikiId, pageId, draft.message));

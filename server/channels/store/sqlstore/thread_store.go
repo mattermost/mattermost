@@ -127,10 +127,12 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 		Select("COUNT(ThreadMemberships.PostId)").
 		From("ThreadMemberships").
 		LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
-		})
+		}).
+		Where(sq.NotEq{"Posts.Type": model.WikiPostTypesHiddenInThreads})
 
 	if teamId != "" {
 		if opts.ExcludeDirect {
@@ -297,7 +299,8 @@ func (s *SqlThreadStore) GetThreadsForUser(rctx request.CTX, userId, teamId stri
 
 	query = query.
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
-		Where(sq.Eq{"ThreadMemberships.Following": true})
+		Where(sq.Eq{"ThreadMemberships.Following": true}).
+		Where(sq.NotEq{"Posts.Type": model.WikiPostTypesHiddenInThreads})
 
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.

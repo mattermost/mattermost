@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
@@ -27,12 +27,28 @@ export function clearPendingPageFetchesForTests(): void {
     pendingPageFetches.clear();
 }
 
-// Returns the page referenced by a page-comment post, auto-fetching it into the
-// pages slice when absent. Pages live in entities.pages.byId, which is only
-// populated when a user opens a wiki or editor; a channel member viewing a
-// comment on a wiki they have never opened would otherwise see null here.
-export function usePageForComment(comment: Post | null | undefined): Post | null {
+export type PageForCommentStatus = 'loading' | 'loaded' | 'missing';
+
+export type PageForCommentResult = {
+    page: Post | null;
+    status: PageForCommentStatus;
+};
+
+// Returns the page referenced by a page-comment post along with a fetch
+// status that distinguishes "still loading" from "confirmed missing/deleted".
+// Pages live in entities.pages.byId, which is only populated when a user opens
+// a wiki or editor; a channel member viewing a comment on a wiki they have
+// never opened would otherwise see null here.
+export function usePageForComment(comment: Post | null | undefined): PageForCommentResult {
     const dispatch = useDispatch();
+    const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
+    const mountedRef = useRef(true);
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => {
+            mountedRef.current = false;
+        };
+    }, []);
 
     const pageId = getPageIdFromComment(comment) ?? '';
     const wikiId = comment?.props?.[PagePropsKeys.WIKI_ID] as string | undefined;
@@ -40,7 +56,11 @@ export function usePageForComment(comment: Post | null | undefined): Post | null
     const page = useSelector((state: GlobalState) => (pageId ? getPageById(state, pageId) : undefined));
 
     useEffect(() => {
-        if (!pageId || !wikiId || page) {
+        if (!pageId || !wikiId) {
+            return;
+        }
+        if (page) {
+            setHasAttemptedFetch(true);
             return;
         }
 
@@ -53,6 +73,9 @@ export function usePageForComment(comment: Post | null | undefined): Post | null
         pendingPageFetches.add(dedupKey);
         Promise.resolve(dispatch(fetchPage(pageId, wikiId))).finally(() => {
             pendingPageFetches.delete(dedupKey);
+            if (mountedRef.current) {
+                setHasAttemptedFetch(true);
+            }
         });
 
     // page is intentionally omitted: when it transitions undefined → Post we don't
@@ -60,5 +83,11 @@ export function usePageForComment(comment: Post | null | undefined): Post | null
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch, pageId, wikiId]);
 
-    return page ?? null;
+    if (page) {
+        return {page, status: 'loaded'};
+    }
+    if (!pageId || !wikiId || !hasAttemptedFetch) {
+        return {page: null, status: 'loading'};
+    }
+    return {page: null, status: 'missing'};
 }

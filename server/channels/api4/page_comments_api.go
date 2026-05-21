@@ -263,6 +263,7 @@ func resolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddEventResultState(resolvedComment)
+	auditRec.AddEventObjectType("page_comment")
 
 	if err := json.NewEncoder(w).Encode(resolvedComment); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -312,6 +313,7 @@ func unresolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddEventResultState(unresolvedComment)
+	auditRec.AddEventObjectType("page_comment")
 
 	if err := json.NewEncoder(w).Encode(unresolvedComment); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -370,12 +372,13 @@ func deletePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventPriorState(comment)
+
 	if appErr := c.App.DeletePageComment(c.AppContext, comment, page, channel); appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	auditRec.AddEventPriorState(comment)
 	auditRec.AddEventObjectType("page_comment")
 	auditRec.Success()
 

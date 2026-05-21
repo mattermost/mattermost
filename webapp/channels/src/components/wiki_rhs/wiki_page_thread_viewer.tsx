@@ -27,6 +27,7 @@ import {pageInlineCommentHasAnchor} from 'utils/page_utils';
 import type {FakePost} from 'types/store/rhs';
 
 import WikiReplyComment from './wiki_reply_comment';
+import {applyResolutionFilter, ResolutionFilterBar} from './resolution_filter';
 
 import './wiki_page_thread_viewer.scss';
 
@@ -37,7 +38,7 @@ export type Props = {
     currentUserId: string;
     currentTeamId: string;
     actions: {
-        getPostThread: (rootId: string, fetchThreads: boolean, lastUpdateAt: number) => Promise<ActionResult>;
+        getPageComments: (wikiId: string, pageId: string) => Promise<ActionResult>;
         fetchPage: (pageId: string, wikiId: string) => Promise<ActionResult>;
         updateThreadLastOpened: (threadId: string, lastViewedAt: number) => unknown;
         updateThreadRead: (userId: string, teamId: string, threadId: string, timestamp: number) => unknown;
@@ -59,7 +60,7 @@ const WikiPageThreadViewer = (props: Props) => {
     const intl = useIntl();
     const [isLoading, setIsLoading] = useState(false);
     const [pageComments, setPageComments] = useState<Post[]>([]);
-    const [resolutionFilter, setResolutionFilter] = useState<'all' | 'open' | 'resolved'>('all');
+    const [resolutionFilter, setResolutionFilter] = useState<'all' | 'open' | 'resolved'>('open');
 
     // Extract inline comments from fetched page comments
     const inlineComments = React.useMemo(() => {
@@ -71,14 +72,7 @@ const WikiPageThreadViewer = (props: Props) => {
             return pageInlineCommentHasAnchor(post);
         }) as Post[];
 
-        // Apply resolution filter
-        if (resolutionFilter === 'open') {
-            filtered = filtered.filter((post) => !isPageCommentResolved(post));
-        } else if (resolutionFilter === 'resolved') {
-            filtered = filtered.filter((post) => isPageCommentResolved(post));
-        }
-
-        return filtered;
+        return applyResolutionFilter(filtered, resolutionFilter);
     }, [props.focusedInlineCommentId, pageComments, resolutionFilter]);
 
     useEffect(() => {
@@ -97,45 +91,21 @@ const WikiPageThreadViewer = (props: Props) => {
 
             setIsLoading(true);
 
-            // For focused inline comment, fetch thread using getPostThread
+            // For focused inline comment, fetch all page comments so the selector
+            // can filter to the focused comment + its replies from commentsByPageId.
             if (props.focusedInlineCommentId) {
-                const res = await props.actions.getPostThread(props.focusedInlineCommentId, true, props.lastUpdateAt);
+                const res = await props.actions.getPageComments(props.wikiId, props.rootPostId);
                 if (cancelled) {
                     return;
                 }
 
-                if (props.selected && res.data) {
-                    const {order, posts} = res.data;
-                    if (order.length > 0 && posts[order[0]]) {
-                        let highestUpdateAt = posts[order[0]].update_at;
-
-                        for (const postId in posts) {
-                            if (Object.hasOwn(posts, postId)) {
-                                const post = posts[postId];
-                                if (post.update_at > highestUpdateAt) {
-                                    highestUpdateAt = post.update_at;
-                                }
-                            }
-                        }
-
-                        props.actions.updateThreadLastUpdateAt(props.focusedInlineCommentId, highestUpdateAt);
-
-                        // Fetch the page if this is a page comment with page_id.
-                        // Uses fetchPage (dispatches RECEIVED_PAGE) so the page lands in
-                        // entities.pages.byId; getPost would dispatch RECEIVED_POST which
-                        // the NON_POST_TYPES filter now drops for page-typed responses.
-                        const rootPost = posts[order[0]];
-                        if (rootPost?.props?.page_id && props.wikiId) {
-                            try {
-                                await props.actions.fetchPage(rootPost.props.page_id as string, props.wikiId);
-                            } catch (error) {
-                                // Page fetch failed, but thread is still usable
-                            }
-                            if (cancelled) {
-                                return;
-                            }
-                        }
-                    }
+                const comments = (res as ActionResult<Post[]>).data || [];
+                if (comments.length > 0) {
+                    const highestUpdateAt = comments.reduce(
+                        (max, c) => (c.update_at > max ? c.update_at : max),
+                        comments[0].update_at,
+                    );
+                    props.actions.updateThreadLastUpdateAt(props.focusedInlineCommentId, highestUpdateAt);
                 }
             } else {
                 // For list view, fetch all page comments
@@ -252,7 +222,7 @@ const WikiPageThreadViewer = (props: Props) => {
                 );
             }
         }
-    }, [props.userThread, props.rootPostId]);
+    }, [props.userThread, props.rootPostId, props.isCollapsedThreadsEnabled, props.currentUserId, props.currentTeamId, props.selected, props.actions]);
 
     const handleThreadClick = useCallback((threadId: string) => {
         if (props.wikiId && props.rootPostId) {
@@ -283,38 +253,11 @@ const WikiPageThreadViewer = (props: Props) => {
     if (!props.focusedInlineCommentId) {
         return (
             <div className='WikiPageThreadViewer'>
-                <div className='WikiPageThreadViewer__filter-bar'>
-                    <button
-                        className={`WikiPageThreadViewer__filter-btn ${resolutionFilter === 'all' ? 'active' : ''}`}
-                        onClick={() => setResolutionFilter('all')}
-                        data-testid='filter-all'
-                    >
-                        <FormattedMessage
-                            id='wiki.comments.all'
-                            defaultMessage='All'
-                        />
-                    </button>
-                    <button
-                        className={`WikiPageThreadViewer__filter-btn ${resolutionFilter === 'open' ? 'active' : ''}`}
-                        onClick={() => setResolutionFilter('open')}
-                        data-testid='filter-open'
-                    >
-                        <FormattedMessage
-                            id='wiki.comments.open'
-                            defaultMessage='Open'
-                        />
-                    </button>
-                    <button
-                        className={`WikiPageThreadViewer__filter-btn ${resolutionFilter === 'resolved' ? 'active' : ''}`}
-                        onClick={() => setResolutionFilter('resolved')}
-                        data-testid='filter-resolved'
-                    >
-                        <FormattedMessage
-                            id='wiki.comments.resolved'
-                            defaultMessage='Resolved'
-                        />
-                    </button>
-                </div>
+                <ResolutionFilterBar
+                    value={resolutionFilter}
+                    onChange={setResolutionFilter}
+                    ariaLabel={intl.formatMessage({id: 'wiki.comments.filter_label', defaultMessage: 'Filter comments'})}
+                />
                 {inlineComments.length === 0 ? (
                     <div
                         className='WikiPageThreadViewer__empty'
@@ -331,7 +274,10 @@ const WikiPageThreadViewer = (props: Props) => {
                                 <FormattedMessage
                                     id='wiki_thread_viewer.empty.no_comments'
                                     defaultMessage='No {filter} comments'
-                                    values={{filter: resolutionFilter}}
+                                    values={{filter: intl.formatMessage({
+                                        id: resolutionFilter === 'open' ? 'wiki.comments.open' : 'wiki.comments.resolved',
+                                        defaultMessage: resolutionFilter === 'open' ? 'open' : 'resolved',
+                                    })}}
                                 />
                             )}
                         </p>

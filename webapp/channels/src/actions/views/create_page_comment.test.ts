@@ -163,7 +163,11 @@ describe('create_page_comment actions', () => {
             await submitPageComment(pageId, mockDraft as any)(dispatch, getState, undefined);
 
             expect(mockSetPendingInlineAnchor).not.toHaveBeenCalled();
-            expect(mockSetFocusedInlineCommentId).not.toHaveBeenCalled();
+
+            // setFocusedInlineCommentId is cleared upfront (null) to start a fresh thread,
+            // but is NOT set to a new comment id when creation fails.
+            expect(mockSetFocusedInlineCommentId).toHaveBeenCalledTimes(1);
+            expect(mockSetFocusedInlineCommentId).toHaveBeenCalledWith(null);
         });
 
         test('should create reply when focused inline comment exists', async () => {

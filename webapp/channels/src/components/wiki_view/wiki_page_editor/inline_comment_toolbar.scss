@@ -4,12 +4,17 @@
 .inline-comment-toolbar {
     z-index: 1000;
     display: flex;
+    min-width: 96px;
     align-items: center;
-    padding: 4px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
+    gap: 4px;
+    padding: 6px 8px;
+
+    // B9: stronger border + elevated shadow so the popover reads as a distinct
+    // floating control rather than blending into the page background.
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+    border-radius: 6px;
     background: var(--center-channel-bg);
-    box-shadow: var(--elevation-4);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16), 0 0 1px rgba(0, 0, 0, 0.12);
 
     .inline-comment-toolbar__icon-btn {
         display: flex;

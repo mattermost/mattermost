@@ -4,6 +4,8 @@
 package app
 
 import (
+	"context"
+	"encoding/json"
 	"maps"
 	"net/http"
 	"strings"
@@ -13,6 +15,176 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// handlePageCommentMentions surfaces @-mentions in wiki backing channels, which use
+// system-managed membership — so the standard SendNotifications pipeline misses users
+// who have wiki access via a linked source channel but aren't backing-channel members.
+func (a *App) handlePageCommentMentions(rctx request.CTX, post *model.Post, senderID string, channel *model.Channel) {
+	if !*a.Config().ServiceSettings.ThreadAutoFollow {
+		return
+	}
+
+	// Filter @all/@here/@channel before hitting the DB — they resolve to zero users
+	// and would otherwise trigger a needless store call and, for inline comments, an
+	// orphan page-thread row.
+	raw := possibleAtMentions(post.Message)
+	usernames := make([]string, 0, len(raw))
+	for _, name := range raw {
+		if name == "all" || name == "here" || name == "channel" {
+			continue
+		}
+		usernames = append(usernames, name)
+	}
+	if len(usernames) == 0 {
+		return
+	}
+
+	users, appErr := a.GetUsersByUsernames(usernames, true, nil)
+	if appErr != nil {
+		rctx.Logger().Warn("handlePageCommentMentions: failed to resolve mention usernames",
+			mlog.String("comment_id", post.Id),
+			mlog.Err(appErr))
+		return
+	}
+
+	// Collect the non-sender recipients before touching the DB.
+	allRecipients := make([]*model.User, 0, len(users))
+	for _, u := range users {
+		if u.Id != senderID {
+			allRecipients = append(allRecipients, u)
+		}
+	}
+	if len(allRecipients) == 0 {
+		return
+	}
+
+	// Gate on wiki access: only subscribe users who are members of a linked source channel.
+	// Wiki backing channels are system-managed (no direct members), so access is granted via
+	// linked source channels. Subscribing users without access would leak thread notifications.
+	links, linksErr := a.Srv().Store().WikiLink().GetByDestination(channel.Id)
+	if linksErr != nil {
+		rctx.Logger().Warn("handlePageCommentMentions: failed to get wiki links, skipping mention subscription",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(linksErr))
+		return
+	}
+	if len(links) == 0 {
+		return
+	}
+
+	recipientIDs := make([]string, 0, len(allRecipients))
+	for _, u := range allRecipients {
+		recipientIDs = append(recipientIDs, u.Id)
+	}
+
+	accessibleUserIDs := make(map[string]bool, len(allRecipients))
+	for _, link := range links {
+		members, memberErr := a.GetChannelMembersByIds(rctx, link.SourceId, recipientIDs)
+		if memberErr != nil {
+			continue
+		}
+		for i := range members {
+			accessibleUserIDs[members[i].UserId] = true
+		}
+	}
+
+	recipients := make([]*model.User, 0, len(allRecipients))
+	for _, u := range allRecipients {
+		if accessibleUserIDs[u.Id] {
+			recipients = append(recipients, u)
+		}
+	}
+	if len(recipients) == 0 {
+		return
+	}
+
+	// Mentions key the ThreadMembership by the page post ID, not the inline comment ID.
+	// For inline comments (RootId == ""), the comment's own Thread is keyed by comment.Id;
+	// but Threads-view badging must surface under the page thread.
+	pageID, _ := post.Props[model.PagePropsPageID].(string)
+	if pageID == "" {
+		pageID = post.RootId // top-level comment: RootId == pageID
+	}
+	if pageID == "" {
+		rctx.Logger().Warn("handlePageCommentMentions: cannot determine page ID",
+			mlog.String("comment_id", post.Id))
+		return
+	}
+	// For inline anchor comments the after-create hook creates a Thread entry keyed by
+	// comment.Id. Ensure a Thread entry for pageID exists so MaintainMembership can succeed.
+	if post.RootId == "" {
+		pageThread := &model.Thread{
+			PostId:       pageID,
+			ChannelId:    post.ChannelId,
+			ReplyCount:   0,
+			LastReplyAt:  post.CreateAt,
+			Participants: model.StringArray{},
+			TeamId:       channel.TeamId,
+		}
+		if err := a.Srv().Store().Thread().CreateThreadForPageComment(pageThread); err != nil {
+			// Log but continue: the Thread entry may already exist (e.g., created by a prior
+			// comment on the same page). MaintainMembership will fail per-user if the row is
+			// truly absent, and each failure is logged individually below.
+			rctx.Logger().Warn("handlePageCommentMentions: failed to ensure thread entry for page",
+				mlog.String("page_id", pageID),
+				mlog.Err(err))
+		}
+	}
+
+	isPostPriorityEnabled := a.IsPostPriorityEnabled()
+	for _, u := range recipients {
+		tm, err := a.Srv().Store().Thread().MaintainMembership(u.Id, pageID, store.ThreadMembershipOpts{
+			Following:         true,
+			UpdateFollowing:   true,
+			IncrementMentions: true,
+		})
+		if err != nil {
+			rctx.Logger().Warn("handlePageCommentMentions: failed to maintain thread membership",
+				mlog.String("user_id", u.Id),
+				mlog.String("page_id", pageID),
+				mlog.Err(err))
+			continue
+		}
+
+		if !a.IsCRTEnabledForUser(rctx, u.Id) {
+			continue
+		}
+		userThread, utErr := a.Srv().Store().Thread().GetThreadForUser(rctx, tm, true, isPostPriorityEnabled)
+		if utErr != nil {
+			rctx.Logger().Warn("handlePageCommentMentions: failed to get thread for WS event",
+				mlog.String("user_id", u.Id),
+				mlog.String("page_id", pageID),
+				mlog.Err(utErr))
+			continue
+		}
+		a.sanitizeProfiles(userThread.Participants, false)
+		if userThread.Post == nil {
+			rctx.Logger().Warn("handlePageCommentMentions: thread has no valid post",
+				mlog.String("user_id", u.Id),
+				mlog.String("page_id", pageID))
+			continue
+		}
+		userThread.Post.SanitizeProps()
+		sanitizedPost, _, sanitizeErr := a.SanitizePostMetadataForUser(rctx, userThread.Post, u.Id)
+		if sanitizeErr != nil {
+			rctx.Logger().Warn("handlePageCommentMentions: failed to sanitize thread for WS event",
+				mlog.String("user_id", u.Id),
+				mlog.Err(sanitizeErr))
+			continue
+		}
+		userThread.Post = sanitizedPost
+		payload, jsonErr := json.Marshal(userThread)
+		if jsonErr != nil {
+			rctx.Logger().Warn("handlePageCommentMentions: failed to marshal thread for WS event",
+				mlog.String("user_id", u.Id),
+				mlog.Err(jsonErr))
+			continue
+		}
+		message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", u.Id, nil, "")
+		message.Add("thread", string(payload))
+		a.Publish(message)
+	}
+}
 
 // handlePageCommentThreadCreation creates thread entries for page comments
 func (a *App) handlePageCommentThreadCreation(rctx request.CTX, post *model.Post, user *model.User, channel *model.Channel) *model.AppError {
@@ -154,6 +326,16 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 
 	a.SendCommentCreatedEvent(rctx, createdComment, page)
 
+	if userId != "" {
+		post := createdComment
+		ch := channel
+		// Detach from HTTP request context so the goroutine outlives the request.
+		bgCtx := rctx.WithContext(context.Background())
+		a.Srv().Go(func() {
+			a.handlePageCommentMentions(bgCtx, post, userId, ch)
+		})
+	}
+
 	rctx.Logger().Debug("Page comment created",
 		mlog.String("comment_id", createdComment.Id),
 		mlog.String("page_id", pageID))
@@ -263,6 +445,16 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 	}
 
 	a.SendCommentCreatedEvent(rctx, createdReply, page)
+
+	if replyUserId != "" {
+		reply := createdReply
+		ch := channel
+		// Detach from HTTP request context so the goroutine outlives the request.
+		bgCtx := rctx.WithContext(context.Background())
+		a.Srv().Go(func() {
+			a.handlePageCommentMentions(bgCtx, reply, replyUserId, ch)
+		})
+	}
 
 	rctx.Logger().Debug("Page comment reply created",
 		mlog.String("reply_id", createdReply.Id),

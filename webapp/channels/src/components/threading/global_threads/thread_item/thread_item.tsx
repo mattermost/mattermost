@@ -101,7 +101,7 @@ function ThreadItem({
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
     const ref = useRef<HTMLDivElement>(null);
 
-    const pagePost = usePageForComment(post ?? null);
+    const {page: pagePost} = usePageForComment(post ?? null);
 
     useEffect(() => {
         if (channel?.teammate_id) {
@@ -167,7 +167,12 @@ function ThreadItem({
             } else {
                 dispatch(markLastPostInThreadAsUnread(currentUserId, currentTeamId, threadId));
             }
+        } else if (isPageComment(post) && pagePost) {
+            navigateToPageFromPost(pagePost, params.team, {openRhs: true});
         } else {
+            // Falls through for regular threads AND for page comments whose
+            // backing page is no longer available — still open the thread RHS
+            // so the user gets feedback rather than a silent no-op.
             select(threadId);
         }
     }, [
@@ -178,6 +183,9 @@ function ThreadItem({
         currentUserId,
         currentTeamId,
         select,
+        post,
+        pagePost,
+        params.team,
     ]);
 
     const imageProps = useMemo(() => ({
@@ -276,6 +284,13 @@ function ThreadItem({
                     )}
                     <div className='ThreadItem__author'>{postAuthor}</div>
                     <div className='ThreadItem__tags'>
+                        {isPageComment(post) && (
+                            <i
+                                className='icon icon-file-document-outline ThreadItem__wiki-icon'
+                                aria-hidden='true'
+                                title={formatMessage({id: 'threading.wiki_page_comment.icon_label', defaultMessage: 'Wiki page comment'})}
+                            />
+                        )}
                         {channel && postAuthor !== channel?.display_name && (
                             <Tag
                                 onClick={goToInChannelHandler}
@@ -321,7 +336,7 @@ function ThreadItem({
                     dir='auto'
                     onClick={handleFormattedTextClick}
                     onKeyDown={handleFormattedTextClick}
-                    style={{height: 'auto', maxHeight: 'none'}}
+                    style={{height: 'auto'}}
                 >
                     {(() => {
                         if (isPageComment(post) && pagePost) {

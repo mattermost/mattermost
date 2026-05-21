@@ -29,6 +29,7 @@ const HIGHLIGHT_ANIMATION_DURATION_MS = 2000;
 export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     const dispatch = useDispatch();
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
+    const commentsById = useSelector((state: GlobalState) => (state.entities as any).pages?.commentsById as Record<string, Post> | undefined);
     const [inlineComments, setInlineComments] = useState<Post[]>([]);
     const [lastClickedCommentId, setLastClickedCommentId] = useState<string | null>(null);
     const [deletedAnchorIds, setDeletedAnchorIds] = useState<string[]>([]);
@@ -48,6 +49,10 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     // Ref to access current inlineComments in event handlers without stale closures
     const inlineCommentsRef = useRef<Post[]>(inlineComments);
     inlineCommentsRef.current = inlineComments;
+
+    // Ref to access the latest Redux commentsById without stale closures in WS handlers
+    const commentsByIdRef = useRef(commentsById);
+    commentsByIdRef.current = commentsById;
 
     // Store fetch logic in a ref to avoid recreating callbacks
     const fetchInlineCommentsRef = useRef<(force?: boolean) => Promise<void>>();
@@ -168,9 +173,33 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
 
             // Handle comment unresolve - adds highlight back
             if (msg.event === SocketEvents.PAGE_COMMENT_UNRESOLVED) {
+                const commentId = data?.comment_id;
                 const eventPageId = data?.page_id;
 
                 if (eventPageId === pageId) {
+                    if (commentId) {
+                        // commentsByIdRef.current may be stale here: the global WS handler in
+                        // websocket_actions.ts dispatches RECEIVED_PAGE_COMMENT synchronously before
+                        // this handler runs, but React batches the re-render so commentsByIdRef.current
+                        // still points to the pre-unresolve snapshot.  Build an unresolved copy
+                        // directly so we don't fall through to an expensive API re-fetch.
+                        const staleComment = commentsByIdRef.current?.[commentId];
+                        if (staleComment && pageInlineCommentHasAnchor(staleComment)) {
+                            const unresolvedProps = {...(staleComment.props ?? {})};
+                            delete unresolvedProps.comment_resolved;
+                            delete unresolvedProps.resolved_at;
+                            delete unresolvedProps.resolved_by;
+                            const unresolvedComment = {...staleComment, props: unresolvedProps};
+                            setInlineComments((prev) => {
+                                if (prev.some((c) => c.id === commentId)) {
+                                    return prev;
+                                }
+                                return [...prev, unresolvedComment];
+                            });
+                            return;
+                        }
+                    }
+                    // Fallback: comment not yet in local Redux state (e.g. other clients)
                     fetchInlineComments(true);
                 }
                 return;

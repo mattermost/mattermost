@@ -10,11 +10,16 @@ import {
     addInlineCommentInEditMode,
     verifyCommentMarkerVisible,
     clickCommentMarkerAndOpenRHS,
+    getEditButton,
+    getPublishButton,
     loginAndNavigateToChannel,
     uniqueName,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
+    switchToWikiPageTab,
+    openWikiRHSViaToggleButton,
+    switchToWikiRHSTab,
 } from './test_helpers';
 
 /**
@@ -34,7 +39,7 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
     await createPageThroughUI(page, pageTitle, pageContent);
 
     // # Add inline comment by clicking Edit (to test edit mode inline comments)
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    const editButton = getEditButton(page);
     await expect(editButton).toBeVisible();
     await editButton.click();
 
@@ -45,7 +50,7 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
     await addInlineCommentInEditMode(page, 'Great article overall!');
 
     // # Publish the page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    const publishButton = getPublishButton(page);
     await publishButton.click();
     await page.waitForLoadState('networkidle');
 
@@ -102,7 +107,7 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
     );
 
     // # Start editing
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    const editButton = getEditButton(page);
     await expect(editButton).toBeVisible();
     await editButton.click();
 
@@ -113,7 +118,7 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
     await addInlineCommentInEditMode(page, 'Needs more detail here');
 
     // # Publish page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    const publishButton = getPublishButton(page);
     await publishButton.click();
     await page.waitForLoadState('networkidle');
 
@@ -163,7 +168,7 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
     );
 
     // # Add initial comment
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    const editButton = getEditButton(page);
     await expect(editButton).toBeVisible();
     await editButton.click();
 
@@ -174,7 +179,7 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
     await addInlineCommentInEditMode(page, 'Should we prioritize real-time or offline?');
 
     // # Publish page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    const publishButton = getPublishButton(page);
     await publishButton.click();
     await page.waitForLoadState('networkidle');
 
@@ -186,14 +191,22 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
     await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
     await page.waitForSelector(':text("Feature Spec")', {timeout: HIERARCHY_TIMEOUT});
 
-    // # Add reply - Look for textarea within RHS
-    const replyTextarea = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').locator('textarea').first();
+    // # Add reply via the wiki RHS reply textbox (id from wiki_reply_comment.tsx).
+    //   `[data-testid="rhs"]` / `.sidebar--right` would match channel/global RHS, not the
+    //   wiki RHS, and silently land in the wrong textarea.
+    //   Submit uses Ctrl/Cmd+Enter (see usePageCommentSubmit.handleKeyDown) — plain Enter
+    //   inserts a newline.
+    const replyTextarea = page.locator('#wiki-reply-textbox');
     await expect(replyTextarea).toBeVisible({timeout: HIERARCHY_TIMEOUT});
     await replyTextarea.fill('I think real-time is more important');
-    await page.keyboard.press('Enter');
+    await page.keyboard.press('ControlOrMeta+Enter');
 
-    // * Verify reply appears in RHS
-    await page.waitForSelector(':text("I think real-time is more important")', {timeout: HIERARCHY_TIMEOUT});
+    // * Verify the reply renders in the wiki RHS (scope to wiki-rhs so we don't match
+    //   the textarea or other panels also containing the text).
+    const wikiRhs = page.locator('[data-testid="wiki-rhs"]');
+    await expect(wikiRhs.getByText('I think real-time is more important').first()).toBeVisible({
+        timeout: HIERARCHY_TIMEOUT,
+    });
 
     // # Navigate to global Threads view
     const threadsLink = page.locator('a[href*="/threads"]').first();
@@ -225,7 +238,7 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
     );
 
     // # Start editing
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    const editButton = getEditButton(page);
     await expect(editButton).toBeVisible();
     await editButton.click();
 
@@ -239,7 +252,7 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
     await addInlineCommentInEditMode(page, 'Should document the error codes');
 
     // # Publish page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    const publishButton = getPublishButton(page);
     await publishButton.click();
     await page.waitForLoadState('networkidle');
 
@@ -287,7 +300,7 @@ test(
         await createPageThroughUI(page, 'A16 Test Page', 'Content for A16 bug reproduction');
 
         // # Enter edit mode
-        const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+        const editButton = getEditButton(page);
         await expect(editButton).toBeVisible();
         await editButton.click();
 
@@ -298,7 +311,7 @@ test(
         await addInlineCommentInEditMode(page, 'A16 inline comment for threads inbox');
 
         // # Publish the page
-        const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+        const publishButton = getPublishButton(page);
         await publishButton.click();
         await page.waitForLoadState('networkidle');
 
@@ -350,13 +363,13 @@ test(
         // # Create Page A with an inline comment
         await createPageThroughUI(page, 'A20 Page Alpha', 'Content for page Alpha');
 
-        const editButtonA = page.locator('[data-testid="wiki-page-edit-button"]');
+        const editButtonA = getEditButton(page);
         await expect(editButtonA).toBeVisible();
         await editButtonA.click();
         await waitForEditModeReady(page);
         await addInlineCommentInEditMode(page, 'Comment on Page Alpha');
 
-        const publishButtonA = page.locator('[data-testid="wiki-page-publish-button"]').first();
+        const publishButtonA = getPublishButton(page);
         await publishButtonA.click();
         await page.waitForLoadState('networkidle');
 
@@ -370,13 +383,13 @@ test(
 
         await createPageThroughUI(page, 'A20 Page Beta', 'Content for page Beta');
 
-        const editButtonB = page.locator('[data-testid="wiki-page-edit-button"]');
+        const editButtonB = getEditButton(page);
         await expect(editButtonB).toBeVisible();
         await editButtonB.click();
         await waitForEditModeReady(page);
         await addInlineCommentInEditMode(page, 'Comment on Page Beta');
 
-        const publishButtonB = page.locator('[data-testid="wiki-page-publish-button"]').first();
+        const publishButtonB = getPublishButton(page);
         await publishButtonB.click();
         await page.waitForLoadState('networkidle');
 
@@ -386,19 +399,12 @@ test(
         await pageAlphaLink.click();
         await page.waitForLoadState('networkidle');
 
-        // # Open the wiki RHS (toggle comments button)
-        const commentsToggle = page
-            .locator(
-                '[data-testid="wiki-rhs-toggle"], [data-testid="wiki-comments-toggle"], button[aria-label*="comment" i]',
-            )
-            .first();
-        await expect(commentsToggle).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await commentsToggle.click();
+        // # Open the wiki RHS (idempotent — handles the case where prior addInlineComment
+        //   flows left the RHS already open; a raw toggle click would close it).
+        const rhs = await openWikiRHSViaToggleButton(page);
 
-        // # Switch to the "Wiki Threads" tab
-        const allThreadsTab = page.locator('button:text("Wiki Threads")').first();
-        await expect(allThreadsTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await allThreadsTab.click();
+        // # Switch to the "Page Threads" tab
+        await switchToWikiRHSTab(page, rhs, 'Page Threads');
         await page.waitForLoadState('networkidle');
 
         // * Assert: comments from BOTH pages are visible in the "All threads" tab
@@ -425,7 +431,7 @@ test(
         await createPageThroughUI(page, 'A24 Overflow Page', 'Content for overflow test');
 
         // # Enter edit mode
-        const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+        const editButton = getEditButton(page);
         await expect(editButton).toBeVisible();
         await editButton.click();
         await waitForEditModeReady(page);
@@ -438,7 +444,7 @@ test(
         await addInlineCommentInEditMode(page, longComment);
 
         // # Publish the page
-        const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+        const publishButton = getPublishButton(page);
         await publishButton.click();
         await page.waitForLoadState('networkidle');
 
@@ -486,13 +492,13 @@ test('all threads tab has resolve-open filter bar', {tag: '@pages'}, async ({pw,
     await createWikiThroughUI(page, uniqueName('B5 Wiki'));
     await createPageThroughUI(page, 'B5 Filter Test Page', 'Content for filter bar test');
 
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    const editButton = getEditButton(page);
     await expect(editButton).toBeVisible();
     await editButton.click();
     await waitForEditModeReady(page);
     await addInlineCommentInEditMode(page, 'B5 test comment for filter bar');
 
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    const publishButton = getPublishButton(page);
     await publishButton.click();
     await page.waitForLoadState('networkidle');
 
@@ -501,17 +507,18 @@ test('all threads tab has resolve-open filter bar', {tag: '@pages'}, async ({pw,
     await clickCommentMarkerAndOpenRHS(page, commentMarker);
     await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
 
-    // # Switch to the "Wiki Threads" tab
-    const allThreadsTab = page.locator('button:text("Wiki Threads")').first();
-    await expect(allThreadsTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await allThreadsTab.click();
+    // # Switch to the "Page Threads" tab
+    await switchToWikiPageTab(page, 'Page Threads');
     await page.waitForLoadState('networkidle');
 
-    // * Assert: a filter bar with Open/Resolved options is visible (BUG: currently missing)
-    await expect(page.locator('button:text("Open"), [data-testid="filter-open"]').first()).toBeVisible({
+    // * Assert: a filter bar with Open/Resolved options is visible in the all-threads panel.
+    // Both tab panels render filter buttons with the same data-testid, so scope to the
+    // all-threads container to pick the visible (active-tab) instance.
+    const allThreadsPanel = page.locator('[data-testid="wiki-rhs-all-threads"]');
+    await expect(allThreadsPanel.locator('[data-testid="filter-open"]')).toBeVisible({
         timeout: ELEMENT_TIMEOUT,
     });
-    await expect(page.locator('button:text("Resolved"), [data-testid="filter-resolved"]').first()).toBeVisible({
+    await expect(allThreadsPanel.locator('[data-testid="filter-resolved"]')).toBeVisible({
         timeout: ELEMENT_TIMEOUT,
     });
 });
@@ -534,13 +541,13 @@ test(
         await createWikiThroughUI(page, uniqueName('B14 Wiki'));
         await createPageThroughUI(page, 'B14 Label Test Page', 'Content for tab label test');
 
-        const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+        const editButton = getEditButton(page);
         await expect(editButton).toBeVisible();
         await editButton.click();
         await waitForEditModeReady(page);
         await addInlineCommentInEditMode(page, 'B14 test comment');
 
-        const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+        const publishButton = getPublishButton(page);
         await publishButton.click();
         await page.waitForLoadState('networkidle');
 
@@ -559,7 +566,7 @@ test(
         await expect(rhsTablist.locator('[role="tab"]:has-text("Comments")').first()).toBeVisible({
             timeout: ELEMENT_TIMEOUT,
         });
-        await expect(rhsTablist.locator('[role="tab"]:has-text("Wiki Threads")').first()).toBeVisible({
+        await expect(rhsTablist.locator('[role="tab"]:has-text("Page Threads")').first()).toBeVisible({
             timeout: ELEMENT_TIMEOUT,
         });
     },
@@ -583,13 +590,13 @@ test(
         await createWikiThroughUI(page, uniqueName('B16 Wiki'));
         await createPageThroughUI(page, 'B16 Icon Test Page', 'Content for document icon test');
 
-        const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+        const editButton = getEditButton(page);
         await expect(editButton).toBeVisible();
         await editButton.click();
         await waitForEditModeReady(page);
         await addInlineCommentInEditMode(page, 'B16 test comment for icon check');
 
-        const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+        const publishButton = getPublishButton(page);
         await publishButton.click();
         await page.waitForLoadState('networkidle');
 
@@ -606,13 +613,15 @@ test(
         const threadItem = page.locator('.ThreadItem, [data-testid="thread-item"]').first();
         await expect(threadItem).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
-        // * Assert: a wiki/document icon is present in the thread item (BUG: currently missing)
-        // NOTE: use only the specific CSS class, not aria-label wildcards which can false-positive
+        // * Assert: a wiki/document icon is present in the thread item.
+        //   Use toBeAttached(): the icon is decorative (aria-hidden="true"), which Playwright's
+        //   toBeVisible() interprets as hidden even though the icon renders visually. Asserting
+        //   DOM presence is the right check for this test's intent.
         await expect(
             page
                 .locator('.ThreadItem .icon-file-document-outline, ' + '.ThreadItem [data-testid="wiki-thread-icon"]')
                 .first(),
-        ).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        ).toBeAttached({timeout: ELEMENT_TIMEOUT});
     },
 );
 
@@ -635,14 +644,14 @@ test(
         await createPageThroughUI(page, 'A17 Scroll Test Page', 'anchor text here');
 
         // # Enter edit mode and add an inline comment anchored to that text
-        const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+        const editButton = getEditButton(page);
         await expect(editButton).toBeVisible();
         await editButton.click();
         await waitForEditModeReady(page);
         await addInlineCommentInEditMode(page, 'A17 anchor comment');
 
         // # Publish the page
-        const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+        const publishButton = getPublishButton(page);
         await publishButton.click();
         await page.waitForLoadState('networkidle');
 
@@ -654,14 +663,13 @@ test(
         // # Scroll away from the anchor so we can assert scroll-back
         await page.evaluate(() => window.scrollTo(0, 500));
 
-        // # Open the wiki RHS "Wiki Threads" tab
-        const allThreadsTab = page.locator('button:text("Wiki Threads")').first();
-        await expect(allThreadsTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await allThreadsTab.click();
+        // # Open the wiki RHS "Page Threads" tab
+        await switchToWikiPageTab(page, 'Page Threads');
 
-        // # Click the thread item in the Wiki Threads tab
+        // # Click the thread item in the Page Threads tab. Each thread renders with
+        // `wiki-rhs-thread-{commentId}` — match by prefix and scope to the active panel.
         const threadItem = page
-            .locator('[data-testid="wiki-rhs-thread-item"], .wiki-rhs-thread-item, .rhs-thread-list-item')
+            .locator('[data-testid="wiki-rhs-all-threads"] [data-testid^="wiki-rhs-thread-"]')
             .first();
         await expect(threadItem).toBeVisible({timeout: HIERARCHY_TIMEOUT});
         await threadItem.click();
@@ -691,12 +699,12 @@ test(
         await createWikiThroughUI(page, uniqueName('A29 Wiki'));
 
         await createPageThroughUI(page, 'A29 Page A', 'Content for Page A');
-        const editButtonA = page.locator('[data-testid="wiki-page-edit-button"]');
+        const editButtonA = getEditButton(page);
         await expect(editButtonA).toBeVisible();
         await editButtonA.click();
         await waitForEditModeReady(page);
         await addInlineCommentInEditMode(page, 'A29 comment on Page A');
-        await page.locator('[data-testid="wiki-page-publish-button"]').first().click();
+        await getPublishButton(page).click();
         await page.waitForLoadState('networkidle');
 
         // Register participation for Page A
@@ -705,12 +713,12 @@ test(
         await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
 
         await createPageThroughUI(page, 'A29 Page B', 'Content for Page B');
-        const editButtonB = page.locator('[data-testid="wiki-page-edit-button"]');
+        const editButtonB = getEditButton(page);
         await expect(editButtonB).toBeVisible();
         await editButtonB.click();
         await waitForEditModeReady(page);
         await addInlineCommentInEditMode(page, 'A29 comment on Page B');
-        await page.locator('[data-testid="wiki-page-publish-button"]').first().click();
+        await getPublishButton(page).click();
         await page.waitForLoadState('networkidle');
 
         // Register participation for Page B
@@ -724,18 +732,16 @@ test(
         await pageALink.click();
         await page.waitForLoadState('networkidle');
 
-        // # Open wiki RHS and switch to Wiki Threads tab
-        const allThreadsTab = page.locator('button:text("Wiki Threads")').first();
-        await expect(allThreadsTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await allThreadsTab.click();
+        // # Open wiki RHS and switch to Page Threads tab
+        await switchToWikiPageTab(page, 'Page Threads');
 
-        // # Click the thread item for Page B (the foreign page)
+        // # Click the thread item for Page B (the foreign page). Thread items
+        // render with testid `wiki-rhs-thread-{commentId}`; locate by the panel
+        // containing "A29 Page B" header (one group per page).
         const pageBThreadItem = page
-            .locator(
-                '[data-testid="wiki-rhs-thread-item"]:has-text("A29 Page B"), ' +
-                    '.wiki-rhs-thread-item:has-text("A29 Page B"), ' +
-                    '.rhs-thread-list-item:has-text("A29 Page B")',
-            )
+            .locator('[data-testid="wiki-rhs-all-threads"] .WikiRHS__page-thread-group')
+            .filter({hasText: 'A29 Page B'})
+            .locator('[data-testid^="wiki-rhs-thread-"]')
             .first();
         await expect(pageBThreadItem).toBeVisible({timeout: HIERARCHY_TIMEOUT});
         await pageBThreadItem.click();
@@ -750,12 +756,15 @@ test(
         await expect(backButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await backButton.click();
 
-        // * Assert: the Wiki Threads tab is active again (BUG: currently not restored)
-        const allThreadsTabAgain = page.locator('button:text("Wiki Threads")').first();
+        // * Assert: the Page Threads tab is active again (BUG: currently not restored).
+        // Tabs render as <a role="tab">, not <button>.
+        const allThreadsTabAgain = page.getByRole('tab', {name: 'Page Threads'});
         await expect(allThreadsTabAgain).toHaveAttribute('aria-selected', 'true', {timeout: ELEMENT_TIMEOUT});
 
-        // * Assert: both pages' comments are visible in the restored All threads list
-        await expect(page.locator(':text("A29 comment on Page A")').first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await expect(page.locator(':text("A29 comment on Page B")').first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // * Assert: both pages' comments are visible in the restored All threads list.
+        // Scope to the all-threads panel so we don't match the (hidden) Comments tab.
+        const allThreadsPanel = page.locator('[data-testid="wiki-rhs-all-threads"]');
+        await expect(allThreadsPanel.getByText('A29 comment on Page A').first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(allThreadsPanel.getByText('A29 comment on Page B').first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
     },
 );

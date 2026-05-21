@@ -78,9 +78,13 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
                     handleClickOn(view, pos, node, nodePos, event) {
                         const target = event.target as HTMLElement;
 
-                        // Check if clicked on a comment anchor (mark-based approach)
-                        if (target.classList.contains('comment-anchor')) {
-                            const id = target.getAttribute('id');
+                        // The active-highlight decoration renders a nested <span> inside the
+                        // mark's outer span, so clicks land on the inner element which carries
+                        // neither the `comment-anchor` class nor the `ic-<id>` attribute. Walk
+                        // up to the nearest mark-backed ancestor before reading the anchor id.
+                        const anchorEl = target.closest('.comment-anchor') as HTMLElement | null;
+                        if (anchorEl) {
+                            const id = anchorEl.getAttribute('id');
                             if (id?.startsWith(ANCHOR_ID_PREFIX)) {
                                 const anchorId = id.slice(ANCHOR_ID_PREFIX.length);
                                 const comments = extension.storage.comments || [];

@@ -10,7 +10,6 @@ import {
     getNewPageButton,
     fillCreatePageModal,
     ensurePanelOpen,
-    addInlineCommentAndPublish,
     enterEditMode,
     selectTextInEditor,
     openInlineCommentModal,
@@ -56,7 +55,6 @@ test('creates inline comment on selected text', {tag: '@pages'}, async ({pw, sha
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    // # Create wiki and page through UI
     await createWikiAndPage(page, uniqueName('Comment Wiki'), 'Test Page', 'This is important text');
 
     // # Enter edit mode
@@ -197,9 +195,10 @@ test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw, 
     await publishPage(page);
 
     // * Verify both comment markers exist AND inline comments are loaded from API.
-    // The comment-anchor-active class is added only after inlineComments are fetched
-    // and storage.comments is populated — that is when clicks will open the RHS.
-    const activeMarkers = page.locator('.comment-anchor-active');
+    // Use `[id^="ic-"]` so we target the outer mark spans only — the
+    // `comment-anchor-active` class is also re-applied by a nested decoration span,
+    // so a `.comment-anchor-active` selector would double-count each marker.
+    const activeMarkers = page.locator('[id^="ic-"].comment-anchor');
     await expect(async () => {
         const markerCount = await activeMarkers.count();
         expect(markerCount).toBeGreaterThanOrEqual(2);
@@ -540,7 +539,7 @@ test(
         await ensurePanelOpen(page);
         const pageNode = page.locator('[data-testid="page-tree-node"]').filter({hasText: 'Page with comment'});
         await pageNode.click();
-        await page.waitForTimeout(EDITOR_LOAD_WAIT);
+        await expect(page.locator('.ProseMirror').first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
         // * Verify inline comment marker is still visible after navigation
         await verifyCommentMarkerVisible(page);
@@ -703,8 +702,9 @@ test('switches between Page Comments and All Threads tabs in RHS', {tag: '@pages
 
     const rhs = await openWikiRHSViaToggleButton(page);
 
-    // * Verify Page Comments tab is visible (using text selector for Bootstrap tabs)
-    const pageCommentsTab = rhs.getByText('Page Comments', {exact: true});
+    // * Verify Page Comments tab is visible — scope to role=tab so we don't strict-mode-match
+    //   the RHS header text or the tabpanel name which both contain "Comments".
+    const pageCommentsTab = rhs.getByRole('tab', {name: 'Comments'});
     await expect(pageCommentsTab).toBeVisible();
 
     // * Verify page title shows on Page Comments tab
@@ -717,7 +717,7 @@ test('switches between Page Comments and All Threads tabs in RHS', {tag: '@pages
     await expect(commentsContent).toBeVisible();
 
     // # Switch to All Threads tab
-    await switchToWikiRHSTab(page, rhs, 'Wiki Threads');
+    await switchToWikiRHSTab(page, rhs, 'Page Threads');
 
     // * Verify page title is hidden on All Threads tab
     await expect(pageTitle).not.toBeVisible();
@@ -727,7 +727,7 @@ test('switches between Page Comments and All Threads tabs in RHS', {tag: '@pages
     await expect(allThreadsContent).toBeVisible();
 
     // # Switch back to Page Comments tab
-    await switchToWikiRHSTab(page, rhs, 'Page Comments');
+    await switchToWikiRHSTab(page, rhs, 'Comments');
 
     // * Verify page title shows again
     await expect(pageTitle).toBeVisible();
@@ -765,7 +765,7 @@ test('displays all threads from multiple pages in All Threads tab', {tag: '@page
     const rhs = await openWikiRHSViaToggleButton(page);
 
     // # Switch to All Threads tab
-    await switchToWikiRHSTab(page, rhs, 'Wiki Threads');
+    await switchToWikiRHSTab(page, rhs, 'Page Threads');
 
     // * Verify All Threads tab content is displayed
     const allThreadsContent = rhs.locator('[data-testid="wiki-rhs-all-threads-content"]');
@@ -823,31 +823,30 @@ test(
         const commentMarkers = page.locator('[id^="ic-"], .comment-anchor');
         const markerCount = await commentMarkers.count();
 
-        // Note: Adding multiple inline comments programmatically is complex
-        // This test verifies UI behavior if inline comments exist
-        if (markerCount >= 1) {
-            // # Click first marker to open RHS
-            await commentMarkers.nth(0).click();
+        // Inline comment was created above; assert it is visible rather than silently skipping.
+        expect(markerCount).toBeGreaterThanOrEqual(1);
 
-            // # Verify RHS opened
-            const wikiRHS = page.locator('[data-testid="wiki-rhs"]');
-            await expect(wikiRHS).toBeVisible({timeout: ELEMENT_TIMEOUT});
-            // * Verify anchor text context is displayed in RHS
-            const anchorContext = wikiRHS.locator('.inline-comment-anchor-box');
+        // # Click first marker to open RHS
+        await commentMarkers.nth(0).click();
+
+        // # Verify RHS opened
+        const wikiRHS = page.locator('[data-testid="wiki-rhs"]');
+        await expect(wikiRHS).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // * Verify anchor text context is displayed in RHS
+        const anchorContext = wikiRHS.locator('.inline-comment-anchor-box');
+        await expect(anchorContext).toBeVisible({timeout: WEBSOCKET_WAIT});
+        // * Verify it contains some text from the page
+        const contextText = await anchorContext.first().textContent();
+        expect(contextText).toBeTruthy();
+
+        // # If multiple markers exist, test navigation between them
+        if (markerCount >= 2) {
+            await commentMarkers.nth(1).click();
+
+            // * Verify anchor context updates
             await expect(anchorContext).toBeVisible({timeout: WEBSOCKET_WAIT});
-            // * Verify it contains some text from the page
-            const contextText = await anchorContext.first().textContent();
-            expect(contextText).toBeTruthy();
-
-            // # If multiple markers exist, test navigation between them
-            if (markerCount >= 2) {
-                await commentMarkers.nth(1).click();
-
-                // * Verify anchor context updates
-                await expect(anchorContext).toBeVisible({timeout: WEBSOCKET_WAIT});
-                const secondContextText = await anchorContext.first().textContent();
-                expect(secondContextText).toBeTruthy();
-            }
+            const secondContextText = await anchorContext.first().textContent();
+            expect(secondContextText).toBeTruthy();
         }
     },
 );
@@ -947,91 +946,62 @@ test(
 
         // # Now edit to add first inline comment
         await enterEditMode(page);
+        await addInlineCommentInEditMode(page, 'Comment on alpha', 'Alpha section text here.');
+        await publishPage(page);
 
-        const comment1Added = await addInlineCommentAndPublish(
-            page,
-            'Alpha section text here',
-            'Comment on alpha',
-            true,
-        );
+        // # Edit page again to add second comment
+        await enterEditMode(page);
+        await addInlineCommentInEditMode(page, 'Comment on beta', 'Beta section text here.');
+        await publishPage(page);
 
-        // # Edit page again to add second comment (if first succeeded)
-        if (comment1Added) {
-            await enterEditMode(page);
+        // # Navigate to global Threads view
+        const threadsLink = page.locator('a[href*="/threads"]').first();
+        await expect(threadsLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await threadsLink.click();
+        await page.waitForLoadState('networkidle');
 
-            await addInlineCommentAndPublish(page, 'Beta section text here', 'Comment on beta', true);
+        // * Verify Threads view is visible
+        const threadsView = page.locator('.ThreadList');
+        await expect(threadsView).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // # Get all thread items
+        const threadItems = threadsView.locator('.ThreadItem');
+        const threadCount = await threadItems.count();
+
+        expect(threadCount).toBeGreaterThan(0);
+
+        // # Find thread items for our page (they should have "Commented on the page:" text)
+        const pageThreads = threadItems.filter({hasText: 'Commented on the page:'});
+        const pageThreadCount = await pageThreads.count();
+        expect(pageThreadCount).toBeGreaterThanOrEqual(1);
+
+        // * Verify first thread shows anchor text
+        const firstThread = pageThreads.nth(0);
+        const firstThreadText = await firstThread.textContent();
+        expect(firstThreadText).toBeTruthy();
+
+        // # If multiple threads exist, verify the second one
+        if (pageThreadCount >= 2) {
+            const secondThread = pageThreads.nth(1);
+            const secondThreadText = await secondThread.textContent();
+            expect(secondThreadText).toBeTruthy();
         }
 
-        // # Check if any inline comments were actually created
-        const commentMarkers = page.locator('[id^="ic-"], .comment-anchor');
-        const markerCount = await commentMarkers.count();
+        // # Click into first thread — page comment threads navigate to the wiki page, not ThreadPane
+        await firstThread.click();
+        await page.waitForLoadState('networkidle');
 
-        // Note: Adding multiple inline comments programmatically is complex
-        // This test verifies UI behavior if inline comments exist
-        if (markerCount >= 1) {
-            // # Navigate to global Threads view
-            const threadsButton = page
-                .locator('[aria-label*="Threads"]')
-                .or(page.locator('button:has-text("Threads")'))
-                .first();
-            await expect(threadsButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-            await threadsButton.click();
+        // * Verify URL navigated to the wiki page
+        await expect(page).toHaveURL(/\/wiki\//, {timeout: ELEMENT_TIMEOUT});
 
-            // * Verify Threads view is visible
-            const threadsView = page.locator('.ThreadList');
-            await expect(threadsView).toBeVisible({timeout: ELEMENT_TIMEOUT});
-            // # Get all thread items
-            const threadItems = threadsView.locator('.ThreadItem');
-            const threadCount = await threadItems.count();
+        // # Click the comment marker to open the wiki comment RHS
+        const commentMarker = await verifyCommentMarkerVisible(page);
+        const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker);
 
-            if (threadCount > 0) {
-                // # Find thread items for our page (they should have "Commented on the page:" text)
-                const pageThreads = threadItems.filter({hasText: 'Commented on the page:'});
-                const pageThreadCount = await pageThreads.count();
-
-                if (pageThreadCount >= 1) {
-                    // * Verify first thread shows anchor text
-                    const firstThread = pageThreads.nth(0);
-                    const firstThreadText = await firstThread.textContent();
-                    expect(firstThreadText).toBeTruthy();
-
-                    // # If multiple threads exist, verify the second one
-                    if (pageThreadCount >= 2) {
-                        const secondThread = pageThreads.nth(1);
-                        const secondThreadText = await secondThread.textContent();
-                        expect(secondThreadText).toBeTruthy();
-                    }
-
-                    // # Click into first thread to verify detail view
-                    await firstThread.click();
-
-                    // * Verify thread pane shows anchor context
-                    const threadPane = page.locator('.ThreadPane');
-                    await expect(threadPane).toBeVisible({timeout: ELEMENT_TIMEOUT});
-                    const firstPaneAnchor = threadPane.locator('.inline-comment-anchor-box');
-                    await expect(firstPaneAnchor).toBeVisible({timeout: WEBSOCKET_WAIT});
-                    const anchorText = await firstPaneAnchor.first().textContent();
-                    expect(anchorText).toBeTruthy();
-
-                    // # If multiple threads exist, test navigation to second thread
-                    if (pageThreadCount >= 2) {
-                        const backButton = page.locator('.ThreadPane button.back');
-                        await expect(backButton).toBeVisible({timeout: WEBSOCKET_WAIT});
-                        await backButton.click();
-
-                        const secondThread = pageThreads.nth(1);
-                        await expect(secondThread).toBeVisible({timeout: ELEMENT_TIMEOUT});
-                        await secondThread.click();
-
-                        // * Verify thread pane shows anchor for second thread
-                        const secondPaneAnchor = threadPane.locator('.inline-comment-anchor-box');
-                        await expect(secondPaneAnchor).toBeVisible({timeout: WEBSOCKET_WAIT});
-                        const secondAnchorText = await secondPaneAnchor.first().textContent();
-                        expect(secondAnchorText).toBeTruthy();
-                    }
-                }
-            }
-        }
+        // * Verify the wiki RHS shows inline comment anchor box with text
+        const firstPaneAnchor = rhs.locator('.inline-comment-anchor-box');
+        await expect(firstPaneAnchor).toBeVisible({timeout: WEBSOCKET_WAIT});
+        const anchorText = await firstPaneAnchor.first().textContent();
+        expect(anchorText).toBeTruthy();
     },
 );
 
@@ -1059,16 +1029,17 @@ test(
         // # Click marker to open thread view in RHS using helper
         const rhs = await clickCommentMarkerAndOpenRHS(page, marker ?? undefined);
 
-        // * Verify RHS is in thread view (header shows "Thread")
+        // * Verify RHS is in thread view (header shows "Comment Thread")
         const rhsHeader = rhs.locator('[data-testid="wiki-rhs-header-title"]');
-        await expect(rhsHeader).toHaveText('Thread');
+        await expect(rhsHeader).toHaveText('Comment Thread');
 
         // * Verify back button is visible in thread view
         const backButton = rhs.locator('[data-testid="wiki-rhs-back-button"]');
         await expect(backButton).toBeVisible();
 
-        // * Verify tabs are NOT visible in thread view
-        const pageCommentsTab = rhs.getByText('Page Comments', {exact: true});
+        // * Verify tabs are NOT visible in thread view — scope by role=tab to avoid
+        //   strict-mode collisions with the RHS header / tabpanel name.
+        const pageCommentsTab = rhs.getByRole('tab', {name: 'Comments'});
         await expect(pageCommentsTab).not.toBeVisible();
 
         // # Click back button to return to comments tabs view
@@ -1082,7 +1053,7 @@ test(
 
         // * Verify tabs are now visible
         await expect(pageCommentsTab).toBeVisible();
-        const allThreadsTab = rhs.getByText('Wiki Threads', {exact: true});
+        const allThreadsTab = rhs.getByRole('tab', {name: 'Page Threads'});
         await expect(allThreadsTab).toBeVisible();
     },
 );
@@ -1111,7 +1082,7 @@ test('back button returns to previously active tab', {tag: '@pages'}, async ({pw
     const rhs = await openWikiRHSViaToggleButton(page);
 
     // # Switch to All Threads tab using helper
-    await switchToWikiRHSTab(page, rhs, 'Wiki Threads');
+    await switchToWikiRHSTab(page, rhs, 'Page Threads');
 
     // * Verify All Threads tab is active
     const allThreadsContent = rhs.locator('[data-testid="wiki-rhs-all-threads-content"]');
@@ -1124,7 +1095,7 @@ test('back button returns to previously active tab', {tag: '@pages'}, async ({pw
 
     // * Verify we're in thread view
     const rhsHeader = rhs.locator('[data-testid="wiki-rhs-header-title"]');
-    await expect(rhsHeader).toHaveText('Thread', {timeout: ELEMENT_TIMEOUT});
+    await expect(rhsHeader).toHaveText('Comment Thread', {timeout: ELEMENT_TIMEOUT});
 
     // # Click back button
     const backButton = rhs.locator('[data-testid="wiki-rhs-back-button"]');
@@ -1175,7 +1146,7 @@ test('resolves and unresolves inline comment with filters', {tag: '@pages'}, asy
     await clickCommentFilter(page, pageRhs, 'open');
 
     // * Verify thread not visible in open filter (or empty state shown)
-    await verifyCommentsEmptyState(pageRhs, 'No open comments');
+    await verifyCommentsEmptyState(pageRhs, 'No Open comments');
 
     // # Switch back to "All" filter
     await clickCommentFilter(page, pageRhs, 'all');
@@ -1185,7 +1156,7 @@ test('resolves and unresolves inline comment with filters', {tag: '@pages'}, asy
 
     // * Verify thread view opens
     const rhsHeader = threadRhs.locator('[data-testid="wiki-rhs-header-title"]');
-    await expect(rhsHeader).toHaveText('Thread', {timeout: ELEMENT_TIMEOUT});
+    await expect(rhsHeader).toHaveText('Comment Thread', {timeout: ELEMENT_TIMEOUT});
 
     // # Unresolve the comment
     await toggleCommentResolution(page, threadRhs);
@@ -1198,7 +1169,7 @@ test('resolves and unresolves inline comment with filters', {tag: '@pages'}, asy
 
     // * Verify thread no longer appears in resolved filter after unresolving
     await clickCommentFilter(page, pageRhs, 'resolved');
-    await verifyCommentsEmptyState(pageRhs, 'No resolved comments');
+    await verifyCommentsEmptyState(pageRhs, 'No Resolved comments');
 });
 
 /**
@@ -1321,10 +1292,13 @@ test(
             'Test comment for edit mode',
         );
 
-        // * Verify comment marker is visible and has active highlight class in view mode
+        // * Verify comment marker is visible and the active highlight is rendered in view mode.
+        //   The decoration plugin applies `comment-anchor-active` via a nested decoration
+        //   span inside the outer mark element, so query the class directly rather than
+        //   reading attributes off the outer `[id^="ic-"]` mark.
         await expect(marker!).toBeVisible();
-        const viewModeClass = await marker!.getAttribute('class');
-        expect(viewModeClass).toContain('comment-anchor-active');
+        const viewModeHighlight = page.locator('.comment-anchor-active').first();
+        await expect(viewModeHighlight).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
         // # Enter edit mode
         await enterEditMode(page);
@@ -1337,12 +1311,11 @@ test(
         const editModeMarker = page.locator('[id^="ic-"], .comment-anchor').first();
         await expect(editModeMarker).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
-        // * Verify the anchor has the active highlight class in edit mode
-        // This is the critical assertion - the anchor should be highlighted after entering edit mode
-        await expect(async () => {
-            const editModeClass = await editModeMarker.getAttribute('class');
-            expect(editModeClass).toContain('comment-anchor-active');
-        }).toPass({timeout: HIERARCHY_TIMEOUT});
+        // * Verify the active highlight is still rendered in edit mode.
+        //   This is the critical assertion — the active decoration must reattach
+        //   after the editor remounts in edit mode.
+        const editModeHighlight = page.locator('.comment-anchor-active').first();
+        await expect(editModeHighlight).toBeVisible({timeout: HIERARCHY_TIMEOUT});
     },
 );
 
@@ -1387,7 +1360,7 @@ test('other channel members see inline comments in the wiki view', {tag: '@pages
 
     // * Verify User2 can open the wiki RHS and see the comment in Page Comments list
     const rhs = await openWikiRHSViaToggleButton(page2);
-    await switchToWikiRHSTab(page2, rhs, 'Page Comments');
+    await switchToWikiRHSTab(page2, rhs, 'Comments');
     await verifyWikiRHSContent(page2, rhs, [commentText]);
 
     // # Cleanup
@@ -1424,11 +1397,18 @@ test(
         await addInlineCommentInEditMode(page, 'A14 test inline comment');
         await publishPage(page);
 
-        // # Navigate to the backing channel so the channel feed is visible
+        // # Navigate to the backing channel so the channel feed is visible. We probe the
+        //   feed as posts paint — the A14 anomaly is a transient state during the page
+        //   fetch, so we cannot wait for networkidle (that would skip past the window
+        //   we're testing).
         await navigateToChannelFromWiki(page, channelsPage, team.name, channel.name);
 
-        // # Wait for posts to load from the API
-        await page.waitForResponse(/api\/v4\/posts/);
+        // # Wait only until the first post element is attached to the DOM. Polling the
+        //   anomaly assertion below covers the brief window where `pagePost` is still
+        //   loading — if `page_commented_on.tsx` returned `null` here, the parent
+        //   renderer would fill the slot with "commented on someone's message loading"
+        //   and the assertion would catch it.
+        await page.locator('.post, [data-testid="postView"]').first().waitFor({state: 'attached', timeout: ELEMENT_TIMEOUT});
 
         // * Assert: no post in the channel feed shows "loading" near a "commented on" post
         // This catches the A14 anomaly where page_commented_on.tsx returns null during load
@@ -1468,24 +1448,25 @@ test(
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-        // # Create wiki and page with an inline comment
-        await setupPageWithComment(page, uniqueName('B2 Wiki'), 'B2 Page', 'B2 page content', 'B2 comment text');
-        const rhs = await openWikiRHSViaToggleButton(page);
-
-        // # Open wiki RHS and switch to Page Comments tab
-        await switchToWikiRHSTab(page, rhs, 'Page Comments');
+        // # Create wiki and page with an inline comment, then click the marker to open
+        //   the per-thread RHS view (only this view renders the page-comment Post component
+        //   that exposes the 3-dot menu — the page-level Comments tab shows thread cards).
+        const {marker} = await setupPageWithComment(page, uniqueName('B2 Wiki'), 'B2 Page', 'B2 page content', 'B2 comment text');
+        const rhs = await clickCommentMarkerAndOpenRHS(page, marker ?? undefined);
 
         // # Hover the comment post to reveal the 3-dot menu and open it
         await openPostDotMenu(page, rhs);
 
-        // * Assert: "Pin to channel" is not visible in the menu
-        await expect(page.locator('[data-testid="pin-post"], button:text("Pin to channel")')).not.toBeVisible();
+        // * Assert: "Pin to channel" is not visible in the menu. The menu items use the
+        //   ids `pin_post_{postId}` / `save_post_{postId}` / `follow_post_{postId}` — match
+        //   them by id prefix rather than by guessed data-testid attributes.
+        await expect(page.locator('[id^="pin_post_"], [id^="unpin_post_"]')).not.toBeVisible();
 
         // * Assert: "Save message" is not visible in the menu
-        await expect(page.locator('[data-testid="save-post"], button:text("Save message")')).not.toBeVisible();
+        await expect(page.locator('[id^="save_post_"], [id^="unsave_post_"]')).not.toBeVisible();
 
         // * Assert: "Follow message" is not visible in the menu
-        await expect(page.locator('[data-testid="follow-post"], button:text("Follow message")')).not.toBeVisible();
+        await expect(page.locator('[id^="follow_post_thread_"], [id^="unfollow_post_thread_"]')).not.toBeVisible();
     },
 );
 
@@ -1509,7 +1490,7 @@ test('comment list panel defaults to Open filter not All', {tag: '@pages'}, asyn
     const rhs = await openWikiRHSViaToggleButton(page);
 
     // # Open wiki RHS and switch to Page Comments tab
-    await switchToWikiRHSTab(page, rhs, 'Page Comments');
+    await switchToWikiRHSTab(page, rhs, 'Comments');
 
     // * Assert: the "Open" filter button is active by default
     const openFilter = page.locator('button:text("Open"), [data-testid="filter-open"]').first();
@@ -1549,10 +1530,15 @@ test('all filter shows open comments above resolved ones', {tag: '@pages'}, asyn
 
     // # Open wiki RHS and switch to Page Comments tab
     const rhs = await openWikiRHSViaToggleButton(page);
-    await switchToWikiRHSTab(page, rhs, 'Page Comments');
+    await switchToWikiRHSTab(page, rhs, 'Comments');
 
-    // # Resolve comment A via the toggle helper
+    // # Enter the per-thread view to access the resolve action (not available from the cards list).
+    const firstThread = rhs.locator('.WikiPageThreadViewer__thread-item').first();
+    await expect(firstThread).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await firstThread.click();
     await toggleCommentResolution(page, rhs);
+    const backButton = rhs.locator('[data-testid="wiki-rhs-back-button"]');
+    await backButton.click();
 
     // # Switch to "All" filter to see both open and resolved comments
     await clickCommentFilter(page, rhs, 'all');
@@ -1594,17 +1580,20 @@ test('shows toast or confirmation after resolving a comment', {tag: '@pages'}, a
     const rhs = await openWikiRHSViaToggleButton(page);
 
     // # Open wiki RHS and switch to Page Comments tab
-    await switchToWikiRHSTab(page, rhs, 'Page Comments');
+    await switchToWikiRHSTab(page, rhs, 'Comments');
 
-    // # Resolve the first comment via the toggle helper
-    await toggleCommentResolution(page, rhs);
+    // # Enter the per-thread view, then resolve via the post-action-bar quick action.
+    const firstThread = rhs.locator('.WikiPageThreadViewer__thread-item').first();
+    await expect(firstThread).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await firstThread.click();
+    const commentPost = page.locator('.post, [data-testid="postView"]').first();
+    await commentPost.hover();
+    await page.locator('.post-menu [data-testid^="resolve-comment-"]').first().click();
 
-    // * Assert: a toast, banner, or confirmation referencing "resolved" appears
-    const confirmation = page
-        .locator('.toast, [role="alert"], [data-testid="resolve-confirmation"], .resolve-toast')
-        .first();
+    // * Assert: a toast/confirmation referencing the resolved state appears (B6).
+    const confirmation = page.locator('.info-toast').first();
     await expect(confirmation).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(confirmation).toContainText(/resolved/i);
+    await expect(confirmation).toContainText(/comment resolved/i);
 });
 
 /**
@@ -1630,16 +1619,13 @@ test('inline comment popover has sufficient minimum width', {tag: '@pages'}, asy
 
     // # Enter edit mode so the inline comment popover can appear
     await enterEditMode(page);
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    await expect(page.locator('.ProseMirror').first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Select text in the editor to trigger the inline comment popover
     await selectTextInEditor(page);
-    await page.waitForTimeout(SHORT_WAIT);
 
-    // * Assert: the inline comment popover is visible and wide enough
-    const popover = page
-        .locator('.inline-comment-bubble, [data-testid="inline-comment-popover"], .comment-popover')
-        .first();
+    // * Assert: the formatting-bar bubble (edit-mode selection popover) is visible and wide enough.
+    const popover = page.locator('.formatting-bar-bubble').first();
     await expect(popover).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // @visual — take a screenshot for visual review of contrast/sizing
@@ -1668,7 +1654,7 @@ test('comment rhs header shows Comment Thread not Thread', {tag: '@pages'}, asyn
     await page.waitForTimeout(SHORT_WAIT);
 
     // * Assert: the RHS header contains "Comment Thread"
-    const rhsHeader = page.locator('.wiki-rhs-header, [data-testid="wiki-rhs-title"], .sidebar-right__title').first();
+    const rhsHeader = page.locator('[data-testid="wiki-rhs-header-title"], [data-testid="wiki-rhs-title"], .wiki-rhs-header, .sidebar-right__title').first();
     await expect(rhsHeader).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(rhsHeader).toContainText('Comment Thread');
 
@@ -1690,27 +1676,22 @@ test('comment input autofocuses when comment view opens', {tag: '@pages'}, async
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    // # Create wiki and page (no comment yet — we want a fresh comment view)
+    // # Create wiki and page (createWikiAndPage publishes — no separate publishPage call needed)
     await createWikiAndPage(
         page,
         uniqueName('B15 Bug Wiki'),
         'B15 Bug Page',
         'This page will test comment input autofocus',
     );
-    await publishPage(page);
 
     // # Enter edit mode, select text, and click "Add comment" to open the comment input
     await enterEditMode(page);
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    await expect(page.locator('.ProseMirror').first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await selectTextInEditor(page);
-    await page.waitForTimeout(SHORT_WAIT);
     await openInlineCommentModal(page);
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Assert: the comment textarea/input has focus immediately without any manual click
-    const commentInput = page
-        .locator('[data-testid="comment-input"], textarea.WikiNewCommentView__textarea, .wiki-comment-input')
-        .first();
+    const commentInput = page.locator('#wiki-new-comment-textbox');
     await expect(commentInput).toBeFocused({timeout: ELEMENT_TIMEOUT});
 });
 
@@ -1734,33 +1715,38 @@ test('inline comment highlight persists after comment RHS opens', {tag: '@pages'
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    // # Create wiki and page, then publish it
+    // # Create wiki and page (createWikiAndPage publishes — no separate publishPage call needed)
     await createWikiAndPage(
         page,
         uniqueName('A18 Bug Wiki'),
         'A18 Bug Page',
         'Select this text to verify highlight persistence',
     );
-    await publishPage(page);
 
     // # Enter edit mode so the TipTap editor is active
     await enterEditMode(page);
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    await expect(page.locator('.ProseMirror').first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Select text in the editor to trigger the inline comment popover
     await selectTextInEditor(page);
-    await page.waitForTimeout(SHORT_WAIT);
 
     // # Click the Add comment button to open the inline comment popover (and trigger RHS open)
     await openInlineCommentModal(page);
-    await page.waitForTimeout(SHORT_WAIT);
 
-    // * Assert: the text is still highlighted/marked with the comment anchor color in the editor
-    // This will FAIL currently because opening the RHS causes TipTap to reinitialize and drop the selection
-    const highlightedText = page
-        .locator('.ProseMirror [data-comment-id], .ProseMirror .inline-comment-mark, .ProseMirror mark')
-        .first();
-    await expect(highlightedText).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // * Assert: the pending-anchor decoration is rendered in the editor. The native
+    //   browser selection gets dropped when focus moves to the RHS comment textbox
+    //   (B15 autofocus), so A18 preserves *visual* context via the
+    //   `.comment-anchor-pending` decoration emitted by comment_highlight_plugin once
+    //   `pendingInlineAnchor` is in Redux.
+    const pendingHighlight = page.locator('.ProseMirror .comment-anchor-pending');
+    await expect(pendingHighlight).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * And verify the RHS new-comment view also echoes the anchor text in its
+    //   blockquote — both surfaces confirm the user knows what they're commenting on.
+    const anchorBlockquote = page.locator('#wiki-new-comment-anchor');
+    await expect(anchorBlockquote).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    const anchorText = await anchorBlockquote.innerText();
+    expect(anchorText.trim().length, 'Pending anchor text should be displayed in the RHS new-comment view').toBeGreaterThan(0);
 });
 
 /**
@@ -1786,41 +1772,132 @@ test(
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-        // # Create wiki and page with an existing inline comment, then publish
+        // # Create wiki and page with TWO paragraphs so the existing comment and the new
+        //   comment can anchor on distinct text. Triple-clicking the SAME marked paragraph
+        //   fires the editor's comment-click handler and reopens the existing thread before
+        //   the new anchor can be submitted, defeating the test's intent.
+        //
+        //   Note: the page must be PUBLISHED before adding the inline comment — the
+        //   formatting-bar bubble exposes "Add Comment" only when editing an existing
+        //   page (isExistingPage=true), not in the initial-draft flow.
+        const firstParagraph = 'A19 first paragraph for existing comment';
+        const secondParagraph = 'A19 second paragraph for new comment';
+        await createWikiThroughUI(page, uniqueName('A19 Bug Wiki'));
+        await createPageThroughUI(page, 'A19 Bug Page', firstParagraph);
+
+        // # Enter edit mode (now editing an existing page) and append the second paragraph
+        await enterEditMode(page);
+        const editor = getEditor(page);
+        await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await editor.click();
+        await editor.press('Control+End');
+        await editor.press('Enter');
+        await editor.type(secondParagraph);
+        // Give the editor a moment to register the appended paragraph before the
+        // formatting-bar selection flow runs.
+        await page.waitForTimeout(SHORT_WAIT);
+
+        // # Add existing comment anchored on the FIRST paragraph and publish
         const existingCommentText = 'A19 existing comment to set focusedInlineCommentId';
-        await setupPageWithComment(
-            page,
-            uniqueName('A19 Bug Wiki'),
-            'A19 Bug Page',
-            'A19 page content',
-            existingCommentText,
-        );
+        await addInlineCommentInEditMode(page, existingCommentText, firstParagraph);
+        await publishPage(page);
+        await verifyCommentMarkerVisible(page);
 
         // # Click the existing comment marker to set focusedInlineCommentId
         await clickCommentMarkerAndOpenRHS(page);
         await page.waitForTimeout(SHORT_WAIT);
 
-        // # Enter edit mode and select DIFFERENT text for a new anchor
+        // # Capture pre-fix state: existing thread count and existing thread reply count
+        const beforeState = await page.evaluate(() => {
+            const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
+                entities: {posts: {posts: Record<string, {id: string; type: string; root_id: string}>}};
+                views: {wikiRhs: {focusedInlineCommentId: string | null}};
+            };
+            const posts = state.entities.posts.posts;
+            // Inline-comment "threads" are page_comment posts at the root (root_id === '').
+            // Replies have root_id pointing at the parent comment.
+            const threadIds = Object.values(posts)
+                .filter((p) => p.type === 'page_comment' && p.root_id === '')
+                .map((p) => p.id);
+            const focusedId = state.views.wikiRhs.focusedInlineCommentId;
+            return {threadCount: threadIds.length, existingThreadIds: threadIds, focusedInlineCommentId: focusedId};
+        });
+        expect(beforeState.focusedInlineCommentId, 'focusedInlineCommentId must be set after clicking existing comment').not.toBeNull();
+        const existingThreadId = beforeState.existingThreadIds[0];
+
+        // # Capture existing thread reply count for non-mutation assertion
+        const oldThreadReplyCountBefore = await page.evaluate((threadId) => {
+            const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
+                entities: {posts: {posts: Record<string, {root_id: string}>}};
+            };
+            return Object.values(state.entities.posts.posts).filter((p) => p.root_id === threadId).length;
+        }, existingThreadId);
+
+        // # Enter edit mode and select the SECOND paragraph (fresh, unmarked text)
+        //   so the new anchor is independent of the existing comment's mark.
         await enterEditMode(page);
-        await page.waitForTimeout(EDITOR_LOAD_WAIT);
-        await selectTextInEditor(page);
-        await page.waitForTimeout(SHORT_WAIT);
+        await expect(page.locator('.ProseMirror').first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await selectTextInEditor(page, secondParagraph);
 
         // # Submit a new comment on the new selection
         const newAnchorCommentText = 'A19 new comment on new selection';
         const createComment = await openInlineCommentModal(page);
         await fillAndSubmitCommentModal(page, createComment, newAnchorCommentText);
-        await page.waitForTimeout(WEBSOCKET_WAIT);
 
-        // * Assert: in the RHS thread the selected text appears as the THREAD HEADER (above replies),
-        // not embedded in the comment message body.
-        // This will FAIL currently because the anchor text moves into the comment body.
+        // Wait for the new comment to appear in the RHS — this ensures the API response has
+        // been processed and Redux state updated before we evaluate thread counts.
+        await expect(page.locator('[data-testid="wiki-rhs"]')).toContainText(newAnchorCommentText, {
+            timeout: WEBSOCKET_WAIT,
+        });
+
+        // * Assertion 1: a NEW thread was created (thread count incremented by 1).
+        //   Poll because the `receivedNewPost` dispatch that populates `posts.posts`
+        //   runs after `RECEIVED_PAGE_COMMENT` (which is what the RHS text wait above
+        //   observes), so the two stores converge slightly out of phase.
+        let afterState!: {threadCount: number; focusedInlineCommentId: string | null};
+        await expect(async () => {
+            afterState = await page.evaluate(() => {
+                const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
+                    entities: {posts: {posts: Record<string, {id: string; type: string; root_id: string; message: string}>}};
+                    views: {wikiRhs: {focusedInlineCommentId: string | null}};
+                };
+                const posts = state.entities.posts.posts;
+                const threadIds = Object.values(posts)
+                    .filter((p) => p.type === 'page_comment' && p.root_id === '')
+                    .map((p) => p.id);
+                return {
+                    threadCount: threadIds.length,
+                    focusedInlineCommentId: state.views.wikiRhs.focusedInlineCommentId,
+                };
+            });
+            expect(afterState.threadCount, 'A new thread must be created — count should increment by 1').toBe(beforeState.threadCount + 1);
+        }).toPass({timeout: WEBSOCKET_WAIT});
+
+        // * Assertion 2: anchor banner is visible as thread context (not embedded in body)
         const threadHeader = page
-            .locator('.wiki-thread-header, [data-testid="comment-anchor-preview"], .comment-anchor-text')
+            .locator('.inline-comment-anchor-banner, .inline-comment-anchor-box, .inline-comment-anchor-text')
             .first();
-        const commentBody = page.locator('.post-message, [data-testid="comment-message"]').first();
         await expect(threadHeader).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await expect(commentBody).not.toContainText(newAnchorCommentText);
+
+        // * Assertion 3: comment body contains the typed comment text. The anchor text
+        // is rendered separately as a banner, not embedded in the body.
+        const commentBody = page.locator('.PageCommentedOn__message, .post-message__text, [data-testid="comment-message"]').first();
+        await expect(commentBody).toContainText(newAnchorCommentText, {timeout: ELEMENT_TIMEOUT});
+
+        // * Assertion 4: old thread is unchanged — reply count did NOT increment
+        const oldThreadReplyCountAfter = await page.evaluate((threadId) => {
+            const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
+                entities: {posts: {posts: Record<string, {root_id: string}>}};
+            };
+            return Object.values(state.entities.posts.posts).filter((p) => p.root_id === threadId).length;
+        }, existingThreadId);
+        expect(oldThreadReplyCountAfter, 'Previously-viewed thread must not receive the new comment as a reply').toBe(
+            oldThreadReplyCountBefore,
+        );
+
+        // * Assertion 5: Redux focusedInlineCommentId no longer points to the OLD (stale) thread ID.
+        // It may be null or the newly-created comment ID — both indicate the stale state was cleared.
+        expect(afterState.focusedInlineCommentId, 'focusedInlineCommentId must not still point to the stale (previously-viewed) thread').not.toBe(existingThreadId);
     },
 );
 
@@ -1858,28 +1935,23 @@ test(
         await commentPost.hover();
         await page.waitForTimeout(SHORT_WAIT);
 
-        // * Assert: a resolve icon button is visible OUTSIDE the 3-dot menu
-        // This will FAIL currently because resolve is only in the 3-dot menu
-        const resolveButton = page
-            .locator(
-                '.post-action-bar [data-testid="resolve-comment"], .post__actions [aria-label*="Resolve"], .post__actions .icon-check-circle-outline',
-            )
-            .first();
+        // * Assert: a resolve icon button is visible OUTSIDE the 3-dot menu, in the
+        //   post action bar (`.post-menu` row alongside reactions / dot menu).
+        const resolveButton = page.locator('.post-menu [data-testid^="resolve-comment-"]').first();
         await expect(resolveButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-        // * Assert: the resolve button is NOT only inside the dropdown menu
+        // * Assert: the resolve button is NOT only inside the dropdown menu (the
+        //   `resolve_comment_{postId}` id is reserved for the Menu.Item — distinct from
+        //   the action-bar testid prefix above).
         const resolveInsideDropdown = page
-            .locator('.dropdown-menu [data-testid="resolve-comment"], .dropdown-menu [aria-label*="Resolve"]')
+            .locator('.dropdown-menu [id^="resolve_comment_"], .dropdown-menu [id^="unresolve_comment_"]')
             .first();
         await expect(resolveInsideDropdown).not.toBeVisible();
 
-        // # Click the resolve button and assert the comment transitions to resolved state
+        // # Click the resolve button and assert the comment transitions to resolved state.
+        //   The button toggles class `post-menu__item--resolved` and swaps the icon when
+        //   `post.props.comment_resolved` becomes true (see page_comment_resolve_icon.tsx).
         await resolveButton.click();
-        await page.waitForTimeout(WEBSOCKET_WAIT);
-
-        const resolvedIndicator = page
-            .locator('.resolved, [data-resolved="true"], [data-testid="comment-resolved"]')
-            .first();
-        await expect(resolvedIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(resolveButton).toHaveClass(/post-menu__item--resolved/, {timeout: ELEMENT_TIMEOUT});
     },
 );

@@ -9,7 +9,7 @@ import type {ClientConfig} from '@mattermost/types/config';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-import {getNewestPostThread, getPostThread} from 'mattermost-redux/actions/posts';
+import {getNewestPostThread} from 'mattermost-redux/actions/posts';
 import {getThread as fetchThread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -19,7 +19,7 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {fetchPage} from 'actions/pages';
+import {fetchPage, getPageComments} from 'actions/pages';
 import {selectPostCard, openWikiRhs} from 'actions/views/rhs';
 import {updateThreadLastOpened, updateThreadLastUpdateAt} from 'actions/views/threads';
 import {getHighlightedPostId, getSelectedPostFocussedAt} from 'selectors/rhs';
@@ -60,13 +60,11 @@ function makeMapStateToProps() {
         let lastUpdateAt = 0;
 
         if (selected) {
-            // When viewing a focused inline comment thread, use the comment ID as rootId
-            // Otherwise use the page ID
-            const threadRootId = focusedInlineCommentId || selected.id;
-
-            postIds = getFilteredPostIds(state, threadRootId, focusedInlineCommentId);
-            userThread = getThread(state, threadRootId);
-            lastUpdateAt = getThreadLastUpdateAt(state, threadRootId);
+            // Always pass the page ID so the selector reads from commentsByPageId[pageId].
+            // The focusedInlineCommentId is passed separately for filtering within that list.
+            postIds = getFilteredPostIds(state, selected.id, focusedInlineCommentId);
+            userThread = getThread(state, selected.id);
+            lastUpdateAt = getThreadLastUpdateAt(state, selected.id);
         }
 
         const result = {
@@ -98,7 +96,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             fetchRHSAppsBindings,
             getNewestPostThread,
-            getPostThread,
+            getPageComments,
             fetchPage,
             getThread: fetchThread,
             selectPostCard,

@@ -12,10 +12,13 @@ import type {Post} from '@mattermost/types/posts';
 import {Posts} from 'mattermost-redux/constants/index';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
+import {isPageComment} from 'utils/page_utils';
+
 import ActionsMenu from 'components/actions_menu';
 import CommentIcon from 'components/common/comment_icon';
 import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import DotMenu from 'components/dot_menu';
+import PageCommentResolveIcon from 'components/post/page_comment_resolve_icon';
 import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
@@ -300,6 +303,11 @@ const PostOptions = (props: Props): JSX.Element => {
                 {!collapsedThreadsEnabled && !showRecentlyUsedReactions && dotMenu}
                 {showRecentReactions}
                 {postReaction}
+                {isPageComment(post) && hoverLocal && (
+                    <li>
+                        <PageCommentResolveIcon post={post}/>
+                    </li>
+                )}
                 {flagIcon}
                 {pluginItems}
                 {actionsMenu}

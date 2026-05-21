@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -9,6 +9,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import Tab from 'components/tabs/tab';
 import Tabs from 'components/tabs/tabs';
 
+import {scrollToAnchor} from 'components/wiki_view/page_anchor';
 import type {InlineAnchor} from 'types/store/pages';
 
 import AllWikiThreads from './all_wiki_threads';
@@ -50,9 +51,21 @@ const WikiRHS = ({pageId, wikiId, pageTitle, pageHydrated, activeTab, focusedInl
         toggleRhsExpanded,
     } = actions;
 
+    const originPageIdRef = useRef<string | null>(null);
+    const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const scrollGenRef = useRef(0);
+
     const handleBackClick = useCallback(() => {
         setFocusedInlineCommentId(null);
-    }, [setFocusedInlineCommentId]);
+        const originPageId = originPageIdRef.current;
+        if (originPageId && wikiId) {
+            originPageIdRef.current = null;
+            openWikiRhs(originPageId, wikiId);
+            // Cross-page thread navigation always originates from the all-threads
+            // tab; restore it so the user lands where they left off (bug A29).
+            setWikiRhsActiveTab('all_threads');
+        }
+    }, [setFocusedInlineCommentId, wikiId, openWikiRhs, setWikiRhsActiveTab]);
 
     const handleCancelNewComment = useCallback(() => {
         setPendingInlineAnchor(null);
@@ -62,11 +75,43 @@ const WikiRHS = ({pageId, wikiId, pageTitle, pageHydrated, activeTab, focusedInl
         setWikiRhsActiveTab(key as 'page_comments' | 'all_threads');
     }, [setWikiRhsActiveTab]);
 
-    const handleThreadClick = useCallback((targetPageId: string, threadId: string) => {
+    const handleThreadClick = useCallback((targetPageId: string, threadId: string, anchorId?: string) => {
         if (wikiId) {
+            originPageIdRef.current = pageId ?? null;
             openWikiRhs(targetPageId, wikiId, threadId);
+            if (anchorId) {
+                // Retry scrolling until the target anchor mounts (cross-page navigation
+                // may require multiple paint cycles while the page content loads).
+                if (scrollTimerRef.current) {
+                    clearTimeout(scrollTimerRef.current);
+                    scrollTimerRef.current = null;
+                }
+                const gen = ++scrollGenRef.current;
+                const MAX_ATTEMPTS = 20;
+                let attempt = 0;
+                const tryScroll = () => {
+                    if (gen !== scrollGenRef.current) {
+                        return;
+                    }
+                    if (scrollToAnchor(anchorId)) {
+                        return;
+                    }
+                    attempt += 1;
+                    if (attempt < MAX_ATTEMPTS) {
+                        scrollTimerRef.current = setTimeout(tryScroll, 50);
+                    }
+                };
+                scrollTimerRef.current = setTimeout(tryScroll, 0);
+            }
         }
-    }, [wikiId, openWikiRhs]);
+    }, [wikiId, openWikiRhs, pageId]);
+
+    useEffect(() => () => {
+        ++scrollGenRef.current;
+        if (scrollTimerRef.current) {
+            clearTimeout(scrollTimerRef.current);
+        }
+    }, []);
 
     // When creating a new inline comment, show the new comment view
     // Also keep showing during submission to prevent UI flash when pendingInlineAnchor is cleared
@@ -185,7 +230,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, pageHydrated, activeTab, focusedInl
                     <h2 data-testid='wiki-rhs-header-title'>
                         <FormattedMessage
                             id='wiki.comments.thread_header'
-                            defaultMessage='Thread'
+                            defaultMessage='Comment Thread'
                         />
                     </h2>
                     <div
@@ -301,7 +346,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, pageHydrated, activeTab, focusedInl
             >
                 <Tab
                     eventKey='page_comments'
-                    title={formatMessage({id: 'wiki_rhs.tab.page_comments', defaultMessage: 'Page Comments'})}
+                    title={formatMessage({id: 'wiki_rhs.tab.page_comments', defaultMessage: 'Comments'})}
                     tabClassName='WikiRHS__tab'
                 >
                     <div
@@ -347,7 +392,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, pageHydrated, activeTab, focusedInl
                 </Tab>
                 <Tab
                     eventKey='all_threads'
-                    title={formatMessage({id: 'wiki_rhs.tab.all_threads', defaultMessage: 'Wiki Threads'})}
+                    title={formatMessage({id: 'wiki_rhs.tab.all_threads', defaultMessage: 'Page Threads'})}
                     tabClassName='WikiRHS__tab'
                 >
                     <div

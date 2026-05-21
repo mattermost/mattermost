@@ -16,12 +16,12 @@ jest.mock('stores/redux_store', () => ({
     getState: () => mockGetState(),
 }));
 
-const mockGetPost = jest.fn();
-jest.mock('mattermost-redux/selectors/entities/posts', () => {
-    const original = jest.requireActual('mattermost-redux/selectors/entities/posts');
+const mockGetPageCommentById = jest.fn();
+jest.mock('mattermost-redux/selectors/entities/pages', () => {
+    const original = jest.requireActual('mattermost-redux/selectors/entities/pages');
     return {
         ...original,
-        getPost: (...args: unknown[]) => mockGetPost(...args),
+        getPageCommentById: (...args: unknown[]) => mockGetPageCommentById(...args),
     };
 });
 
@@ -36,7 +36,7 @@ describe('page comment websocket handlers', () => {
     beforeEach(() => {
         mockDispatch.mockClear();
         mockGetState.mockClear();
-        mockGetPost.mockClear();
+        mockGetPageCommentById.mockClear();
     });
 
     describe('handlePageCommentResolvedEvent', () => {
@@ -45,7 +45,7 @@ describe('page comment websocket handlers', () => {
                 id: 'c1',
                 props: {existing: 'value'},
             } as unknown as Post;
-            mockGetPost.mockReturnValue(comment);
+            mockGetPageCommentById.mockReturnValue(comment);
 
             handlePageCommentResolvedEvent(makeMessage({
                 comment_id: 'c1',
@@ -54,23 +54,28 @@ describe('page comment websocket handlers', () => {
                 resolved_by: 'userA',
             }));
 
-            expect(mockDispatch).toHaveBeenCalledTimes(1);
+            expect(mockDispatch).toHaveBeenCalledTimes(2);
             const action = mockDispatch.mock.calls[0][0];
-            expect(action.type).toBe('RECEIVED_POST');
-            expect(action.data.props).toEqual({
+            expect(action.type).toBe('RECEIVED_PAGE_COMMENT');
+            expect(action.data.comment.props).toEqual({
                 existing: 'value',
                 comment_resolved: true,
                 resolved_at: 12345,
                 resolved_by: 'userA',
             });
 
+            // Second dispatch syncs the updated comment into the posts store.
+            const syncAction = mockDispatch.mock.calls[1][0];
+            expect(syncAction.type).toBe('RECEIVED_POST');
+            expect(syncAction.data).toBe(action.data.comment);
+
             // Original post must not be mutated (reducer relies on reference equality).
             expect(comment.props).toEqual({existing: 'value'});
-            expect(action.data).not.toBe(comment);
+            expect(action.data.comment).not.toBe(comment);
         });
 
         it('is a no-op when post is not cached', () => {
-            mockGetPost.mockReturnValue(undefined);
+            mockGetPageCommentById.mockReturnValue(undefined);
 
             handlePageCommentResolvedEvent(makeMessage({
                 comment_id: 'missing',
@@ -89,17 +94,21 @@ describe('page comment websocket handlers', () => {
                 id: 'c1',
                 props: {existing: 'value', comment_resolved: true, resolved_at: 9, resolved_by: 'userA'},
             } as unknown as Post;
-            mockGetPost.mockReturnValue(comment);
+            mockGetPageCommentById.mockReturnValue(comment);
 
             handlePageCommentUnresolvedEvent(makeMessage({comment_id: 'c1', page_id: 'p1'}));
 
-            expect(mockDispatch).toHaveBeenCalledTimes(1);
+            expect(mockDispatch).toHaveBeenCalledTimes(2);
             const action = mockDispatch.mock.calls[0][0];
-            expect(action.type).toBe('RECEIVED_POST');
-            expect(action.data.props).toEqual({existing: 'value'});
-            expect(action.data.props.comment_resolved).toBeUndefined();
-            expect(action.data.props.resolved_at).toBeUndefined();
-            expect(action.data.props.resolved_by).toBeUndefined();
+            expect(action.type).toBe('RECEIVED_PAGE_COMMENT');
+            expect(action.data.comment.props).toEqual({existing: 'value'});
+            expect(action.data.comment.props.comment_resolved).toBeUndefined();
+            expect(action.data.comment.props.resolved_at).toBeUndefined();
+            expect(action.data.comment.props.resolved_by).toBeUndefined();
+
+            const syncAction = mockDispatch.mock.calls[1][0];
+            expect(syncAction.type).toBe('RECEIVED_POST');
+            expect(syncAction.data).toBe(action.data.comment);
 
             // Original post must not be mutated.
             expect(comment.props).toEqual({existing: 'value', comment_resolved: true, resolved_at: 9, resolved_by: 'userA'});
@@ -107,11 +116,12 @@ describe('page comment websocket handlers', () => {
 
         it('handles absent props object without throwing', () => {
             const comment: Post = {id: 'c1'} as Post;
-            mockGetPost.mockReturnValue(comment);
+            mockGetPageCommentById.mockReturnValue(comment);
 
             expect(() => handlePageCommentUnresolvedEvent(makeMessage({comment_id: 'c1', page_id: 'p1'}))).not.toThrow();
-            expect(mockDispatch).toHaveBeenCalledTimes(1);
-            expect(mockDispatch.mock.calls[0][0].data.props).toEqual({});
+            expect(mockDispatch).toHaveBeenCalledTimes(2);
+            expect(mockDispatch.mock.calls[0][0].data.comment.props).toEqual({});
+            expect(mockDispatch.mock.calls[1][0].type).toBe('RECEIVED_POST');
         });
     });
 });

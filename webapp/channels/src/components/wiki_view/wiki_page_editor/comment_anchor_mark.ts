@@ -60,6 +60,10 @@ const CommentAnchor = Mark.create({
     },
 
     renderHTML({HTMLAttributes}) {
+        // comment-anchor-active is applied only via the comment_highlight_plugin decoration,
+        // which rebuilds on every inlineComments change. Baking the class into renderHTML
+        // would make it permanently present (decorations cannot remove mark-rendered classes),
+        // causing resolved comments to stay visually highlighted.
         return ['span', mergeAttributes(HTMLAttributes, {class: 'comment-anchor'}), 0];
     },
 
@@ -73,7 +77,10 @@ const CommentAnchor = Mark.create({
                 state: {
                     init: () => ({wasCut: false}),
                     apply: (tr, state) => {
-                        // Reset wasCut flag after transaction
+                        const meta = tr.getMeta(pluginKey);
+                        if (meta !== undefined && meta !== null) {
+                            return {wasCut: meta.wasCut};
+                        }
                         if (tr.getMeta('paste')) {
                             return {wasCut: false};
                         }

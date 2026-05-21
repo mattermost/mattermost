@@ -32,7 +32,7 @@ type Props = {
 
 function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props) {
     const rootPost = usePost(rootId);
-    const pagePost = usePageForComment(rootPost);
+    const {page: pagePost, status: pageStatus} = usePageForComment(rootPost);
     const currentTeam = useSelector(getCurrentTeam);
 
     const shouldRender = isPageComment(rootPost) && pagePost;
@@ -65,6 +65,50 @@ function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props
             onCommentClick(e, pagePostWithWiki);
         }
     };
+
+    if (isPageComment(rootPost) && !pagePost) {
+        // Page fetch resolved with a 404 — render the deleted-page fallback.
+        if (pageStatus === 'missing') {
+            return (
+                <div className='PageCommentedOn'>
+                    <div
+                        data-testid='post-link'
+                        className='post__link'
+                    >
+                        <span>
+                            <FormattedMessage
+                                id='threading.pageComment.deletedPage'
+                                defaultMessage='Commented on a deleted page'
+                            />
+                        </span>
+                    </div>
+                </div>
+            );
+        }
+
+        // Page fetch in flight — render a deterministic page-aware placeholder (A14)
+        // instead of `null`. Returning null hands the slot back to the parent post
+        // renderer, which then fills it with the generic "commented on someone's
+        // message loading" text and produces the A14 anomaly in the channel feed.
+        return (
+            <div
+                className='PageCommentedOn PageCommentedOn--loading'
+                data-testid='page-commented-on-loading'
+            >
+                <div
+                    data-testid='post-link'
+                    className='post__link'
+                >
+                    <span>
+                        <FormattedMessage
+                            id='threading.pageComment.loading'
+                            defaultMessage='Commented on a page'
+                        />
+                    </span>
+                </div>
+            </div>
+        );
+    }
 
     if (shouldRender) {
         const pageTitle = getPageTitle(pagePost, 'Untitled Page');

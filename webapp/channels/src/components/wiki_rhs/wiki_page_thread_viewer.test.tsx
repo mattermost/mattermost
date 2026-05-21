@@ -33,7 +33,7 @@ jest.mock('client/web_websocket_client', () => ({
 
 describe('components/wiki_rhs/WikiPageThreadViewer', () => {
     const defaultActions = {
-        getPostThread: jest.fn().mockResolvedValue({data: {order: [], posts: {}}}),
+        getPageComments: jest.fn().mockResolvedValue({data: []}),
         fetchPage: jest.fn().mockResolvedValue({}),
         updateThreadLastOpened: jest.fn(),
         updateThreadRead: jest.fn(),
@@ -80,7 +80,7 @@ describe('components/wiki_rhs/WikiPageThreadViewer', () => {
         );
 
         expect(await screen.findByTestId('wiki-page-thread-viewer-empty')).toBeInTheDocument();
-        expect(screen.getByText('No comment threads on this page yet')).toBeInTheDocument();
+        expect(screen.getByText('No open comments')).toBeInTheDocument();
     });
 
     test('renders filter buttons in list mode', async () => {
