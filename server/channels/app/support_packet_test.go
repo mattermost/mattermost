@@ -469,7 +469,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		// Setup a new test helper
 		th := Setup(t).InitBasic(t)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewPointer(1)
+			cfg.AnalyticsSettings.MaxUsersForStatistics = new(1)
 		})
 
 		for range 5 {

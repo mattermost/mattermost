@@ -56,6 +56,11 @@ export function getLicense(state: GlobalState): ClientLicense {
     return state.entities.general.license;
 }
 
+export function isFreeEdition(state: GlobalState): boolean {
+    const license = getLicense(state);
+    return license.IsLicensed !== 'true' || license.SkuShortName === General.SKUEntry;
+}
+
 export const isCloudLicense: (state: GlobalState) => boolean = createSelector(
     'isCloudLicense',
     getLicense,

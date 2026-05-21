@@ -240,6 +240,16 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	if idpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); idpDescriptorURL != "" {
 		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
 	}
+	if samlDiagnostic := ps.SamlDiagnostic(); samlDiagnostic != nil && model.SafeDereference(ps.Config().SamlSettings.Enable) {
+		if err = samlDiagnostic.RunSupportPacketTest(rctx, ps.Config().SamlSettings); err != nil {
+			d.SAML.Status = model.StatusFail
+			d.SAML.Error = err.Error()
+		} else {
+			d.SAML.Status = model.StatusOk
+		}
+	} else {
+		d.SAML.Status = model.StatusDisabled
+	}
 
 	/* Elastic Search */
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {
@@ -294,7 +304,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Push Notifications */
 	if model.SafeDereference(ps.Config().EmailSettings.SendPushNotifications) {
 		pushServerURL := model.SafeDereference(ps.Config().EmailSettings.PushNotificationServer)
-		if pushErr := testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
+		if pushErr := ps.testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
 			d.Notifications.Push.Status = model.StatusFail
 			d.Notifications.Push.Error = pushErr.Error()
 		} else {
@@ -356,7 +366,7 @@ func (ps *PlatformService) applyStoreDiagnostics(ctx context.Context, diagnostic
 }
 
 // TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
-func testPushProxyConnection(ctx context.Context, serverURL string) error {
+func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	versionURL, err := url.JoinPath(serverURL, "version")

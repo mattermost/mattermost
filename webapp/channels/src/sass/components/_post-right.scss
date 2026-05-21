@@ -136,6 +136,12 @@
                             opacity: 0.73;
                         }
                     }
+
+                    &.same--user.post--bot {
+                        .post__header {
+                            float: none;
+                        }
+                    }
                 }
             }
 

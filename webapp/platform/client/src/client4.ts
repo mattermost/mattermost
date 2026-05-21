@@ -2014,6 +2014,20 @@ export default class Client4 {
         );
     };
 
+    markAllInTeamAsRead = (userId: string, teamId: string) => {
+        return this.doFetch<ChannelViewResponse>(
+            `${this.getUserRoute(userId)}/teams/${teamId}/read`,
+            {method: 'put'},
+        );
+    };
+
+    markAllMessagesAsRead = (userId: string) => {
+        return this.doFetch<ChannelViewResponse>(
+            `${this.getChannelsRoute()}/members/${userId}/direct/read`,
+            {method: 'put'},
+        );
+    };
+
     autocompleteChannels = (teamId: string, name: string) => {
         return this.doFetch<Channel[]>(
             `${this.getTeamRoute(teamId)}/channels/autocomplete${buildQueryString({name})}`,
@@ -2192,6 +2206,13 @@ export default class Client4 {
     patchSystemPropertyValues = <T>(groupName: string, items: Array<{field_id: string; value: T}>) => {
         return this.doFetch<Array<PropertyValue<T>>>(
             `${this.getBaseRoute()}/properties/groups/${groupName}/system/values`,
+            {method: 'PATCH', body: JSON.stringify(items)},
+        );
+    };
+
+    patchPropertyValues = <T>(groupName: string, objectType: string, targetId: string, items: Array<{field_id: string; value: T}>) => {
+        return this.doFetch<Array<PropertyValue<T>>>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
             {method: 'PATCH', body: JSON.stringify(items)},
         );
     };
@@ -2725,6 +2746,13 @@ export default class Client4 {
         return this.doFetch<PostActionResponse>(
             `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
             {method: 'post', body: JSON.stringify(msg)},
+        );
+    };
+
+    doPostActionWithQuery = (postId: string, actionId: string, query: Record<string, string>) => {
+        return this.doFetch<PostActionResponse>(
+            `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
+            {method: 'post', body: JSON.stringify({query})},
         );
     };
 
@@ -3873,13 +3901,6 @@ export default class Client4 {
         );
     };
 
-    purgeBleveIndexes = () => {
-        return this.doFetch<StatusOK>(
-            `${this.getBaseRoute()}/bleve/purge_indexes`,
-            {method: 'post'},
-        );
-    };
-
     uploadLicense = (fileData: File) => {
         const formData = new FormData();
         formData.append('license', fileData);
@@ -4624,6 +4645,8 @@ export default class Client4 {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
+            } else if (contentType === 'application/zip') {
+                data = await response.blob();
             } else {
                 data = await response.text();
             }
@@ -5003,7 +5026,7 @@ export default class Client4 {
             `${this.getContentFlaggingRoute()}/post/${postId}/flag`,
             {
                 method: 'post',
-                body: JSON.stringify({reason, comment: JSON.stringify(comment)}),
+                body: JSON.stringify({reason, comment}),
             },
         );
     };
@@ -5013,7 +5036,7 @@ export default class Client4 {
             `${this.getContentFlaggingRoute()}/post/${postId}/remove`,
             {
                 method: 'put',
-                body: JSON.stringify({comment: JSON.stringify(comment)}),
+                body: JSON.stringify({comment}),
             },
         );
     };
@@ -5023,7 +5046,7 @@ export default class Client4 {
             `${this.getContentFlaggingRoute()}/post/${postId}/keep`,
             {
                 method: 'put',
-                body: JSON.stringify({comment: JSON.stringify(comment)}),
+                body: JSON.stringify({comment}),
             },
         );
     };
@@ -5074,6 +5097,21 @@ export default class Client4 {
         return this.doFetch<ContentFlaggingSettings>(
             `${this.getContentFlaggingRoute()}/config`,
             {method: 'get'},
+        );
+    };
+
+    getFlaggedPostReportUrl = (postId: string) => {
+        return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
+    };
+
+    generateFlaggedPostReport = (postId: string, comment: string, action?: 'keep' | 'remove', signal?: AbortSignal): Promise<Blob> => {
+        return this.doFetch<Blob>(
+            this.getFlaggedPostReportUrl(postId),
+            {
+                method: 'post',
+                body: JSON.stringify({comment, action}),
+                signal,
+            },
         );
     };
 }

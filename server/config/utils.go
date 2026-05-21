@@ -33,6 +33,15 @@ func desanitize(actual, target *model.Config) {
 	if *target.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting {
 		target.FileSettings.AmazonS3SecretAccessKey = actual.FileSettings.AmazonS3SecretAccessKey
 	}
+	if target.FileSettings.ExportAmazonS3SecretAccessKey != nil && *target.FileSettings.ExportAmazonS3SecretAccessKey == model.FakeSetting {
+		target.FileSettings.ExportAmazonS3SecretAccessKey = actual.FileSettings.ExportAmazonS3SecretAccessKey
+	}
+	if target.FileSettings.AzureAccessKey != nil && *target.FileSettings.AzureAccessKey == model.FakeSetting {
+		target.FileSettings.AzureAccessKey = actual.FileSettings.AzureAccessKey
+	}
+	if target.FileSettings.ExportAzureAccessKey != nil && *target.FileSettings.ExportAzureAccessKey == model.FakeSetting {
+		target.FileSettings.ExportAzureAccessKey = actual.FileSettings.ExportAzureAccessKey
+	}
 
 	if *target.EmailSettings.SMTPPassword == model.FakeSetting {
 		target.EmailSettings.SMTPPassword = actual.EmailSettings.SMTPPassword
@@ -87,6 +96,24 @@ func desanitize(actual, target *model.Config) {
 
 	if *target.ServiceSettings.SplitKey == model.FakeSetting {
 		*target.ServiceSettings.SplitKey = *actual.ServiceSettings.SplitKey
+	}
+
+	if target.ServiceSettings.GoogleDeveloperKey != nil && *target.ServiceSettings.GoogleDeveloperKey == model.FakeSetting {
+		target.ServiceSettings.GoogleDeveloperKey = actual.ServiceSettings.GoogleDeveloperKey
+	}
+
+	if target.ServiceSettings.GiphySdkKey != nil && *target.ServiceSettings.GiphySdkKey == model.FakeSetting {
+		target.ServiceSettings.GiphySdkKey = actual.ServiceSettings.GiphySdkKey
+	}
+
+	if target.CacheSettings.RedisPassword != nil && *target.CacheSettings.RedisPassword == model.FakeSetting {
+		target.CacheSettings.RedisPassword = actual.CacheSettings.RedisPassword
+	}
+
+	if target.AutoTranslationSettings.LibreTranslate != nil &&
+		target.AutoTranslationSettings.LibreTranslate.APIKey != nil &&
+		*target.AutoTranslationSettings.LibreTranslate.APIKey == model.FakeSetting {
+		target.AutoTranslationSettings.LibreTranslate.APIKey = actual.AutoTranslationSettings.LibreTranslate.APIKey
 	}
 
 	for id, settings := range target.PluginSettings.Plugins {
@@ -213,7 +240,7 @@ func GetValueByPath(path []string, obj any) (any, bool) {
 					return mapVal.Interface(), true
 				}
 				data := mapVal.Interface()
-				if mapVal.Kind() == reflect.Ptr {
+				if mapVal.Kind() == reflect.Pointer {
 					data = mapVal.Elem().Interface() // if value is a pointer, dereference it
 				}
 				// pass subpath

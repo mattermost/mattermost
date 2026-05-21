@@ -239,7 +239,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
                         >
                           <button
                             aria-label="Join"
-                            class="btn btn-sm btn-primary primaryButton"
+                            class="btn btn-primary btn-sm primaryButton"
                             id="joinViewChannelButton"
                             tabindex="-1"
                           >
@@ -325,7 +325,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
                         >
                           <button
                             aria-label="Join"
-                            class="btn btn-sm btn-primary primaryButton"
+                            class="btn btn-primary btn-sm primaryButton"
                             id="joinViewChannelButton"
                             tabindex="-1"
                           >

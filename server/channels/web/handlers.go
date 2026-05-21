@@ -191,6 +191,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		t,
 	)
 
+	if connectionId := r.Header.Get(model.ConnectionId); connectionId != "" {
+		c.AppContext = c.AppContext.WithConnectionId(connectionId)
+	}
+
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
 

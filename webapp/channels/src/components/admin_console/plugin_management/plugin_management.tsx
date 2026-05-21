@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -853,7 +853,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 confirmButtonText={overwriteButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -889,7 +889,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 confirmButtonText={removeButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -943,11 +943,6 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         }
         if (this.state.lastMessage) {
             lastMessage = <div className='col-sm-12'><div className='form-group half'>{this.state.lastMessage}</div></div>;
-        }
-
-        let btnClass = 'btn btn-primary';
-        if (this.state.fileSelected) {
-            btnClass = 'btn btn-primary';
         }
 
         let fileName;
@@ -1155,9 +1150,9 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                     label={<FormattedMessage {...messages.uploadTitle}/>}
                                 >
                                     <div className='file__upload'>
-                                        <button
+                                        <Button
                                             type='button'
-                                            className={classNames(['btn', {'btn-tertiary': enableUploads}])}
+                                            emphasis='tertiary'
                                             onClick={this.handleChooseFileClick}
                                             disabled={!enableUploadButton || this.props.isDisabled}
                                         >
@@ -1165,7 +1160,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                                 id='admin.plugin.choose'
                                                 defaultMessage='Choose File'
                                             />
-                                        </button>
+                                        </Button>
                                         <input
                                             ref={this.fileInput}
                                             type='file'
@@ -1174,14 +1169,14 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                             disabled={!enableUploadButton || this.props.isDisabled}
                                         />
                                     </div>
-                                    <button
-                                        className={btnClass}
+                                    <Button
+                                        emphasis='primary'
                                         id='uploadPlugin'
                                         disabled={!this.state.fileSelected}
                                         onClick={this.handleSubmitUpload}
                                     >
                                         {uploadButtonText}
-                                    </button>
+                                    </Button>
                                     <div className='help-text m-0'>
                                         {fileName}
                                     </div>

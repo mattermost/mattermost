@@ -717,7 +717,7 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Files: &model.FilesLimits{
-				TotalStorage: model.NewPointer(int64(1)),
+				TotalStorage: new(int64(1)),
 			},
 		}, nil)
 

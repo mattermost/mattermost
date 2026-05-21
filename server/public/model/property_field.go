@@ -46,7 +46,11 @@ const (
 	PropertyFieldObjectTypeChannel  = "channel"
 	PropertyFieldObjectTypeUser     = "user"
 	PropertyFieldObjectTypeTemplate = "template"
-	PropertyFieldObjectTypeSystem   = "system"
+
+	PropertyFieldObjectTypeSystem = "system"
+
+	// NOTE: Temporarily using this until CPA is migrated to v2
+	ClassificationMarkingsPropertyGroupName = "classification_markings"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.
@@ -400,12 +404,8 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch, mergeAttrs bool) {
 // Legacy properties have an empty ObjectType and rely on simple TargetID uniqueness
 // enforced by the idx_propertyfields_unique_legacy database constraint, rather than
 // the hierarchical uniqueness model used by PSAv2 (ObjectType-based) properties.
-//
-// FIXME: treating template fields as PSAv1 is a temporary measure until the
-// CPA feature fully transitions to v2. Once that happens, remove the
-// PropertyFieldObjectTypeTemplate check.
 func (pf *PropertyField) IsPSAv1() bool {
-	return pf.ObjectType == "" || pf.ObjectType == PropertyFieldObjectTypeTemplate
+	return pf.ObjectType == ""
 }
 
 // IsPSAv2 returns true if this property field uses the PSAv2 schema.

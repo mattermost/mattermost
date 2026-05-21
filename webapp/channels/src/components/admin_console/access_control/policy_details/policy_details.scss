@@ -33,4 +33,20 @@
 
         margin-bottom: 16px;
     }
+
+    .AccessControlPolicySettings__mixedChannelsNotice {
+        margin-bottom: 16px;
+
+        h4 {
+            margin-bottom: 0;
+        }
+    }
+
+    .EditPolicy__masked-values-warning {
+        margin-top: 4px;
+    }
+
+    .EditPolicy__delete-masked-values-warning {
+        margin: 28px 28px 0;
+    }
 }

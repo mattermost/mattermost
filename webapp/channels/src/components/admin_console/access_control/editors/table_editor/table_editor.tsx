@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
@@ -9,6 +9,8 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import {CPA_FIELD_NAME_PATTERN} from 'utils/properties';
 
 import AttributeSelectorMenu from './attribute_selector_menu';
 import OperatorSelectorMenu from './operator_selector_menu';
@@ -26,6 +28,16 @@ export function celStringLiteral(val: string): string {
 }
 
 export function rowToCEL(row: TableRow): string {
+    // A fully-masked row has no visible values on the client side.  Emit a
+    // placeholder "in []" expression so the backend merge can locate this
+    // condition by attribute and re-inject the hidden values before persisting.
+    // Without this guard the condition would be filtered out by updateExpression,
+    // the empty expression would be sent to the server, and buildCELFromConditions
+    // would return "true" — making the policy wide-open (security regression).
+    if (row.hasMaskedValues && row.values.length === 0) {
+        return `user.attributes.${row.attribute} in []`;
+    }
+
     const attributeExpr = `user.attributes.${row.attribute}`;
     const config = OPERATOR_CONFIG[row.operator];
 
@@ -80,22 +92,27 @@ interface TableEditorProps {
     // Props for user self-exclusion detection
     isSystemAdmin?: boolean;
     validateExpressionAgainstRequester?: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
+
+    // Callback to notify parent when masked state changes (for CEL editor integration)
+    onMaskedStateChange?: (hasMasked: boolean) => void;
 }
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
-// An attribute is considered available if it doesn't have spaces in its name (CEL incompatible)
-// and is considered "safe" (synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR enableUserManagedAttributes is true).
+// An attribute is considered available if it doesn't have spaces in its NAME (the CEL identifier —
+// not the display_name). New CPA fields cannot have spaces in name
+// so hasSpaces only fires for grandfathered legacy fields.
+// An attribute is considered "safe" (synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR enableUserManagedAttributes is true).
 export const findFirstAvailableAttributeFromList = (
     userAttributes: UserPropertyField[],
     enableUserManagedAttributes: boolean,
 ): UserPropertyField | undefined => {
     return userAttributes.find((attr) => {
-        const hasSpaces = attr.name.includes(' ');
+        const isValidCELIdentifier = CPA_FIELD_NAME_PATTERN.test(attr.name);
         const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
         const isAdminManaged = attr.attrs?.managed === 'admin';
         const isProtected = attr.attrs?.protected;
         const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
-        return !hasSpaces && allowed;
+        return isValidCELIdentifier && allowed;
     });
 };
 
@@ -127,8 +144,10 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
         let values;
         if (Array.isArray(node.value)) {
             values = node.value;
-        } else {
+        } else if (node.value !== null && node.value !== undefined) {
             values = [node.value];
+        } else {
+            values = [];
         }
 
         tableRows.push({
@@ -136,11 +155,32 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
             operator: op,
             values,
             attribute_type: node.attribute_type,
+            hasMaskedValues: node.has_masked_values === true,
         });
     }
 
     return tableRows;
 };
+
+function getTestButtonTooltip(
+    hasMaskedRows: boolean,
+    userWouldBeExcluded: boolean,
+    formatMessage: ReturnType<typeof useIntl>['formatMessage'],
+): string | undefined {
+    if (hasMaskedRows) {
+        return formatMessage({
+            id: 'admin.access_control.table_editor.masked_values_tooltip',
+            defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
+        });
+    }
+    if (userWouldBeExcluded) {
+        return formatMessage({
+            id: 'admin.access_control.table_editor.user_excluded_tooltip',
+            defaultMessage: 'You cannot test access rules that would exclude you from the channel',
+        });
+    }
+    return undefined;
+}
 
 // TableEditor provides a user-friendly table interface for constructing and editing
 // CEL (Common Expression Language) expressions based on user attributes.
@@ -160,6 +200,7 @@ function TableEditor({
     actions,
     isSystemAdmin = false,
     validateExpressionAgainstRequester,
+    onMaskedStateChange,
 }: TableEditorProps): JSX.Element {
     const {formatMessage} = useIntl();
 
@@ -171,10 +212,18 @@ function TableEditor({
     // State for user self-exclusion detection (only applies to non-system-admins)
     const [userWouldBeExcluded, setUserWouldBeExcluded] = useState(false);
 
-    // Effect to parse the incoming CEL expression string (value prop)
-    // and update the internal rows state. Handles errors during parsing.
+    // Derived state: whether any row has masked values
+    const hasMaskedRows = useMemo(() => rows.some((r) => r.hasMaskedValues), [rows]);
+
+    // Prevents getVisualAST re-parse when expression change is from internal row editing.
+    const isInternalChange = React.useRef(false);
+
     useEffect(() => {
-        // Skip parsing if no expression to avoid unnecessary API calls
+        if (isInternalChange.current) {
+            isInternalChange.current = false;
+            return;
+        }
+
         if (!value || value.trim() === '') {
             setRows([]);
             return;
@@ -205,10 +254,8 @@ function TableEditor({
         });
     }, [value]);
 
-    // Effect to check if user would be excluded by their own rules
     useEffect(() => {
         const checkUserSelfExclusion = async () => {
-            // Only check for non-system admins when there's an expression and validation function
             if (isSystemAdmin || !value.trim() || !validateExpressionAgainstRequester) {
                 setUserWouldBeExcluded(false);
                 return;
@@ -217,8 +264,7 @@ function TableEditor({
             try {
                 const result = await validateExpressionAgainstRequester(value);
                 setUserWouldBeExcluded(!result.data?.requester_matches);
-            } catch (error) {
-                // If validation fails, assume they would not be excluded (to allow testing)
+            } catch {
                 setUserWouldBeExcluded(false);
             }
         };
@@ -226,28 +272,30 @@ function TableEditor({
         checkUserSelfExclusion();
     }, [value, isSystemAdmin, validateExpressionAgainstRequester]);
 
-    // Converts the internal rows state back into a CEL expression string
-    // and calls the onChange and onValidate props.
+    useEffect(() => {
+        onMaskedStateChange?.(hasMaskedRows);
+    }, [hasMaskedRows, onMaskedStateChange]);
+
     const updateExpression = useCallback((newRows: TableRow[]) => {
-        const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute && row.values.length > 0);
+        // Include masked rows with no visible values: rowToCEL will emit an "in []"
+        // placeholder so the backend merge can restore the hidden values on save.
+        const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute && (row.values.length > 0 || row.hasMaskedValues));
 
         const expr = rowsThatCanFormExpressions.map((row) => rowToCEL(row)).join(' && ');
 
+        isInternalChange.current = true;
         onChange(expr);
         if (onValidate) {
             onValidate(expr === '' || rowsThatCanFormExpressions.length > 0);
         }
     }, [onChange, onValidate]);
 
-    // Helper function to find the first available (non-disabled) attribute
     const findFirstAvailableAttribute = useCallback(() => {
         return findFirstAvailableAttributeFromList(userAttributes, enableUserManagedAttributes);
     }, [userAttributes, enableUserManagedAttributes]);
 
-    // Row Manipulation Handlers
     const addRow = useCallback(() => {
         if (userAttributes.length === 0) {
-            // Show a helpful message instead of silently failing
             onParseError('No user attributes available. Please ensure ABAC is properly configured and you have the necessary permissions.');
             return;
         }
@@ -259,11 +307,12 @@ function TableEditor({
         }
 
         setRows((currentRows) => {
-            const newRow = {
+            const newRow: TableRow = {
                 attribute: firstAvailableAttribute.name,
                 operator: firstAvailableAttribute.type === 'multiselect' ? OperatorLabel.HAS_ANY_OF : OperatorLabel.IS,
                 values: [],
                 attribute_type: firstAvailableAttribute.type || '',
+                hasMaskedValues: false,
             };
             const newRows = [...currentRows, newRow];
             updateExpression(newRows); // Ensure expression is updated immediately
@@ -279,6 +328,12 @@ function TableEditor({
             return newRows;
         });
     }, [updateExpression]);
+
+    const requestRemoveRow = useCallback((index: number) => {
+        // Masked rows have their remove button disabled — the row is read-only
+        // because the server would 403 on a delete that strips hidden values.
+        removeRow(index);
+    }, [removeRow]);
 
     const updateRowAttribute = useCallback((index: number, attribute: string) => {
         setRows((currentRows) => {
@@ -402,7 +457,7 @@ function TableEditor({
                                     <AttributeSelectorMenu
                                         currentAttribute={row.attribute}
                                         availableAttributes={userAttributes}
-                                        disabled={disabled}
+                                        disabled={disabled || row.hasMaskedValues}
                                         onChange={(attribute) => updateRowAttribute(index, attribute)}
                                         menuId={`attribute-selector-menu-${index}`}
                                         buttonId={`attribute-selector-button-${index}`}
@@ -414,7 +469,7 @@ function TableEditor({
                                 <td className='table-editor__cell'>
                                     <OperatorSelectorMenu
                                         currentOperator={row.operator}
-                                        disabled={disabled}
+                                        disabled={disabled || row.hasMaskedValues}
                                         onChange={(operator) => updateRowOperator(index, operator)}
                                         attributeType={userAttributes.find((attr) => attr.name === row.attribute)?.type}
                                     />
@@ -422,7 +477,7 @@ function TableEditor({
                                 <td className='table-editor__cell'>
                                     <ValueSelectorMenu
                                         row={row}
-                                        disabled={disabled}
+                                        disabled={disabled || row.hasMaskedValues}
                                         updateValues={(values: string[]) => updateRowValues(index, values)}
                                         options={row.attribute ? userAttributes.find((attr) => attr.name === row.attribute)?.attrs?.options || [] : []}
                                     />
@@ -431,8 +486,8 @@ function TableEditor({
                                     <button
                                         type='button'
                                         className='table-editor__row-remove'
-                                        onClick={() => removeRow(index)}
-                                        disabled={disabled}
+                                        onClick={() => requestRemoveRow(index)}
+                                        disabled={disabled || row.hasMaskedValues}
                                         aria-label={formatMessage({id: 'admin.access_control.table_editor.remove_row', defaultMessage: 'Remove row'})}
                                     >
                                         <i className='icon icon-trash-can-outline'/>
@@ -466,15 +521,8 @@ function TableEditor({
                 />
                 <TestButton
                     onClick={() => setShowTestResults(true)}
-                    disabled={disabled || !value || userWouldBeExcluded}
-                    disabledTooltip={
-                        userWouldBeExcluded ?
-                            formatMessage({
-                                id: 'admin.access_control.table_editor.user_excluded_tooltip',
-                                defaultMessage: 'You cannot test access rules that would exclude you from the channel',
-                            }) :
-                            undefined
-                    }
+                    disabled={disabled || !value || userWouldBeExcluded || hasMaskedRows}
+                    disabledTooltip={getTestButtonTooltip(hasMaskedRows, userWouldBeExcluded, formatMessage)}
                 />
             </div>
 

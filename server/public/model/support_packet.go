@@ -117,6 +117,8 @@ type SupportPacketDiagnostics struct {
 
 	SAML struct {
 		ProviderType string `yaml:"provider_type,omitempty"`
+		Status       string `yaml:"status,omitempty"`
+		Error        string `yaml:"error,omitempty"`
 	} `yaml:"saml"`
 
 	ElasticSearch struct {

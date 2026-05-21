@@ -206,7 +206,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	licenseUsers := 100
 	license := model.NewTestLicense("ldap")
 	license.SkuShortName = model.LicenseShortSkuEnterprise
-	license.Features.Users = model.NewPointer(licenseUsers)
+	license.Features.Users = new(licenseUsers)
 	ok := th.Service.SetLicense(license)
 	require.True(t, ok)
 
@@ -368,7 +368,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	})
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
-		cfg.LdapSettings.EnableSync = model.NewPointer(true)
+		cfg.LdapSettings.EnableSync = new(true)
 	})
 
 	t.Run("no LDAP vendor info found", func(t *testing.T) {
@@ -445,15 +445,58 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("SAML disabled", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = model.NewPointer(false)
+			cfg.SamlSettings.Enable = new(false)
 		})
 
 		packet := getDiagnostics(t)
 
 		assert.Empty(t, packet.SAML.ProviderType)
+		assert.Equal(t, model.StatusDisabled, packet.SAML.Status)
+		assert.Empty(t, packet.SAML.Error)
 	})
 
-	t.Run("SAML enabled with Keycloak provider", func(t *testing.T) {
+	t.Run("SAML enabled with reachable metadata URL", func(t *testing.T) {
+		diagMock := &emocks.SamlDiagnosticInterface{}
+		diagMock.On(
+			"RunSupportPacketTest",
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("model.SamlSettings"),
+		).Return(nil)
+		originalSAMLDiag := th.Service.samlDiagnostic
+		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
+		th.Service.samlDiagnostic = diagMock
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusOk, packet.SAML.Status)
+		assert.Empty(t, packet.SAML.Error)
+		assert.Equal(t, "Keycloak", packet.SAML.ProviderType)
+	})
+
+	t.Run("SAML enabled with missing metadata URL", func(t *testing.T) {
+		diagMock := &emocks.SamlDiagnosticInterface{}
+		diagMock.On(
+			"RunSupportPacketTest",
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("model.SamlSettings"),
+		).Return(errors.New("SAML metadata URL is not configured"))
+		originalSAMLDiag := th.Service.samlDiagnostic
+		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
+		th.Service.samlDiagnostic = diagMock
+
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.SamlSettings.Enable = model.NewPointer(true)
 			cfg.SamlSettings.Verify = model.NewPointer(false)
@@ -464,6 +507,88 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
 			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
 			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("")
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.SAML.Status)
+		assert.Equal(t, "SAML metadata URL is not configured", packet.SAML.Error)
+	})
+
+	t.Run("SAML enabled with metadata URL returning non-200", func(t *testing.T) {
+		diagMock := &emocks.SamlDiagnosticInterface{}
+		diagMock.On(
+			"RunSupportPacketTest",
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("model.SamlSettings"),
+		).Return(errors.New("SAML metadata URL returned unexpected status 503"))
+		originalSAMLDiag := th.Service.samlDiagnostic
+		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
+		th.Service.samlDiagnostic = diagMock
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.SAML.Status)
+		assert.Equal(t, "SAML metadata URL returned unexpected status 503", packet.SAML.Error)
+	})
+
+	t.Run("SAML diagnostics enterprise interface override", func(t *testing.T) {
+		diagMock := &emocks.SamlDiagnosticInterface{}
+		diagMock.On(
+			"RunSupportPacketTest",
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("model.SamlSettings"),
+		).Return(errors.New("enterprise check failed"))
+		originalSAMLDiag := th.Service.samlDiagnostic
+		t.Cleanup(func() {
+			th.Service.samlDiagnostic = originalSAMLDiag
+		})
+		th.Service.samlDiagnostic = diagMock
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.SAML.Status)
+		assert.Equal(t, "enterprise check failed", packet.SAML.Error)
+	})
+
+	t.Run("SAML enabled with Keycloak provider", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = new(true)
+			cfg.SamlSettings.Verify = new(false)
+			cfg.SamlSettings.Encrypt = new(false)
+			cfg.SamlSettings.IdpURL = new("http://localhost:8484/realms/mattermost/protocol/saml")
+			cfg.SamlSettings.IdpDescriptorURL = new("http://localhost:8484/realms/mattermost")
+			cfg.SamlSettings.ServiceProviderIdentifier = new("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = new("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = new("email")
+			cfg.SamlSettings.UsernameAttribute = new("username")
 		})
 
 		packet := getDiagnostics(t)
@@ -473,15 +598,15 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("SAML enabled with ADFS provider", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = model.NewPointer(true)
-			cfg.SamlSettings.Verify = model.NewPointer(false)
-			cfg.SamlSettings.Encrypt = model.NewPointer(false)
-			cfg.SamlSettings.IdpURL = model.NewPointer("https://adfs.company.com/adfs/ls")
-			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("https://adfs.company.com/adfs/services/trust")
-			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
-			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
-			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
-			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+			cfg.SamlSettings.Enable = new(true)
+			cfg.SamlSettings.Verify = new(false)
+			cfg.SamlSettings.Encrypt = new(false)
+			cfg.SamlSettings.IdpURL = new("https://adfs.company.com/adfs/ls")
+			cfg.SamlSettings.IdpDescriptorURL = new("https://adfs.company.com/adfs/services/trust")
+			cfg.SamlSettings.ServiceProviderIdentifier = new("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = new("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = new("email")
+			cfg.SamlSettings.UsernameAttribute = new("username")
 		})
 
 		packet := getDiagnostics(t)
@@ -491,15 +616,15 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("SAML enabled with unknown provider", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = model.NewPointer(true)
-			cfg.SamlSettings.Verify = model.NewPointer(false)
-			cfg.SamlSettings.Encrypt = model.NewPointer(false)
-			cfg.SamlSettings.IdpURL = model.NewPointer("https://custom-saml.example.com/sso/login")
-			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("https://custom-saml.example.com/sso")
-			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
-			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
-			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
-			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+			cfg.SamlSettings.Enable = new(true)
+			cfg.SamlSettings.Verify = new(false)
+			cfg.SamlSettings.Encrypt = new(false)
+			cfg.SamlSettings.IdpURL = new("https://custom-saml.example.com/sso/login")
+			cfg.SamlSettings.IdpDescriptorURL = new("https://custom-saml.example.com/sso")
+			cfg.SamlSettings.ServiceProviderIdentifier = new("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = new("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = new("email")
+			cfg.SamlSettings.UsernameAttribute = new("username")
 		})
 
 		packet := getDiagnostics(t)
@@ -510,7 +635,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	t.Run("Elasticsearch config test when indexing disabled", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsESBackend)
-			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(false)
+			cfg.ElasticsearchSettings.EnableIndexing = new(false)
 		})
 
 		esMock := &semocks.SearchEngineInterface{}
@@ -534,7 +659,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	t.Run("Elasticsearch config test when indexing enabled and config valid", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsOSBackend)
-			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(true)
+			cfg.ElasticsearchSettings.EnableIndexing = new(true)
 		})
 
 		esMock := &semocks.SearchEngineInterface{}
@@ -559,7 +684,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	t.Run("Elasticsearch config test when indexing enabled and config invalid", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsESBackend)
-			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(true)
+			cfg.ElasticsearchSettings.EnableIndexing = new(true)
 		})
 
 		esMock := &semocks.SearchEngineInterface{}
@@ -584,11 +709,11 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("push notifications disabled", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.EmailSettings.SendPushNotifications = model.NewPointer(false)
+			cfg.EmailSettings.SendPushNotifications = new(false)
 		})
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
-				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+				cfg.EmailSettings.SendPushNotifications = new(true)
 			})
 		})
 
@@ -606,12 +731,12 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		defer pushServer.Close()
 
 		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
-			cfg.EmailSettings.PushNotificationServer = model.NewPointer(pushServer.URL)
+			cfg.EmailSettings.SendPushNotifications = new(true)
+			cfg.EmailSettings.PushNotificationServer = new(pushServer.URL)
 		})
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
-				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+				cfg.EmailSettings.SendPushNotifications = new(true)
 				cfg.EmailSettings.PushNotificationServer = model.NewPointer(model.GenericNotificationServer)
 			})
 		})
@@ -624,12 +749,12 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("push notifications unreachable", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
-			cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://localhost:1")
+			cfg.EmailSettings.SendPushNotifications = new(true)
+			cfg.EmailSettings.PushNotificationServer = new("http://localhost:1")
 		})
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
-				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+				cfg.EmailSettings.SendPushNotifications = new(true)
 				cfg.EmailSettings.PushNotificationServer = model.NewPointer(model.GenericNotificationServer)
 			})
 		})
@@ -642,11 +767,11 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("email notifications disabled", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.EmailSettings.SendEmailNotifications = model.NewPointer(false)
+			cfg.EmailSettings.SendEmailNotifications = new(false)
 		})
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
-				cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+				cfg.EmailSettings.SendEmailNotifications = new(true)
 			})
 		})
 
@@ -698,15 +823,15 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", "127.0.0.1")
 
 		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
-			cfg.EmailSettings.SMTPServer = model.NewPointer("127.0.0.1")
-			cfg.EmailSettings.SMTPPort = model.NewPointer(smtpPort)
-			cfg.EmailSettings.EnableSMTPAuth = model.NewPointer(false)
-			cfg.EmailSettings.ConnectionSecurity = model.NewPointer("")
+			cfg.EmailSettings.SendEmailNotifications = new(true)
+			cfg.EmailSettings.SMTPServer = new("127.0.0.1")
+			cfg.EmailSettings.SMTPPort = new(smtpPort)
+			cfg.EmailSettings.EnableSMTPAuth = new(false)
+			cfg.EmailSettings.ConnectionSecurity = new("")
 		})
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
-				cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+				cfg.EmailSettings.SendEmailNotifications = new(true)
 				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
 				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
 			})
@@ -720,17 +845,17 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("email notifications unreachable", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
-			cfg.EmailSettings.SMTPServer = model.NewPointer("localhost")
-			cfg.EmailSettings.SMTPPort = model.NewPointer("1")
-			cfg.EmailSettings.SMTPServerTimeout = model.NewPointer(1)
+			cfg.EmailSettings.SendEmailNotifications = new(true)
+			cfg.EmailSettings.SMTPServer = new("localhost")
+			cfg.EmailSettings.SMTPPort = new("1")
+			cfg.EmailSettings.SMTPServerTimeout = new(1)
 		})
 		t.Cleanup(func() {
 			th.Service.UpdateConfig(func(cfg *model.Config) {
-				cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+				cfg.EmailSettings.SendEmailNotifications = new(true)
 				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
 				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
-				cfg.EmailSettings.SMTPServerTimeout = model.NewPointer(10)
+				cfg.EmailSettings.SMTPServerTimeout = new(10)
 			})
 		})
 
@@ -792,7 +917,7 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 	th := Setup(t)
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("example.com")
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("example.com")
 	})
 
 	// Happy path where we have a sanitized config file with no err
