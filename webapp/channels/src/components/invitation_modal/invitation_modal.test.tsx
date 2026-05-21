@@ -236,4 +236,64 @@ describe('InvitationModal', () => {
         expect(guestChannelsWithSearch.length).toBe(1);
         expect(guestChannelsWithSearch[0].id).toBe('regular-channel');
     });
+
+    it('returns server channel search results for non-empty guest channel searches', async () => {
+        const matchingServerChannel = TestHelper.getChannelMock({
+            id: 'matching-server-channel',
+            display_name: 'Fuzzy Search Target',
+            name: 'fuzzy-search-target',
+            policy_enforced: false,
+        });
+
+        const policyEnforcedServerChannel = TestHelper.getChannelMock({
+            id: 'policy-enforced-server-channel',
+            display_name: 'Policy Enforced Search Target',
+            name: 'policy-enforced-search-target',
+            policy_enforced: true,
+        });
+
+        const searchChannels = jest.fn().mockResolvedValue({
+            data: [matchingServerChannel, policyEnforcedServerChannel],
+        });
+
+        props = {
+            ...props,
+            currentTeam: {
+                ...props.currentTeam,
+                id: 'team-id',
+            } as Team,
+            invitableChannels: [],
+            actions: {
+                ...props.actions,
+                searchChannels,
+            },
+        };
+
+        const ref = React.createRef<InvitationModal>();
+
+        renderWithContext(
+            <InvitationModal
+                {...props}
+                ref={ref}
+            />,
+            state,
+        );
+
+        const instance = ref.current!;
+
+        act(() => {
+            instance.setState({
+                invite: {
+                    ...instance.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
+        });
+
+        const guestChannels = await instance.channelsLoader('fuz tar');
+
+        expect(searchChannels).toHaveBeenCalledWith('team-id', 'fuz tar');
+        expect(guestChannels).toHaveLength(1);
+        expect(guestChannels[0].id).toBe('matching-server-channel');
+    });
 });
