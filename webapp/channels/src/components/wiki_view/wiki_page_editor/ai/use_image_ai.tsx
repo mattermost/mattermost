@@ -5,6 +5,8 @@ import {useCallback, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {useIsMounted} from 'hooks/useIsMounted';
+
 import type {ServerError} from '@mattermost/types/errors';
 
 import {Client4} from 'mattermost-redux/client';
@@ -25,9 +27,12 @@ interface UseImageAIReturn {
     isProcessing: boolean;
     progress: string;
 
-    // Created page info
+    // Created page info (describe_image only)
     createdPageId: string | null;
     createdPageTitle: string;
+
+    // Extracted content (extract_handwriting only) — insert at cursor
+    extractedNodes: unknown[] | null;
 
     // Actions
     handleImageAIAction: (action: ImageAIAction, imageElement: HTMLImageElement) => Promise<void>;
@@ -173,12 +178,16 @@ const useImageAI = (
     const [isProcessing, setIsProcessing] = useState(false);
     const [progress, setProgress] = useState('');
 
-    // Created page info
+    // Created page info (describe_image only)
     const [createdPageId, setCreatedPageId] = useState<string | null>(null);
     const [createdPageTitle, setCreatedPageTitle] = useState('');
 
+    // Extracted nodes for inline insert (extract_handwriting only)
+    const [extractedNodes, setExtractedNodes] = useState<unknown[] | null>(null);
+
     // Cancellation ref (useRef to avoid stale closure in async functions)
     const isCancelledRef = useRef(false);
+    const isMounted = useIsMounted();
 
     /**
      * Creates a TipTap document with the extracted/described content and embedded image.
@@ -335,68 +344,63 @@ const useImageAI = (
                 return;
             }
 
-            // Generate page title
-            const timestamp = new Date().toLocaleString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-            });
-            const actionLabel = action === 'extract_handwriting' ?
-                formatMessage({id: 'image_ai.title.handwriting', defaultMessage: 'Handwriting'}) :
-                formatMessage({id: 'image_ai.title.description', defaultMessage: 'Description'});
-            const newPageTitle = `${actionLabel} from ${currentPageTitle} (${timestamp})`;
+            if (action === 'extract_handwriting') {
+                // For handwriting extraction: store nodes for inline insert at cursor
+                setExtractedNodes(parseExtractedContent(content));
+                setShowExtractionDialog(false);
+                setShowCompletionDialog(true);
+            } else {
+                // For describe_image: create a new draft page with the content
+                const timestamp = new Date().toLocaleString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                });
+                const actionLabel = formatMessage({id: 'image_ai.title.description', defaultMessage: 'Description'});
+                const newPageTitle = `${actionLabel} from ${currentPageTitle} (${timestamp})`;
 
-            setProgress(formatMessage({id: 'image_ai.progress.creating_page', defaultMessage: 'Creating draft page...'}));
+                setProgress(formatMessage({id: 'image_ai.progress.creating_page', defaultMessage: 'Creating draft page...'}));
 
-            // Create a new draft page
-            // Only set parent if the current page is published (not a first-time draft)
-            // First-time drafts cannot be parents until published.
-            const parentPageId = isExistingPage ? currentPageId : undefined;
-            const createResult = await dispatch(createPageAction(
-                wikiId,
-                newPageTitle,
-                parentPageId,
-            ));
+                const parentPageId = isExistingPage ? currentPageId : undefined;
+                const createResult = await dispatch(createPageAction(
+                    wikiId,
+                    newPageTitle,
+                    parentPageId,
+                ));
 
-            if ('error' in createResult && createResult.error) {
-                throw createResult.error;
+                if ('error' in createResult && createResult.error) {
+                    throw createResult.error;
+                }
+
+                const draftId = createResult.data as string;
+
+                if (isCancelledRef.current) {
+                    return;
+                }
+
+                const pageContent = createPageContent(action, imageSrc, content);
+                setProgress(formatMessage({id: 'image_ai.progress.saving_content', defaultMessage: 'Saving content...'}));
+
+                const saveResult = await dispatch(savePageDraftAction(
+                    channelId,
+                    wikiId,
+                    draftId,
+                    pageContent,
+                    newPageTitle,
+                    undefined,
+                    {page_parent_id: parentPageId || ''},
+                ));
+
+                if ('error' in saveResult && saveResult.error) {
+                    throw saveResult.error;
+                }
+
+                setCreatedPageId(draftId);
+                setCreatedPageTitle(newPageTitle);
+                setShowExtractionDialog(false);
+                setShowCompletionDialog(true);
             }
-
-            const draftId = createResult.data as string;
-
-            // Check if cancelled
-            if (isCancelledRef.current) {
-                return;
-            }
-
-            // Create page content with embedded image
-            const pageContent = createPageContent(action, imageSrc, content);
-
-            setProgress(formatMessage({id: 'image_ai.progress.saving_content', defaultMessage: 'Saving content...'}));
-
-            // Save the draft content WITHOUT publishing - user can review and publish manually
-            const saveResult = await dispatch(savePageDraftAction(
-                channelId,
-                wikiId,
-                draftId,
-                pageContent,
-                newPageTitle,
-                undefined, // lastUpdateAt
-                {page_parent_id: parentPageId || ''}, // additionalProps
-            ));
-
-            if ('error' in saveResult && saveResult.error) {
-                throw saveResult.error;
-            }
-
-            // Store created draft info
-            setCreatedPageId(draftId);
-            setCreatedPageTitle(newPageTitle);
-
-            // Show completion dialog
-            setShowExtractionDialog(false);
-            setShowCompletionDialog(true);
         } catch (err) {
             const serverError: ServerError = {
                 message: err instanceof Error ? err.message : formatMessage({id: 'image_ai.error.action_failed', defaultMessage: 'Image AI action failed'}),
@@ -406,8 +410,10 @@ const useImageAI = (
             setServerError?.(serverError);
             setShowExtractionDialog(false);
         } finally {
-            setIsProcessing(false);
-            setProgress('');
+            if (isMounted()) {
+                setIsProcessing(false);
+                setProgress('');
+            }
         }
     }, [
         channelId,
@@ -422,6 +428,7 @@ const useImageAI = (
         extractImageTextFromSource,
         setServerError,
         formatMessage,
+        isMounted,
     ]);
 
     /**
@@ -435,7 +442,7 @@ const useImageAI = (
     }, []);
 
     /**
-     * Navigates to the newly created page.
+     * Navigates to the newly created page (describe_image only).
      */
     const goToCreatedPage = useCallback(() => {
         if (createdPageId) {
@@ -444,16 +451,18 @@ const useImageAI = (
         setShowCompletionDialog(false);
         setCreatedPageId(null);
         setCreatedPageTitle('');
+        setExtractedNodes(null);
         setActionType(null);
     }, [createdPageId, onPageCreated]);
 
     /**
-     * Closes the completion dialog without navigating.
+     * Closes the completion dialog without navigating or inserting.
      */
     const stayOnCurrentPage = useCallback(() => {
         setShowCompletionDialog(false);
         setCreatedPageId(null);
         setCreatedPageTitle('');
+        setExtractedNodes(null);
         setActionType(null);
     }, []);
 
@@ -465,6 +474,7 @@ const useImageAI = (
         progress,
         createdPageId,
         createdPageTitle,
+        extractedNodes,
         handleImageAIAction,
         cancelExtraction,
         goToCreatedPage,

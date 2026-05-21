@@ -15,6 +15,7 @@ export type ImageExtractionCompleteDialogProps = {
     pageTitle: string;
     onGoToDraft: () => void;
     onStayHere: () => void;
+    onInsertContent?: () => void;
 };
 
 /**
@@ -27,6 +28,7 @@ const ImageExtractionCompleteDialog = ({
     pageTitle,
     onGoToDraft,
     onStayHere,
+    onInsertContent,
 }: ImageExtractionCompleteDialogProps) => {
     const {formatMessage} = useIntl();
 
@@ -34,22 +36,21 @@ const ImageExtractionCompleteDialog = ({
         return null;
     }
 
+    const isHandwriting = actionType === 'extract_handwriting';
+
     const getTitle = () => {
-        if (actionType === 'extract_handwriting') {
-            return formatMessage({id: 'image_extraction_complete.title_handwriting', defaultMessage: 'Handwriting Extracted'});
+        if (isHandwriting) {
+            return formatMessage({id: 'image_extraction_complete.title_handwriting', defaultMessage: 'Text Extracted'});
         }
         return formatMessage({id: 'image_extraction_complete.title_describe', defaultMessage: 'Image Described'});
     };
 
     const getDescription = () => {
-        if (actionType === 'extract_handwriting') {
-            return formatMessage(
-                {
-                    id: 'image_extraction_complete.description_handwriting',
-                    defaultMessage: 'The handwritten text has been extracted and saved as a new draft page: "{pageTitle}"',
-                },
-                {pageTitle},
-            );
+        if (isHandwriting) {
+            return formatMessage({
+                id: 'image_extraction_complete.description_handwriting',
+                defaultMessage: 'The text has been extracted. Insert it at the current cursor position or discard.',
+            });
         }
         return formatMessage(
             {
@@ -60,6 +61,11 @@ const ImageExtractionCompleteDialog = ({
         );
     };
 
+    const handleConfirm = isHandwriting ? (onInsertContent ?? onGoToDraft) : onGoToDraft;
+    const confirmText = isHandwriting ?
+        formatMessage({id: 'image_extraction_complete.insert_content', defaultMessage: 'Insert into page'}) :
+        formatMessage({id: 'image_extraction_complete.go_to_draft', defaultMessage: 'Go to draft'});
+
     return (
         <GenericModal
             id='image-extraction-complete-dialog'
@@ -69,8 +75,8 @@ const ImageExtractionCompleteDialog = ({
             show={show}
             onExited={() => {}}
             handleCancel={onStayHere}
-            handleConfirm={onGoToDraft}
-            confirmButtonText={formatMessage({id: 'image_extraction_complete.go_to_draft', defaultMessage: 'Go to draft'})}
+            handleConfirm={handleConfirm}
+            confirmButtonText={confirmText}
             cancelButtonText={formatMessage({id: 'image_extraction_complete.stay_here', defaultMessage: 'Stay here'})}
         >
             <div className='image-extraction-complete-dialog-content'>

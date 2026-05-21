@@ -208,6 +208,15 @@ test('displays all 7 rewrite actions in menu', {tag: '@pages'}, async ({pw, shar
 test('gracefully degrades when AI plugin is not available', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
 
+    // # Check server-side agents-bridge availability before any UI work — this
+    // matches what the webapp uses to gate the AI button and avoids the race
+    // where a UI-based check runs before the agents/status fetch resolves.
+    const aiRunning = await isAIPluginRunning(adminClient);
+    if (aiRunning) {
+        test.skip(true, 'AI plugin is configured - cannot test graceful degradation without disabling plugin');
+        return;
+    }
+
     const channel = await createTestChannel(adminClient, team.id, uniqueName('AI Test Channel'));
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
@@ -220,13 +229,6 @@ test('gracefully degrades when AI plugin is not available', {tag: '@pages'}, asy
 
     // # Type and select content
     const editor = await getEditorAndWait(page);
-
-    // # Check if AI plugin is available - skip test if it IS available
-    const hasAIPlugin = await checkAIPluginAvailability(page);
-    if (hasAIPlugin) {
-        test.skip(true, 'AI plugin is configured - cannot test graceful degradation without disabling plugin');
-        return;
-    }
 
     await editor.click();
     await page.keyboard.type('Test content without AI plugin.');
@@ -540,8 +542,12 @@ test('shows AI Tools in page actions menu when AI is available', {tag: '@pages'}
     await getEditorAndWait(page);
 
     // * Verify AI Tools are available in page actions menu
-    const aiToolsVisible = await isAIToolsDropdownVisible(page);
-    expect(aiToolsVisible).toBe(true);
+    // Use poll() because agents/status is fetched async on mount; the menu won't
+    // show the AI submenu until that Redux state resolves.
+    await expect.poll(
+        () => isAIToolsDropdownVisible(page),
+        {timeout: ELEMENT_TIMEOUT},
+    ).toBe(true);
 
     // * Verify page actions menu button is visible
     const menuButton = getPageActionsMenuButton(page);
@@ -731,21 +737,25 @@ test('does not expose AI rewrite in read-only view mode', {tag: '@pages'}, async
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    // # Check if AI plugin is available
+    // # Create wiki and page with content. `checkAIPluginAvailability` requires the
+    //   editor to be visible (it inspects the formatting bar) so it must run AFTER
+    //   we're inside a page draft, not while still on the channel landing.
+    await createWikiThroughUI(page, uniqueName('AI Readonly Test Wiki'));
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'AI Readonly Test Page');
+
+    // # Wait for the editor to mount before probing for AI availability.
+    const editor = await getEditorAndWait(page);
+
+    // # Check if AI plugin is available (must be inside an editor to detect it).
     const hasAIPlugin = await checkAIPluginAvailability(page);
     if (!hasAIPlugin) {
         test.skip(true, 'AI plugin not configured - skipping AI rewrite read-only test');
         return;
     }
 
-    // # Create wiki and page with content
-    await createWikiThroughUI(page, uniqueName('AI Readonly Test Wiki'));
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'AI Readonly Test Page');
-
     // # Add content and publish so the page enters read-only view mode
-    const editor = await getEditorAndWait(page);
     await editor.click();
     await page.keyboard.type('This is published page content for read-only view mode testing.');
     await publishPage(page);
@@ -759,8 +769,15 @@ test('does not expose AI rewrite in read-only view mode', {tag: '@pages'}, async
     await viewer.click();
     await pressModifierKey(page, 'A');
 
-    // # Wait briefly for any formatting bar to appear
-    await waitForFormattingBar(page);
+    // # In read-only mode the editor renders `.inline-comment-toolbar` (per
+    //   tiptap_editor.tsx:1865 `editor && !editable && onCreateInlineComment`),
+    //   not `.formatting-bar-bubble` — waiting for the latter would always time out.
+    //   Wait for the viewer-mode toolbar so we're sure selection processing is done.
+    const viewerToolbar = page.locator('.inline-comment-toolbar').first();
+    await viewerToolbar.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT}).catch(() => {
+        // If the toolbar doesn't appear (e.g. selection collapsed), proceed — the
+        // AI-button-absent assertion below is the test's real subject.
+    });
 
     // * Verify AI rewrite button is NOT present in read-only view mode
     const aiRewriteButton = getAIRewriteButton(page);

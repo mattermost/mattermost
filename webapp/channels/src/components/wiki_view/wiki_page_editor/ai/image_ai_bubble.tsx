@@ -218,7 +218,7 @@ const ImageAIBubble = ({editor, onImageAIAction, visionEnabled = false}: Props) 
                         leadingElement={<PencilOutlineIcon size={18}/>}
                         labels={
                             <span>
-                                {formatMessage({id: 'image_ai.extract_handwriting', defaultMessage: 'Extract handwriting'})}
+                                {formatMessage({id: 'image_ai.extract_handwriting', defaultMessage: 'Extract text'})}
                             </span>
                         }
                         onClick={handleExtractHandwriting}

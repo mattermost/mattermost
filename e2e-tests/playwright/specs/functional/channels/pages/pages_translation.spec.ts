@@ -24,6 +24,20 @@ import {
     SHORT_WAIT,
 } from './test_helpers';
 
+import type {Page} from '@playwright/test';
+
+// The rewrite menu mounts asynchronously; `#translate-submenu` is inside a portal.
+// Target both by stable DOM id — accessible-name matches are flaky for portaled menuitems.
+async function openRewriteMenuAndGetTranslateOption(page: Page) {
+    const aiRewriteButton = getAIRewriteButton(page);
+    await aiRewriteButton.click();
+    const rewriteMenu = page.locator('#rewrite-menu');
+    await expect(rewriteMenu).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    const translateOption = page.locator('#translate-submenu');
+    await expect(translateOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    return translateOption;
+}
+
 /**
  * @objective Verify Translate to option appears in AI rewrite menu when text is selected
  *
@@ -70,13 +84,9 @@ test('shows Translate to option in AI rewrite menu', {tag: '@pages'}, async ({pw
     // # Wait for formatting bar to appear
     await waitForFormattingBar(page);
 
-    // # Click AI rewrite button
-    const aiRewriteButton = getAIRewriteButton(page);
-    await aiRewriteButton.click();
-
-    // * Verify translate to option is visible in the menu
-    const translateOption = page.getByRole('menuitem', {name: /translate to/i});
-    await expect(translateOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // * Verify translate to option is visible in the menu (label "Translate to...")
+    const translateOption = await openRewriteMenuAndGetTranslateOption(page);
+    await expect(translateOption).toContainText(/translate to/i);
 });
 
 /**
@@ -125,12 +135,8 @@ test('shows language submenu for translation', {tag: '@pages'}, async ({pw, shar
     // # Wait for formatting bar to appear
     await waitForFormattingBar(page);
 
-    // # Click AI rewrite button
-    const aiRewriteButton = getAIRewriteButton(page);
-    await aiRewriteButton.click();
-
-    // # Hover over translate to option
-    const translateOption = page.getByRole('menuitem', {name: /translate to/i});
+    // # Open the rewrite menu and get the translate submenu trigger.
+    const translateOption = await openRewriteMenuAndGetTranslateOption(page);
     await translateOption.hover();
 
     // * Verify language submenu is visible with common languages

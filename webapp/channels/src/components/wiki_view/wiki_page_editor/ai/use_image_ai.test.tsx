@@ -405,7 +405,7 @@ describe('useImageAI', () => {
             expect(result.current.createdPageTitle).toContain('Description');
         });
 
-        test('should complete extraction and show completion dialog', async () => {
+        test('should complete extract_handwriting and expose extractedNodes for inline insert', async () => {
             const {result} = renderHook(() => useImageAI(
                 defaultProps.channelId,
                 defaultProps.wikiId,
@@ -424,8 +424,33 @@ describe('useImageAI', () => {
             expect(result.current.showExtractionDialog).toBe(false);
             expect(result.current.showCompletionDialog).toBe(true);
             expect(result.current.isProcessing).toBe(false);
+            expect(result.current.createdPageId).toBeNull();
+            expect(result.current.extractedNodes).not.toBeNull();
+            expect(Array.isArray(result.current.extractedNodes)).toBe(true);
+        });
+
+        test('should complete describe_image and create a draft page', async () => {
+            const {result} = renderHook(() => useImageAI(
+                defaultProps.channelId,
+                defaultProps.wikiId,
+                defaultProps.currentPageId,
+                defaultProps.currentPageTitle,
+                defaultProps.agentId,
+                true,
+            ));
+
+            const mockImage = createMockImageElement();
+
+            await act(async () => {
+                await result.current.handleImageAIAction('describe_image', mockImage);
+            });
+
+            expect(result.current.showExtractionDialog).toBe(false);
+            expect(result.current.showCompletionDialog).toBe(true);
+            expect(result.current.isProcessing).toBe(false);
             expect(result.current.createdPageId).toBe('draft-123');
-            expect(result.current.createdPageTitle).toContain('Handwriting');
+            expect(result.current.createdPageTitle).toContain('Description');
+            expect(result.current.extractedNodes).toBeNull();
         });
 
         test('should handle API extraction errors', async () => {
@@ -459,7 +484,7 @@ describe('useImageAI', () => {
             );
         });
 
-        test('should handle page creation errors', async () => {
+        test('should handle page creation errors (describe_image)', async () => {
             const mockSetServerError = jest.fn();
             const error = new Error('Failed to create page');
 
@@ -479,7 +504,7 @@ describe('useImageAI', () => {
             const mockImage = createMockImageElement();
 
             await act(async () => {
-                await result.current.handleImageAIAction('extract_handwriting', mockImage);
+                await result.current.handleImageAIAction('describe_image', mockImage);
             });
 
             expect(result.current.showExtractionDialog).toBe(false);
@@ -554,7 +579,7 @@ describe('useImageAI', () => {
     });
 
     describe('goToCreatedPage', () => {
-        test('should call onPageCreated callback', async () => {
+        test('should call onPageCreated callback (describe_image)', async () => {
             const mockOnPageCreated = jest.fn();
 
             const {result} = renderHook(() => useImageAI(
@@ -570,7 +595,7 @@ describe('useImageAI', () => {
             const mockImage = createMockImageElement();
 
             await act(async () => {
-                await result.current.handleImageAIAction('extract_handwriting', mockImage);
+                await result.current.handleImageAIAction('describe_image', mockImage);
             });
 
             expect(result.current.createdPageId).toBe('draft-123');
@@ -619,7 +644,7 @@ describe('useImageAI', () => {
     });
 
     describe('page title generation', () => {
-        test('should generate title with page name for handwriting', async () => {
+        test('should store extractedNodes (not create page) for handwriting', async () => {
             const {result} = renderHook(() => useImageAI(
                 defaultProps.channelId,
                 defaultProps.wikiId,
@@ -635,8 +660,8 @@ describe('useImageAI', () => {
                 await result.current.handleImageAIAction('extract_handwriting', mockImage);
             });
 
-            expect(result.current.createdPageTitle).toContain('Handwriting');
-            expect(result.current.createdPageTitle).toContain('Test Page');
+            expect(result.current.createdPageTitle).toBe('');
+            expect(result.current.extractedNodes).not.toBeNull();
         });
 
         test('should generate title with page name for describe_image', async () => {

@@ -5,6 +5,8 @@ import type {Editor} from '@tiptap/react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {useIsMounted} from 'hooks/useIsMounted';
+
 import type {ServerError} from '@mattermost/types/errors';
 
 import {getAgents as getAgentsAction} from 'mattermost-redux/actions/agents';
@@ -25,6 +27,7 @@ const usePageRewrite = (
 ) => {
     const dispatch = useDispatch();
     const agents = useSelector(getAgents);
+    const isMounted = useIsMounted();
 
     const [prompt, setPrompt] = useState('');
     const [selectedAgentId, setSelectedAgentId] = useState<string>('');
@@ -51,7 +54,7 @@ const usePageRewrite = (
     }, [editor?.state.selection]);
 
     const handleRewrite = useCallback(async (action?: RewriteAction, customPrompt?: string) => {
-        if (isProcessing || !editor) {
+        if (isProcessing || !editor || !editor.isEditable) {
             return;
         }
 
@@ -98,12 +101,12 @@ const usePageRewrite = (
                 setLastAction(RewriteAction.CUSTOM);
             }
         } finally {
-            if (currentPromiseRef.current === promise) {
+            if (currentPromiseRef.current === promise && isMounted()) {
                 setIsProcessing(false);
                 currentPromiseRef.current = undefined;
             }
         }
-    }, [editor, isProcessing, selectedAgentId, setServerError]);
+    }, [editor, isProcessing, selectedAgentId, setServerError, isMounted]);
 
     const resetState = useCallback(() => {
         setOriginalText('');

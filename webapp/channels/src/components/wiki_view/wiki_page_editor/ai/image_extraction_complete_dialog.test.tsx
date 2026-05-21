@@ -38,15 +38,16 @@ describe('components/wiki_view/wiki_page_editor/ai/ImageExtractionCompleteDialog
                 show={false}
             />,
         );
-        expect(screen.queryByText('Handwriting Extracted')).not.toBeInTheDocument();
+        expect(screen.queryByText('Text Extracted')).not.toBeInTheDocument();
     });
 
-    it('should render for handwriting extraction', () => {
-        renderWithIntl(<ImageExtractionCompleteDialog {...defaultProps}/>);
+    it('should render for handwriting extraction with insert option', () => {
+        const onInsertContent = jest.fn();
+        renderWithIntl(<ImageExtractionCompleteDialog {...defaultProps} onInsertContent={onInsertContent}/>);
 
-        expect(screen.getByText('Handwriting Extracted')).toBeInTheDocument();
-        expect(screen.getByText(/The handwritten text has been extracted/)).toBeInTheDocument();
-        expect(screen.getByText(/"Test Extraction Page"/)).toBeInTheDocument();
+        expect(screen.getByText('Text Extracted')).toBeInTheDocument();
+        expect(screen.getByText(/The text has been extracted/)).toBeInTheDocument();
+        expect(screen.getByText('Insert into page')).toBeInTheDocument();
     });
 
     it('should render for image description', () => {
@@ -61,8 +62,24 @@ describe('components/wiki_view/wiki_page_editor/ai/ImageExtractionCompleteDialog
         expect(screen.getByText(/The image description has been saved/)).toBeInTheDocument();
     });
 
-    it('should call onGoToDraft when Go to draft button is clicked', () => {
-        renderWithIntl(<ImageExtractionCompleteDialog {...defaultProps}/>);
+    it('should call onInsertContent when Insert into page button is clicked for handwriting', () => {
+        const onInsertContent = jest.fn();
+        renderWithIntl(<ImageExtractionCompleteDialog {...defaultProps} onInsertContent={onInsertContent}/>);
+
+        const insertButton = screen.getByText('Insert into page');
+        fireEvent.click(insertButton);
+
+        expect(onInsertContent).toHaveBeenCalled();
+        expect(defaultProps.onGoToDraft).not.toHaveBeenCalled();
+    });
+
+    it('should call onGoToDraft when Go to draft button is clicked for describe_image', () => {
+        renderWithIntl(
+            <ImageExtractionCompleteDialog
+                {...defaultProps}
+                actionType='describe_image'
+            />,
+        );
 
         const goToDraftButton = screen.getByText('Go to draft');
         fireEvent.click(goToDraftButton);

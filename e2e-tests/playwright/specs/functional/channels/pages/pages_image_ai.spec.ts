@@ -19,6 +19,7 @@ import {
     checkAIPluginAvailability,
     uniqueName,
     ELEMENT_TIMEOUT,
+    PAGE_LOAD_TIMEOUT,
     WEBSOCKET_WAIT,
     UI_MICRO_WAIT,
     waitForAutoSave,
@@ -585,7 +586,7 @@ test('shows Extract Handwriting option in Image AI menu', {tag: '@pages'}, async
     await page.waitForTimeout(UI_MICRO_WAIT * 2);
 
     // * Verify menu shows Extract Handwriting option
-    const extractOption = page.locator('text=Extract handwriting');
+    const extractOption = page.locator('text=Extract text');
     await expect(extractOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
@@ -712,7 +713,7 @@ test(
         await page.waitForTimeout(UI_MICRO_WAIT * 2);
 
         // # Click Extract Handwriting option
-        const extractOption = page.locator('text=Extract handwriting');
+        const extractOption = page.locator('text=Extract text');
         await expect(extractOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await extractOption.click();
 
@@ -819,7 +820,7 @@ test(
         await page.waitForTimeout(UI_MICRO_WAIT * 2);
 
         // # Click Extract Handwriting option
-        const extractOption = page.locator('text=Extract handwriting');
+        const extractOption = page.locator('text=Extract text');
         await expect(extractOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await extractOption.click();
 
@@ -1012,7 +1013,7 @@ test(
         await page.waitForTimeout(UI_MICRO_WAIT * 2);
 
         // * Verify both AI options are available
-        const extractOption = page.locator('text=Extract handwriting');
+        const extractOption = page.locator('text=Extract text');
         const describeOption = page.locator('text=Describe image');
 
         await expect(extractOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
@@ -1236,14 +1237,8 @@ test(
 
         const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-        // # Check AI availability before proceeding
-        const hasAIPlugin = await checkAIPluginAvailability(page);
-        if (!hasAIPlugin) {
-            test.skip(true, 'AI plugin not configured - skipping inline insert test');
-            return;
-        }
-
-        // # Create wiki through UI
+        // # Create wiki through UI (needed before AI availability check — the check
+        //   inspects the wiki page editor, not the channel message box)
         await createWikiThroughUI(page, uniqueName('Inline Insert Wiki'));
 
         // # Create new draft page
@@ -1255,8 +1250,31 @@ test(
         const editor = await getEditorAndWait(page);
         await editor.click();
 
-        // # Upload image using MINIMAL_PNG_BASE64 pattern (already defined in file)
-        await uploadImageIntoEditor(page);
+        // # Check AI availability now that the wiki editor is open
+        const hasAIPlugin = await checkAIPluginAvailability(page);
+        if (!hasAIPlugin) {
+            test.skip(true, 'AI plugin not configured - skipping inline insert test');
+            return;
+        }
+
+        // # Upload the real handwritten todo list fixture so the AI plugin has
+        // actual text to extract. The MINIMAL_PNG_BASE64 placeholder used in
+        // most image-AI tests is a 10x10 gradient with nothing to OCR, which
+        // makes the completion dialog never appear.
+        const handwrittenImagePath = path.join(__dirname, 'fixtures', 'handwritten_todo_list.png');
+        if (!fs.existsSync(handwrittenImagePath)) {
+            test.skip(true, 'Handwritten todo list fixture not found');
+            return;
+        }
+        const slashMenu = await openSlashCommandMenu(page);
+        await page.keyboard.type('image');
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
+        const imageItem = slashMenu.locator('.slash-command-item').filter({hasText: 'Image'});
+        await expect(imageItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        const fileChooserPromise = page.waitForEvent('filechooser', {timeout: ELEMENT_TIMEOUT});
+        await imageItem.click();
+        const fileChooser = await fileChooserPromise;
+        await fileChooser.setFiles(handwrittenImagePath);
         await page.waitForTimeout(WEBSOCKET_WAIT);
 
         // # Select the image to trigger the AI bubble menu
@@ -1277,17 +1295,24 @@ test(
         await menuButton.click();
         await page.waitForTimeout(UI_MICRO_WAIT * 2);
 
-        // # Click "Extract handwriting" from the AI bubble menu
-        const extractOption = page.locator('text=Extract handwriting');
+        // # Click "Extract text" from the AI bubble menu (label was "Extract handwriting" pre-A31)
+        const extractOption = page.locator('[data-testid="image-ai-extract-handwriting"]').first();
         await expect(extractOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await extractOption.click();
 
-        // # Wait for extraction to complete
+        // # Wait for extraction to complete and the completion dialog to appear
         await page.waitForTimeout(WEBSOCKET_WAIT);
 
-        // * Post-fix: extracted text should appear inline in the current editor
+        // # Click "Insert into page" in the completion dialog to inline the extracted text
+        const insertButton = page.locator('button:has-text("Insert into page")').first();
+        await expect(insertButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await insertButton.click();
+
+        // * Post-fix: extracted text should appear inline in the current editor.
+        // The handwritten fixture contains "Write documentation", "Fix bug", "Code review",
+        // etc.; check that the OCR text landed in the editor.
         const editorLocator = getEditor(page);
-        await expect(editorLocator).toContainText(/extracted|handwriting|text/i, {timeout: 15000});
+        await expect(editorLocator).toContainText(/write documentation|fix bug|code review|priority/i, {timeout: PAGE_LOAD_TIMEOUT});
 
         // * Post-fix: no new draft page should have been created — URL must not change to /pages/new
         const currentUrl = page.url();

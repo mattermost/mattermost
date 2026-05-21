@@ -75,6 +75,7 @@ describe('usePageRewrite', () => {
 
         // Create mock TipTap editor
         mockEditor = {
+            isEditable: true,
             state: {
                 selection: {
                     from: 0,
