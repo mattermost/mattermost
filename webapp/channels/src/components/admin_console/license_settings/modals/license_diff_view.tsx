@@ -7,9 +7,10 @@ import type {MessageDescriptor} from 'react-intl';
 
 import type {ClientLicense, License} from '@mattermost/types/config';
 
-import SectionNotice from 'components/section_notice';
+import AlertBanner from 'components/alert_banner';
+import type {ModeType} from 'components/alert_banner';
 
-import {CloudLinks, LicenseSkus} from 'utils/constants';
+import {CloudLinks, LicenseSkus, getLicenseTier} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 
 import './license_diff_view.scss';
@@ -66,14 +67,18 @@ const formatDate = (timestamp: number | string, locale: string) => {
 };
 
 type BannerConfig = {
-    type: 'warning' | 'info' | 'success' | 'danger';
+    mode: ModeType;
     title: MessageDescriptor;
     description: MessageDescriptor;
     showPlanDiffLink: boolean;
 };
 
-// Normalize SKU aliases (E10 → enterprise, E20 → advanced) to their canonical values
-// so that legacy SKU names are handled correctly in plan-level and banner logic.
+// Normalize legacy Enterprise Edition SKU short names to their modern equivalents:
+//   E10 → Professional, E20 → Enterprise.
+// Rationale: in the rest of the webapp (utils/subscription.ts, sku_tag.tsx) E10 is
+// surfaced as the lower-tier "Enterprise E10" and E20 as the higher "Enterprise E20".
+// isEnterpriseLicense() treats E20 (not E10) as Enterprise — consistent with E10
+// being a Professional-equivalent tier and E20 the Enterprise tier.
 const normalizeSku = (skuShortName: string | undefined): string | undefined => {
     const lower = skuShortName?.toLowerCase();
     switch (lower) {
@@ -86,19 +91,21 @@ const normalizeSku = (skuShortName: string | undefined): string | undefined => {
     }
 };
 
+// getPlanLevel produces a monotone ordering used to detect upgrades vs downgrades.
+// This intentionally diverges from utils/constants#getLicenseTier for Entry: the
+// server treats Entry as a top-tier capability gate (tier 30, same as EnterpriseAdvanced),
+// but for "is this an upgrade or a downgrade" UX we treat Entry as the lowest tier
+// so transitions from Entry are framed as upgrades.
 const getPlanLevel = (skuShortName: string | undefined): number => {
-    switch (normalizeSku(skuShortName)) {
-    case LicenseSkus.Entry:
-        return 0;
-    case LicenseSkus.Professional:
-        return 1;
-    case LicenseSkus.Enterprise:
-        return 2;
-    case LicenseSkus.EnterpriseAdvanced:
-        return 3;
-    default:
+    const sku = normalizeSku(skuShortName);
+    if (!sku) {
         return -1;
     }
+    if (sku === LicenseSkus.Entry) {
+        return 0;
+    }
+    const tier = getLicenseTier(sku);
+    return tier === 0 ? -1 : tier;
 };
 
 // Entry transitions (info-only view)
@@ -108,7 +115,7 @@ const getEntryTransitionBanner = (newSkuShortName: string | undefined): BannerCo
     switch (sku) {
     case LicenseSkus.Professional:
         return {
-            type: 'warning',
+            mode: 'warning',
             title: {
                 id: 'admin.license.diff.banner.entry_to_professional.title',
                 defaultMessage: 'This license changes your available features',
@@ -121,7 +128,7 @@ const getEntryTransitionBanner = (newSkuShortName: string | undefined): BannerCo
         };
     case LicenseSkus.Enterprise:
         return {
-            type: 'info',
+            mode: 'info',
             title: {
                 id: 'admin.license.diff.banner.entry_to_enterprise.title',
                 defaultMessage: 'This license adds Enterprise capabilities, with feature changes',
@@ -134,7 +141,7 @@ const getEntryTransitionBanner = (newSkuShortName: string | undefined): BannerCo
         };
     case LicenseSkus.EnterpriseAdvanced:
         return {
-            type: 'success',
+            mode: 'success',
             title: {
                 id: 'admin.license.diff.banner.entry_to_advanced.title',
                 defaultMessage: 'This license adds Enterprise Advanced capabilities',
@@ -150,35 +157,53 @@ const getEntryTransitionBanner = (newSkuShortName: string | undefined): BannerCo
     }
 };
 
-// Upgrade banners (comparison diff view)
-const getUpgradeBanner = (newSkuShortName: string | undefined): BannerConfig | null => {
+// Upgrade banners (comparison diff view). Mirrors the downgrade matrix so that
+// each (currentSku → newSku) upgrade pair gets accurate copy. Entry source is
+// handled separately via getEntryTransitionBanner.
+const getUpgradeBanner = (currentSkuShortName: string | undefined, newSkuShortName: string | undefined): BannerConfig | null => {
+    const currentSku = normalizeSku(currentSkuShortName);
     const newSku = normalizeSku(newSkuShortName);
 
-    if (newSku === LicenseSkus.Enterprise) {
+    if (currentSku === LicenseSkus.Professional && newSku === LicenseSkus.Enterprise) {
         return {
-            type: 'success',
+            mode: 'success',
             title: {
-                id: 'admin.license.diff.banner.upgrade_to_enterprise.title',
+                id: 'admin.license.diff.banner.upgrade_professional_to_enterprise.title',
                 defaultMessage: 'This license adds Enterprise capabilities',
             },
             description: {
-                id: 'admin.license.diff.banner.upgrade_to_enterprise.description',
+                id: 'admin.license.diff.banner.upgrade_professional_to_enterprise.description',
                 defaultMessage: 'Mattermost Enterprise includes all features available in Mattermost Professional, plus enterprise scale and high availability, advanced compliance and administration features, and enterprise support options.',
             },
             showPlanDiffLink: false,
         };
     }
 
-    if (newSku === LicenseSkus.EnterpriseAdvanced) {
+    if (currentSku === LicenseSkus.Professional && newSku === LicenseSkus.EnterpriseAdvanced) {
         return {
-            type: 'success',
+            mode: 'success',
             title: {
-                id: 'admin.license.diff.banner.upgrade_to_advanced.title',
+                id: 'admin.license.diff.banner.upgrade_professional_to_advanced.title',
                 defaultMessage: 'This license adds Enterprise Advanced capabilities',
             },
             description: {
-                id: 'admin.license.diff.banner.upgrade_to_advanced.description',
-                defaultMessage: 'Mattermost Enterprise Advanced includes all Enterprise features, plus Zero Trust security, sensitive information controls, mobile security hardening for mission-critical operations.',
+                id: 'admin.license.diff.banner.upgrade_professional_to_advanced.description',
+                defaultMessage: 'Mattermost Enterprise Advanced includes all Professional and Enterprise features — enterprise scale, advanced compliance and administration — plus Zero Trust security, sensitive information controls, and mobile security hardening for mission-critical operations.',
+            },
+            showPlanDiffLink: false,
+        };
+    }
+
+    if (currentSku === LicenseSkus.Enterprise && newSku === LicenseSkus.EnterpriseAdvanced) {
+        return {
+            mode: 'success',
+            title: {
+                id: 'admin.license.diff.banner.upgrade_enterprise_to_advanced.title',
+                defaultMessage: 'This license adds Enterprise Advanced capabilities',
+            },
+            description: {
+                id: 'admin.license.diff.banner.upgrade_enterprise_to_advanced.description',
+                defaultMessage: 'Mattermost Enterprise Advanced includes all Enterprise features, plus Zero Trust security, sensitive information controls, and mobile security hardening for mission-critical operations.',
             },
             showPlanDiffLink: false,
         };
@@ -194,7 +219,7 @@ const getDowngradeBanner = (currentSkuShortName: string | undefined, newSkuShort
 
     if (currentSku === LicenseSkus.Enterprise && newSku === LicenseSkus.Professional) {
         return {
-            type: 'danger',
+            mode: 'danger',
             title: {
                 id: 'admin.license.diff.banner.downgrade.title',
                 defaultMessage: 'This license downgrades your plan',
@@ -209,7 +234,7 @@ const getDowngradeBanner = (currentSkuShortName: string | undefined, newSkuShort
 
     if (currentSku === LicenseSkus.EnterpriseAdvanced && newSku === LicenseSkus.Enterprise) {
         return {
-            type: 'danger',
+            mode: 'danger',
             title: {
                 id: 'admin.license.diff.banner.downgrade.title',
                 defaultMessage: 'This license downgrades your plan',
@@ -224,7 +249,7 @@ const getDowngradeBanner = (currentSkuShortName: string | undefined, newSkuShort
 
     if (currentSku === LicenseSkus.EnterpriseAdvanced && newSku === LicenseSkus.Professional) {
         return {
-            type: 'danger',
+            mode: 'danger',
             title: {
                 id: 'admin.license.diff.banner.downgrade.title',
                 defaultMessage: 'This license downgrades your plan',
@@ -240,6 +265,19 @@ const getDowngradeBanner = (currentSkuShortName: string | undefined, newSkuShort
     return null;
 };
 
+const getSameLicenseBanner = (): BannerConfig => ({
+    mode: 'info',
+    title: {
+        id: 'admin.license.diff.banner.same_license.title',
+        defaultMessage: 'This license is already active',
+    },
+    description: {
+        id: 'admin.license.diff.banner.same_license.description',
+        defaultMessage: 'The selected license matches the license currently applied to this workspace. Applying it again will not change any features or limits.',
+    },
+    showPlanDiffLink: false,
+});
+
 // Get the appropriate banner for any license transition
 const getTransitionBanner = (currentSkuShortName: string | undefined, newSkuShortName: string | undefined): BannerConfig | null => {
     const currentLevel = getPlanLevel(currentSkuShortName);
@@ -250,7 +288,7 @@ const getTransitionBanner = (currentSkuShortName: string | undefined, newSkuShor
     }
 
     if (newLevel > currentLevel) {
-        return getUpgradeBanner(newSkuShortName);
+        return getUpgradeBanner(currentSkuShortName, newSkuShortName);
     }
 
     return getDowngradeBanner(currentSkuShortName, newSkuShortName);
@@ -260,23 +298,29 @@ const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
     const intl = useIntl();
     const hasCurrentLicense = currentLicense && Object.keys(currentLicense).length > 0 && currentLicense.IsLicensed === 'true';
     const isEntryLicense = hasCurrentLicense && normalizeSku(currentLicense.SkuShortName) === LicenseSkus.Entry;
+    const isSameLicense = hasCurrentLicense && Boolean(newLicense.id) && currentLicense.Id === newLicense.id;
 
     const renderBanner = (config: BannerConfig | null) => {
         if (!config) {
             return null;
         }
+        const actionButtonLeft = config.showPlanDiffLink ? (
+            <button
+                className='style-button AlertBanner__buttonLeft'
+                onClick={() => window.open(CloudLinks.SELF_HOSTED_PRICING, '_blank', 'noreferrer')}
+            >
+                <FormattedMessage
+                    id='admin.license.diff.banner.viewPlanDifferences'
+                    defaultMessage='View plan differences'
+                />
+            </button>
+        ) : undefined;
         return (
-            <SectionNotice
-                type={config.type}
+            <AlertBanner
+                mode={config.mode}
                 title={intl.formatMessage(config.title)}
-                text={intl.formatMessage(config.description)}
-                linkButton={config.showPlanDiffLink ? {
-                    onClick: () => window.open(CloudLinks.SELF_HOSTED_PRICING, '_blank', 'noreferrer'),
-                    text: intl.formatMessage({
-                        id: 'admin.license.diff.banner.viewPlanDifferences',
-                        defaultMessage: 'View plan differences',
-                    }),
-                } : undefined}
+                message={intl.formatMessage(config.description)}
+                actionButtonLeft={actionButtonLeft}
             />
         );
     };
@@ -364,7 +408,7 @@ const LicenseDiffView = ({currentLicense, newLicense, locale}: Props) => {
         return currentStr !== newStr;
     };
 
-    const bannerConfig = getTransitionBanner(currentLicense.SkuShortName, newLicense.sku_short_name);
+    const bannerConfig = isSameLicense ? getSameLicenseBanner() : getTransitionBanner(currentLicense.SkuShortName, newLicense.sku_short_name);
 
     return (
         <>

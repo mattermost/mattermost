@@ -138,7 +138,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
         );
 
         expect(screen.getByText('This license changes your available features')).toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.warning')).toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner.warning')).toBeInTheDocument();
         expect(screen.getByText('View plan differences')).toBeInTheDocument();
     });
 
@@ -159,7 +159,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
         );
 
         expect(screen.getByText('This license adds Enterprise capabilities, with feature changes')).toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.info')).toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner.info')).toBeInTheDocument();
         expect(screen.getByText('View plan differences')).toBeInTheDocument();
     });
 
@@ -186,7 +186,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
         );
 
         expect(screen.getByText('This license adds Enterprise Advanced capabilities')).toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.success')).toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner.success')).toBeInTheDocument();
         expect(screen.queryByText('View plan differences')).not.toBeInTheDocument();
     });
 
@@ -202,7 +202,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
             initialState,
         );
 
-        expect(container.querySelector('.sectionNoticeContainer')).not.toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner')).not.toBeInTheDocument();
     });
 
     // Upgrade banners (comparison diff view)
@@ -217,7 +217,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
         );
 
         expect(screen.getByText('This license adds Enterprise capabilities')).toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.success')).toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner.success')).toBeInTheDocument();
         expect(screen.queryByText('View plan differences')).not.toBeInTheDocument();
     });
 
@@ -238,7 +238,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
         );
 
         expect(screen.getByText('This license adds Enterprise Advanced capabilities')).toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.success')).toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner.success')).toBeInTheDocument();
         expect(screen.queryByText('View plan differences')).not.toBeInTheDocument();
     });
 
@@ -265,7 +265,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
         );
 
         expect(screen.getByText('This license adds Enterprise Advanced capabilities')).toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.success')).toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner.success')).toBeInTheDocument();
     });
 
     // Downgrade banners (comparison diff view)
@@ -292,7 +292,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
         );
 
         expect(screen.getByText('This license downgrades your plan')).toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner.danger')).toBeInTheDocument();
         expect(screen.getByText('View plan differences')).toBeInTheDocument();
     });
 
@@ -319,7 +319,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
         );
 
         expect(screen.getByText('This license downgrades your plan')).toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner.danger')).toBeInTheDocument();
         expect(screen.getByText('View plan differences')).toBeInTheDocument();
     });
 
@@ -346,8 +346,27 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
         );
 
         expect(screen.getByText('This license downgrades your plan')).toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner.danger')).toBeInTheDocument();
         expect(screen.getByText('View plan differences')).toBeInTheDocument();
+    });
+
+    test('should show info banner when re-applying the same license', () => {
+        const sameCurrentLicense: ClientLicense = {
+            ...baseCurrentLicense,
+            Id: 'license_id',
+        };
+
+        const {container} = renderWithContext(
+            <LicenseDiffView
+                currentLicense={sameCurrentLicense}
+                newLicense={baseNewLicense}
+                locale={locale}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('This license is already active')).toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner.info')).toBeInTheDocument();
     });
 
     test('should not show banner when same SKU', () => {
@@ -366,7 +385,7 @@ describe('components/admin_console/license_settings/modals/license_diff_view', (
             initialState,
         );
 
-        expect(container.querySelector('.sectionNoticeContainer')).not.toBeInTheDocument();
+        expect(container.querySelector('.AlertBanner')).not.toBeInTheDocument();
     });
 
     test('should highlight changed values', () => {
