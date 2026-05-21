@@ -10,7 +10,6 @@ import type {Post} from '@mattermost/types/posts';
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getChannel, markChannelAsRead, selectChannel} from 'mattermost-redux/actions/channels';
 import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
-import {updateThreadRead} from 'mattermost-redux/actions/threads';
 import {
     clearSearch,
     getFlaggedPosts,
@@ -18,6 +17,7 @@ import {
     searchPostsWithParams,
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
+import {updateThreadRead} from 'mattermost-redux/actions/threads';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -39,9 +39,12 @@ import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
-import {getPostURL} from 'utils/post_utils';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
-import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
+import {
+    consolidateThreadReplyNotifications,
+    enrichPlatformNotificationRecords,
+    getThreadRootId,
+} from 'utils/platform_notification_activity_merge';
 import {
     clearPlatformNotificationsOnServer,
     deletePlatformNotificationOnServer,
@@ -51,11 +54,8 @@ import {
     syncPlatformNotificationActivityToServer,
     upsertPlatformNotificationOnServer,
 } from 'utils/platform_notification_activity_storage';
-import {
-    consolidateThreadReplyNotifications,
-    enrichPlatformNotificationRecords,
-    getThreadRootId,
-} from 'utils/platform_notification_activity_merge';
+import {getPostURL} from 'utils/post_utils';
+import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
 import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'types/store';
 import type {MentionRhsPanel, PlatformNotificationRecord, RhsState} from 'types/store/rhs';
@@ -81,9 +81,7 @@ export function hydratePlatformNotificationActivity(skipServerSync = false): Act
         try {
             list = await fetchPlatformNotificationsFromServer(userId);
         } catch (error) {
-            if (process.env.NODE_ENV !== 'production') {
-                console.warn('Failed to load platform notifications from server', error); // eslint-disable-line no-console
-            }
+            console.warn('Failed to load platform notifications from server', error); // eslint-disable-line no-console
             list = readPlatformNotificationActivityFromStorage(state, userId);
             shouldSyncToServer = list.length > 0;
         }

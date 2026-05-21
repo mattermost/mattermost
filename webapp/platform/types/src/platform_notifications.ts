@@ -24,6 +24,6 @@ export type PlatformNotification = {
     sender_user_id?: UserProfile['id'];
     thread_root_id?: Post['id'];
     reply_count?: number;
-    participant_user_ids?: UserProfile['id'][];
+    participant_user_ids?: Array<UserProfile['id']>;
     preview_body: string;
 };

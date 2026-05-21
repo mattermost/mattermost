@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isDirectChannel, isGroupChannel} from 'mattermost-redux/utils/channel_utils';
 
 import {PLATFORM_NOTIFICATION_BURST_WINDOW_MS} from 'utils/constants';

@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useMemo} from 'react';
 import type {IntlShape, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-
-import classNames from 'classnames';
 
 import {Posts} from 'mattermost-redux/constants';
 import {getChannel, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
@@ -18,20 +17,21 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {openPlatformNotificationRecord} from 'actions/views/rhs';
+
 import Markdown from 'components/markdown';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import ProfilePicture from 'components/profile_picture';
 import Avatar from 'components/widgets/users/avatar';
 
-import RhsNotificationMenu from './rhs_notification_menu';
-
-import * as Utils from 'utils/utils';
 import {Preferences} from 'utils/constants';
-import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import {isPlatformNotificationUnread} from 'utils/platform_notification_unread';
+import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
+import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PlatformNotificationRecord} from 'types/store/rhs';
+
+import RhsNotificationMenu from './rhs_notification_menu';
 
 import './rhs_notification_card.scss';
 
@@ -372,6 +372,29 @@ export default function RhsNotificationCard({record}: Props) {
         mentionHighlight: isMention,
     }), [isMention]);
 
+    const previewContent = useMemo(() => {
+        if (!previewPost) {
+            return <span>{getPreviewBody(record)}</span>;
+        }
+
+        if (previewMessage) {
+            return (
+                <Markdown
+                    message={previewPost.state === Posts.POST_DELETED ? msgDeleted : previewMessage}
+                    options={markdownOptions}
+                    imagesMetadata={previewPost.metadata?.images}
+                    mentionKeys={previewMentionKeys}
+                    imageProps={{
+                        onImageHeightChanged: () => {},
+                        onImageLoaded: () => {},
+                    }}
+                />
+            );
+        }
+
+        return ensureString(previewPost.props?.override_username) || msgDeleted;
+    }, [markdownOptions, msgDeleted, previewMentionKeys, previewMessage, previewPost, record]);
+
     return (
         <div
             className={classNames('RhsNotificationCard', {'has-unreads': hasUnreads})}
@@ -417,24 +440,7 @@ export default function RhsNotificationCard({record}: Props) {
                             className='RhsNotificationCard__preview'
                             dir='auto'
                         >
-                            {previewPost ? (
-                                previewMessage ? (
-                                    <Markdown
-                                        message={previewPost.state === Posts.POST_DELETED ? msgDeleted : previewMessage}
-                                        options={markdownOptions}
-                                        imagesMetadata={previewPost.metadata?.images}
-                                        mentionKeys={previewMentionKeys}
-                                        imageProps={{
-                                            onImageHeightChanged: () => {},
-                                            onImageLoaded: () => {},
-                                        }}
-                                    />
-                                ) : (
-                                    ensureString(previewPost.props?.override_username) || msgDeleted
-                                )
-                            ) : (
-                                <span>{getPreviewBody(record)}</span>
-                            )}
+                            {previewContent}
                         </div>
                     </div>
                 </div>

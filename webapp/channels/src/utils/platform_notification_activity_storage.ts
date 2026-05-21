@@ -7,9 +7,9 @@ import {Client4} from 'mattermost-redux/client';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {getConnectionId} from 'selectors/general';
+import LocalStorageStore from 'stores/local_storage_store';
 
 import {PLATFORM_NOTIFICATION_ACTIVITY_MAX, StoragePrefixes} from 'utils/constants';
-import LocalStorageStore from 'stores/local_storage_store';
 
 import type {GlobalState} from 'types/store';
 import type {PlatformNotificationRecord} from 'types/store/rhs';
@@ -162,7 +162,7 @@ export async function migrateLocalPlatformNotificationsToServer(state: GlobalSta
     return localRecords;
 }
 
-export function syncPlatformNotificationActivityToStorage(_state: GlobalState): void {
+export function syncPlatformNotificationActivityToStorage(): void {
     // Deprecated: notifications are persisted on the server.
 }
 

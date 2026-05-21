@@ -3831,3 +3831,180 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/users/{user_id}/platform_notifications":
+    get:
+      tags:
+        - users
+      summary: Get a user's platform notifications
+      description: |
+        Get the stored platform notifications for a user.
+
+        ##### Permissions
+
+        Must be logged in as the user or have the `edit_other_users` permission.
+      operationId: GetPlatformNotifications
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Platform notifications retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlatformNotification"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    put:
+      tags:
+        - users
+      summary: Replace a user's platform notifications
+      description: |
+        Replace all stored platform notifications for a user.
+
+        ##### Permissions
+
+        Must be logged in as the user or have the `edit_other_users` permission.
+      operationId: ReplacePlatformNotifications
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: List of platform notification objects
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/PlatformNotification"
+      responses:
+        "200":
+          description: Platform notifications replaced successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlatformNotification"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - users
+      summary: Upsert a platform notification
+      description: |
+        Create or update a platform notification for a user.
+
+        ##### Permissions
+
+        Must be logged in as the user or have the `edit_other_users` permission.
+      operationId: UpsertPlatformNotification
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Platform notification object
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlatformNotification"
+      responses:
+        "200":
+          description: Platform notification upsert successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformNotification"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      tags:
+        - users
+      summary: Clear a user's platform notifications
+      description: |
+        Delete all stored platform notifications for a user.
+
+        ##### Permissions
+
+        Must be logged in as the user or have the `edit_other_users` permission.
+      operationId: ClearPlatformNotifications
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/OK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/platform_notifications/{notification_id}":
+    delete:
+      tags:
+        - users
+      summary: Delete a platform notification
+      description: |
+        Delete a single platform notification for a user.
+
+        ##### Permissions
+
+        Must be logged in as the user or have the `edit_other_users` permission.
+      operationId: DeletePlatformNotification
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+        - name: notification_id
+          in: path
+          description: Platform notification ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/OK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

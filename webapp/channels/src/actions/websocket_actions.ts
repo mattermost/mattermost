@@ -170,9 +170,9 @@ import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
-import {fromServerPlatformNotification} from 'utils/platform_notification_activity_storage';
 import {getIntl} from 'utils/i18n';
 import {isEnterpriseLicense} from 'utils/license_utils';
+import {fromServerPlatformNotification} from 'utils/platform_notification_activity_storage';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 

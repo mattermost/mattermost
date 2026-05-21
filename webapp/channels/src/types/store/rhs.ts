@@ -30,7 +30,7 @@ export type PlatformNotificationRecord = {
     senderUserId?: UserProfile['id'];
     threadRootId?: Post['id'];
     replyCount?: number;
-    participantUserIds?: UserProfile['id'][];
+    participantUserIds?: Array<UserProfile['id']>;
     readAt?: number;
     previewBody: string;
 };

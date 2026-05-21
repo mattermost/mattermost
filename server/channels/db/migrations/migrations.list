@@ -369,3 +369,7 @@ channels/db/migrations/postgres/000185_create_channel_guards.down.sql
 channels/db/migrations/postgres/000185_create_channel_guards.up.sql
 channels/db/migrations/postgres/000186_create_channel_guards_plugin_id_index.down.sql
 channels/db/migrations/postgres/000186_create_channel_guards_plugin_id_index.up.sql
+channels/db/migrations/postgres/000187_create_user_platform_notifications.down.sql
+channels/db/migrations/postgres/000187_create_user_platform_notifications.up.sql
+channels/db/migrations/postgres/000188_create_user_platform_notifications_userid_recordedat_index.down.sql
+channels/db/migrations/postgres/000188_create_user_platform_notifications_userid_recordedat_index.up.sql

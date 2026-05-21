@@ -63,7 +63,6 @@ import type {
     GetDataRetentionCustomPoliciesRequest,
 } from '@mattermost/types/data_retention';
 import type {Draft} from '@mattermost/types/drafts';
-import type {PlatformNotification} from '@mattermost/types/platform_notifications';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse, FileSearchResults} from '@mattermost/types/files';
@@ -104,6 +103,7 @@ import type {
     MarketplacePlugin,
 } from '@mattermost/types/marketplace';
 import type {MfaSecret} from '@mattermost/types/mfa';
+import type {PlatformNotification} from '@mattermost/types/platform_notifications';
 import type {
     ClientPluginManifest,
     PluginManifest,

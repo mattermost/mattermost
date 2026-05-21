@@ -6,7 +6,6 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getPostsByIdsBatched} from 'mattermost-redux/actions/posts';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {reconcilePlatformNotificationActivity} from 'actions/views/rhs';
 
@@ -78,7 +77,7 @@ export default function RhsNotificationActivity({notifications}: Props) {
     return (
         <div className='RhsNotificationActivity'>
             <ul className='RhsNotificationActivity__list'>
-                {notifications.map((record, index) => (
+                {notifications.map((record) => (
                     <li
                         key={record.id}
                         className='RhsNotificationActivity__item'

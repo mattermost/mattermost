@@ -96,8 +96,10 @@ export type Props = {
     matches?: string[];
     term?: string;
     isMentionSearch?: boolean;
+
     /** When true, omits the search-result channel/thread title row (e.g. Activity sidebar already shows context). */
     hideSearchChannelHeader?: boolean;
+
     /** When true, omits avatar and author row; keeps post controls (e.g. Activity notification cards). */
     hideNotificationPostHeader?: boolean;
     location: keyof typeof Locations;

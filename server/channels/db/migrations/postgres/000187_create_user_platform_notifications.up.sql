@@ -19,5 +19,3 @@ CREATE TABLE IF NOT EXISTS userplatformnotifications (
     previewbody TEXT NOT NULL DEFAULT '',
     PRIMARY KEY (userid, id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_userplatformnotifications_userid_recordedat ON userplatformnotifications (userid, recordedat DESC);

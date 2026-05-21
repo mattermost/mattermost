@@ -8,7 +8,6 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-
 import type {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
@@ -27,18 +26,17 @@ import FileSearchResultItem from 'components/file_search_results';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import DateSeparator from 'components/post_view/date_separator';
+import RhsNotificationActivity from 'components/rhs_notification_activity/rhs_notification_activity';
 import {getSearchPopoutTitle} from 'components/rhs_search_popout/title';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-import Header from 'components/widgets/header';
 import ThreadTabButton from 'components/threading/common/button';
+import Header from 'components/widgets/header';
+import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
 import {popoutRhsSearch} from 'utils/popouts/popout_windows';
-
-import RhsNotificationActivity from 'components/rhs_notification_activity/rhs_notification_activity';
 
 import type {RhsState, SearchType} from 'types/store/rhs';
 

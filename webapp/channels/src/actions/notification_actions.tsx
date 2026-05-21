@@ -22,19 +22,19 @@ import {isChannelMuted, isDirectChannel, isGroupChannel} from 'mattermost-redux/
 import {ensureString, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {getChannelURL, getPermalinkURL} from 'selectors/urls';
 import {getPlatformNotifications} from 'selectors/rhs';
+import {getChannelURL, getPermalinkURL} from 'selectors/urls';
 import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {ActionTypes, NotificationLevels, UserStatuses, IgnoreChannelMentions, DesktopSound} from 'utils/constants';
-import {createBurstNotificationId, findBurstMergeTarget} from 'utils/platform_notification_activity_merge';
-import {upsertPlatformNotificationOnServer} from 'utils/platform_notification_activity_storage';
 import DesktopApp from 'utils/desktop_api';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {DesktopNotificationSounds, ding} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
+import {createBurstNotificationId, findBurstMergeTarget} from 'utils/platform_notification_activity_merge';
+import {upsertPlatformNotificationOnServer} from 'utils/platform_notification_activity_storage';
 import {getFocusedPopoutInfo} from 'utils/popouts/focus';
 import {cjkrPattern} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
@@ -270,16 +270,12 @@ export function recordPlatformNotificationForActivity(post: Post, msgProps: NewP
         };
 
         const existingNotifications = getPlatformNotifications(getState());
-        const mergeTarget = (isCrtReply || isPrivateMessage) ?
-            findBurstMergeTarget(existingNotifications, baseRecord) :
-            null;
+        const mergeTarget = (isCrtReply || isPrivateMessage) ? findBurstMergeTarget(existingNotifications, baseRecord) : null;
 
         const record = {
             ...baseRecord,
             id: mergeTarget?.id ?? (
-                isCrtReply || isPrivateMessage ?
-                    createBurstNotificationId(baseRecord) :
-                    `${post.id}:${recordedAt}`
+                isCrtReply || isPrivateMessage ? createBurstNotificationId(baseRecord) : `${post.id}:${recordedAt}`
             ),
         };
 
@@ -290,9 +286,7 @@ export function recordPlatformNotificationForActivity(post: Post, msgProps: NewP
 
         const mergedRecord = getPlatformNotifications(getState()).find((notification) => notification.id === record.id) || record;
         upsertPlatformNotificationOnServer(getState(), mergedRecord).catch((error) => {
-            if (process.env.NODE_ENV !== 'production') {
-                console.warn('Failed to save platform notification to server', error); // eslint-disable-line no-console
-            }
+            console.warn('Failed to save platform notification to server', error); // eslint-disable-line no-console
         });
 
         return {data: true};
@@ -319,9 +313,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
         try {
             dispatch(recordPlatformNotificationForActivity(post, msgProps));
         } catch (error) {
-            if (process.env.NODE_ENV !== 'production') {
-                console.warn('Failed to record platform notification for activity', error); // eslint-disable-line no-console
-            }
+            console.warn('Failed to record platform notification for activity', error); // eslint-disable-line no-console
         }
 
         const skipNotificationReason = shouldSkipNotification(

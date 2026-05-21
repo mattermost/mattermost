@@ -3,6 +3,8 @@
 
 import {PLATFORM_NOTIFICATION_BURST_WINDOW_MS} from 'utils/constants';
 
+import type {PlatformNotificationRecord} from 'types/store/rhs';
+
 import {
     consolidateThreadReplyNotifications,
     createBurstNotificationId,
@@ -12,12 +14,9 @@ import {
     getThreadReplyGroupKey,
     isWithinNotificationBurstWindow,
     mergeDirectMessageIntoRecord,
-    mergeGroupedPlatformNotification,
     mergeThreadReplyIntoRecord,
     sortPlatformNotificationsByRecency,
 } from './platform_notification_activity_merge';
-
-import type {PlatformNotificationRecord} from 'types/store/rhs';
 
 function makeRecord(overrides: Partial<PlatformNotificationRecord> & Pick<PlatformNotificationRecord, 'id' | 'postId' | 'recordedAt'>): PlatformNotificationRecord {
     return {
@@ -153,12 +152,13 @@ describe('platform_notification_activity_merge', () => {
     });
 
     test('consolidateThreadReplyNotifications merges many replies into one burst', () => {
+        const senderUserIds = ['user1', 'user2', 'user3'];
         const records = Array.from({length: 50}, (_, index) => makeRecord({
             id: `legacy-${index}`,
             postId: `p${index}`,
             recordedAt: 100 + index,
             previewBody: `reply ${index}`,
-            senderUserId: index % 3 === 0 ? 'user1' : index % 3 === 1 ? 'user2' : 'user3',
+            senderUserId: senderUserIds[index % 3],
         }));
 
         const consolidated = consolidateThreadReplyNotifications(records);
