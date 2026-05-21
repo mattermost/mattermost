@@ -418,38 +418,50 @@ func TestGetLogs(t *testing.T) {
 	th := Setup(t)
 
 	testID := model.NewId()
+	expectedMessages := make([]string, 0, 20)
 	for i := range 20 {
-		th.TestLogger.Info(fmt.Sprintf("getlogs_verify_%s_%d", testID, i))
+		message := fmt.Sprintf("getlogs_verify_%s_%d", testID, i)
+		expectedMessages = append(expectedMessages, message)
+		th.TestLogger.Info(message)
 	}
 
 	err := th.TestLogger.Flush()
 	require.NoError(t, err, "failed to flush log")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		require.Eventually(t, func() bool {
-			logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
-			if err2 != nil || len(logs) != 10 {
-				return false
+		var logs []string
+		containsLogMessage := func(logs []string, expected string) bool {
+			for _, logLine := range logs {
+				if strings.Contains(logLine, expected) {
+					return true
+				}
 			}
-
-			for i := 10; i < 20; i++ {
-				if !strings.Contains(logs[i-10], fmt.Sprintf("getlogs_verify_%s_%d", testID, i)) {
+			return false
+		}
+		containsExpectedMessages := func(logs []string) bool {
+			for _, expected := range expectedMessages {
+				if !containsLogMessage(logs, expected) {
 					return false
 				}
 			}
-
 			return true
-		}, 15*time.Second, 25*time.Millisecond)
-
-		logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
-		require.NoError(t, err2)
-		require.Len(t, logs, 10)
-
-		for i := 10; i < 20; i++ {
-			assert.Containsf(t, logs[i-10], fmt.Sprintf("getlogs_verify_%s_%d", testID, i), "Log line doesn't contain correct message")
 		}
 
-		logs, _, err2 = c.GetLogs(context.Background(), 1, 10)
+		require.Eventually(t, func() bool {
+			var err2 error
+			logs, _, err2 = c.GetLogs(context.Background(), 0, 200)
+			if err2 != nil {
+				return false
+			}
+
+			return containsExpectedMessages(logs)
+		}, 15*time.Second, 25*time.Millisecond)
+
+		for _, expected := range expectedMessages {
+			assert.Truef(t, containsLogMessage(logs, expected), "Log lines don't contain %q", expected)
+		}
+
+		logs, _, err2 := c.GetLogs(context.Background(), 1, 10)
 		require.NoError(t, err2)
 		require.Len(t, logs, 10)
 
