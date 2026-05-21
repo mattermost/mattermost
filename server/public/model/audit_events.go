@@ -54,6 +54,11 @@ const (
 	AuditEventListChannelBookmarksForChannel = "listChannelBookmarksForChannel" // list bookmarks for channel
 )
 
+// Boards
+const (
+	AuditEventCreateBoard = "createBoard" // create board channel
+)
+
 // Views
 const (
 	AuditEventCreateView          = "createView"          // create view in channel
@@ -311,12 +316,13 @@ const (
 
 // Recaps
 const (
-	AuditEventCreateRecap     = "createRecap"     // create recap summarizing channel content
-	AuditEventGetRecap        = "getRecap"        // view a single recap
-	AuditEventGetRecaps       = "getRecaps"       // list user's recaps
-	AuditEventMarkRecapAsRead = "markRecapAsRead" // mark recap as read
-	AuditEventRegenerateRecap = "regenerateRecap" // regenerate recap with updated channel content
-	AuditEventDeleteRecap     = "deleteRecap"     // delete recap
+	AuditEventCreateRecap        = "createRecap"        // create recap summarizing channel content
+	AuditEventGetRecap           = "getRecap"           // view a single recap
+	AuditEventGetRecaps          = "getRecaps"          // list user's recaps
+	AuditEventMarkRecapAsRead    = "markRecapAsRead"    // mark recap as read
+	AuditEventMarkRecapsAsViewed = "markRecapsAsViewed" // bulk mark user's finished recaps as viewed
+	AuditEventRegenerateRecap    = "regenerateRecap"    // regenerate recap with updated channel content
+	AuditEventDeleteRecap        = "deleteRecap"        // delete recap
 )
 
 // Preferences
@@ -457,6 +463,8 @@ const (
 	AuditEventLogin                        = "login"                        // user login to system
 	AuditEventLoginWithDesktopToken        = "loginWithDesktopToken"        // user login to system with desktop token
 	AuditEventLogout                       = "logout"                       // user logout from system
+	AuditEventMarkMessagesRead             = "markAllMessagesRead"          // user marked all direct and group messages as read
+	AuditEventMarkTeamRead                 = "markFullTeamRead"             // user marked an entire team as read
 	AuditEventMigrateAuthToLdap            = "migrateAuthToLdap"            // migrate user authentication method to LDAP
 	AuditEventMigrateAuthToSaml            = "migrateAuthToSaml"            // migrate user authentication method to SAML
 	AuditEventPatchUser                    = "patchUser"                    // update user properties
@@ -504,4 +512,5 @@ const (
 	AuditEventKeepFlaggedPost              = "keepFlaggedPost"              // keep flagged post
 	AuditEventUpdateContentFlaggingConfig  = "updateContentFlaggingConfig"  // update content flagging configuration
 	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
+	AuditEventGenerateFlaggedPostReport    = "generateFlaggedPostReport"    // generate flagged post data report
 )

@@ -161,6 +161,10 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if channel.IsBoard() {
+		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.board_type.app_error", nil, "use CreateBoardChannel instead", http.StatusBadRequest)
+	}
+
 	if channel.TeamId == "" {
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -229,9 +233,13 @@ func (a *App) RenameChannel(rctx request.CTX, channel *model.Channel, newChannel
 }
 
 func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
-	a.handleChannelCategoryName(channel)
+	if channel.IsBoard() {
+		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.board_type.app_error", nil, "use CreateBoardChannel instead", http.StatusBadRequest)
+	}
 
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
+	channel.DefaultCategoryName = strings.TrimSpace(channel.DefaultCategoryName)
+	channel.ManagedCategoryName = strings.TrimSpace(channel.ManagedCategoryName)
 	sc, nErr := a.Srv().Store().Channel().Save(rctx, channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
@@ -304,7 +312,7 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 	}
 
 	if channel.ManagedCategoryName != "" {
-		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !model.SafeDereference(a.Config().TeamSettings.EnableManagedChannelCategories) {
+		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !a.Config().FeatureFlags.ManagedChannelCategories {
 			rctx.Logger().Warn("Managed category update ignored: feature not available")
 			sc.ManagedCategoryName = ""
 		} else {
@@ -593,7 +601,7 @@ func (a *App) createGroupChannel(rctx request.CTX, userIDs []string, creatorID s
 		Name:        model.GetGroupNameFromUserIds(userIDs),
 		DisplayName: model.GetGroupDisplayNameFromUsers(users, true),
 		Type:        model.ChannelTypeGroup,
-		Shared:      model.NewPointer(channelIsShared),
+		Shared:      new(channelIsShared),
 	}
 
 	channel, nErr := a.Srv().Store().Channel().Save(rctx, group, *a.Config().TeamSettings.MaxChannelsPerTeam, channelOptions...)
@@ -850,6 +858,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
+	messageWs.Add("channel_type", string(channel.Type))
 	a.Publish(messageWs)
 
 	return channel, nil
@@ -985,7 +994,6 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 	oldChannelAutotranslation := channel.AutoTranslation
 
 	channel.Patch(patch)
-	a.handleChannelCategoryName(channel)
 	channel, err = a.UpdateChannel(rctx, channel)
 	if err != nil {
 		return nil, err
@@ -1777,7 +1785,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	if channel.Type == model.ChannelTypePrivate {
 		if ok, appErr := a.ChannelAccessControlled(rctx, channel.Id); ok {
 			if acs := a.Srv().Channels().AccessControl; acs != nil {
-				s, buildErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles)
+				s, buildErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles, channel.Id)
 				if buildErr != nil {
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.abac_subject_build_failed.app_error", nil,
 						fmt.Sprintf("failed to build subject: %v, user_id: %s, channel_id: %s", buildErr, user.Id, channel.Id), http.StatusInternalServerError)
@@ -2114,7 +2122,35 @@ func (a *App) PostUpdateChannelDisplayNameMessage(rctx request.CTX, userID strin
 }
 
 func (a *App) GetChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
-	return a.Srv().getChannel(rctx, channelID)
+	channel, appErr := a.Srv().getChannel(rctx, channelID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	// Hydrate policy action set so consumers can distinguish a membership
+	// policy from a permission-only policy without a second round-trip.
+	// No-op on channels with PolicyEnforced=false, keeping the cost on the
+	// common no-policy path at zero.
+	if appErr := a.HydrateChannelPolicyActions(rctx, channel); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate channel policy actions; returning channel without action map",
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		)
+	}
+	return channel, nil
+}
+
+func (a *App) GetBoardChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
+	channel, err := a.Srv().Store().Channel().GetBoardChannel(channelID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetBoardChannel", "app.channel.get.existing.app_error", map[string]any{"channel_id": channelID}, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetBoardChannel", "app.channel.get.find.app_error", map[string]any{"channel_id": channelID}, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return channel, nil
 }
 
 func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
@@ -2143,6 +2179,15 @@ func (a *App) GetChannels(rctx request.CTX, channelIDs []string) ([]*model.Chann
 		default:
 			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+	// Batched hydration: a single round-trip aggregates the action union
+	// for every PolicyEnforced=true channel in the slice. No-policy
+	// channels skip the lookup entirely.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channels); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate channel policy actions in batch; returning channels without action map",
+			mlog.Int("count", len(channels)),
+			mlog.Err(appErr),
+		)
 	}
 	return channels, nil
 }
@@ -2516,15 +2561,6 @@ func (a *App) GetChannelPinnedPostCount(rctx request.CTX, channelID string) (int
 	}
 
 	return count, nil
-}
-
-func (a *App) GetChannelCounts(rctx request.CTX, teamID string, userID string) (*model.ChannelCounts, *model.AppError) {
-	counts, err := a.Srv().Store().Channel().GetChannelCounts(teamID, userID)
-	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.GetChannelCounts", "app.channel.get_channel_counts.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return counts, nil
 }
 
 func (a *App) GetChannelUnread(rctx request.CTX, channelID, userID string) (*model.ChannelUnread, *model.AppError) {
@@ -3328,7 +3364,130 @@ func (a *App) SearchChannelsUserNotIn(rctx request.CTX, teamID string, userID st
 	return channelList, nil
 }
 
-func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError) {
+func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, userID string, currentSessionID string, isCRTEnabled bool) (map[string]int64, *model.AppError) {
+	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
+	if err != nil {
+		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, user.NotifyProps)
+	if err != nil {
+		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// times already contains every channel the user belongs to in this team, including
+	// fully-read ones. We pass the full set to the thread store because a CRT-enabled
+	// user can have unread thread replies in a channel whose channel-level counters are
+	// already up to date (thread replies don't bump TotalMsgCount). The thread store's
+	// `LastReplyAt > LastViewed` clause keeps the actual UPDATE bounded to genuinely
+	// stale thread memberships.
+	allChannelIDs := make([]string, 0, len(times))
+	for channelID := range times {
+		allChannelIDs = append(allChannelIDs, channelID)
+	}
+	if err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, allChannelIDs); err != nil {
+		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.thread.mark_all_as_read_by_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if len(channelsToView) > 0 {
+		_, err = a.Srv().Store().Channel().UpdateLastViewedAt(channelsToView, userID)
+		if err != nil {
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &invErr):
+				return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			default:
+				return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+
+		if *a.Config().ServiceSettings.EnableChannelViewedMessages {
+			message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
+			message.Add("channel_times", times)
+			a.Publish(message)
+		}
+	}
+
+	for _, channelID := range channelsToClearPushNotifications {
+		a.clearPushNotification(currentSessionID, userID, channelID, "")
+	}
+
+	if isCRTEnabled {
+		// Threads can have been marked read across the entire team, so broadcast a
+		// single team-scoped event. The client routes this to a single
+		// ALL_TEAM_THREADS_READ Redux action — it does NOT trigger any API calls.
+		message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil, "")
+		message.Add("timestamp", model.GetMillis())
+		a.Publish(message)
+	}
+
+	return times, nil
+}
+
+func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID string, currentSessionID string, isCRTEnabled bool) (map[string]int64, *model.AppError) {
+	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
+	if err != nil {
+		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	messagesToView, messagesToClearPushNotifications, times, err := a.Srv().Store().Channel().GetDirectMessagesWithUnreadAndMentions(rctx, userID, user.NotifyProps)
+	if err != nil {
+		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// times already contains every DM/GM the user belongs to, including fully-read
+	// ones. We pass the full set to the thread store because a CRT-enabled user can
+	// have unread thread replies in a channel whose channel-level counters are
+	// already up to date (thread replies don't bump TotalMsgCount). The thread
+	// store's `LastReplyAt > LastViewed` clause keeps the actual UPDATE bounded to
+	// genuinely stale thread memberships.
+	allChannelIDs := make([]string, 0, len(times))
+	for channelID := range times {
+		allChannelIDs = append(allChannelIDs, channelID)
+	}
+	if err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, allChannelIDs); err != nil {
+		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.thread.mark_all_as_read_by_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if len(messagesToView) > 0 {
+		_, err = a.Srv().Store().Channel().UpdateLastViewedAt(messagesToView, userID)
+		if err != nil {
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &invErr):
+				return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			default:
+				return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+
+		if *a.Config().ServiceSettings.EnableChannelViewedMessages {
+			message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
+			message.Add("channel_times", times)
+			a.Publish(message)
+		}
+	}
+
+	for _, channelID := range messagesToClearPushNotifications {
+		a.clearPushNotification(currentSessionID, userID, channelID, "")
+	}
+
+	if isCRTEnabled {
+		// Threads can have been marked read in any DM/GM. There's no team to
+		// broadcast on, so emit one event per channel. The client routes each to a
+		// single ALL_THREADS_IN_CHANNEL_READ Redux action — no API calls are made.
+		timestamp := model.GetMillis()
+		for _, channelID := range allChannelIDs {
+			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
+			message.Add("timestamp", timestamp)
+			a.Publish(message)
+		}
+	}
+
+	return times, nil
+}
+
+func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID string, currentSessionID string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError) {
 	var err error
 
 	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
@@ -3372,7 +3531,7 @@ func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID
 	}
 
 	for _, channelID := range channelsToClearPushNotifications {
-		a.clearPushNotification(currentSessionId, userID, channelID, "")
+		a.clearPushNotification(currentSessionID, userID, channelID, "")
 	}
 
 	if updateThreads && isCRTEnabled {
@@ -4017,7 +4176,7 @@ func (a *App) setSidebarCategoriesForConvertedGroupMessage(rctx request.CTX, gmC
 		channelsCategory := categories.Categories[0]
 		_, appErr = a.UpdateSidebarCategories(rctx, user.Id, gmConversionRequest.TeamID, []*model.SidebarCategoryWithChannels{channelsCategory})
 		if appErr != nil {
-			rctx.Logger().Error("Failed to add converted GM to default sidebar category for user", mlog.String("user_id", user.Id), mlog.Err(err))
+			rctx.Logger().Error("Failed to add converted GM to default sidebar category for user", mlog.String("user_id", user.Id), mlog.Err(appErr))
 		}
 	}
 
@@ -4157,6 +4316,13 @@ func (a *App) CheckIfChannelIsRestrictedDM(rctx request.CTX, channel *model.Chan
 	return len(teams) == 0, nil
 }
 
+// ChannelAccessControlled reports whether the given channel's membership is
+// gated by an ABAC policy. Channels carrying only a permission policy (e.g.
+// file upload restriction) return false — those policies do not control who
+// can be a member and so must not surface through this gate. Phase 1's
+// PolicyActions hydration is required for the answer to be correct; this
+// fetches the channel via the store directly (not App.GetChannel) and then
+// invokes the hydrator explicitly to avoid the recursive plumbing surface.
 func (a *App) ChannelAccessControlled(rctx request.CTX, channelID string) (bool, *model.AppError) {
 	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
 		return false, nil
@@ -4170,7 +4336,14 @@ func (a *App) ChannelAccessControlled(rctx request.CTX, channelID string) (bool,
 		return false, nil
 	}
 
-	return channel.PolicyEnforced, nil
+	if appErr := a.HydrateChannelPolicyActions(rctx, channel); appErr != nil {
+		// Fail-closed: a hydration error must not silently downgrade an
+		// ABAC-controlled channel to "unrestricted" for callers that rely
+		// on this gate (HasPermissionToChannel and friends).
+		return false, appErr
+	}
+
+	return channel.HasMembershipPolicyAction(), nil
 }
 
 // cleanupChannelAccessControlPolicy removes the channel-scope ABAC policy row,
@@ -4262,7 +4435,7 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 		return nil, appErr
 	}
 
-	subject, appErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles)
+	subject, appErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles, "")
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -4276,8 +4449,8 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 			TeamIds:                     []string{teamID},
 			Public:                      true,
 			AccessControlPolicyEnforced: true,
-			Page:                        model.NewPointer(page),
-			PerPage:                     model.NewPointer(recommendedPublicChannelsScanPageSize),
+			Page:                        new(page),
+			PerPage:                     new(recommendedPublicChannelsScanPageSize),
 		})
 		if searchErr != nil {
 			return nil, searchErr
@@ -4334,17 +4507,9 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 	return recommended, nil
 }
 
-func (a *App) handleChannelCategoryName(channel *model.Channel) {
-	if *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting && strings.Contains(channel.DisplayName, "/") {
-		parts := strings.Split(channel.DisplayName, "/")
-		channel.DisplayName = strings.TrimSpace(strings.Join(parts[1:], "/"))
-		channel.DefaultCategoryName = strings.TrimSpace(parts[0])
-	}
-}
-
 func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, channel *model.Channel) {
 	// Add channel to default category if specified
-	if channel.DefaultCategoryName != "" && *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting {
+	if channel.DefaultCategoryName != "" && *a.Config().TeamSettings.EnableChannelCategorySorting {
 		// Get user's categories for this team
 		categories, err := a.GetSidebarCategoriesForTeamForUser(rctx, userID, channel.TeamId)
 		if err != nil {
@@ -4358,6 +4523,21 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 				targetCategory = category
 				break
 			}
+		}
+
+		// Find the original category if the channel is already in a category
+		var originalCategory *model.SidebarCategoryWithChannels
+		for _, category := range categories.Categories {
+			if category.Type == model.SidebarCategoryCustom && category.Channels != nil && slices.Contains(category.Channels, channel.Id) {
+				originalCategory = category
+				break
+			}
+		}
+
+		var categoriesToUpdate []*model.SidebarCategoryWithChannels
+		if originalCategory != nil {
+			originalCategory.Channels = slices.Delete(originalCategory.Channels, slices.Index(originalCategory.Channels, channel.Id), 1)
+			categoriesToUpdate = append(categoriesToUpdate, originalCategory)
 		}
 
 		if targetCategory == nil {
@@ -4377,12 +4557,14 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 				mlog.Error("Failed to create default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 			}
 		} else {
-			// Add channel to existing category
 			targetCategory.Channels = append([]string{channel.Id}, targetCategory.Channels...)
-			_, err = a.UpdateSidebarCategories(rctx, userID, channel.TeamId, []*model.SidebarCategoryWithChannels{targetCategory})
-			if err != nil {
-				mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
-			}
+			categoriesToUpdate = append(categoriesToUpdate, targetCategory)
+		}
+
+		// Add channel to existing category
+		_, err = a.UpdateSidebarCategories(rctx, userID, channel.TeamId, categoriesToUpdate)
+		if err != nil {
+			mlog.Error("Failed to update default category", mlog.String("user_id", userID), mlog.String("team_id", channel.TeamId), mlog.String("category_name", channel.DefaultCategoryName), mlog.Err(err))
 		}
 	}
 }

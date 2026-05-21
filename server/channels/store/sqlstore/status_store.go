@@ -80,7 +80,7 @@ func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) (ret
 		statusList = append(statusList, st)
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

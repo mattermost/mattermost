@@ -313,8 +313,9 @@ test.describe('/mobile-logs slash command', () => {
         // # Try to enable for a nonexistent user
         await channelsPage.postMessage('/mobile-logs on @nonexistentuser12345');
 
-        // * Verify user not found message
-        const lastPost = await channelsPage.getLastPost();
-        await lastPost.toContainText('Could not find user "nonexistentuser12345"');
+        // * Verify user not found message — wait up to 30 s for the slash command response post
+        await expect(channelsPage.centerView.container).toContainText('Could not find user "nonexistentuser12345"', {
+            timeout: 30000,
+        });
     });
 });

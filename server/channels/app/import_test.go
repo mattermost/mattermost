@@ -285,7 +285,7 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	mainHelper.Parallel(t)
 	data := imports.LineImportData{
 		Type:    "version",
-		Version: model.NewPointer(1),
+		Version: new(1),
 	}
 	version, err := processImportDataFileVersionLine(data)
 	require.Nil(t, err, "Expected no error")
@@ -335,7 +335,7 @@ func TestProcessAttachmentPaths(t *testing.T) {
 	t.Run("missing file in map", func(t *testing.T) {
 		attachments := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("file.jpg"),
+				Path: new("file.jpg"),
 			},
 		}
 
@@ -351,25 +351,25 @@ func TestProcessAttachmentPaths(t *testing.T) {
 	t.Run("valid paths", func(t *testing.T) {
 		attachments := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("file.jpg"),
+				Path: new("file.jpg"),
 			},
 			{
-				Path: model.NewPointer("somedir/file.jpg"),
+				Path: new("somedir/file.jpg"),
 			},
 			{
-				Path: model.NewPointer("./someotherdir/file.jpg"),
+				Path: new("./someotherdir/file.jpg"),
 			},
 		}
 
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("data/file.jpg"),
+				Path: new("data/file.jpg"),
 			},
 			{
-				Path: model.NewPointer("data/somedir/file.jpg"),
+				Path: new("data/somedir/file.jpg"),
 			},
 			{
-				Path: model.NewPointer("data/someotherdir/file.jpg"),
+				Path: new("data/someotherdir/file.jpg"),
 			},
 		}
 
@@ -381,19 +381,19 @@ func TestProcessAttachmentPaths(t *testing.T) {
 	t.Run("uncleaned paths", func(t *testing.T) {
 		attachments := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("../dir/invalid.txt"),
+				Path: new("../dir/invalid.txt"),
 			},
 			{
-				Path: model.NewPointer("somedir/./normal-file.jpg"),
+				Path: new("somedir/./normal-file.jpg"),
 			},
 		}
 
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("/path/to/import/dir/invalid.txt"),
+				Path: new("/path/to/import/dir/invalid.txt"),
 			},
 			{
-				Path: model.NewPointer("/path/to/import/dir/somedir/normal-file.jpg"),
+				Path: new("/path/to/import/dir/somedir/normal-file.jpg"),
 			},
 		}
 
@@ -405,19 +405,19 @@ func TestProcessAttachmentPaths(t *testing.T) {
 	t.Run("paths outside base path", func(t *testing.T) {
 		attachments := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("../../invalid.txt"),
+				Path: new("../../invalid.txt"),
 			},
 			{
-				Path: model.NewPointer("../../../invalid.txt"),
+				Path: new("../../../invalid.txt"),
 			},
 		}
 
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer(""),
+				Path: new(""),
 			},
 			{
-				Path: model.NewPointer(""),
+				Path: new(""),
 			},
 		}
 
@@ -429,19 +429,19 @@ func TestProcessAttachmentPaths(t *testing.T) {
 	t.Run("mix of valid and invalid paths", func(t *testing.T) {
 		attachments := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("../../invalid.txt"),
+				Path: new("../../invalid.txt"),
 			},
 			{
-				Path: model.NewPointer("valid/path/to/file"),
+				Path: new("valid/path/to/file"),
 			},
 		}
 
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer(""),
+				Path: new(""),
 			},
 			{
-				Path: model.NewPointer("data/valid/path/to/file"),
+				Path: new("data/valid/path/to/file"),
 			},
 		}
 
@@ -458,10 +458,10 @@ func TestProcessAttachments(t *testing.T) {
 	genAttachments := func() *[]imports.AttachmentImportData {
 		return &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("file.jpg"),
+				Path: new("file.jpg"),
 			},
 			{
-				Path: model.NewPointer("somedir/file.jpg"),
+				Path: new("somedir/file.jpg"),
 			},
 		}
 	}
@@ -484,7 +484,7 @@ func TestProcessAttachments(t *testing.T) {
 		Type: "user",
 		User: &imports.UserImportData{
 			Avatar: imports.Avatar{
-				ProfileImage: model.NewPointer("profile.jpg"),
+				ProfileImage: new("profile.jpg"),
 			},
 		},
 	}
@@ -492,17 +492,17 @@ func TestProcessAttachments(t *testing.T) {
 	emojiLine := imports.LineImportData{
 		Type: "emoji",
 		Emoji: &imports.EmojiImportData{
-			Image: model.NewPointer("emoji.png"),
+			Image: new("emoji.png"),
 		},
 	}
 
 	t.Run("empty path", func(t *testing.T) {
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("file.jpg"),
+				Path: new("file.jpg"),
 			},
 			{
-				Path: model.NewPointer("somedir/file.jpg"),
+				Path: new("somedir/file.jpg"),
 			},
 		}
 
@@ -517,10 +517,10 @@ func TestProcessAttachments(t *testing.T) {
 	t.Run("valid path", func(t *testing.T) {
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("tmp/file.jpg"),
+				Path: new("tmp/file.jpg"),
 			},
 			{
-				Path: model.NewPointer("tmp/somedir/file.jpg"),
+				Path: new("tmp/somedir/file.jpg"),
 			},
 		}
 
@@ -661,7 +661,7 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 	}
 	require.NotNil(t, jsonFile)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewPointer(1000) })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = new(1000) })
 
 	_, appErr := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, true, 1, model.ExportDataDir)
 	require.Nil(t, appErr)
