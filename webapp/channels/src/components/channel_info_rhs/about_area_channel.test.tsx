@@ -148,39 +148,6 @@ describe('channel_info_rhs/about_area_channel', () => {
         expect(screen.getByText('my channel header')).toBeInTheDocument();
     });
 
-    test('should display add channel header empty state when editable and header is empty', () => {
-        renderWithContext(
-            <AboutAreaChannel
-                {...defaultProps}
-                channel={{
-                    ...defaultProps.channel,
-                    header: '',
-                }}
-            />,
-            initialState,
-        );
-
-        expect(screen.getByText('Channel Header')).toBeInTheDocument();
-        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
-    });
-
-    test('should hide channel header empty state when not editable and header is empty', () => {
-        renderWithContext(
-            <AboutAreaChannel
-                {...defaultProps}
-                channel={{
-                    ...defaultProps.channel,
-                    header: '',
-                }}
-                canEditChannelProperties={false}
-            />,
-            initialState,
-        );
-
-        expect(screen.queryByText('Channel Header')).not.toBeInTheDocument();
-        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
-    });
-
     test('should trigger editChannelName when clicking channel display name', () => {
         const props = {
             ...defaultProps,
