@@ -7,10 +7,13 @@ import {
     createPageThroughUI,
     createTestChannel,
     createWikiThroughUI,
-    DEFAULT_PAGE_STATUS,
+    PAGE_STATUS_IN_PROGRESS,
+    ELEMENT_TIMEOUT,
     enterEditMode,
     fillCreatePageModal,
     getEditor,
+    getEditButton,
+    getPublishButton,
     getNewPageButton,
     HIERARCHY_TIMEOUT,
     loginAndNavigateToChannel,
@@ -61,7 +64,7 @@ test('does not auto-flip status to In progress on first publish', {tag: '@pages'
     await waitForAutoSave(page);
 
     // # Explicitly select "Rough draft" before publishing
-    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    const statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
     await expect(statusSelector).toBeVisible();
     await statusSelector.click();
 
@@ -97,14 +100,11 @@ test('changes page status from in_progress to in_review', {tag: '@pages'}, async
     await createPageThroughUI(page, pageName, 'Test content');
 
     // # Click Edit button to enter draft mode
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await editButton.click();
-    await page
-        .locator('[data-testid="wiki-page-publish-button"]')
-        .waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
+    await getEditButton(page).click();
+    await getPublishButton(page).waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
 
     // # Change status to 'in_review' in draft mode
-    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    const statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
     await expect(statusSelector).toBeVisible();
     await statusSelector.click();
 
@@ -144,12 +144,11 @@ test('persists page status after browser refresh', {tag: '@pages'}, async ({pw, 
     await page.waitForLoadState('networkidle');
 
     // # Edit page to change status
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await editButton.click();
+    await getEditButton(page).click();
     await page.waitForLoadState('networkidle');
 
     // # Change status to 'done'
-    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    const statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
     await statusSelector.click();
 
     const statusMenu = page.locator('.selectable-select-property__menu');
@@ -196,14 +195,11 @@ test('allows selection of all valid status values', {tag: '@pages'}, async ({pw,
 
     for (const status of PAGE_STATUSES) {
         // # Edit page
-        const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-        await editButton.click();
-        await page
-            .locator('[data-testid="wiki-page-publish-button"]')
-            .waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
+        await getEditButton(page).click();
+        await getPublishButton(page).waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
 
         // # Click status selector to open dropdown
-        const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+        const statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
         await statusSelector.click();
 
         // # Wait for dropdown menu to appear
@@ -250,7 +246,7 @@ test(
         await page.waitForLoadState('networkidle');
 
         // * Verify status selector IS visible in draft mode
-        const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+        const statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
         await expect(statusSelector).toBeVisible();
 
         // # Fill in page content and publish
@@ -268,7 +264,7 @@ test(
         await expect(statusDisplay).toBeVisible();
 
         // * Verify the editable selector is no longer visible
-        const statusSelectorAfter = page.locator('.page-status-wrapper .selectable-select-property__control');
+        const statusSelectorAfter = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
         await expect(statusSelectorAfter).not.toBeVisible();
     },
 );
@@ -291,7 +287,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     // # Edit and set status to 'rough_draft'
     await enterEditMode(page);
 
-    let statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    let statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
     await statusSelector.click();
     let statusMenu = page.locator('.selectable-select-property__menu');
     await expect(statusMenu).toBeVisible();
@@ -312,7 +308,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     // # Edit and set status to 'done'
     await enterEditMode(page);
 
-    statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
     await statusSelector.click();
     statusMenu = page.locator('.selectable-select-property__menu');
     await expect(statusMenu).toBeVisible();
@@ -365,9 +361,9 @@ test('updates status display after edit and update', {tag: '@pages'}, async ({pw
     await enterEditMode(page);
 
     // # Change status to a different value
-    const targetStatusLabel = initialLabel === DEFAULT_PAGE_STATUS ? 'Done' : DEFAULT_PAGE_STATUS;
+    const targetStatusLabel = initialLabel === PAGE_STATUS_IN_PROGRESS ? 'Done' : PAGE_STATUS_IN_PROGRESS;
 
-    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    const statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
     await statusSelector.click();
 
     const statusMenu = page.locator('.selectable-select-property__menu');
@@ -416,7 +412,7 @@ test('persists status selected in draft mode after publishing', {tag: '@pages'},
     await waitForAutoSave(page);
 
     // # Select status 'done' in draft mode
-    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    const statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
     await expect(statusSelector).toBeVisible();
     await statusSelector.click();
 
@@ -465,7 +461,7 @@ test('persists status through draft autosave and browser refresh', {tag: '@pages
     await waitForAutoSave(page);
 
     // # Select status 'in_review'
-    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    const statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
     await statusSelector.click();
 
     const statusMenu = page.locator('.selectable-select-property__menu');
@@ -487,7 +483,7 @@ test('persists status through draft autosave and browser refresh', {tag: '@pages
     expect(page.url()).toBe(currentUrl);
 
     // * Verify status selector still shows 'In review'
-    const statusValue = page.locator('.page-status-wrapper .selectable-select-property__single-value');
+    const statusValue = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__single-value');
     await expect(statusValue).toBeVisible();
     const statusText = await statusValue.textContent();
     expect(statusText).toBe('In review');
@@ -532,7 +528,7 @@ test(
         await waitForAutoSave(page);
 
         // # Select status 'Done' in draft mode
-        const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+        const statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
         await expect(statusSelector).toBeVisible();
         await statusSelector.click();
 
@@ -578,7 +574,7 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await page.waitForSelector('[data-testid="wiki-page-editor"]', {state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Change status to 'rough_draft' in draft mode
-    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    const statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
     await expect(statusSelector).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
     await statusSelector.click();
 
@@ -641,15 +637,14 @@ test(
 
         await waitForAutoSave(page);
 
-        // # Without publishing the parent, create a child page via the hierarchy panel context menu
-        // Right-click the parent node in the hierarchy panel and select "New subpage"
-        const parentNode = page.locator('[data-testid="hierarchy-item"]', {hasText: 'Parent Draft Page'});
+        // # Without publishing the parent, create a child page via the hierarchy panel actions menu
+        const parentNode = page.locator('[data-testid="page-tree-node"]', {hasText: 'Parent Draft Page'}).first();
         await parentNode.hover();
-        await parentNode.click({button: 'right'});
+        const parentMenuButton = parentNode.locator('[data-testid="page-tree-node-menu-button"]');
+        await parentMenuButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await parentMenuButton.click();
 
-        const newSubpageOption = page.locator('[data-testid="context-menu-new-subpage"], [role="menuitem"]', {
-            hasText: /new subpage|add subpage|create subpage/i,
-        });
+        const newSubpageOption = page.locator('[data-testid="page-context-menu-new-child"]').first();
         await newSubpageOption.click();
 
         await fillCreatePageModal(page, 'Child Page');
@@ -661,17 +656,17 @@ test(
 
         await waitForAutoSave(page);
 
-        // # Attempt to publish the child page (parent is still a draft — should fail)
-        await publishCurrentPage(page);
+        // # Attempt to publish the child page (parent is still a draft — should fail pre-flight)
+        const publishButton = getPublishButton(page);
+        await publishButton.click();
 
-        // * Assert: an error message is visible near the page/editor (local scope)
-        // TODO: verify exact selector for inline error after fix ships — use broad selector for now
-        const localError = page.locator('.page-error, [data-testid="page-publish-error"], .wiki-page-error');
+        // * Assert: an inline error message is visible near the page/editor (local scope)
+        const localError = page.locator('[data-testid="wiki-page-publish-error"]');
         await expect(localError).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
 
-        // * Assert: the global top-of-page error banner is NOT shown
-        // The bug causes hooks.ts to dispatch logError with LogErrorBarMode.Always which renders this banner
-        const globalErrorBar = page.locator('.error-bar, .alert-bar, [data-testid="error-bar"]');
+        // * Assert: the global announcement/error bar is NOT shown — the pre-flight check sets
+        // publishError state directly without dispatching logError, so no top-of-page banner appears
+        const globalErrorBar = page.locator('.announcement-bar--error, [data-testid="error-bar"]');
         await expect(globalErrorBar).not.toBeVisible();
     },
 );
@@ -703,12 +698,15 @@ test(
         await editor.fill('Content for color test');
 
         // # Set status to "Done" (color: green)
-        const statusSelector = page.locator('.page-status-wrapper, [data-testid="page-status-selector"]');
+        const statusSelector = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
+        await expect(statusSelector).toBeVisible();
         await statusSelector.click();
-        await page.locator('[role="option"], .PageStatus__option', {hasText: /^Done$/}).click();
+        const doneOption = page.locator('.selectable-select-property__option', {hasText: 'Done'});
+        const autoSaveDone = startWatchForAutoSave(page);
+        await doneOption.click();
+        await autoSaveDone;
 
         // # Publish the page
-        await waitForAutoSave(page);
         await publishCurrentPage(page);
         await page.waitForLoadState('networkidle');
 
@@ -763,16 +761,15 @@ test(
         // # Wait for auto-save so the page is persisted as a draft
         await waitForAutoSave(page);
 
-        // * Assert: there is NO separate hardcoded "Draft" badge rendered alongside the status selector
-        // This will FAIL currently because wiki_page_editor.tsx renders both simultaneously
-        const separateDraftBadge = page.locator('.draft-badge, [data-testid="draft-badge"], .wiki-draft-badge');
-        await expect(separateDraftBadge).toHaveCount(0);
+        // * Assert: the editor header area does NOT render a hardcoded "Draft" badge alongside
+        // the status selector — the status selector itself is the single source of draft state
+        // in the editor. (The hierarchy panel still renders a draft badge on the tree node to
+        // identify unpublished drafts in the tree; that is intentional and out of scope here.)
+        const editorDraftBadge = page.locator('[data-testid="wiki-page-draft-badge"]');
+        await expect(editorDraftBadge).toHaveCount(0);
 
-        // * Assert: the status selector wrapper is visible (single source of draft state)
-        const statusWrapper = page.locator('.page-status-wrapper, [data-testid="page-status-selector"]');
+        // * Assert: the status selector wrapper is visible in the editor (single source of draft state)
+        const statusWrapper = page.locator('[data-testid="page-status-wrapper"]').first();
         await expect(statusWrapper).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
-
-        // * Assert: the status selector shows "Rough draft" as the default draft state
-        await expect(statusWrapper).toContainText('Rough draft');
     },
 );

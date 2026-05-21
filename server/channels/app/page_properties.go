@@ -11,7 +11,46 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// pageWritableProps is the allowlist of post props that external callers may set via
+// the wiki-scoped props endpoint. Only translation metadata keys are permitted.
+var pageWritableProps = map[string]bool{
+	model.PostPropsPageTranslatedFrom:      true,
+	model.PostPropsPageTranslationLanguage: true,
+	model.PostPropsPageTranslations:        true,
+}
+
+// PatchPageProps merges the provided props into the page post, keeping only keys
+// that appear in pageWritableProps. The caller is responsible for permission checks.
+func (a *App) PatchPageProps(rctx request.CTX, page *model.Post, props map[string]any, channel *model.Channel) (*model.Post, *model.AppError) {
+	updated := page.Clone()
+	if updated.Props == nil {
+		updated.Props = make(model.StringInterface)
+	}
+	applied := 0
+	for k, v := range props {
+		if pageWritableProps[k] {
+			updated.Props[k] = v
+			applied++
+		}
+	}
+	if applied == 0 {
+		return nil, model.NewAppError("PatchPageProps", "app.page.patch_props.no_valid_keys.app_error", nil, "no writable prop keys provided", http.StatusBadRequest)
+	}
+
+	result, storeErr := a.Srv().Store().Page().Update(rctx, updated)
+	if storeErr != nil {
+		statusCode := http.StatusInternalServerError
+		if store.IsErrNotFound(storeErr) {
+			statusCode = http.StatusNotFound
+		}
+		return nil, model.NewAppError("PatchPageProps", "app.page.patch_props.store_error.app_error", nil, "", statusCode).Wrap(storeErr)
+	}
+
+	return a.finalizePageUpdate(rctx, result, "", "", channel)
+}
 
 func (a *App) GetPagePropertyGroup() (*model.PropertyGroup, error) {
 	return a.Srv().PropertyService().GetPropertyGroup("pages")
@@ -34,7 +73,6 @@ func (a *App) GetPagePropertyFieldByName(fieldName string) (*model.PropertyField
 func (a *App) SetPageStatus(rctx request.CTX, pageId string, status string) *model.AppError {
 	statusField, appErr := a.GetPagePropertyFieldByName(pagePropertyNameStatus)
 	if appErr != nil {
-		rctx.Logger().Error("SetPageStatus: failed to get status field", mlog.Err(appErr))
 		return appErr
 	}
 
@@ -51,7 +89,6 @@ func (a *App) SetPageStatus(rctx request.CTX, pageId string, status string) *mod
 	}
 
 	if _, err := a.Srv().PropertyService().PropertyAccessService().UpsertPropertyValue(anonymousCallerID, propertyValue); err != nil {
-		rctx.Logger().Error("SetPageStatus: upsert failed", mlog.Err(err))
 		return model.NewAppError("SetPageStatus", "app.page.set_status.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -77,7 +114,7 @@ func (a *App) GetPageStatus(rctx request.CTX, pageId string) (string, *model.App
 	}
 
 	if len(values) == 0 {
-		return model.PageStatusInProgress, nil
+		return "", nil
 	}
 
 	var status string
@@ -85,7 +122,7 @@ func (a *App) GetPageStatus(rctx request.CTX, pageId string) (string, *model.App
 		rctx.Logger().Error("GetPageStatus: failed to unmarshal status",
 			mlog.Err(err),
 			mlog.String("raw_value", string(values[0].Value)))
-		return model.PageStatusInProgress, nil
+		return "", nil
 	}
 
 	return status, nil
@@ -197,11 +234,7 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 			props = make(map[string]any)
 		}
 
-		status, found := statusMap[page.Id]
-		if !found {
-			status = model.PageStatusInProgress
-		}
-		props[model.PagePropsPageStatus] = status
+		props[model.PagePropsPageStatus] = statusMap[page.Id]
 
 		page.SetProps(props)
 	}

@@ -25,29 +25,53 @@ type Props = {
     initialValue?: string;
 };
 
-const reactStyles: StylesConfig<OptionType, false> = {
-    control: (provided, state) => ({
-        ...provided,
-        minHeight: '32px',
-        height: '32px',
-        border: 'none',
-        boxShadow: 'none',
-        cursor: 'pointer',
-        backgroundColor: state.isDisabled ? 'transparent' : 'rgba(var(--center-channel-color-rgb), 0.08)',
-        '&:hover': {
+function getStatusOptionColors(colorName: string): {backgroundColor: string; color: string} {
+    switch (colorName) {
+    case 'light_blue':
+        return {backgroundColor: 'var(--sidebar-text-active-border)', color: '#FFF'};
+    case 'dark_blue':
+        return {backgroundColor: 'rgba(var(--sidebar-text-active-border-rgb), 0.92)', color: '#FFF'};
+    case 'dark_red':
+        return {backgroundColor: 'var(--error-text)', color: '#FFF'};
+    default:
+        return {
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
-        },
-    }),
+            color: 'rgba(var(--center-channel-color-rgb), 1)',
+        };
+    }
+}
+
+const reactStyles: StylesConfig<OptionType, false> = {
+    control: (provided, state) => {
+        const selected = state.getValue()[0];
+        const bgDefault = state.isDisabled ? 'transparent' : 'rgba(var(--center-channel-color-rgb), 0.08)';
+        const colors = selected?.color ? getStatusOptionColors(selected.color) : null;
+        return {
+            ...provided,
+            minHeight: '32px',
+            height: '32px',
+            border: 'none',
+            boxShadow: 'none',
+            cursor: 'pointer',
+            backgroundColor: colors ? colors.backgroundColor : bgDefault,
+            '&:hover': {
+                backgroundColor: colors ? colors.backgroundColor : 'rgba(var(--center-channel-color-rgb), 0.12)',
+            },
+        };
+    },
     valueContainer: (provided) => ({
         ...provided,
         padding: '0 8px',
         height: '32px',
     }),
-    singleValue: (provided) => ({
-        ...provided,
-        color: 'var(--center-channel-color)',
-        fontSize: '14px',
-    }),
+    singleValue: (provided, state) => {
+        const colors = state.data?.color ? getStatusOptionColors(state.data.color) : null;
+        return {
+            ...provided,
+            color: colors ? colors.color : 'var(--center-channel-color)',
+            fontSize: '14px',
+        };
+    },
     indicatorSeparator: () => ({
         display: 'none',
     }),
