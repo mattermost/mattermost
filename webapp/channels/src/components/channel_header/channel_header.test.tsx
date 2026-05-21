@@ -6,7 +6,7 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -207,6 +207,33 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should render add header button immediately after channel files button', () => {
+        const props = {
+            ...populatedProps,
+            channel: TestHelper.getChannelMock({
+                id: 'channel_id',
+                team_id: 'team_id',
+                type: Constants.DM_CHANNEL as ChannelType,
+                header: '',
+                delete_at: 0,
+            }),
+            dmUser: TestHelper.getUserMock({
+                id: 'dm_user_id',
+                is_bot: false,
+            }),
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+
+        const channelFilesButton = container.querySelector('#channelHeaderFilesButton');
+        const addHeaderButton = screen.getByLabelText('Add a channel header');
+
+        expect(channelFilesButton).not.toBeNull();
+        expect(channelFilesButton?.nextElementSibling).toBe(addHeaderButton);
     });
 
     test('should render active flagged posts', () => {
