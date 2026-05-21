@@ -34,7 +34,7 @@ import (
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 )
 
-const opensearchMaxVersion = 2
+const opensearchMaxVersion = 3
 
 var (
 	purgeIndexListAllowedIndexes = []string{common.IndexBaseChannels}
