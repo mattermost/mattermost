@@ -47,7 +47,7 @@ func (g *hooksRPCClient) OnDeactivateWithRPCErr() (error, error) {
 		_err = g.client.Call("Plugin.OnDeactivate", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnDeactivateReturns{}
 			g.log.Debug("RPC call OnDeactivate to plugin failed.", mlog.Err(_err))
 		}
@@ -99,7 +99,7 @@ func (g *hooksRPCClient) OnConfigurationChangeWithRPCErr() (error, error) {
 		_err = g.client.Call("Plugin.OnConfigurationChange", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnConfigurationChangeReturns{}
 			g.log.Debug("RPC call OnConfigurationChange to plugin failed.", mlog.Err(_err))
 		}
@@ -154,7 +154,7 @@ func (g *hooksRPCClient) ExecuteCommandWithRPCErr(c *Context, args *model.Comman
 		_err = g.client.Call("Plugin.ExecuteCommand", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_ExecuteCommandReturns{}
 			g.log.Debug("RPC call ExecuteCommand to plugin failed.", mlog.Err(_err))
 		}
@@ -206,7 +206,7 @@ func (g *hooksRPCClient) UserHasBeenCreatedWithRPCErr(c *Context, user *model.Us
 		_err = g.client.Call("Plugin.UserHasBeenCreated", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_UserHasBeenCreatedReturns{}
 			g.log.Debug("RPC call UserHasBeenCreated to plugin failed.", mlog.Err(_err))
 		}
@@ -259,7 +259,7 @@ func (g *hooksRPCClient) UserWillLogInWithRPCErr(c *Context, user *model.User) (
 		_err = g.client.Call("Plugin.UserWillLogIn", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_UserWillLogInReturns{}
 			g.log.Debug("RPC call UserWillLogIn to plugin failed.", mlog.Err(_err))
 		}
@@ -311,7 +311,7 @@ func (g *hooksRPCClient) UserHasLoggedInWithRPCErr(c *Context, user *model.User)
 		_err = g.client.Call("Plugin.UserHasLoggedIn", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_UserHasLoggedInReturns{}
 			g.log.Debug("RPC call UserHasLoggedIn to plugin failed.", mlog.Err(_err))
 		}
@@ -363,7 +363,7 @@ func (g *hooksRPCClient) MessageHasBeenPostedWithRPCErr(c *Context, post *model.
 		_err = g.client.Call("Plugin.MessageHasBeenPosted", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_MessageHasBeenPostedReturns{}
 			g.log.Debug("RPC call MessageHasBeenPosted to plugin failed.", mlog.Err(_err))
 		}
@@ -416,7 +416,7 @@ func (g *hooksRPCClient) MessageHasBeenUpdatedWithRPCErr(c *Context, newPost, ol
 		_err = g.client.Call("Plugin.MessageHasBeenUpdated", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_MessageHasBeenUpdatedReturns{}
 			g.log.Debug("RPC call MessageHasBeenUpdated to plugin failed.", mlog.Err(_err))
 		}
@@ -468,7 +468,7 @@ func (g *hooksRPCClient) MessageHasBeenDeletedWithRPCErr(c *Context, post *model
 		_err = g.client.Call("Plugin.MessageHasBeenDeleted", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_MessageHasBeenDeletedReturns{}
 			g.log.Debug("RPC call MessageHasBeenDeleted to plugin failed.", mlog.Err(_err))
 		}
@@ -520,7 +520,7 @@ func (g *hooksRPCClient) ChannelHasBeenCreatedWithRPCErr(c *Context, channel *mo
 		_err = g.client.Call("Plugin.ChannelHasBeenCreated", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_ChannelHasBeenCreatedReturns{}
 			g.log.Debug("RPC call ChannelHasBeenCreated to plugin failed.", mlog.Err(_err))
 		}
@@ -573,7 +573,7 @@ func (g *hooksRPCClient) ChannelWillBeArchivedWithRPCErr(c *Context, channel *mo
 		_err = g.client.Call("Plugin.ChannelWillBeArchived", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_ChannelWillBeArchivedReturns{}
 			g.log.Debug("RPC call ChannelWillBeArchived to plugin failed.", mlog.Err(_err))
 		}
@@ -626,7 +626,7 @@ func (g *hooksRPCClient) UserHasJoinedChannelWithRPCErr(c *Context, channelMembe
 		_err = g.client.Call("Plugin.UserHasJoinedChannel", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_UserHasJoinedChannelReturns{}
 			g.log.Debug("RPC call UserHasJoinedChannel to plugin failed.", mlog.Err(_err))
 		}
@@ -679,7 +679,7 @@ func (g *hooksRPCClient) UserHasLeftChannelWithRPCErr(c *Context, channelMember 
 		_err = g.client.Call("Plugin.UserHasLeftChannel", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_UserHasLeftChannelReturns{}
 			g.log.Debug("RPC call UserHasLeftChannel to plugin failed.", mlog.Err(_err))
 		}
@@ -732,7 +732,7 @@ func (g *hooksRPCClient) UserHasJoinedTeamWithRPCErr(c *Context, teamMember *mod
 		_err = g.client.Call("Plugin.UserHasJoinedTeam", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_UserHasJoinedTeamReturns{}
 			g.log.Debug("RPC call UserHasJoinedTeam to plugin failed.", mlog.Err(_err))
 		}
@@ -785,7 +785,7 @@ func (g *hooksRPCClient) UserHasLeftTeamWithRPCErr(c *Context, teamMember *model
 		_err = g.client.Call("Plugin.UserHasLeftTeam", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_UserHasLeftTeamReturns{}
 			g.log.Debug("RPC call UserHasLeftTeam to plugin failed.", mlog.Err(_err))
 		}
@@ -840,7 +840,7 @@ func (g *hooksRPCClient) FileWillBeDownloadedWithRPCErr(c *Context, fileInfo *mo
 		_err = g.client.Call("Plugin.FileWillBeDownloaded", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_FileWillBeDownloadedReturns{}
 			g.log.Debug("RPC call FileWillBeDownloaded to plugin failed.", mlog.Err(_err))
 		}
@@ -892,7 +892,7 @@ func (g *hooksRPCClient) ReactionHasBeenAddedWithRPCErr(c *Context, reaction *mo
 		_err = g.client.Call("Plugin.ReactionHasBeenAdded", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_ReactionHasBeenAddedReturns{}
 			g.log.Debug("RPC call ReactionHasBeenAdded to plugin failed.", mlog.Err(_err))
 		}
@@ -944,7 +944,7 @@ func (g *hooksRPCClient) ReactionHasBeenRemovedWithRPCErr(c *Context, reaction *
 		_err = g.client.Call("Plugin.ReactionHasBeenRemoved", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_ReactionHasBeenRemovedReturns{}
 			g.log.Debug("RPC call ReactionHasBeenRemoved to plugin failed.", mlog.Err(_err))
 		}
@@ -996,7 +996,7 @@ func (g *hooksRPCClient) OnPluginClusterEventWithRPCErr(c *Context, ev model.Plu
 		_err = g.client.Call("Plugin.OnPluginClusterEvent", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnPluginClusterEventReturns{}
 			g.log.Debug("RPC call OnPluginClusterEvent to plugin failed.", mlog.Err(_err))
 		}
@@ -1048,7 +1048,7 @@ func (g *hooksRPCClient) OnWebSocketConnectWithRPCErr(webConnID, userID string) 
 		_err = g.client.Call("Plugin.OnWebSocketConnect", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnWebSocketConnectReturns{}
 			g.log.Debug("RPC call OnWebSocketConnect to plugin failed.", mlog.Err(_err))
 		}
@@ -1100,7 +1100,7 @@ func (g *hooksRPCClient) OnWebSocketDisconnectWithRPCErr(webConnID, userID strin
 		_err = g.client.Call("Plugin.OnWebSocketDisconnect", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnWebSocketDisconnectReturns{}
 			g.log.Debug("RPC call OnWebSocketDisconnect to plugin failed.", mlog.Err(_err))
 		}
@@ -1153,7 +1153,7 @@ func (g *hooksRPCClient) WebSocketMessageHasBeenPostedWithRPCErr(webConnID, user
 		_err = g.client.Call("Plugin.WebSocketMessageHasBeenPosted", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_WebSocketMessageHasBeenPostedReturns{}
 			g.log.Debug("RPC call WebSocketMessageHasBeenPosted to plugin failed.", mlog.Err(_err))
 		}
@@ -1207,7 +1207,7 @@ func (g *hooksRPCClient) RunDataRetentionWithRPCErr(nowTime, batchSize int64) (i
 		_err = g.client.Call("Plugin.RunDataRetention", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_RunDataRetentionReturns{}
 			g.log.Debug("RPC call RunDataRetention to plugin failed.", mlog.Err(_err))
 		}
@@ -1261,7 +1261,7 @@ func (g *hooksRPCClient) OnInstallWithRPCErr(c *Context, event model.OnInstallEv
 		_err = g.client.Call("Plugin.OnInstall", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnInstallReturns{}
 			g.log.Debug("RPC call OnInstall to plugin failed.", mlog.Err(_err))
 		}
@@ -1312,7 +1312,7 @@ func (g *hooksRPCClient) OnSendDailyTelemetryWithRPCErr() error {
 		_err = g.client.Call("Plugin.OnSendDailyTelemetry", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnSendDailyTelemetryReturns{}
 			g.log.Debug("RPC call OnSendDailyTelemetry to plugin failed.", mlog.Err(_err))
 		}
@@ -1363,7 +1363,7 @@ func (g *hooksRPCClient) OnCloudLimitsUpdatedWithRPCErr(limits *model.ProductLim
 		_err = g.client.Call("Plugin.OnCloudLimitsUpdated", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnCloudLimitsUpdatedReturns{}
 			g.log.Debug("RPC call OnCloudLimitsUpdated to plugin failed.", mlog.Err(_err))
 		}
@@ -1416,7 +1416,7 @@ func (g *hooksRPCClient) ConfigurationWillBeSavedWithRPCErr(newCfg *model.Config
 		_err = g.client.Call("Plugin.ConfigurationWillBeSaved", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_ConfigurationWillBeSavedReturns{}
 			g.log.Debug("RPC call ConfigurationWillBeSaved to plugin failed.", mlog.Err(_err))
 		}
@@ -1470,7 +1470,7 @@ func (g *hooksRPCClient) EmailNotificationWillBeSentWithRPCErr(emailNotification
 		_err = g.client.Call("Plugin.EmailNotificationWillBeSent", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_EmailNotificationWillBeSentReturns{}
 			g.log.Debug("RPC call EmailNotificationWillBeSent to plugin failed.", mlog.Err(_err))
 		}
@@ -1524,7 +1524,7 @@ func (g *hooksRPCClient) NotificationWillBePushedWithRPCErr(pushNotification *mo
 		_err = g.client.Call("Plugin.NotificationWillBePushed", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_NotificationWillBePushedReturns{}
 			g.log.Debug("RPC call NotificationWillBePushed to plugin failed.", mlog.Err(_err))
 		}
@@ -1576,7 +1576,7 @@ func (g *hooksRPCClient) UserHasBeenDeactivatedWithRPCErr(c *Context, user *mode
 		_err = g.client.Call("Plugin.UserHasBeenDeactivated", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_UserHasBeenDeactivatedReturns{}
 			g.log.Debug("RPC call UserHasBeenDeactivated to plugin failed.", mlog.Err(_err))
 		}
@@ -1630,7 +1630,7 @@ func (g *hooksRPCClient) OnSharedChannelsSyncMsgWithRPCErr(msg *model.SyncMsg, r
 		_err = g.client.Call("Plugin.OnSharedChannelsSyncMsg", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnSharedChannelsSyncMsgReturns{}
 			g.log.Debug("RPC call OnSharedChannelsSyncMsg to plugin failed.", mlog.Err(_err))
 		}
@@ -1683,7 +1683,7 @@ func (g *hooksRPCClient) OnSharedChannelsPingWithRPCErr(rc *model.RemoteCluster)
 		_err = g.client.Call("Plugin.OnSharedChannelsPing", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnSharedChannelsPingReturns{}
 			g.log.Debug("RPC call OnSharedChannelsPing to plugin failed.", mlog.Err(_err))
 		}
@@ -1735,7 +1735,7 @@ func (g *hooksRPCClient) PreferencesHaveChangedWithRPCErr(c *Context, preference
 		_err = g.client.Call("Plugin.PreferencesHaveChanged", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_PreferencesHaveChangedReturns{}
 			g.log.Debug("RPC call PreferencesHaveChanged to plugin failed.", mlog.Err(_err))
 		}
@@ -1789,7 +1789,7 @@ func (g *hooksRPCClient) OnSharedChannelsAttachmentSyncMsgWithRPCErr(fi *model.F
 		_err = g.client.Call("Plugin.OnSharedChannelsAttachmentSyncMsg", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnSharedChannelsAttachmentSyncMsgReturns{}
 			g.log.Debug("RPC call OnSharedChannelsAttachmentSyncMsg to plugin failed.", mlog.Err(_err))
 		}
@@ -1843,7 +1843,7 @@ func (g *hooksRPCClient) OnSharedChannelsProfileImageSyncMsgWithRPCErr(user *mod
 		_err = g.client.Call("Plugin.OnSharedChannelsProfileImageSyncMsg", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnSharedChannelsProfileImageSyncMsgReturns{}
 			g.log.Debug("RPC call OnSharedChannelsProfileImageSyncMsg to plugin failed.", mlog.Err(_err))
 		}
@@ -1897,7 +1897,7 @@ func (g *hooksRPCClient) GenerateSupportDataWithRPCErr(c *Context) ([]*model.Fil
 		_err = g.client.Call("Plugin.GenerateSupportData", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_GenerateSupportDataReturns{}
 			g.log.Debug("RPC call GenerateSupportData to plugin failed.", mlog.Err(_err))
 		}
@@ -1952,7 +1952,7 @@ func (g *hooksRPCClient) OnSAMLLoginWithRPCErr(c *Context, user *model.User, ass
 		_err = g.client.Call("Plugin.OnSAMLLogin", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &Z_OnSAMLLoginReturns{}
 			g.log.Debug("RPC call OnSAMLLogin to plugin failed.", mlog.Err(_err))
 		}
@@ -1972,7 +1972,223 @@ func (s *hooksRPCServer) OnSAMLLogin(args *Z_OnSAMLLoginArgs, returns *Z_OnSAMLL
 	return nil
 }
 
-// HooksWithRPCErr provides a WithRPCErr variant for every generated hook. The last error return
+func init() {
+	hookNameToId["ChannelWillBeUpdated"] = ChannelWillBeUpdatedID
+}
+
+type Z_ChannelWillBeUpdatedArgs struct {
+	A *Context
+	B *model.Channel
+	C *model.Channel
+}
+
+type Z_ChannelWillBeUpdatedReturns struct {
+	A *model.Channel
+	B string
+}
+
+func (g *hooksRPCClient) ChannelWillBeUpdated(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string) {
+	_args := &Z_ChannelWillBeUpdatedArgs{c, newChannel, oldChannel}
+	_returns := &Z_ChannelWillBeUpdatedReturns{}
+	if g.implemented[ChannelWillBeUpdatedID] {
+		if err := g.client.Call("Plugin.ChannelWillBeUpdated", _args, _returns); err != nil {
+			g.log.Error("RPC call ChannelWillBeUpdated to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+// ChannelWillBeUpdatedWithRPCErr returns the same values as ChannelWillBeUpdated, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) ChannelWillBeUpdatedWithRPCErr(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string, error) {
+	_args := &Z_ChannelWillBeUpdatedArgs{c, newChannel, oldChannel}
+	_returns := &Z_ChannelWillBeUpdatedReturns{}
+	var _err error
+	if g.implemented[ChannelWillBeUpdatedID] {
+		_err = g.client.Call("Plugin.ChannelWillBeUpdated", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_ChannelWillBeUpdatedReturns{}
+			g.log.Debug("RPC call ChannelWillBeUpdated to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _returns.B, _err
+}
+
+func (s *hooksRPCServer) ChannelWillBeUpdated(args *Z_ChannelWillBeUpdatedArgs, returns *Z_ChannelWillBeUpdatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ChannelWillBeUpdated(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string)
+	}); ok {
+		returns.A, returns.B = hook.ChannelWillBeUpdated(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("Hook ChannelWillBeUpdated called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["ChannelWillBeRestored"] = ChannelWillBeRestoredID
+}
+
+type Z_ChannelWillBeRestoredArgs struct {
+	A *Context
+	B *model.Channel
+}
+
+type Z_ChannelWillBeRestoredReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) ChannelWillBeRestored(c *Context, channel *model.Channel) string {
+	_args := &Z_ChannelWillBeRestoredArgs{c, channel}
+	_returns := &Z_ChannelWillBeRestoredReturns{}
+	if g.implemented[ChannelWillBeRestoredID] {
+		if err := g.client.Call("Plugin.ChannelWillBeRestored", _args, _returns); err != nil {
+			g.log.Error("RPC call ChannelWillBeRestored to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+// ChannelWillBeRestoredWithRPCErr returns the same values as ChannelWillBeRestored, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) ChannelWillBeRestoredWithRPCErr(c *Context, channel *model.Channel) (string, error) {
+	_args := &Z_ChannelWillBeRestoredArgs{c, channel}
+	_returns := &Z_ChannelWillBeRestoredReturns{}
+	var _err error
+	if g.implemented[ChannelWillBeRestoredID] {
+		_err = g.client.Call("Plugin.ChannelWillBeRestored", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_ChannelWillBeRestoredReturns{}
+			g.log.Debug("RPC call ChannelWillBeRestored to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _err
+}
+
+func (s *hooksRPCServer) ChannelWillBeRestored(args *Z_ChannelWillBeRestoredArgs, returns *Z_ChannelWillBeRestoredReturns) error {
+	if hook, ok := s.impl.(interface {
+		ChannelWillBeRestored(c *Context, channel *model.Channel) string
+	}); ok {
+		returns.A = hook.ChannelWillBeRestored(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook ChannelWillBeRestored called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["ScheduledPostWillBeCreated"] = ScheduledPostWillBeCreatedID
+}
+
+type Z_ScheduledPostWillBeCreatedArgs struct {
+	A *Context
+	B *model.ScheduledPost
+}
+
+type Z_ScheduledPostWillBeCreatedReturns struct {
+	A *model.ScheduledPost
+	B string
+}
+
+func (g *hooksRPCClient) ScheduledPostWillBeCreated(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+	_args := &Z_ScheduledPostWillBeCreatedArgs{c, scheduledPost}
+	_returns := &Z_ScheduledPostWillBeCreatedReturns{}
+	if g.implemented[ScheduledPostWillBeCreatedID] {
+		if err := g.client.Call("Plugin.ScheduledPostWillBeCreated", _args, _returns); err != nil {
+			g.log.Error("RPC call ScheduledPostWillBeCreated to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+// ScheduledPostWillBeCreatedWithRPCErr returns the same values as ScheduledPostWillBeCreated, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) ScheduledPostWillBeCreatedWithRPCErr(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string, error) {
+	_args := &Z_ScheduledPostWillBeCreatedArgs{c, scheduledPost}
+	_returns := &Z_ScheduledPostWillBeCreatedReturns{}
+	var _err error
+	if g.implemented[ScheduledPostWillBeCreatedID] {
+		_err = g.client.Call("Plugin.ScheduledPostWillBeCreated", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_ScheduledPostWillBeCreatedReturns{}
+			g.log.Debug("RPC call ScheduledPostWillBeCreated to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _returns.B, _err
+}
+
+func (s *hooksRPCServer) ScheduledPostWillBeCreated(args *Z_ScheduledPostWillBeCreatedArgs, returns *Z_ScheduledPostWillBeCreatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ScheduledPostWillBeCreated(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string)
+	}); ok {
+		returns.A, returns.B = hook.ScheduledPostWillBeCreated(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook ScheduledPostWillBeCreated called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["DraftWillBeUpserted"] = DraftWillBeUpsertedID
+}
+
+type Z_DraftWillBeUpsertedArgs struct {
+	A *Context
+	B *model.Draft
+}
+
+type Z_DraftWillBeUpsertedReturns struct {
+	A *model.Draft
+	B string
+}
+
+func (g *hooksRPCClient) DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string) {
+	_args := &Z_DraftWillBeUpsertedArgs{c, draft}
+	_returns := &Z_DraftWillBeUpsertedReturns{}
+	if g.implemented[DraftWillBeUpsertedID] {
+		if err := g.client.Call("Plugin.DraftWillBeUpserted", _args, _returns); err != nil {
+			g.log.Error("RPC call DraftWillBeUpserted to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+// DraftWillBeUpsertedWithRPCErr returns the same values as DraftWillBeUpserted, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error) {
+	_args := &Z_DraftWillBeUpsertedArgs{c, draft}
+	_returns := &Z_DraftWillBeUpsertedReturns{}
+	var _err error
+	if g.implemented[DraftWillBeUpsertedID] {
+		_err = g.client.Call("Plugin.DraftWillBeUpserted", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_DraftWillBeUpsertedReturns{}
+			g.log.Debug("RPC call DraftWillBeUpserted to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _returns.B, _err
+}
+
+func (s *hooksRPCServer) DraftWillBeUpserted(args *Z_DraftWillBeUpsertedArgs, returns *Z_DraftWillBeUpsertedReturns) error {
+	if hook, ok := s.impl.(interface {
+		DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string)
+	}); ok {
+		returns.A, returns.B = hook.DraftWillBeUpserted(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook DraftWillBeUpserted called but not implemented."))
+	}
+	return nil
+}
+
+// HooksWithRPCErrGenerated provides a WithRPCErr variant for every generated hook. The last error return
 // is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
 // hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
 // where the final slot is always transport.
@@ -1981,8 +2197,8 @@ func (s *hooksRPCServer) OnSAMLLogin(args *Z_OnSAMLLoginArgs, returns *Z_OnSAMLL
 // indistinguishable from a successful invocation that returned zeros. Callers MUST gate on
 // supervisor.Implements(<HookID>) (or use Environment.RunMultiPluginHookWithRPCErr, which gates
 // by the iteration's hook ID — note that any *WithRPCErr method called on the closure's
-// HooksWithRPCErr is independently subject to its own implemented-gate).
-type HooksWithRPCErr interface {
+// HooksWithRPCErrGenerated is independently subject to its own implemented-gate).
+type HooksWithRPCErrGenerated interface {
 	OnDeactivateWithRPCErr() (error, error)
 
 	OnConfigurationChangeWithRPCErr() (error, error)
@@ -2056,6 +2272,14 @@ type HooksWithRPCErr interface {
 	GenerateSupportDataWithRPCErr(c *Context) ([]*model.FileData, error, error)
 
 	OnSAMLLoginWithRPCErr(c *Context, user *model.User, assertion *saml2.AssertionInfo) (error, error)
+
+	ChannelWillBeUpdatedWithRPCErr(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string, error)
+
+	ChannelWillBeRestoredWithRPCErr(c *Context, channel *model.Channel) (string, error)
+
+	ScheduledPostWillBeCreatedWithRPCErr(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string, error)
+
+	DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error)
 }
 
 type Z_RegisterCommandArgs struct {
@@ -4236,6 +4460,62 @@ func (s *apiRPCServer) UpdateChannel(args *Z_UpdateChannelArgs, returns *Z_Updat
 		returns.A, returns.B = hook.UpdateChannel(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API UpdateChannel called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RegisterChannelGuardArgs struct {
+	A string
+}
+
+type Z_RegisterChannelGuardReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RegisterChannelGuard(channelID string) *model.AppError {
+	_args := &Z_RegisterChannelGuardArgs{channelID}
+	_returns := &Z_RegisterChannelGuardReturns{}
+	if err := g.client.Call("Plugin.RegisterChannelGuard", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterChannelGuard API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterChannelGuard(args *Z_RegisterChannelGuardArgs, returns *Z_RegisterChannelGuardReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterChannelGuard(channelID string) *model.AppError
+	}); ok {
+		returns.A = hook.RegisterChannelGuard(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterChannelGuard called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UnregisterChannelGuardArgs struct {
+	A string
+}
+
+type Z_UnregisterChannelGuardReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) UnregisterChannelGuard(channelID string) *model.AppError {
+	_args := &Z_UnregisterChannelGuardArgs{channelID}
+	_returns := &Z_UnregisterChannelGuardReturns{}
+	if err := g.client.Call("Plugin.UnregisterChannelGuard", _args, _returns); err != nil {
+		log.Printf("RPC call to UnregisterChannelGuard API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UnregisterChannelGuard(args *Z_UnregisterChannelGuardArgs, returns *Z_UnregisterChannelGuardReturns) error {
+	if hook, ok := s.impl.(interface {
+		UnregisterChannelGuard(channelID string) *model.AppError
+	}); ok {
+		returns.A = hook.UnregisterChannelGuard(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API UnregisterChannelGuard called but not implemented."))
 	}
 	return nil
 }
