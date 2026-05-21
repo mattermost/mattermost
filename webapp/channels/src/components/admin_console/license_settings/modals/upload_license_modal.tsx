@@ -17,6 +17,7 @@ import {closeModal} from 'actions/views/modals';
 import {getCurrentLocale} from 'selectors/i18n';
 import {isModalOpen} from 'selectors/views/modals';
 
+import AlertBanner from 'components/alert_banner';
 import SuccessSvg from 'components/common/svg_images_components/success_svg';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
@@ -136,7 +137,36 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
     let uploadLicenseContent: JSX.Element;
 
     if (step === 'loading') {
-        uploadLicenseContent = (
+        uploadLicenseContent = serverError ? (
+            <>
+                <div className='content-body'>
+                    <div className='title'>
+                        <FormattedMessage
+                            id='admin.license.upload-modal.error.title'
+                            defaultMessage='License validation failed'
+                        />
+                    </div>
+                    <AlertBanner
+                        mode='danger'
+                        message={serverError}
+                    />
+                </div>
+                <div className='content-footer'>
+                    <div className='btn-upload-wrapper'>
+                        <button
+                            className='btn btn-primary'
+                            onClick={handleOnClose}
+                            id='close-button'
+                        >
+                            <FormattedMessage
+                                id='admin.license.modal.close'
+                                defaultMessage='Close'
+                            />
+                        </button>
+                    </div>
+                </div>
+            </>
+        ) : (
             <>
                 <div className='content-body'>
                     <div className='title'>
@@ -151,36 +181,15 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                             defaultMessage='Please wait while we validate your license file...'
                         />
                     </div>
-                    {serverError && (
-                        <div className='serverError'>
-                            <i className='icon icon-alert-outline'/>
-                            <span className='server-error-text'>
-                                {serverError}
-                            </span>
-                        </div>
-                    )}
                 </div>
                 <div className='content-footer'>
                     <div className='btn-upload-wrapper'>
-                        {serverError ? (
-                            <button
-                                className='btn btn-primary'
-                                onClick={handleOnClose}
-                                id='close-button'
-                            >
-                                <FormattedMessage
-                                    id='admin.license.modal.close'
-                                    defaultMessage='Close'
-                                />
-                            </button>
-                        ) : (
-                            <LoadingWrapper
-                                loading={true}
-                                text={defineMessage({id: 'admin.license.modal.validating', defaultMessage: 'Validating'})}
-                            >
-                                <span/>
-                            </LoadingWrapper>
-                        )}
+                        <LoadingWrapper
+                            loading={true}
+                            text={defineMessage({id: 'admin.license.modal.validating', defaultMessage: 'Validating'})}
+                        >
+                            <span/>
+                        </LoadingWrapper>
                     </div>
                 </div>
             </>

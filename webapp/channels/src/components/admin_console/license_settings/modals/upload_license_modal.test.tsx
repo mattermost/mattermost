@@ -199,6 +199,24 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         expect(screen.getByText(/123,456,789/)).toBeInTheDocument();
     });
 
+    test('should show error state when license validation fails', async () => {
+        const previewLicenseMock = jest.requireMock('mattermost-redux/actions/admin').previewLicense;
+        previewLicenseMock.mockImplementationOnce(() => () => Promise.resolve({error: {message: 'Invalid license file.'}}));
+
+        await act(async () => {
+            renderWithContext(
+                <UploadLicenseModal {...props}/>,
+                state,
+            );
+        });
+
+        expect(screen.getByText('License validation failed')).toBeInTheDocument();
+        expect(screen.getByText('Invalid license file.')).toBeInTheDocument();
+        expect(document.getElementById('close-button')).toBeInTheDocument();
+        expect(screen.queryByText('Please wait while we validate your license file...')).not.toBeInTheDocument();
+        expect(screen.queryByText('Validating License')).not.toBeInTheDocument();
+    });
+
     test('should hide the upload modal', () => {
         const localState: DeepPartial<GlobalState> = {
             ...state,
