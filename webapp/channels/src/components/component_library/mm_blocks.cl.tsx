@@ -16,6 +16,9 @@ import {translateBlockKit} from 'components/block_renderer/translation/block_kit
 import {translateMMBlocks} from 'components/block_renderer/translation/mm_block';
 import PostContext from 'components/post_view/post_context';
 
+import {type BlockPath, serializeMmBlocks} from './mm_blocks_editor_utils';
+import MmBlocksHierarchyEditor from './mm_blocks_hierarchy_editor';
+
 import './component_library.scss';
 
 type InputMode = 'mm_blocks' | 'attachments' | 'block_kit' | 'adaptive_cards';
@@ -164,19 +167,30 @@ const MmBlocksComponentLibrary = ({
 }: Props) => {
     const [inputMode, setInputMode] = useState<InputMode>('mm_blocks');
     const [drafts, setDrafts] = useState<Record<InputMode, string>>(() => ({...INITIAL_DRAFTS}));
+    const [selectedBlockPath, setSelectedBlockPath] = useState<BlockPath | null>(null);
 
     const jsonText = drafts[inputMode];
 
     const parsed = useMemo(() => parsePayload(jsonText, inputMode), [jsonText, inputMode]);
 
+    const showMmBlocksEditor = inputMode === 'mm_blocks' && parsed.ok;
+
     const onChangeMode = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setInputMode(e.target.value as InputMode);
+        setSelectedBlockPath(null);
     }, []);
 
     const onChangeJson = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         setDrafts((d) => ({...d, [inputMode]: value}));
+        if (inputMode === 'mm_blocks') {
+            setSelectedBlockPath(null);
+        }
     }, [inputMode]);
+
+    const onHierarchyBlocksChange = useCallback((blocks: MmBlock[]) => {
+        setDrafts((d) => ({...d, mm_blocks: serializeMmBlocks(blocks)}));
+    }, []);
 
     const onAction = useCallback((actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string) => {
         const parts = [
@@ -218,17 +232,27 @@ const MmBlocksComponentLibrary = ({
                     {modeOptions}
                 </select>
             </label>
-            <label className='clInput'>
-                {'JSON: '}
-                <textarea
-                    className='clJsonEditor'
-                    spellCheck={false}
-                    value={jsonText}
-                    onChange={onChangeJson}
-                    rows={16}
-                    aria-label='Interactive message JSON'
-                />
-            </label>
+            <div className={showMmBlocksEditor ? 'clMmBlocksEditorLayout' : undefined}>
+                <label className={classNames('clInput', showMmBlocksEditor && 'clMmBlocksEditorLayout__json')}>
+                    {'JSON: '}
+                    <textarea
+                        className='clJsonEditor'
+                        spellCheck={false}
+                        value={jsonText}
+                        onChange={onChangeJson}
+                        rows={16}
+                        aria-label='Interactive message JSON'
+                    />
+                </label>
+                {showMmBlocksEditor && (
+                    <MmBlocksHierarchyEditor
+                        blocks={parsed.blocks}
+                        selectedPath={selectedBlockPath}
+                        onSelectPath={setSelectedBlockPath}
+                        onChangeBlocks={onHierarchyBlocksChange}
+                    />
+                )}
+            </div>
             {!parsed.ok && (
                 <div
                     className='clJsonError'
