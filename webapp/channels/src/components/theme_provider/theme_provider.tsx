@@ -55,7 +55,6 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     // Counter: kept for API compatibility with WithUserTheme / useUserTheme consumers.
     const [usingUserTheme, setUsingUserTheme] = useState(0);
 
-    const dispatch = useDispatch<AppDispatch>();
     const location = useLocation();
     const isAdminConsole = location.pathname.startsWith('/admin_console');
 
