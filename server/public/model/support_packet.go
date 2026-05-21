@@ -52,8 +52,8 @@ type SupportPacketDiagnostics struct {
 		Type                                string     `yaml:"type"`
 		Version                             string     `yaml:"version"`
 		SchemaVersion                       string     `yaml:"schema_version"`
-		MasterConnectios                    int        `yaml:"master_connections"`
-		ReplicaConnectios                   int        `yaml:"replica_connections"`
+		MasterConnections                    int        `yaml:"master_connections"`
+		ReplicaConnections                   int        `yaml:"replica_connections"`
 		SearchConnections                   int        `yaml:"search_connections"`
 		MasterConnectionsInUse              int        `yaml:"master_connections_in_use"`
 		MasterConnectionsIdle               int        `yaml:"master_connections_idle"`

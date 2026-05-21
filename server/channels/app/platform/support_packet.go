@@ -160,8 +160,8 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	} else {
 		d.Database.Version = databaseVersion
 	}
-	d.Database.MasterConnectios = ps.Store.TotalMasterDbConnections()
-	d.Database.ReplicaConnectios = ps.Store.TotalReadDbConnections()
+	d.Database.MasterConnections = ps.Store.TotalMasterDbConnections()
+	d.Database.ReplicaConnections = ps.Store.TotalReadDbConnections()
 	d.Database.SearchConnections = ps.Store.TotalSearchDbConnections()
 
 	err = ps.applyStoreDiagnostics(rctx.Context(), &d)
