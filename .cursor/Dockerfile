@@ -3,13 +3,10 @@ FROM ubuntu:24.04
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG GO_VERSION=1.25.9
+ARG GH_VERSION=2.92.0
 ARG NODE_VERSION=24.11.1
 ARG NVM_VERSION=0.40.3
 ARG AGENT_BROWSER_VERSION=0.27.0
-ARG DOCKER_VERSION=5:28.5.2-1~ubuntu.24.04~noble
-ARG CONTAINERD_VERSION=2.2.3-1~ubuntu.24.04~noble
-ARG DOCKER_BUILDX_VERSION=0.33.0-1~ubuntu.24.04~noble
-ARG DOCKER_COMPOSE_VERSION=5.1.3-1~ubuntu.24.04~noble
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV NVM_DIR=/home/ubuntu/.nvm
@@ -79,18 +76,17 @@ RUN apt-get update && \
     git lfs install --system && \
     rm -rf /var/lib/apt/lists/*
 
-RUN install -m 0755 -d /etc/apt/keyrings && \
-    curl --retry 3 --retry-delay 5 -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
-    chmod a+r /etc/apt/keyrings/docker.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" > /etc/apt/sources.list.d/docker.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-    docker-ce=${DOCKER_VERSION} \
-    docker-ce-cli=${DOCKER_VERSION} \
-    containerd.io=${CONTAINERD_VERSION} \
-    docker-buildx-plugin=${DOCKER_BUILDX_VERSION} \
-    docker-compose-plugin=${DOCKER_COMPOSE_VERSION} && \
-    rm -rf /var/lib/apt/lists/*
+RUN case "$(dpkg --print-architecture)" in \
+      amd64) gh_arch=amd64 ;; \
+      arm64) gh_arch=arm64 ;; \
+      *) echo "Unsupported GitHub CLI architecture: $(dpkg --print-architecture)" >&2; exit 1 ;; \
+    esac && \
+    curl --retry 5 --retry-delay 5 --retry-all-errors -fsSL \
+      "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${gh_arch}.tar.gz" \
+      -o /tmp/gh.tgz && \
+    tar -xzf /tmp/gh.tgz -C /tmp && \
+    install -m 0755 "/tmp/gh_${GH_VERSION}_linux_${gh_arch}/bin/gh" /usr/local/bin/gh && \
+    rm -rf /tmp/gh.tgz "/tmp/gh_${GH_VERSION}_linux_${gh_arch}"
 
 RUN mkdir -p /etc/docker && \
     printf '%s\n' \
@@ -103,20 +99,12 @@ RUN mkdir -p /etc/docker && \
     update-alternatives --set iptables /usr/sbin/iptables-legacy && \
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 
-RUN install -m 0755 -d /etc/apt/keyrings && \
-    curl --retry 3 --retry-delay 5 -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
-    chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends gh && \
-    rm -rf /var/lib/apt/lists/*
-
 RUN case "$(dpkg --print-architecture)" in \
       amd64) go_arch=amd64 ;; \
       arm64) go_arch=arm64 ;; \
       *) echo "Unsupported Go architecture: $(dpkg --print-architecture)" >&2; exit 1 ;; \
     esac && \
-    curl --retry 3 --retry-delay 5 -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${go_arch}.tar.gz" -o /tmp/go.tgz && \
+    curl --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 30 -fsSL "https://dl.google.com/go/go${GO_VERSION}.linux-${go_arch}.tar.gz" -o /tmp/go.tgz && \
     rm -rf /usr/local/go && \
     tar -C /usr/local -xzf /tmp/go.tgz && \
     ln -sfnT /usr/local/go/bin/go /usr/local/bin/go && \
@@ -128,7 +116,7 @@ RUN case "$(dpkg --print-architecture)" in \
       arm64) aws_arch=aarch64 ;; \
       *) echo "Unsupported AWS CLI architecture: $(dpkg --print-architecture)" >&2; exit 1 ;; \
     esac && \
-    curl --retry 3 --retry-delay 5 -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}.zip" -o /tmp/awscliv2.zip && \
+    curl --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 30 -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}.zip" -o /tmp/awscliv2.zip && \
     unzip -q /tmp/awscliv2.zip -d /tmp && \
     /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli && \
     rm -rf /tmp/aws /tmp/awscliv2.zip
@@ -155,7 +143,7 @@ RUN { \
       echo 'export NVM_DIR="$HOME/.nvm"'; \
       echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'; \
       echo 'export GOPATH="$HOME/go"'; \
-      echo 'export PATH="$NVM_DIR/versions/node/v24.11.1/bin:/usr/local/go/bin:$GOPATH/bin:$PATH"'; \
+      echo "export PATH=\"\$NVM_DIR/versions/node/v${NODE_VERSION}/bin:/usr/local/go/bin:\$GOPATH/bin:\$PATH\""; \
     } >> /home/ubuntu/.bashrc && \
     chown ubuntu:ubuntu /home/ubuntu/.bashrc
 

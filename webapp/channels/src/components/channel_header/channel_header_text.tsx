@@ -39,7 +39,6 @@ export default function ChannelHeaderText(props: Props) {
     const headerText = isBotDMChannel ? props.dmUser?.bot_description ?? '' : props.channel?.header ?? '';
     const hasHeaderText = headerText.trim().length > 0;
 
-    // If it has a channel then show the channel irrespective of the channel type/state etc
     if (hasHeaderText) {
         return (
             <ChannelHeaderTextPopover
@@ -51,14 +50,7 @@ export default function ChannelHeaderText(props: Props) {
         );
     }
 
-    // If doesn't have a header text then we need to check based on below
-    // conditions if we need to show button to add or not
-
-    if (isArchivedChannel) {
-        return null;
-    }
-
-    if (isBotDMChannel) {
+    if (isArchivedChannel || isBotDMChannel) {
         return null;
     }
 
@@ -66,8 +58,6 @@ export default function ChannelHeaderText(props: Props) {
         return <AddChannelHeaderTextButton channel={props.channel}/>;
     }
 
-    // should show option to add channel header text for any channel
-    // other than a DM or a GM or a Bot DM based on user's permission
     return (
         <ChannelPermissionGate
             channelId={props.channel.id}
@@ -95,6 +85,7 @@ function AddChannelHeaderTextButton({channel}: {channel: Channel}) {
     return (
         <button
             className='header-placeholder style--none'
+            type='button'
             onClick={handleClick}
         >
             <FormattedMessage
