@@ -426,6 +426,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         expect(screen.queryByText('Hidden Multiselect Attribute')).not.toBeInTheDocument();
         expect(screen.getByText('Visible Multiselect Attribute')).toBeInTheDocument();
         expect(screen.getByText('Option 1')).toBeInTheDocument();
+        expect(screen.queryByText('filtered-option')).not.toBeInTheDocument();
     });
 
     test('should render display_name as the visible label when set', () => {
