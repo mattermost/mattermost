@@ -1,0 +1,346 @@
+// Interactive Messages (mm_blocks) layout — buttons/selects use global .btn / .form-control.
+
+$mm-blocks-border-strong: rgba(var(--center-channel-color-rgb), 0.16);
+$mm-blocks-border-subtle: rgba(var(--center-channel-color-rgb), 0.12);
+$mm-blocks-surface-subtle: rgba(var(--center-channel-color-rgb), 0.04);
+$mm-blocks-text-muted: rgba(var(--center-channel-color-rgb), 0.56);
+
+$mm-blocks-accent-colors: (
+    default: rgba(var(--button-bg-rgb), 0.32),
+    primary: var(--button-bg),
+    good: var(--online-indicator),
+    warning: var(--away-indicator),
+    danger: var(--dnd-indicator),
+);
+
+$mm-blocks-container-gaps: (
+    none: 0,
+    small: 8px,
+    medium: 12px,
+    large: 16px,
+    xlarge: 20px,
+);
+
+$mm-blocks-container-max-heights: (
+    small: 160px,
+    medium: 280px,
+    large: 420px,
+);
+
+@mixin mm-blocks-capped-width {
+    width: 100%;
+    max-width: 700px;
+    box-sizing: border-box;
+}
+
+.mm-blocks {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    gap: 12px;
+
+    p {
+        margin: 0;
+    }
+
+    button {
+        align-self: flex-start;
+    }
+
+    // Markdown `mm_action:` links in text blocks behave like buttons (handled in message_html_to_component).
+    .mm-action-md-link {
+        cursor: pointer;
+    }
+
+    .mm-blocks-container {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+
+        // 700px cap when the container shows a border or accent bar.
+        &--accent {
+            @include mm-blocks-capped-width;
+
+            padding: 12px;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            border-left-width: 4px;
+            border-left-style: solid;
+            border-left-color: var(--sidebar-header-bg);
+
+            @each $name, $color in $mm-blocks-accent-colors {
+                &.mm-blocks-container--accent-#{$name} {
+                    border-left-color: $color;
+                }
+            }
+
+            &.mm-blocks-container--accent-custom {
+                border-left-color: var(--mm-blocks-accent-color, var(--sidebar-header-bg));
+            }
+
+            // `border: true` with `accent_color` — outer top/right/bottom frame on the same element.
+            &.mm-blocks-container--accent-border {
+                margin: 5px 0;
+                border-top: 1px solid $mm-blocks-border-strong;
+                border-right: 1px solid $mm-blocks-border-strong;
+                border-bottom: 1px solid $mm-blocks-border-strong;
+                border-radius: 0 4px 4px 4px;
+            }
+        }
+
+        // `border: true` on the block (no accent_color).
+        &--border {
+            @include mm-blocks-capped-width;
+
+            padding: 8px;
+            border: 1px solid $mm-blocks-border-strong;
+            border-radius: 4px;
+        }
+
+        &--bg-gray {
+            background: $mm-blocks-surface-subtle;
+        }
+
+        &--flow-horizontal {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        // Nested scroll + flex: override min-height:auto on items (same idea as .mm-blocks-column min-width).
+        &--flow-vertical {
+            display: flex;
+            min-height: 0;
+            flex-direction: column;
+
+            > * {
+                min-height: 0;
+            }
+        }
+
+        @each $name, $gap in $mm-blocks-container-gaps {
+            &--gap-#{$name} {
+                gap: $gap;
+            }
+        }
+
+        // Scrollport: cap height and scroll; flex children keep content-sized main axis (see flow rules below).
+        // `max_height: none` uses `mm-blocks-container--max-height-none` (no extra rules).
+        @each $name, $height in $mm-blocks-container-max-heights {
+            &--max-height-#{$name} {
+                flex-shrink: 0;
+                margin: 4px 0;
+                max-height: $height;
+                overflow-y: auto;
+                min-height: 0;
+            }
+        }
+    }
+
+    @each $name, $height in $mm-blocks-container-max-heights {
+        .mm-blocks-container--flow-vertical.mm-blocks-container--max-height-#{$name},
+        .mm-blocks-container--flow-horizontal.mm-blocks-container--max-height-#{$name} {
+            > * {
+                flex-shrink: 0;
+            }
+        }
+    }
+
+    // `AutocompleteSelector` / `SuggestionBox` use `.select-suggestion-container`, which has global
+    // `margin: 8px 8px 0 0` (_select.scss). Drop that for mm_blocks dropdowns so height matches siblings.
+    .mm-blocks-select {
+        .select-suggestion-container {
+            margin: 0;
+
+            &::after {
+                left: 20rem;
+            }
+        }
+
+        .form-control {
+            width: 22rem;
+            text-overflow: ellipsis;
+        }
+    }
+
+    // AutocompleteSelector uses `.form-group` for the dropdown container, which adds a bottom margin.
+    // This removes such margin.
+    .form-group {
+        margin: 0;
+    }
+
+    // Button styles automatically add a margin between button siblings.
+    // We handle this with flex gap, so we remove this margin.
+    .btn + .btn {
+        margin-left: 0px;
+    }
+
+    // Legacy attachment action colors (`ActionButton` STATUS_COLORS).
+    .mm-blocks-button--good,
+    .mm-blocks-button--success {
+        background-color: rgba(51, 153, 112, 0.08) !important;
+        color: #339970 !important;
+
+        &:hover:not(:disabled),
+        &:focus:not(:disabled) {
+            background-color: rgba(51, 153, 112, 0.12) !important;
+            color: #339970 !important;
+        }
+
+        &:active:not(:disabled) {
+            background-color: rgba(51, 153, 112, 0.16) !important;
+        }
+    }
+
+    .mm-blocks-button--warning {
+        background-color: rgba(204, 143, 0, 0.08) !important;
+        color: #CC8F00 !important;
+
+        &:hover:not(:disabled),
+        &:focus:not(:disabled) {
+            background-color: rgba(204, 143, 0, 0.12) !important;
+            color: #CC8F00 !important;
+        }
+
+        &:active:not(:disabled) {
+            background-color: rgba(204, 143, 0, 0.16) !important;
+        }
+    }
+
+    .mm-blocks-image {
+        margin-bottom: 1em;
+
+        &__frame {
+            display: block;
+            overflow: hidden;
+            max-width: 100%;
+            line-height: 0;
+
+            // `SizeAwareImage` nests `inline-block` wrappers; cap them so percentage widths
+            // on the img do not expand to the image's intrinsic size.
+            .file-preview__button {
+                display: block;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            figure.image-loaded-container {
+                display: block;
+                max-width: 100%;
+                margin: 0;
+            }
+
+            .image-loading__container {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+        }
+
+        &__img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid transparent;
+        }
+
+        &__img--person {
+            border-radius: 50%;
+            aspect-ratio: 1;
+        }
+    }
+
+    .mm-blocks-text {
+        p:first-child {
+            margin-top: 0;
+        }
+
+        &--subtle {
+            color: $mm-blocks-text-muted;
+        }
+
+        &--small {
+            font-size: 12px;
+        }
+    }
+
+    .mm-blocks-divider {
+        width: 100%;
+        align-self: stretch;
+        border: 0;
+        border-top: 1px solid $mm-blocks-border-subtle;
+        margin: 8px 0;
+
+        &--vertical {
+            width: 0;
+            flex-shrink: 0;
+            align-self: stretch;
+            border-top: 0;
+            border-left: 1px solid $mm-blocks-border-subtle;
+            margin: 0 8px;
+        }
+    }
+
+    .mm-blocks-column-set {
+        display: flex;
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .mm-blocks-column {
+        min-width: 0;
+        flex: 1 1 auto;
+
+        &--auto {
+            flex: 0 1 auto;
+        }
+
+        &--stretch {
+            flex: 1 1 0;
+        }
+    }
+
+    .mm-blocks-collapsible {
+        border: 1px solid $mm-blocks-border-subtle;
+        border-radius: 4px;
+        margin: 4px 0;
+
+        &-header {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            padding: 8px 10px;
+            gap: 8px;
+            text-align: left;
+
+            &:hover {
+                background: $mm-blocks-surface-subtle;
+            }
+
+            &__body {
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+
+            &__chevron {
+                display: flex;
+                flex-shrink: 0;
+                align-items: center;
+                justify-content: center;
+                color: $mm-blocks-text-muted;
+
+                .icon {
+                    font-size: 18px;
+                    line-height: 1;
+                }
+            }
+        }
+
+        &-content {
+            padding: 0 10px 10px;
+        }
+    }
+}

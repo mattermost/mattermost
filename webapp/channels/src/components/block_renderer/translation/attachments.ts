@@ -16,10 +16,10 @@ import type {
 import Constants from 'utils/constants';
 import {isUrlSafe} from 'utils/url';
 
-import {normaliseButtonStyle} from './shared';
+import {parseMmButtonStyle} from '../utils/button';
 
 /** Matches legacy `.attachment__author-icon` in `_webhooks.scss` (14×14). */
-const AUTHOR_ICON_MAX_PX = 14;
+const AUTHOR_ICON_MAX_PX = 20;
 
 /** Matches legacy `.attachment__footer-icon` in `message_attachment.tsx` (16×16). */
 const FOOTER_ICON_MAX_PX = 16;
@@ -411,7 +411,7 @@ function translateAttachmentActions(actions: unknown[]) {
                 type: 'button',
                 action_id: actionId,
                 text,
-                style: normaliseButtonStyle(typeof act.style === 'string' ? act.style : undefined),
+                style: parseMmButtonStyle(typeof act.style === 'string' ? act.style : undefined),
                 tooltip: typeof act.tooltip === 'string' ? act.tooltip : undefined,
                 disabled: act.disabled === true ? true : undefined,
                 cookie: typeof act.cookie === 'string' ? act.cookie : undefined,

@@ -14,7 +14,8 @@
 // - Legacy attachments translated into mm_blocks: each control may carry `cookie` copied from
 //   `props.attachments[].actions[].cookie` (encrypted PostAction cookie per button/select).
 
-export type MmButtonStyle = 'default' | 'primary' | 'danger';
+/** Semantic attachment / integration action colors. Hex colors use the same `style` field (`#RRGGBB`). */
+export type MmButtonStyle = 'default' | 'primary' | 'danger' | 'good' | 'success' | 'warning';
 
 // ---------------------------------------------------------------------------
 // Interactive controls
@@ -29,7 +30,9 @@ export type MmButtonBlock = {
     type: 'button';
     text: string;
     action_id: string;
-    style?: MmButtonStyle;
+
+    /** Semantic name (`MmButtonStyle`) or `#RRGGBB` hex (legacy attachment parity). */
+    style?: MmButtonStyle | string;
     tooltip?: string;
     disabled?: boolean;
     query?: Record<string, string>;
@@ -90,7 +93,7 @@ export type MmImageBlock = {
     url: string;
 
     /** Block Kit `alt_text` / Adaptive Cards `altText`. */
-    alt_text: string;
+    alt_text?: string;
 
     /** Block Kit image `title` (plain text); surfaced as the HTML `title` attribute. */
     title?: string;
@@ -164,14 +167,13 @@ export type MmContainerBlock = {
     background?: MmContainerBackground;
 
     /**
-     * When set, the container grows with its content up to this maximum height, then scrolls vertically.
-     * Preset pixel caps: `small` | `medium` | `large`.
+     * Maximum height preset for the container. `none` (default) has no cap; other presets scroll when content overflows.
      */
     max_height?: MmContainerMaxHeight;
 };
 
 /** Preset maximum heights for `MmContainerBlock.max_height`. */
-export type MmContainerMaxHeight = 'small' | 'medium' | 'large';
+export type MmContainerMaxHeight = 'none' | 'small' | 'medium' | 'large';
 
 export type MmCollapsibleBlock = {
     type: 'collapsible';

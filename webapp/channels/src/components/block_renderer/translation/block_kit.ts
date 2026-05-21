@@ -5,14 +5,13 @@
 
 import type {
     MmBlock,
-    MmButtonStyle,
     MmColumnBlock,
     MmContainerBlock,
     MmImageSize,
     MmStaticSelectOption,
 } from '@mattermost/types/mm_blocks';
 
-import {normaliseButtonStyle} from './shared';
+import {parseMmButtonStyle} from '../utils/button';
 
 export function translateBlockKit(blocks: unknown[]): MmBlock[] {
     const result: MmBlock[] = [];
@@ -168,7 +167,7 @@ function translateBlockKitAccessory(
             type: 'button',
             action_id: typeof accessory.action_id === 'string' ? accessory.action_id : '',
             text,
-            style: normaliseButtonStyle(typeof accessory.style === 'string' ? accessory.style : undefined) as MmButtonStyle,
+            style: parseMmButtonStyle(typeof accessory.style === 'string' ? accessory.style : undefined),
         };
     }
     if (accessory.type === 'image') {
@@ -220,7 +219,7 @@ function translateBlockKitActionRows(elements: unknown): MmContainerBlock | null
                 type: 'button',
                 action_id: e.action_id,
                 text,
-                style: normaliseButtonStyle(typeof e.style === 'string' ? e.style : undefined) as MmButtonStyle,
+                style: parseMmButtonStyle(typeof e.style === 'string' ? e.style : undefined),
             });
         } else if (e.type === 'static_select') {
             const placeholder = extractBlockKitPlainText(e.placeholder);

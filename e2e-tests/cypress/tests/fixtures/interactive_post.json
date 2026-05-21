@@ -80,6 +80,90 @@
                 ]
             }
         },
+        "button_semantic_styles": {
+            "message": "Fixture: attachment action button styles — default, primary, good, success, warning, danger, hex (translated to mm_blocks).",
+            "props": {
+                "attachments": [
+                    {
+                        "fallback": "Button style showcase",
+                        "color": "#439FE0",
+                        "text": "Legacy attachment actions with each supported `style` value.",
+                        "actions": [
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_default",
+                                "name": "Default",
+                                "style": "default",
+                                "integration": {
+                                    "url": "https://example.com/actions/default",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_primary",
+                                "name": "Primary",
+                                "style": "primary",
+                                "integration": {
+                                    "url": "https://example.com/actions/primary",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_good",
+                                "name": "Good",
+                                "style": "good",
+                                "integration": {
+                                    "url": "https://example.com/actions/good",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_success",
+                                "name": "Success",
+                                "style": "success",
+                                "integration": {
+                                    "url": "https://example.com/actions/success",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_warning",
+                                "name": "Warning",
+                                "style": "warning",
+                                "integration": {
+                                    "url": "https://example.com/actions/warning",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_danger",
+                                "name": "Danger",
+                                "style": "danger",
+                                "integration": {
+                                    "url": "https://example.com/actions/danger",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_hex",
+                                "name": "Hex #2d81ff",
+                                "style": "#2d81ff",
+                                "integration": {
+                                    "url": "https://example.com/actions/hex",
+                                    "context": {}
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
         "with_select": {
             "message": "Fixture: static select — requires `id` on the action for interactive translation.",
             "props": {
@@ -1224,6 +1308,66 @@
                         "action_id": "e2e_mm_blocks_na",
                         "disabled": true,
                         "tooltip": "This control is intentionally disabled"
+                    }
+                ]
+            }
+        },
+        "button_semantic_styles": {
+            "message": "Fixture: mm_blocks button styles — default, primary, good, success, warning, danger, and hex.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "Attachment action colors ported to native mm_blocks buttons."
+                    },
+                    {
+                        "type": "container",
+                        "flow": "horizontal",
+                        "gap": "medium",
+                        "content": [
+                            {
+                                "type": "button",
+                                "text": "Default",
+                                "style": "default",
+                                "action_id": "e2e_btn_default"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Primary",
+                                "style": "primary",
+                                "action_id": "e2e_btn_primary"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Good",
+                                "style": "good",
+                                "action_id": "e2e_btn_good"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Success",
+                                "style": "success",
+                                "action_id": "e2e_btn_success"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Warning",
+                                "style": "warning",
+                                "action_id": "e2e_btn_warning"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Danger",
+                                "style": "danger",
+                                "action_id": "e2e_btn_danger"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Hex #2d81ff",
+                                "style": "#2d81ff",
+                                "action_id": "e2e_btn_hex"
+                            }
+                        ]
                     }
                 ]
             }

@@ -14,10 +14,10 @@ import type {Post} from '@mattermost/types/posts';
 
 import {doPostActionWithCookie} from 'mattermost-redux/actions/posts';
 
-import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
+import {BlockRenderer} from 'components/block_renderer';
+import {getPostInteractiveIntegrationFormat, translatePostProps} from 'components/block_renderer/translation';
 
-import {BlockRenderer} from './block_renderer';
-import {getPostInteractiveIntegrationFormat, translatePostProps} from './translation';
+import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
 
 type Props = {
     post: Post;
@@ -42,9 +42,7 @@ const InteractiveMessages = ({post}: Props) => {
         try {
             const result = await dispatch(doPostActionWithCookie(post.id, actionId, actionCookie, selectedOption ?? '', query, integrationFormat));
             if (result.error) {
-                const message = typeof result.error.message === 'string' && result.error.message ?
-                    result.error.message :
-                    undefined;
+                const message = typeof result.error.message === 'string' && result.error.message ? result.error.message : undefined;
                 setActionError(message ?? 'Action failed to execute');
                 return;
             }

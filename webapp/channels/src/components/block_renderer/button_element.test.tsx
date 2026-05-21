@@ -1,0 +1,110 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+
+import type {MmButtonBlock} from '@mattermost/types/mm_blocks';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+
+import {ButtonElement} from './button_element';
+
+describe('ButtonElement', () => {
+    const onAction = jest.fn();
+
+    beforeEach(() => {
+        onAction.mockClear();
+    });
+
+    it('returns null when text is missing', () => {
+        const {container} = renderWithContext(
+            <ButtonElement
+                element={{type: 'button', action_id: 'btn-1', text: ''}}
+                onAction={onAction}
+            />,
+        );
+        expect(container).toBeEmptyDOMElement();
+    });
+
+    it('returns null when action_id is missing', () => {
+        const {container} = renderWithContext(
+            <ButtonElement
+                element={{type: 'button', text: 'Click'} as MmButtonBlock}
+                onAction={onAction}
+            />,
+        );
+        expect(container).toBeEmptyDOMElement();
+    });
+
+    it('renders button with style class and dispatches on click', async () => {
+        const user = userEvent.setup();
+        renderWithContext(
+            <ButtonElement
+                element={{
+                    type: 'button',
+                    text: 'Approve',
+                    action_id: 'approve',
+                    style: 'primary',
+                    query: {foo: 'bar'},
+                    cookie: 'cookie-1',
+                }}
+                onAction={onAction}
+            />,
+        );
+
+        const button = screen.getByRole('button', {name: 'Approve'});
+        expect(button).toHaveClass('btn-primary');
+        expect(button).not.toBeDisabled();
+
+        await user.click(button);
+        expect(onAction).toHaveBeenCalledWith('approve', undefined, {foo: 'bar'}, 'cookie-1');
+    });
+
+    it('renders semantic good style class', () => {
+        renderWithContext(
+            <ButtonElement
+                element={{
+                    type: 'button',
+                    text: 'Acknowledge',
+                    action_id: 'ack',
+                    style: 'good',
+                }}
+                onAction={onAction}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Acknowledge'})).toHaveClass('mm-blocks-button--good');
+    });
+
+    it('applies inline color for hex style', () => {
+        renderWithContext(
+            <ButtonElement
+                element={{
+                    type: 'button',
+                    text: 'Custom',
+                    action_id: 'custom',
+                    style: '#28a745',
+                }}
+                onAction={onAction}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Custom'})).toHaveStyle({color: 'rgb(40, 167, 69)'});
+    });
+
+    it('disables the button when disabled is true', () => {
+        renderWithContext(
+            <ButtonElement
+                element={{
+                    type: 'button',
+                    text: 'Disabled',
+                    action_id: 'd',
+                    disabled: true,
+                }}
+                onAction={onAction}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Disabled'})).toBeDisabled();
+    });
+});

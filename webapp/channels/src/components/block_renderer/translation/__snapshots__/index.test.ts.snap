@@ -1,0 +1,661 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`translatePostProps complex payloads translates rich Adaptive Cards (columns, image, action set) 1`] = `
+Array [
+  Object {
+    "is_subtle": undefined,
+    "text": "Deployment status",
+    "type": "text",
+  },
+  Object {
+    "columns": Array [
+      Object {
+        "items": Array [
+          Object {
+            "is_subtle": undefined,
+            "text": "Service: API",
+            "type": "text",
+          },
+          Object {
+            "is_subtle": true,
+            "text": "Version: 11.8",
+            "type": "text",
+          },
+        ],
+        "type": "column",
+        "width": "stretch",
+      },
+      Object {
+        "items": Array [
+          Object {
+            "alt_text": "status",
+            "size": "small",
+            "type": "image",
+            "url": "https://example.com/status.png",
+          },
+        ],
+        "type": "column",
+        "width": "auto",
+      },
+    ],
+    "type": "column_set",
+  },
+  Object {
+    "content": Array [
+      Object {
+        "action_id": "approve",
+        "style": "primary",
+        "text": "Approve",
+        "type": "button",
+      },
+      Object {
+        "action_id": "reject",
+        "style": "danger",
+        "text": "Reject",
+        "type": "button",
+      },
+    ],
+    "flow": "horizontal",
+    "type": "container",
+  },
+]
+`;
+
+exports[`translatePostProps complex payloads translates rich Block Kit (accessory, fields, image, select) 1`] = `
+Array [
+  Object {
+    "columns": Array [
+      Object {
+        "items": Array [
+          Object {
+            "text": "Section with accessory",
+            "type": "text",
+          },
+        ],
+        "type": "column",
+        "width": "stretch",
+      },
+      Object {
+        "items": Array [
+          Object {
+            "action_id": "accessory_btn",
+            "style": "primary",
+            "text": "Accessory",
+            "type": "button",
+          },
+        ],
+        "type": "column",
+        "width": "auto",
+      },
+    ],
+    "type": "column_set",
+  },
+  Object {
+    "columns": Array [
+      Object {
+        "items": Array [
+          Object {
+            "text": "*Field A*",
+            "type": "text",
+          },
+        ],
+        "type": "column",
+        "width": "stretch",
+      },
+      Object {
+        "items": Array [
+          Object {
+            "text": "Field B",
+            "type": "text",
+          },
+        ],
+        "type": "column",
+        "width": "stretch",
+      },
+    ],
+    "type": "column_set",
+  },
+  Object {
+    "text": "Field C alone",
+    "type": "text",
+  },
+  Object {
+    "alt_text": "diagram",
+    "size": "large",
+    "title": undefined,
+    "type": "image",
+    "url": "https://example.com/block.png",
+  },
+  Object {
+    "content": Array [
+      Object {
+        "action_id": "cancel",
+        "style": "danger",
+        "text": "Cancel",
+        "type": "button",
+      },
+      Object {
+        "action_id": "priority",
+        "options": Array [
+          Object {
+            "text": "P1",
+            "value": "1",
+          },
+          Object {
+            "text": "P2",
+            "value": "2",
+          },
+        ],
+        "placeholder": "Priority",
+        "type": "static_select",
+      },
+    ],
+    "flow": "horizontal",
+    "type": "container",
+  },
+]
+`;
+
+exports[`translatePostProps complex payloads translates rich attachments (fields, media, footer, actions, multiple cards) 1`] = `
+Array [
+  Object {
+    "text": "First attachment pretext",
+    "type": "text",
+  },
+  Object {
+    "accent_color": "#2d81ff",
+    "border": true,
+    "content": Array [
+      Object {
+        "content": Array [
+          Object {
+            "alt_text": "Attachment author icon",
+            "max_height": 14,
+            "max_width": 14,
+            "size": "auto",
+            "type": "image",
+            "url": "https://example.com/author.png",
+          },
+          Object {
+            "text": "[Reporter](https://example.com/author)",
+            "type": "text",
+          },
+        ],
+        "flow": "horizontal",
+        "gap": "small",
+        "type": "container",
+      },
+      Object {
+        "text": "**[Incident report](https://example.com/report)**",
+        "type": "text",
+      },
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
+                "text": "Summary with **markdown**",
+                "type": "text",
+              },
+              Object {
+                "alt_text": "Attachment image",
+                "size": "medium",
+                "type": "image",
+                "url": "https://example.com/chart.png",
+              },
+              Object {
+                "content": Array [
+                  Object {
+                    "columns": Array [
+                      Object {
+                        "items": Array [
+                          Object {
+                            "text": "**Severity:**  
+High",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                      Object {
+                        "items": Array [
+                          Object {
+                            "text": "**Region:**  
+EU",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                    ],
+                    "type": "column_set",
+                  },
+                  Object {
+                    "text": "**Details:**  
+Longer explanation spanning lines",
+                    "type": "text",
+                  },
+                ],
+                "flow": "vertical",
+                "gap": "medium",
+                "type": "container",
+              },
+              Object {
+                "content": Array [
+                  Object {
+                    "alt_text": "Attachment footer icon",
+                    "max_height": 16,
+                    "max_width": 16,
+                    "size": "auto",
+                    "type": "image",
+                    "url": "https://example.com/footer.png",
+                  },
+                  Object {
+                    "is_subtle": true,
+                    "size": "small",
+                    "text": "Generated by CI",
+                    "type": "text",
+                  },
+                ],
+                "flow": "horizontal",
+                "gap": "small",
+                "type": "container",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          Object {
+            "items": Array [
+              Object {
+                "alt_text": "Attachment image",
+                "size": "small",
+                "type": "image",
+                "url": "https://example.com/thumb.png",
+              },
+            ],
+            "type": "column",
+            "width": "auto",
+          },
+        ],
+        "type": "column_set",
+      },
+      Object {
+        "content": Array [
+          Object {
+            "action_id": "ack",
+            "cookie": undefined,
+            "disabled": undefined,
+            "style": "primary",
+            "text": "Acknowledge",
+            "tooltip": undefined,
+            "type": "button",
+          },
+          Object {
+            "action_id": "assignee",
+            "cookie": undefined,
+            "data_source": undefined,
+            "disabled": undefined,
+            "initial_option": "alice",
+            "options": Array [
+              Object {
+                "text": "Alice",
+                "value": "alice",
+              },
+              Object {
+                "text": "Bob",
+                "value": "bob",
+              },
+            ],
+            "placeholder": "Assign",
+            "type": "static_select",
+          },
+          Object {
+            "action_id": "users",
+            "cookie": undefined,
+            "data_source": "users",
+            "disabled": undefined,
+            "initial_option": undefined,
+            "options": undefined,
+            "placeholder": "User",
+            "type": "static_select",
+          },
+        ],
+        "flow": "horizontal",
+        "gap": "medium",
+        "type": "container",
+      },
+    ],
+    "type": "container",
+  },
+  Object {
+    "accent_color": "rgba(var(--link-color-rgb), 0.5)",
+    "border": true,
+    "content": Array [
+      Object {
+        "text": "**Unsafe link title**",
+        "type": "text",
+      },
+      Object {
+        "text": "Title link must not render when URL is unsafe",
+        "type": "text",
+      },
+    ],
+    "type": "container",
+  },
+]
+`;
+
+exports[`translatePostProps complex payloads translates rich mm_blocks (container, column_set, collapsible, select) 1`] = `
+Array [
+  Object {
+    "accent_color": "good",
+    "border": true,
+    "content": Array [
+      Object {
+        "is_subtle": true,
+        "size": "small",
+        "text": "Nested container body",
+        "type": "text",
+      },
+      Object {
+        "type": "divider",
+      },
+    ],
+    "flow": "vertical",
+    "gap": "medium",
+    "type": "container",
+  },
+  Object {
+    "columns": Array [
+      Object {
+        "items": Array [
+          Object {
+            "text": "Column A",
+            "type": "text",
+          },
+        ],
+        "type": "column",
+        "width": "stretch",
+      },
+      Object {
+        "items": Array [
+          Object {
+            "alt_text": "Photo",
+            "size": "small",
+            "type": "image",
+            "url": "https://example.com/photo.png",
+          },
+        ],
+        "type": "column",
+        "width": "auto",
+      },
+    ],
+    "type": "column_set",
+  },
+  Object {
+    "collapsed": true,
+    "content": Array [
+      Object {
+        "text": "Collapsed details",
+        "type": "text",
+      },
+      Object {
+        "action_id": "collapsible_action",
+        "style": "danger",
+        "text": "Act inside",
+        "type": "button",
+      },
+    ],
+    "header": Array [
+      Object {
+        "text": "Expand me",
+        "type": "text",
+      },
+    ],
+    "type": "collapsible",
+  },
+  Object {
+    "action_id": "mm_select",
+    "initial_option": "a",
+    "options": Array [
+      Object {
+        "text": "Alpha",
+        "value": "a",
+      },
+      Object {
+        "text": "Beta",
+        "value": "b",
+      },
+    ],
+    "placeholder": "Choose one",
+    "type": "static_select",
+  },
+]
+`;
+
+exports[`translatePostProps format priority prefers blocks over cards and attachments when mm_blocks is absent 1`] = `
+Array [
+  Object {
+    "text": "*Hello* from Block Kit",
+    "type": "text",
+  },
+  Object {
+    "type": "divider",
+  },
+  Object {
+    "content": Array [
+      Object {
+        "action_id": "block_kit_demo",
+        "style": "default",
+        "text": "OK",
+        "type": "button",
+      },
+    ],
+    "flow": "horizontal",
+    "type": "container",
+  },
+]
+`;
+
+exports[`translatePostProps format priority prefers cards over attachments when mm_blocks and blocks are absent 1`] = `
+Array [
+  Object {
+    "is_subtle": undefined,
+    "text": "Hello from an Adaptive Card",
+    "type": "text",
+  },
+]
+`;
+
+exports[`translatePostProps format priority prefers mm_blocks over blocks, cards, and attachments 1`] = `
+Array [
+  Object {
+    "text": "Hello **from** mm blocks",
+    "type": "text",
+  },
+  Object {
+    "action_id": "mm_blocks_demo",
+    "style": "primary",
+    "text": "Sample action",
+    "type": "button",
+  },
+]
+`;
+
+exports[`translatePostProps malformed inputs falls through when mm_blocks is not an array and uses attachments 1`] = `
+Array [
+  Object {
+    "accent_color": "rgba(var(--link-color-rgb), 0.5)",
+    "border": true,
+    "content": Array [
+      Object {
+        "text": "fallback attachment",
+        "type": "text",
+      },
+    ],
+    "type": "container",
+  },
+]
+`;
+
+exports[`translatePostProps malformed inputs keeps valid mm_blocks and drops invalid siblings 1`] = `
+Array [
+  Object {
+    "text": "Valid block",
+    "type": "text",
+  },
+]
+`;
+
+exports[`translatePostProps malformed inputs skips invalid Block Kit blocks and keeps valid sections 1`] = `
+Array [
+  Object {
+    "text": "Kept section",
+    "type": "text",
+  },
+]
+`;
+
+exports[`translatePostProps malformed inputs skips invalid attachment entries and keeps partial attachment content 1`] = `
+Array [
+  Object {
+    "accent_color": "rgba(var(--link-color-rgb), 0.5)",
+    "border": true,
+    "content": Array [
+      Object {
+        "text": "Only body survives",
+        "type": "text",
+      },
+      Object {
+        "content": Array [
+          Object {
+            "action_id": "ok_select",
+            "cookie": undefined,
+            "data_source": undefined,
+            "disabled": undefined,
+            "initial_option": undefined,
+            "options": Array [
+              Object {
+                "text": "Good",
+                "value": "g",
+              },
+            ],
+            "placeholder": "OK",
+            "type": "static_select",
+          },
+        ],
+        "flow": "horizontal",
+        "gap": "medium",
+        "type": "container",
+      },
+    ],
+    "type": "container",
+  },
+]
+`;
+
+exports[`translatePostProps malformed inputs skips non-AdaptiveCard entries and partial invalid card bodies 1`] = `
+Array [
+  Object {
+    "is_subtle": undefined,
+    "text": "Valid line",
+    "type": "text",
+  },
+]
+`;
+
+exports[`translatePostProps malformed inputs treats non-array interactive props as absent for format detection 1`] = `
+Array [
+  Object {
+    "accent_color": "rgba(var(--link-color-rgb), 0.5)",
+    "border": true,
+    "content": Array [
+      Object {
+        "text": "uses attachments",
+        "type": "text",
+      },
+    ],
+    "type": "container",
+  },
+]
+`;
+
+exports[`translatePostProps simple payloads translates Adaptive Cards 1`] = `
+Array [
+  Object {
+    "is_subtle": undefined,
+    "text": "Hello from an Adaptive Card",
+    "type": "text",
+  },
+]
+`;
+
+exports[`translatePostProps simple payloads translates Block Kit blocks 1`] = `
+Array [
+  Object {
+    "text": "*Hello* from Block Kit",
+    "type": "text",
+  },
+  Object {
+    "type": "divider",
+  },
+  Object {
+    "content": Array [
+      Object {
+        "action_id": "block_kit_demo",
+        "style": "default",
+        "text": "OK",
+        "type": "button",
+      },
+    ],
+    "flow": "horizontal",
+    "type": "container",
+  },
+]
+`;
+
+exports[`translatePostProps simple payloads translates legacy attachments 1`] = `
+Array [
+  Object {
+    "text": "Optional pretext",
+    "type": "text",
+  },
+  Object {
+    "accent_color": "#36a64f",
+    "border": true,
+    "content": Array [
+      Object {
+        "text": "Bot Author",
+        "type": "text",
+      },
+      Object {
+        "text": "**[Attachment title](https://example.com)**",
+        "type": "text",
+      },
+      Object {
+        "text": "Body *markdown* text",
+        "type": "text",
+      },
+    ],
+    "type": "container",
+  },
+]
+`;
+
+exports[`translatePostProps simple payloads translates native mm_blocks 1`] = `
+Array [
+  Object {
+    "text": "Hello **from** mm blocks",
+    "type": "text",
+  },
+  Object {
+    "action_id": "mm_blocks_demo",
+    "style": "primary",
+    "text": "Sample action",
+    "type": "button",
+  },
+]
+`;
