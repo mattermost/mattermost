@@ -587,7 +587,7 @@ export const makeIsPostCommentMention = (): ((state: GlobalState, postId: Post['
                         continue;
                     }
 
-                    if (p.user_id === currentUser.id) {
+                    if (p.user_id === currentUser.id && !isFromWebhook(p)) {
                         threadRepliedToByCurrentUser = true;
                     }
                 }
