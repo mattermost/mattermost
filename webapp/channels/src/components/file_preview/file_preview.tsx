@@ -53,7 +53,7 @@ export default class FilePreview extends React.PureComponent<Props> {
     };
 
     /**
-     * Opens the standard file preview modal for a draft attachment image or SVG thumbnail.
+     * Opens the standard file preview modal for a draft attachment.
      *
      * @param e - Mouse event from the thumbnail link (default prevented; does not bubble).
      * @param startIndex - Index of the clicked file in {@link Props.fileInfos} for modal navigation.
@@ -90,10 +90,7 @@ export default class FilePreview extends React.PureComponent<Props> {
 
             let className = 'file-preview post-image__column';
             let previewImage;
-            const canOpenPreviewModal = !info.archived && info.delete_at === 0 && (
-                type === FileTypes.IMAGE ||
-                (type === FileTypes.SVG && this.props.enableSVGs)
-            );
+            const canOpenPreviewModal = !info.archived && info.delete_at === 0;
 
             if (type === FileTypes.SVG && this.props.enableSVGs) {
                 previewImage = (

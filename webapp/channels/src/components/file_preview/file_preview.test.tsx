@@ -138,6 +138,42 @@ describe('FilePreview', () => {
         });
     });
 
+    test('should call openModal when non-image file thumbnail is clicked', async () => {
+        const pdfFileInfos = [{
+            ...fileInfos[0],
+            id: 'file_id_pdf',
+            name: 'document.pdf',
+            type: 'application/pdf',
+            extension: 'pdf',
+            width: 0,
+            height: 0,
+            has_preview_image: false,
+        }];
+        openModal.mockClear();
+        renderWithContext(
+            <FilePreview
+                {...baseProps}
+                fileInfos={pdfFileInfos}
+                uploadsInProgress={[]}
+            />,
+        );
+
+        const user = userEvent.setup();
+        const thumb = screen.getByLabelText(/file thumbnail.*document\.pdf/i);
+        await user.click(thumb);
+
+        expect(openModal).toHaveBeenCalledTimes(1);
+        expect(openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+            dialogType: FilePreviewModal,
+            dialogProps: {
+                post: {user_id: 'user_id_1', channel_id: 'channel_id'},
+                fileInfos: pdfFileInfos,
+                startIndex: 0,
+            },
+        });
+    });
+
     /** Direct handler coverage: thumbnails for archived/deleted files are non-links, but guards must stay aligned. */
     const thumbnailClickMouseEvent = () =>
         ({
