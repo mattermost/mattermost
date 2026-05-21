@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -191,6 +192,10 @@ func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error
 	return &model.SupportPacketDatabaseSchema{
 		Tables: []model.DatabaseTable{},
 	}, nil
+}
+
+func (s *Store) GetDiagnostics(_ context.Context) (*store.DatabaseDiagnostics, error) {
+	return &store.DatabaseDiagnostics{}, nil
 }
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {

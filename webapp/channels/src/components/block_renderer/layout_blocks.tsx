@@ -35,7 +35,6 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
             <TextBlock
                 block={block}
                 postId={postId}
-                onAction={onAction}
             />
         );
     case 'image':

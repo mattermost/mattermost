@@ -126,6 +126,17 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             mentionHighlight = !this.props.post.props.mentionHighlightDisabled;
         }
 
+        const isBot = this.props.post?.props?.from_bot === 'true';
+        const isWebhook = this.props.post?.props?.from_webhook === 'true';
+        const isPlugin = this.props.post?.props?.from_plugin === 'true';
+
+        const allowInlineActions = isBot || isWebhook || isPlugin;
+        const postProps = this.props.post?.props as Record<string, unknown> | undefined;
+        const mmBlocksActionsCookie = typeof postProps?.mm_blocks_actions === 'string' ?
+            postProps.mm_blocks_actions :
+            undefined;
+        const integrationFormat = mmBlocksActionsCookie ? 'mm_block' : undefined;
+
         const options = this.getOptions(
             this.props.options,
             this.props.post?.props?.disable_group_highlight === true,
@@ -152,6 +163,9 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                 imagesMetadata={this.props.post?.metadata?.images}
                 postId={this.props.post?.id}
                 editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
+                allowInlineActions={allowInlineActions}
+                mmBlocksActionCookie={mmBlocksActionsCookie}
+                integrationFormat={integrationFormat}
             />
         );
     }

@@ -5,7 +5,8 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
+	"io"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -20,22 +21,6 @@ func (api *API) InitAction() {
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/lookup", api.APISessionRequired(lookupDialog)).Methods(http.MethodPost)
 }
 
-// getStringValue safely converts an interface{} value to a string with logging for failures.
-// It handles nil values gracefully and logs warnings when conversion fails.
-func getStringValue(val any, fieldName string, logger *mlog.Logger) string {
-	if val == nil {
-		return ""
-	}
-	if str, ok := val.(string); ok {
-		return str
-	}
-	logger.Warn("Failed to convert field to string",
-		mlog.String("field", fieldName),
-		mlog.String("type", fmt.Sprintf("%T", val)),
-		mlog.Any("value", val))
-	return ""
-}
-
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
@@ -43,9 +28,26 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var actionRequest model.DoPostActionRequest
-	err := json.NewDecoder(r.Body).Decode(&actionRequest)
-	if err != nil {
-		c.Logger.Warn("Error decoding the action request", mlog.Err(err))
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&actionRequest)
+	if err != nil && !errors.Is(err, io.EOF) {
+		// Empty body is allowed for backward-compatibility with older clients.
+		// Any other decode failure means the request cannot be trusted — in
+		// particular, a wrong-type query would otherwise fall through as nil
+		// and silently execute the action without the caller's params.
+		c.SetInvalidParamWithErr("action_request", err)
+		return
+	}
+	if err == nil {
+		// Reject trailing JSON values after the first object (e.g.
+		// `{"query":{"k":"v"}}{"cookie":"x"}`). json.Decoder.Decode
+		// stops at the first complete value and would otherwise silently
+		// ignore the rest, leaving the caller's intent ambiguous.
+		var trailing any
+		if extraErr := dec.Decode(&trailing); !errors.Is(extraErr, io.EOF) {
+			c.SetInvalidParamWithErr("action_request", extraErr)
+			return
+		}
 	}
 
 	var legacyCookie *model.PostActionCookie
@@ -210,8 +212,8 @@ func lookupDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.String("user_id", lookup.UserId),
 		mlog.String("channel_id", lookup.ChannelId),
 		mlog.String("team_id", lookup.TeamId),
-		mlog.String("selected_field", getStringValue(lookup.Submission["selected_field"], "selected_field", c.Logger)),
-		mlog.String("query", getStringValue(lookup.Submission["query"], "query", c.Logger)),
+		mlog.Any("selected_field", lookup.Submission["selected_field"]),
+		mlog.Any("query", lookup.Submission["query"]),
 	)
 
 	resp, err := c.App.LookupInteractiveDialog(c.AppContext, lookup)

@@ -10,9 +10,54 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// maxMmBlocksActionsCloneDepth caps recursion in cloneMmBlocksActionsProp.
+// ValidateMmBlocksActions bounds top-level entry count and key length but
+// does not bound nesting depth inside spec.Context — a bot/plugin could
+// otherwise stash a pathologically nested object that drives stack
+// exhaustion on the restore path. 64 is well past any plausible legitimate
+// nesting; deeper input is treated as malicious and truncated.
+const maxMmBlocksActionsCloneDepth = 64
+
+// cloneMmBlocksActionsProp deep-clones the post.props.mm_blocks_actions value.
+// Each per-action entry can carry nested context / query maps (and arrays
+// inside those), so the clone walks the structure recursively — a shallow
+// clone at any level would leave nested objects aliased back to the live
+// post's props, defeating the restore-after-invalid-response guarantee.
+func cloneMmBlocksActionsProp(v any) any {
+	return cloneMmBlocksActionsPropAt(v, 0)
+}
+
+func cloneMmBlocksActionsPropAt(v any, depth int) any {
+	if depth > maxMmBlocksActionsCloneDepth {
+		// Defense-in-depth: drop the subtree rather than risk stack
+		// exhaustion. The restore path that calls this helper is on a
+		// rare branch (plugin response is invalid), and pathological
+		// nesting at this depth is not a legitimate use case.
+		return nil
+	}
+	switch typed := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(typed))
+		for k, child := range typed {
+			out[k] = cloneMmBlocksActionsPropAt(child, depth+1)
+		}
+		return out
+	case []any:
+		out := make([]any, len(typed))
+		for i, child := range typed {
+			out[i] = cloneMmBlocksActionsPropAt(child, depth+1)
+		}
+		return out
+	default:
+		// Scalars (string/number/bool/nil) are immutable — safe to share.
+		return v
+	}
+}
 
 // postActionSetup holds resolved state for one interactive post action before the upstream HTTP call.
 type postActionSetup struct {
@@ -66,7 +111,7 @@ func (a *App) resolvePostActionSetup(
 	post := postResult.Data
 	chResult := <-cchan
 	if chResult.NErr != nil {
-		return nil, "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(postResult.NErr)
+		return nil, "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(chResult.NErr)
 	}
 
 	return a.resolvePostActionSetupFromPost(post, chResult.Data, actionID, clientQuery, integrationContext, upstreamRequest)
@@ -122,7 +167,9 @@ func (a *App) setupFromLegacyCookie(
 
 	fillUpstreamChannel(upstreamRequest, channel, cookie.ChannelId)
 	upstreamRequest.Type = cookie.Type
-	upstreamRequest.Context = cookie.Integration.Context
+	// Clone the Context map — later code may add selected_option to it, and
+	// we must not mutate the shared source.
+	upstreamRequest.Context = maps.Clone(cookie.Integration.Context)
 
 	setup := &postActionSetup{
 		upstreamURL:          cookie.Integration.URL,
@@ -230,7 +277,11 @@ func (a *App) resolvePostActionSetupFromPost(
 
 		preserve := post.PostActionPreserveState()
 		upstreamRequest.Type = action.Type
-		upstreamRequest.Context = action.Integration.Context
+		// Clone the Context map — the action pointer returned from
+		// post.GetAction may alias post.props state. Mutating it directly
+		// would leak per-click values (selected_option) into the post's
+		// cached integration for subsequent clickers.
+		upstreamRequest.Context = maps.Clone(action.Integration.Context)
 
 		return &postActionSetup{
 			upstreamURL:          action.Integration.URL,
@@ -313,6 +364,33 @@ func (a *App) applyPostActionUpdate(
 	update.IsPinned = setup.originalIsPinned
 	update.HasReactions = setup.originalHasReactions
 
+	// Validate mm_blocks_actions on update responses. Since
+	// AllowMmBlocksActionsUpdate bypasses the non-integration guard in
+	// UpdatePost, and mm_blocks_actions are not in PostActionRetainPropKeys,
+	// a bad response would otherwise permanently replace the post's valid
+	// mm_blocks_actions. Keep the original value (if any) and log a warning
+	// so integration authors can diagnose.
+	if update.GetProp(model.PostPropsMmBlocksActions) != nil {
+		originalMmBlocks := any(nil)
+		if setup.originalProps != nil {
+			originalMmBlocks = setup.originalProps[model.PostPropsMmBlocksActions]
+		}
+		if originalMmBlocks == nil {
+			rctx.Logger().Info("Dropping mm_blocks_actions from plugin update response: original post had none",
+				mlog.String("post_id", postID),
+				mlog.String("url", setup.upstreamURL),
+			)
+			update.DelProp(model.PostPropsMmBlocksActions)
+		} else if err := model.ValidateMmBlocksActions(update); err != nil {
+			rctx.Logger().Info("Restoring original mm_blocks_actions: plugin update response was invalid",
+				mlog.String("post_id", postID),
+				mlog.String("url", setup.upstreamURL),
+				mlog.Err(err),
+			)
+			update.AddProp(model.PostPropsMmBlocksActions, cloneMmBlocksActionsProp(originalMmBlocks))
+		}
+	}
+
 	if setup.ephemeralInteractive {
 		update.ChannelId = setup.ephemeralChannelID
 		if update.RootId == "" && setup.ephemeralRootPostID != "" && setup.ephemeralRootPostID != postID {
@@ -325,7 +403,7 @@ func (a *App) applyPostActionUpdate(
 		return nil
 	}
 
-	if _, _, appErr := a.UpdatePost(rctx, update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
+	if _, _, appErr := a.UpdatePost(rctx, update, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: true}); appErr != nil {
 		return appErr
 	}
 	return nil

@@ -12,26 +12,57 @@ import (
 )
 
 func TestMergeQueryIntoURL(t *testing.T) {
-	t.Run("preserves existing and adds", func(t *testing.T) {
-		out, err := MergeQueryIntoURL("https://example.com/hook?existing=1", map[string]string{"a": "b"})
+	t.Run("empty query returns rawURL unchanged", func(t *testing.T) {
+		got, err := MergeQueryIntoURL("http://example.com/hook", nil)
 		require.NoError(t, err)
-		assert.Contains(t, out, "existing=1")
-		assert.Contains(t, out, "a=b")
-	})
-	t.Run("override duplicate key", func(t *testing.T) {
-		out, err := MergeQueryIntoURL("https://example.com?x=old", map[string]string{"x": "new"})
+		assert.Equal(t, "http://example.com/hook", got)
+
+		got, err = MergeQueryIntoURL("http://example.com/hook", map[string]string{})
 		require.NoError(t, err)
-		assert.Contains(t, out, "x=new")
-		assert.NotContains(t, out, "x=old")
+		assert.Equal(t, "http://example.com/hook", got)
 	})
-	t.Run("empty extra", func(t *testing.T) {
-		out, err := MergeQueryIntoURL("https://example.com/a", nil)
+
+	t.Run("URL without existing query gets query appended", func(t *testing.T) {
+		got, err := MergeQueryIntoURL("http://example.com/hook", map[string]string{"a": "1"})
 		require.NoError(t, err)
-		assert.Equal(t, "https://example.com/a", out)
+		assert.Equal(t, "http://example.com/hook?a=1", got)
 	})
-	t.Run("invalid url", func(t *testing.T) {
-		_, err := MergeQueryIntoURL("://bad", map[string]string{"a": "b"})
+
+	t.Run("URL with existing query merges non-overlapping keys", func(t *testing.T) {
+		got, err := MergeQueryIntoURL("http://example.com/hook?team=alpha", map[string]string{"source": "fleet"})
+		require.NoError(t, err)
+		assert.Contains(t, got, "team=alpha")
+		assert.Contains(t, got, "source=fleet")
+	})
+
+	t.Run("query map overrides existing key on overlap", func(t *testing.T) {
+		got, err := MergeQueryIntoURL("http://example.com/hook?tail=999", map[string]string{"tail": "214"})
+		require.NoError(t, err)
+		assert.Equal(t, "http://example.com/hook?tail=214", got)
+	})
+
+	t.Run("URL fragment is preserved", func(t *testing.T) {
+		got, err := MergeQueryIntoURL("http://example.com/hook#anchor", map[string]string{"a": "1"})
+		require.NoError(t, err)
+		assert.Equal(t, "http://example.com/hook?a=1#anchor", got)
+	})
+
+	t.Run("special characters in values are URL-encoded", func(t *testing.T) {
+		got, err := MergeQueryIntoURL("http://example.com/hook", map[string]string{"q": "a b&c=d"})
+		require.NoError(t, err)
+		assert.Contains(t, got, "q=a+b%26c%3Dd")
+	})
+
+	t.Run("relative URL with empty path accepts query merge", func(t *testing.T) {
+		got, err := MergeQueryIntoURL("/plugins/myplugin/action", map[string]string{"a": "1"})
+		require.NoError(t, err)
+		assert.Equal(t, "/plugins/myplugin/action?a=1", got)
+	})
+
+	t.Run("malformed URL returns parse error", func(t *testing.T) {
+		_, err := MergeQueryIntoURL("://not-a-url", map[string]string{"a": "1"})
 		require.Error(t, err)
+		assert.Contains(t, err.Error(), "parse url")
 	})
 }
 
@@ -143,26 +174,54 @@ func TestMmBlocksActionCookie_ActionSpec(t *testing.T) {
 }
 
 func TestStripMmBlocksActionSecrets(t *testing.T) {
-	p := &Post{}
-	p.SetProps(StringInterface{
-		PostPropsMmBlocksActions: map[string]any{
-			"a": map[string]any{
-				"type": MmBlocksActionTypeExternal,
-				"url":  "https://secret",
-			},
-		},
+	t.Run("absent prop is a no-op", func(t *testing.T) {
+		p := &Post{}
+		assert.NotPanics(t, func() {
+			p.StripMmBlocksActionSecrets()
+		})
+		assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
 	})
-	p.StripMmBlocksActionSecrets()
-	assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
-}
 
-func TestStripMmBlocksActionSecrets_StringNoop(t *testing.T) {
-	p := &Post{}
-	p.SetProps(StringInterface{
-		PostPropsMmBlocksActions: "opaque-ciphertext",
+	t.Run("map-form prop is deleted", func(t *testing.T) {
+		p := &Post{}
+		p.SetProps(StringInterface{
+			PostPropsMmBlocksActions: map[string]any{
+				"a": map[string]any{
+					"type": MmBlocksActionTypeExternal,
+					"url":  "https://secret",
+				},
+			},
+		})
+		p.StripMmBlocksActionSecrets()
+		assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
 	})
-	p.StripMmBlocksActionSecrets()
-	assert.Equal(t, "opaque-ciphertext", p.GetProp(PostPropsMmBlocksActions))
+
+	t.Run("encrypted string prop is preserved", func(t *testing.T) {
+		p := &Post{}
+		p.SetProps(StringInterface{
+			PostPropsMmBlocksActions: "opaque-ciphertext",
+		})
+		p.StripMmBlocksActionSecrets()
+		assert.Equal(t, "opaque-ciphertext", p.GetProp(PostPropsMmBlocksActions))
+	})
+
+	t.Run("other props on the post are not touched", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{
+				"type": MmBlocksActionTypeExternal,
+				"url":  "http://example.com/hook",
+			},
+		})
+		p.AddProp(PostPropsAttachments, []*MessageAttachment{{Text: "keep me"}})
+		p.AddProp(PostPropsFromBot, "true")
+
+		p.StripMmBlocksActionSecrets()
+
+		assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
+		assert.NotNil(t, p.GetProp(PostPropsAttachments))
+		assert.Equal(t, "true", p.GetProp(PostPropsFromBot))
+	})
 }
 
 func TestAddMmBlocksActionCookies_ReplacesWithEncryptedString(t *testing.T) {

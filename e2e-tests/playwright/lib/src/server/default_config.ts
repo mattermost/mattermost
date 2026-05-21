@@ -779,7 +779,6 @@ const defaultServerConfig: AdminConfig = {
         AttributeBasedAccessControl: true,
         PermissionPolicies: true,
         ContentFlagging: true,
-        InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
         AutoTranslation: true,

@@ -3,24 +3,6 @@
 
 import Renderer from './renderer';
 
-describe('link / mm_action markdown (MM blocks)', () => {
-    test('renders mm_action href as data-mm-action anchor when enabled', () => {
-        const renderer = new Renderer({}, {enableMmActionMarkdownLinks: true});
-        const out = renderer.link('mmaction:approve?reason=ok', '', 'Approve');
-        expect(out).toContain('data-mm-action-id="approve"');
-        expect(out).toContain('mm-action-md-link');
-        expect(decodeURIComponent(
-            (out.match(/data-mm-action-query="([^"]+)"/) || [])[1] || '',
-        )).toEqual(JSON.stringify({reason: 'ok'}));
-    });
-
-    test('treats mm_action as normal link when flag is off', () => {
-        const renderer = new Renderer({}, {enableMmActionMarkdownLinks: false, siteURL: 'http://localhost:8065'});
-        const out = renderer.link('mmaction:approve', '', 'x');
-        expect(out).not.toContain('data-mm-action-id');
-    });
-});
-
 describe('code', () => {
     test('too many tokens result in no search rendering', () => {
         const renderer = new Renderer({}, {searchPatterns: [{pattern: new RegExp('\\b()(foo)\\b', 'gi'), term: 'foo'}]});
@@ -48,5 +30,20 @@ describe('codespan', () => {
         result = renderer.codespan(originalString);
 
         expect(result.includes('search-highlight')).toBeFalsy();
+    });
+});
+
+describe('link (mmaction://)', () => {
+    // mmaction:// links are rendered as plain anchors here; the conversion to
+    // <InlineActionButton> happens in messageHtmlToComponent. Validation lives
+    // in the component itself. These tests just lock the contract that the
+    // renderer leaves the href intact for downstream interception.
+    test('mmaction:// href passes through as a normal anchor', () => {
+        const renderer = new Renderer({}, {});
+
+        const result = renderer.link('mmaction://mx?tail=214', '', 'Click');
+
+        expect(result).toContain('href="mmaction://mx?tail=214"');
+        expect(result).toContain('>Click</a>');
     });
 });

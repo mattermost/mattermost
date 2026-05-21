@@ -625,6 +625,7 @@ func ContainsIntegrationsReservedProps(props StringInterface) []string {
 			PostPropsWebhookDisplayName,
 			PostPropsOverrideIconURL,
 			PostPropsOverrideIconEmoji,
+			PostPropsMmBlocksActions,
 		}
 
 		for _, key := range reservedProps {
@@ -950,6 +951,12 @@ func (o *Post) propsIsValid() error {
 	if props[PostPropsAIGeneratedByUsername] != nil {
 		if _, ok := props[PostPropsAIGeneratedByUsername].(string); !ok {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by_username prop must be a string"))
+		}
+	}
+
+	if props[PostPropsMmBlocksActions] != nil {
+		if err := ValidateMmBlocksActions(o); err != nil {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid mm_blocks_actions: %w", err))
 		}
 	}
 
@@ -1291,6 +1298,14 @@ func (o *Post) CleanPost() *Post {
 type UpdatePostOptions struct {
 	SafeUpdate    bool
 	IsRestorePost bool
+
+	// AllowMmBlocksActionsUpdate grants the caller permission to add,
+	// remove, or modify the mm_blocks_actions prop. Without it,
+	// non-integration sessions cannot change mm_blocks_actions and the
+	// prop is reset to its prior value. Set only from trusted paths (e.g.
+	// the post-action integration response handler which has already
+	// validated the incoming value).
+	AllowMmBlocksActionsUpdate bool
 }
 
 func DefaultUpdatePostOptions() *UpdatePostOptions {

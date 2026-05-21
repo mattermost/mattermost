@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback} from 'react';
+import React, {useContext} from 'react';
 
 import type {MmTextBlock} from '@mattermost/types/mm_blocks';
 
 import Markdown from 'components/markdown';
 
-import type {ActionHandler} from './types';
+import {MmBlocksInlineMarkdownActionsContext} from './context';
 
-type TextBlockProps = {block: MmTextBlock; postId: string; onAction: ActionHandler};
+type TextBlockProps = {block: MmTextBlock; postId: string};
 
 function mmTextBlockClassNames(block: MmTextBlock): string {
     return classNames('mm-blocks-text', {
@@ -19,13 +19,8 @@ function mmTextBlockClassNames(block: MmTextBlock): string {
     });
 }
 
-export const TextBlock = ({block, postId, onAction}: TextBlockProps) => {
-    const handleMmActionMarkdown = useCallback(
-        (actionId: string, query: Record<string, string>) => {
-            onAction(actionId, undefined, query, undefined);
-        },
-        [onAction],
-    );
+export const TextBlock = ({block, postId}: TextBlockProps) => {
+    const {mmBlocksActionCookie, integrationFormat} = useContext(MmBlocksInlineMarkdownActionsContext);
     if (!block.text) {
         return null;
     }
@@ -34,7 +29,9 @@ export const TextBlock = ({block, postId, onAction}: TextBlockProps) => {
             <Markdown
                 message={block.text}
                 postId={postId}
-                onMmBlocksMarkdownAction={handleMmActionMarkdown}
+                allowInlineActions={true}
+                mmBlocksActionCookie={mmBlocksActionCookie}
+                integrationFormat={integrationFormat}
             />
         </div>
     );

@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// Server-side definitions for the post.props.mm_blocks_actions registry that
+// underpins the markdown-actions feature.
 package model
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/url"
 )
 
@@ -129,6 +132,18 @@ func ResolveMmBlocksAction(spec *MmBlocksActionSpec, actionID string, clientQuer
 	default:
 		return nil, fmt.Errorf("mm_blocks action_id=%s: %w", actionID, ErrMmBlocksActionNotFound)
 	}
+}
+
+// MmBlocksContextMap parses a context JSON string or treats a non-JSON string as a single context value.
+func MmBlocksContextMap(contextString string) map[string]any {
+	if contextString == "" {
+		return nil
+	}
+	var m map[string]any
+	if err := json.Unmarshal([]byte(contextString), &m); err == nil && m != nil {
+		return m
+	}
+	return map[string]any{"context": contextString}
 }
 
 // MergeQueryIntoURL merges q into rawURL's query string; existing keys are overwritten by q.
@@ -261,8 +276,14 @@ func contextMapFromProp(v any) map[string]any {
 	if v == nil {
 		return nil
 	}
+	if s, ok := v.(string); ok {
+		return MmBlocksContextMap(s)
+	}
 	if m, ok := coerceToStringAnyMap(v); ok {
-		return m
+		// Clone so callers cannot mutate the live post.Props map. A
+		// nested mutation through the returned map would otherwise race
+		// with concurrent post.Props readers.
+		return maps.Clone(m)
 	}
 	return nil
 }

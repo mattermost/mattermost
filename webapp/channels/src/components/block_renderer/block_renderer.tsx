@@ -15,7 +15,8 @@ import React, {useMemo} from 'react';
 import type {MmBlock} from '@mattermost/types/mm_blocks';
 import type {PostImage} from '@mattermost/types/posts';
 
-import {MmBlocksImagesMetadataContext} from './context';
+import {MmBlocksImagesMetadataContext, MmBlocksInlineMarkdownActionsContext} from './context';
+import type {MmBlocksInlineMarkdownActions} from './context';
 import {ContainerBlock} from './layout_blocks';
 import type {ActionHandler} from './types';
 
@@ -28,25 +29,34 @@ type BlockRendererProps = {
 
     /** Optional `post.metadata.images` for dimension hints / SVG handling. */
     imagesMetadata?: Record<string, PostImage>;
+
+    /** For mmaction:// in text blocks (encrypted mm_blocks_actions + integration_format). */
+    inlineMarkdownActions?: MmBlocksInlineMarkdownActions;
 };
 
-export const BlockRenderer = ({blocks, postId, onAction, imagesMetadata}: BlockRendererProps) => {
+export const BlockRenderer = ({blocks, postId, onAction, imagesMetadata, inlineMarkdownActions}: BlockRendererProps) => {
     const metadataValue = useMemo(() => imagesMetadata, [imagesMetadata]);
+    const inlineMarkdownActionsValue = useMemo(
+        () => inlineMarkdownActions ?? {},
+        [inlineMarkdownActions],
+    );
     return (
         <MmBlocksImagesMetadataContext.Provider value={metadataValue}>
-            <div
-                className='mm-blocks'
-                role='group'
-            >
-                <ContainerBlock
-                    block={{
-                        type: 'container',
-                        content: blocks,
-                    }}
-                    postId={postId}
-                    onAction={onAction}
-                />
-            </div>
+            <MmBlocksInlineMarkdownActionsContext.Provider value={inlineMarkdownActionsValue}>
+                <div
+                    className='mm-blocks'
+                    role='group'
+                >
+                    <ContainerBlock
+                        block={{
+                            type: 'container',
+                            content: blocks,
+                        }}
+                        postId={postId}
+                        onAction={onAction}
+                    />
+                </div>
+            </MmBlocksInlineMarkdownActionsContext.Provider>
         </MmBlocksImagesMetadataContext.Provider>
     );
 };

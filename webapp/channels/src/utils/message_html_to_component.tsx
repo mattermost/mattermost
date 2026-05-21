@@ -5,10 +5,13 @@ import {Parser, ProcessNodeDefinitions} from 'html-to-react';
 import type {AllHTMLAttributes} from 'react';
 import React from 'react';
 
+import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
+
 import AtMention from 'components/at_mention';
 import AtPlanMention from 'components/at_plan_mention';
 import AtSumOfMembersMention from 'components/at_sum_members_mention';
 import CodeBlock from 'components/code_block/code_block';
+import InlineActionButton from 'components/inline_action_button';
 import InlineEntityLink from 'components/inline_entity_link';
 import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
@@ -38,6 +41,7 @@ export type Options = Partial<{
     atPlanMentions: boolean;
     channelId: string;
     channelIsShared: boolean;
+    allowInlineActions: boolean;
 
     /**
      * Whether or not the AtMention component should attempt to fetch at-mentioned users if none can be found for
@@ -46,8 +50,11 @@ export type Options = Partial<{
      */
     fetchMissingUsers: boolean;
 
-    /** Handles `mm_action:` markdown links rendered inside MM blocks. */
-    mmBlocksMarkdownActionHandler: (actionId: string, query: Record<string, string>) => void;
+    /** Encrypted mm_blocks_actions cookie (ephemeral posts). */
+    mmBlocksActionCookie: string;
+
+    /** integration_format when using mmBlocksActionCookie. */
+    integrationFormat: PostActionIntegrationFormat;
 }>
 
 type ProcessingInstruction = {
@@ -139,53 +146,27 @@ export default function messageHtmlToComponent(html: string, options: Options = 
         },
     });
 
-    if (options.mmBlocksMarkdownActionHandler) {
+    if (options.allowInlineActions) {
+        // replaceChildren: false replaces the entire <a> tag (not just its
+        // children) — without it the anchor would remain as a wrapper around
+        // the button, leaving the original mmaction:// href clickable.
         processingInstructions.push({
             replaceChildren: false,
-            shouldProcessNode: (node: any) => {
-                return Boolean(
-                    node.type === 'tag' &&
-                    node.name === 'a' &&
-                    node.attribs &&
-                    node.attribs['data-mm-action-id'],
-                );
-            },
-            processNode: (node: any, children: any, index?: number) => {
-                const actionId = node.attribs['data-mm-action-id'] as string;
-                const handler = options.mmBlocksMarkdownActionHandler as (actionId: string, query: Record<string, string>) => void;
-                let query: Record<string, string> = {};
-                const raw = node.attribs['data-mm-action-query'] as string | undefined;
-                if (raw) {
-                    try {
-                        const parsed = JSON.parse(decodeURIComponent(raw));
-                        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-                            query = parsed as Record<string, string>;
-                        }
-                    } catch {
-                        query = {};
-                    }
-                }
-                const baseProps = convertPropsToReactStandard(node.attribs) as Record<string, unknown>;
-                return (
-                    <a
-                        {...baseProps}
-                        key={`mm-action-md-${index}-${actionId}`}
-                        href='#'
-                        onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                            e.preventDefault();
-                            handler(actionId, query);
-                        }}
-                        onKeyDown={(e: React.KeyboardEvent<HTMLAnchorElement>) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                handler(actionId, query);
-                            }
-                        }}
-                    >
-                        {children}
-                    </a>
-                );
-            },
+            shouldProcessNode: (node: any) =>
+                node.type === 'tag' && node.name === 'a' &&
+                typeof node.attribs?.href === 'string' &&
+                node.attribs.href.startsWith('mmaction://'),
+            processNode: (node: any, children: any, index?: number) => (
+                <InlineActionButton
+                    key={`inline-action-${index}`}
+                    href={node.attribs.href}
+                    postId={options.postId || ''}
+                    mmBlocksActionCookie={options.mmBlocksActionCookie}
+                    integrationFormat={options.integrationFormat}
+                >
+                    {children}
+                </InlineActionButton>
+            ),
         });
     }
 

@@ -13,6 +13,8 @@ import (
 
 	"github.com/pb33f/libopenapi"
 	v3high "github.com/pb33f/libopenapi/datamodel/high/v3"
+	"github.com/pb33f/libopenapi/orderedmap"
+	"go.yaml.in/yaml/v4"
 	"golang.org/x/tools/imports"
 )
 
@@ -52,23 +54,17 @@ func main() {
 		log.Fatalf("Failed to parse OpenAPI spec: %s", err)
 	}
 
-	v3Model, errors := document.BuildV3Model()
-	if len(errors) > 0 {
-		for i := range errors {
-			log.Printf("error: %s\n", errors[i])
-		}
-		log.Fatalf("cannot create v3 model from document: %d errors reported", len(errors))
+	v3Model, err := document.BuildV3Model()
+	if err != nil {
+		log.Fatalf("cannot create v3 model from document: %s", err)
 	}
 
 	applyExamples(v3Model, exampleTmpl)
 
 	// Re-render the file with the injected examples.
-	newDocument, _, _, errors := document.RenderAndReload()
-	if len(errors) > 0 {
-		for _, err := range errors {
-			log.Printf("error: %s\n", err)
-		}
-		log.Fatalf("cannot render document: %d errors reported", len(errors))
+	newDocument, _, _, err := document.RenderAndReload()
+	if err != nil {
+		log.Fatalf("cannot render document: %s", err)
 	}
 
 	err = os.WriteFile(filename, newDocument, 0644)
@@ -83,7 +79,7 @@ func applyExamples(v3Model *libopenapi.DocumentModel[v3high.Document], tmpl *tem
 		log.Fatalf("Failed to parse example funcs: %s", err)
 	}
 
-	for _, path := range v3Model.Model.Paths.PathItems {
+	for path := range v3Model.Model.Paths.PathItems.ValuesFromOldest() {
 		applyExample(tmpl, fileSet, modelFuncs, path.Get)
 		applyExample(tmpl, fileSet, modelFuncs, path.Post)
 		applyExample(tmpl, fileSet, modelFuncs, path.Delete)
@@ -149,15 +145,22 @@ func applyExample(tmpl *template.Template, fileSet *token.FileSet, exampleFuncs 
 	}
 
 	// Inject the resulting code sample
-	operation.Extensions["x-codeSamples"] = []struct {
-		Lang   string
-		Source string
-	}{
-		{
-			Lang:   "Go",
-			Source: string(example),
-		},
+	type codeSample struct {
+		Lang   string `yaml:"lang"`
+		Source string `yaml:"source"`
 	}
+	yamlBytes, err := yaml.Marshal([]codeSample{{Lang: "Go", Source: string(example)}})
+	if err != nil {
+		log.Fatalf("failed to marshal x-codeSamples: %v", err)
+	}
+	var samplesNode yaml.Node
+	if err := yaml.Unmarshal(yamlBytes, &samplesNode); err != nil {
+		log.Fatalf("failed to create yaml node for x-codeSamples: %v", err)
+	}
+	if operation.Extensions == nil {
+		operation.Extensions = orderedmap.New[string, *yaml.Node]()
+	}
+	operation.Extensions.Set("x-codeSamples", samplesNode.Content[0])
 }
 
 type modelFunc struct {

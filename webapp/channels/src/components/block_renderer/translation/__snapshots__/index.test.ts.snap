@@ -170,8 +170,8 @@ Array [
         "content": Array [
           Object {
             "alt_text": "Attachment author icon",
-            "max_height": 14,
-            "max_width": 14,
+            "max_height": 20,
+            "max_width": 20,
             "size": "auto",
             "type": "image",
             "url": "https://example.com/author.png",
@@ -449,7 +449,7 @@ Array [
     "content": Array [
       Object {
         "action_id": "block_kit_demo",
-        "style": "default",
+        "style": undefined,
         "text": "OK",
         "type": "button",
       },
@@ -606,7 +606,7 @@ Array [
     "content": Array [
       Object {
         "action_id": "block_kit_demo",
-        "style": "default",
+        "style": undefined,
         "text": "OK",
         "type": "button",
       },

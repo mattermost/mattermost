@@ -255,6 +255,24 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}
 
+	// Strip mm_blocks_actions from posts that are neither bot-authored nor
+	// created via an integration session. Either signal is sufficient:
+	//   - user.IsBot (DB-verified) covers PluginAPI.CreatePost where the
+	//     plugin's static rctx has no integration markers but the post
+	//     is authored by a bot user.
+	//   - rctx.Session().IsIntegration() (server-derived, unspoofable)
+	//     covers REST callers using bot tokens, PATs, or OAuth apps.
+	//
+	// Webhooks are handled separately at their entry point
+	// (CreateWebhookPost) — webhook payloads are user-controlled even
+	// when bound to a bot user, so the prop is dropped before the post
+	// reaches CreatePost. See TestCreateWebhookPostStripsMmBlocksActions.
+	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
+		if !user.IsBot && !rctx.Session().IsIntegration() {
+			post.DelProp(model.PostPropsMmBlocksActions)
+		}
+	}
+
 	var ephemeralPost *model.Post
 	if post.Type == "" {
 		if hasPermission, _ := a.HasPermissionToChannel(rctx, user.Id, channel.Id, model.PermissionUseChannelMentions); !hasPermission {
@@ -861,6 +879,21 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.SetProps(receivedUpdatedPost.GetProps())
+
+		// mm_blocks_actions can only be modified by trusted paths that have
+		// pre-validated the new value (AllowMmBlocksActionsUpdate). Session
+		// type is intentionally not a sufficient signal: a PAT/OAuth session
+		// from a regular user would otherwise bypass the freeze and inject
+		// mm_blocks_actions on edit, since from_bot on the original post is
+		// user-forgeable. All other callers keep whatever mm_blocks_actions
+		// the original post had (or none).
+		if !updatePostOptions.AllowMmBlocksActionsUpdate {
+			if oldVal, ok := oldPost.GetProps()[model.PostPropsMmBlocksActions]; ok {
+				newPost.AddProp(model.PostPropsMmBlocksActions, oldVal)
+			} else {
+				newPost.DelProp(model.PostPropsMmBlocksActions)
+			}
+		}
 
 		var fileIds []string
 		fileIds, appErr = a.processPostFileChanges(rctx, receivedUpdatedPost, oldPost, updatePostOptions)

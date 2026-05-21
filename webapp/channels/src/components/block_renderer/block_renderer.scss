@@ -48,11 +48,6 @@ $mm-blocks-container-max-heights: (
         align-self: flex-start;
     }
 
-    // Markdown `mm_action:` links in text blocks behave like buttons (handled in message_html_to_component).
-    .mm-action-md-link {
-        cursor: pointer;
-    }
-
     .mm-blocks-container {
         width: 100%;
         min-width: 0;

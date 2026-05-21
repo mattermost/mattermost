@@ -27,17 +27,18 @@ const InteractiveMessages = ({post}: Props) => {
     const dispatch = useDispatch();
     const [actionError, setActionError] = useState<string | null>(null);
 
-    const mmBlocksActionsProp = (post.props as Record<string, unknown> | undefined)?.mm_blocks_actions;
-    const mmBlocksActionsCookie = typeof mmBlocksActionsProp === 'string' ? mmBlocksActionsProp : undefined;
+    const postProps = post.props as Record<string, unknown> | undefined;
+    const mmBlocksActionsProp = postProps?.mm_blocks_actions;
+    const mmBlocksActionCookie = typeof mmBlocksActionsProp === 'string' ? mmBlocksActionsProp : undefined;
+    const integrationFormat = getPostInteractiveIntegrationFormat(postProps ?? {});
 
     const handleAction = useCallback(async (actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string) => {
         setActionError(null);
-        const integrationFormat = getPostInteractiveIntegrationFormat(post.props as Record<string, unknown>);
         let actionCookie = '';
         if (integrationFormat === 'attachment') {
             actionCookie = attachmentCookie ?? '';
         } else {
-            actionCookie = mmBlocksActionsCookie ?? '';
+            actionCookie = mmBlocksActionCookie ?? '';
         }
         try {
             const result = await dispatch(doPostActionWithCookie(post.id, actionId, actionCookie, selectedOption ?? '', query, integrationFormat));
@@ -58,7 +59,7 @@ const InteractiveMessages = ({post}: Props) => {
             const message = error instanceof Error ? error.message : undefined;
             setActionError(message ?? 'Action failed to execute');
         }
-    }, [dispatch, post.id, post.props, mmBlocksActionsCookie]);
+    }, [dispatch, post.id, integrationFormat, mmBlocksActionCookie]);
 
     const blocks = translatePostProps(post.props as Record<string, unknown>);
     if (!blocks || blocks.length === 0) {
@@ -72,6 +73,10 @@ const InteractiveMessages = ({post}: Props) => {
                 postId={post.id}
                 onAction={handleAction}
                 imagesMetadata={post.metadata?.images}
+                inlineMarkdownActions={{
+                    mmBlocksActionCookie,
+                    integrationFormat,
+                }}
             />
             {actionError && (
                 <div className='has-error'>

@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 import type {PostImage, PostType} from '@mattermost/types/posts';
 
 import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
@@ -86,9 +87,20 @@ export type OwnProps = {
     messageMetadata?: Record<string, string>;
 
     /**
-     * When set, Markdown links using the `mm_action:` protocol dispatch interactive post actions (MM blocks).
+     * Whether or not to render mmaction:// links as inline action buttons.
+     * Set per-post by the caller (e.g. enabled for bot/webhook/plugin posts).
+     * Defaults to false.
      */
-    onMmBlocksMarkdownAction?: (actionId: string, query: Record<string, string>) => void;
+    allowInlineActions?: boolean;
+
+    /**
+     * Encrypted mm_blocks_actions cookie from post.props (ephemeral and client wire format).
+     * When set, mmaction:// clicks use doPostActionWithCookie.
+     */
+    mmBlocksActionCookie?: string;
+
+    /** integration_format for doPostActionWithCookie when mmBlocksActionCookie is set. */
+    integrationFormat?: PostActionIntegrationFormat;
 }
 
 function Markdown({
@@ -108,13 +120,15 @@ function Markdown({
     emojiMap,
     userIds,
     messageMetadata,
+    allowInlineActions,
+    mmBlocksActionCookie,
+    integrationFormat,
     enableFormatting,
     siteURL,
     hasImageProxy,
     team,
     minimumHashtagLength,
     managedResourcePaths,
-    onMmBlocksMarkdownAction,
 }: Props) {
     if (message === '' || !enableFormatting) {
         return (
@@ -140,7 +154,6 @@ function Markdown({
         managedResourcePaths,
         editedAt,
         postId,
-        enableMmActionMarkdownLinks: Boolean(onMmBlocksMarkdownAction),
     }, options);
 
     const htmlFormattedText = formatText(message, inputOptions, emojiMap);
@@ -159,7 +172,9 @@ function Markdown({
         editedAt,
         atSumOfMembersMentions: options?.atSumOfMembersMentions,
         atPlanMentions: options?.atPlanMentions,
-        mmBlocksMarkdownActionHandler: onMmBlocksMarkdownAction,
+        allowInlineActions,
+        mmBlocksActionCookie,
+        integrationFormat,
     });
 }
 
