@@ -159,9 +159,12 @@ describe('components/admin_console/access_control/PolicyList', () => {
 
         const menuButton = document.getElementById('policy-menu-policy1')!;
         await userEvent.click(menuButton);
-        await userEvent.click(screen.getByText('Edit'));
+        const editItem = document.getElementById('policy-menu-edit-policy1')!;
+        await userEvent.click(editItem);
 
-        expect(mockHistoryPushInternal).toHaveBeenCalledWith('/admin_console/system_attributes/membership_policies/edit_policy/policy1');
+        await waitFor(() => {
+            expect(mockHistoryPushInternal).toHaveBeenCalledWith('/admin_console/system_attributes/membership_policies/edit_policy/policy1');
+        });
     });
 
     test('Delete menu item is disabled when a policy contains masked values', async () => {
