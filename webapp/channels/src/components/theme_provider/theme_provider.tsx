@@ -165,8 +165,6 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
 
     useEffect(() => {
         applyTheme(effectiveTheme);
-        // Notify the desktop app so it can update native UI (title bar, etc.).
-        DesktopApp.updateTheme(effectiveTheme);
     }, [effectiveTheme]);
 
 
