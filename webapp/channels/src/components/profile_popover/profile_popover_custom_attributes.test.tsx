@@ -279,7 +279,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         expect(screen.queryByText('Text Attribute')).not.toBeInTheDocument();
     });
 
-    test('should not render always-visible attribute labels when the value is missing', () => {
+    test('should not render shared-only always-visible attribute labels when the value is missing', () => {
         const state = {
             ...baseState,
             entities: {
@@ -305,6 +305,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
                             attrs: {
                                 ...textAttribute.attrs,
                                 visibility: 'always',
+                                access_mode: 'shared_only',
                             },
                         },
                     },
@@ -366,6 +367,65 @@ describe('components/ProfilePopoverCustomAttributes', () => {
 
         expect(screen.queryByText('Select Attribute')).not.toBeInTheDocument();
         expect(screen.queryByText('filtered-option')).not.toBeInTheDocument();
+    });
+
+    test('should render multiselect labels only when at least one value is displayable', () => {
+        const hiddenMultiselectAttribute: UserPropertyField = {
+            ...selectAttribute,
+            id: 'hidden_multiselect_attribute_id',
+            name: 'Hidden Multiselect Attribute',
+            type: 'multiselect',
+            attrs: {
+                ...selectAttribute.attrs,
+                visibility: 'always',
+            },
+        };
+        const visibleMultiselectAttribute: UserPropertyField = {
+            ...selectAttribute,
+            id: 'visible_multiselect_attribute_id',
+            name: 'Visible Multiselect Attribute',
+            type: 'multiselect',
+            attrs: {
+                ...selectAttribute.attrs,
+                visibility: 'always',
+            },
+        };
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                users: {
+                    profiles: {
+                        user_id: TestHelper.getUserMock({
+                            id: 'user_id',
+                            custom_profile_attributes: {
+                                hidden_multiselect_attribute_id: ['filtered-option'],
+                                visible_multiselect_attribute_id: ['filtered-option', 'option1'],
+                            },
+                        }),
+                    },
+                },
+                general: {
+                    ...baseState.entities.general,
+                    customProfileAttributes: {
+                        hidden_multiselect_attribute_id: hiddenMultiselectAttribute,
+                        visible_multiselect_attribute_id: visibleMultiselectAttribute,
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(state);
+
+        renderWithContext(
+            <Provider store={store}>
+                <ProfilePopoverCustomAttributes {...baseProps}/>
+            </Provider>,
+        );
+
+        expect(screen.queryByText('Hidden Multiselect Attribute')).not.toBeInTheDocument();
+        expect(screen.getByText('Visible Multiselect Attribute')).toBeInTheDocument();
+        expect(screen.getByText('Option 1')).toBeInTheDocument();
     });
 
     test('should render display_name as the visible label when set', () => {
