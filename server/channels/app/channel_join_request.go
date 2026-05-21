@@ -334,7 +334,7 @@ func (a *App) evaluateChannelMembership(rctx request.CTX, user *model.User, chan
 		return false, nil
 	}
 
-	subject, appErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles, "")
+	subject, appErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles, channel.Id)
 	if appErr != nil {
 		return false, appErr
 	}
