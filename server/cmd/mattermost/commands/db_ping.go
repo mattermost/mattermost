@@ -6,6 +6,8 @@ package commands
 import (
 	"context"
 	dbsql "database/sql"
+	stdErrors "errors"
+	"net/url"
 	"time"
 
 	"github.com/pkg/errors"
@@ -71,7 +73,10 @@ func dbPingCmdF(command *cobra.Command, _ []string) error {
 		return err
 	}
 
-	sanitized, _ := model.SanitizeDataSource(model.DatabaseDriverPostgres, dsn)
+	sanitized, err := sanitizePingDataSource(dsn)
+	if err != nil {
+		return err
+	}
 
 	db, err := dbsql.Open(model.DatabaseDriverPostgres, dsn)
 	if err != nil {
@@ -89,6 +94,27 @@ func dbPingCmdF(command *cobra.Command, _ []string) error {
 	return pingWithRetry(ctx, db, retryInterval, logger.With(
 		mlog.String("dataSource", sanitized),
 	))
+}
+
+func sanitizePingDataSource(dsn string) (string, error) {
+	sanitized, err := model.SanitizeDataSource(model.DatabaseDriverPostgres, dsn)
+	if err != nil {
+		return "", safeDataSourceSanitizationError(err)
+	}
+
+	return sanitized, nil
+}
+
+func safeDataSourceSanitizationError(err error) error {
+	var urlErr *url.Error
+	if stdErrors.As(err, &urlErr) {
+		if urlErr.Err != nil {
+			return errors.Errorf("invalid database DSN: %v", urlErr.Err)
+		}
+		return errors.New("invalid database DSN")
+	}
+
+	return errors.New("invalid database DSN")
 }
 
 // resolvePingDataSource returns a postgres DSN to ping.

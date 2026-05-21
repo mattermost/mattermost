@@ -81,16 +81,19 @@ func TestDBPingInvalidDSN(t *testing.T) {
 	th.SetAutoConfig(false)
 
 	// Passes IsDatabaseDSN (postgres:// prefix) so it takes the direct path.
-	// lib/pq's URL parser is permissive and surfaces the error only at
-	// PingContext time, where pingWithRetry treats it as a transient failure
-	// and retries until the overall --timeout strikes. That's the desired
-	// behavior for a readiness probe (the DB may still come up later); we
-	// just assert that the command does eventually exit non-zero.
-	dsn := "postgres://[invalid"
+	dsn := "postgres://leakyuser:supersecret@[invalid"
 
 	output, err := th.RunCommandWithOutput(t, "--config", dsn, "db", "ping",
 		"--timeout", "2s", "--retry-interval", "500ms")
 	require.Error(t, err, "command should fail on malformed DSN; output: %s", output)
+	require.Contains(t, output, "invalid database DSN",
+		"expected sanitized DSN parse error; got: %s", output)
+	require.Contains(t, output, "missing ']' in host",
+		"expected malformed DSN reason; got: %s", output)
+	require.NotContains(t, output, "supersecret",
+		"malformed DSN errors must not leak credentials; got: %s", output)
+	require.NotContains(t, output, "leakyuser",
+		"malformed DSN errors must not leak credentials; got: %s", output)
 }
 
 func TestDBPingMissingConfigFile(t *testing.T) {
