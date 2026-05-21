@@ -77,7 +77,7 @@ jobs:
       #    See Option B in the header comment if you prefer a PAT instead.
       - name: Generate token
         id: token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
         with:
           app-id: ${{ vars.DOCS_APP_ID }}
           private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
