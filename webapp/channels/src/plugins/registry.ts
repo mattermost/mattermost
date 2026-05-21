@@ -1416,7 +1416,7 @@ export default class PluginRegistry {
      *   'mount_overlay' — absolute overlay covering the full channel view on channel mount.
      *     Plugin is responsible for logic of when to show. Multiple registrations stack.
      *
-     * Store the returned id and pass it to unregisterChannelDecorator in uninitialize().
+     * Registrations are cleaned up automatically when the plugin is removed.
      *
      * @returns Auto-generated unique id for this registration.
      */
@@ -1430,6 +1430,7 @@ export default class PluginRegistry {
             console.warn(`registerChannelDecorator: plugin '${this.id}' supplied unknown slot '${slot}' — registration ignored.`);
             return generateId();
         }
+        clearLoggedDecoratorErrors(this.id);
         const id = generateId();
         dispatchPluginComponentWithData('ChannelDecorator', {
             id,
@@ -1439,22 +1440,6 @@ export default class PluginRegistry {
             component,
         });
         return id;
-    });
-
-    /**
-     * Remove a channel decorator registered by this plugin.
-     * Pass the id returned by registerChannelDecorator.
-     * Removal is scoped to this plugin: only entries with a matching (pluginId, id) pair are removed.
-     * Unregistering an unknown id is a no-op.
-     */
-    unregisterChannelDecorator = reArg(['id'], ({id}: {id: string}) => {
-        clearLoggedDecoratorErrors(this.id);
-        store.dispatch({
-            type: ActionTypes.REMOVED_PLUGIN_COMPONENT_BY_ID,
-            name: 'ChannelDecorator',
-            pluginId: this.id,
-            id,
-        });
     });
 
     /**

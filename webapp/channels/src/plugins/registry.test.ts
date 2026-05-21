@@ -296,37 +296,32 @@ describe('PluginRegistry — registerChannelDecorator', () => {
         warnSpy.mockRestore();
     });
 
-    it('(c) unregisterChannelDecorator removes only the matching entry', () => {
+    it('(c) REMOVED_WEBAPP_PLUGIN sweeps all decorators for that plugin', () => {
         const otherRegistry = new PluginRegistry('other_plugin');
 
-        const id1 = registry.registerChannelDecorator({
+        registry.registerChannelDecorator({
             slot: 'left_of_channel_name',
             matcher: () => true,
             component: () => null,
         });
-
+        registry.registerChannelDecorator({
+            slot: 'intro',
+            matcher: () => true,
+            component: () => null,
+        });
         otherRegistry.registerChannelDecorator({
             slot: 'left_of_channel_name',
             matcher: () => false,
             component: () => null,
         });
 
-        registry.unregisterChannelDecorator({id: id1});
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
 
         const decorators = getDecorators();
         expect(decorators).toHaveLength(1);
         expect(decorators[0].pluginId).toBe('other_plugin');
-    });
-
-    it('(d) unregistering an unknown id is a no-op', () => {
-        registry.registerChannelDecorator({
-            slot: 'left_of_channel_name',
-            matcher: () => true,
-            component: () => null,
-        });
-
-        registry.unregisterChannelDecorator({id: 'nonexistent-id'});
-
-        expect(getDecorators()).toHaveLength(1);
     });
 });
