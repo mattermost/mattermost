@@ -165,6 +165,7 @@ function ChannelSettingsConfigurationTab({
         selectedClassificationId !== initialClassificationState.classificationId;
 
     const handleClassificationToggle = useCallback(() => {
+        resetFormErrors();
         classificationTouchedRef.current = true;
         setClassificationEnabled((prev) => {
             if (!prev) {
@@ -184,9 +185,10 @@ function ChannelSettingsConfigurationTab({
             }
             return !prev;
         });
-    }, [classification.levels]);
+    }, [classification.levels, resetFormErrors]);
 
     const handleClassificationLevelChange = useCallback((selected: ValueType) => {
+        resetFormErrors();
         bannerTouchedRef.current = true;
         classificationTouchedRef.current = true;
         setSelectedClassificationId(selected.value);
@@ -199,9 +201,10 @@ function ChannelSettingsConfigurationTab({
                 background_color: level.color,
             }));
         }
-    }, [classification.levels]);
+    }, [classification.levels, resetFormErrors]);
 
     const handleBannerToggle = useCallback(() => {
+        resetFormErrors();
         bannerTouchedRef.current = true;
         const newValue = !updatedChannelBanner.enabled;
         const toUpdate = {
@@ -214,7 +217,7 @@ function ChannelSettingsConfigurationTab({
         }
 
         setUpdatedChannelBanner(toUpdate);
-    }, [initialBannerInfo, updatedChannelBanner]);
+    }, [initialBannerInfo, resetFormErrors, updatedChannelBanner]);
 
     const handleBannerTextChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         bannerTouchedRef.current = true;
