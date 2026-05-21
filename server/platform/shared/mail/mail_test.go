@@ -254,13 +254,13 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	file1, err := os.CreateTemp("", "*")
 	require.NoError(t, err)
 	defer os.Remove(file1.Name())
-	file1.Write([]byte("hello world"))
+	file1.WriteString("hello world")
 	file1.Close()
 	file2, err := os.CreateTemp("", "*")
 
 	require.NoError(t, err)
 	defer os.Remove(file2.Name())
-	file2.Write([]byte("foo bar"))
+	file2.WriteString("foo bar")
 	file2.Close()
 
 	embeddedFiles := map[string]io.Reader{

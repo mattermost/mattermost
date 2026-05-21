@@ -5,6 +5,8 @@ import React from 'react';
 import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {Permissions} from 'mattermost-redux/constants';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
@@ -407,7 +409,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     />
                     <Menu.ItemExternalLink
                         id='nativeAppLink'
-                        show={this.props.appDownloadLink}
+                        show={Boolean(this.props.appDownloadLink) && !isDesktopApp()}
                         url={safeAppDownloadLink}
                         text={formatMessage({id: 'navbar_dropdown.nativeApps', defaultMessage: 'Download Apps'})}
                         icon={

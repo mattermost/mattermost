@@ -7,6 +7,7 @@ import React from 'react';
 
 import AtMention from 'components/at_mention';
 import CodeBlock from 'components/code_block/code_block';
+import InlineActionButton from 'components/inline_action_button';
 import InlineEntityLink from 'components/inline_entity_link';
 import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
@@ -31,6 +32,7 @@ export type Options = Partial<{
     emoji: boolean;
     images: boolean;
     channelId: string;
+    allowInlineActions: boolean;
 
     /**
      * Whether or not the AtMention component should attempt to fetch at-mentioned users if none can be found for
@@ -128,6 +130,28 @@ export default function messageHtmlToComponent(html: string, options: Options = 
             );
         },
     });
+
+    if (options.allowInlineActions) {
+        // replaceChildren: false replaces the entire <a> tag (not just its
+        // children) — without it the anchor would remain as a wrapper around
+        // the button, leaving the original mmaction:// href clickable.
+        processingInstructions.push({
+            replaceChildren: false,
+            shouldProcessNode: (node: any) =>
+                node.type === 'tag' && node.name === 'a' &&
+                typeof node.attribs?.href === 'string' &&
+                node.attribs.href.startsWith('mmaction://'),
+            processNode: (node: any, children: any, index?: number) => (
+                <InlineActionButton
+                    key={`inline-action-${index}`}
+                    href={node.attribs.href}
+                    postId={options.postId || ''}
+                >
+                    {children}
+                </InlineActionButton>
+            ),
+        });
+    }
 
     if (options.hasPluginTooltips) {
         processingInstructions.push({

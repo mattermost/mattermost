@@ -74,6 +74,13 @@ export type OwnProps = {
      */
     postType?: PostType;
     emojiMap?: EmojiMap;
+
+    /**
+     * Whether or not to render mmaction:// links as inline action buttons.
+     * Set per-post by the caller (e.g. enabled for bot/webhook/plugin posts).
+     * Defaults to false.
+     */
+    allowInlineActions?: boolean;
 }
 
 function Markdown({
@@ -91,6 +98,7 @@ function Markdown({
     hasPluginTooltips,
     postType,
     emojiMap,
+    allowInlineActions,
     enableFormatting,
     siteURL,
     hasImageProxy,
@@ -136,6 +144,7 @@ function Markdown({
         mentionHighlight: options?.mentionHighlight,
         disableGroupHighlight: options?.disableGroupHighlight,
         editedAt,
+        allowInlineActions,
     });
 }
 
