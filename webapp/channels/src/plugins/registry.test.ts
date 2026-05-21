@@ -384,7 +384,11 @@ describe('PluginRegistry — registerPostDecorator', () => {
             matcher: () => true,
             component: () => null,
         });
-
+        registry.registerPostDecorator({
+            slot: 'post_header_badge',
+            matcher: () => true,
+            component: () => null,
+        });
         otherRegistry.registerPostDecorator({
             slot: 'post_header_badge',
             matcher: () => false,
