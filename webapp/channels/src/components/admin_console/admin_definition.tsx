@@ -1331,6 +1331,8 @@ const AdminDefinition: AdminDefinitionType = {
                             loading: defineMessage({id: 'admin.s3.testing', defaultMessage: 'Testing...'}),
                             error_message: defineMessage({id: 'admin.s3.s3Fail', defaultMessage: 'Connection unsuccessful: {error}'}), // eslint-disable-line formatjs/enforce-placeholders -- error provided at runtime
                             success_message: defineMessage({id: 'admin.s3.s3Success', defaultMessage: 'Connection was successful'}),
+                            sourceConfig: true,
+                            skipSaveNeeded: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                         },
                     ],
@@ -1526,6 +1528,8 @@ const AdminDefinition: AdminDefinitionType = {
                             loading: defineMessage({id: 'admin.s3.testing', defaultMessage: 'Testing...'}),
                             error_message: defineMessage({id: 'admin.s3.s3Fail', defaultMessage: 'Connection unsuccessful: {error}'}), // eslint-disable-line formatjs/enforce-placeholders -- error provided at runtime
                             success_message: defineMessage({id: 'admin.s3.s3Success', defaultMessage: 'Connection was successful'}),
+                            sourceConfig: true,
+                            skipSaveNeeded: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                             isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
                         },
@@ -1691,6 +1695,8 @@ const AdminDefinition: AdminDefinitionType = {
                             loading: defineMessage({id: 'admin.environment.smtp.testing', defaultMessage: 'Testing...'}),
                             error_message: defineMessage({id: 'admin.environment.smtp.smtpFail', defaultMessage: 'Connection unsuccessful: {error}'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                             success_message: defineMessage({id: 'admin.environment.smtp.smtpSuccess', defaultMessage: 'No errors were reported while sending an email. Please check your inbox to make sure.'}),
+                            sourceConfig: true,
+                            skipSaveNeeded: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                         },
                         {

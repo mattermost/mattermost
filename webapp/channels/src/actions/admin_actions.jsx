@@ -366,8 +366,8 @@ export async function elasticsearchTest(config, success, error) {
     }
 }
 
-export async function testS3Connection(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.testS3Connection());
+export async function testS3Connection(success, error, config) {
+    const {data, error: err} = await dispatch(AdminActions.testS3Connection(config));
     if (data && success) {
         success(data);
     } else if (err && error) {
@@ -453,8 +453,8 @@ export async function invalidateAllEmailInvites(success, error) {
     }
 }
 
-export async function testSmtp(success, error) {
-    const {data, error: err} = await dispatch(AdminActions.testEmail());
+export async function testSmtp(success, error, config) {
+    const {data, error: err} = await dispatch(AdminActions.testEmail(config));
     if (data && success) {
         success(data);
     } else if (err && error) {

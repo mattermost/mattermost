@@ -409,12 +409,16 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 }
             };
 
-            let sourceUrlKey = 'ServiceSettings.SiteURL';
-            if (setting.sourceUrlKey) {
-                sourceUrlKey = setting.sourceUrlKey;
+            let sourceData: string | Partial<AdminConfig>;
+            if (setting.sourceConfig) {
+                const cloned = JSON.parse(JSON.stringify(this.props.config));
+                sourceData = getConfigFromState(cloned, this.state, this.props.schema, this.isDisabled);
+            } else {
+                const sourceUrlKey = setting.sourceUrlKey || 'ServiceSettings.SiteURL';
+                sourceData = this.state[sourceUrlKey];
             }
 
-            setting.action(successCallback, error, this.state[sourceUrlKey]);
+            setting.action(successCallback, error, sourceData);
         };
 
         const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));

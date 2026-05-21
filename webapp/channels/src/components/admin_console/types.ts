@@ -127,11 +127,12 @@ type AdminDefinitionSettingLanguage = AdminDefinitionSettingBase & {
 
 export type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
     type: 'button';
-    action: (success: (data?: any) => void, error: (error: {message: string; detailed_error?: string}) => void, siteUrl: string) => void;
+    action: (success: (data?: any) => void, error: (error: {message: string; detailed_error?: string}) => void, sourceData: string | Partial<AdminConfig>) => void;
     loading?: string | MessageDescriptor;
     error_message: string | MessageDescriptor;
     success_message?: string | MessageDescriptor;
     sourceUrlKey?: string;
+    sourceConfig?: boolean;
     skipSaveNeeded?: boolean;
 }
 
