@@ -127,6 +127,25 @@ def file_at(ref: str, path: str) -> str:
         ).stdout
     except subprocess.CalledProcessError:
         return ""
+
+
+def _compute_merge_base() -> str:
+    """Resolve the merge-base of BASE_SHA and HEAD_SHA.
+
+    Per-checker comparisons must use this rather than BASE_SHA. BASE_SHA is the
+    tip of the target branch at PR-event time; if that branch advances on a
+    watched file after the PR diverges, comparing branch-tip vs target-tip
+    would attribute those upstream edits to this PR (false add/remove).
+    `git diff A...B` already does this implicitly; the per-file snapshots must
+    match.
+    """
+    return subprocess.run(
+        ["git", "merge-base", BASE_SHA, HEAD_SHA],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+
+
+MERGE_BASE = _compute_merge_base()
  
  
 # ── Checker 1 — config.go ──────────────────────────────────────────────────────
@@ -184,7 +203,7 @@ def check_config(patches: dict[str, str]) -> CheckResult:
     if _CONFIG_PATH not in patches:
         return result
  
-    base_fields = _scan_struct_fields(file_at(BASE_SHA, _CONFIG_PATH))
+    base_fields = _scan_struct_fields(file_at(MERGE_BASE, _CONFIG_PATH))
     head_fields = _scan_struct_fields(file_at(HEAD_SHA, _CONFIG_PATH))
  
     added   = head_fields - base_fields
@@ -271,7 +290,7 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     removed_eps: set[tuple[str, str, str]] = set()
  
     for fname, patch in api4_patches.items():
-        base_eps = _parse_endpoints(file_at(BASE_SHA, fname))
+        base_eps = _parse_endpoints(file_at(MERGE_BASE, fname))
         head_eps = _parse_endpoints(file_at(HEAD_SHA, fname))
         added_eps   |= head_eps - base_eps
         removed_eps |= base_eps - head_eps
@@ -308,7 +327,7 @@ def check_audit_events(patches: dict[str, str]) -> CheckResult:
     if _AUDIT_EVENT_PATH not in patches:
         return result
  
-    base_events = _parse_audit_events(file_at(BASE_SHA, _AUDIT_EVENT_PATH))
+    base_events = _parse_audit_events(file_at(MERGE_BASE, _AUDIT_EVENT_PATH))
     head_events = _parse_audit_events(file_at(HEAD_SHA, _AUDIT_EVENT_PATH))
  
     result.additions = sorted(f"`{e}`" for e in head_events - base_events)
@@ -343,7 +362,7 @@ def check_go_version(patches: dict[str, str]) -> CheckResult:
     if _DOCKERFILE_PATH not in patches:
         return result
  
-    old_ver = _parse_go_version(file_at(BASE_SHA, _DOCKERFILE_PATH))
+    old_ver = _parse_go_version(file_at(MERGE_BASE, _DOCKERFILE_PATH))
     new_ver = _parse_go_version(file_at(HEAD_SHA, _DOCKERFILE_PATH))
  
     if old_ver and new_ver and old_ver != new_ver:
