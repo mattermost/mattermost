@@ -35,7 +35,7 @@ const hasDisplayableAttributeValue = (attribute: UserPropertyField, customProfil
     }
 
     if (attribute.type === 'multiselect' || attribute.type === 'select') {
-        const options = attribute.attrs.options;
+        const options = attribute.attrs?.options;
         if (!options?.length) {
             return false;
         }
