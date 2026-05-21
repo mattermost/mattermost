@@ -13098,5 +13098,9 @@
   {
     "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
     "translation": ""
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "Kanał ten nie jest już udostępniany innej przestrzeni roboczej."
   }
 ]
