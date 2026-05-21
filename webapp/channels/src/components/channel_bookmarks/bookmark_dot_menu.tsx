@@ -28,14 +28,13 @@ import GetPublicModal from 'components/get_public_link_modal';
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
-import {copyToClipboard} from 'utils/utils';
+import {getSiteURL} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
 import BookmarkDeleteModal from './bookmark_delete_modal';
 import ChannelBookmarksCreateModal from './channel_bookmarks_create_modal';
-import {useCanGetPublicLink, useChannelBookmarkPermission} from './utils';
+import {bookmarkHasLinkUrl, copyBookmarkLink, shouldOpenBookmarkInNewTab, useCanGetPublicLink, useChannelBookmarkPermission} from './utils';
 
 type Props = {
     bookmark: ChannelBookmark;
@@ -56,8 +55,7 @@ const BookmarkItemDotMenu = ({
     const fileInfo = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
 
     const siteURL = getSiteURL();
-    const openInNewTab = (bookmark.type === 'link' || bookmark.type === 'board') && bookmark.link_url &&
-        shouldOpenInNewTab(bookmark.link_url, siteURL);
+    const openInNewTab = shouldOpenBookmarkInNewTab(bookmark, siteURL);
 
     let openIcon;
     if (bookmark.type === 'file') {
@@ -92,12 +90,8 @@ const BookmarkItemDotMenu = ({
 
     const copyLink = useCallback(() => {
         onBeforeAction?.();
-        if ((bookmark.type === 'link' || bookmark.type === 'board') && bookmark.link_url) {
-            copyToClipboard(bookmark.link_url);
-        } else if (bookmark.type === 'file' && bookmark.file_id) {
-            copyToClipboard(getFileDownloadUrl(bookmark.file_id));
-        }
-    }, [bookmark.type, bookmark.link_url, bookmark.file_id, onBeforeAction]);
+        copyBookmarkLink(bookmark);
+    }, [bookmark, onBeforeAction]);
 
     const handleDelete = useCallback(() => {
         onBeforeAction?.();
@@ -165,7 +159,7 @@ const BookmarkItemDotMenu = ({
                     aria-label={editLabel}
                 />
             )}
-            {(bookmark.type === 'link' || bookmark.type === 'board') && bookmark.link_url && (
+            {bookmarkHasLinkUrl(bookmark) && (
                 <Menu.Item
                     key='channelBookmarksLinkCopy'
                     id='channelBookmarksLinkCopy'

@@ -5,7 +5,7 @@ import React from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {FileGenericOutlineIcon, BookOutlineIcon} from '@mattermost/compass-icons/components';
+import {FileGenericOutlineIcon, BookOutlineIcon, ProductBoardsIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -35,7 +35,12 @@ const BookmarkIcon = ({
     fileInfo,
     size = 16,
 }: Props) => {
-    let icon = type === 'file' ? <FileGenericOutlineIcon size={size}/> : <BookOutlineIcon size={size}/>;
+    let icon = <BookOutlineIcon size={size}/>;
+    if (type === 'file') {
+        icon = <FileGenericOutlineIcon size={size}/>;
+    } else if (type === 'board') {
+        icon = <ProductBoardsIcon size={size}/>;
+    }
     const emojiName = emoji && trimmedEmojiName(emoji);
     const hasImageProxy = useSelector((state: GlobalState) => getConfig(state).HasImageProxy === 'true');
 

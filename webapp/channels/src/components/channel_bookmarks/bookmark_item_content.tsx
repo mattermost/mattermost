@@ -23,6 +23,8 @@ import FilePreviewModal from 'components/file_preview_modal';
 import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
 
+import {bookmarkHasLinkUrl, shouldOpenBookmarkInNewTab} from './utils';
+
 import type {GlobalState} from 'types/store';
 
 import BookmarkItemDotMenu from './bookmark_dot_menu';
@@ -71,11 +73,11 @@ export const useBookmarkLink = (
                 },
             }));
             onNavigate?.();
-        } else if ((bookmark.type === 'link' || bookmark.type === 'board') && bookmark.link_url) {
+        } else if (bookmarkHasLinkUrl(bookmark)) {
             const siteURL = getSiteURL();
-            const url = bookmark.link_url;
+            const url = bookmark.link_url!;
             const prefixed = url[0] === '!';
-            const openInNewTab = shouldOpenInNewTab(url, siteURL);
+            const openInNewTab = shouldOpenBookmarkInNewTab(bookmark, siteURL);
 
             if (prefixed || openInNewTab) {
                 window.open(prefixed ? url.substring(1) : url, '_blank', 'noopener,noreferrer');
@@ -124,10 +126,7 @@ export const useBookmarkLink = (
     let onClick: ((e: React.MouseEvent<HTMLElement>) => void) | undefined;
     let isFile = false;
 
-    if (bookmark.type === 'link' && bookmark.link_url) {
-        href = disableLinks ? '#' : bookmark.link_url;
-        onClick = onNavigate ? handleLinkClick : undefined;
-    } else if (bookmark.type === 'board' && bookmark.link_url) {
+    if (bookmarkHasLinkUrl(bookmark)) {
         href = disableLinks ? '#' : bookmark.link_url;
         onClick = onNavigate ? handleLinkClick : undefined;
     } else if (bookmark.type === 'file' && bookmark.file_id) {
