@@ -76,49 +76,15 @@ func (a *App) GetPageDescendants(rctx request.CTX, postID string) (*model.PostLi
 	return postList, nil
 }
 
-// GetChannelPages fetches pages in a channel with pagination.
-// Pages are sorted by hierarchy order in-memory, then paginated.
+// GetChannelPages fetches a paginated set of full-content pages in a channel, ordered by
+// CreateAt DESC. Pass offset=0, limit=0 to load all pages (import paths only).
 func (a *App) GetChannelPages(rctx request.CTX, channelID string, offset, limit int) (*model.PostList, *model.AppError) {
-	start := time.Now()
-	defer func() {
-		if a.Metrics() != nil {
-			a.Metrics().ObserveWikiHierarchyLoad(time.Since(start).Seconds())
-		}
-	}()
-
-	postList, err := a.Srv().Store().Page().GetChannelPages(channelID)
+	postList, err := a.Srv().Store().Page().GetChannelPages(channelID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelPages", "app.page.get_channel_pages.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if a.Metrics() != nil {
-		maxDepth := a.calculateMaxDepthFromPostList(postList)
-		a.Metrics().ObserveWikiHierarchyDepth(float64(maxDepth))
-		a.Metrics().ObserveWikiPagesPerChannel(float64(len(postList.Posts)))
-	}
-
-	// Apply pagination before enrichment so we only enrich the page we return
-	if offset > 0 || limit > 0 {
-		order := postList.Order
-		if offset >= len(order) {
-			postList.Order = []string{}
-			postList.Posts = map[string]*model.Post{}
-		} else {
-			end := min(offset+limit, len(order))
-			paginatedOrder := order[offset:end]
-			paginatedPosts := make(map[string]*model.Post, len(paginatedOrder))
-			for _, id := range paginatedOrder {
-				if p, ok := postList.Posts[id]; ok {
-					paginatedPosts[id] = p
-				}
-			}
-			postList.Order = paginatedOrder
-			postList.Posts = paginatedPosts
-		}
-	}
-
 	a.EnrichPagesWithProperties(rctx, postList)
-
 	a.applyPostsWillBeConsumedHook(postList.Posts)
 
 	return postList, nil
@@ -127,17 +93,11 @@ func (a *App) GetChannelPages(rctx request.CTX, channelID string, offset, limit 
 // GetPagesForChannel fetches pages from all wikis linked to a channel, merges results,
 // and applies pagination. Returns the page list and whether results are partial (some
 // wiki fetches failed). Callers are responsible for initial channel permission checks.
-// When includeContent is false, page message bodies are stripped before returning.
+// When includeContent is false, page message bodies are already absent (metadata-only load).
 func (a *App) GetPagesForChannel(rctx request.CTX, channelId string, page, perPage int, includeContent bool) (*model.PostList, bool, *model.AppError) {
 	wikis, wikiErr := a.GetWikisLinkedToChannel(rctx, channelId)
 	if wikiErr != nil {
 		return nil, false, wikiErr
-	}
-
-	const maxPerWikiLimit = 200
-	perWikiLimit := (page + 1) * perPage
-	if perWikiLimit <= 0 || perWikiLimit > maxPerWikiLimit {
-		perWikiLimit = maxPerWikiLimit
 	}
 
 	session := rctx.Session()
@@ -161,7 +121,9 @@ func (a *App) GetPagesForChannel(rctx request.CTX, channelId string, page, perPa
 			if session.UserId != "" && !a.SessionHasWikiPermission(*session, wiki, model.PermissionReadPage) {
 				return
 			}
-			wikiPages, pagesErr := a.GetChannelPages(rctx, wiki.ChannelId, 0, perWikiLimit)
+			// Load metadata only (no Message/TipTap content) so merging all wikis in memory
+			// is cheap; full content is populated after pagination when includeContent=true.
+			wikiPages, pagesErr := a.Srv().Store().Page().GetChannelPagesMeta(wiki.ChannelId)
 			if pagesErr != nil {
 				rctx.Logger().Warn("Failed to fetch pages for wiki, skipping",
 					mlog.String("wiki_channel_id", wiki.ChannelId), mlog.Err(pagesErr))
@@ -201,10 +163,19 @@ func (a *App) GetPagesForChannel(rctx request.CTX, channelId string, page, perPa
 		}
 	}
 
-	if !includeContent {
-		for _, post := range postList.Posts {
-			if post.Type == model.PostTypePage {
-				post.Message = ""
+	if includeContent {
+		ids := make([]string, 0, len(postList.Posts))
+		for id := range postList.Posts {
+			ids = append(ids, id)
+		}
+		full, pagesErr := a.Srv().Store().Page().GetPagesByIDs(RequestContextWithMaster(rctx), ids)
+		if pagesErr != nil {
+			rctx.Logger().Warn("Failed to batch-fetch page content", mlog.Err(pagesErr))
+		} else {
+			for _, fp := range full {
+				if p, ok := postList.Posts[fp.Id]; ok {
+					p.Message = fp.Message
+				}
 			}
 		}
 	}

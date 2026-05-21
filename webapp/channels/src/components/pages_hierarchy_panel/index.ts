@@ -23,6 +23,7 @@ type OwnProps = {
     onPageSelect: (pageId: string, isDraft?: boolean) => void;
     onVersionHistory?: (pageId: string) => void;
     onCancelAutosave?: () => void;
+    onGetPageContent?: () => string;
 };
 
 const getPages = makeGetPages();

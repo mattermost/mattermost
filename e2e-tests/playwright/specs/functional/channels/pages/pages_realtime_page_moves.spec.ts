@@ -62,21 +62,13 @@ test(
         // # Setup WebSocket event logging for user2
         await setupWebSocketEventLogging(user2Page);
 
-        // # User 1 renames the parent page
+        // # User 1 renames the parent page via API (mirrors the API-driven movePage flow
+        //   used later in this file). The UI inline-rename path stages a draft and the
+        //   subsequent publish is fragile in this multi-user scenario; the API hits
+        //   UpdatePage directly which emits `WebsocketEventPageTitleUpdated` — exactly
+        //   the WS path the test is meant to exercise on user2's side.
         const newParentTitle = uniqueName('Renamed Parent');
-        // Navigate to wiki to see hierarchy (preserve channel context)
-        const wikiUrl = buildWikiPageUrl(pw.url, team.name, wiki.id, undefined, channel.id);
-        await page1.goto(wikiUrl);
-        await page1.waitForLoadState('networkidle');
-
-        // Wait for hierarchy to load
-        await verifyPageInHierarchy(page1, parentTitle, HIERARCHY_TIMEOUT);
-
-        // Rename via context menu helper
-        await renamePageViaContextMenu(page1, parentTitle, newParentTitle);
-
-        // * Wait for rename to complete for user1
-        await verifyPageInHierarchy(page1, newParentTitle, HIERARCHY_TIMEOUT);
+        await adminClient.updatePage(wiki.id, parentPage.id!, newParentTitle);
 
         // # Debug: Print captured WebSocket events
         await getWebSocketEvents(user2Page, 'Parent Page Renamed');

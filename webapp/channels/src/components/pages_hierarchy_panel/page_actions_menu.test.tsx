@@ -72,24 +72,6 @@ describe('components/pages_hierarchy_panel/PageActionsMenu', () => {
         });
     });
 
-    test('calls onRename when Rename is clicked', async () => {
-        const onRename = jest.fn();
-        renderWithContext(
-            <PageActionsMenu
-                {...baseProps}
-                onRename={onRename}
-            />,
-            initialState,
-        );
-
-        await userEvent.click(screen.getByTestId('page-actions-menu-button'));
-        await userEvent.click(screen.getByText('Rename'));
-
-        await waitFor(() => {
-            expect(onRename).toHaveBeenCalledTimes(1);
-        });
-    });
-
     test('calls onMove when Move to is clicked', async () => {
         const onMove = jest.fn();
         renderWithContext(

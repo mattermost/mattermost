@@ -34,7 +34,6 @@ type Props = {
     pageId: string;
     wikiId?: string;
     onCreateChild?: () => void;
-    onRename?: () => void;
     onDuplicate?: () => void;
     onMove?: () => void;
     onBookmarkInChannel?: () => void;
@@ -50,13 +49,13 @@ type Props = {
     onTranslatePage?: () => void;
     isAIProcessing?: boolean;
     onCopyMarkdown?: () => void;
+    onGetPageContent?: () => string;
 };
 
 const PageActionsMenu = ({
     pageId,
     wikiId,
     onCreateChild,
-    onRename,
     onDuplicate,
     onMove,
     onBookmarkInChannel,
@@ -72,6 +71,7 @@ const PageActionsMenu = ({
     onTranslatePage,
     isAIProcessing = false,
     onCopyMarkdown,
+    onGetPageContent,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -81,8 +81,8 @@ const PageActionsMenu = ({
     );
 
     const handleShowOutline = useCallback(() => {
-        dispatch(togglePageOutline(pageId, undefined, wikiId));
-    }, [dispatch, pageId, wikiId]);
+        dispatch(togglePageOutline(pageId, onGetPageContent?.(), wikiId));
+    }, [dispatch, pageId, onGetPageContent, wikiId]);
 
     const handleCopyLink = useCallback(() => {
         if (pageLink && pageLink !== '#') {
@@ -108,7 +108,6 @@ const PageActionsMenu = ({
     const newSubpageLabel = formatMessage({id: 'page_actions_menu.new_subpage', defaultMessage: 'New subpage'});
     const showOutlineLabel = formatMessage({id: 'page_actions_menu.show_outline', defaultMessage: 'Show outline'});
     const hideOutlineLabel = formatMessage({id: 'page_actions_menu.hide_outline', defaultMessage: 'Hide outline'});
-    const renameLabel = formatMessage({id: 'page_actions_menu.rename', defaultMessage: 'Rename'});
     const copyLinkLabel = formatMessage({id: 'page_actions_menu.copy_link', defaultMessage: 'Copy link'});
     const moveToLabel = formatMessage({id: 'page_actions_menu.move_to', defaultMessage: 'Move to...'});
     const bookmarkInChannelLabel = formatMessage({id: 'page_actions_menu.bookmark_in_channel', defaultMessage: 'Bookmark in channel...'});
@@ -158,13 +157,6 @@ const PageActionsMenu = ({
                 leadingElement={<FormatListBulletedIcon size={18}/>}
                 labels={<span>{isOutlineVisible ? hideOutlineLabel : showOutlineLabel}</span>}
                 onClick={handleShowOutline}
-            />
-            <Menu.Item
-                id='page-menu-rename'
-                data-testid='page-context-menu-rename'
-                leadingElement={<PencilOutlineIcon size={18}/>}
-                labels={<span>{renameLabel}</span>}
-                onClick={onRename}
             />
             <Menu.Item
                 id='page-menu-copy-link'

@@ -196,8 +196,8 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if hasPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), targetChannel); !hasPermission {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if !c.App.SessionHasWikiPermission(*c.AppContext.Session(), targetWiki, model.PermissionReadWiki) {
+		c.SetPermissionError(model.PermissionReadWiki)
 		return
 	}
 
@@ -294,8 +294,8 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if hasPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !hasPermission {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if !c.App.SessionHasWikiPermission(*c.AppContext.Session(), targetWiki, model.PermissionReadWiki) {
+		c.SetPermissionError(model.PermissionReadWiki)
 		return
 	}
 

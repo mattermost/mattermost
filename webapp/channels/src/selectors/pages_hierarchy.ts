@@ -9,6 +9,7 @@ import {buildTree, getAncestorIds} from 'components/pages_hierarchy_panel/utils/
 
 import type {GlobalState} from 'types/store';
 import type {PageOrDraft} from 'types/store/pages';
+import type {Heading} from 'utils/page_outline';
 
 // Re-export types from canonical source
 export type {Page, DraftPage, PageOrDraft, TreeNode} from 'types/store/pages';
@@ -33,6 +34,16 @@ export function getIsPanesPanelCollapsed(state: GlobalState): boolean {
 // Get last viewed page for a wiki
 export function getLastViewedPage(state: GlobalState, wikiId: string): string | null {
     return state.views.pagesHierarchy?.lastViewedPage?.[wikiId] || null;
+}
+
+// Get outline expanded nodes (which pages have their outline sections expanded)
+export function getOutlineExpandedNodes(state: GlobalState): {[pageId: string]: boolean} {
+    return state.views.pagesHierarchy?.outlineExpandedNodes ?? {};
+}
+
+// Get outline cache (cached headings per page)
+export function getOutlineCache(state: GlobalState): {[pageId: string]: Heading[]} {
+    return state.views.pagesHierarchy?.outlineCache ?? {};
 }
 
 // Dedicated instances so these module-level selectors don't share cache with the

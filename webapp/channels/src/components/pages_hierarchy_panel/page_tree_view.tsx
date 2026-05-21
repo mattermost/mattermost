@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo, useCallback, useState} from 'react';
+import React, {useMemo, useCallback} from 'react';
 import {DragDropContext, Droppable, Draggable, type DropResult, type DraggableProvidedDragHandleProps} from 'react-beautiful-dnd';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
@@ -10,9 +10,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {movePageInHierarchy} from 'actions/pages';
 import type {TreeNode} from 'selectors/pages_hierarchy';
-import {isDescendant} from 'selectors/pages_hierarchy';
-
-import type {GlobalState} from 'types/store';
+import {isDescendant, getOutlineExpandedNodes, getOutlineCache} from 'selectors/pages_hierarchy';
 
 import HeadingNode from './heading_node';
 import PageTreeNode from './page_tree_node';
@@ -26,7 +24,6 @@ type NodeWrapperProps = {
     onNodeSelect: (nodeId: string) => void;
     onToggleExpand: (nodeId: string) => void;
     onCreateChild?: (pageId: string) => void;
-    onRename?: (pageId: string) => void;
     onDuplicate?: (pageId: string) => void;
     onMove?: (pageId: string) => void;
     onBookmarkInChannel?: (pageId: string) => void;
@@ -37,6 +34,7 @@ type NodeWrapperProps = {
     isDeleting?: boolean;
     wikiId?: string;
     dragHandleProps?: DraggableProvidedDragHandleProps | null;
+    onGetPageContent?: () => string;
 };
 
 const PageTreeNodeWrapper = React.memo(({
@@ -45,7 +43,6 @@ const PageTreeNodeWrapper = React.memo(({
     onNodeSelect,
     onToggleExpand,
     onCreateChild,
-    onRename,
     onDuplicate,
     onMove,
     onBookmarkInChannel,
@@ -56,6 +53,7 @@ const PageTreeNodeWrapper = React.memo(({
     isDeleting,
     wikiId,
     dragHandleProps,
+    onGetPageContent,
 }: NodeWrapperProps) => {
     const handleSelect = useCallback(() => {
         onNodeSelect(node.id);
@@ -71,7 +69,6 @@ const PageTreeNodeWrapper = React.memo(({
             onSelect={handleSelect}
             onToggleExpand={handleToggleExpand}
             onCreateChild={onCreateChild}
-            onRename={onRename}
             onDuplicate={onDuplicate}
             onMove={onMove}
             onBookmarkInChannel={onBookmarkInChannel}
@@ -82,6 +79,7 @@ const PageTreeNodeWrapper = React.memo(({
             isDeleting={isDeleting}
             wikiId={wikiId}
             dragHandleProps={dragHandleProps}
+            onGetPageContent={onGetPageContent}
         />
     );
 });
@@ -93,7 +91,6 @@ type Props = {
     onNodeSelect: (nodeId: string) => void;
     onToggleExpand: (nodeId: string) => void;
     onCreateChild?: (pageId: string) => void;
-    onRename?: (pageId: string) => void;
     onDuplicate?: (pageId: string) => void;
     onMove?: (pageId: string) => void;
     onBookmarkInChannel?: (pageId: string) => void;
@@ -102,6 +99,7 @@ type Props = {
     onCopyMarkdown?: (pageId: string) => void;
     deletingPageId?: string | null;
     wikiId?: string;
+    onGetPageContent?: () => string;
 };
 
 const PageTreeView = ({
@@ -111,7 +109,6 @@ const PageTreeView = ({
     onNodeSelect,
     onToggleExpand,
     onCreateChild,
-    onRename,
     onDuplicate,
     onMove,
     onBookmarkInChannel,
@@ -120,15 +117,13 @@ const PageTreeView = ({
     onCopyMarkdown,
     deletingPageId,
     wikiId,
+    onGetPageContent,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const currentTeam = useSelector(getCurrentTeam);
-    const outlineExpandedNodes = useSelector((state: GlobalState) => state.views.pagesHierarchy.outlineExpandedNodes);
-    const outlineCache = useSelector((state: GlobalState) => state.views.pagesHierarchy.outlineCache);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [isDragging, setIsDragging] = useState(false);
-
+    const outlineExpandedNodes = useSelector(getOutlineExpandedNodes);
+    const outlineCache = useSelector(getOutlineCache);
     // Flatten tree for rendering, respecting expanded state
     const visibleNodes = useMemo(
         () => flattenTree(tree, expandedNodes),
@@ -152,9 +147,6 @@ const PageTreeView = ({
 
     const handleDragEnd = useCallback((result: DropResult) => {
         const {draggableId, source, destination, combine} = result;
-
-        // Always reset dragging state first
-        setIsDragging(false);
 
         // Dropped outside valid drop zone
         if (!destination && !combine) {
@@ -229,7 +221,6 @@ const PageTreeView = ({
     return (
         <DragDropContext
             onDragEnd={handleDragEnd}
-            onDragStart={() => setIsDragging(true)}
         >
             <Droppable
                 droppableId='page-tree'
@@ -277,7 +268,6 @@ const PageTreeView = ({
                                                     onNodeSelect={onNodeSelect}
                                                     onToggleExpand={onToggleExpand}
                                                     onCreateChild={onCreateChild}
-                                                    onRename={onRename}
                                                     onDuplicate={onDuplicate}
                                                     onMove={onMove}
                                                     onBookmarkInChannel={onBookmarkInChannel}
@@ -287,6 +277,7 @@ const PageTreeView = ({
                                                     isDeleting={deletingPageId === node.id}
                                                     wikiId={wikiId}
                                                     dragHandleProps={provided.dragHandleProps}
+                                                    onGetPageContent={node.id === currentPageId ? onGetPageContent : undefined}
                                                 />
                                                 {isOutlineExpanded && (
                                                     <div

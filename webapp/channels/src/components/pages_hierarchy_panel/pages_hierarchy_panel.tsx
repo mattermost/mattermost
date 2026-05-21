@@ -34,6 +34,7 @@ type Props = {
     onPageSelect: (pageId: string, isDraft?: boolean) => void;
     onVersionHistory?: (pageId: string) => void;
     onCancelAutosave?: () => void;
+    onGetPageContent?: () => string;
 
     // From Redux
     pages: Post[];
@@ -63,6 +64,7 @@ const PagesHierarchyPanel = ({
     onPageSelect,
     onVersionHistory,
     onCancelAutosave,
+    onGetPageContent,
     pages,
     drafts,
     loading,
@@ -207,7 +209,11 @@ const PagesHierarchyPanel = ({
         menuHandlers.handleCreateRootPage();
     }, [menuHandlers]);
 
+    // eslint-disable-next-line no-console
+    console.log('[TRACE][pages_hierarchy_panel] render', {wikiId, loading, pagesCount: pages.length, url: window.location.pathname});
     if (loading && pages.length === 0) {
+        // eslint-disable-next-line no-console
+        console.log('[TRACE][pages_hierarchy_panel] RENDERING: Loading pages...');
         return (
             <div
                 className={classNames('PagesHierarchyPanel', {
@@ -266,7 +272,6 @@ const PagesHierarchyPanel = ({
                         onNodeSelect={handlePageSelect}
                         onToggleExpand={handleToggleExpanded}
                         onCreateChild={menuHandlers.handleCreateChild}
-                        onRename={menuHandlers.handleRename}
                         onDuplicate={menuHandlers.handleDuplicate}
                         onMove={menuHandlers.handleMove}
                         onBookmarkInChannel={menuHandlers.handleBookmarkInChannel}
@@ -275,6 +280,7 @@ const PagesHierarchyPanel = ({
                         onCopyMarkdown={menuHandlers.handleCopyMarkdown}
                         deletingPageId={menuHandlers.deletingPageId}
                         wikiId={wikiId}
+                        onGetPageContent={onGetPageContent}
                     />
                 )}
             </div>

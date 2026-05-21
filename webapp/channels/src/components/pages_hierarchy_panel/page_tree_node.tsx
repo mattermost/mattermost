@@ -27,7 +27,6 @@ type Props = {
     onSelect: () => void;
     onToggleExpand: () => void;
     onCreateChild?: (pageId: string) => void;
-    onRename?: (pageId: string) => void;
     onDuplicate?: (pageId: string) => void;
     onMove?: (pageId: string) => void;
     onBookmarkInChannel?: (pageId: string) => void;
@@ -38,6 +37,7 @@ type Props = {
     isDeleting?: boolean;
     wikiId?: string;
     dragHandleProps?: DraggableProvidedDragHandleProps | null;
+    onGetPageContent?: () => string;
 };
 
 const PageTreeNode = ({
@@ -46,7 +46,6 @@ const PageTreeNode = ({
     onSelect,
     onToggleExpand,
     onCreateChild,
-    onRename,
     onDuplicate,
     onMove,
     onBookmarkInChannel,
@@ -57,6 +56,7 @@ const PageTreeNode = ({
     isDeleting,
     wikiId,
     dragHandleProps,
+    onGetPageContent,
 }: Props) => {
     const {formatMessage} = useIntl();
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
@@ -108,7 +108,6 @@ const PageTreeNode = ({
     }, [node.hasChildren, onToggleExpand, onSelect]);
 
     const handleCreateChild = useCallback(() => onCreateChild?.(node.id), [onCreateChild, node.id]);
-    const handleRename = useCallback(() => onRename?.(node.id), [onRename, node.id]);
     const handleDuplicate = useCallback(() => onDuplicate?.(node.id), [onDuplicate, node.id]);
     const handleMove = useCallback(() => onMove?.(node.id), [onMove, node.id]);
     const handleBookmarkInChannel = useCallback(() => onBookmarkInChannel?.(node.id), [onBookmarkInChannel, node.id]);
@@ -203,7 +202,6 @@ const PageTreeNode = ({
                     pageId={node.id}
                     wikiId={wikiId}
                     onCreateChild={handleCreateChild}
-                    onRename={handleRename}
                     onDuplicate={handleDuplicate}
                     onMove={handleMove}
                     onBookmarkInChannel={handleBookmarkInChannel}
@@ -216,6 +214,7 @@ const PageTreeNode = ({
                     buttonClassName='PageTreeNode__menuButton'
                     buttonLabel={formatMessage({id: 'pages_hierarchy.tree_node.page_menu', defaultMessage: 'Page menu'})}
                     buttonTestId='page-tree-node-menu-button'
+                    onGetPageContent={onGetPageContent}
                 />
             )}
         </div>

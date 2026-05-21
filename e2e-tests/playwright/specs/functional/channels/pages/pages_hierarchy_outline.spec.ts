@@ -473,6 +473,11 @@ test('page header has a persistent outline toggle button', {tag: '@pages'}, asyn
 
     // # Create a page with a heading and publish it
     await createPageThroughUI(page, 'Toggle Page');
+
+    // # Enter edit mode to add heading (createPageThroughUI leaves us in view mode)
+    await enterEditMode(page);
+    await waitForEditModeReady(page);
+
     const editor = getEditor(page);
     await editor.click();
     await addHeadingToEditor(page, 2, 'Toggle Section');
