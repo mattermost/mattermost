@@ -15,6 +15,7 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {focusElement} from 'utils/a11y_utils';
+import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 
 import {InviteType} from './invite_as';
 import InviteView, {initializeInviteState} from './invite_view';
@@ -268,8 +269,11 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
     // Filter channels based on the current invite type and search term
     filterChannels = (channels: Channel[], isGuestInvite: boolean, searchTerm: string = '') => {
         return channels.filter((channel) => {
-            // For guest invites, filter out policy_enforced channels
-            if (isGuestInvite && channel.policy_enforced) {
+            // For guest invites, filter out channels whose policy gates
+            // membership. Permission-only policies (e.g. file upload
+            // restrictions) do not block guest invites — the server-side
+            // gate in `prepareInviteGuestsToChannels` reads the same bit.
+            if (isGuestInvite && isMembershipPolicyEnforced(channel)) {
                 return false;
             }
 
