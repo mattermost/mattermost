@@ -34,6 +34,7 @@ import {
     comparePosts,
     isPostPendingOrFailed,
     isPostCommentMention,
+    isFromWebhook,
 } from 'mattermost-redux/utils/post_utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
