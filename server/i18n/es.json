@@ -13094,5 +13094,13 @@
   {
     "id": "model.authorize.is_valid.resource.not_absolute.app_error",
     "translation": ""
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": ""
   }
 ]
