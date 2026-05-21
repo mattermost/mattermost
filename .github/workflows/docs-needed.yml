@@ -73,7 +73,12 @@ jobs:
         with:
           app-id: ${{ vars.DOCS_APP_ID }}
           private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
-          repositories: docs
+          # docs: write access for branch push, PR create, milestones, reviewers
+          # mattermost: read access for milestone due-date matching (step 3,
+          #   used by mattermost-mobile and desktop to find the matching release)
+          repositories: >-
+            docs,
+            mattermost
  
       # 1. Guard: milestone is required
       - name: Require milestone
