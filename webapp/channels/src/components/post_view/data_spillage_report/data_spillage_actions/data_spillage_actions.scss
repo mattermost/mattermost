@@ -3,5 +3,12 @@
 
 .DataSpillageAction {
     display: flex;
+    max-width: 100%;
+    flex-wrap: wrap;
     gap: 4px;
+}
+
+.PropertyCardView_fields > .row > .value:has(> .DataSpillageAction) {
+    flex: 1;
+    min-width: 0;
 }
