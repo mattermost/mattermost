@@ -271,7 +271,6 @@ describe('InvitationModal', () => {
         const guestChannels = await ref.current!.channelsLoader('nat mob');
 
         expect(guestChannels).toEqual([nativeMobileChannel]);
-        expect(props.actions.searchChannels).not.toHaveBeenCalled();
     });
 
     it('returns server channel search results for guest invites', async () => {
@@ -325,5 +324,108 @@ describe('InvitationModal', () => {
 
         expect(searchChannels).toHaveBeenCalledWith('team-id', 'nat mob');
         expect(guestChannels).toEqual([nativeMobileChannel]);
+    });
+
+    it('falls back to matching invitable channels when server channel search fails', async () => {
+        const nativeMobileChannel = TestHelper.getChannelMock({
+            id: 'native-mobile-channel',
+            display_name: 'Native Mobile Apps',
+            name: 'native-mobile-apps',
+        });
+        const searchChannels = jest.fn().mockRejectedValue(new Error('search failed'));
+
+        props = {
+            ...props,
+            actions: {
+                ...props.actions,
+                searchChannels,
+            },
+            currentTeam: {
+                ...props.currentTeam,
+                id: 'team-id',
+            } as Team,
+            invitableChannels: [nativeMobileChannel],
+        };
+
+        const ref = React.createRef<InvitationModal>();
+
+        renderWithContext(
+            <InvitationModal
+                {...props}
+                ref={ref}
+            />,
+            state,
+        );
+
+        act(() => {
+            ref.current!.setState({
+                invite: {
+                    ...ref.current!.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
+        });
+
+        const guestChannels = await ref.current!.channelsLoader('nat mob');
+
+        expect(searchChannels).toHaveBeenCalledWith('team-id', 'nat mob');
+        expect(guestChannels).toEqual([nativeMobileChannel]);
+    });
+
+    it('merges server channel search results with local invitable matches without duplicates', async () => {
+        const serverNativeMobileChannel = TestHelper.getChannelMock({
+            id: 'native-mobile-channel',
+            display_name: 'Native Mobile Apps',
+            name: 'native-mobile-apps',
+        });
+        const localNativeMobileChannel = TestHelper.getChannelMock({
+            id: 'native-mobile-channel',
+            display_name: 'Native Mobile Apps',
+            name: 'native-mobile-apps',
+        });
+        const localNativeMobileQaChannel = TestHelper.getChannelMock({
+            id: 'native-mobile-qa-channel',
+            display_name: 'Native Mobile QA',
+            name: 'native-mobile-qa',
+        });
+        const searchChannels = jest.fn().mockResolvedValue({
+            data: [serverNativeMobileChannel],
+        });
+
+        props = {
+            ...props,
+            actions: {
+                ...props.actions,
+                searchChannels,
+            },
+            currentTeam: {
+                ...props.currentTeam,
+                id: 'team-id',
+            } as Team,
+            invitableChannels: [localNativeMobileChannel, localNativeMobileQaChannel],
+        };
+
+        const ref = React.createRef<InvitationModal>();
+
+        renderWithContext(
+            <InvitationModal
+                {...props}
+                ref={ref}
+            />,
+            state,
+        );
+
+        act(() => {
+            ref.current!.setState({
+                invite: {
+                    ...ref.current!.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
+        });
+
+        const guestChannels = await ref.current!.channelsLoader('nat mob');
+
+        expect(guestChannels).toEqual([serverNativeMobileChannel, localNativeMobileQaChannel]);
     });
 });
