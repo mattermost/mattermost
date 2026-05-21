@@ -63,6 +63,7 @@ type Store interface {
 	SharedChannel() SharedChannelStore
 	Draft() DraftStore
 	PlatformNotification() PlatformNotificationStore
+	ChannelGuard() ChannelGuardStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -1075,6 +1076,21 @@ type PostPriorityStore interface {
 	GetForPosts(ids []string) ([]*model.PostPriority, error)
 	Save(priority *model.PostPriority) (*model.PostPriority, error)
 	Delete(postID string) error
+}
+
+// ChannelGuard is a single claim row asserting that a plugin has registered as a guard for a given
+// channel. Plugins may co-claim a channel; one row per (ChannelId, PluginId) pair.
+type ChannelGuard struct {
+	ChannelId string
+	PluginId  string
+	CreatedAt int64
+}
+
+type ChannelGuardStore interface {
+	Save(rctx request.CTX, guard *ChannelGuard) error
+	Delete(rctx request.CTX, channelID, pluginID string) (rowsAffected int64, err error)
+	GetForChannel(rctx request.CTX, channelID string) ([]*ChannelGuard, error)
+	GetAll(rctx request.CTX) ([]*ChannelGuard, error)
 }
 
 type DraftStore interface {

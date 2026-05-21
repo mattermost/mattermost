@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -72,7 +73,25 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 		if deleteErr != nil {
 			return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 		}
+		rctx.Logger().Debug("Draft deleted via empty-message upsert", mlog.String("user_id", draft.UserId), mlog.String("channel_id", draft.ChannelId), mlog.String("root_id", draft.RootId))
 		return nil, nil
+	}
+
+	var rejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		replacement, reason := hooks.DraftWillBeUpserted(pluginContext, draft)
+		if reason != "" {
+			rejectionReason = reason
+			return false
+		}
+		if replacement != nil {
+			draft = replacement
+		}
+		return true
+	}, plugin.DraftWillBeUpsertedID)
+	if rejectionReason != "" {
+		return nil, model.NewAppError("UpsertDraft", "app.draft.upsert.rejected_by_plugin", map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
 	}
 
 	dt, nErr := a.Srv().Store().Draft().Upsert(draft)
