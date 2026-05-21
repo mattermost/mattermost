@@ -8,7 +8,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {setupBoardAttributesTest, cleanupCustomBoardFields} from './setup';
+import {BOARDS_GROUP, OBJECT_TYPE_POST, SYSTEM_TARGET_TYPE, setupBoardAttributesTest, cleanupCustomBoardFields} from './setup';
 import type {BoardAttributeType} from './setup';
 
 const SERVER_TYPE_BY_UI_LABEL: Record<BoardAttributeType, string> = {
@@ -50,7 +50,7 @@ test.describe('Board Attributes - attribute types', {tag: '@board_attributes'}, 
             await ba.saveAndWaitForSettled();
 
             // * Server reflects the chosen type
-            const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
+            const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, SYSTEM_TARGET_TYPE);
             const created = (fields ?? []).find((f) => f.name === name);
             expect(created).toBeDefined();
             expect(created!.type).toBe(SERVER_TYPE_BY_UI_LABEL[uiType]);

@@ -18,7 +18,6 @@ type Props = {
     field: BoardPropertyField;
     canCreate: boolean;
     createField: (field: BoardPropertyField) => void;
-    updateField: (field: BoardPropertyField) => void;
     deleteField: (id: string) => void;
 }
 

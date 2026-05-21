@@ -33,7 +33,6 @@ function renderMenu(overrides: Partial<React.ComponentProps<typeof DotMenu>> = {
         field: makeField(),
         canCreate: true,
         createField: jest.fn(),
-        updateField: jest.fn(),
         deleteField: jest.fn(),
         ...overrides,
     };

@@ -79,6 +79,7 @@ test.describe('Board Attributes - edge cases', {tag: '@board_attributes'}, () =>
         //   server-side wipe would require sending `options: []` explicitly.
         const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, SYSTEM_TARGET_TYPE);
         const updated = (fields ?? []).find((f) => f.name === attrName);
+        expect(updated).toBeDefined();
         expect(updated!.type).toBe('text');
 
         // * UI-side: no editable values container is rendered for the row

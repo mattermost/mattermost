@@ -89,6 +89,7 @@ type Props<TableType extends TableMandatoryTypes> = {
 
 type DraggableRowProps<T extends TableMandatoryTypes> = {
     row: Row<T>;
+    totalRows: number;
     tableMeta: TableMeta;
     rowIdPrefix: string;
     cellIdPrefix: string;
@@ -98,6 +99,7 @@ type DraggableRowProps<T extends TableMandatoryTypes> = {
 
 function DraggableRow<T extends TableMandatoryTypes>({
     row,
+    totalRows,
     tableMeta,
     rowIdPrefix,
     cellIdPrefix,
@@ -132,7 +134,9 @@ function DraggableRow<T extends TableMandatoryTypes>({
             }
         } else if (e.key === 'ArrowDown') {
             e.preventDefault();
-            tableMeta.onReorder?.(row.index, row.index + 1);
+            if (row.index < totalRows - 1) {
+                tableMeta.onReorder?.(row.index, row.index + 1);
+            }
         }
     };
 
@@ -312,10 +316,11 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     ))}
                 </thead>
                 <tbody>
-                    {props.table.getRowModel().rows.map((row) => (
+                    {props.table.getRowModel().rows.map((row, _, rows) => (
                         <DraggableRow
                             key={row.original.id}
                             row={row}
+                            totalRows={rows.length}
                             tableMeta={tableMeta}
                             rowIdPrefix={rowIdPrefix}
                             cellIdPrefix={cellIdPrefix}

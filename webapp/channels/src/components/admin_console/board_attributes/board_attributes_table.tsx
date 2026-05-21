@@ -238,7 +238,6 @@ export function BoardAttributesTable({
                             field={row.original}
                             canCreate={canCreate}
                             createField={createField}
-                            updateField={updateField}
                             deleteField={deleteField}
                         />
                     );
@@ -367,11 +366,10 @@ type ActionsCellProps = {
     field: BoardPropertyField;
     canCreate: boolean;
     createField: (field: BoardPropertyField) => void;
-    updateField: (field: BoardPropertyField) => void;
     deleteField: (id: string) => void;
 };
 
-const ActionsCell = ({field, canCreate, createField, updateField, deleteField}: ActionsCellProps) => {
+const ActionsCell = ({field, canCreate, createField, deleteField}: ActionsCellProps) => {
     const {formatMessage} = useIntl();
     return (
         <ActionsRoot>
@@ -391,7 +389,6 @@ const ActionsCell = ({field, canCreate, createField, updateField, deleteField}: 
                 field={field}
                 canCreate={canCreate}
                 createField={createField}
-                updateField={updateField}
                 deleteField={deleteField}
             />
         </ActionsRoot>

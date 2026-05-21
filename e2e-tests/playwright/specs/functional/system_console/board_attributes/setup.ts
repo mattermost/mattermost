@@ -83,7 +83,7 @@ async function deleteNonProtectedFields(adminClient: Client4): Promise<void> {
     try {
         const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, SYSTEM_TARGET_TYPE);
         for (const field of fields ?? []) {
-            if (!(field as {protected?: boolean}).protected) {
+            if (!field.protected) {
                 await adminClient.deletePropertyField(BOARDS_GROUP, OBJECT_TYPE_POST, field.id);
             }
         }
