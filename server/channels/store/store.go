@@ -62,6 +62,7 @@ type Store interface {
 	LinkMetadata() LinkMetadataStore
 	SharedChannel() SharedChannelStore
 	Draft() DraftStore
+	PlatformNotification() PlatformNotificationStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -1086,6 +1087,15 @@ type DraftStore interface {
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	PermanentDeleteByUser(userId string) error
+}
+
+type PlatformNotificationStore interface {
+	Upsert(notification *model.PlatformNotification) (*model.PlatformNotification, error)
+	ReplaceAllForUser(userID string, notifications []*model.PlatformNotification) error
+	GetForUser(userID string) ([]*model.PlatformNotification, error)
+	Delete(userID, id string) error
+	DeleteAllForUser(userID string) error
+	PermanentDeleteByUser(userID string) error
 }
 
 type PostAcknowledgementStore interface {

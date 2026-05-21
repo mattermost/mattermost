@@ -18,16 +18,18 @@ import {
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
+import {isChannelMuted, isDirectChannel} from 'mattermost-redux/utils/channel_utils';
 import {ensureString, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getChannelURL, getPermalinkURL} from 'selectors/urls';
+import {getPlatformNotifications} from 'selectors/rhs';
 import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {ActionTypes, NotificationLevels, UserStatuses, IgnoreChannelMentions, DesktopSound} from 'utils/constants';
-import {syncPlatformNotificationActivityToStorage} from 'utils/platform_notification_activity_storage';
+import {getDirectMessageNotificationId, getThreadNotificationId} from 'utils/platform_notification_activity_merge';
+import {upsertPlatformNotificationOnServer} from 'utils/platform_notification_activity_storage';
 import DesktopApp from 'utils/desktop_api';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
@@ -166,24 +168,52 @@ export function recordPlatformNotificationForActivity(post: Post, msgProps: NewP
         const channelDisplayName = channel.display_name || msgProps.channel_display_name || '';
         const body = getNotificationBody(recordState, post, msgProps);
         const url = isCrtReply ? getPermalinkURL(recordState, teamId, post.id) : getChannelURL(recordState, channel, teamId);
+        let mentions: string[] = [];
+        if (msgProps.mentions) {
+            try {
+                mentions = JSON.parse(msgProps.mentions);
+            } catch {
+                mentions = [];
+            }
+        }
+        const currentUserId = getCurrentUserId(recordState);
+        const isMention = mentions.includes(currentUserId);
+
+        const isDirectMessage = isDirectChannel(channel);
+
+        const record = {
+            id: isCrtReply ?
+                getThreadNotificationId(post.root_id) :
+                isDirectMessage ?
+                    getDirectMessageNotificationId(channel.id) :
+                    `${post.id}:${Date.now()}`,
+            recordedAt: Date.now(),
+            postId: post.id,
+            channelId: channel.id,
+            teamId,
+            channelDisplayName,
+            contextLabel: getSidebarNotificationContextLabel(recordState, msgProps, isCrtReply),
+            permalinkUrl: url,
+            isThreadReply: isCrtReply,
+            isMention,
+            isDirectMessage,
+            senderUserId: post.user_id,
+            threadRootId: isCrtReply ? post.root_id : undefined,
+            participantUserIds: isCrtReply ? [post.user_id] : undefined,
+            previewBody: body,
+        };
 
         dispatch({
             type: ActionTypes.RECORD_PLATFORM_NOTIFICATION,
-            data: {
-                id: `${post.id}:${Date.now()}`,
-                recordedAt: Date.now(),
-                postId: post.id,
-                channelId: channel.id,
-                teamId,
-                channelDisplayName,
-                contextLabel: getSidebarNotificationContextLabel(recordState, msgProps, isCrtReply),
-                permalinkUrl: url,
-                isThreadReply: isCrtReply,
-                previewBody: body,
-            },
+            data: record,
         });
 
-        syncPlatformNotificationActivityToStorage(getState());
+        const mergedRecord = getPlatformNotifications(getState()).find((notification) => notification.id === record.id) || record;
+        upsertPlatformNotificationOnServer(getState(), mergedRecord).catch((error) => {
+            if (process.env.NODE_ENV !== 'production') {
+                console.warn('Failed to save platform notification to server', error); // eslint-disable-line no-console
+            }
+        });
 
         return {data: true};
     };

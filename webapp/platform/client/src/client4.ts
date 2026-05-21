@@ -63,6 +63,7 @@ import type {
     GetDataRetentionCustomPoliciesRequest,
 } from '@mattermost/types/data_retention';
 import type {Draft} from '@mattermost/types/drafts';
+import type {PlatformNotification} from '@mattermost/types/platform_notifications';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse, FileSearchResults} from '@mattermost/types/files';
@@ -4729,6 +4730,59 @@ export default class Client4 {
                 headers: {
                     'Connection-Id': `${connectionId}`,
                 },
+            },
+        );
+    };
+
+    getPlatformNotificationsRoute = (userId = 'me') => {
+        return `${this.getUserRoute(userId)}/platform_notifications`;
+    };
+
+    getPlatformNotifications = (userId = 'me') => {
+        return this.doFetch<PlatformNotification[]>(
+            this.getPlatformNotificationsRoute(userId),
+            {method: 'get'},
+        );
+    };
+
+    upsertPlatformNotification = (notification: PlatformNotification, connectionId = '') => {
+        return this.doFetch<PlatformNotification>(
+            this.getPlatformNotificationsRoute(notification.user_id || 'me'),
+            {
+                method: 'post',
+                body: JSON.stringify(notification),
+                headers: connectionId ? {'Connection-Id': connectionId} : undefined,
+            },
+        );
+    };
+
+    replacePlatformNotifications = (notifications: PlatformNotification[], connectionId = '', userId = 'me') => {
+        return this.doFetch<PlatformNotification[]>(
+            this.getPlatformNotificationsRoute(userId),
+            {
+                method: 'put',
+                body: JSON.stringify(notifications),
+                headers: connectionId ? {'Connection-Id': connectionId} : undefined,
+            },
+        );
+    };
+
+    deletePlatformNotification = (notificationId: string, connectionId = '', userId = 'me') => {
+        return this.doFetch<StatusOK>(
+            `${this.getPlatformNotificationsRoute(userId)}/${encodeURIComponent(notificationId)}`,
+            {
+                method: 'delete',
+                headers: connectionId ? {'Connection-Id': connectionId} : undefined,
+            },
+        );
+    };
+
+    clearPlatformNotifications = (connectionId = '', userId = 'me') => {
+        return this.doFetch<StatusOK>(
+            this.getPlatformNotificationsRoute(userId),
+            {
+                method: 'delete',
+                headers: connectionId ? {'Connection-Id': connectionId} : undefined,
             },
         );
     };

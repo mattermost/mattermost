@@ -1,17 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import React, {useEffect} from 'react';
+import {FormattedMessage} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import {getPostsByIdsBatched} from 'mattermost-redux/actions/posts';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
-import {clearAllPlatformNotificationRecords} from 'actions/views/rhs';
+import {reconcilePlatformNotificationActivity} from 'actions/views/rhs';
+
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 
+import type {GlobalState} from 'types/store';
 import type {PlatformNotificationRecord} from 'types/store/rhs';
 
 import RhsNotificationCard from './rhs_notification_card';
@@ -24,7 +26,31 @@ type Props = {
 
 export default function RhsNotificationActivity({notifications}: Props) {
     const dispatch = useDispatch();
-    const intl = useIntl();
+    const postsState = useSelector((state: GlobalState) => state.entities.posts.posts);
+
+    useEffect(() => {
+        const missingPostIds = notifications.flatMap((record) => {
+            const ids: string[] = [];
+            if (!postsState[record.postId]) {
+                ids.push(record.postId);
+            }
+            if (record.threadRootId && !postsState[record.threadRootId]) {
+                ids.push(record.threadRootId);
+            }
+            return ids;
+        });
+
+        if (missingPostIds.length > 0) {
+            dispatch(getPostsByIdsBatched([...new Set(missingPostIds)]));
+        }
+    }, [dispatch, notifications, postsState]);
+
+    useEffect(() => {
+        if (!notifications.some((record) => record.isThreadReply)) {
+            return;
+        }
+        dispatch(reconcilePlatformNotificationActivity());
+    }, [dispatch, notifications, postsState]);
 
     if (notifications.length === 0) {
         return (
@@ -51,27 +77,6 @@ export default function RhsNotificationActivity({notifications}: Props) {
 
     return (
         <div className='RhsNotificationActivity'>
-            <div className='RhsNotificationActivity__toolbar'>
-                <WithTooltip
-                    title={intl.formatMessage({
-                        id: 'rhs_notification_activity.clear_all.tooltip',
-                        defaultMessage: 'Remove every notification from this list on this device',
-                    })}
-                >
-                    <Button
-                        variant='tertiary'
-                        size='small'
-                        onClick={() => {
-                            dispatch(clearAllPlatformNotificationRecords());
-                        }}
-                    >
-                        {intl.formatMessage({
-                            id: 'rhs_notification_activity.clear_all',
-                            defaultMessage: 'Clear all',
-                        })}
-                    </Button>
-                </WithTooltip>
-            </div>
             <ul className='RhsNotificationActivity__list'>
                 {notifications.map((record, index) => (
                     <li
@@ -80,7 +85,6 @@ export default function RhsNotificationActivity({notifications}: Props) {
                     >
                         <RhsNotificationCard
                             record={record}
-                            a11yIndex={index}
                         />
                     </li>
                 ))}

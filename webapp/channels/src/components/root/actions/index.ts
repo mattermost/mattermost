@@ -71,7 +71,7 @@ export function loadConfigAndMe(): ThunkActionFunc<Promise<{isLoaded: boolean; i
 
             dispatch(getMyTeamUnreads(isCollapsedThreadsEnabled(getState())));
             dispatch(getServerLimits());
-            dispatch(hydratePlatformNotificationActivity());
+            await dispatch(hydratePlatformNotificationActivity());
         } catch (error) {
             dispatch(logError(error as ServerError));
             return {

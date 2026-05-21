@@ -24,6 +24,13 @@ export type PlatformNotificationRecord = {
     contextLabel: string;
     permalinkUrl: string;
     isThreadReply: boolean;
+    isMention?: boolean;
+    isDirectMessage?: boolean;
+    senderUserId?: UserProfile['id'];
+    threadRootId?: Post['id'];
+    replyCount?: number;
+    participantUserIds?: UserProfile['id'][];
+    readAt?: number;
     previewBody: string;
 };
 

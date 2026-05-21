@@ -31,6 +31,7 @@ type Params struct {
 	InviteId                           string
 	TokenId                            string
 	ThreadId                           string
+	NotificationId                     string
 	Timestamp                          int64
 	TimeRange                          string
 	ChannelId                          string
@@ -149,6 +150,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.InviteId = props["invite_id"]
 	params.TokenId = props["token_id"]
 	params.ThreadId = props["thread_id"]
+	params.NotificationId = props["notification_id"]
 
 	if val, ok := props["channel_id"]; ok {
 		params.ChannelId = val

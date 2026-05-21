@@ -117,7 +117,7 @@ describe('components/SearchResults', () => {
         setSearchFilterType: jest.fn(),
         updateSearchTeam: jest.fn(),
         updateSearchTerms: jest.fn(),
-        mentionRhsPanel: 'mentions',
+        mentionRhsPanel: 'activity',
         platformNotifications: [],
         setMentionRhsPanel: jest.fn(),
     };

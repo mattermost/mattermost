@@ -4,7 +4,10 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+
+import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
@@ -15,6 +18,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isDateLine, getDateForDateLine} from 'mattermost-redux/utils/post_list';
 
+import {clearAllPlatformNotificationRecords} from 'actions/views/rhs';
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
 import {getSearchTeam} from 'selectors/rhs';
 
@@ -27,6 +31,8 @@ import {getSearchPopoutTitle} from 'components/rhs_search_popout/title';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import Header from 'components/widgets/header';
+import ThreadTabButton from 'components/threading/common/button';
 
 import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
@@ -56,6 +62,7 @@ interface NoResultsProps {
 const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const scrollbars = useRef<HTMLDivElement>(null);
     const [searchType, setSearchType] = useState<string>(props.searchType);
+    const dispatch = useDispatch();
     const filesDropdownPluginMenuItems = useSelector(getFilesDropdownPluginMenuItems);
     const config = useSelector(getConfig);
     const currentChannel = useSelector(getCurrentChannel);
@@ -396,7 +403,9 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     return (
         <div
             id='searchContainer'
-            className='SearchResults sidebar-right__body'
+            className={classNames('SearchResults sidebar-right__body', {
+                'SearchResults--notifications': isMentionSearch,
+            })}
         >
             <SearchResultsHeader
                 newWindowHandler={newWindowHandler}
@@ -407,47 +416,78 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 {props.channelDisplayName && <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>}
             </SearchResultsHeader>
             {isMentionSearch && (
-                <div
-                    className='MentionSidebarTabs'
-                    role='tablist'
-                    aria-label={intl.formatMessage({
-                        id: 'search_header.notifications_tabs.label',
-                        defaultMessage: 'Notification sidebar sections',
-                    })}
-                >
-                    <button
-                        id='mentionSidebarTabActivity'
-                        type='button'
-                        role='tab'
-                        aria-controls='mentionSidebarTabPanel'
-                        aria-selected={mentionRhsPanel === 'activity'}
-                        className={classNames('MentionSidebarTabs__tab', {
-                            'MentionSidebarTabs__tab--active': mentionRhsPanel === 'activity',
-                        })}
-                        onClick={() => setMentionRhsPanel('activity')}
-                    >
-                        <FormattedMessage
-                            id='search_header.notifications_tab.activity'
-                            defaultMessage='Activity'
-                        />
-                    </button>
-                    <button
-                        id='mentionSidebarTabMentions'
-                        type='button'
-                        role='tab'
-                        aria-controls='mentionSidebarTabPanel'
-                        aria-selected={mentionRhsPanel === 'mentions'}
-                        className={classNames('MentionSidebarTabs__tab', {
-                            'MentionSidebarTabs__tab--active': mentionRhsPanel === 'mentions',
-                        })}
-                        onClick={() => setMentionRhsPanel('mentions')}
-                    >
-                        <FormattedMessage
-                            id='search_header.notifications_tab.mentions'
-                            defaultMessage='Mentions'
-                        />
-                    </button>
-                </div>
+                <Header
+                    className='NotificationSidebarTabs'
+                    heading={(
+                        <div
+                            className='tab-buttons-list'
+                            role='tablist'
+                            aria-label={intl.formatMessage({
+                                id: 'search_header.notifications_tabs.label',
+                                defaultMessage: 'Notification sidebar sections',
+                            })}
+                        >
+                            <div className='tab-button-wrapper'>
+                                <ThreadTabButton
+                                    id='mentionSidebarTabActivity'
+                                    className='Button___large Margined'
+                                    isActive={mentionRhsPanel === 'activity'}
+                                    role='tab'
+                                    aria-controls='mentionSidebarTabPanel'
+                                    aria-selected={mentionRhsPanel === 'activity'}
+                                    onClick={() => setMentionRhsPanel('activity')}
+                                >
+                                    <FormattedMessage
+                                        id='search_header.notifications_tab.activity'
+                                        defaultMessage='Activity'
+                                    />
+                                </ThreadTabButton>
+                            </div>
+                            <div className='tab-button-wrapper'>
+                                <ThreadTabButton
+                                    id='mentionSidebarTabMentions'
+                                    className='Button___large Margined'
+                                    isActive={mentionRhsPanel === 'mentions'}
+                                    role='tab'
+                                    aria-controls='mentionSidebarTabPanel'
+                                    aria-selected={mentionRhsPanel === 'mentions'}
+                                    onClick={() => setMentionRhsPanel('mentions')}
+                                >
+                                    <FormattedMessage
+                                        id='search_header.notifications_tab.mentions'
+                                        defaultMessage='Mentions'
+                                    />
+                                </ThreadTabButton>
+                            </div>
+                        </div>
+                    )}
+                    right={mentionRhsPanel === 'activity' ? (
+                        <div className='right-anchor'>
+                            <WithTooltip
+                                title={intl.formatMessage({
+                                    id: 'rhs_notification_activity.clear_all',
+                                    defaultMessage: 'Clear all notifications',
+                                })}
+                            >
+                                <ThreadTabButton
+                                    id='notification-activity-clear-all'
+                                    aria-label={intl.formatMessage({
+                                        id: 'rhs_notification_activity.clear_all',
+                                        defaultMessage: 'Clear all notifications',
+                                    })}
+                                    className='Button___large Button___icon'
+                                    marginTop={true}
+                                    disabled={platformNotifications.length === 0}
+                                    onClick={() => dispatch(clearAllPlatformNotificationRecords())}
+                                >
+                                    <span className='icon'>
+                                        <PlaylistCheckIcon size={18}/>
+                                    </span>
+                                </ThreadTabButton>
+                            </WithTooltip>
+                        </div>
+                    ) : undefined}
+                />
             )}
             {isMessagesSearch &&
                 <MessageOrFileSelector
@@ -493,6 +533,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                                     (noFileResults && (searchType === DataSearchTypes.FILES_SEARCH_TYPE || isChannelFiles))) &&
                                 !(isMentionSearch && mentionRhsPanel === 'activity'),
                             'channel-files-container': isChannelFiles,
+                            'notification-activity-container': isMentionActivityPanel,
                         },
                     ])}
                     data-a11y-sort-order='3'

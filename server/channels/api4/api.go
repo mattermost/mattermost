@@ -386,6 +386,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitUsage()
 	api.InitHostedCustomer()
 	api.InitDrafts()
+	api.InitPlatformNotifications()
 	api.InitIPFiltering()
 	api.InitChannelBookmarks()
 	api.InitView()

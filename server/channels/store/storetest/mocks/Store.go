@@ -814,6 +814,26 @@ func (_m *Store) Plugin() store.PluginStore {
 	return r0
 }
 
+// PlatformNotification provides a mock function with no fields
+func (_m *Store) PlatformNotification() store.PlatformNotificationStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for PlatformNotification")
+	}
+
+	var r0 store.PlatformNotificationStore
+	if rf, ok := ret.Get(0).(func() store.PlatformNotificationStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PlatformNotificationStore)
+		}
+	}
+
+	return r0
+}
+
 // Post provides a mock function with no fields
 func (_m *Store) Post() store.PostStore {
 	ret := _m.Called()
