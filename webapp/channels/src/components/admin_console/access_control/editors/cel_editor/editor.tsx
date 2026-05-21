@@ -80,6 +80,21 @@ interface CELEditorProps {
         attribute: string;
         values: string[];
     }>;
+
+    /**
+     * When provided, the built-in expression-only TestResultsModal is
+     * suppressed and the test button forwards its click to the parent.
+     * The parent is responsible for rendering its own results modal —
+     * used by the permission-rule editor so its dual-lane simulation
+     * modal (SimulateAccessModal) can replace the legacy
+     * membership-only one without changing the button's layout.
+     */
+    onTestClick?: () => void;
+
+    /** Optional label override for the test button. Lets the
+     *  permission-rule editor render "Simulate rules" instead of the
+     *  default "Test access rule" copy. */
+    testButtonLabel?: React.ReactNode;
     hasMaskedRows?: boolean;
 }
 
@@ -95,6 +110,8 @@ function CELEditor({
     teamId,
     disabled = false,
     userAttributes,
+    onTestClick,
+    testButtonLabel,
     hasMaskedRows = false,
 }: CELEditorProps): JSX.Element {
     const intl = useIntl();
@@ -408,7 +425,8 @@ function CELEditor({
                     </div>
                 </div>
                 <TestButton
-                    onClick={() => setEditorState((prev) => ({...prev, showTestResults: true}))}
+                    onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
+                    label={testButtonLabel}
                     disabled={disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
                     disabledTooltip={
                         hasMaskedRows ?
@@ -420,7 +438,11 @@ function CELEditor({
                     }
                 />
             </div>
-            {editorState.showTestResults && (
+            {/* Built-in expression-only modal. Suppressed when the
+              * parent provided an `onTestClick` override (used by the
+              * permission-rule editor, which renders its own dual-lane
+              * SimulateAccessModal). */}
+            {!onTestClick && editorState.showTestResults && (
                 <TestResultsModal
                     onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
                     isStacked={true}
