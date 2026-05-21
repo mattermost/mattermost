@@ -26,7 +26,7 @@ func (ss *SqlStore) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnost
 		return diagnostics, nil
 	}
 
-	if err := collectPostgresDatabaseDiagnostics(ctx, ss.GetMaster().DB, diagnostics); err != nil {
+	if err := collectPostgresDatabaseDiagnostics(ctx, ss.GetMaster().DB(), diagnostics); err != nil {
 		return diagnostics, err
 	}
 
