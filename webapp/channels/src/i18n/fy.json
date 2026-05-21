@@ -1703,6 +1703,7 @@
   "admin.license.enterprisePlanTitle": "Wil je het aantal gebruikers verhogen?",
   "admin.license.enterpriseToAdvancedAdvantage.adLdapGroupSync": "",
   "admin.license.enterpriseToAdvancedAdvantage.advancedCompliance": "",
+  "admin.license.enterpriseToAdvancedAdvantage.advancedWorkflows": "",
   "admin.license.enterpriseToAdvancedAdvantage.attributeBasedAccess": "",
   "admin.license.enterpriseToAdvancedAdvantage.automaticChannelTranslations": "",
   "admin.license.enterpriseToAdvancedAdvantage.burnOnReadMessages": "",
