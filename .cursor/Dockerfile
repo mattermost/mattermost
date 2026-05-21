@@ -6,10 +6,6 @@ ARG GO_VERSION=1.25.9
 ARG NODE_VERSION=24.11.1
 ARG NVM_VERSION=0.40.3
 ARG AGENT_BROWSER_VERSION=0.27.0
-ARG DOCKER_VERSION=5:28.5.2-1~ubuntu.24.04~noble
-ARG CONTAINERD_VERSION=2.2.3-1~ubuntu.24.04~noble
-ARG DOCKER_BUILDX_VERSION=0.33.0-1~ubuntu.24.04~noble
-ARG DOCKER_COMPOSE_VERSION=5.1.3-1~ubuntu.24.04~noble
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV NVM_DIR=/home/ubuntu/.nvm
@@ -85,11 +81,11 @@ RUN install -m 0755 -d /etc/apt/keyrings && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" > /etc/apt/sources.list.d/docker.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    docker-ce=${DOCKER_VERSION} \
-    docker-ce-cli=${DOCKER_VERSION} \
-    containerd.io=${CONTAINERD_VERSION} \
-    docker-buildx-plugin=${DOCKER_BUILDX_VERSION} \
-    docker-compose-plugin=${DOCKER_COMPOSE_VERSION} && \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-buildx-plugin \
+    docker-compose-plugin && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /etc/docker && \
@@ -155,7 +151,7 @@ RUN { \
       echo 'export NVM_DIR="$HOME/.nvm"'; \
       echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'; \
       echo 'export GOPATH="$HOME/go"'; \
-      echo 'export PATH="$NVM_DIR/versions/node/v24.11.1/bin:/usr/local/go/bin:$GOPATH/bin:$PATH"'; \
+      echo "export PATH=\"\$NVM_DIR/versions/node/v${NODE_VERSION}/bin:/usr/local/go/bin:\$GOPATH/bin:\$PATH\""; \
     } >> /home/ubuntu/.bashrc && \
     chown ubuntu:ubuntu /home/ubuntu/.bashrc
 
