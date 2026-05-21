@@ -76,7 +76,9 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
         await policyRowLocator.waitFor({state: 'visible', timeout: 10000});
 
         // Open the three-dot action menu for the policy
-        const actionMenuButton = policyRowLocator.locator('button[aria-label*="Actions" i], button:has(i.icon-dots-vertical)').first();
+        const actionMenuButton = policyRowLocator
+            .locator('button[aria-label*="Actions" i], button:has(i.icon-dots-vertical)')
+            .first();
         await actionMenuButton.waitFor({state: 'visible', timeout: 5000});
         await actionMenuButton.click();
         await page.waitForTimeout(500);
