@@ -1690,12 +1690,7 @@ func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
 	t.Run("getAccessControlPolicy response is masked", func(t *testing.T) {
 		// GET is the canonical read path — masking here means the raw CEL in the
 		// policy response cannot leak values the caller couldn't already see in the
-		// visual AST. The create / search / setActive paths share the same
-		// MaskPolicyExpressions call so they're covered by inspection. Unit-testing
-		// them through the HTTP handler is impractical because
-		// validatePolicyExpressionValues rejects unknown-field references before
-		// MaskPolicyExpressions ever runs, and we can't seed a real shared_only
-		// CPA field without plugin context. End-to-end paths are covered by E2E.
+		// visual AST.
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockACS
 		stored := newPolicy(th.BasicChannel.Id)
@@ -1708,6 +1703,47 @@ func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
 		require.NotEmpty(t, result.Rules)
 		require.Equal(t, expectedMaskedExpr, result.Rules[0].Expression,
 			"get response must mask the raw CEL exactly")
+	})
+
+	t.Run("createAccessControlPolicy PUT response is masked", func(t *testing.T) {
+		// "true" expression bypasses validatePolicyExpressionValues (no real CPA field
+		// needed). SavePolicy mock returns a name-normalised policy so MaskPolicyExpressions
+		// can apply masking before the response is written.
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockACS
+
+		savedPolicy := &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Type:    model.AccessControlPolicyTypeParent,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: sensitiveExpr},
+			},
+		}
+		mockACS.On("GetPolicy", mock.Anything, mock.Anything).
+			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "not found", http.StatusNotFound)).Times(1)
+		mockACS.On("SavePolicy", mock.Anything, mock.Anything).Return(savedPolicy, nil).Once()
+		mockACS.On("ExpressionToVisualAST", mock.Anything, sensitiveExpr).Return(unknownFieldAST, nil).Once()
+
+		submitted := &model.AccessControlPolicy{
+			Type:    model.AccessControlPolicyTypeParent,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "true"},
+			},
+		}
+
+		r, err := th.SystemAdminClient.DoAPIPutJSON(context.Background(), "/access_control_policies", submitted)
+		require.NoError(t, err)
+		defer r.Body.Close()
+		require.Equal(t, http.StatusOK, r.StatusCode)
+
+		var result model.AccessControlPolicy
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&result))
+		require.NotEmpty(t, result.Rules)
+		require.Equal(t, expectedMaskedExpr, result.Rules[0].Expression)
+
+		mockACS.AssertExpectations(t)
 	})
 }
 
