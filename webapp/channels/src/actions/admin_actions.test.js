@@ -105,4 +105,36 @@ describe('Actions.Admin', () => {
         expect(success).toHaveBeenCalled();
         expect(error).not.toHaveBeenCalled();
     });
+
+    test('testS3Connection invokes the error callback when the server returns an error', async () => {
+        const config = {FileSettings: {AmazonS3AccessKeyId: 'bad-key'}};
+        const success = jest.fn();
+        const error = jest.fn();
+
+        const scope = nock(Client4.getBaseRoute()).
+            post('/file/s3_test', config).
+            reply(500, {id: 'api.file.test_connection_s3.app_error', message: 'Connection failed'});
+
+        await Actions.testS3Connection(success, error, config);
+
+        expect(scope.isDone()).toBe(true);
+        expect(error).toHaveBeenCalled();
+        expect(success).not.toHaveBeenCalled();
+    });
+
+    test('testSmtp invokes the error callback when the server returns an error', async () => {
+        const config = {EmailSettings: {SMTPServer: 'invalid.smtp'}};
+        const success = jest.fn();
+        const error = jest.fn();
+
+        const scope = nock(Client4.getBaseRoute()).
+            post('/email/test', config).
+            reply(400, {id: 'api.admin.test_email.app_error', message: 'Invalid SMTP config'});
+
+        await Actions.testSmtp(success, error, config);
+
+        expect(scope.isDone()).toBe(true);
+        expect(error).toHaveBeenCalled();
+        expect(success).not.toHaveBeenCalled();
+    });
 });
