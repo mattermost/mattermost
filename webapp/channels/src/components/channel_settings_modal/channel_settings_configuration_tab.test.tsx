@@ -1067,10 +1067,19 @@ describe('ChannelSettingsConfigurationTab', () => {
                 classificationId: LEVEL_UNCLASSIFIED.id,
                 bannerText: `**${LEVEL_UNCLASSIFIED.name}**`,
             });
+            const classifiedChannel = TestHelper.getChannelMock({
+                ...mockChannel,
+                banner_info: {
+                    enabled: true,
+                    text: `**${LEVEL_UNCLASSIFIED.name}**`,
+                    background_color: LEVEL_UNCLASSIFIED.color,
+                },
+            });
 
             renderWithContext(
                 <ChannelSettingsConfigurationTab
                     {...baseProps}
+                    channel={classifiedChannel}
                     canManageSharedChannels={true}
                 />,
                 sysAdminState,
