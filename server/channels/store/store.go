@@ -62,6 +62,7 @@ type Store interface {
 	LinkMetadata() LinkMetadataStore
 	SharedChannel() SharedChannelStore
 	Draft() DraftStore
+	ChannelGuard() ChannelGuardStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -79,6 +80,7 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
+	GetDiagnostics(ctx context.Context) (*DatabaseDiagnostics, error)
 	ReplicaLagTime() error
 	ReplicaLagAbs() error
 	CheckIntegrity() <-chan model.IntegrityCheckResult
@@ -102,6 +104,7 @@ type Store interface {
 	Recap() RecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
+	ChannelJoinRequest() ChannelJoinRequestStore
 }
 
 type RetentionPolicyStore interface {
@@ -472,6 +475,7 @@ type UserStore interface {
 	GetByEmail(email string) (*model.User, error)
 	GetByRemoteID(remoteID string) (*model.User, error)
 	GetByAuth(authData *string, authService string) (*model.User, error)
+	GetByAuthData(authData *string) (*model.User, error)
 	GetAllUsingAuthService(authService string) ([]*model.User, error)
 	GetAllNotInAuthService(authServices []string) ([]*model.User, error)
 	GetByUsername(username string) (*model.User, error)
@@ -480,6 +484,8 @@ type UserStore interface {
 	GetEtagForAllProfiles() string
 	GetEtagForProfiles(teamID string) string
 	UpdateFailedPasswordAttempts(userID string, attempts int) error
+	TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error)
+	DecrementFailedPasswordAttempts(userID string) error
 	GetSystemAdminProfiles() (map[string]*model.User, error)
 	PermanentDelete(rctx request.CTX, userID string) error
 	AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error)
@@ -651,6 +657,7 @@ type WebhookStore interface {
 	GetIncomingByTeam(teamID string, offset, limit int) ([]*model.IncomingWebhook, error)
 	GetIncomingByTeamByUser(teamID string, userID string, offset, limit int) ([]*model.IncomingWebhook, error)
 	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error)
+	UpdateIncomingLastUsed(webhookID string, lastUsed int64) error
 	GetIncomingByChannel(channelID string) ([]*model.IncomingWebhook, error)
 	DeleteIncoming(webhookID string, timestamp int64) error
 	PermanentDeleteIncomingByChannel(channelID string) error
@@ -1070,6 +1077,21 @@ type PostPriorityStore interface {
 	Delete(postID string) error
 }
 
+// ChannelGuard is a single claim row asserting that a plugin has registered as a guard for a given
+// channel. Plugins may co-claim a channel; one row per (ChannelId, PluginId) pair.
+type ChannelGuard struct {
+	ChannelId string
+	PluginId  string
+	CreatedAt int64
+}
+
+type ChannelGuardStore interface {
+	Save(rctx request.CTX, guard *ChannelGuard) error
+	Delete(rctx request.CTX, channelID, pluginID string) (rowsAffected int64, err error)
+	GetForChannel(rctx request.CTX, channelID string) ([]*ChannelGuard, error)
+	GetAll(rctx request.CTX) ([]*ChannelGuard, error)
+}
+
 type DraftStore interface {
 	Upsert(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
@@ -1179,6 +1201,20 @@ type AccessControlPolicyStore interface {
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
 	GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error)
+
+	// GetActionsForPolicy returns the union of action keys declared by the
+	// policy's own rules and the rules of any policies it imports. Returns
+	// an empty (non-nil) map when the policy exists but declares no rules.
+	// Returns ErrNotFound when no policy row exists for policyID. Used by
+	// the App-layer hydrator to lazily populate Channel.PolicyActions.
+	GetActionsForPolicy(rctx request.CTX, policyID string) (map[string]bool, error)
+
+	// GetActionsForPolicies returns the per-policy action union for each ID
+	// in policyIDs. Missing policy IDs are absent from the returned map
+	// (not nil-valued). Single round-trip; used by batched hydration on
+	// channel-list reads to avoid an N+1 against AccessControlPolicies.
+	// Empty input returns an empty map and fires no SQL.
+	GetActionsForPolicies(rctx request.CTX, policyIDs []string) (map[string]map[string]bool, error)
 }
 
 type AttributesStore interface {
@@ -1330,6 +1366,19 @@ type ThreadMembershipImportData struct {
 	LastViewed int64
 	// UnreadMentions is the number of unread mentions to set the UnreadMentions field to.
 	UnreadMentions int64
+}
+
+// ChannelJoinRequestStore persists user requests to join discoverable private
+// channels. Rows are never deleted; status transitions are recorded with
+// reviewer and timestamps so the table doubles as an audit trail.
+type ChannelJoinRequestStore interface {
+	Save(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
+	Get(id string) (*model.ChannelJoinRequest, error)
+	GetPendingForChannelAndUser(channelId, userId string) (*model.ChannelJoinRequest, error)
+	GetForChannel(channelId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error)
+	GetForUser(userId string, opts model.GetChannelJoinRequestsOpts) ([]*model.ChannelJoinRequest, int64, error)
+	Update(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
+	CountPending(channelId string) (int64, error)
 }
 
 type RecapStore interface {

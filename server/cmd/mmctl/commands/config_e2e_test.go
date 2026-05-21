@@ -51,7 +51,7 @@ func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 	invalidFile, err := os.CreateTemp(os.TempDir(), "invalid_config_*.json")
 	s.Require().Nil(err)
 
-	_, err = tmpFile.Write([]byte(configFilePayload))
+	_, err = tmpFile.WriteString(configFilePayload)
 	s.Require().Nil(err)
 
 	defer func() {
@@ -212,7 +212,7 @@ rm $1'old'`
 		defer func() {
 			os.Remove(file.Name())
 		}()
-		_, err = file.Write([]byte(content))
+		_, err = file.WriteString(content)
 		s.Require().Nil(err)
 		s.Require().Nil(file.Close())
 		s.Require().Nil(os.Chmod(file.Name(), 0700))

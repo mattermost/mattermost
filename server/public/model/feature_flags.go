@@ -75,12 +75,31 @@ type FeatureFlags struct {
 
 	// Enable permission policies (file upload/download ABAC policies).
 	// Requires AttributeBasedAccessControl to also be enabled.
+	//
+	// This is the umbrella flag: when off, both ChannelPermissionPolicies
+	// and PolicySimulation are also off regardless of their individual
+	// settings. Use the IsChannelPermissionPoliciesEnabled() and
+	// IsPolicySimulationEnabled() helpers below rather than checking
+	// PermissionPolicies + the sub-flag manually at every call site —
+	// they encapsulate the dependency so a future renaming /
+	// consolidation only has to update one place.
 	PermissionPolicies bool
 
-	ContentFlagging bool
+	// Enable permission-rule actions (upload_file_attachment,
+	// download_file_attachment) on channel-scope policies — and, on the
+	// frontend, the Channel Settings → Permissions Policy tab that lets
+	// channel admins configure them. Requires PermissionPolicies. Read
+	// via FeatureFlags.IsChannelPermissionPoliciesEnabled() so the
+	// PermissionPolicies dependency is enforced at every call site.
+	ChannelPermissionPolicies bool
 
-	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
-	InteractiveDialogAppsForm bool
+	// Enable the "Simulate access" preview UX and its backing
+	// /cel/simulate_users endpoint. Requires PermissionPolicies. Read
+	// via FeatureFlags.IsPolicySimulationEnabled() so the
+	// PermissionPolicies dependency is enforced at every call site.
+	PolicySimulation bool
+
+	ContentFlagging bool
 
 	EnableMattermostEntry bool
 
@@ -120,6 +139,14 @@ type FeatureFlags struct {
 
 	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
 	ManagedChannelCategories bool
+
+	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.
+	// Gates the per-channel Discoverable toggle and the channel-join-request flow that lets
+	// non-members find a private channel in Browse Channels and request to join it.
+	DiscoverableChannels bool
+
+	// Enable Mobile Ephemeral Mode for controlling data persistence on mobile devices
+	MobileEphemeralMode bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -150,8 +177,9 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeBasedAccessControl = true
 	f.AttributeValueMasking = false
 	f.PermissionPolicies = false
+	f.ChannelPermissionPolicies = false
+	f.PolicySimulation = false
 	f.ContentFlagging = true
-	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
 
 	// DEPRECATED: Disabled by default - mobile clients use direct SSO callback flow
@@ -176,6 +204,31 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AggregatePluginMetrics = false
 
 	f.ManagedChannelCategories = false
+
+	f.DiscoverableChannels = false
+
+	f.MobileEphemeralMode = false
+}
+
+// IsChannelPermissionPoliciesEnabled reports whether channel-scope
+// policies may carry permission-rule actions (file upload/download)
+// and whether the Channel Settings → Permissions Policy tab should
+// be exposed. Both the sub-flag AND the PermissionPolicies umbrella
+// must be on — turning the umbrella off implicitly disables the
+// sub-feature even if its own flag is on. Centralizing the
+// dependency check here keeps every call site honest.
+func (f *FeatureFlags) IsChannelPermissionPoliciesEnabled() bool {
+	return f.PermissionPolicies && f.ChannelPermissionPolicies
+}
+
+// IsPolicySimulationEnabled reports whether the "Simulate access"
+// preview UX and its backing /cel/simulate_users endpoint are
+// available. Both the sub-flag AND the PermissionPolicies umbrella
+// must be on — turning the umbrella off implicitly disables the
+// sub-feature even if its own flag is on. Centralizing the
+// dependency check here keeps every call site honest.
+func (f *FeatureFlags) IsPolicySimulationEnabled() bool {
+	return f.PermissionPolicies && f.PolicySimulation
 }
 
 // ToMap returns the feature flags as a map[string]string

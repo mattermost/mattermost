@@ -13,19 +13,18 @@ import {getPropertyValueForTargetField} from 'mattermost-redux/selectors/entitie
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import {
+    CLASSIFICATIONS_FIELD_TARGET_ID,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_GROUP_NAME,
+    CLASSIFICATIONS_SYSTEM_FIELD_NAME,
+    CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+    CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     DISPLAY_BANNER_BOTTOM,
     DISPLAY_BANNER_TOP,
-    FIELD_NAME,
-    GROUP_NAME,
-    LINKED_FIELD_NAME,
-    LINKED_OBJECT_TYPE,
-    OBJECT_TYPE,
-    SYSTEM_FIELD_TARGET_ID,
-    SYSTEM_VALUE_TARGET_ID,
-    TARGET_ID,
-    TARGET_TYPE,
     findOptionById,
 } from 'components/admin_console/classification_markings/utils';
+import {selectClassificationTemplateField} from 'components/common/hooks/useClassificationMarkings';
 
 import './global_classification_banner.scss';
 
@@ -35,16 +34,6 @@ type Props = {
     position: 'top' | 'bottom';
 };
 
-function selectClassificationTemplateField(state: GlobalState): PropertyField | undefined {
-    const byId = state.entities.properties?.fields?.byId;
-    if (!byId) {
-        return undefined;
-    }
-    return Object.values(byId).find(
-        (f) => f.object_type === OBJECT_TYPE && f.name === FIELD_NAME && f.delete_at === 0,
-    );
-}
-
 function selectLinkedSystemField(state: GlobalState): PropertyField | undefined {
     const byId = state.entities.properties?.fields?.byId;
     if (!byId) {
@@ -53,7 +42,7 @@ function selectLinkedSystemField(state: GlobalState): PropertyField | undefined 
 
     // The linked system field has object_type 'system' and a linked_field_id set.
     return Object.values(byId).find(
-        (f) => f.object_type === LINKED_OBJECT_TYPE && f.name === LINKED_FIELD_NAME && f.linked_field_id && f.delete_at === 0,
+        (f) => f.object_type === CLASSIFICATIONS_SYSTEM_OBJECT_TYPE && f.name === CLASSIFICATIONS_SYSTEM_FIELD_NAME && f.linked_field_id && f.delete_at === 0,
     );
 }
 
@@ -66,7 +55,7 @@ export default function GlobalClassificationBanner({position}: Props) {
         if (!linkedField) {
             return undefined;
         }
-        return getPropertyValueForTargetField(state, SYSTEM_VALUE_TARGET_ID, linkedField.id) as PropertyValue<string> | undefined;
+        return getPropertyValueForTargetField(state, CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID, linkedField.id) as PropertyValue<string> | undefined;
     });
 
     // Bootstrap: fetch template fields, the linked system field, and system property values.
@@ -80,13 +69,23 @@ export default function GlobalClassificationBanner({position}: Props) {
             return;
         }
         if (!templateField) {
-            dispatch(fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID));
+            dispatch(fetchPropertyFields(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
+            ));
         }
         if (!linkedField) {
-            dispatch(fetchPropertyFields(GROUP_NAME, LINKED_OBJECT_TYPE, TARGET_TYPE, SYSTEM_FIELD_TARGET_ID));
+            dispatch(fetchPropertyFields(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
+            ));
         }
         if (linkedField && !systemValue) {
-            dispatch(fetchSystemPropertyValues(GROUP_NAME));
+            dispatch(fetchSystemPropertyValues(CLASSIFICATIONS_GROUP_NAME));
         }
     }, [featureEnabled, templateField, linkedField, systemValue, dispatch]);
 

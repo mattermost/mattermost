@@ -5,11 +5,13 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {getBrowserInfo} from 'mattermost-redux/utils/browser_info';
 
-import {getReportAProblemLink, getSystemInfoMailtoLink} from './report_a_problem';
+import {getDefaultReportAProblemMailtoLink, getReportAProblemLink, getSystemInfoMailtoLink} from './report_a_problem';
 
 jest.mock('mattermost-redux/utils/browser_info', () => ({
     getBrowserInfo: jest.fn().mockReturnValue({browser: 'Chrome', browserVersion: '1.0.0'}),
     getPlatformInfo: jest.fn().mockReturnValue('macOS'),
+    isDesktopApp: jest.fn().mockReturnValue(false),
+    getDesktopVersion: jest.fn().mockReturnValue(''),
 }));
 
 describe('getReportAProblemLink', () => {
@@ -78,26 +80,41 @@ describe('getReportAProblemLink', () => {
         expect(link).toContain(encodeURIComponent('- Platform: macOS'));
     });
 
-    it('should return the default value if licensed', () => {
+    it('should return a mailto link to reportaproblem@mattermost.com if licensed with a paid SKU', () => {
         const state = {
             entities: {
+                users: {
+                    currentUserId: 'user1',
+                },
+                teams: {
+                    currentTeamId: 'team1',
+                },
                 general: {
                     config: {
                         ReportAProblemType: 'default',
                         ReportAProblemLink: 'https://example.com/report',
                         ReportAProblemMail: 'test@example.com',
+                        Version: '10.0.0',
+                        BuildNumber: '99999',
                     },
                     license: {
                         IsLicensed: 'true',
+                        SkuShortName: 'professional',
                     },
                 },
             },
         } as unknown as GlobalState;
 
-        expect(getReportAProblemLink(state)).toContain('https://mattermost.com/pl/report_a_problem_licensed');
+        const link = getReportAProblemLink(state);
+        expect(link).toContain('mailto:reportaproblem@mattermost.com');
+        expect(link).toContain(encodeURIComponent('Problem with Mattermost app'));
+        expect(link).toContain(encodeURIComponent('Current User Id: user1'));
+        expect(link).toContain(encodeURIComponent('Current Team Id: team1'));
+        expect(link).toContain(encodeURIComponent('Server Version: 10.0.0 (Build 99999)'));
+        expect(link).toContain(encodeURIComponent('App Platform: macOS'));
     });
 
-    it('should return the default value if unlicensed', () => {
+    it('should return the default unlicensed URL if unlicensed', () => {
         const state = {
             entities: {
                 general: {
@@ -114,6 +131,109 @@ describe('getReportAProblemLink', () => {
         } as unknown as GlobalState;
 
         expect(getReportAProblemLink(state)).toContain('https://mattermost.com/pl/report_a_problem_unlicensed');
+    });
+
+    it('should return the default unlicensed URL if licensed with entry SKU', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        ReportAProblemType: 'default',
+                        ReportAProblemLink: 'https://example.com/report',
+                        ReportAProblemMail: 'test@example.com',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                        SkuShortName: 'entry',
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(getReportAProblemLink(state)).toContain('https://mattermost.com/pl/report_a_problem_unlicensed');
+    });
+});
+
+describe('getDefaultReportAProblemMailtoLink', () => {
+    const baseState = {
+        entities: {
+            users: {
+                currentUserId: 'user1',
+            },
+            teams: {
+                currentTeamId: 'team1',
+            },
+            general: {
+                config: {
+                    Version: '10.0.0',
+                    BuildNumber: '99999',
+                },
+            },
+        },
+    } as unknown as GlobalState;
+
+    it('should include correct metadata in the email body', () => {
+        const link = getDefaultReportAProblemMailtoLink(baseState);
+        expect(link).toContain('mailto:reportaproblem@mattermost.com');
+        expect(link).toContain(encodeURIComponent('Problem with Mattermost app'));
+        expect(link).toContain(encodeURIComponent('Current User Id: user1'));
+        expect(link).toContain(encodeURIComponent('Current Team Id: team1'));
+        expect(link).toContain(encodeURIComponent('Server Version: 10.0.0 (Build 99999)'));
+        expect(link).toContain(encodeURIComponent('App Platform: macOS'));
+    });
+
+    it('should include a link to the browser console logs help article when not on desktop app', () => {
+        const link = getDefaultReportAProblemMailtoLink(baseState);
+        expect(link).toContain(encodeURIComponent('browser console logs (https://support.mattermost.com/hc/en-us/articles/35971622382484)'));
+    });
+
+    it('should include a link to the desktop logs help article when on desktop app', () => {
+        const {isDesktopApp: mockIsDesktopApp, getDesktopVersion: mockGetDesktopVersion} = jest.requireMock('mattermost-redux/utils/browser_info');
+        mockIsDesktopApp.mockReturnValue(true);
+        mockGetDesktopVersion.mockReturnValue('5.10.0');
+
+        // Use different state to invalidate selector cache
+        const desktopState = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                users: {currentUserId: 'user-desktop-logs'},
+            },
+        } as unknown as GlobalState;
+
+        const link = getDefaultReportAProblemMailtoLink(desktopState);
+        expect(link).toContain(encodeURIComponent('desktop app logs (https://support.mattermost.com/hc/en-us/articles/37269786544916)'));
+
+        // Reset mock
+        mockIsDesktopApp.mockReturnValue(false);
+    });
+
+    it('should NOT include Desktop Version line when not on desktop app', () => {
+        const {isDesktopApp: mockIsDesktopApp} = jest.requireMock('mattermost-redux/utils/browser_info');
+        mockIsDesktopApp.mockReturnValue(false);
+
+        const link = getDefaultReportAProblemMailtoLink(baseState);
+        expect(link).not.toContain(encodeURIComponent('Desktop Version:'));
+    });
+
+    it('should include Desktop Version line when running in the desktop app', () => {
+        const {isDesktopApp: mockIsDesktopApp, getDesktopVersion: mockGetDesktopVersion} = jest.requireMock('mattermost-redux/utils/browser_info');
+        mockIsDesktopApp.mockReturnValue(true);
+        mockGetDesktopVersion.mockReturnValue('5.10.0');
+
+        // Reset selector cache so it re-runs with updated mocks
+        getDefaultReportAProblemMailtoLink.resetRecomputations?.();
+
+        const stateWithDifferentUser = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                users: {currentUserId: 'user2'},
+            },
+        } as unknown as GlobalState;
+
+        const link = getDefaultReportAProblemMailtoLink(stateWithDifferentUser);
+        expect(link).toContain(encodeURIComponent('Desktop Version: 5.10.0'));
     });
 });
 

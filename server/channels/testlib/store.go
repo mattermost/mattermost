@@ -102,6 +102,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MigrationKeyAccessControlPolicyV0_3).Return(&model.System{Name: model.MigrationKeyAccessControlPolicyV0_3, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddManageAgentPermissions).Return(&model.System{Name: model.MigrationKeyAddManageAgentPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddEditFileAttachmentPermission).Return(&model.System{Name: model.MigrationKeyAddEditFileAttachmentPermission, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationKeyAddDiscoverableChannelPermissions).Return(&model.System{Name: model.MigrationKeyAddDiscoverableChannelPermissions, Value: "true"}, nil)
 
 	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
@@ -143,6 +144,9 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyGroupStore := mocks.PropertyGroupStore{}
 	propertyFieldStore := mocks.PropertyFieldStore{}
 	propertyValueStore := mocks.PropertyValueStore{}
+
+	channelGuardStore := mocks.ChannelGuardStore{}
+	channelGuardStore.On("GetAll", mock.Anything).Return([]*store.ChannelGuard{}, nil)
 
 	groupsByName := map[string]*model.PropertyGroup{}
 
@@ -217,6 +221,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("PropertyGroup").Return(&propertyGroupStore)
 	mockStore.On("PropertyField").Return(&propertyFieldStore)
 	mockStore.On("PropertyValue").Return(&propertyValueStore)
+	mockStore.On("ChannelGuard").Return(&channelGuardStore)
 
 	return &mockStore
 }

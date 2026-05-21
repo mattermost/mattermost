@@ -181,6 +181,7 @@ const AdvancedTextEditor = ({
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
     const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
+    const aiActionMenuItems = useSelector((state: GlobalState) => state.plugins.components.AIActionMenuItem);
     const {available: aiRewriteEnabled} = useGetAgentsBridgeEnabled();
 
     const canPost = useSelector((state: GlobalState) => {
@@ -317,6 +318,7 @@ const AdvancedTextEditor = ({
         rewriteMenuProps,
         isProcessing: rewriteIsProcessing,
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
+    const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
 
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
@@ -707,6 +709,10 @@ const AdvancedTextEditor = ({
     }, [handleDraftChange, draft]);
 
     const aiActionsMenu = useMemo(() => {
+        if (!hasAIActionsMenu) {
+            return null;
+        }
+
         return (
             <AIActionsMenu
                 draft={draft}
@@ -718,7 +724,7 @@ const AdvancedTextEditor = ({
                 aiRewriteEnabled={aiRewriteEnabled}
             />
         );
-    }, [draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled]);
+    }, [draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled, hasAIActionsMenu]);
 
     const formattingBar = (
         <AutoHeightSwitcher

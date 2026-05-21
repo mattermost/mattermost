@@ -179,7 +179,14 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+          cache-dependency-path: |
+            e2e-tests/playwright/package-lock.json
+            webapp/package-lock.json
+      - name: ci/npm-cache-verify
+        # Heal any partial/dangling entries left in the restored ~/.npm cache
+        # before running `npm ci`. Avoids the intermittent EEXIST/ENOENT
+        # failures in npm's cacache writer.
+        run: npm cache verify
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules
