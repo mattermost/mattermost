@@ -110,10 +110,12 @@ ol {
 // only when a Cyrillic character is actually rendered.
 
 /* montserrat - cyrillic subset only */
+/* size-adjust compensates for Montserrat's larger x-height vs Metropolis */
 @font-face {
     font-family: 'Metropolis';
     font-style: normal;
     font-weight: 300;
+    size-adjust: 92%;
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
     src: url('../fonts/Montserrat-cyrillic-300-normal.woff2') format('woff2');
 }
@@ -122,6 +124,7 @@ ol {
     font-family: 'Metropolis';
     font-style: italic;
     font-weight: 300;
+    size-adjust: 92%;
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
     src: url('../fonts/Montserrat-cyrillic-300-italic.woff2') format('woff2');
 }
@@ -130,6 +133,7 @@ ol {
     font-family: 'Metropolis';
     font-style: normal;
     font-weight: 400;
+    size-adjust: 92%;
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
     src: url('../fonts/Montserrat-cyrillic-400-normal.woff2') format('woff2');
 }
@@ -138,6 +142,7 @@ ol {
     font-family: 'Metropolis';
     font-style: italic;
     font-weight: 400;
+    size-adjust: 92%;
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
     src: url('../fonts/Montserrat-cyrillic-400-italic.woff2') format('woff2');
 }
@@ -146,6 +151,7 @@ ol {
     font-family: 'Metropolis';
     font-style: normal;
     font-weight: 600;
+    size-adjust: 92%;
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
     src: url('../fonts/Montserrat-cyrillic-600-normal.woff2') format('woff2');
 }
@@ -154,6 +160,7 @@ ol {
     font-family: 'Metropolis';
     font-style: italic;
     font-weight: 600;
+    size-adjust: 92%;
     unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
     src: url('../fonts/Montserrat-cyrillic-600-italic.woff2') format('woff2');
 }
