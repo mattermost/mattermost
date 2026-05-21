@@ -13,7 +13,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense, isChannelPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -32,6 +32,7 @@ import ChannelSettingsAccessRulesTab from './channel_settings_access_rules_tab';
 import ChannelSettingsArchiveTab from './channel_settings_archive_tab';
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
+import ChannelSettingsPermissionsPolicyTab from './channel_settings_permissions_policy_tab';
 
 import './channel_settings_modal.scss';
 
@@ -48,18 +49,31 @@ type ChannelSettingsModalProps = {
 enum ChannelSettingsTabs {
     INFO = 'info',
     ACCESS_RULES = 'access_rules',
+    PERMISSIONS_POLICY = 'permissions_policy',
     CONFIGURATION = 'configuration',
     ARCHIVE = 'archive',
 }
 
 const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
 
-function getFirstVisibleTab(shouldShowInfoTab: boolean, shouldShowAccessRulesTab: boolean, shouldShowConfigurationTab: boolean, shouldShowArchiveTab: boolean) {
+function getFirstVisibleTab(shouldShowInfoTab: boolean, shouldShowAccessRulesTab: boolean, shouldShowPermissionsPolicyTab: boolean, shouldShowConfigurationTab: boolean, shouldShowArchiveTab: boolean) {
     if (shouldShowInfoTab) {
         return ChannelSettingsTabs.INFO;
     }
     if (shouldShowAccessRulesTab) {
         return ChannelSettingsTabs.ACCESS_RULES;
+    }
+
+    // Invariant (see callsite): `shouldShowPermissionsPolicyTab`
+    // implies `shouldShowAccessRulesTab` because it is computed as
+    // `shouldShowAccessRulesTab && permissionPoliciesEnabled`. The
+    // ACCESS_RULES branch above therefore already returns whenever
+    // PERMISSIONS_POLICY is visible, so the branch below is currently
+    // unreachable. We keep it as a defensive fallback so this helper
+    // stays correct if that derivation is relaxed (e.g. permissions
+    // policies become independently visible without access rules).
+    if (shouldShowPermissionsPolicyTab) {
+        return ChannelSettingsTabs.PERMISSIONS_POLICY;
     }
     if (shouldShowConfigurationTab) {
         return ChannelSettingsTabs.CONFIGURATION;
@@ -138,6 +152,16 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
 
     const channelAdminABACControlEnabled = useSelector(isChannelAccessControlEnabled);
 
+    // Channel-scope permission rules sit behind a dedicated sub-flag
+    // (ChannelPermissionPolicies) that depends on the umbrella
+    // PermissionPolicies flag — `isChannelPermissionPoliciesEnabled`
+    // enforces that dependency so we don't have to check both flags
+    // at every call site. The server rejects channel policies with
+    // permission rules when this is off (`api.access_control_policy.
+    // channel_permission_policies.feature_disabled`); hiding the tab
+    // here keeps the UI consistent with that gate.
+    const channelPermissionPoliciesEnabled = useSelector(isChannelPermissionPoliciesEnabled);
+
     const isPolicyEligibleChannelType = channel.type === Constants.PRIVATE_CHANNEL || channel.type === Constants.OPEN_CHANNEL;
 
     // Default channels (town-square / off-topic) cannot have ABAC policies —
@@ -147,6 +171,12 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const isDefaultChannel = channel.name === Constants.DEFAULT_CHANNEL || channel.name === Constants.OFFTOPIC_CHANNEL;
     const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && isPolicyEligibleChannelType && !channel.group_constrained && !isDefaultChannel && !channel.shared;
 
+    // Permissions Policy is gated by the ABAC license + setting AND the
+    // channel-scope permission-policies sub-flag (which itself requires
+    // the PermissionPolicies umbrella). Same channel-eligibility rules
+    // as the Membership Policy tab.
+    const shouldShowPermissionsPolicyTab = shouldShowAccessRulesTab && channelPermissionPoliciesEnabled;
+
     const shouldShowArchiveTab = channel.name !== Constants.DEFAULT_CHANNEL &&
         ((channel.type === Constants.PRIVATE_CHANNEL && canArchivePrivateChannels) ||
         (channel.type === Constants.OPEN_CHANNEL && canArchivePublicChannels));
@@ -154,7 +184,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const [show, setShow] = useState(isOpen);
 
     // First visible tab (in tab order) for when Info is not available
-    const firstVisibleTab = getFirstVisibleTab(shouldShowInfoTab, shouldShowAccessRulesTab, shouldShowConfigurationTab, shouldShowArchiveTab);
+    const firstVisibleTab = getFirstVisibleTab(shouldShowInfoTab, shouldShowAccessRulesTab, shouldShowPermissionsPolicyTab, shouldShowConfigurationTab, shouldShowArchiveTab);
 
     // Active tab
     const [activeTab, setActiveTab] = useState<ChannelSettingsTabs>(firstVisibleTab);
@@ -234,6 +264,8 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             return renderInfoTab();
         case ChannelSettingsTabs.ACCESS_RULES:
             return renderAccessRulesTab();
+        case ChannelSettingsTabs.PERMISSIONS_POLICY:
+            return renderPermissionsPolicyTab();
         case ChannelSettingsTabs.CONFIGURATION:
             return renderConfigurationTab();
         case ChannelSettingsTabs.ARCHIVE:
@@ -276,6 +308,16 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         );
     };
 
+    const renderPermissionsPolicyTab = () => {
+        return (
+            <ChannelSettingsPermissionsPolicyTab
+                channel={channel}
+                setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                showTabSwitchError={showTabSwitchError}
+            />
+        );
+    };
+
     const renderArchiveTab = () => {
         return (
             <ChannelSettingsArchiveTab
@@ -300,6 +342,13 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             icon: 'icon icon-shield-outline',
             iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Membership Policy Icon'}),
             display: shouldShowAccessRulesTab,
+        },
+        {
+            name: ChannelSettingsTabs.PERMISSIONS_POLICY,
+            uiName: formatMessage({id: 'channel_settings.tab.permissions_policy', defaultMessage: 'Permissions Policy'}),
+            icon: 'icon icon-key-variant',
+            iconTitle: formatMessage({id: 'generic_icons.permissions_policy', defaultMessage: 'Permissions Policy Icon'}),
+            display: shouldShowPermissionsPolicyTab,
         },
         {
             name: ChannelSettingsTabs.CONFIGURATION,

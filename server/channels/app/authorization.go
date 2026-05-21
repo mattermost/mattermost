@@ -643,7 +643,7 @@ func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles s
 		return true
 	}
 
-	subject, appErr := a.BuildAccessControlSubject(rctx, userID, roles)
+	subject, appErr := a.BuildAccessControlSubject(rctx, userID, roles, channelID)
 	if appErr != nil {
 		rctx.Logger().Info("Failed to build ABAC subject for file action evaluation",
 			mlog.String("user_id", userID),

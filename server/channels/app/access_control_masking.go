@@ -362,9 +362,11 @@ func mergeConditionValues(submitted model.Condition, hiddenValues []string) mode
 		merged.Value = result
 
 	case string:
-		// Empty string and the masked-token sentinel both mean "no real value
-		// submitted here"; restore from hidden values.
-		if (v == "" || v == maskedTokenValue) && len(hiddenValues) > 0 {
+		// For scalar conditions the caller cannot edit a value they cannot see.
+		// Always restore the stored hidden value regardless of what was submitted,
+		// preventing a crafted save from overwriting a hidden stored value with a
+		// different caller-visible string that passes validateConditionValues.
+		if len(hiddenValues) > 0 {
 			merged.Value = hiddenValues[0]
 		}
 
@@ -545,6 +547,13 @@ func conditionToCEL(cond model.Condition) string {
 			orParts = append(orParts, celStringLiteral(v)+" in "+attr)
 		}
 		if len(orParts) == 1 {
+			// When the sole value is the masked-token sentinel, duplicate it into a
+			// two-branch OR so that the parser can recover hasAnyOf on the next read.
+			// A standalone "tok in attr" is promoted to hasAllOf by
+			// mergeMultiselectConditions, which would display the wrong operator in the UI.
+			if values[0] == maskedTokenValue {
+				return "(" + orParts[0] + " || " + orParts[0] + ")"
+			}
 			return orParts[0]
 		}
 		return "(" + strings.Join(orParts, " || ") + ")"
@@ -750,8 +759,14 @@ func (a *App) GetMaskedExpression(rctx request.CTX, expression string, callerID 
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
 	fieldsByName := a.fetchConditionFields(rctxWithCaller, visualAST.Conditions, cpaGroupID)
 
+	hasMasked := false
 	for i := range visualAST.Conditions {
-		a.maskConditionValuesWithToken(rctxWithCaller, callerID, &visualAST.Conditions[i], cpaGroupID, fieldsByName)
+		if a.maskConditionValuesWithToken(rctxWithCaller, callerID, &visualAST.Conditions[i], cpaGroupID, fieldsByName) {
+			hasMasked = true
+		}
+	}
+	if !hasMasked {
+		return expression, nil
 	}
 
 	return buildCELFromConditions(visualAST.Conditions), nil
@@ -761,27 +776,30 @@ func (a *App) GetMaskedExpression(rctx request.CTX, expression string, callerID 
 // preserving expression structure so the visual AST endpoint can still parse it.
 // fieldsByName is pre-fetched by the caller to avoid N+1 lookups; a missing entry
 // is treated as fail-closed (whole value masked).
-func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, condition *model.Condition, cpaGroupID string, fieldsByName map[string]*model.PropertyField) {
+// maskConditionValuesWithToken replaces non-held values with the masked token in place.
+// Returns true if any value was masked.
+func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, condition *model.Condition, cpaGroupID string, fieldsByName map[string]*model.PropertyField) bool {
 	if condition.ValueType == model.AttrValue {
-		return
+		return false
 	}
 
 	fieldName := extractFieldName(condition.Attribute)
 	if fieldName == "" {
-		return
+		return false
 	}
 
 	field, ok := fieldsByName[fieldName]
 	if !ok {
 		condition.Value = maskedTokenValue // fail closed
-		return
+		return true
 	}
 
 	switch field.GetAccessMode() {
 	case model.PropertyAccessModePublic:
-		return
+		return false
 	case model.PropertyAccessModeSourceOnly:
 		condition.Value = maskedTokenValue
+		return true
 	case model.PropertyAccessModeSharedOnly:
 		var visibleNames map[string]struct{}
 		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
@@ -789,15 +807,17 @@ func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, co
 		} else {
 			visibleNames = a.getCallerTextValues(rctx, callerID, field, cpaGroupID)
 		}
-		replaceHiddenValuesWithToken(condition, visibleNames)
+		return replaceHiddenValuesWithToken(condition, visibleNames)
 	default:
 		condition.Value = maskedTokenValue
+		return true
 	}
 }
 
 // replaceHiddenValuesWithToken keeps visible values and appends a single masked token if any were hidden.
 // One token regardless of count prevents count-based inference about the number of hidden values.
-func replaceHiddenValuesWithToken(condition *model.Condition, visibleNames map[string]struct{}) {
+// Returns true if any value was replaced.
+func replaceHiddenValuesWithToken(condition *model.Condition, visibleNames map[string]struct{}) bool {
 	switch v := condition.Value.(type) {
 	case []any:
 		var result []any
@@ -817,10 +837,381 @@ func replaceHiddenValuesWithToken(condition *model.Condition, visibleNames map[s
 			result = append(result, maskedTokenValue)
 		}
 		condition.Value = result
+		return hasMasked
 	case string:
 		if _, visible := visibleNames[v]; !visible {
 			condition.Value = maskedTokenValue
+			return true
 		}
+	}
+	return false
+}
+
+// MaskSimulationPolicyLiteralsForCaller re-applies attribute-value
+// masking to every CEL expression and per-leaf ExpectedValue the
+// simulator returned. Without this pass, the response would leak the
+// literal values that mergeStoredPolicyExpressions re-injected before
+// evaluation — the simulator's verdicts are correct because the
+// engine sees the real (unmasked) policy, but the response surfaces
+// (Blame.Expression, MergedRules expressions, every leaf in the
+// evaluation tree) would otherwise carry those re-injected literals
+// back to the caller.
+//
+// Masking is attribute-based, not role-based: system admins are NOT
+// bypassed. A caller who doesn't hold the literal sees the
+// "--------" sentinel regardless of role, mirroring the policy GET
+// masking contract enforced by MaskPolicyExpressions.
+//
+// Failure handling is per-surface fail-closed: any masking error on
+// a single expression clears that field (Expression -> "",
+// ExpectedValue -> sentinel) rather than leaving the unmasked literal
+// visible. A top-level CPA group lookup failure wipes every literal
+// surface in the response.
+//
+// No-op when AttributeValueMasking is disabled — same gate as the
+// stored-policy merge that precedes evaluation; either both run or
+// neither does, so the response always matches the policy state that
+// produced it.
+func (a *App) MaskSimulationPolicyLiteralsForCaller(rctx request.CTX, resp *model.PolicySimulationResponse, callerID string) {
+	if resp == nil || callerID == "" {
+		return
+	}
+	if !a.Config().FeatureFlags.AttributeValueMasking {
+		return
+	}
+
+	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	if appErr != nil {
+		rctx.Logger().Warn(
+			"MaskSimulationPolicyLiteralsForCaller: failed to resolve CPA group, clearing every simulation literal as fail-closed default",
+			mlog.Err(appErr),
+		)
+		clearAllSimulationLiterals(resp)
+		return
+	}
+
+	mc := &simulationMaskContext{
+		cpaGroupID:     cpaGroup.ID,
+		rctxWithCaller: RequestContextWithCallerID(rctx, callerID),
+		callerID:       callerID,
+		fieldsByName:   map[string]*model.PropertyField{},
+	}
+
+	for i := range resp.Results {
+		for action, dec := range resp.Results[i].Decisions {
+			a.maskSimulationDecisionLiterals(&dec, mc)
+			resp.Results[i].Decisions[action] = dec
+		}
+		for k := range resp.Results[i].Sessions {
+			for action, dec := range resp.Results[i].Sessions[k].Decisions {
+				a.maskSimulationDecisionLiterals(&dec, mc)
+				resp.Results[i].Sessions[k].Decisions[action] = dec
+			}
+		}
+	}
+}
+
+// simulationMaskContext is the per-request mask cache shared across
+// every expression in a single simulate response. The CPA group ID
+// and the request context (with callerID embedded so the property
+// service applies per-caller read access control) are stable for the
+// life of the call; fieldsByName grows lazily as new field names are
+// encountered, so each unique field is fetched at most once even
+// across hundreds of tree nodes.
+type simulationMaskContext struct {
+	cpaGroupID     string
+	rctxWithCaller request.CTX
+	callerID       string
+	fieldsByName   map[string]*model.PropertyField
+}
+
+// maskExpressionWithCache parses `expression` through the Visual AST,
+// hydrates any newly-referenced fields into mc.fieldsByName, and
+// rewrites every literal value through maskConditionValuesWithToken
+// using the shared cache. Returns "" on any parse / lookup failure
+// so the caller can drop the surface entirely (fail-closed).
+//
+// Visual-AST flattening (||, !, nested parens collapse to a flat
+// AND of conditions) is the same trade-off GetMaskedExpression
+// already makes for the policy GET path — we re-use it here so that
+// the masking contract is identical end-to-end. Callers that need
+// to preserve compound structure (e.g. the tree-root rebuild for
+// Blame.Expression) should source their text from
+// maskSimulationEvaluationTree's child-rebuilt Expression instead.
+func (a *App) maskExpressionWithCache(expression string, mc *simulationMaskContext) string {
+	if expression == "" || expression == "true" {
+		return expression
+	}
+	visualAST, appErr := a.ExpressionToVisualAST(mc.rctxWithCaller, expression)
+	if appErr != nil {
+		return ""
+	}
+	for _, c := range visualAST.Conditions {
+		if c.ValueType == model.AttrValue {
+			continue
+		}
+		name := extractFieldName(c.Attribute)
+		if name == "" {
+			continue
+		}
+		if _, ok := mc.fieldsByName[name]; ok {
+			continue
+		}
+		field, appErr := a.GetPropertyFieldByName(mc.rctxWithCaller, mc.cpaGroupID, "", name)
+		if appErr != nil {
+			// Leave the entry absent so maskConditionValuesWithToken's
+			// fail-closed branch overrides the value below — same
+			// semantics as fetchConditionFields' Warn-and-omit path.
+			continue
+		}
+		mc.fieldsByName[name] = field
+	}
+	for i := range visualAST.Conditions {
+		a.maskConditionValuesWithToken(mc.rctxWithCaller, mc.callerID, &visualAST.Conditions[i], mc.cpaGroupID, mc.fieldsByName)
+	}
+	return buildCELFromConditions(visualAST.Conditions)
+}
+
+// maskSimulationDecisionLiterals masks every Expression and per-leaf
+// ExpectedValue on every blame entry the action decision carries.
+// Walks merged-rule sub-surfaces with the same rules so they stay in
+// sync with the parent Blame.Expression.
+func (a *App) maskSimulationDecisionLiterals(dec *model.PolicySimulationActionDecision, mc *simulationMaskContext) {
+	for i := range dec.Blame {
+		b := &dec.Blame[i]
+
+		// Mask the evaluation tree first; the root's rebuilt
+		// Expression preserves the original OR / NOT structure so
+		// when we backfill Blame.Expression from it below the
+		// caller-visible CEL keeps the same boolean shape the rule
+		// author wrote. Without this we'd fall through to the
+		// Visual-AST-flattening branch and "A || B" would surface as
+		// "A && --------" — same security outcome but a misleading
+		// trace.
+		if b.EvaluationTree != nil {
+			a.maskSimulationEvaluationTree(b.EvaluationTree, mc)
+		}
+		if b.Expression != "" {
+			if b.EvaluationTree != nil {
+				b.Expression = b.EvaluationTree.Expression
+			} else {
+				b.Expression = a.maskExpressionWithCache(b.Expression, mc)
+			}
+		}
+
+		for j := range b.MergedRules {
+			m := &b.MergedRules[j]
+			if m.EvaluationTree != nil {
+				a.maskSimulationEvaluationTree(m.EvaluationTree, mc)
+			}
+			if m.Expression != "" {
+				if m.EvaluationTree != nil {
+					m.Expression = m.EvaluationTree.Expression
+				} else {
+					m.Expression = a.maskExpressionWithCache(m.Expression, mc)
+				}
+			}
+		}
+	}
+}
+
+// maskSimulationEvaluationTree walks `node` and its children bottom-
+// up. Leaf-shaped nodes (compare / function / other) have their
+// Expression re-masked through maskExpressionWithCache and their
+// ExpectedValue overwritten with the sentinel whenever the masker
+// hid at least one literal in the leaf. Compound nodes (and / or /
+// not) rebuild their Expression from the already-masked children's
+// Expressions, preserving the original boolean shape — the
+// Visual-AST flatten that maskExpressionWithCache uses on a leaf
+// expression is harmless (a leaf has no inner OR / NOT to lose),
+// but at the compound level it would collapse OR/NOT to AND and
+// misrepresent the rule's logic to the caller.
+func (a *App) maskSimulationEvaluationTree(node *model.PolicySimulationEvaluationNode, mc *simulationMaskContext) {
+	if node == nil {
+		return
+	}
+	for i := range node.Children {
+		a.maskSimulationEvaluationTree(&node.Children[i], mc)
+	}
+	switch node.Kind {
+	case model.PolicySimulationEvaluationKindAnd:
+		node.Expression = joinChildExpressions(node.Children, "&&")
+	case model.PolicySimulationEvaluationKindOr:
+		node.Expression = joinChildExpressions(node.Children, "||")
+	case model.PolicySimulationEvaluationKindNot:
+		if len(node.Children) == 0 {
+			node.Expression = ""
+		} else if child := node.Children[0].Expression; child == "" {
+			node.Expression = ""
+		} else {
+			node.Expression = "!(" + child + ")"
+		}
+	default:
+		// compare / function / other — leaf-shaped. Mask the leaf
+		// expression in place, then drop ExpectedValue to the
+		// sentinel whenever the masker hid at least one literal —
+		// the sentinel can never be a legitimate value (write-path
+		// validation rejects it on save), so its presence in the
+		// masked CEL is unambiguous evidence that masking applied.
+		if node.Expression != "" {
+			masked := a.maskExpressionWithCache(node.Expression, mc)
+			if masked == "" {
+				node.Expression = ""
+				node.ExpectedValue = maskedTokenValue
+			} else {
+				if node.ExpectedValue != "" && strings.Contains(masked, maskedTokenValue) {
+					node.ExpectedValue = maskedTokenValue
+				}
+				node.Expression = masked
+			}
+		}
+		// ActualValue is the simulated user's recorded value —
+		// independent from the rule literal we just masked above,
+		// but just as sensitive under AVM. A caller who couldn't
+		// see "il5" as a rule literal would still see "il5"
+		// surface in the leaf's "Actual: il5" line without this
+		// pass. Apply the same per-value access-mode check the rule
+		// literal uses (source_only hides every value, shared_only
+		// hides values the caller doesn't hold, public passes
+		// through), so the trace stays in lockstep with the
+		// policy GET masking contract end-to-end. Skips when the
+		// leaf has no attribute path (function-call leaves with
+		// non-attribute operands).
+		if node.Attribute != "" && node.ActualValue != "" {
+			a.maskLeafActualValue(node, mc)
+		}
+	}
+}
+
+// maskLeafActualValue replaces `node.ActualValue` with the masked
+// token whenever the caller is not allowed to see that value for
+// the leaf's underlying CPA field. Skips when the attribute path is
+// not a user-attribute reference (e.g. function-call leaves with a
+// non-attribute LHS). Fails closed by masking when the field can't
+// be resolved.
+func (a *App) maskLeafActualValue(node *model.PolicySimulationEvaluationNode, mc *simulationMaskContext) {
+	fieldName := extractFieldName(node.Attribute)
+	if fieldName == "" {
+		return
+	}
+	field, ok := mc.fieldsByName[fieldName]
+	if !ok {
+		fetched, appErr := a.GetPropertyFieldByName(mc.rctxWithCaller, mc.cpaGroupID, "", fieldName)
+		if appErr != nil {
+			node.ActualValue = maskedTokenValue
+			return
+		}
+		mc.fieldsByName[fieldName] = fetched
+		field = fetched
+	}
+	if !a.callerCanSeeFieldValue(field, node.ActualValue, mc) {
+		node.ActualValue = maskedTokenValue
+	}
+}
+
+// callerCanSeeFieldValue reports whether the caller is allowed to
+// see `value` for `field` under AVM semantics. Mirrors the per-
+// access-mode logic that maskConditionValuesWithToken applies to
+// rule literals so the simulator's user-data surfaces (ActualValue)
+// stay in lockstep with the rule-literal surfaces (ExpectedValue /
+// Expression). Unknown access modes fail closed to "not visible"
+// so a new mode added later doesn't silently bypass the masker.
+func (a *App) callerCanSeeFieldValue(field *model.PropertyField, value string, mc *simulationMaskContext) bool {
+	switch field.GetAccessMode() {
+	case model.PropertyAccessModePublic:
+		return true
+	case model.PropertyAccessModeSourceOnly:
+		return false
+	case model.PropertyAccessModeSharedOnly:
+		var visibleNames map[string]struct{}
+		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+			visibleNames = extractVisibleOptionNames(field)
+		} else {
+			visibleNames = a.getCallerTextValues(mc.rctxWithCaller, mc.callerID, field, mc.cpaGroupID)
+		}
+		_, visible := visibleNames[value]
+		return visible
+	default:
+		return false
+	}
+}
+
+// joinChildExpressions wraps every non-empty child Expression in
+// parens and joins them with " <op> ". Empty children (e.g. a leaf
+// whose maskExpressionWithCache failed-closed) are skipped so the
+// rebuilt parent doesn't carry a dangling operator. The parens are
+// unconditional so the result stays unambiguous when the parent op
+// has lower precedence than a child's internal op.
+func joinChildExpressions(children []model.PolicySimulationEvaluationNode, op string) string {
+	parts := make([]string, 0, len(children))
+	for i := range children {
+		if children[i].Expression == "" {
+			continue
+		}
+		parts = append(parts, "("+children[i].Expression+")")
+	}
+	return strings.Join(parts, " "+op+" ")
+}
+
+// clearAllSimulationLiterals wipes every literal-carrying surface on
+// `resp`: Expression / EvaluationTree on each Blame and each
+// MergedRule, plus ExpectedValue on every leaf the tree contained.
+// Companion to MaskSimulationPolicyLiteralsForCaller's top-level
+// fail-closed branch: when the CPA group can't be resolved we don't
+// know which fields are public vs masked, so we drop every literal
+// rather than risk shipping a hidden value back to the caller.
+func clearAllSimulationLiterals(resp *model.PolicySimulationResponse) {
+	if resp == nil {
+		return
+	}
+	for i := range resp.Results {
+		for action, dec := range resp.Results[i].Decisions {
+			clearDecisionLiterals(&dec)
+			resp.Results[i].Decisions[action] = dec
+		}
+		for k := range resp.Results[i].Sessions {
+			for action, dec := range resp.Results[i].Sessions[k].Decisions {
+				clearDecisionLiterals(&dec)
+				resp.Results[i].Sessions[k].Decisions[action] = dec
+			}
+		}
+	}
+}
+
+func clearDecisionLiterals(dec *model.PolicySimulationActionDecision) {
+	for i := range dec.Blame {
+		b := &dec.Blame[i]
+		b.Expression = ""
+		if b.EvaluationTree != nil {
+			clearEvaluationTreeLiterals(b.EvaluationTree)
+		}
+		for j := range b.MergedRules {
+			b.MergedRules[j].Expression = ""
+			if b.MergedRules[j].EvaluationTree != nil {
+				clearEvaluationTreeLiterals(b.MergedRules[j].EvaluationTree)
+			}
+		}
+	}
+}
+
+func clearEvaluationTreeLiterals(node *model.PolicySimulationEvaluationNode) {
+	if node == nil {
+		return
+	}
+	node.Expression = ""
+	if node.ExpectedValue != "" {
+		node.ExpectedValue = maskedTokenValue
+	}
+	// ActualValue is the simulated user's value — also a literal
+	// the masker normally checks against per-caller AVM semantics.
+	// When the CPA group lookup fails we can't tell whether the
+	// field is public or protected, so we collapse to the sentinel
+	// rather than risk leaving an actual value visible.
+	if node.ActualValue != "" {
+		node.ActualValue = maskedTokenValue
+	}
+	for i := range node.Children {
+		clearEvaluationTreeLiterals(&node.Children[i])
 	}
 }
 
@@ -867,9 +1258,14 @@ func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessContro
 		if ast == nil {
 			continue
 		}
+		hasMasked := false
 		for j := range ast.Conditions {
-			a.maskConditionValuesWithToken(rctxWithCaller, callerID, &ast.Conditions[j], cpaGroupID, fieldsByName)
+			if a.maskConditionValuesWithToken(rctxWithCaller, callerID, &ast.Conditions[j], cpaGroupID, fieldsByName) {
+				hasMasked = true
+			}
 		}
-		policy.Rules[i].Expression = buildCELFromConditions(ast.Conditions)
+		if hasMasked {
+			policy.Rules[i].Expression = buildCELFromConditions(ast.Conditions)
+		}
 	}
 }

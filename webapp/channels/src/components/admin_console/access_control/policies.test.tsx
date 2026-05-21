@@ -143,6 +143,88 @@ describe('components/admin_console/access_control/PolicyList', () => {
         expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
+    test('Delete menu item is disabled when a policy contains masked values', async () => {
+        // The "--------" sentinel in a rule expression means the caller can't
+        // see at least one referenced value. Server enforces a 403 on delete
+        // in that case, so the menu item must be disabled to avoid a useless
+        // confirmation modal → 403 round-trip.
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [{
+                    id: 'masked-policy',
+                    name: 'Masked Policy',
+                    rules: [{actions: ['*'], expression: 'user.attributes.program in ["Alpha", "--------"]'}],
+                } as unknown as AccessControlPolicy],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Masked Policy')).toBeInTheDocument();
+        });
+
+        const menuButton = document.getElementById('policy-menu-masked-policy')!;
+        await userEvent.click(menuButton);
+
+        const deleteItem = document.getElementById('policy-menu-delete-masked-policy')!;
+        expect(deleteItem).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    test('Delete menu item is enabled for a clean policy with no channels', async () => {
+        // Sanity: a policy that has neither child channels nor masked values
+        // must keep Delete enabled.
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [{
+                    id: 'clean-policy',
+                    name: 'Clean Policy',
+                    rules: [{actions: ['*'], expression: 'user.attributes.program in ["Alpha"]'}],
+                } as unknown as AccessControlPolicy],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Clean Policy')).toBeInTheDocument();
+        });
+
+        const menuButton = document.getElementById('policy-menu-clean-policy')!;
+        await userEvent.click(menuButton);
+
+        const deleteItem = document.getElementById('policy-menu-delete-clean-policy')!;
+        expect(deleteItem).not.toHaveAttribute('aria-disabled', 'true');
+    });
+
+    test('Delete confirmation modal no longer surfaces the masked-values warning', async () => {
+        // The inner-modal "This policy contains restricted values" notice was
+        // removed once we started disabling the Delete menu item upstream.
+        // Open the modal on a clean policy and assert the warning text is gone.
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [{
+                    id: 'clean-policy',
+                    name: 'Clean Policy',
+                    rules: [{actions: ['*'], expression: 'user.attributes.program in ["Alpha"]'}],
+                } as unknown as AccessControlPolicy],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Clean Policy')).toBeInTheDocument();
+        });
+
+        const menuButton = document.getElementById('policy-menu-clean-policy')!;
+        await userEvent.click(menuButton);
+        await userEvent.click(screen.getByText('Delete'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Confirm Policy Deletion')).toBeInTheDocument();
+        });
+        expect(screen.queryByText(/This policy includes attribute values that are hidden from you/)).not.toBeInTheDocument();
+        expect(screen.queryByText('This policy contains restricted values')).not.toBeInTheDocument();
+    });
+
     test('should get columns correctly', async () => {
         mockSearchPolicies.mockResolvedValue({data: {policies: [], total: 0}} as ActionResult);
         renderWithContext(<PolicyList {...defaultProps}/>);

@@ -48,6 +48,10 @@
     "translation": "September"
   },
   {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "Channel-level permission policies feature is not enabled."
+  },
+  {
     "id": "api.access_control_policy.get_channels.limit.app_error",
     "translation": "Get channels limit is not valid."
   },
@@ -58,6 +62,14 @@
   {
     "id": "api.access_control_policy.permission_policies.feature_disabled",
     "translation": "Permission policies feature is not enabled."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "Policy simulation feature is not enabled."
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "All users in the simulation must be members of the team or channel in the request."
   },
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
@@ -414,6 +426,54 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Unable to delete direct or group message channels"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "You are already a member of this channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "Cannot request to join an archived channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
+    "translation": "This channel requires admin approval to join. Please send a request from the Browse Channels modal."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.duplicate.app_error",
+    "translation": "You already have a pending request to join this channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
+    "translation": "Discoverable channels are not enabled on this server."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.guest.app_error",
+    "translation": "Guests cannot request to join discoverable private channels."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
+    "translation": "Invalid update for the channel join request."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
+    "translation": "This channel is not discoverable."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_pending.app_error",
+    "translation": "The join request is no longer pending."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_private.app_error",
+    "translation": "Only private channels accept join requests."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.policy_denied.app_error",
+    "translation": "You do not satisfy the access rules required to join this channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.shared.app_error",
+    "translation": "Shared channels do not accept discoverable join requests."
   },
   {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
@@ -2941,6 +3001,14 @@
     "translation": "Action integration error."
   },
   {
+    "id": "api.post.do_action.merge_query.app_error",
+    "translation": "Failed to merge query into action URL."
+  },
+  {
+    "id": "api.post.do_action.query.app_error",
+    "translation": "Invalid action query."
+  },
+  {
     "id": "api.post.error_get_post_id.pending",
     "translation": "Unable to get the pending post."
   },
@@ -5183,6 +5251,10 @@
     "translation": "Failed to retrieve the access control attribute group."
   },
   {
+    "id": "app.access_control.get_channel_role.app_error",
+    "translation": "Unable to get channel role for the user. Please try again."
+  },
+  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "You do not have permission to manage this access control policy."
   },
@@ -5609,6 +5681,22 @@
   {
     "id": "app.channel.group_message_conversion.post_message.error",
     "translation": "Failed to create group message to channel conversion post"
+  },
+  {
+    "id": "app.channel.join_request.get.app_error",
+    "translation": "Failed to load channel join request."
+  },
+  {
+    "id": "app.channel.join_request.not_found.app_error",
+    "translation": "Channel join request not found."
+  },
+  {
+    "id": "app.channel.join_request.save.app_error",
+    "translation": "Failed to save channel join request."
+  },
+  {
+    "id": "app.channel.join_request.update.app_error",
+    "translation": "Failed to update channel join request."
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
@@ -7537,6 +7625,10 @@
     "translation": "Could not get attributes for policy."
   },
   {
+    "id": "app.pap.hydrate_actions.app_error",
+    "translation": "Could not load the action set declared by the channel's access control policy."
+  },
+  {
     "id": "app.pap.init.app_error",
     "translation": "Unable to initialize access control service."
   },
@@ -7585,12 +7677,64 @@
     "translation": "A policy with this name already exists. Please choose a different name."
   },
   {
+    "id": "app.pap.save_policy.rule_name_unique.app_error",
+    "translation": "Permission rule names must be unique within the policy."
+  },
+  {
     "id": "app.pap.save_policy.self_exclusion",
     "translation": "You do not satisfy one or more conditions in this policy."
   },
   {
+    "id": "app.pap.save_policy.user_session_unsupported.app_error",
+    "translation": "Session attributes are not supported for policy simulation."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
+  },
+  {
+    "id": "app.pap.simulate.attribute_refresh",
+    "translation": "Failed to refresh attributes for the simulation."
+  },
+  {
+    "id": "app.pap.simulate.compile_failed",
+    "translation": "Failed to compile the policy for simulation."
+  },
+  {
+    "id": "app.pap.simulate.feature_disabled",
+    "translation": "The permission policies feature is currently disabled."
+  },
+  {
+    "id": "app.pap.simulate.invalid_policy",
+    "translation": "The policy is not valid."
+  },
+  {
+    "id": "app.pap.simulate.missing_actions",
+    "translation": "At least one action is required for simulation."
+  },
+  {
+    "id": "app.pap.simulate.missing_channel_id",
+    "translation": "A channel is required to simulate a channel-scoped policy."
+  },
+  {
+    "id": "app.pap.simulate.missing_policy",
+    "translation": "A policy is required for simulation."
+  },
+  {
+    "id": "app.pap.simulate.missing_users",
+    "translation": "At least one user is required for simulation."
+  },
+  {
+    "id": "app.pap.simulate.too_many_users",
+    "translation": "Too many users requested. Maximum allowed is {{.Max}}."
+  },
+  {
+    "id": "app.pap.simulate.unavailable",
+    "translation": "Policy Administration Point is not initialized."
+  },
+  {
+    "id": "app.pap.simulate.unsupported_type",
+    "translation": "Policy type \"{{.Type}}\" is not supported by the simulator."
   },
   {
     "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
@@ -10559,6 +10703,10 @@
     "translation": "The parent is already imported."
   },
   {
+    "id": "model.access_policy.inherit.parent_type.app_error",
+    "translation": "Imports must target a membership parent policy."
+  },
+  {
     "id": "model.access_policy.inherit.permission.app_error",
     "translation": "Permission policies cannot inherit from other policies."
   },
@@ -10569,6 +10717,14 @@
   {
     "id": "model.access_policy.is_valid.actions.app_error",
     "translation": "Action(s) is not valid."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
+    "translation": "Membership cannot be combined with other actions in the same rule."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.permission_type.app_error",
+    "translation": "Permission action rules are only allowed on channel policies."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
@@ -10589,6 +10745,18 @@
   {
     "id": "model.access_policy.is_valid.roles.app_error",
     "translation": "Permission policies must be applied to exactly one role."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name.app_error",
+    "translation": "Permission rules require a non-empty name within the policy max length."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name_unique.app_error",
+    "translation": "Permission rule names must be unique within the policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "Invalid role for the rule."
   },
   {
     "id": "model.access_policy.is_valid.rules.app_error",
@@ -12865,6 +13033,10 @@
   {
     "id": "plugin.api.get_users_in_channel",
     "translation": "Unable to get the users, invalid sorting criteria."
+  },
+  {
+    "id": "plugin.api.update_post.mm_blocks_actions.app_error",
+    "translation": "Invalid mm_blocks_actions in plugin post update."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",

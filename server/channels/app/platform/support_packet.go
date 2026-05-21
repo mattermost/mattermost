@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -160,9 +161,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	} else {
 		d.Database.Version = databaseVersion
 	}
-	d.Database.MasterConnectios = ps.Store.TotalMasterDbConnections()
-	d.Database.ReplicaConnectios = ps.Store.TotalReadDbConnections()
+	d.Database.MasterConnections = ps.Store.TotalMasterDbConnections()
+	d.Database.ReplicaConnections = ps.Store.TotalReadDbConnections()
 	d.Database.SearchConnections = ps.Store.TotalSearchDbConnections()
+
+	err = ps.applyStoreDiagnostics(rctx.Context(), &d)
+	if err != nil {
+		rErr = multierror.Append(rErr, err)
+	}
 
 	/* File store */
 	d.FileStore.Status = model.StatusOk
@@ -235,6 +241,16 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	if idpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); idpDescriptorURL != "" {
 		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
 	}
+	if samlDiagnostic := ps.SamlDiagnostic(); samlDiagnostic != nil && model.SafeDereference(ps.Config().SamlSettings.Enable) {
+		if err = samlDiagnostic.RunSupportPacketTest(rctx, ps.Config().SamlSettings); err != nil {
+			d.SAML.Status = model.StatusFail
+			d.SAML.Error = err.Error()
+		} else {
+			d.SAML.Status = model.StatusOk
+		}
+	} else {
+		d.SAML.Status = model.StatusDisabled
+	}
 
 	/* Elastic Search */
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {
@@ -286,10 +302,16 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Notifications.Email.Status = model.StatusDisabled
 	}
 
+	/* OAuth2 / OpenID Connect Providers */
+	d.OAuthProviders.GitLab = probeOAuthProvider(rctx.Context(), &ps.Config().GitLabSettings)
+	d.OAuthProviders.Google = probeOAuthProvider(rctx.Context(), &ps.Config().GoogleSettings)
+	d.OAuthProviders.Office365 = probeOAuthProvider(rctx.Context(), ps.Config().Office365Settings.SSOSettings())
+	d.OAuthProviders.OpenID = probeOAuthProvider(rctx.Context(), &ps.Config().OpenIdSettings)
+
 	/* Push Notifications */
 	if model.SafeDereference(ps.Config().EmailSettings.SendPushNotifications) {
 		pushServerURL := model.SafeDereference(ps.Config().EmailSettings.PushNotificationServer)
-		if pushErr := testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
+		if pushErr := ps.testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
 			d.Notifications.Push.Status = model.StatusFail
 			d.Notifications.Push.Error = pushErr.Error()
 		} else {
@@ -311,8 +333,129 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	return fileData, rErr.ErrorOrNil()
 }
 
+func (ps *PlatformService) applyStoreDiagnostics(ctx context.Context, diagnostics *model.SupportPacketDiagnostics) error {
+	storeDiagnostics, err := ps.Store.GetDiagnostics(ctx)
+	if storeDiagnostics == nil {
+		if err != nil {
+			return errors.Wrap(err, "error while collecting support packet database diagnostics")
+		}
+		return nil
+	}
+
+	diagnostics.Database.MasterConnectionsInUse = storeDiagnostics.MasterConnectionsInUse
+	diagnostics.Database.MasterConnectionsIdle = storeDiagnostics.MasterConnectionsIdle
+	diagnostics.Database.MasterPoolWaitCount = storeDiagnostics.MasterPoolWaitCount
+	diagnostics.Database.MasterPoolWaitDurationMs = storeDiagnostics.MasterPoolWaitDurationMs
+	diagnostics.Database.MasterConnectionsClosedMaxIdle = storeDiagnostics.MasterConnectionsClosedMaxIdle
+	diagnostics.Database.MasterConnectionsClosedMaxLifetime = storeDiagnostics.MasterConnectionsClosedMaxLifetime
+	diagnostics.Database.ReplicaConnectionsInUse = storeDiagnostics.ReplicaConnectionsInUse
+	diagnostics.Database.ReplicaConnectionsIdle = storeDiagnostics.ReplicaConnectionsIdle
+	diagnostics.Database.ReplicaPoolWaitCount = storeDiagnostics.ReplicaPoolWaitCount
+	diagnostics.Database.ReplicaPoolWaitDurationMs = storeDiagnostics.ReplicaPoolWaitDurationMs
+	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = storeDiagnostics.ReplicaConnectionsClosedMaxIdle
+	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = storeDiagnostics.ReplicaConnectionsClosedMaxLifetime
+	diagnostics.Database.CacheHitRatio = storeDiagnostics.CacheHitRatio
+	diagnostics.Database.Deadlocks = storeDiagnostics.Deadlocks
+	diagnostics.Database.TempFiles = storeDiagnostics.TempFiles
+	diagnostics.Database.TempBytesMB = storeDiagnostics.TempBytesMB
+	diagnostics.Database.Rollbacks = storeDiagnostics.Rollbacks
+	diagnostics.Database.IdleInTransactionCount = storeDiagnostics.IdleInTransactionCount
+	diagnostics.Database.LongestQueryDurationSeconds = storeDiagnostics.LongestQueryDurationSeconds
+	diagnostics.Database.WaitingForLockCount = storeDiagnostics.WaitingForLockCount
+	diagnostics.Database.PostsDeadTuples = storeDiagnostics.PostsDeadTuples
+	diagnostics.Database.PostsLastAutovacuum = storeDiagnostics.PostsLastAutovacuum
+
+	if err != nil {
+		return errors.Wrap(err, "error while collecting support packet database diagnostics")
+	}
+
+	return nil
+}
+
+// probeOAuthProvider checks connectivity for an OAuth2/OpenID Connect provider.
+// If the provider has a DiscoveryEndpoint configured, it issues an HTTP GET to
+// that URL and verifies the response is a valid OIDC discovery document.
+// Otherwise it probes the TokenEndpoint host: any HTTP response (including
+// 4xx/5xx) is treated as reachable, since token endpoints typically reject GETs.
+func probeOAuthProvider(ctx context.Context, sso *model.SSOSettings) model.OAuthProviderStatus {
+	if !model.SafeDereference(sso.Enable) {
+		return model.OAuthProviderStatus{Status: model.StatusDisabled}
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	if discoveryEndpoint := model.SafeDereference(sso.DiscoveryEndpoint); discoveryEndpoint != "" {
+		if err := probeOIDCDiscovery(ctx, discoveryEndpoint); err != nil {
+			return model.OAuthProviderStatus{Status: model.StatusFail, Error: err.Error()}
+		}
+		return model.OAuthProviderStatus{Status: model.StatusOk}
+	}
+
+	if tokenEndpoint := model.SafeDereference(sso.TokenEndpoint); tokenEndpoint != "" {
+		if err := probeOAuthTokenEndpoint(ctx, tokenEndpoint); err != nil {
+			return model.OAuthProviderStatus{Status: model.StatusFail, Error: err.Error()}
+		}
+		return model.OAuthProviderStatus{Status: model.StatusOk}
+	}
+
+	return model.OAuthProviderStatus{Status: model.StatusFail, Error: "no discovery or token endpoint configured"}
+}
+
+func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discoveryURL, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer drainAndCloseBody(resp.Body)
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("discovery endpoint returned unexpected status %d", resp.StatusCode)
+	}
+	// Cap the discovery document at 1 MiB; real OIDC discovery responses are a few KiB.
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if err != nil {
+		return errors.Wrap(err, "failed to read discovery response")
+	}
+	var doc struct {
+		Issuer string `json:"issuer"`
+	}
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return errors.Wrap(err, "discovery endpoint did not return valid JSON")
+	}
+	if doc.Issuer == "" {
+		return fmt.Errorf("discovery endpoint response missing required 'issuer' field")
+	}
+	return nil
+}
+
+func probeOAuthTokenEndpoint(ctx context.Context, tokenURL string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, tokenURL, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer drainAndCloseBody(resp.Body)
+	return nil
+}
+
+// drainAndCloseBody fully reads and discards an HTTP response body (up to 1 MiB
+// to bound a misbehaving server) and closes it. Draining before closing allows
+// net/http to return the underlying TCP connection to the idle pool for
+// keep-alive reuse on subsequent requests.
+func drainAndCloseBody(body io.ReadCloser) {
+	_, _ = io.Copy(io.Discard, io.LimitReader(body, 1<<20))
+	_ = body.Close()
+}
+
 // TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
-func testPushProxyConnection(ctx context.Context, serverURL string) error {
+func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	versionURL, err := url.JoinPath(serverURL, "version")
@@ -327,7 +470,7 @@ func testPushProxyConnection(ctx context.Context, serverURL string) error {
 	if err != nil {
 		return err
 	}
-	resp.Body.Close()
+	defer drainAndCloseBody(resp.Body)
 	if resp.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("push proxy returned unexpected status %d", resp.StatusCode)
 	}

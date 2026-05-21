@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 
@@ -13,9 +14,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
+
+func celSafeName() string {
+	return "f_" + model.NewId()
+}
 
 func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 	th := Setup(t).InitBasic(t)
@@ -2119,6 +2126,85 @@ func TestHasPermissionToFileAction(t *testing.T) {
 	})
 }
 
+func TestResolveSystemRole(t *testing.T) {
+	t.Run("system_admin highest precedence", func(t *testing.T) {
+		assert.Equal(t, model.SystemAdminRoleId, ResolveSystemRole("system_user system_admin"))
+	})
+	t.Run("system_guest before system_user", func(t *testing.T) {
+		assert.Equal(t, model.SystemGuestRoleId, ResolveSystemRole("system_user system_guest"))
+	})
+	t.Run("system_user", func(t *testing.T) {
+		assert.Equal(t, model.SystemUserRoleId, ResolveSystemRole("system_user"))
+	})
+	t.Run("falls back to system_user when no recognised base role", func(t *testing.T) {
+		assert.Equal(t, model.SystemUserRoleId, ResolveSystemRole("custom_role"))
+	})
+	t.Run("empty string defaults to system_user", func(t *testing.T) {
+		assert.Equal(t, model.SystemUserRoleId, ResolveSystemRole(""))
+	})
+}
+
+func TestGetSubjectChannelRole(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("returns channel_admin for channel creator (SchemeAdmin)", func(t *testing.T) {
+		// BasicUser is the creator of BasicChannel and is auto-promoted to
+		// channel admin via SchemeAdmin.
+		role, appErr := th.App.GetSubjectChannelRole(th.Context, th.BasicUser.Id, th.BasicChannel.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, model.ChannelAdminRoleId, role)
+	})
+
+	// Non-members have no channel-scoped role to report. The function's
+	// contract — documented in the docstring — is to return ("", nil)
+	// and let the caller decide; previously it synthesised a guess from
+	// the caller-supplied systemRoles (channel_user for system_user,
+	// channel_guest for system_guest), which leaked channel-scope data
+	// from the user's system membership. Callers (attachChannelScopedRole,
+	// simulator subject builders) now gate on the empty string and skip
+	// the channel scope.
+	t.Run("returns empty role for non-member", func(t *testing.T) {
+		// Cover the real existence path (not the unknown-user path):
+		// create an actual user who is deliberately NOT added to
+		// BasicChannel so the store lookup hits ErrNotFound on the
+		// ChannelMember row rather than ErrNotFound on the User row.
+		// GetSubjectChannelRole must report no channel-scoped role
+		// for them — never fabricate one from system roles.
+		nonMember := th.CreateUser(t)
+		role, appErr := th.App.GetSubjectChannelRole(th.Context, nonMember.Id, th.BasicChannel.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, "", role)
+	})
+}
+
+func TestBuildAccessControlSubjectScopedRoles(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("populates system scope only when channelID empty", func(t *testing.T) {
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, th.BasicUser.Id, th.BasicUser.Roles, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+		require.Len(t, subject.ScopedRoles, 1)
+		assert.Equal(t, model.AccessControlSubjectScopeSystem, subject.ScopedRoles[0].Scope)
+		assert.Equal(t, model.SystemUserRoleId, subject.ScopedRoles[0].Role)
+		// Legacy field retained for backward compat
+		assert.Equal(t, th.BasicUser.Roles, subject.Role)
+	})
+
+	t.Run("populates both scopes when channelID provided", func(t *testing.T) {
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+
+		systemRole := subject.RoleForScope(model.AccessControlSubjectScopeSystem)
+		channelRole := subject.RoleForScope(model.AccessControlSubjectScopeChannel)
+
+		assert.Equal(t, model.SystemUserRoleId, systemRole)
+		// BasicUser is the channel creator → channel_admin via SchemeAdmin.
+		assert.Equal(t, model.ChannelAdminRoleId, channelRole)
+	})
+}
+
 func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
@@ -2231,4 +2317,2263 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 
 		mockACS.AssertExpectations(t)
 	})
+}
+
+// TestFilterResponseToEditingRuleScope locks down the post-processing
+// that turns a full-stack simulator response into a "this rule only"
+// view. Upper-scoped blame entries (system_permission, peer_policy,
+// inherited channel_policy) and sibling_rule entries are dropped;
+// denies that have no remaining editing-rule-side blame surface as a
+// neutral no_applicable_rule chip — the older flip-to-plain-allow
+// behavior read as "this rule alone would have allowed this user"
+// which is wrong for a permission rule whose filter didn't grant.
+// The simulator already restricts contributions, so this filter is
+// the defensive backstop.
+func TestFilterResponseToEditingRuleScope(t *testing.T) {
+	t.Run("deny attributed only to upper-scoped policy converts to no_applicable_rule", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u1"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSystemPermission, PolicyName: "Org IL5"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision, "deny solely from upper-scoped blame must normalize to a vacuous allow")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, dec.Blame[0].Source,
+			"the editing rule is silent on this user — must surface as no_applicable_rule, not a plain allow")
+		// Outcome stays empty (matches the no_applicable_policy
+		// convention) so the chip's hasBlame() helper — which filters
+		// informational outcome=allow entries — picks this marker up.
+		assert.Empty(t, dec.Blame[0].Outcome)
+	})
+
+	t.Run("deny with both this_rule and upper-scoped blame stays a deny but loses the upper entry", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u2"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"download_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "rule1"},
+							{Source: model.PolicySimulationBlameSourceSystemPermission, PolicyName: "Org IL5"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["download_file_attachment"]
+		assert.False(t, dec.Decision, "deny that the draft itself produces must remain a deny")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceThisRule, dec.Blame[0].Source)
+	})
+
+	t.Run("allow with sibling_saved alone gains a no_applicable_rule marker so the chip reads 'doesn't apply'", func(t *testing.T) {
+		// At the "this rule only" scope, the sibling that saved the
+		// user is by definition out of scope, so "Allowed · another
+		// rule" is misleading — the chip should read "this rule
+		// doesn't apply" instead. The sibling_saved entry stays in
+		// the blame list so the Decision Details modal can still
+		// build a trace from any expression attached to it.
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u3"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSiblingSaved, RuleName: "rule1"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision)
+		require.Len(t, dec.Blame, 2, "the synthetic marker is appended; sibling_saved stays for trace rendering")
+
+		sources := []string{dec.Blame[0].Source, dec.Blame[1].Source}
+		assert.Contains(t, sources, model.PolicySimulationBlameSourceSiblingSaved)
+		assert.Contains(t, sources, model.PolicySimulationBlameSourceNoApplicableRule)
+	})
+
+	t.Run("allow with this_rule allow + sibling_saved keeps the chip allowed (no marker injected)", func(t *testing.T) {
+		// When the editing rule itself granted the user (this_rule
+		// outcome=allow), a sibling_saved entry alongside is just
+		// supplementary "another rule also allowed" context. The
+		// rule DID contribute, so we must NOT inject the
+		// no_applicable_rule marker — the chip stays a plain
+		// "Allowed".
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u3a"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "rule1", Outcome: model.PolicySimulationBlameOutcomeAllow},
+							{Source: model.PolicySimulationBlameSourceSiblingSaved, RuleName: "rule1"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision)
+		require.Len(t, dec.Blame, 2)
+		for _, b := range dec.Blame {
+			assert.NotEqual(t, model.PolicySimulationBlameSourceNoApplicableRule, b.Source,
+				"this_rule allow means the rule did apply — must not inject no_applicable_rule")
+		}
+	})
+
+	t.Run("bare allow with empty blame (role mismatch) gains no_applicable_rule marker", func(t *testing.T) {
+		// The user-reported regression: when the editing rule
+		// targets channel_user and the picker drops in a guest
+		// (channel_guest), the simulator returns
+		// `{decision: true}` with NO blame at all — it's a vacuous
+		// allow because the rule doesn't apply to the candidate's
+		// role. The old default branch left this untouched and the
+		// chip rendered a misleading plain "Allowed". The filter
+		// must inject the no_applicable_rule marker so the picker
+		// shows "this rule doesn't apply" instead.
+		//
+		// User.Roles is set to a non-sysadmin role to lock down
+		// that the sysadmin carve-out introduced in a sibling test
+		// doesn't accidentally widen and skip the marker for
+		// regular users.
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u3b", Roles: model.SystemGuestRoleId},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision, "vacuous allow stays an allow — the chip handles the 'doesn't apply' rendering")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, dec.Blame[0].Source)
+	})
+
+	t.Run("system admin allow with empty blame stays a plain allow (no marker injected via role fallback)", func(t *testing.T) {
+		// Sysadmins inherit every channel-level role implicitly, so
+		// the simulator returns {decision: true} for them without a
+		// this_rule blame — same shape as the "role doesn't apply"
+		// vacuous allow used for guests. Without a sysadmin
+		// carve-out the picker would mis-label the sysadmin row as
+		// "this rule doesn't apply" when in fact the rule does
+		// apply via role fallback. Verifies the User.IsSystemAdmin
+		// check on the result row is wired correctly.
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "uadmin", Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision)
+		assert.Empty(t, dec.Blame, "sysadmin candidates must not get the no_applicable_rule marker — the rule applies to them via role fallback")
+	})
+
+	t.Run("system admin allow with sibling_saved blame still skips the marker (role fallback wins)", func(t *testing.T) {
+		// Same reasoning as the bare-allow sysadmin case: even if
+		// the simulator surfaces a sibling_saved blame for a
+		// sysadmin (rare; sysadmins normally bypass the OR-bucket
+		// machinery), the marker must NOT be injected — the rule
+		// still applies via role fallback regardless of which
+		// sibling carried the verdict.
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "uadmin2", Roles: model.SystemAdminRoleId},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSiblingSaved, RuleName: "rule1"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision)
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceSiblingSaved, dec.Blame[0].Source,
+			"sibling_saved survives, but no_applicable_rule is NOT appended for sysadmins")
+	})
+
+	t.Run("allow already attributed to no_applicable_policy is NOT shadowed by no_applicable_rule", func(t *testing.T) {
+		// When the simulator already explained "the whole policy
+		// doesn't apply to this user" via no_applicable_policy, the
+		// rule-scoped marker is strictly less informative — we
+		// deliberately don't append it so the chip continues to
+		// render the wider "policy doesn't apply" label.
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u3c"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceNoApplicablePolicy},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision)
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicablePolicy, dec.Blame[0].Source,
+			"the wider policy-level marker must survive untouched; no_applicable_rule must not shadow it")
+	})
+
+	t.Run("inherited channel_policy blame converts to no_applicable_rule", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u4"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceChannelPolicy, PolicyName: "Parent"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision, "channel_policy blame is upper-scoped, so the deny must normalize to vacuous allow")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, dec.Blame[0].Source)
+	})
+
+	t.Run("per-session decisions are filtered alongside the user-level ones", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u5"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSystemPermission},
+						},
+					},
+				},
+				Sessions: []model.PolicySimulationSession{{
+					ID:     "s1",
+					Device: "Macbook",
+					Decisions: map[string]model.PolicySimulationActionDecision{
+						"upload_file_attachment": {
+							Decision: false,
+							Blame: []model.PolicySimulationBlame{
+								{Source: model.PolicySimulationBlameSourceSystemPermission},
+							},
+						},
+					},
+				}, {
+					ID:     "s2",
+					Device: "iPhone",
+					Decisions: map[string]model.PolicySimulationActionDecision{
+						"upload_file_attachment": {
+							Decision: false,
+							Blame: []model.PolicySimulationBlame{
+								{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "rule1"},
+								{Source: model.PolicySimulationBlameSourceSystemPermission},
+							},
+						},
+					},
+				}},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		userDec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, userDec.Decision, "user-level deny solely from upper-scoped normalizes to vacuous allow")
+		require.Len(t, userDec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, userDec.Blame[0].Source)
+
+		sess1Dec := resp.Results[0].Sessions[0].Decisions["upload_file_attachment"]
+		assert.True(t, sess1Dec.Decision, "session-level deny solely from upper-scoped normalizes to vacuous allow")
+		require.Len(t, sess1Dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, sess1Dec.Blame[0].Source)
+
+		sess2Dec := resp.Results[0].Sessions[1].Decisions["upload_file_attachment"]
+		assert.False(t, sess2Dec.Decision, "session-level deny with this_rule blame stays a deny")
+		require.Len(t, sess2Dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceThisRule, sess2Dec.Blame[0].Source)
+	})
+
+	t.Run("peer_policy blame is dropped in this_rule mode (peers are not the editing rule)", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u6"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourcePeerPolicy, PolicyName: "IL5 Block", RuleName: "r1", Expression: "user.attributes.clearance == \"il5\""},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision, "deny coming from a peer policy is irrelevant in this rule mode and must normalize to vacuous allow")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, dec.Blame[0].Source)
+	})
+
+	// This is the regression that motivated the toggle rename: when
+	// editing rule "channel_users" and the policy ALSO has a sibling
+	// "channel_admins" rule that allowed the candidate, the picker
+	// previously surfaced the sibling allow under "this policy only".
+	// In "this rule only" mode that sibling_rule blame must be dropped.
+	t.Run("sibling_rule blame is dropped in this_rule mode (only the editing rule counts)", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u7"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSiblingRule, RuleName: "channel_admins"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "channel_users")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision, "sibling-rule deny must normalize to vacuous allow when scoped to a specific editing rule")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceNoApplicableRule, dec.Blame[0].Source)
+	})
+
+	// When two different rules both emit this_rule blame on the same
+	// decision (theoretically possible if the simulator's contribution
+	// restriction misfires) the filter keeps only the entry whose
+	// rule_name matches the editing rule. Belt-and-suspenders defence
+	// behind the simulator's contribution gate.
+	t.Run("this_rule blame is filtered to the editing rule by name", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u8"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "channel_admins"},
+							{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "channel_users"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "channel_users")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.False(t, dec.Decision, "deny from the editing rule survives")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, "channel_users", dec.Blame[0].RuleName,
+			"only the editing rule's blame is kept; the other this_rule entry is dropped")
+	})
+}
+
+// TestEnrichBlameForDraftScope locks down the post-processing that
+// turns the simulator's raw response into the picker-friendly view: it
+// (a) injects expression text on draft-side blame entries, (b)
+// reclassifies system_permission blame whose blamed policy lives at
+// the same scope as the draft (same Type + same Imports) into
+// peer_policy and copies its expression in too, (c) leaves truly
+// upper-scoped sources expression-less so the UI cannot leak them.
+func TestEnrichBlameForDraftScope(t *testing.T) {
+	t.Helper()
+
+	t.Run("draft-side blame (this_rule / sibling_rule / sibling_saved) gains the expression from params.Policy.Rules", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		draft := &model.AccessControlPolicy{
+			ID:   "draft1",
+			Type: model.AccessControlPolicyTypePermission,
+			Rules: []model.AccessControlPolicyRule{
+				{Name: "r1", Expression: "user.attributes.region == \"us\""},
+				{Name: "r2", Expression: "user.attributes.department == \"engineering\""},
+			},
+		}
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u1"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "r1"},
+						},
+					},
+					"download_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSiblingRule, RuleName: "r2"},
+						},
+					},
+				},
+			}},
+		}
+
+		enrichBlameForDraftScope(request.EmptyContext(nil), mockACS, draft, resp)
+
+		uploadBlame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		assert.Equal(t, "user.attributes.region == \"us\"", uploadBlame.Expression, "this_rule blame must receive the rule's expression")
+
+		downloadBlame := resp.Results[0].Decisions["download_file_attachment"].Blame[0]
+		assert.Equal(t, "user.attributes.department == \"engineering\"", downloadBlame.Expression, "sibling_rule blame must receive the rule's expression")
+
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("system_permission blame whose blamed policy shares scope with the draft is reclassified to peer_policy and gains its expression", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		draft := &model.AccessControlPolicy{
+			ID:      "draft1",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Name: "rd", Expression: "true"},
+			},
+		}
+		peer := &model.AccessControlPolicy{
+			ID:      "peer1",
+			Name:    "IL5 Block",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Name: "p1", Expression: "user.attributes.clearance == \"il5\""},
+			},
+		}
+		mockACS.On("GetPolicy", mock.Anything, "peer1").Return(peer, (*model.AppError)(nil))
+
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u2"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:     model.PolicySimulationBlameSourceSystemPermission,
+							PolicyID:   "peer1",
+							PolicyName: "IL5 Block",
+							RuleName:   "p1",
+						}},
+					},
+				},
+			}},
+		}
+
+		enrichBlameForDraftScope(request.EmptyContext(nil), mockACS, draft, resp)
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourcePeerPolicy, dec.Blame[0].Source, "same-scope blame must be reclassified to peer_policy")
+		assert.Equal(t, "user.attributes.clearance == \"il5\"", dec.Blame[0].Expression, "the failing rule's expression must be injected from the peer policy")
+		assert.Equal(t, "IL5 Block", dec.Blame[0].PolicyName)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("system_permission blame whose blamed policy lives at a different scope stays opaque and gets no expression", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		draft := &model.AccessControlPolicy{
+			ID:      "draft1",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{}, // top-level (system console) draft.
+		}
+		upperScoped := &model.AccessControlPolicy{
+			ID:      "upper1",
+			Name:    "Org Wide Lockdown",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{"some-parent-id"}, // a child of some other parent — different scope.
+			Rules: []model.AccessControlPolicyRule{
+				{Name: "u1", Expression: "user.attributes.region == \"sandbox\""},
+			},
+		}
+		mockACS.On("GetPolicy", mock.Anything, "upper1").Return(upperScoped, (*model.AppError)(nil))
+
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u3"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:     model.PolicySimulationBlameSourceSystemPermission,
+							PolicyID:   "upper1",
+							PolicyName: "Org Wide Lockdown",
+							RuleName:   "u1",
+						}},
+					},
+				},
+			}},
+		}
+
+		enrichBlameForDraftScope(request.EmptyContext(nil), mockACS, draft, resp)
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceSystemPermission, dec.Blame[0].Source, "different-scope blame must stay system_permission")
+		assert.Empty(t, dec.Blame[0].Expression, "upper-scoped blame must NEVER carry the expression — that would leak content of a policy outside the editing scope")
+	})
+
+	t.Run("channel_policy blame is never reclassified or enriched", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		draft := &model.AccessControlPolicy{
+			ID:   "draft1",
+			Type: model.AccessControlPolicyTypePermission,
+		}
+
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u4"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:     model.PolicySimulationBlameSourceChannelPolicy,
+							PolicyID:   "channel-policy-1",
+							PolicyName: "Parent",
+							RuleName:   "r1",
+						}},
+					},
+				},
+			}},
+		}
+
+		enrichBlameForDraftScope(request.EmptyContext(nil), mockACS, draft, resp)
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceChannelPolicy, dec.Blame[0].Source, "channel_policy blame must never be reclassified")
+		assert.Empty(t, dec.Blame[0].Expression)
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("session-level decisions are enriched alongside the user-level ones, and GetPolicy is cached per policy_id", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		draft := &model.AccessControlPolicy{
+			ID:      "draft1",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{},
+		}
+		peer := &model.AccessControlPolicy{
+			ID:      "peer1",
+			Name:    "IL5 Block",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Name: "p1", Expression: "user.attributes.clearance == \"il5\""},
+			},
+		}
+
+		// Set up GetPolicy with .Once() so the assertion below proves
+		// caching: even though peer1 appears in three blame entries
+		// across the response, the helper must only resolve it once
+		// for the request.
+		mockACS.On("GetPolicy", mock.Anything, "peer1").Return(peer, (*model.AppError)(nil)).Once()
+
+		makeBlame := func() []model.PolicySimulationBlame {
+			return []model.PolicySimulationBlame{{
+				Source:     model.PolicySimulationBlameSourceSystemPermission,
+				PolicyID:   "peer1",
+				PolicyName: "IL5 Block",
+				RuleName:   "p1",
+			}}
+		}
+
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u5"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {Decision: false, Blame: makeBlame()},
+				},
+				Sessions: []model.PolicySimulationSession{
+					{ID: "s1", Decisions: map[string]model.PolicySimulationActionDecision{
+						"upload_file_attachment": {Decision: false, Blame: makeBlame()},
+					}},
+					{ID: "s2", Decisions: map[string]model.PolicySimulationActionDecision{
+						"upload_file_attachment": {Decision: false, Blame: makeBlame()},
+					}},
+				},
+			}},
+		}
+
+		enrichBlameForDraftScope(request.EmptyContext(nil), mockACS, draft, resp)
+
+		assert.Equal(t, model.PolicySimulationBlameSourcePeerPolicy, resp.Results[0].Decisions["upload_file_attachment"].Blame[0].Source)
+		assert.Equal(t, model.PolicySimulationBlameSourcePeerPolicy, resp.Results[0].Sessions[0].Decisions["upload_file_attachment"].Blame[0].Source)
+		assert.Equal(t, model.PolicySimulationBlameSourcePeerPolicy, resp.Results[0].Sessions[1].Decisions["upload_file_attachment"].Blame[0].Source)
+		mockACS.AssertExpectations(t)
+	})
+}
+
+// TestRedactSimulationAttributesForCaller covers the CPA-visibility
+// + access-mode post-processor that strips attribute values from a
+// simulator response for non-system-admin callers. The simulator
+// surfaces per-user (and per-session) attribute snapshots so the
+// Decision Details panel can read a deny like an evaluation trace —
+// channel and team admins must not see values for fields configured
+// as `visibility: hidden`, source_only, or shared_only because each
+// of those tiers is hidden from them on the user profile page
+// itself. The redactor also walks every blame entry's evaluation
+// tree and blanks `ActualValue` on every leaf whose `Attribute`
+// references a protected field; the top-level Attributes snapshot
+// is not the only leak surface.
+func TestRedactSimulationAttributesForCaller(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	rctx := th.emptyContextWithCallerID(anonymousCallerId)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	require.True(t, ok, "SetLicense should return true")
+	defer th.App.Srv().SetLicense(nil)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+
+	// Two CPA fields: one hidden (the realistic non-plugin path) and
+	// one visible. Source_only and shared_only access modes are
+	// covered by TestCPAFieldIsProtectedForChannelAdmin below because
+	// they require `protected: true` (and therefore a plugin caller)
+	// to create through the normal app path.
+	createdHidden, hAppErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
+	}, false, "")
+	require.Nil(t, hAppErr)
+
+	createdVisible, vAppErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet},
+	}, false, "")
+	require.Nil(t, vAppErr)
+
+	hiddenName := createdHidden.Name
+	visibleName := createdVisible.Name
+
+	// makeResp builds a fresh response that exercises every leak
+	// surface in one shot: top-level user attributes, top-level
+	// session attributes, the deny blame's evaluation tree (root +
+	// per-attribute leaf), and a per-merged-rule evaluation tree.
+	// Each tier carries a value for BOTH CPA fields so the test can
+	// assert "protected: blanked" and "visible: preserved" on every
+	// surface in the same pass.
+	mkLeaf := func(name, value string) model.PolicySimulationEvaluationNode {
+		return model.PolicySimulationEvaluationNode{
+			Kind:        model.PolicySimulationEvaluationKindCompare,
+			Attribute:   userAttributesPathPrefix + name,
+			ActualValue: value,
+			Outcome:     model.PolicySimulationEvaluationOutcomeFalse,
+		}
+	}
+	mkResp := func() *model.PolicySimulationResponse {
+		topLevelTree := &model.PolicySimulationEvaluationNode{
+			Kind:    model.PolicySimulationEvaluationKindAnd,
+			Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+			Children: []model.PolicySimulationEvaluationNode{
+				mkLeaf(hiddenName, "il5"),
+				mkLeaf(visibleName, "us"),
+			},
+		}
+		mergedRuleTree := &model.PolicySimulationEvaluationNode{
+			Kind:        model.PolicySimulationEvaluationKindCompare,
+			Attribute:   userAttributesPathPrefix + hiddenName,
+			ActualValue: "il5",
+			Outcome:     model.PolicySimulationEvaluationOutcomeFalse,
+		}
+		return &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: model.NewId()},
+				Attributes: map[string]string{
+					hiddenName:  "il5",
+					visibleName: "us",
+				},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:         model.PolicySimulationBlameSourceThisRule,
+							RuleName:       "rule1",
+							EvaluationTree: topLevelTree,
+							MergedRules: []model.PolicySimulationMergedRule{{
+								Name:           "rule1",
+								EvaluationTree: mergedRuleTree,
+							}},
+						}},
+					},
+				},
+				Sessions: []model.PolicySimulationSession{{
+					ID: "s1",
+					Attributes: map[string]string{
+						hiddenName:  "il5",
+						visibleName: "us",
+					},
+				}},
+			}},
+		}
+	}
+
+	t.Run("system admins see every attribute value on every surface", func(t *testing.T) {
+		resp := mkResp()
+		th.App.RedactSimulationAttributesForCaller(rctx, resp, true)
+
+		// Top-level snapshot (user + session): every field passes through.
+		for _, name := range []string{hiddenName, visibleName} {
+			assert.NotEmpty(t, resp.Results[0].Attributes[name], "system admin must see %q in user-level attributes", name)
+			assert.NotEmpty(t, resp.Results[0].Sessions[0].Attributes[name], "system admin must see %q in session attributes", name)
+		}
+
+		// Evaluation tree leaves keep their ActualValue.
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		for _, child := range blame.EvaluationTree.Children {
+			assert.NotEmpty(t, child.ActualValue, "system admin must see ActualValue on every leaf, including %q", child.Attribute)
+		}
+		assert.NotEmpty(t, blame.MergedRules[0].EvaluationTree.ActualValue, "merged-rule tree ActualValue preserved for system admin")
+	})
+
+	t.Run("non-system-admin callers do not see hidden values on any surface", func(t *testing.T) {
+		resp := mkResp()
+		th.App.RedactSimulationAttributesForCaller(rctx, resp, false)
+
+		// Top-level snapshot redactions: hidden field removed from the
+		// user-level and session Attributes maps; the visible field
+		// passes through.
+		_, presentUser := resp.Results[0].Attributes[hiddenName]
+		_, presentSession := resp.Results[0].Sessions[0].Attributes[hiddenName]
+		assert.False(t, presentUser, "hidden user attribute must be stripped for non-system-admin caller")
+		assert.False(t, presentSession, "hidden session attribute must be stripped for non-system-admin caller")
+		assert.Equal(t, "us", resp.Results[0].Attributes[visibleName])
+		assert.Equal(t, "us", resp.Results[0].Sessions[0].Attributes[visibleName])
+
+		// Evaluation tree redactions: leaf whose Attribute references
+		// the hidden field has ActualValue blanked; the visible
+		// field's leaf keeps its value — that's the value the channel
+		// admin would see on the user profile page itself.
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		require.Len(t, blame.EvaluationTree.Children, 2)
+		leafByAttribute := map[string]model.PolicySimulationEvaluationNode{}
+		for _, child := range blame.EvaluationTree.Children {
+			leafByAttribute[child.Attribute] = child
+		}
+		assert.Empty(t, leafByAttribute[userAttributesPathPrefix+hiddenName].ActualValue,
+			"hidden leaf must have ActualValue blanked")
+		assert.Equal(t, "us", leafByAttribute[userAttributesPathPrefix+visibleName].ActualValue,
+			"visible leaf must keep ActualValue")
+
+		// Merged-rule subtree gets the same treatment — that's the
+		// per-rule view the picker renders alongside the merged tree.
+		assert.Empty(t, blame.MergedRules[0].EvaluationTree.ActualValue,
+			"merged-rule leaf for the hidden field must have ActualValue blanked")
+	})
+
+	t.Run("nil response is a safe no-op", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			th.App.RedactSimulationAttributesForCaller(rctx, nil, false)
+		})
+	})
+
+	t.Run("response with no attribute surfaces short-circuits before CPA lookup", func(t *testing.T) {
+		// Most common shape: a deny chip alone, no Decision Details
+		// panel ever opened. Both the top-level Attributes map and
+		// every blame's evaluation tree are nil. The redactor must
+		// return immediately without paying for SearchPropertyFields.
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: model.NewId()},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:   model.PolicySimulationBlameSourceThisRule,
+							RuleName: "rule1",
+						}},
+					},
+				},
+			}},
+		}
+		require.NotPanics(t, func() {
+			th.App.RedactSimulationAttributesForCaller(rctx, resp, false)
+		})
+		assert.Nil(t, resp.Results[0].Attributes)
+	})
+}
+
+// TestCPAFieldIsProtectedForChannelAdmin covers the per-field
+// predicate used to build the protected-name set. Source_only and
+// shared_only access modes require `protected: true` and a
+// source_plugin_id, which only a plugin caller can set through the
+// app — so this is a pure unit test against directly-constructed
+// CPAField values rather than going through the app's create path.
+func TestCPAFieldIsProtectedForChannelAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	tests := []struct {
+		name  string
+		field *model.CPAField
+		want  bool
+	}{
+		{
+			name: "visibility=hidden is protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityHidden},
+			},
+			want: true,
+		},
+		{
+			name: "access_mode=source_only is protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
+					AccessMode: model.PropertyAccessModeSourceOnly,
+				},
+			},
+			want: true,
+		},
+		{
+			name: "access_mode=shared_only is protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
+					AccessMode: model.PropertyAccessModeSharedOnly,
+				},
+			},
+			want: true,
+		},
+		{
+			name: "visibility=when_set + public access mode is NOT protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
+					AccessMode: model.PropertyAccessModePublic,
+				},
+			},
+			want: false,
+		},
+		{
+			name: "visibility=always + public access mode is NOT protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityAlways,
+					AccessMode: model.PropertyAccessModePublic,
+				},
+			},
+			want: false,
+		},
+		{
+			name: "empty access mode defaults to public and is NOT protected",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
+					AccessMode: "",
+				},
+			},
+			want: false,
+		},
+		{
+			name: "visibility=hidden wins over public access mode (still protected)",
+			field: &model.CPAField{
+				Attrs: model.CPAAttrs{
+					Visibility: model.CustomProfileAttributesVisibilityHidden,
+					AccessMode: model.PropertyAccessModePublic,
+				},
+			},
+			want: true,
+		},
+		{
+			name:  "nil field is not protected (caller short-circuits but the predicate is defensive)",
+			field: nil,
+			want:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := cpaFieldIsProtectedForChannelAdmin(tt.field)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+// TestRedactProtectedActualValuesInTree is a focused unit test for
+// the tree walker. Exercises:
+//   - protected leaves at the root level get ActualValue blanked
+//   - protected leaves nested under compound nodes get ActualValue
+//     blanked
+//   - unprotected leaves are untouched
+//   - non-user-attribute leaves (e.g. function call results, raw
+//     expressions) are untouched
+//   - nil node is a safe no-op
+func TestRedactProtectedActualValuesInTree(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	protected := map[string]struct{}{
+		"Clearance":   {},
+		"NetworkZone": {},
+	}
+
+	t.Run("redacts ActualValue on protected leaves at every depth", func(t *testing.T) {
+		tree := &model.PolicySimulationEvaluationNode{
+			Kind:    model.PolicySimulationEvaluationKindAnd,
+			Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+			Children: []model.PolicySimulationEvaluationNode{
+				{
+					Kind:        model.PolicySimulationEvaluationKindCompare,
+					Attribute:   "user.attributes.Clearance",
+					ActualValue: "il5",
+				},
+				{
+					Kind:    model.PolicySimulationEvaluationKindOr,
+					Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+					Children: []model.PolicySimulationEvaluationNode{
+						{
+							Kind:        model.PolicySimulationEvaluationKindCompare,
+							Attribute:   "user.attributes.NetworkZone",
+							ActualValue: "vpn",
+						},
+						{
+							Kind:        model.PolicySimulationEvaluationKindCompare,
+							Attribute:   "user.attributes.Region",
+							ActualValue: "us",
+						},
+					},
+				},
+				{
+					Kind: model.PolicySimulationEvaluationKindFunction,
+
+					// Function leaf with no attribute path (e.g. a
+					// constant comparison or receiver-style call
+					// where we couldn't infer the attribute) must
+					// be left alone — there's no protected user
+					// data to leak.
+					Attribute:   "",
+					ActualValue: "some-internal-value",
+				},
+			},
+		}
+
+		redactProtectedActualValuesInTree(tree, protected)
+
+		// Root-level Clearance leaf: blanked.
+		assert.Empty(t, tree.Children[0].ActualValue, "Clearance leaf must be blanked")
+
+		// Nested NetworkZone (protected) blanked; nested Region
+		// (public) preserved.
+		assert.Empty(t, tree.Children[1].Children[0].ActualValue, "NetworkZone leaf must be blanked")
+		assert.Equal(t, "us", tree.Children[1].Children[1].ActualValue, "Region leaf must be preserved")
+
+		// Function leaf with no attribute path is left alone.
+		assert.Equal(t, "some-internal-value", tree.Children[2].ActualValue, "non-user-attribute leaf must be preserved")
+	})
+
+	t.Run("nil node is a safe no-op", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			redactProtectedActualValuesInTree(nil, protected)
+		})
+	})
+
+	t.Run("empty protected set is a safe no-op", func(t *testing.T) {
+		tree := &model.PolicySimulationEvaluationNode{
+			Kind:        model.PolicySimulationEvaluationKindCompare,
+			Attribute:   "user.attributes.Clearance",
+			ActualValue: "il5",
+		}
+		redactProtectedActualValuesInTree(tree, nil)
+
+		// Helper itself is unconditional but the public entry point
+		// short-circuits before calling it with an empty set —
+		// either way, an empty set must not zap anything.
+		assert.Equal(t, "il5", tree.ActualValue)
+	})
+}
+
+// TestIsProtectedAttributePath pins the path-prefix matcher used by
+// the tree walker. Covers the canonical CEL prefix, mis-prefixed
+// paths, empty paths, and empty protected sets.
+func TestIsProtectedAttributePath(t *testing.T) {
+	mainHelper.Parallel(t)
+	protected := map[string]struct{}{"Clearance": {}}
+
+	t.Run("returns true for the canonical user.attributes.<name> form", func(t *testing.T) {
+		assert.True(t, isProtectedAttributePath("user.attributes.Clearance", protected))
+	})
+
+	t.Run("returns false for non-user-attribute paths", func(t *testing.T) {
+		// Resource / session / channel paths must not collide with
+		// the user-attributes namespace — only `user.attributes.*`
+		// is in scope for the CPA visibility filter.
+		assert.False(t, isProtectedAttributePath("session.network_status", protected))
+		assert.False(t, isProtectedAttributePath("resource.id", protected))
+		assert.False(t, isProtectedAttributePath("channel.member_count", protected))
+	})
+
+	t.Run("returns false for paths whose suffix is not in the protected set", func(t *testing.T) {
+		assert.False(t, isProtectedAttributePath("user.attributes.Region", protected))
+	})
+
+	t.Run("returns false for empty inputs", func(t *testing.T) {
+		assert.False(t, isProtectedAttributePath("", protected))
+		assert.False(t, isProtectedAttributePath("user.attributes.Clearance", nil))
+		assert.False(t, isProtectedAttributePath("user.attributes.", protected),
+			"empty suffix must not match — that's a malformed path, not a protected reference")
+	})
+}
+
+// TestStripProtectedAttributes is a focused unit test for the
+// top-level attribute-map pruner. Exercises both vertical levels
+// (user + session) and the no-op edge cases (empty protected set,
+// nil response).
+func TestStripProtectedAttributes(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("removes protected keys from user and session attribute maps", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u1"},
+				Attributes: map[string]string{
+					"Clearance": "il5",
+					"Region":    "us",
+				},
+				Sessions: []model.PolicySimulationSession{{
+					Attributes: map[string]string{
+						"Clearance":   "il5",
+						"NetworkZone": "vpn",
+					},
+				}},
+			}},
+		}
+		stripProtectedAttributes(resp, map[string]struct{}{
+			"Clearance": {}, "NetworkZone": {},
+		})
+
+		_, c1 := resp.Results[0].Attributes["Clearance"]
+		assert.False(t, c1, "Clearance must be stripped from user-level attributes")
+		assert.Equal(t, "us", resp.Results[0].Attributes["Region"], "Region must survive")
+
+		_, c2 := resp.Results[0].Sessions[0].Attributes["Clearance"]
+		assert.False(t, c2, "Clearance must be stripped from session attributes")
+		_, n := resp.Results[0].Sessions[0].Attributes["NetworkZone"]
+		assert.False(t, n, "NetworkZone must be stripped from session attributes")
+	})
+
+	t.Run("empty protected set is a no-op", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				Attributes: map[string]string{"Region": "us"},
+			}},
+		}
+		stripProtectedAttributes(resp, nil)
+		assert.Equal(t, "us", resp.Results[0].Attributes["Region"])
+	})
+
+	t.Run("nil response is a safe no-op", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			stripProtectedAttributes(nil, map[string]struct{}{"Anything": {}})
+		})
+	})
+}
+
+// TestClearAllSimulationAttributesAndTrees pins the fail-closed
+// default used by RedactSimulationAttributesForCaller when the CPA
+// lookup itself errors. Every attribute map (user + session) AND
+// every evaluation tree's ActualValue (top-level + per-merged-rule)
+// must be wiped so a transient store failure cannot leak protected
+// values through the simulator.
+func TestClearAllSimulationAttributesAndTrees(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	resp := &model.PolicySimulationResponse{
+		Results: []model.PolicySimulationUserResult{{
+			User:       &model.User{Id: "u1"},
+			Attributes: map[string]string{"Region": "us", "Clearance": "il5"},
+			Decisions: map[string]model.PolicySimulationActionDecision{
+				"upload_file_attachment": {
+					Decision: false,
+					Blame: []model.PolicySimulationBlame{{
+						Source: model.PolicySimulationBlameSourceThisRule,
+						EvaluationTree: &model.PolicySimulationEvaluationNode{
+							Kind: model.PolicySimulationEvaluationKindAnd,
+							Children: []model.PolicySimulationEvaluationNode{{
+								Attribute:   "user.attributes.Clearance",
+								ActualValue: "il5",
+							}, {
+								Attribute:   "user.attributes.Region",
+								ActualValue: "us",
+							}},
+						},
+						MergedRules: []model.PolicySimulationMergedRule{{
+							Name: "rule1",
+							EvaluationTree: &model.PolicySimulationEvaluationNode{
+								Attribute:   "user.attributes.Clearance",
+								ActualValue: "il5",
+							},
+						}},
+					}},
+				},
+			},
+			Sessions: []model.PolicySimulationSession{{
+				Attributes: map[string]string{"NetworkZone": "vpn"},
+			}},
+		}, {
+			User:       &model.User{Id: "u2"},
+			Attributes: map[string]string{"Region": "eu"},
+		}},
+	}
+
+	clearAllSimulationAttributes(resp)
+	clearAllEvaluationTreeActualValues(resp)
+
+	// Every Attributes map cleared (user + session) on both rows.
+	for _, r := range resp.Results {
+		assert.Nil(t, r.Attributes, "user-level attributes must be cleared")
+		for _, s := range r.Sessions {
+			assert.Nil(t, s.Attributes, "session-level attributes must be cleared")
+		}
+	}
+
+	// Every tree leaf's ActualValue cleared — including nested
+	// children and the merged-rule subtree.
+	blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+	for _, child := range blame.EvaluationTree.Children {
+		assert.Empty(t, child.ActualValue, "leaf %q ActualValue must be cleared", child.Attribute)
+	}
+	assert.Empty(t, blame.MergedRules[0].EvaluationTree.ActualValue, "merged-rule leaf ActualValue must be cleared")
+}
+
+// makeSimulationResponseForRedactionTest builds a simulator response
+// shaped like the real picker output: top-level user/session
+// attribute snapshots AND a deny blame whose evaluation tree carries
+// per-leaf `ActualValue`s (including a per-merged-rule subtree). One
+// leaf references `protected` and one references `public`; callers
+// can vary which CPA field names are protected to drive the
+// assertions in each redaction scenario.
+func makeSimulationResponseForRedactionTest(protectedName, publicName, protectedValue, publicValue string) *model.PolicySimulationResponse {
+	mkLeaf := func(name, value string) model.PolicySimulationEvaluationNode {
+		return model.PolicySimulationEvaluationNode{
+			Kind:        model.PolicySimulationEvaluationKindCompare,
+			Attribute:   userAttributesPathPrefix + name,
+			ActualValue: value,
+			Outcome:     model.PolicySimulationEvaluationOutcomeFalse,
+		}
+	}
+	topLevelTree := &model.PolicySimulationEvaluationNode{
+		Kind:    model.PolicySimulationEvaluationKindAnd,
+		Outcome: model.PolicySimulationEvaluationOutcomeFalse,
+		Children: []model.PolicySimulationEvaluationNode{
+			mkLeaf(protectedName, protectedValue),
+			mkLeaf(publicName, publicValue),
+		},
+	}
+	mergedRuleTree := &model.PolicySimulationEvaluationNode{
+		Kind:        model.PolicySimulationEvaluationKindCompare,
+		Attribute:   userAttributesPathPrefix + protectedName,
+		ActualValue: protectedValue,
+		Outcome:     model.PolicySimulationEvaluationOutcomeFalse,
+	}
+	return &model.PolicySimulationResponse{
+		Results: []model.PolicySimulationUserResult{{
+			User: &model.User{Id: model.NewId()},
+			Attributes: map[string]string{
+				protectedName: protectedValue,
+				publicName:    publicValue,
+			},
+			Decisions: map[string]model.PolicySimulationActionDecision{
+				"upload_file_attachment": {
+					Decision: false,
+					Blame: []model.PolicySimulationBlame{{
+						Source:         model.PolicySimulationBlameSourceThisRule,
+						RuleName:       "rule1",
+						EvaluationTree: topLevelTree,
+						MergedRules: []model.PolicySimulationMergedRule{{
+							Name:           "rule1",
+							EvaluationTree: mergedRuleTree,
+						}},
+					}},
+				},
+			},
+			Sessions: []model.PolicySimulationSession{{
+				ID: "s1",
+				Attributes: map[string]string{
+					protectedName: protectedValue,
+					publicName:    publicValue,
+				},
+			}},
+		}},
+	}
+}
+
+// TestRedactSimulationAttributesForCallerAccessModes exercises the
+// non-public access-mode branches of cpaFieldIsProtectedForChannelAdmin
+// end to end through RedactSimulationAttributesForCaller. Source_only
+// and shared_only fields require `protected: true` (and a source
+// plugin ID), so we bypass the App-level CreatePropertyField path —
+// which would reject a non-plugin caller — and insert the fields
+// directly into the store. This proves the full pipeline (predicate +
+// protected-set + top-level pruner + tree walker) treats these
+// access modes the same as `visibility: hidden`.
+func TestRedactSimulationAttributesForCallerAccessModes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	rctx := th.emptyContextWithCallerID(anonymousCallerId)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	require.True(t, ok, "SetLicense should return true")
+	defer th.App.Srv().SetLicense(nil)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+
+	createProtectedField := func(t *testing.T, accessMode string) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:    cpaGroup.ID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected:      true,
+				model.PropertyAttrsAccessMode:     accessMode,
+				model.PropertyAttrsSourcePluginID: "com.mattermost.uas-plugin",
+			},
+		}
+		created, err := th.Store.PropertyField().Create(field)
+		require.NoError(t, err,
+			"protected %s fields must be insertable directly via the store (the app's CreatePropertyField hook rejects non-plugin callers, which is unrelated to what this test exercises)",
+			accessMode)
+		return created
+	}
+
+	publicField := &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet},
+	}
+	createdPublic, vAppErr := th.App.CreatePropertyField(rctx, publicField, false, "")
+	require.Nil(t, vAppErr)
+	publicName := createdPublic.Name
+
+	assertRedactedAgainst := func(t *testing.T, protectedName string) {
+		t.Helper()
+		resp := makeSimulationResponseForRedactionTest(protectedName, publicName, "il5", "us")
+		th.App.RedactSimulationAttributesForCaller(rctx, resp, false)
+
+		// Top-level user + session snapshots: protected field removed,
+		// public field preserved on both surfaces.
+		_, presentUser := resp.Results[0].Attributes[protectedName]
+		assert.False(t, presentUser, "protected user attribute must be stripped for channel admin")
+		assert.Equal(t, "us", resp.Results[0].Attributes[publicName], "public user attribute must be preserved")
+
+		_, presentSession := resp.Results[0].Sessions[0].Attributes[protectedName]
+		assert.False(t, presentSession, "protected session attribute must be stripped for channel admin")
+		assert.Equal(t, "us", resp.Results[0].Sessions[0].Attributes[publicName], "public session attribute must be preserved")
+
+		// Top-level evaluation tree: protected leaf has ActualValue
+		// blanked, public leaf preserved. Iterate by attribute to
+		// avoid relying on child ordering.
+		blame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		require.Len(t, blame.EvaluationTree.Children, 2)
+		leafByAttribute := map[string]model.PolicySimulationEvaluationNode{}
+		for _, child := range blame.EvaluationTree.Children {
+			leafByAttribute[child.Attribute] = child
+		}
+		assert.Empty(t, leafByAttribute[userAttributesPathPrefix+protectedName].ActualValue,
+			"protected leaf must have ActualValue blanked")
+		assert.Equal(t, "us", leafByAttribute[userAttributesPathPrefix+publicName].ActualValue,
+			"public leaf must keep ActualValue")
+
+		// Per-merged-rule subtree must receive the same treatment as
+		// the top-level tree — the picker renders the merged-rule
+		// tree alongside it, so a leak on either path is equally bad.
+		assert.Empty(t, blame.MergedRules[0].EvaluationTree.ActualValue,
+			"merged-rule leaf for the protected field must have ActualValue blanked")
+	}
+
+	t.Run("source_only access mode is redacted on every surface", func(t *testing.T) {
+		field := createProtectedField(t, model.PropertyAccessModeSourceOnly)
+		assertRedactedAgainst(t, field.Name)
+	})
+
+	t.Run("shared_only access mode is redacted on every surface", func(t *testing.T) {
+		field := createProtectedField(t, model.PropertyAccessModeSharedOnly)
+		assertRedactedAgainst(t, field.Name)
+	})
+}
+
+// TestRedactSimulationAttributesForCallerFailClosed exercises the
+// branch that runs when protectedCPAFieldNamesForCaller returns an
+// error (a transient property-store failure during the CPA lookup).
+// The contract is "fail closed": every attribute snapshot AND every
+// evaluation-tree leaf's ActualValue must be wiped so the channel
+// admin can't see a single protected value just because the CPA
+// lookup happened to fail mid-request. We force the error by
+// swapping the server's propertyService with one whose
+// PropertyGroupStore is mocked to return a synthetic store failure
+// for the access-control group lookup.
+func TestRedactSimulationAttributesForCallerFailClosed(t *testing.T) {
+	mainHelper.Parallel(t)
+	thMock := SetupWithStoreMock(t)
+	rctx := thMock.emptyContextWithCallerID(anonymousCallerId)
+
+	// Build a fresh property service wired to mocked stores: the
+	// group store fails on the AccessControl group lookup, which is
+	// the very first call protectedCPAFieldNamesForCaller makes.
+	// PropertyField / PropertyValue stores stay attached but never
+	// fire because we error before getting that far.
+	mockGroupStore := &storemocks.PropertyGroupStore{}
+	mockFieldStore := &storemocks.PropertyFieldStore{}
+	mockValueStore := &storemocks.PropertyValueStore{}
+	mockGroupStore.
+		On("Get", model.AccessControlPropertyGroupName).
+		Return((*model.PropertyGroup)(nil), errors.New("simulated store failure"))
+
+	ps, err := properties.New(properties.ServiceConfig{
+		PropertyGroupStore: mockGroupStore,
+		PropertyFieldStore: mockFieldStore,
+		PropertyValueStore: mockValueStore,
+		CallerIDExtractor:  func(rctx request.CTX) string { return "" },
+	})
+	require.NoError(t, err)
+
+	originalPS := thMock.App.Srv().propertyService
+	thMock.App.Srv().propertyService = ps
+	defer func() { thMock.App.Srv().propertyService = originalPS }()
+
+	resp := makeSimulationResponseForRedactionTest("Clearance", "Region", "il5", "us")
+	thMock.App.RedactSimulationAttributesForCaller(rctx, resp, false)
+
+	// Every Attributes map (user + session) cleared — we can't tell
+	// which fields are protected, so we redact unconditionally.
+	r := resp.Results[0]
+	assert.Nil(t, r.Attributes, "fail-closed: user-level attributes must be cleared")
+	require.Len(t, r.Sessions, 1)
+	assert.Nil(t, r.Sessions[0].Attributes, "fail-closed: session attributes must be cleared")
+
+	// Every evaluation-tree leaf — top-level + per-merged-rule —
+	// has ActualValue cleared. The public field's leaf is no
+	// exception in the fail-closed path: we don't know which fields
+	// are protected, so we wipe them all.
+	blame := r.Decisions["upload_file_attachment"].Blame[0]
+	require.NotNil(t, blame.EvaluationTree)
+	for _, child := range blame.EvaluationTree.Children {
+		assert.Empty(t, child.ActualValue, "fail-closed: leaf %q ActualValue must be cleared", child.Attribute)
+	}
+	require.Len(t, blame.MergedRules, 1)
+	assert.Empty(t, blame.MergedRules[0].EvaluationTree.ActualValue,
+		"fail-closed: merged-rule leaf ActualValue must be cleared")
+
+	mockGroupStore.AssertExpectations(t)
+}
+
+// TestRedactSimulationAttributesForCallerSystemAdminBypass pins the
+// privacy-escape hatch for system admins: they always see every
+// attribute the simulator recorded, regardless of CPA visibility or
+// access_mode. The function must early-return BEFORE talking to the
+// property service so a broken store/property service can't degrade
+// the sysadmin's view. We assert that by mocking the property
+// service with no expectations — any call to it would crash the
+// test.
+func TestRedactSimulationAttributesForCallerSystemAdminBypass(t *testing.T) {
+	mainHelper.Parallel(t)
+	thMock := SetupWithStoreMock(t)
+	rctx := thMock.emptyContextWithCallerID(anonymousCallerId)
+
+	// Property service is wired to mocks with NO expectations — if
+	// the sysadmin bypass leaks into the CPA lookup path, the mock
+	// will panic with "no return value specified" and fail the test
+	// with a clear signal.
+	mockGroupStore := &storemocks.PropertyGroupStore{}
+	mockFieldStore := &storemocks.PropertyFieldStore{}
+	mockValueStore := &storemocks.PropertyValueStore{}
+	ps, err := properties.New(properties.ServiceConfig{
+		PropertyGroupStore: mockGroupStore,
+		PropertyFieldStore: mockFieldStore,
+		PropertyValueStore: mockValueStore,
+		CallerIDExtractor:  func(rctx request.CTX) string { return "" },
+	})
+	require.NoError(t, err)
+
+	originalPS := thMock.App.Srv().propertyService
+	thMock.App.Srv().propertyService = ps
+	defer func() { thMock.App.Srv().propertyService = originalPS }()
+
+	resp := makeSimulationResponseForRedactionTest("Clearance", "Region", "il5", "us")
+	thMock.App.RedactSimulationAttributesForCaller(rctx, resp, true)
+
+	// Top-level snapshots preserved verbatim.
+	r := resp.Results[0]
+	assert.Equal(t, "il5", r.Attributes["Clearance"], "system admin must see protected user attribute")
+	assert.Equal(t, "us", r.Attributes["Region"], "system admin must see public user attribute")
+	require.Len(t, r.Sessions, 1)
+	assert.Equal(t, "il5", r.Sessions[0].Attributes["Clearance"], "system admin must see protected session attribute")
+	assert.Equal(t, "us", r.Sessions[0].Attributes["Region"], "system admin must see public session attribute")
+
+	// Every leaf's ActualValue preserved on every tree.
+	blame := r.Decisions["upload_file_attachment"].Blame[0]
+	require.NotNil(t, blame.EvaluationTree)
+	leafByAttribute := map[string]model.PolicySimulationEvaluationNode{}
+	for _, child := range blame.EvaluationTree.Children {
+		leafByAttribute[child.Attribute] = child
+	}
+	assert.Equal(t, "il5", leafByAttribute[userAttributesPathPrefix+"Clearance"].ActualValue,
+		"sysadmin must see ActualValue on protected leaf in evaluation tree")
+	assert.Equal(t, "us", leafByAttribute[userAttributesPathPrefix+"Region"].ActualValue,
+		"sysadmin must see ActualValue on public leaf in evaluation tree")
+	require.Len(t, blame.MergedRules, 1)
+	assert.Equal(t, "il5", blame.MergedRules[0].EvaluationTree.ActualValue,
+		"sysadmin must see ActualValue on merged-rule leaf in evaluation tree")
+
+	// Sanity check: the property service must not have been called.
+	mockGroupStore.AssertNotCalled(t, "Get", mock.Anything)
+	mockFieldStore.AssertExpectations(t)
+	mockValueStore.AssertExpectations(t)
+}
+
+// TestValidatePolicySimulationUsersInScopeChannel covers the channel-
+// scope branch of the delegated-simulate input validator. The
+// channel-scope branch is reached when a non-system-admin author
+// runs the simulator from the channel-settings policy editor; the
+// validator must refuse to look outside that channel. We pin:
+//   - non-member user → 403 users_out_of_scope (the deny-by-default
+//     bound the api4 handler relies on to short-circuit before the
+//     simulator ever runs)
+//   - empty / malformed user_id → 400 invalid_param so the picker
+//     surfaces a usable validation error
+//   - invalid channel_id → 400 invalid_param (mismatched ID type)
+//   - a channel member passes through (negative control for the 403 path)
+func TestValidatePolicySimulationUsersInScopeChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	rctx := th.Context
+
+	// BasicChannel is created in InitBasic but BasicUser/BasicUser2
+	// are NOT auto-joined to it; add BasicUser explicitly so we have
+	// a "member" baseline.
+	th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+
+	// outsider is added to the team (so the team-membership path
+	// doesn't accidentally trip) but never added to BasicChannel.
+	outsider := th.CreateUser(t)
+	th.LinkUserToTeam(t, outsider, th.BasicTeam)
+
+	t.Run("channel member passes the check", func(t *testing.T) {
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", th.BasicChannel.Id, []model.PolicySimulationUserOverride{{UserID: th.BasicUser.Id}})
+		require.Nil(t, err, "channel member must pass the scope check")
+	})
+
+	t.Run("user not a member of the channel returns 403 users_out_of_scope", func(t *testing.T) {
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", th.BasicChannel.Id, []model.PolicySimulationUserOverride{{UserID: outsider.Id}})
+		require.NotNil(t, err, "outsider must be rejected")
+		assert.Equal(t, http.StatusForbidden, err.StatusCode,
+			"the contract with the api4 handler is a 403 so the delegated path can short-circuit before invoking the simulator")
+		assert.Equal(t, "api.access_control_policy.simulate.users_out_of_scope.app_error", err.Id)
+	})
+
+	t.Run("empty user_id returns 400 invalid_param", func(t *testing.T) {
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", th.BasicChannel.Id, []model.PolicySimulationUserOverride{{UserID: ""}})
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Equal(t, "api.context.invalid_param.app_error", err.Id)
+	})
+
+	t.Run("malformed user_id returns 400 invalid_param", func(t *testing.T) {
+		// 25 hex chars is not a valid 26-char model ID; the
+		// model.IsValidId pre-check must reject before the store
+		// would be hit (which would otherwise raise a 500).
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", th.BasicChannel.Id, []model.PolicySimulationUserOverride{{UserID: "not-a-valid-id"}})
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Equal(t, "api.context.invalid_param.app_error", err.Id)
+	})
+
+	t.Run("malformed channel_id returns 400 invalid_param", func(t *testing.T) {
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", "not-a-valid-id", []model.PolicySimulationUserOverride{{UserID: th.BasicUser.Id}})
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Equal(t, "api.context.invalid_param.app_error", err.Id)
+	})
+
+	t.Run("first failure short-circuits the rest of the user list", func(t *testing.T) {
+		// Mixed list: outsider first, member second. The validator
+		// is a strict gate — one bad apple makes the whole call
+		// fail. Pins the early-exit ordering the api4 handler
+		// depends on for the audit trail.
+		err := th.App.ValidatePolicySimulationUsersInScope(rctx, "", th.BasicChannel.Id, []model.PolicySimulationUserOverride{
+			{UserID: outsider.Id},
+			{UserID: th.BasicUser.Id},
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+}
+
+func TestHydrateChannelPolicyActions(t *testing.T) {
+	t.Run("Channel without an enforced policy is a no-op (no store call, PolicyActions stays nil)", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		// We register the AccessControlPolicy() accessor in case any other
+		// path touches it, but `GetActionsForPolicy` MUST NOT be called
+		// when PolicyEnforced is false — that's the whole point of the
+		// lazy-fetch design.
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
+
+		ch := &model.Channel{Id: model.NewId(), PolicyEnforced: false}
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, ch)
+		require.Nil(t, appErr)
+		require.Nil(t, ch.PolicyActions, "non-enforced channels must not have an empty map injected")
+		mockACPStore.AssertNotCalled(t, "GetActionsForPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("Nil channel pointer is a defensive no-op", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, nil)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("Membership-only policy hydrates PolicyActions with membership key", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		channelID := model.NewId()
+		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
+			Return(map[string]bool{model.AccessControlPolicyActionMembership: true}, nil).Once()
+
+		ch := &model.Channel{Id: channelID, PolicyEnforced: true}
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, ch)
+		require.Nil(t, appErr)
+		require.Equal(t, map[string]bool{model.AccessControlPolicyActionMembership: true}, ch.PolicyActions)
+		require.True(t, ch.HasMembershipPolicyAction(), "convenience helper must agree with the map")
+		mockACPStore.AssertExpectations(t)
+	})
+
+	t.Run("Permission-only policy hydrates with the permission key only (no membership)", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		channelID := model.NewId()
+		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
+			Return(map[string]bool{model.AccessControlPolicyActionUploadFileAttachment: true}, nil).Once()
+
+		ch := &model.Channel{Id: channelID, PolicyEnforced: true}
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, ch)
+		require.Nil(t, appErr)
+		require.False(t, ch.HasMembershipPolicyAction(), "permission-only policy must NOT report membership — this is the core bug fix invariant")
+		require.True(t, ch.HasPolicyAction(model.AccessControlPolicyActionUploadFileAttachment))
+	})
+
+	t.Run("Policy missing in store (deleted between reads) returns nil and sets empty map", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		channelID := model.NewId()
+		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
+			Return(nil, store.NewErrNotFound("AccessControlPolicy", channelID)).Once()
+
+		ch := &model.Channel{Id: channelID, PolicyEnforced: true}
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, ch)
+		require.Nil(t, appErr, "ErrNotFound from store must be swallowed — channel row will reconcile on next write")
+		require.NotNil(t, ch.PolicyActions, "ErrNotFound path must set an empty map so HasPolicyAction returns false")
+		require.Empty(t, ch.PolicyActions)
+	})
+
+	t.Run("Unexpected store error is surfaced and PolicyActions stays nil", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		channelID := model.NewId()
+		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
+			Return(nil, errors.New("boom")).Once()
+
+		ch := &model.Channel{Id: channelID, PolicyEnforced: true}
+		appErr := thMock.App.HydrateChannelPolicyActions(thMock.Context, ch)
+		require.NotNil(t, appErr, "non-not-found store errors must propagate so callers can fail-closed")
+		require.Equal(t, "app.pap.hydrate_actions.app_error", appErr.Id)
+		require.Nil(t, ch.PolicyActions, "error path must leave PolicyActions untouched (caller decides fallback)")
+	})
+}
+
+func TestHydrateChannelsPolicyActions(t *testing.T) {
+	t.Run("Empty slice is a no-op", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
+
+		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, nil)
+		require.Nil(t, appErr)
+		appErr = thMock.App.HydrateChannelsPolicyActions(thMock.Context, []*model.Channel{})
+		require.Nil(t, appErr)
+		mockACPStore.AssertNotCalled(t, "GetActionsForPolicies", mock.Anything, mock.Anything)
+	})
+
+	t.Run("Slice with only non-enforced channels skips the store entirely", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
+
+		channels := []*model.Channel{
+			{Id: model.NewId(), PolicyEnforced: false},
+			{Id: model.NewId(), PolicyEnforced: false},
+		}
+		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, channels)
+		require.Nil(t, appErr)
+		for _, ch := range channels {
+			require.Nil(t, ch.PolicyActions)
+		}
+		mockACPStore.AssertNotCalled(t, "GetActionsForPolicies", mock.Anything, mock.Anything)
+	})
+
+	t.Run("Mixed slice issues a single batched call for enforced channels only", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		enforced1 := model.NewId()
+		enforced2 := model.NewId()
+		channels := []*model.Channel{
+			{Id: enforced1, PolicyEnforced: true},
+			{Id: model.NewId(), PolicyEnforced: false},
+			{Id: enforced2, PolicyEnforced: true},
+		}
+
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, mock.MatchedBy(func(ids []string) bool {
+			// We don't depend on slice order — order is incidental — but
+			// the contents must be exactly the two enforced IDs and never
+			// the non-enforced one.
+			if len(ids) != 2 {
+				return false
+			}
+			have := map[string]bool{}
+			for _, id := range ids {
+				have[id] = true
+			}
+			return have[enforced1] && have[enforced2]
+		})).Return(map[string]map[string]bool{
+			enforced1: {model.AccessControlPolicyActionMembership: true},
+			enforced2: {model.AccessControlPolicyActionUploadFileAttachment: true},
+		}, nil).Once()
+
+		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, channels)
+		require.Nil(t, appErr)
+		require.True(t, channels[0].HasMembershipPolicyAction())
+		require.Nil(t, channels[1].PolicyActions, "non-enforced channels must remain untouched")
+		require.False(t, channels[2].HasMembershipPolicyAction(), "permission-only channel must NOT report membership")
+		require.True(t, channels[2].HasPolicyAction(model.AccessControlPolicyActionUploadFileAttachment))
+		mockACPStore.AssertExpectations(t)
+	})
+
+	t.Run("Enforced channel missing from batch result gets an empty map (fail-closed for membership)", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		enforced := model.NewId()
+		channels := []*model.Channel{
+			{Id: enforced, PolicyEnforced: true},
+		}
+		// Simulate the policy row being deleted between channel read and
+		// batch fetch — the result map is empty, but the call succeeded.
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{enforced}).
+			Return(map[string]map[string]bool{}, nil).Once()
+
+		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, channels)
+		require.Nil(t, appErr)
+		require.NotNil(t, channels[0].PolicyActions, "missing-from-batch must default to empty map, not nil")
+		require.Empty(t, channels[0].PolicyActions)
+		require.False(t, channels[0].HasMembershipPolicyAction())
+	})
+
+	t.Run("Underlying batch error is surfaced and channels are left untouched", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+
+		channels := []*model.Channel{{Id: model.NewId(), PolicyEnforced: true}}
+		mockACPStore.On("GetActionsForPolicies", thMock.Context, mock.Anything).
+			Return(nil, errors.New("boom")).Once()
+
+		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, channels)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.pap.hydrate_actions.app_error", appErr.Id)
+		require.Nil(t, channels[0].PolicyActions, "error path must leave the slice untouched")
+	})
+}
+
+func TestGetChannelHydratesPolicyActions(t *testing.T) {
+	// App.GetChannel is the canonical single-channel read seam. After
+	// Phase 1 it must transparently hydrate PolicyActions so consumers
+	// (Phase 2 server gates and frontend) can rely on the field being
+	// present whenever PolicyEnforced is true.
+	t.Run("Returned channel carries PolicyActions when policy_enforced is true", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+
+		channelID := model.NewId()
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("Get", channelID, true).
+			Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: true}, nil).Once()
+
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
+			Return(map[string]bool{model.AccessControlPolicyActionMembership: true}, nil).Once()
+
+		channel, appErr := thMock.App.GetChannel(thMock.Context, channelID)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+		require.True(t, channel.HasMembershipPolicyAction(), "GetChannel must hydrate the action map so downstream gates see the membership bit")
+		mockACPStore.AssertExpectations(t)
+	})
+
+	t.Run("No-policy channel returns without touching AccessControlPolicies", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+
+		channelID := model.NewId()
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockChannelStore.On("Get", channelID, true).
+			Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: false}, nil).Once()
+
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
+
+		channel, appErr := thMock.App.GetChannel(thMock.Context, channelID)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+		require.Nil(t, channel.PolicyActions)
+		mockACPStore.AssertNotCalled(t, "GetActionsForPolicy", mock.Anything, mock.Anything)
+	})
+}
+
+func TestChannelAccessControlled(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok)
+	defer th.App.Srv().SetLicense(nil)
+
+	savePolicy := func(t *testing.T, channelID string, actions ...string) {
+		t.Helper()
+		policy := &model.AccessControlPolicy{
+			ID:       channelID,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Name:     "policy-" + channelID,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: actions, Expression: "true"},
+			},
+		}
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channelID)
+			th.App.Srv().Store().Channel().InvalidateChannel(channelID)
+		})
+		th.App.Srv().Store().Channel().InvalidateChannel(channelID)
+	}
+
+	t.Run("channel with no policy is not controlled", func(t *testing.T) {
+		channel := th.CreatePrivateChannel(t, th.BasicTeam)
+		controlled, appErr := th.App.ChannelAccessControlled(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.False(t, controlled)
+	})
+
+	t.Run("channel with a membership policy is controlled", func(t *testing.T) {
+		channel := th.CreatePrivateChannel(t, th.BasicTeam)
+		savePolicy(t, channel.Id, model.AccessControlPolicyActionMembership)
+
+		controlled, appErr := th.App.ChannelAccessControlled(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.True(t, controlled, "membership policy must make ChannelAccessControlled return true")
+	})
+
+	t.Run("channel with ONLY a permission policy is NOT controlled (bug fix)", func(t *testing.T) {
+		// Bug-fix regression: HasPermissionToChannel and other callers
+		// must not treat permission-only channels (e.g. file upload
+		// restriction) as ABAC-membership-controlled. Before the
+		// PolicyActions[membership] migration this returned true.
+		channel := th.CreatePrivateChannel(t, th.BasicTeam)
+		savePolicy(t, channel.Id, model.AccessControlPolicyActionUploadFileAttachment)
+
+		controlled, appErr := th.App.ChannelAccessControlled(th.Context, channel.Id)
+		require.Nil(t, appErr)
+		require.False(t, controlled, "permission-only policy must NOT make ChannelAccessControlled return true")
+	})
+
+	t.Run("non-existent channel returns false without error (existing contract)", func(t *testing.T) {
+		controlled, appErr := th.App.ChannelAccessControlled(th.Context, model.NewId())
+		require.Nil(t, appErr)
+		require.False(t, controlled)
+	})
+}
+
+func TestPublishChannelPolicyEnforcedUpdateHydratesBroadcastPayload(t *testing.T) {
+	// publishChannelPolicyEnforcedUpdate must include PolicyActions in the
+	// broadcast payload so connected clients can react to action-set
+	// changes without a follow-up REST round-trip. The hydration happens
+	// after GetChannel reloads the (now-policy-enforced) channel post-save.
+	thMock := SetupWithStoreMock(t)
+
+	channelID := model.NewId()
+	channelPolicy := &model.AccessControlPolicy{
+		ID:   channelID,
+		Type: model.AccessControlPolicyTypeChannel,
+		Rules: []model.AccessControlPolicyRule{
+			{Actions: []string{model.AccessControlPolicyActionUploadFileAttachment}, Expression: "true"},
+		},
+	}
+
+	mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+	mockChannelStore := storemocks.ChannelStore{}
+	mockStore.On("Channel").Return(&mockChannelStore)
+	mockChannelStore.On("InvalidateChannel", channelID).Once()
+	// Channel().Get is called twice on a save flow — once by eligibility
+	// validation pre-save, once by publishChannelPolicyEnforcedUpdate
+	// post-save. Both calls return a PolicyEnforced=true channel so the
+	// hydrator fires on the second call.
+	mockChannelStore.On("Get", channelID, true).
+		Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: true}, nil).Twice()
+
+	mockACPStore := storemocks.AccessControlPolicyStore{}
+	mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+	// Permission-only policy: hydrator must return an action set WITHOUT
+	// the membership key. This is the bug-fix invariant the broadcast
+	// must carry to the client.
+	expectedActions := map[string]bool{model.AccessControlPolicyActionUploadFileAttachment: true}
+	mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).Return(expectedActions, nil)
+
+	mockAccessControl := &mocks.AccessControlServiceInterface{}
+	thMock.App.Srv().ch.AccessControl = mockAccessControl
+	mockAccessControl.On("SavePolicy", thMock.Context, mock.Anything).Return(channelPolicy, nil).Once()
+
+	result, err := thMock.App.CreateOrUpdateAccessControlPolicy(thMock.Context, channelPolicy)
+	require.Nil(t, err)
+	require.NotNil(t, result)
+
+	mockChannelStore.AssertCalled(t, "InvalidateChannel", channelID)
+	// The critical assertion: the hydrator was invoked with the right
+	// channel ID, meaning the WS payload that follows includes the
+	// non-membership action set.
+	mockACPStore.AssertCalled(t, "GetActionsForPolicy", thMock.Context, channelID)
+	mockAccessControl.AssertExpectations(t)
+}
+
+// TestGetAccessControlPolicyAttributes_MaskedFieldsFiltered verifies that
+// source_only and shared_only attribute fields are stripped from the response
+// of GetAccessControlPolicyAttributes so their values are never exposed to
+// regular channel members through the invite modal or members sidebar.
+func TestGetAccessControlPolicyAttributes_MaskedFieldsFiltered(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	permNone := model.PermissionLevelNone
+
+	makeField := func(name, accessMode string) {
+		protected := accessMode == model.PropertyAccessModeSourceOnly || accessMode == model.PropertyAccessModeSharedOnly
+		f := &model.PropertyField{
+			GroupID:    cpaGroup.ID,
+			Name:       name,
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Protected:  protected,
+			Attrs:      model.StringInterface{model.PropertyAttrsAccessMode: accessMode},
+		}
+		if protected {
+			f.PermissionField = &permNone
+			f.Attrs[model.PropertyAttrsProtected] = true
+			_, err := th.App.Srv().Store().PropertyField().Create(f)
+			require.NoError(t, err)
+		} else {
+			_, appErr := th.App.CreatePropertyField(rctx, f, false, "")
+			require.Nil(t, appErr)
+		}
+	}
+
+	makeField("PublicField", model.PropertyAccessModePublic)
+	makeField("SourceField", model.PropertyAccessModeSourceOnly)
+	makeField("SharedField", model.PropertyAccessModeSharedOnly)
+
+	channelID := model.NewId()
+	rawAttributes := map[string][]string{
+		"PublicField": {"Engineering"},
+		"SourceField": {"TopSecret"},
+		"SharedField": {"Alpha", "Bravo"},
+	}
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	mockACS.On("GetPolicyRuleAttributes", mock.Anything, channelID, model.AccessControlPolicyActionMembership).
+		Return(rawAttributes, nil).Once()
+
+	result, appErr := th.App.GetAccessControlPolicyAttributes(th.Context, channelID, model.AccessControlPolicyActionMembership)
+	require.Nil(t, appErr)
+
+	// Only the public field should survive.
+	assert.Equal(t, map[string][]string{"PublicField": {"Engineering"}}, result)
+	assert.NotContains(t, result, "SourceField")
+	assert.NotContains(t, result, "SharedField")
+	mockACS.AssertExpectations(t)
+}
+
+// TestGetAccessControlPolicyAttributes_PublicFieldsPassThrough verifies that
+// public attribute fields are returned unchanged.
+func TestGetAccessControlPolicyAttributes_PublicFieldsPassThrough(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	fieldName := "f_" + model.NewId()[:8]
+	field := &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       fieldName,
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyAttrsAccessMode: model.PropertyAccessModePublic},
+	}
+	_, appErr := th.App.CreatePropertyField(rctx, field, false, "")
+	require.Nil(t, appErr)
+
+	channelID := model.NewId()
+	rawAttributes := map[string][]string{fieldName: {"Engineering", "Sales"}}
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	mockACS.On("GetPolicyRuleAttributes", mock.Anything, channelID, model.AccessControlPolicyActionMembership).
+		Return(rawAttributes, nil).Once()
+
+	result, appErr := th.App.GetAccessControlPolicyAttributes(th.Context, channelID, model.AccessControlPolicyActionMembership)
+	require.Nil(t, appErr)
+	assert.Equal(t, rawAttributes, result)
+	mockACS.AssertExpectations(t)
+}
+
+// TestMergeStoredPolicyExpressions_ActionsLocked verifies that a caller who
+// cannot see all values in a stored rule cannot change that rule's Actions.
+// The attack: submit a PUT with the same masked expression but a different
+// action type — the merge would restore the hidden CEL value while silently
+// accepting the caller's action, removing the original access restriction.
+//
+// The submitted and stored rules are paired by Name (v0.4 permission rules
+// always carry a unique Name) so the test models the realistic attack
+// surface — a caller editing an existing Named rule swaps its Actions
+// while leaving the masked Expression alone. Pair-by-Name is what makes
+// the action-locking guard reachable in this scenario; an attacker who
+// drops the Name (or changes it) instead falls into the masked-rule-
+// deleted 403 path, which is exercised by the merge tests above.
+func TestMergeStoredPolicyExpressions_ActionsLocked(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+
+	// Insert a source_only field directly into the store to bypass the property
+	// service hook that restricts protected-field creation to plugin callers.
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	fieldName := "f_" + model.NewId()[:8]
+	permNone := model.PermissionLevelNone
+	field := &model.PropertyField{
+		GroupID:         cpaGroup.ID,
+		Name:            fieldName,
+		Type:            model.PropertyFieldTypeText,
+		ObjectType:      model.PropertyFieldObjectTypeUser,
+		TargetType:      string(model.PropertyFieldTargetLevelSystem),
+		Protected:       true,
+		PermissionField: &permNone,
+		Attrs: model.StringInterface{
+			model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
+			model.PropertyAttrsProtected:  true,
+		},
+	}
+	_, storeErr := th.App.Srv().Store().PropertyField().Create(field)
+	require.NoError(t, storeErr)
+
+	callerID := model.NewId()
+	policyID := model.NewId()
+	ruleName := "rule_" + model.NewId()[:8]
+
+	storedExpr := `user.attributes.` + fieldName + ` == "TopSecret"`
+	maskedExpr := `user.attributes.` + fieldName + ` == "--------"`
+
+	storedPolicy := &model.AccessControlPolicy{
+		ID:   policyID,
+		Type: model.AccessControlPolicyTypeChannel,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Name:       ruleName,
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+				Expression: storedExpr,
+			},
+		},
+	}
+
+	// Attacker keeps the rule's Name (so the editor still considers it
+	// "the same rule") and submits the masked expression unchanged, but
+	// swaps Actions from upload → download. Without the action-locking
+	// guard the merge would re-inject the hidden literal and silently
+	// re-purpose the gate.
+	submittedPolicy := &model.AccessControlPolicy{
+		ID:   policyID,
+		Type: model.AccessControlPolicyTypeChannel,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Name:       ruleName,
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+				Expression: maskedExpr,
+			},
+		},
+	}
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+
+	mockACS.On("GetPolicy", mock.Anything, policyID).Return(storedPolicy, nil).Once()
+	mockACS.On("ExpressionToVisualAST", mock.Anything, storedExpr).Return(&model.VisualExpression{
+		Conditions: []model.Condition{
+			{Attribute: "user.attributes." + fieldName, Operator: "==", Value: "TopSecret", ValueType: model.LiteralValue},
+		},
+	}, nil).Maybe()
+	mockACS.On("ExpressionToVisualAST", mock.Anything, maskedExpr).Return(&model.VisualExpression{
+		Conditions: []model.Condition{
+			{Attribute: "user.attributes." + fieldName, Operator: "==", Value: maskedTokenValue, ValueType: model.LiteralValue},
+		},
+	}, nil).Maybe()
+
+	mergeErr := th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, callerID)
+	require.Nil(t, mergeErr)
+
+	require.Len(t, submittedPolicy.Rules, 1)
+	// Expression must be restored to the real stored value.
+	assert.Equal(t, storedExpr, submittedPolicy.Rules[0].Expression)
+	// Actions must be locked to the stored value, not the attacker's.
+	assert.Equal(t, []string{model.AccessControlPolicyActionUploadFileAttachment}, submittedPolicy.Rules[0].Actions)
+	mockACS.AssertExpectations(t)
+}
+
+// TestMergeStoredPolicyExpressions_FailClosedTrueRejectedOnResubmit verifies the
+// claim from the PR review: if MaskPolicyExpressions emitted "true" for a rule
+// because the stored expression could not be parsed (fail-closed), a caller who
+// re-submits that "true" unchanged will be blocked on the save path.
+//
+// How it works:
+//  1. MaskPolicyExpressions (GET path) calls ExpressionToVisualAST on the stored
+//     expression; on parse failure it sets the rule to "true" (fail-closed).
+//  2. The caller sees "true" in the GET response and re-submits it.
+//  3. On the save path, mergeExpressionWithMaskedValues calls
+//     expressionHasMaskedValuesForCaller, which calls GetMaskedVisualAST, which
+//     calls ExpressionToVisualAST on the *stored* expression again.
+//  4. That second parse also fails → error propagates → save is blocked.
+//     "true" is never written to the DB.
+func TestMergeStoredPolicyExpressions_FailClosedTrueRejectedOnResubmit(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	callerID := model.NewId()
+	policyID := model.NewId()
+
+	// A stored expression that ExpressionToVisualAST cannot parse.
+	// In production this is guarded by save-time validation, but defensive
+	// code paths must still protect against it.
+	storedExpr := `user.attributes.TopSecret == "Value"`
+
+	storedPolicy := &model.AccessControlPolicy{
+		ID:   policyID,
+		Type: model.AccessControlPolicyTypeParent,
+		Rules: []model.AccessControlPolicyRule{
+			{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: storedExpr},
+		},
+	}
+
+	// Caller re-submits "true" — what MaskPolicyExpressions emitted as the
+	// fail-closed value when it could not parse the stored expression on GET.
+	submittedPolicy := &model.AccessControlPolicy{
+		ID:   policyID,
+		Type: model.AccessControlPolicyTypeParent,
+		Rules: []model.AccessControlPolicyRule{
+			{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+		},
+	}
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+
+	mockACS.On("GetPolicy", mock.Anything, policyID).Return(storedPolicy, nil).Once()
+	// Simulate the same parse failure that would have triggered fail-closed on GET.
+	parseErr := model.NewAppError("ExpressionToVisualAST", "app.pap.expression_to_visual_ast.app_error", nil, "simulated parse failure", http.StatusInternalServerError)
+	mockACS.On("ExpressionToVisualAST", mock.Anything, storedExpr).Return(nil, parseErr).Maybe()
+
+	mergeErr := th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, callerID)
+
+	// Save must be blocked. The error returned here causes UpdateAccessControlPolicy
+	// to abort before any DB write — the in-memory struct may still hold "true"
+	// but it never reaches the store.
+	require.NotNil(t, mergeErr, "expected mergeStoredPolicyExpressions to return an error when stored expression is unparseable")
+	mockACS.AssertExpectations(t)
+}
+
+// TestMergeStoredPolicyExpressions_ActionsEditableWhenNoMasking verifies that
+// a caller who holds all values in a rule can freely change its Actions.
+func TestMergeStoredPolicyExpressions_ActionsEditableWhenNoMasking(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+
+	// Create a public field — values are always visible, so no masking occurs.
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	fieldName := "f_" + model.NewId()[:8]
+	field := &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       fieldName,
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyAttrsAccessMode: model.PropertyAccessModePublic},
+	}
+	_, appErr := th.App.CreatePropertyField(rctx, field, false, "")
+	require.Nil(t, appErr)
+
+	callerID := model.NewId()
+	policyID := model.NewId()
+
+	expr := `user.attributes.` + fieldName + ` == "Engineering"`
+
+	storedPolicy := &model.AccessControlPolicy{
+		ID:   policyID,
+		Type: model.AccessControlPolicyTypeParent,
+		Rules: []model.AccessControlPolicyRule{
+			{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: expr},
+		},
+	}
+	// Caller legitimately changes the action on a rule with no masked values.
+	submittedPolicy := &model.AccessControlPolicy{
+		ID:   policyID,
+		Type: model.AccessControlPolicyTypeParent,
+		Rules: []model.AccessControlPolicyRule{
+			{Actions: []string{model.AccessControlPolicyActionUploadFileAttachment}, Expression: expr},
+		},
+	}
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+
+	mockACS.On("GetPolicy", mock.Anything, policyID).Return(storedPolicy, nil).Once()
+	mockACS.On("ExpressionToVisualAST", mock.Anything, expr).Return(&model.VisualExpression{
+		Conditions: []model.Condition{
+			{Attribute: "user.attributes." + fieldName, Operator: "==", Value: "Engineering", ValueType: model.LiteralValue},
+		},
+	}, nil).Maybe()
+
+	appErr = th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, callerID)
+	require.Nil(t, appErr)
+
+	require.Len(t, submittedPolicy.Rules, 1)
+	// Expression unchanged (no masking, submitted passes through).
+	assert.Equal(t, expr, submittedPolicy.Rules[0].Expression)
+	// Actions must NOT be locked — caller's submitted value stands.
+	assert.Equal(t, []string{model.AccessControlPolicyActionUploadFileAttachment}, submittedPolicy.Rules[0].Actions)
+	mockACS.AssertExpectations(t)
 }
