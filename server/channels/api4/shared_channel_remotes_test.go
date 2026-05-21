@@ -85,6 +85,7 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	url := fmt.Sprintf("/sharedchannels/%s/remotes", channel1.Id)
 	resp, err := th.Client.DoAPIGet(context.Background(), url, "")
 	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var result []*model.RemoteClusterInfo
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -148,7 +149,7 @@ func TestGetSharedChannelRemotes_ReturnsEmptyForNonSharedChannel(t *testing.T) {
 	require.Empty(t, result)
 }
 
-func TestGetSharedChannelRemotes_ReturnsEmptyForStaleSharedChannelRemote(t *testing.T) {
+func TestGetSharedChannelRemotes_ReturnsEmptyForStaleSharedChannelState(t *testing.T) {
 	th := setupForSharedChannels(t).InitBasic(t)
 
 	channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
@@ -164,6 +165,7 @@ func TestGetSharedChannelRemotes_ReturnsEmptyForStaleSharedChannelRemote(t *test
 	})
 	require.Nil(t, appErr)
 
+	// Simulate stale DB state: the channel/remote rows remain, but the SharedChannels row is missing.
 	_, err := th.App.Srv().Store().SharedChannel().SaveRemote(&model.SharedChannelRemote{
 		ChannelId:         channel.Id,
 		RemoteId:          remote.RemoteId,
@@ -172,6 +174,10 @@ func TestGetSharedChannelRemotes_ReturnsEmptyForStaleSharedChannelRemote(t *test
 		IsInviteConfirmed: true,
 	})
 	require.NoError(t, err)
+
+	hasRemote, err := th.App.Srv().Store().SharedChannel().HasRemote(channel.Id, remote.RemoteId)
+	require.NoError(t, err)
+	require.True(t, hasRemote)
 
 	url := fmt.Sprintf("/sharedchannels/%s/remotes", channel.Id)
 	resp, err := th.Client.DoAPIGet(context.Background(), url, "")
