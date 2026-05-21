@@ -115,7 +115,14 @@ function ChannelSettingsConfigurationTab({
 
     useEffect(() => {
         if (bannerTouchedRef.current || classificationTouchedRef.current) {
-            return;
+            const classificationStateMatchesLocal = classificationBanner.hasClassification === classificationEnabled &&
+                (classificationBanner.classificationId || '') === (classificationEnabled ? selectedClassificationId : '');
+            if (!classificationStateMatchesLocal) {
+                return;
+            }
+
+            bannerTouchedRef.current = false;
+            classificationTouchedRef.current = false;
         }
 
         setClassificationEnabled(classificationBanner.hasClassification);
@@ -129,7 +136,7 @@ function ChannelSettingsConfigurationTab({
                 background_color: classificationBanner.classificationBanner?.background_color || prev.background_color || DEFAULT_CHANNEL_BANNER.background_color,
             }));
         }
-    }, [classificationBanner.hasClassification, classificationBanner.classificationId, classificationBanner.classificationBanner]);
+    }, [classificationBanner.hasClassification, classificationBanner.classificationId, classificationBanner.classificationBanner, classificationEnabled, selectedClassificationId]);
 
     const classificationOptions = useMemo(() => {
         return classification.levels.
@@ -542,8 +549,6 @@ function ChannelSettingsConfigurationTab({
             text: prev.text?.trim() || '',
             background_color: prev.background_color?.trim() || '',
         }));
-        bannerTouchedRef.current = false;
-        classificationTouchedRef.current = false;
 
         resetFormErrors();
         setSaveChangesPanelState('saved');
