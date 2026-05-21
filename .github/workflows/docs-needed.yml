@@ -15,13 +15,6 @@
 #     pull-requests: write + issues: write for mattermost/docs.
 #     Short-lived installation tokens are generated automatically per run.
 #
-#   Option B - Fine-grained PAT (simpler setup, ties to a user account):
-#     secrets.DOCS_REPO_PAT - Fine-grained PAT with contents: write +
-#                             pull-requests: write + issues: write on
-#                             mattermost/docs.
-#     To use: replace steps.token.outputs.token with secrets.DOCS_REPO_PAT
-#             and remove the "Generate token" step.
-#
 # Other required secrets (set in each repo's Settings -> Secrets):
 #   ANTHROPIC_API_KEY - Claude API key for doc generation
 #
@@ -74,7 +67,6 @@ jobs:
       # 0. Generate a short-lived installation token scoped to mattermost/docs.
       #    Uses a GitHub App so the token is not tied to any individual user
       #    account and expires automatically after 1 hour.
-      #    See Option B in the header comment if you prefer a PAT instead.
       - name: Generate token
         id: token
         uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
@@ -233,7 +225,7 @@ jobs:
           repository: mattermost/docs
           token: ${{ steps.token.outputs.token }}
           path: docs-repo
-          fetch-depth: 0
+          fetch-depth: 1
  
       - name: Configure git identity
         working-directory: docs-repo
@@ -364,10 +356,15 @@ jobs:
           echo "$RESPONSE" | jq -r '.content[0].text' > /tmp/generated-docs.md
  
           # Fail immediately if the API returned null or an empty body.
+          # Log only the error type and message from the JSON response - not
+          # the full body - to avoid exposing API metadata in workflow logs.
           if [ ! -s /tmp/generated-docs.md ] || \
              [ "$(cat /tmp/generated-docs.md)" = "null" ]; then
-            echo "::error::Claude returned empty or null content. Full response:"
-            echo "$RESPONSE"
+            ERROR_INFO=$(echo "$RESPONSE" | jq -r '
+              if .error then "\(.error.type): \(.error.message)"
+              else "unexpected null or empty content"
+              end' 2>/dev/null || echo "response could not be parsed")
+            echo "::error::Claude API returned empty/null content. ${ERROR_INFO}"
             exit 1
           fi
  
@@ -428,7 +425,11 @@ jobs:
           if git diff --cached --quiet; then
             echo "No content changes - skipping commit."
           else
-            git commit -m "docs: draft for ${SOURCE_REPO}#${PR_NUMBER} - ${PR_TITLE}"
+            # Sanitize PR title for commit message: PR_TITLE is author-controlled
+            # and may contain newlines, quotes, or be very long. Strip control
+            # characters and truncate to 72 chars (git convention).
+            PR_TITLE_SHORT=$(printf '%s' "$PR_TITLE" | tr -d '\n\r' | cut -c1-72)
+            git commit -m "docs: draft for ${SOURCE_REPO}#${PR_NUMBER} - ${PR_TITLE_SHORT}"
             git push origin "$BRANCH"
           fi
  
@@ -483,13 +484,16 @@ jobs:
             "| **Milestone** | ${MILESTONE_TITLE} |" \
             "<!-- dev-pr: ${SOURCE_REPO}#${PR_NUMBER} -->")
  
+          # Sanitize PR title for the docs PR title: same rules as commit message.
+          PR_TITLE_SHORT=$(printf '%s' "$PR_TITLE" | tr -d '\n\r' | cut -c1-72)
+ 
           # Open as a draft so a human must explicitly un-draft before merging.
           # This is the primary control against auto-committing injected content.
           URL=$(gh pr create \
             --repo mattermost/docs \
             --head "$BRANCH" \
             --base "${{ steps.base-branch.outputs.base }}" \
-            --title "docs: ${PR_TITLE}" \
+            --title "docs: ${PR_TITLE_SHORT}" \
             --body "$BODY" \
             --milestone "$MILESTONE_NUMBER" \
             --draft)
