@@ -1346,6 +1346,10 @@ type PageStore interface {
 	// Uses DBXFromContext to respect master flag for read-after-write consistency.
 	GetPage(rctx request.CTX, pageID string, includeDeleted bool) (*model.Post, error)
 
+	// GetPagesByIDs fetches multiple pages by their IDs in a single query.
+	// Missing IDs are silently omitted from the result.
+	GetPagesByIDs(rctx request.CTX, pageIDs []string) ([]*model.Post, error)
+
 	// DeletePage soft-deletes a page and all its associated data (comments and drafts).
 	// It also atomically reparents any child pages to newParentID (or makes them root pages if empty).
 	DeletePage(pageID string, deleteByID string, newParentID string) error
@@ -1362,8 +1366,14 @@ type PageStore interface {
 	// GetPageAncestors fetches all ancestors of a page up to the root
 	GetPageAncestors(postID string) (*model.PostList, error)
 
-	// GetChannelPages fetches all pages in a channel
-	GetChannelPages(channelID string) (*model.PostList, error)
+	// GetChannelPages fetches a paginated page of full-content pages in a channel, ordered by
+	// CreateAt DESC. Use offset=0, limit=0 to load all pages (import paths only).
+	GetChannelPages(channelID string, offset, limit int) (*model.PostList, error)
+
+	// GetChannelPagesMeta fetches all pages in a channel without the Message (TipTap content)
+	// field. Used for cross-wiki merged list views where content is not needed and loading all
+	// pages into memory must be cheap.
+	GetChannelPagesMeta(channelID string) (*model.PostList, error)
 
 	// GetSiblingPages fetches all sibling pages (pages with the same parent) for a given parent.
 	// If parentID is empty, returns root-level pages in the channel.

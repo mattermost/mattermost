@@ -16,6 +16,8 @@ export function makeInitialPagesState(overrides: Partial<PagesState> = {}): Page
         lastDraftsInvalidated: {},
         publishedDraftTimestamps: {},
         deletedDraftTimestamps: {},
+        commentsById: {} as Record<string, Post>,
+        commentsByPageId: {},
         ...overrides,
     };
 }

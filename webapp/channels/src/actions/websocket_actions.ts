@@ -115,7 +115,7 @@ import {
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getFeatureFlagValue, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
-import {getPageById} from 'mattermost-redux/selectors/entities/pages';
+import {getPageById, getPageCommentById} from 'mattermost-redux/selectors/entities/pages';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -1278,10 +1278,10 @@ export function handlePageDeletedEvent(msg: WebSocketMessage) {
     const pageId = eventData.page_id;
     const wikiId = eventData.wiki_id;
 
-    dispatch({
-        type: WikiTypes.DELETED_PAGE,
-        data: {id: pageId, wikiId},
-    });
+    dispatch(batchActions([
+        {type: WikiTypes.DELETED_PAGE, data: {id: pageId, wikiId}},
+        {type: PostTypes.POST_REMOVED, data: {id: pageId, root_id: ''}},
+    ]));
 }
 
 interface PageTitleUpdatedEventData {
@@ -1416,6 +1416,8 @@ function handlePageCommentCreatedEvent(msg: WebSocketMessage) {
     // getMyChannelMember(post.channel_id) — the wiki backing channel — and trigger
     // sendDesktopNotification with a backing-channel URL, leaking the substrate.
     const crtEnabled = isCollapsedThreadsEnabled(getState());
+    // Dual-dispatch: wiki store for wiki RHS isolation, posts store for channel feed
+    dispatch({type: WikiTypes.RECEIVED_PAGE_COMMENT, data: {comment}});
     dispatch(receivedNewPost(comment, crtEnabled));
 
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([comment]));
@@ -1430,7 +1432,7 @@ export function handlePageCommentResolvedEvent(msg: WebSocketMessage) {
     const commentId = eventData.comment_id;
 
     const state = getState();
-    const comment = getPost(state, commentId);
+    const comment = getPageCommentById(state, commentId);
     if (comment) {
         const updated = {
             ...comment,
@@ -1441,7 +1443,8 @@ export function handlePageCommentResolvedEvent(msg: WebSocketMessage) {
                 resolved_by: eventData.resolved_by,
             },
         };
-        dispatch(receivedPost(updated));
+        dispatch({type: WikiTypes.RECEIVED_PAGE_COMMENT, data: {comment: updated}});
+        dispatch(receivedPost(updated as Post, false));
     }
 }
 
@@ -1450,26 +1453,28 @@ export function handlePageCommentUnresolvedEvent(msg: WebSocketMessage) {
     const commentId = eventData.comment_id;
 
     const state = getState();
-    const comment = getPost(state, commentId);
+    const comment = getPageCommentById(state, commentId);
     if (comment) {
         const props = {...(comment.props ?? {})};
         delete props.comment_resolved;
         delete props.resolved_at;
         delete props.resolved_by;
         const updated = {...comment, props};
-        dispatch(receivedPost(updated));
+        dispatch({type: WikiTypes.RECEIVED_PAGE_COMMENT, data: {comment: updated}});
+        dispatch(receivedPost(updated as Post, false));
     }
 }
 
 function handlePageCommentDeletedEvent(msg: WebSocketMessage) {
     const eventData = msg.data as {comment_id: string; page_id: string};
     const commentId = eventData.comment_id;
+    const pageId = eventData.page_id;
 
-    const state = getState();
-    const comment = getPost(state, commentId);
+    const comment = getPageCommentById(getState(), commentId);
     if (comment) {
         dispatch(postDeleted(comment));
     }
+    dispatch({type: WikiTypes.DELETED_PAGE_COMMENT, data: {commentId, pageId}});
 }
 
 interface WikiCreatedEventData {

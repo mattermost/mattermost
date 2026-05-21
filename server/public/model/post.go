@@ -136,6 +136,11 @@ const (
 	PostPropsExpireAt            = "expire_at"
 	PostPropsReadDurationSeconds = "read_duration"
 
+	// Page translation props — writable only via the wiki-scoped props endpoint.
+	PostPropsPageTranslatedFrom      = "translated_from"
+	PostPropsPageTranslationLanguage = "translation_language"
+	PostPropsPageTranslations        = "translations"
+
 	PostContextKeyIsScheduledPost PostContextKey = "isScheduledPost"
 )
 
@@ -154,6 +159,12 @@ var WikiPostTypes = []string{PostTypePage, PostTypePageComment, PostTypePageMent
 // mention activity appears in the channel when ShowMentionsInChannelFeed is enabled.
 // page_comment is also visible (inline comment activity appears in the chat timeline).
 var WikiPostTypesHiddenInFeed = []string{PostTypePage}
+
+// WikiPostTypesHiddenInThreads is the set of wiki post types that must not appear in the
+// global Threads view. PostTypePageComment is intentionally excluded from this set: page
+// comments are discussion threads and must surface in global threads with wiki-specific
+// rendering (see thread_item.tsx). Only the raw page post and mention posts are suppressed.
+var WikiPostTypesHiddenInThreads = []string{PostTypePage, PostTypePageMention}
 
 // IsWikiPostType returns true if the given post type is a wiki-domain post.
 func IsWikiPostType(postType string) bool {
@@ -183,6 +194,7 @@ type Post struct {
 	propsMu       sync.RWMutex    `db:"-"`                   // Unexported mutex used to guard Post.Props.
 	Props         StringInterface `json:"props" xml:"Props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags" xml:"Hashtags"`
+	PageSearchText string         `json:"page_search_text,omitempty" xml:"PageSearchText"`
 	Filenames     StringArray     `json:"-" xml:"-"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids" xml:"FileIds>Id"`
 	PendingPostId string          `json:"pending_post_id" xml:"PendingPostId"`
@@ -407,6 +419,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.Type = o.Type
 	dst.Props = o.Props
 	dst.Hashtags = o.Hashtags
+	dst.PageSearchText = o.PageSearchText
 	dst.Filenames = o.Filenames
 	dst.FileIds = o.FileIds
 	dst.PendingPostId = o.PendingPostId
@@ -654,6 +667,7 @@ func (o *Post) SanitizeProps() {
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
 	o.RemoteId = NewPointer("")
+	o.PageSearchText = ""
 
 	if o.Metadata != nil {
 		o.Metadata.Embeds = nil

@@ -5853,7 +5853,7 @@ func (c *Client4) GetPageDraft(ctx context.Context, wikiId, pageId string) (*Pag
 func (c *Client4) SavePageDraft(ctx context.Context, wikiId, pageId, content string, lastUpdateAt int64) (*PageDraft, *Response, error) {
 	payload := map[string]any{
 		"content":       content,
-		"title":         "",
+		"title":         "Untitled",
 		"last_updateat": lastUpdateAt,
 		"props":         nil,
 	}
@@ -8227,6 +8227,16 @@ func (c *Client4) UpdatePage(ctx context.Context, wikiId, pageId, title, content
 		payload["base_edit_at"] = baseEditAt
 	}
 	r, err := c.doAPIPutJSON(ctx, c.wikiPageRoute(wikiId, pageId), payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
+// PatchPageProps updates the allowlisted translation props on a page without modifying content.
+func (c *Client4) PatchPageProps(ctx context.Context, wikiId, pageId string, props StringInterface) (*Post, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.wikiPageRoute(wikiId, pageId).Join("props"), map[string]any{"props": props})
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

@@ -123,6 +123,12 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                         focusOriginElement: 'sidebar.tsx',
                     },
                 });
+            } else if (isKeyPressed(event, Constants.KeyCodes.BACK_SLASH) && !event.shiftKey) {
+                // Bug B12: Ctrl/Cmd+\ collapses the desktop LHS sidebar from anywhere,
+                // including from within the wiki view (TipTap editor does not bind this
+                // combo, so it bubbles up to this window-level listener).
+                event.preventDefault();
+                document.body.classList.toggle('lhs-desktop-collapsed');
             }
         }
     };

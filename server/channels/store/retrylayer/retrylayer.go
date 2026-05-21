@@ -8301,11 +8301,32 @@ func (s *RetryLayerPageStore) DeletePage(pageID string, deleteByID string, newPa
 
 }
 
-func (s *RetryLayerPageStore) GetChannelPages(channelID string) (*model.PostList, error) {
+func (s *RetryLayerPageStore) GetChannelPages(channelID string, offset int, limit int) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PageStore.GetChannelPages(channelID)
+		result, err := s.PageStore.GetChannelPages(channelID, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageStore) GetChannelPagesMeta(channelID string) (*model.PostList, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageStore.GetChannelPagesMeta(channelID)
 		if err == nil {
 			return result, nil
 		}
@@ -8348,6 +8369,27 @@ func (s *RetryLayerPageStore) GetPage(rctx request.CTX, pageID string, includeDe
 	tries := 0
 	for {
 		result, err := s.PageStore.GetPage(rctx, pageID, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageStore) GetPagesByIDs(rctx request.CTX, pageIDs []string) ([]*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageStore.GetPagesByIDs(rctx, pageIDs)
 		if err == nil {
 			return result, nil
 		}

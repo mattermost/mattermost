@@ -111,12 +111,42 @@ func (_m *PageStore) DeletePage(pageID string, deleteByID string, newParentID st
 	return r0
 }
 
-// GetChannelPages provides a mock function with given fields: channelID
-func (_m *PageStore) GetChannelPages(channelID string) (*model.PostList, error) {
-	ret := _m.Called(channelID)
+// GetChannelPages provides a mock function with given fields: channelID, offset, limit
+func (_m *PageStore) GetChannelPages(channelID string, offset int, limit int) (*model.PostList, error) {
+	ret := _m.Called(channelID, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetChannelPages")
+	}
+
+	var r0 *model.PostList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int, int) (*model.PostList, error)); ok {
+		return rf(channelID, offset, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, int, int) *model.PostList); ok {
+		r0 = rf(channelID, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
+		r1 = rf(channelID, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetChannelPagesMeta provides a mock function with given fields: channelID
+func (_m *PageStore) GetChannelPagesMeta(channelID string) (*model.PostList, error) {
+	ret := _m.Called(channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelPagesMeta")
 	}
 
 	var r0 *model.PostList
@@ -194,6 +224,36 @@ func (_m *PageStore) GetPage(rctx request.CTX, pageID string, includeDeleted boo
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
 		r1 = rf(rctx, pageID, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPagesByIDs provides a mock function with given fields: rctx, pageIDs
+func (_m *PageStore) GetPagesByIDs(rctx request.CTX, pageIDs []string) ([]*model.Post, error) {
+	ret := _m.Called(rctx, pageIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPagesByIDs")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) ([]*model.Post, error)); ok {
+		return rf(rctx, pageIDs)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) []*model.Post); ok {
+		r0 = rf(rctx, pageIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, []string) error); ok {
+		r1 = rf(rctx, pageIDs)
 	} else {
 		r1 = ret.Error(1)
 	}

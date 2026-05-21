@@ -6652,10 +6652,10 @@ func (s *TimerLayerPageStore) DeletePage(pageID string, deleteByID string, newPa
 	return err
 }
 
-func (s *TimerLayerPageStore) GetChannelPages(channelID string) (*model.PostList, error) {
+func (s *TimerLayerPageStore) GetChannelPages(channelID string, offset int, limit int) (*model.PostList, error) {
 	start := time.Now()
 
-	result, err := s.PageStore.GetChannelPages(channelID)
+	result, err := s.PageStore.GetChannelPages(channelID, offset, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6664,6 +6664,22 @@ func (s *TimerLayerPageStore) GetChannelPages(channelID string) (*model.PostList
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetChannelPages", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetChannelPagesMeta(channelID string) (*model.PostList, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetChannelPagesMeta(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetChannelPagesMeta", success, elapsed)
 	}
 	return result, err
 }
@@ -6696,6 +6712,22 @@ func (s *TimerLayerPageStore) GetPage(rctx request.CTX, pageID string, includeDe
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetPage", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetPagesByIDs(rctx request.CTX, pageIDs []string) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetPagesByIDs(rctx, pageIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetPagesByIDs", success, elapsed)
 	}
 	return result, err
 }

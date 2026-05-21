@@ -2343,6 +2343,13 @@ export default class Client4 {
         );
     };
 
+    patchPageProps = (wikiId: string, pageId: string, props: Record<string, unknown>) => {
+        return this.doFetch<Post>(
+            `${this.getWikiPageRoute(wikiId, pageId)}/props`,
+            {method: 'PATCH', body: JSON.stringify({props})},
+        );
+    };
+
     // movePage moves a page within the hierarchy. Can change parent and/or reorder among siblings.
     // parentId: if provided, changes the page's parent (null/undefined = keep current parent, empty string = move to root)
     // siblingIndex: if provided, reorders the page to this position among siblings
@@ -5115,7 +5122,7 @@ export default class Client4 {
     getPageDraft = (wikiId: string, pageId: string) => {
         return this.doFetch<PageDraft>(
             `${this.getWikiRoute(wikiId)}/drafts/${pageId}`,
-            {method: 'get'},
+            {method: 'GET'},
         );
     };
 
@@ -5123,7 +5130,7 @@ export default class Client4 {
         return this.doFetch<PageDraft>(
             `${this.getWikiRoute(wikiId)}/drafts`,
             {
-                method: 'post',
+                method: 'POST',
                 body: JSON.stringify({title, page_parent_id: pageParentId || ''}),
             },
         );
@@ -5133,7 +5140,7 @@ export default class Client4 {
         return this.doFetch<PageDraft>(
             `${this.getWikiRoute(wikiId)}/drafts/${pageId}`,
             {
-                method: 'put',
+                method: 'PUT',
                 body: JSON.stringify({content, title, last_updateat: lastUpdateAt || 0, props}),
             },
         );
@@ -5142,14 +5149,14 @@ export default class Client4 {
     deletePageDraft = (wikiId: string, pageId: string) => {
         return this.doFetch<null>(
             `${this.getWikiRoute(wikiId)}/drafts/${pageId}`,
-            {method: 'delete'},
+            {method: 'DELETE'},
         );
     };
 
     movePageDraft = (wikiId: string, pageId: string, parentId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getWikiRoute(wikiId)}/drafts/${pageId}/move`,
-            {method: 'post', body: JSON.stringify({parent_id: parentId})},
+            {method: 'POST', body: JSON.stringify({parent_id: parentId})},
         );
     };
 
@@ -5157,14 +5164,14 @@ export default class Client4 {
         // Use keepalive to ensure request completes even if page is navigating away
         return this.doFetch<null>(
             `${this.getWikiRoute(wikiId)}/drafts/${pageId}/editor_stopped`,
-            {method: 'post', keepalive: true},
+            {method: 'POST', keepalive: true},
         );
     };
 
     getPageDraftsForWiki = (wikiId: string) => {
         return this.doFetch<PageDraft[]>(
             `${this.getWikiRoute(wikiId)}/drafts`,
-            {method: 'get'},
+            {method: 'GET'},
         );
     };
 

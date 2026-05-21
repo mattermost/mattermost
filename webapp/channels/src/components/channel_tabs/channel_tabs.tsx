@@ -149,24 +149,6 @@ interface Props {
     channelId: string;
 }
 
-const tabs: TabConfig[] = [
-    {
-        id: 'messages',
-        label: 'Messages',
-        icon: 'icon-message-text-outline',
-    },
-    {
-        id: 'wiki',
-        label: 'Wiki',
-        icon: 'icon-file-multiple-outline',
-    },
-    {
-        id: 'bookmarks',
-        label: 'Bookmarks',
-        icon: 'icon-bookmark-outline',
-    },
-];
-
 const MAX_VISIBLE_WIKI_TABS = 2;
 
 function ChannelTabs({
@@ -175,6 +157,24 @@ function ChannelTabs({
     channelId,
 }: Props) {
     const {formatMessage} = useIntl();
+
+    const tabs = useMemo<TabConfig[]>(() => [
+        {
+            id: 'messages',
+            label: formatMessage({id: 'channel_tabs.messages', defaultMessage: 'Messages'}),
+            icon: 'icon-message-text-outline',
+        },
+        {
+            id: 'wiki',
+            label: formatMessage({id: 'channel_tabs.wiki', defaultMessage: 'Wiki'}),
+            icon: 'icon-file-multiple-outline',
+        },
+        {
+            id: 'bookmarks',
+            label: formatMessage({id: 'channel_tabs.bookmarks', defaultMessage: 'Bookmarks'}),
+            icon: 'icon-bookmark-outline',
+        },
+    ], [formatMessage]);
     const dispatch = useDispatch();
     const history = useHistory();
     const tabRefs = useRef<{[key: string]: HTMLButtonElement | null}>({});
@@ -335,6 +335,8 @@ function ChannelTabs({
     }, [activeTab, hasWikiPages, onTabChange]);
 
     const handleTabClick = useCallback((tabId: TabType) => {
+        // eslint-disable-next-line no-console
+        console.log('[TRACE][channel_tabs] handleTabClick', {tabId, currentUrl: window.location.pathname, teamName});
         if (tabId === 'bookmarks') {
             return;
         }
@@ -342,7 +344,12 @@ function ChannelTabs({
         // If it's a wiki tab, navigate to the wiki URL
         if (tabId.startsWith('wiki-')) {
             const wikiId = tabId.replace('wiki-', '');
-            history.push(getWikiUrl(teamName, wikiId));
+            const targetUrl = getWikiUrl(teamName, wikiId);
+            // eslint-disable-next-line no-console
+            console.log('[TRACE][channel_tabs] wiki tab → history.push', {targetUrl, wikiId, teamName});
+            history.push(targetUrl);
+            // eslint-disable-next-line no-console
+            console.log('[TRACE][channel_tabs] after history.push, url now:', window.location.pathname);
             return;
         }
 
@@ -492,12 +499,20 @@ function ChannelTabs({
                 <Menu.Container
                     menuButton={{
                         id: 'add-tab-content',
-                        'aria-label': formatMessage({id: 'channel_tabs.add_tab_content', defaultMessage: 'Add content'}),
-                        class: 'channel-tabs-container__action-button',
-                        children: <i className='icon icon-plus'/>,
+                        'aria-label': formatMessage({id: 'channel_tabs.add_wiki', defaultMessage: 'Add wiki'}),
+                        class: 'channel-tabs-container__action-button channel-tabs-container__action-button--labeled',
+                        children: (
+                            <>
+                                <i className='icon icon-plus'/>
+                                <FormattedMessage
+                                    id='channel_tabs.add_wiki'
+                                    defaultMessage='Add wiki'
+                                />
+                            </>
+                        ),
                     }}
                     menuButtonTooltip={{
-                        text: formatMessage({id: 'channel_tabs.add_new_tab', defaultMessage: 'Add new tab'}),
+                        text: formatMessage({id: 'channel_tabs.add_wiki', defaultMessage: 'Add wiki'}),
                     }}
                     menu={{
                         id: 'add-tab-content-menu',

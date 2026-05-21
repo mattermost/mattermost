@@ -213,16 +213,13 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
-        // posts reducer — reject non-post objects (pages, future boards cards)
         if (NON_POST_TYPES.has(action.data?.type)) {
             return state;
         }
-        const result = handlePostReceived({...state}, action.data);
-        return result;
+        return handlePostReceived({...state}, action.data);
     }
 
     case PostTypes.RECEIVED_POSTS: {
-        // posts reducer — reject non-post objects from bulk fetch
         const posts = (Object.values(action.data.posts) as Post[]).filter(
             (p) => !NON_POST_TYPES.has(p.type),
         );
@@ -1232,20 +1229,8 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
         const postsForThread = state[action.rootId] || [];
         const nextPostsForThread = [...postsForThread];
 
-        // Check if this is a page comment thread (inline comment with empty root_id)
-        const rootPost = prevPosts[action.rootId];
-        const isPageCommentThread = rootPost && rootPost.type === 'page_comment' && rootPost.root_id === '';
-
         for (const post of newPosts) {
-            if (isPageCommentThread) {
-                // For page comment threads: only include replies, NOT the root inline comment itself
-                const isReply = post.root_id === action.rootId;
-
-                if (!isReply) {
-                    continue;
-                }
-            } else if (post.root_id !== action.rootId) {
-                // Original logic for regular threads: only store comments
+            if (post.root_id !== action.rootId) {
                 continue;
             }
 

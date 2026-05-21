@@ -625,6 +625,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		// either all IDs were wiki-filtered or none existed. Both cases are valid empty-list
 		// responses for a "give me what you can access" endpoint: return 200 + [].
 		if appErr.StatusCode == http.StatusNotFound && appErr.Id == "app.post.get.app_error" {
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "0")
 			if err := json.NewEncoder(w).Encode([]*model.Post{}); err != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
@@ -699,9 +700,7 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var isMember bool
-	var ok bool
-	ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
+	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
 	if !ok {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
@@ -1102,9 +1101,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var isMember bool
-	var ok bool
-	ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
+	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
 	if !ok {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
@@ -1260,6 +1257,10 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 		c.SetPostNotFoundError()
 		return false
 	}
+	if app.IsPagePost(originalPost) {
+		c.SetPostNotFoundError()
+		return false
+	}
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
@@ -1274,9 +1275,7 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 		permission = model.PermissionEditOthersPosts
 	}
 
-	var isMember bool
-	var ok bool
-	ok, isMember = c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
+	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
 	if !ok {
 		c.SetPermissionError(permission)
 		return false

@@ -445,7 +445,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
             // follow thread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && !isShiftKeyPressed:
-            if (this.props.canFollowThread) {
+            if (this.props.canFollowThread && !this.props.isPageComment) {
                 forceCloseMenu();
                 this.handleSetThreadFollow();
             }
@@ -491,7 +491,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
             // pin / unpin
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.P):
-            if (this.props.canPin && !this.props.isReadOnly) {
+            if (this.props.canPin && !this.props.isReadOnly && !this.props.isPageComment) {
                 forceCloseMenu();
                 this.handlePinMenuItemActivated();
             }
@@ -499,8 +499,10 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
             // save / unsave
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.S):
-            forceCloseMenu();
-            this.handleFlagMenuItemActivated();
+            if (!this.props.isPageComment) {
+                forceCloseMenu();
+                this.handleFlagMenuItemActivated();
+            }
             break;
 
             // mark as unread
@@ -614,11 +616,11 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showReply = !isSystemMessage && !isBurnOnReadPost && this.props.location === Locations.CENTER;
         const showForward = this.props.canForward;
         const showReactions = Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker);
-        const showFollowPost = this.props.canFollowThread;
-        const showMarkAsUnread = Boolean(!isSystemMessage && !this.props.channelIsArchived && this.props.location !== Locations.SEARCH);
-        const showSave = !isSystemMessage && !this.props.isUnrevealedBurnOnReadPost;
-        const showRemind = !isSystemMessage;
-        const showPin = Boolean(!isSystemMessage && !this.props.isReadOnly && !isBurnOnReadPost);
+        const showFollowPost = this.props.canFollowThread && !this.props.isPageComment;
+        const showMarkAsUnread = Boolean(!isSystemMessage && !this.props.channelIsArchived && this.props.location !== Locations.SEARCH && !this.props.isPageComment);
+        const showSave = !isSystemMessage && !this.props.isUnrevealedBurnOnReadPost && !this.props.isPageComment;
+        const showRemind = !isSystemMessage && !this.props.isPageComment;
+        const showPin = Boolean(!isSystemMessage && !this.props.isReadOnly && !isBurnOnReadPost && !this.props.isPageComment);
         const showMove = Boolean(!isSystemMessage && this.props.canMove);
         const showShowTranslation = !isSystemMessage && showTranslation;
         const showCopyText = !isSystemMessage && !isBurnOnReadPost;

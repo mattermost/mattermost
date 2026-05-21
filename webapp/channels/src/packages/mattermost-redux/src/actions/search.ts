@@ -7,9 +7,9 @@ import type {FileSearchResults, FileSearchResultItem} from '@mattermost/types/fi
 import type {PostList, PostSearchResults} from '@mattermost/types/posts';
 import type {SearchParameter} from '@mattermost/types/search';
 
-import {SearchTypes, WikiTypes} from 'mattermost-redux/action_types';
+import {SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
+import {PostTypes} from 'mattermost-redux/constants';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
@@ -30,6 +30,11 @@ export function getMissingChannelsFromPosts(posts: PostList['posts']): ThunkActi
         } = getState().entities.channels;
         const promises: Array<Promise<ActionResult>> = [];
         Object.values(posts).forEach((post) => {
+            // Page posts use a wiki backing channel that is not visible to users;
+            // fetching it here causes spurious channel loading.
+            if (post.type === PostTypes.PAGE) {
+                return;
+            }
             const id = post.channel_id;
 
             if (!channels[id]) {
@@ -115,10 +120,6 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
             return {error};
         }
 
-        const pagePostsFromSearch = Object.values(posts.posts).filter(
-            (p) => p.type === PostTypeConstants.PAGE,
-        );
-
         const batchedActions = [
             {
                 type: SearchTypes.RECEIVED_SEARCH_POSTS,
@@ -127,13 +128,6 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
             },
             receivedPosts(posts),
         ];
-
-        if (pagePostsFromSearch.length > 0) {
-            batchedActions.push({
-                type: WikiTypes.RECEIVED_PAGES,
-                data: {pages: pagePostsFromSearch},
-            } as any);
-        }
 
         batchedActions.push(
             {

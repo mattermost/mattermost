@@ -242,6 +242,8 @@ const state: GlobalState = {
             lastDraftsInvalidated: {},
             publishedDraftTimestamps: {},
             deletedDraftTimestamps: {},
+            commentsById: {},
+            commentsByPageId: {},
         },
         wikis: {
             byId: {},

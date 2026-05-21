@@ -77,6 +77,14 @@
         .icon {
             font-size: 14px;
         }
+
+        &--labeled {
+            width: auto;
+            gap: 4px;
+            padding: 0 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
     }
 }
 

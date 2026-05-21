@@ -95,32 +95,16 @@ func PageSystemPostTypes() []string {
 	}
 }
 
-// PagePostTypes returns the list of post types related to pages/wiki functionality.
-// Use this for filtering or cleanup queries that need to target page-related posts.
-func PagePostTypes() []string {
-	return []string{
-		model.PostTypePage,
-		model.PostTypePageComment,
-		model.PostTypePageMention,
-		model.PostTypePageAdded,
-		model.PostTypePageUpdated,
-		model.PostTypeWikiAdded,
-		model.PostTypeWikiDeleted,
-	}
-}
-
 // AddRegularPostsFilter adds the page exclusion filter to a query builder.
 // Use this for any query that should operate only on messages, not pages.
 // tableAlias should be the alias used for the Posts table in the query (e.g., "p" or "Posts").
 // Note: page_comment is NOT excluded - it should appear in channel feeds.
 // This is a standalone function (not a method) so it can be used by any store file.
 func AddRegularPostsFilter(qb sq.SelectBuilder, tableAlias string) sq.SelectBuilder {
-	if tableAlias == "" {
-		tableAlias = "Posts"
-	}
 	// Exclude only page (actual page content) from channel feeds.
 	// page_comment and page_mention are intentionally NOT excluded so inline comments
 	// and mention notifications appear in the channel.
+	// Type IS NULL guard is necessary: the column is nullable and SQL's `NULL != 'page'` evaluates to NULL, not TRUE.
 	return qb.Where(sq.Or{
 		sq.NotEq{tableAlias + ".Type": model.PostTypePage},
 		sq.Eq{tableAlias + ".Type": nil},
@@ -150,6 +134,7 @@ func postSliceColumnsWithTypes() []struct {
 		{"Type", reflect.String},
 		{"Props", reflect.Map},
 		{"Hashtags", reflect.String},
+		{"PageSearchText", reflect.String},
 		{"Filenames", reflect.Slice},
 		{"FileIds", reflect.Slice},
 		{"HasReactions", reflect.Bool},
@@ -174,6 +159,7 @@ func postToSlice(post *model.Post) []any {
 		post.Type,
 		model.StringInterfaceToJSON(post.Props),
 		post.Hashtags,
+		post.PageSearchText,
 		model.ArrayToJSON(post.Filenames),
 		model.ArrayToJSON(post.FileIds),
 		post.HasReactions,
@@ -501,6 +487,7 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 			Type=:Type,
 			Props=:Props,
 			Hashtags=:Hashtags,
+			PageSearchText=:PageSearchText,
 			Filenames=:Filenames,
 			FileIds=:FileIds,
 			HasReactions=:HasReactions,
@@ -567,6 +554,7 @@ func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) 
 					Type=:Type,
 					Props=:Props,
 					Hashtags=:Hashtags,
+					PageSearchText=:PageSearchText,
 					Filenames=:Filenames,
 					FileIds=:FileIds,
 					HasReactions=:HasReactions,
@@ -1641,11 +1629,8 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		}})
 	}
 
-	if len(options.ExcludedPostTypes) > 0 {
-		query = query.Where(sq.NotEq{"Posts.Type": options.ExcludedPostTypes})
-	} else {
-		query = query.Where(sq.NotEq{"Posts.Type": []string{model.PostTypePage, model.PostTypePageComment}})
-	}
+	excludedTypes := append([]string{model.PostTypePage, model.PostTypePageComment}, options.ExcludedPostTypes...)
+	query = query.Where(sq.NotEq{"Posts.Type": excludedTypes})
 
 	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
@@ -2438,7 +2423,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			var wikiFilterClauses []string
 			var pageSearchArgs []any
 			wikiFilterClauses = append(wikiFilterClauses, "q2.Type = '"+model.PostTypePage+"'")
-			wikiFilterClauses = append(wikiFilterClauses, fmt.Sprintf("to_tsvector('%s', COALESCE(q2.Props->>'title', '') || ' ' || q2.Message) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg))
+			wikiFilterClauses = append(wikiFilterClauses, fmt.Sprintf("to_tsvector('%s', COALESCE(q2.Props->>'title', '') || ' ' || COALESCE(q2.PageSearchText, '')) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg))
 			pageSearchArgs = append(pageSearchArgs, tsQueryClause)
 
 			// Apply wiki ID filter if specified

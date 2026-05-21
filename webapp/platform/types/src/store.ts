@@ -111,6 +111,8 @@ export type GlobalState = {
             lastDraftsInvalidated: Record<string, number>;
             publishedDraftTimestamps: Record<string, number>;
             deletedDraftTimestamps: Record<string, number>;
+            commentsById: Record<string, Post>;
+            commentsByPageId: Record<string, string[]>;
         };
         wikis: WikisState;
         activeEditors: {

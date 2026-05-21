@@ -60,6 +60,8 @@ export default class ChannelView extends React.PureComponent<Props, State> {
 
         if (props.match.url !== state.url || props.channelId !== state.channelId) {
             const activeTab = getActiveTabFromRoute(props.match);
+            // eslint-disable-next-line no-console
+            console.log('[channel_view] getDerivedStateFromProps update', {prevUrl: state.url, newUrl: props.match.url, prevChannelId: state.channelId, newChannelId: props.channelId, prevActiveTab: state.activeTab, newActiveTab: activeTab, matchPath: props.match.path});
             updatedState = {deferredPostView: ChannelView.createDeferredPostView(), url: props.match.url, channelId: props.channelId, focusedPostId, activeTab};
         }
 
@@ -102,6 +104,8 @@ export default class ChannelView extends React.PureComponent<Props, State> {
     };
 
     onTabChange = (tabId: string) => {
+        // eslint-disable-next-line no-console
+        console.log('[TRACE][channel_view] onTabChange', {tabId, url: window.location.pathname});
         this.setState({activeTab: tabId});
     };
 
