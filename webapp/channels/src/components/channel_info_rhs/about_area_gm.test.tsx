@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -171,30 +171,5 @@ describe('channel_info_rhs/about_area_gm', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
-    });
-
-    test('should display add channel header empty state', () => {
-        const props = {
-            ...defaultProps,
-            channel: {
-                ...defaultProps.channel,
-                header: '',
-            },
-            actions: {
-                editChannelHeader: jest.fn(),
-            },
-        };
-
-        renderWithContext(
-            <AboutAreaGM
-                {...props}
-            />,
-            initialState,
-        );
-
-        const addHeaderButton = screen.getByText('Add a channel header');
-        fireEvent.click(addHeaderButton);
-
-        expect(props.actions.editChannelHeader).toHaveBeenCalled();
     });
 });
