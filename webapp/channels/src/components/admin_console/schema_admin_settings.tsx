@@ -410,7 +410,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             };
 
             let sourceData: string | Partial<AdminConfig>;
-            if (setting.sourceConfig) {
+            if (setting.sourceConfig && this.props.schema) {
                 const cloned = JSON.parse(JSON.stringify(this.props.config));
                 sourceData = getConfigFromState(cloned, this.state, this.props.schema, this.isDisabled);
             } else {
