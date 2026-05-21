@@ -55,4 +55,41 @@ describe('components/Markdown', () => {
         const {container} = renderWithContext(<Markdown {...props}/>);
         expect(container).toMatchSnapshot();
     });
+
+    describe('ordered lists', () => {
+        test('should start lists at the correct number and set padding based on the final number', () => {
+            const {rerender} = renderWithContext(<Markdown {...baseProps}/>);
+
+            for (const [startIndex, endIndex, expectedPadding] of [
+                [1, 9, '2.5ch'],
+                [5, 10, '3.5ch'],
+                [10, 99, '3.5ch'],
+                [50, 150, '4.5ch'],
+                [1, 1000, '5.5ch'],
+                [999999, 1000000, '8.5ch'],
+            ] as const) {
+                let message = '';
+                for (let i = startIndex; i <= endIndex; i++) {
+                    message += `${i}. item\n`;
+                }
+
+                rerender(
+                    <Markdown
+                        {...baseProps}
+                        message={message}
+                    />,
+                );
+
+                const list = document.querySelector('ol.markdown__list');
+                expect(list).toBeDefined();
+
+                expect(getComputedStyle(list!)).toMatchObject({
+
+                    // This value starts at one less than what's displayed to users
+                    'counter-reset': `list ${startIndex - 1}`,
+                    'padding-left': expectedPadding,
+                });
+            }
+        });
+    });
 });

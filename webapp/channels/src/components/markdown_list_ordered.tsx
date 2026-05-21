@@ -6,7 +6,7 @@ import React, {useMemo} from 'react';
 export interface MarkdownListOrderedProps extends React.OlHTMLAttributes<HTMLOListElement> {}
 
 export default function MarkdownListOrdered({children, start = 1, ...otherProps}: MarkdownListOrderedProps) {
-    const end = start + React.Children.count(children) + 1;
+    const end = (start + React.Children.count(children)) - 1;
 
     const style = useMemo<React.CSSProperties>(() => {
         const digits = end.toString().length;
