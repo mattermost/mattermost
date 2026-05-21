@@ -238,6 +238,21 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(screen.getByText('my channel header')).toBeInTheDocument();
     });
 
+    test('should display add channel header empty state when header is empty', () => {
+        renderWithContext(
+            <AboutAreaDM
+                {...defaultProps}
+                channel={{
+                    ...defaultProps.channel,
+                    header: '',
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
     test('should not display channel header for bots', () => {
         const props = {
             ...defaultProps,

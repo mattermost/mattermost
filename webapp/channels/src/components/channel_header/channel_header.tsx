@@ -28,6 +28,7 @@ import {
 import {canPopout, isChannelPopoutWindow, popoutChannel} from 'utils/popouts/popout_windows';
 import {isEmptyObject} from 'utils/utils';
 
+import AddChannelHeaderButton from './add_channel_header_button';
 import ChannelHeaderText from './channel_header_text';
 import ChannelHeaderTitle from './channel_header_title';
 import ChannelInfoButton from './channel_info_button';
@@ -261,6 +262,7 @@ class ChannelHeader extends React.PureComponent<Props> {
         const channelFilesIconClass = classNames('channel-header__icon channel-header__icon--left btn btn-icon btn-xs ', {
             'channel-header__icon--active': rhsState === RHSStates.CHANNEL_FILES,
         });
+        const addHeaderIconClass = 'channel-header__icon channel-header__icon--left btn btn-icon btn-xs';
         const channelFilesIcon = <i className='icon icon-file-text-outline'/>;
         const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
             'channel-header__icon--active': rhsState === RHSStates.PIN,
@@ -409,6 +411,12 @@ class ChannelHeader extends React.PureComponent<Props> {
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>
                                     }
+                                    <AddChannelHeaderButton
+                                        channel={channel}
+                                        teamId={team?.id}
+                                        dmUser={dmUser}
+                                        buttonClass={addHeaderIconClass}
+                                    />
                                     <Pluggable
                                         pluggableName='ChannelHeaderIcon'
                                         channel={channel}
