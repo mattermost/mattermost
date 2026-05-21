@@ -361,6 +361,7 @@ func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
 	if resp.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("discovery endpoint returned unexpected status %d", resp.StatusCode)
 	}
+	// Cap the discovery document at 1 MiB; real OIDC discovery responses are a few KiB.
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
 		return errors.Wrap(err, "failed to read discovery response")
