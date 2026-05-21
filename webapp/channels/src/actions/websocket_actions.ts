@@ -1010,12 +1010,12 @@ export function handlePostEditEvent(msg: WebSocketMessages.PostEdited) {
                     return false;
                 }
                 const newest = postsDict[block.order[0]];
-                globalNewest = Math.max(globalNewest, newest.create_at);
-
                 const oldest = postsDict[block.order[block.order.length - 1]];
                 if (!newest || !oldest) {
                     return false;
                 }
+
+                globalNewest = Math.max(globalNewest, newest.create_at);
                 return post.create_at >= oldest.create_at && post.create_at <= newest.create_at;
             });
             if (inLoadedRange || post.create_at > globalNewest) {
