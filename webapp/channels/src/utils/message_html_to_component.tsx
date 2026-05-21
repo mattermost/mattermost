@@ -114,16 +114,11 @@ export default function messageHtmlToComponent(html: string, options: Options = 
             replaceChildren: false,
             shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'ol',
             processNode: (node: any, children: React.ReactNode, index?: number) => {
-                let start = parseInt(node.attribs.start, 10);
-                if (isNaN(start)) {
-                    start = 1;
-                }
-
                 return (
                     <MarkdownListOrdered
                         key={index}
                         className={node.attribs.class}
-                        start={start}
+                        start={node.attribs.start ? parseInt(node.attribs.start, 10) : undefined}
                     >
                         {children}
                     </MarkdownListOrdered>
