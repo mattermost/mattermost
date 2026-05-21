@@ -66,33 +66,67 @@ describe('ChannelHeaderText', () => {
         expect(container.childNodes.length).toBe(0);
     });
 
-    test('should return null for DM channels without header', () => {
+    test('should show add header button for DM channels without header', () => {
         const channel = TestHelper.getChannelMock({type: 'D', header: ''});
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
             />,
         );
 
-        expect(container.childNodes.length).toBe(0);
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
     });
 
-    test('should return null for GM channels without header', () => {
+    test('should show add header button for GM channels without header', () => {
         const channel = TestHelper.getChannelMock({type: 'G', header: ''});
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
             />,
         );
 
-        expect(container.childNodes.length).toBe(0);
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
     });
 
-    test('should return null for public channels without header regardless of permissions', () => {
+    test('should not show add header button when user lacks permission and channel does not have header', () => {
+        const channel = TestHelper.getChannelMock({
+            type: 'O',
+            header: '',
+        });
+
+        const state = {
+            entities: {
+                channels: {
+                    channels: {
+                        [channel.id]: channel,
+                    },
+                },
+                roles: {
+                    roles: {
+                        channel_user: {
+                            permissions: [],
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+            state,
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+    });
+
+    test('should show add header button when user has permission and channel does not have header', () => {
         const channel = TestHelper.getChannelMock({
             type: 'O',
             header: '',
@@ -132,7 +166,7 @@ describe('ChannelHeaderText', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelHeaderText
                 teamId={defaultTeamId}
                 channel={channel}
@@ -140,6 +174,6 @@ describe('ChannelHeaderText', () => {
             state,
         );
 
-        expect(container.childNodes.length).toBe(0);
+        expect(screen.getByText('Add a channel header')).toBeInTheDocument();
     });
 });
