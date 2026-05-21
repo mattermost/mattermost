@@ -38,6 +38,7 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{comment_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePageComment)).Methods(http.MethodDelete)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{comment_id:[A-Za-z0-9]+}/resolve", api.APISessionRequired(resolvePageComment)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{comment_id:[A-Za-z0-9]+}/unresolve", api.APISessionRequired(unresolvePageComment)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/props", api.APISessionRequired(patchPageProps)).Methods(http.MethodPatch)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/status", api.APISessionRequired(updatePageStatus)).Methods(http.MethodPatch)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/status", api.APISessionRequired(getPageStatus)).Methods(http.MethodGet)
 	api.BaseRoutes.Wikis.Handle("/page-status-field", api.APISessionRequired(getPageStatusField)).Methods(http.MethodGet)

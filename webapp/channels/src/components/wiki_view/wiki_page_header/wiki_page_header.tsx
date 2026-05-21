@@ -8,7 +8,9 @@ import {useDispatch, useSelector} from 'react-redux';
 import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {createBookmarkFromPage} from 'actions/channel_bookmarks';
+import {openPagesPanel, closePagesPanel} from 'actions/views/pages_hierarchy';
 import {hasUnpublishedChanges} from 'selectors/page_drafts';
+import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 
 import BookmarkChannelSelect from 'components/bookmark_channel_select';
 
@@ -33,7 +35,6 @@ type Props = {
     isFullscreen?: boolean;
     onToggleFullscreen?: () => void;
     onCreateChild?: () => void;
-    onRename?: () => void;
     onDuplicate?: () => void;
     onMove?: () => void;
     onDelete?: () => void;
@@ -45,6 +46,7 @@ type Props = {
     onTranslatePage?: () => void;
     isAIProcessing?: boolean;
     onCopyMarkdown?: () => void;
+    onGetPageContent?: () => string;
 };
 
 const WikiPageHeader = ({
@@ -61,7 +63,6 @@ const WikiPageHeader = ({
     isFullscreen,
     onToggleFullscreen,
     onCreateChild,
-    onRename,
     onDuplicate,
     onMove,
     onDelete,
@@ -73,12 +74,14 @@ const WikiPageHeader = ({
     onTranslatePage,
     isAIProcessing,
     onCopyMarkdown,
+    onGetPageContent,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
 
     const page = useSelector((state: GlobalState) => getPageById(state, pageId));
+    const isPanelCollapsed = useSelector(getIsPanesPanelCollapsed);
     const showUnpublishedIndicator = useSelector((state: GlobalState) => {
         if (isDraft || !pageId || !wikiId) {
             return false;
@@ -86,6 +89,10 @@ const WikiPageHeader = ({
         const pageContent = getPageById(state, pageId)?.message || '';
         return hasUnpublishedChanges(state, wikiId, pageId, pageContent);
     });
+
+    const handleTogglePanel = useCallback(() => {
+        dispatch(isPanelCollapsed ? openPagesPanel() : closePagesPanel());
+    }, [dispatch, isPanelCollapsed]);
 
     const handleBookmarkInChannel = useCallback(() => {
         setShowBookmarkModal(true);
@@ -138,6 +145,23 @@ const WikiPageHeader = ({
                             {formatMessage({id: 'wiki_page_header.unpublished_changes', defaultMessage: 'Unpublished changes'})}
                         </span>
                     )}
+                    <button
+                        className={`PagePane__icon-button btn btn-icon btn-sm${isPanelCollapsed ? '' : ' active'}`}
+                        aria-label={isPanelCollapsed ?
+                            formatMessage({id: 'wiki_page_header.show_outline', defaultMessage: 'Show outline'}) :
+                            formatMessage({id: 'wiki_page_header.hide_outline', defaultMessage: 'Hide outline'})}
+                        aria-pressed={!isPanelCollapsed}
+                        title={isPanelCollapsed ?
+                            formatMessage({id: 'wiki_page_header.show_outline', defaultMessage: 'Show outline'}) :
+                            formatMessage({id: 'wiki_page_header.hide_outline', defaultMessage: 'Hide outline'})}
+                        onClick={handleTogglePanel}
+                        data-testid='wiki-page-toggle-outline'
+                    >
+                        <i
+                            className='icon icon-format-list-bulleted'
+                            aria-hidden='true'
+                        />
+                    </button>
                     {(!isDraft || isExistingPage) && (
                         <button
                             className='PagePane__icon-button btn btn-icon btn-sm'
@@ -184,7 +208,6 @@ const WikiPageHeader = ({
                             pageId={pageId}
                             wikiId={wikiId}
                             onCreateChild={onCreateChild}
-                            onRename={onRename}
                             onDuplicate={onDuplicate}
                             onMove={onMove}
                             onBookmarkInChannel={handleBookmarkInChannel}
@@ -198,6 +221,7 @@ const WikiPageHeader = ({
                             onTranslatePage={onTranslatePage}
                             isAIProcessing={isAIProcessing}
                             onCopyMarkdown={onCopyMarkdown}
+                            onGetPageContent={onGetPageContent}
                         />
                     )}
                     {onToggleFullscreen && (

@@ -344,21 +344,49 @@ func (a *App) DeleteWiki(rctx request.CTX, wikiId, userId string, wiki *model.Wi
 		}
 	}
 
-	// Delete pages first so that a failure here does not leave the wiki record
-	// gone while pages remain live (which would orphan them permanently).
-	if err := a.Srv().Store().Wiki().DeleteAllPagesForWiki(wikiId); err != nil {
-		return model.NewAppError("DeleteWiki", "app.wiki.delete.pages_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+	// Collect page IDs before deletion so their PropertyValues can be cleaned up afterward.
+	var pageIDs []string
+	if wiki.ChannelId != "" {
+		if pageMeta, metaErr := a.Srv().Store().Page().GetChannelPagesMeta(wiki.ChannelId); metaErr == nil {
+			pageIDs = pageMeta.Order
+		} else {
+			rctx.Logger().Warn("Failed to collect page IDs for property cleanup; property values may require manual cleanup",
+				mlog.String("wiki_id", wikiId), mlog.Err(metaErr))
+		}
 	}
 
+	// Mark wiki as deleted first so it becomes invisible to reads even if later
+	// cascade steps fail. This matches the PermanentDeleteTeam pattern: mark
+	// DeleteAt before touching children so a crash mid-cascade leaves no live wiki.
 	if err := a.Srv().Store().Wiki().Delete(wikiId, false); err != nil {
 		return model.NewAppError("DeleteWiki", "app.wiki.delete.wiki_record_failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if err := a.Srv().Store().Wiki().DeleteAllPagesForWiki(wikiId); err != nil {
+		rctx.Logger().Warn("Failed to delete pages for wiki; pages may require manual cleanup",
+			mlog.String("wiki_id", wikiId), mlog.Err(err))
+	}
+
+	// Clean up PropertyValues for all deleted pages (best-effort).
+	if len(pageIDs) > 0 {
+		group, groupErr := a.GetPagePropertyGroup()
+		if groupErr != nil {
+			rctx.Logger().Warn("Failed to get page property group for cleanup; property values may require manual cleanup",
+				mlog.String("wiki_id", wikiId), mlog.Err(groupErr))
+		} else {
+			for _, pageID := range pageIDs {
+				if appErr := a.DeletePropertyValuesForTarget(rctx, group.ID, model.PropertyValueTargetTypePage, pageID); appErr != nil {
+					rctx.Logger().Warn("Failed to clean up property values for deleted page",
+						mlog.String("page_id", pageID), mlog.Err(appErr))
+				}
+			}
+		}
+	}
+
 	if wikiChannel != nil {
 		if delErr := a.PermanentDeleteChannel(rctx, wikiChannel); delErr != nil {
-			rctx.Logger().Error("Failed to delete wiki hidden channel",
+			rctx.Logger().Warn("Failed to delete wiki backing channel; channel may require manual cleanup",
 				mlog.String("channel_id", wiki.ChannelId), mlog.Err(delErr))
-			return delErr
 		}
 	}
 
@@ -688,7 +716,7 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePage *model.Post, targetWiki
 	}
 
 	if linkErr := a.AddPageToWiki(rctx, duplicatedPage.Id, targetWikiId); linkErr != nil {
-		if delErr := a.DeletePage(rctx, duplicatedPage, ""); delErr != nil {
+		if delErr := a.PermanentDeletePage(rctx, duplicatedPage); delErr != nil {
 			rctx.Logger().Error("Failed to delete page after AddPageToWiki failed",
 				mlog.String("page_id", duplicatedPage.Id),
 				mlog.Err(delErr))

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
@@ -15,7 +15,7 @@ import {fetchWiki, getPageBreadcrumb} from 'actions/pages';
 import {getPageDraftsForWiki} from 'selectors/page_drafts';
 import {arePagesLoaded, makeBreadcrumbSelector, getWiki} from 'selectors/pages';
 
-import {getWikiUrl} from 'utils/url';
+import {getTeamNameFromPath, getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -48,7 +48,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     const allDrafts = useSelector((state: GlobalState) => getPageDraftsForWiki(state, wikiId));
     const wiki = useSelector((state: GlobalState) => getWiki(state, wikiId));
 
-    const teamName = currentTeam?.name || 'team';
+    const teamName = getTeamNameFromPath(window.location.pathname) || currentTeam?.name || 'team';
 
     // Create memoized selector instance for this component
     const breadcrumbSelector = useMemo(() => makeBreadcrumbSelector(), []);
@@ -62,14 +62,14 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     });
 
     // Single helper that builds all wiki paths.
-    const wikiPath = (pathPageId?: string, pathIsDraft?: boolean) =>
-        getWikiUrl(teamName, wikiId, pathPageId, pathIsDraft);
+    const wikiPath = useCallback((pathPageId?: string, pathIsDraft?: boolean) =>
+        getWikiUrl(teamName, wikiId, pathPageId, pathIsDraft), [teamName, wikiId]);
 
     // Rewrites any path from the API/selector to use the /wiki/ route.
-    const fixBreadcrumbPath = (item: BreadcrumbPath['items'][0]): BreadcrumbPath['items'][0] => ({
+    const fixBreadcrumbPath = useCallback((item: BreadcrumbPath['items'][0]): BreadcrumbPath['items'][0] => ({
         ...item,
         path: item.type === 'wiki' ? wikiPath() : wikiPath(item.id),
-    });
+    }), [wikiPath]);
 
     useEffect(() => {
         const fetchBreadcrumb = async () => {
@@ -237,7 +237,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
         if (wikiId) {
             fetchBreadcrumb();
         }
-    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, teamName, currentPage?.page_parent_id, pagesLoaded, dispatch, allDrafts, wiki, reduxBreadcrumb, untitledText, untitledPageText]);
+    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, teamName, currentPage?.page_parent_id, pagesLoaded, dispatch, allDrafts, wiki, reduxBreadcrumb, untitledText, untitledPageText, fixBreadcrumbPath]);
 
     if (isLoading) {
         return (

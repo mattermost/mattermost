@@ -4,16 +4,20 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -119,19 +123,13 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 		}
 	}
 
+	extractedSearchText := searchText
 	if content != "" {
 		var contentErr error
-		content, _, contentErr = validateAndNormalizePageContent(content, searchText)
+		content, extractedSearchText, contentErr = validateAndNormalizePageContent(content, searchText)
 		if contentErr != nil {
 			return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(contentErr)
 		}
-	}
-
-	// When content is empty but searchText is provided (e.g. Confluence import),
-	// store searchText in Message so the page is discoverable via full-text search.
-	message := content
-	if message == "" && searchText != "" {
-		message = searchText
 	}
 
 	page := &model.Post{
@@ -139,36 +137,15 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 		Type:         model.PostTypePage,
 		ChannelId:    channelID,
 		UserId:       userID,
-		Message:      message,
+		Message:      content,
+		PageSearchText: extractedSearchText,
 		PageParentId: pageParentID,
 		Props: model.StringInterface{
 			model.PagePropsTitle: title,
 		},
 	}
 
-	// Set initial sort order for the new page (append at end of siblings).
-	// Known race: GetSiblingPages reads from a replica; two concurrent creates may
-	// read the same max sort order and produce duplicates. A future fix should move
-	// this to an atomic DB-level increment or accept master-only reads via a
-	// context-aware store method.
-	siblings, sibErr := a.Srv().Store().Page().GetSiblingPages(pageParentID, channelID)
-	if sibErr != nil {
-		rctx.Logger().Warn("Failed to get sibling pages for sort order",
-			mlog.String("channel_id", channelID),
-			mlog.String("parent_id", pageParentID),
-			mlog.Err(sibErr))
-		// Continue without sort order - will use CreateAt as fallback
-	} else {
-		var maxOrder int64
-		for _, s := range siblings {
-			if order := s.GetPageSortOrder(); order > maxOrder {
-				maxOrder = order
-			}
-		}
-		page.SetPageSortOrder(maxOrder + model.PageSortOrderGap)
-	}
-
-	createdPage, createErr := a.Srv().Store().Page().CreatePage(rctx, page, message)
+	createdPage, createErr := a.Srv().Store().Page().CreatePage(rctx, page, content)
 	if createErr != nil {
 		var invErr *store.ErrInvalidInput
 		if errors.As(createErr, &invErr) {
@@ -351,17 +328,14 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 	}
 
 	// Validate and normalize content
+	var extractedSearchText string
 	if content != "" {
 		var contentErr error
-		content, _, contentErr = validateAndNormalizePageContent(content, searchText)
+		content, extractedSearchText, contentErr = validateAndNormalizePageContent(content, searchText)
 		if contentErr != nil {
 			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(contentErr)
 		}
 	}
-
-	// TODO: baseEditAt == 0 bypasses conflict detection because the wire type uses
-	// omitempty and older clients omit the field entirely. A future protocol version
-	// should require the field so we can return 400 when baseEditAt == 0 and force == false.
 
 	// Check for conflicts only when content is being updated.
 	// Title-only updates (rename) skip conflict detection because:
@@ -371,8 +345,8 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 	rctx.Logger().Debug("UpdatePageWithOptimisticLocking conflict check",
 		mlog.String("page_id", pageID),
 		mlog.String("user_id", userID),
-		mlog.Int("db_edit_at", int(post.EditAt)),
-		mlog.Int("base_edit_at", int(baseEditAt)),
+		mlog.Int("db_edit_at", post.EditAt),
+		mlog.Int("base_edit_at", baseEditAt),
 		mlog.Bool("force", force),
 		mlog.Bool("has_content", content != ""),
 	)
@@ -400,6 +374,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, page *model.Post
 
 	if content != "" {
 		post.Message = content
+		post.PageSearchText = extractedSearchText
 	}
 
 	if post.Props == nil {
@@ -497,20 +472,6 @@ func (a *App) DeletePage(rctx request.CTX, page *model.Post, wikiId string) *mod
 		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Best-effort: clean up property values for the deleted page.
-	// Note: DeletePropertyValuesForTarget internally calls GetPage to resolve the WS broadcast
-	// channel, but the page is already soft-deleted at this point and will return ErrNotFound.
-	// The Warn log from that lookup is expected and non-fatal; clients handle page removal via
-	// the page_deleted event that follows below.
-	if group, err := a.GetPagePropertyGroup(); err == nil {
-		if appErr := a.DeletePropertyValuesForTarget(rctx, group.ID, model.PropertyValueTargetTypePage, pageID); appErr != nil {
-			rctx.Logger().Warn("DeletePage: failed to clean up property values", mlog.String("page_id", pageID), mlog.Err(appErr))
-		}
-	} else {
-		rctx.Logger().Warn("DeletePage: failed to get page property group — property values may be orphaned",
-			mlog.String("page_id", pageID), mlog.Err(err))
-	}
-
 	// CRITICAL: Invalidate cache across cluster BEFORE WebSocket broadcast.
 	// In HA clusters, clients on other nodes may request data immediately after
 	// receiving the WebSocket event.
@@ -570,6 +531,13 @@ func (a *App) PermanentDeletePage(rctx request.CTX, page *model.Post) *model.App
 		if err := a.PermanentDeleteFilesByPost(rctx, page.Id, nil); err != nil {
 			return err
 		}
+	}
+	if group, err := a.GetPagePropertyGroup(); err == nil {
+		if appErr := a.DeletePropertyValuesForTarget(rctx, group.ID, model.PropertyValueTargetTypePage, page.Id); appErr != nil {
+			rctx.Logger().Warn("PermanentDeletePage: failed to clean up property values", mlog.String("page_id", page.Id), mlog.Err(appErr))
+		}
+	} else {
+		rctx.Logger().Warn("PermanentDeletePage: failed to get page property group, skipping property value cleanup", mlog.String("page_id", page.Id), mlog.Err(err))
 	}
 	if err := a.Srv().Store().Page().PermanentDeletePage(page.Id); err != nil {
 		return model.NewAppError("PermanentDeletePage", "app.page.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -764,7 +732,7 @@ func validateAndNormalizePageContent(content, searchText string) (string, string
 		if err != nil {
 			return "", "", err
 		}
-		return string(sanitized), searchText, nil
+		return string(sanitized), model.BuildSearchText(doc), nil
 	}
 
 	// Markdown content → convert to TipTap
@@ -774,20 +742,22 @@ func validateAndNormalizePageContent(content, searchText string) (string, string
 			// Fallback to plain text if markdown conversion fails
 			tiptap = convertPlainTextToTipTapJSON(content)
 		}
+		var mdSearchText string
 		if doc, parseErr := model.ParseTipTapDocument(tiptap); parseErr == nil {
 			if sanitized, marshalErr := json.Marshal(doc); marshalErr == nil {
 				tiptap = string(sanitized)
 			}
+			mdSearchText = model.BuildSearchText(doc)
 		}
-		// Leave searchText empty; PreSave() computes it from TipTap JSON
-		return tiptap, "", nil
+		return tiptap, mdSearchText, nil
 	}
 
 	// Plain text → wrap in paragraphs
 	normalizedContent := convertPlainTextToTipTapJSON(content)
 
-	// Extract search text from plain content if not provided
-	if searchText == "" {
+	if doc, parseErr := model.ParseTipTapDocument(normalizedContent); parseErr == nil {
+		searchText = model.BuildSearchText(doc)
+	} else if searchText == "" {
 		searchText = content
 	}
 
@@ -889,7 +859,7 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 		mlog.Bool("is_child_page", isChild))
 
 	if linkErr := a.AddPageToWiki(rctx, createdPage.Id, wikiId); linkErr != nil {
-		rctx.Logger().Error("Failed to link page to wiki",
+		rctx.Logger().Warn("Failed to link page to wiki, rolling back page creation",
 			mlog.String("page_id", createdPage.Id),
 			mlog.String("wiki_id", wikiId),
 			mlog.Bool("is_child_page", isChild),
@@ -921,4 +891,40 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 	}
 
 	return createdPage, nil
+}
+
+// ValidateURLForSSRF checks whether rawURL resolves to a private or reserved IP address.
+// It is intended to be called before making outbound HTTP requests on behalf of a user.
+func (a *App) ValidateURLForSSRF(ctx context.Context, rawURL string) error {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return err
+	}
+	host := u.Hostname()
+
+	if ip := net.ParseIP(host); ip != nil {
+		if httpservice.IsReservedIP(ip) {
+			return errors.New("URL resolves to a private or reserved address")
+		}
+		return nil
+	}
+
+	dnsCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	ips, err := net.DefaultResolver.LookupHost(dnsCtx, host)
+	if err != nil {
+		// Fail open on transient DNS errors: the transport-layer SSRF guard
+		// (httpservice) will block reserved IPs even if we can't resolve here.
+		return nil
+	}
+	for _, ipStr := range ips {
+		ip := net.ParseIP(ipStr)
+		if ip == nil {
+			continue
+		}
+		if httpservice.IsReservedIP(ip) {
+			return errors.New("URL resolves to a private or reserved address")
+		}
+	}
+	return nil
 }

@@ -18,6 +18,8 @@ import {fetchPages, fetchWiki} from './pages';
 
 export function fetchWikiBundle(wikiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
+        // eslint-disable-next-line no-console
+        console.log('[TRACE][fetchWikiBundle] called', {wikiId, url: window.location.pathname});
         // Fetch wiki + pages + drafts + links in one round-trip so the
         // permission selector (canEdit) and sidebar resolver both have what
         // they need on a fresh load — without depending on any URL parameter.

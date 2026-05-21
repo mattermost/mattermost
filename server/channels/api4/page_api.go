@@ -29,15 +29,18 @@ func updatePageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Status string `json:"status"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Status == "" {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.Status) == "" {
 		c.SetInvalidParam("status")
 		return
 	}
+	req.Status = strings.TrimSpace(req.Status)
 
 	_, page, _, ok := c.GetPageForModify(app.PageOperationEdit, "updatePageStatus")
 	if !ok {
 		return
 	}
+
+	auditRec.AddEventPriorState(page)
 
 	if err := c.App.SetPageStatus(c.AppContext, page.Id, req.Status); err != nil {
 		c.Err = err
@@ -46,6 +49,49 @@ func updatePageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func patchPageProps(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdatePage, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+	var req struct {
+		Props map[string]any `json:"props"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || len(req.Props) == 0 {
+		c.SetInvalidParam("props")
+		return
+	}
+
+	_, page, channel, ok := c.GetPageForModify(app.PageOperationEdit, "patchPageProps")
+	if !ok {
+		return
+	}
+
+	auditRec.AddEventPriorState(page)
+
+	updatedPage, appErr := c.App.PatchPageProps(c.AppContext, page, req.Props, channel)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(updatedPage)
+	auditRec.AddEventObjectType("page")
+
+	if err := json.NewEncoder(w).Encode(updatedPage); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getPageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -62,9 +108,6 @@ func getPageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.EnrichPageWithProperties(c.AppContext, page)
 	status, _ := page.GetProps()[model.PagePropsPageStatus].(string)
-	if status == "" {
-		status = model.PageStatusInProgress
-	}
 
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": status}); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -142,6 +185,8 @@ func deletePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventPriorState(page)
+
 	if appErr := c.App.DeleteWikiPage(c.AppContext, page, c.Params.WikiId, wiki, channel); appErr != nil {
 		c.Err = appErr
 		return
@@ -193,6 +238,8 @@ func restorePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.CheckPagePermission(page, app.PageOperationRestore) {
 		return
 	}
+
+	auditRec.AddEventPriorState(page)
 
 	if appErr := c.App.RestorePage(c.AppContext, page); appErr != nil {
 		c.Err = appErr
@@ -327,6 +374,8 @@ func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventPriorState(page)
+
 	updatedPage, appErr := c.App.UpdatePageWithOptimisticLocking(c.AppContext, page, req.Title, req.Content, req.SearchText, req.BaseEditAt, req.Force, channel)
 	if appErr != nil {
 		c.Err = appErr
@@ -414,6 +463,7 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 	var req app.PageImageExtractionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.SetInvalidParamWithErr("request_body", err)
@@ -487,8 +537,8 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Verify user has read access to the channel
-			if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel); !hasPermission {
-				c.SetPermissionError(model.PermissionReadChannel)
+			if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannelContent); !hasPermission {
+				c.SetPermissionError(model.PermissionReadChannelContent)
 				return
 			}
 		} else {
@@ -520,6 +570,12 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Validate URL format (http/https scheme, valid structure)
 		if !model.IsValidHTTPURL(req.ImageURL) {
 			c.SetInvalidParam("image_url")
+			return
+		}
+
+		// Block SSRF: reject URLs targeting loopback, link-local, or RFC-1918 addresses
+		if err := c.App.ValidateURLForSSRF(r.Context(), req.ImageURL); err != nil {
+			c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.ssrf_blocked.app_error", nil, "URL not allowed", http.StatusBadRequest)
 			return
 		}
 
@@ -576,6 +632,7 @@ func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddMeta("wiki_id", wiki.Id)
 
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 	var req app.SummarizeThreadToPageRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.SetInvalidParamWithErr("request_body", err)
@@ -613,8 +670,8 @@ func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check user has read access to the channel containing the thread
-	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), rootPost.ChannelId, model.PermissionReadChannel); !hasPermission {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), rootPost.ChannelId, model.PermissionReadChannelContent); !hasPermission {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -643,3 +700,4 @@ func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
+

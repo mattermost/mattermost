@@ -337,25 +337,17 @@ test('page header 3-dot menu does not have a Rename option', {tag: '@pages'}, as
     // # Create wiki through UI
     await createWikiThroughUI(page, uniqueName('No Rename Menu Wiki'));
 
-    // # Create a page and publish it
+    // # Create a page (createPageThroughUI already publishes it)
     const pageTitle = 'Page Without Rename Option';
     await createPageThroughUI(page, pageTitle, 'Content for rename menu test');
-    await publishCurrentPage(page);
-
-    // # Wait for the page viewer to be visible after publish
-    await page.waitForTimeout(SHORT_WAIT);
 
     // # Open the page header 3-dot actions menu
-    const actionsMenuButton = page
-        .locator(
-            '[data-testid="page-actions-menu"], [data-testid="wiki-page-actions-menu-button"], [aria-label*="actions"], [aria-label*="Actions"]',
-        )
-        .first();
+    const actionsMenuButton = page.locator('[data-testid="wiki-page-more-actions"]').first();
     await actionsMenuButton.click();
 
     // * Assert "Rename" is NOT present in the menu
     const renameOption = page.locator(
-        '[data-testid="rename-page"], [role="menuitem"]:text("Rename"), button:text("Rename")',
+        '[data-testid="page-context-menu-rename"], [role="menuitem"]:text("Rename"), button:text("Rename")',
     );
     await expect(renameOption).not.toBeVisible();
 
@@ -363,10 +355,7 @@ test('page header 3-dot menu does not have a Rename option', {tag: '@pages'}, as
     await page.keyboard.press('Escape');
     await page.waitForTimeout(SHORT_WAIT);
 
-    // * Assert the inline page title is directly editable instead
-    const inlineTitle = page
-        .locator('[data-testid="page-viewer-title"], [data-testid="page-title"], .wiki-page-title, h1.page-title')
-        .first();
-    await inlineTitle.click();
-    await expect(inlineTitle.locator('input, [contenteditable="true"]')).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // * Assert the page title is editable inline via the editor title textarea
+    await enterEditMode(page);
+    await expect(page.locator('[data-testid="wiki-page-title-input"]')).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });

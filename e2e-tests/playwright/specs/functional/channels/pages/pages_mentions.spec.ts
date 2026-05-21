@@ -15,6 +15,7 @@ import {
     clickPageEditButton,
     selectTextInEditor,
     openInlineCommentModal,
+    getPageIdFromUrl,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
     SHORT_WAIT,
@@ -465,11 +466,6 @@ test('handles mention removal and addition correctly', {tag: '@pages'}, async ({
  *
  * @precondition
  * Two users must be members of the same team and channel.
- *
- * NOTE: This test will fail until processPostMentions is wired for PostTypePageComment.
- * The mention-notification path from CreatePageComment → CreatePost does not currently fire
- * processPostMentions for page comment posts, so the Threads badge and inbox entry are
- * never populated for the mentioned user.
  */
 test('at-mention in page comment badges the recipient threads view', {tag: '@pages'}, async ({pw}) => {
     const {team, user: commenterUser, adminClient} = await pw.initSetup();
@@ -527,13 +523,17 @@ test('at-mention in page comment badges the recipient threads view', {tag: '@pag
     await publishPage(commenterPage);
     await expect(pageContent).toBeVisible();
 
+    // # Capture the page post ID (root_id for the comment thread) for later assertions
+    const pageRootId = getPageIdFromUrl(commenterPage.url());
+    expect(pageRootId, 'page ID must be present in the URL after publish').toBeDefined();
+
     // # Wait for notification to propagate
     await commenterPage.waitForTimeout(WEBSOCKET_WAIT);
 
     // # Login as the mentioned user
     const {page: mentionedPage} = await loginAndNavigateToChannel(pw, mentionedUser, team.name, channel.name);
 
-    // * Assert: mentioned user sees a badge/unread indicator in their Threads view
+    // * Assertion 1: mentioned user sees a badge/unread indicator in their Threads view
     const threadsBadge = mentionedPage
         .locator('.sidebar-item .badge, [data-testid="threads-badge"], .mentions-count, [aria-label*="mentions"]')
         .first();
@@ -543,6 +543,74 @@ test('at-mention in page comment badges the recipient threads view', {tag: '@pag
     await mentionedPage.locator('a[href*="/threads"]').click();
     await mentionedPage.waitForLoadState('networkidle');
 
-    // * Assert: the page comment thread appears in the Threads inbox
-    await expect(mentionedPage.locator('body')).toContainText(pageTitle, {timeout: ELEMENT_TIMEOUT});
+    // * Assertion 2: the Threads inbox row is keyed by the page post ID (root_id), not the channel
+    const threadsState = await mentionedPage.evaluate(() => {
+        const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
+            entities: {threads: {threadsInTeam: Record<string, string[]>; threads: Record<string, {unread_mentions: number; reply_count: number}>}};
+        };
+        return {
+            allThreadIds: Object.values(state.entities.threads.threadsInTeam ?? {}).flat(),
+            threads: state.entities.threads.threads,
+        };
+    });
+    expect(threadsState.allThreadIds, 'Threads inbox should contain a row keyed by the page post ID').toContain(pageRootId);
+
+    // * Assertion 3: unreadMentions on the page thread = 1
+    expect(threadsState.threads[pageRootId]?.unread_mentions, 'unread_mentions on page thread row must be 1').toBe(1);
+
+    // * Assertion 4: the Unreads tab shows the page comment thread
+    // Page threads appear in Unreads (not Followed threads, since the wiki backing
+    // channel uses system-managed membership — the user follows via ThreadMembership
+    // but channel-access filtering may hide it from the Followed tab).
+
+    await mentionedPage.locator('#threads-list-filter-unread').click();
+    await mentionedPage.waitForTimeout(SHORT_WAIT);
+    const unreadThreadList = mentionedPage.locator('[data-testid="threads_list"]');
+    await expect(unreadThreadList).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Assertion 4b: the Unreads selector state includes the page thread
+    // The VirtualizedThreadList uses react-window; items are rendered only in the visible
+    // viewport and may race with AutoSizer measurement. Instead of a DOM query, verify
+    // the Redux state that directly drives the unread thread list.
+    const unreadOrderContainsThread = await mentionedPage.evaluate((rootId) => {
+        const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
+            entities: {
+                threads: {
+                    unreadThreadsInTeam: Record<string, string[]>;
+                    threads: Record<string, {is_following: boolean; unread_mentions: number; last_reply_at: number}>;
+                };
+                teams: {currentTeamId: string};
+            };
+        };
+        const teamId = state.entities.teams.currentTeamId;
+        const unreadIds = state.entities.threads.unreadThreadsInTeam?.[teamId] ?? [];
+        const threads = state.entities.threads.threads;
+        // Apply the same filter as getUnreadThreadOrderInCurrentTeam selector
+        const filteredIds = unreadIds.filter((id) => {
+            const t = threads[id];
+            return t?.is_following && (t.unread_replies || t.unread_mentions) && t.last_reply_at !== 0;
+        });
+        return filteredIds.includes(rootId);
+    }, pageRootId);
+    expect(unreadOrderContainsThread, 'page thread must appear in the Unreads tab order').toBe(true);
+
+    // * Assertion 5: a follow-up comment WITHOUT a mention does NOT increment the badge
+    // Switch back to commenter, add a non-mention comment
+    await clickPageEditButton(commenterPage);
+    await expect(editor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await selectTextInEditor(commenterPage);
+    const followUpContainer = await openInlineCommentModal(commenterPage);
+    const followUpTextarea = followUpContainer.locator('textarea, [contenteditable="true"]').first();
+    await followUpTextarea.click();
+    await followUpTextarea.type('Follow up without mention');
+    await followUpTextarea.press('Control+Enter');
+    await commenterPage.waitForTimeout(WEBSOCKET_WAIT);
+
+    const unreadAfterNonMention = await mentionedPage.evaluate((rootId) => {
+        const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
+            entities: {threads: {threads: Record<string, {unread_mentions: number}>}};
+        };
+        return state.entities.threads.threads[rootId]?.unread_mentions;
+    }, pageRootId);
+    expect(unreadAfterNonMention, 'unread_mentions must NOT increment for a non-mention comment').toBe(1);
 });

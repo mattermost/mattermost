@@ -59,7 +59,7 @@ export const makeGetPages = () => createSelector(
     (pages, pageIds) => {
         return pageIds.
             map((id) => pages[id]).
-            filter((post) => Boolean(post) && post.type === PostTypes.PAGE && post.state !== 'DELETED');
+            filter((post): post is Post => Boolean(post) && post.type === PostTypes.PAGE && post.state !== 'DELETED');
     },
 );
 
@@ -71,7 +71,7 @@ export const makeGetPublishedPages = () => createSelector(
     (pages, pageIds) => {
         return pageIds.
             map((id) => pages[id]).
-            filter((post) => Boolean(post) && post.type === PostTypes.PAGE && post.state !== 'DELETED').
+            filter((post): post is Post => Boolean(post) && post.type === PostTypes.PAGE && post.state !== 'DELETED').
             filter((page) => !isDraftPageId(page.id));
     },
 );
@@ -97,7 +97,9 @@ export const getDraftsLastInvalidated = (state: GlobalState, wikiId: string): nu
 };
 
 // Reads byId filtered by channel_id — fetchChannelPages populates byId without updating byWiki.
-export const getChannelPages = createSelector(
+// Factory: each component instance creates its own selector so concurrent channel views
+// don't thrash each other's memoization cache (a single shared selector only caches the last argument).
+export const makeGetChannelPages = () => createSelector(
     'getChannelPages',
     (state: GlobalState) => state.entities.pages.byId,
     (_state: GlobalState, channelId: string) => channelId,
@@ -197,7 +199,7 @@ export const getPageStatusField = createSelector(
 
 export const getPageStatus = (state: GlobalState, postId: string): string => {
     const page = getPage(state, postId);
-    return (page?.props?.[PagePropsKeys.PAGE_STATUS] as string) || 'In progress';
+    return (page?.props?.[PagePropsKeys.PAGE_STATUS] as string) || '';
 };
 
 export const makeBreadcrumbSelector = () => createSelector(

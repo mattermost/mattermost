@@ -650,6 +650,58 @@ func TestDuplicatePage(t *testing.T) {
 		require.Contains(t, appErr.Id, "target_wiki_not_found")
 	})
 
+	// Issue #14: DuplicatePage uses DeletePage (soft-delete) for rollback on AddPageToWiki
+	// failure, while CreateWikiPage uses PermanentDeletePage for the same path.
+	//
+	// The bug leaves a soft-deleted orphan row in the DB.  Verifying the orphan requires
+	// querying rows with DeleteAt!=0, which the Page store interface does not expose.
+	// This test therefore verifies the reachable invariant (no ACTIVE pages remain after
+	// failed DuplicatePage) and documents the fix needed in the code comment.
+	//
+	// To expose the bug as a failing assertion, add a GetPage store method that accepts
+	// includeDeleted=true with a channel scan, then assert the orphan count == 0.
+	t.Run("DuplicatePage returns error and leaves no active pages when AddPageToWiki fails", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.SetupPagePermissions()
+
+		sourceWiki := &model.Wiki{Title: "Source Wiki"}
+		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		// Pre-fetch targetWiki + backing channel, then delete the wiki row so
+		// AddPageToWiki fails while the in-memory objects remain valid.
+		targetWiki := &model.Wiki{Title: "Target Wiki"}
+		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		backingChannel, chanErr := th.App.GetWikiBackingChannel(th.Context, createdTargetWiki.ChannelId)
+		require.Nil(t, chanErr)
+
+		err = th.App.DeleteWiki(th.Context, createdTargetWiki.Id, th.BasicUser.Id, nil)
+		require.Nil(t, err)
+
+		createdPage, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Original Page", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+		page, appErr := th.App.GetPage(th.Context, createdPage.Id)
+		require.Nil(t, appErr)
+
+		// DuplicatePage: CreatePage succeeds, AddPageToWiki fails (wiki row gone).
+		// BUG (#14): rollback calls DeletePage (soft-delete) — orphan row remains in DB.
+		// Fix: call PermanentDeletePage (like CreateWikiPage does) so no row survives.
+		_, appErr = th.App.DuplicatePage(th.Context, page, createdTargetWiki.Id, nil, nil, th.BasicUser.Id, createdTargetWiki, backingChannel)
+		require.NotNil(t, appErr, "DuplicatePage must return an error when AddPageToWiki fails")
+
+		// No active page should be visible — this passes for both soft-delete and
+		// permanent-delete, so it does NOT distinguish the bug from the fix.
+		// The stronger assertion (zero soft-deleted rows in backing channel) requires
+		// a store method with includeDeleted support; add it as part of fix #14.
+		activePagesAfter, storeErr := th.App.Srv().Store().Page().GetChannelPages(backingChannel.Id, 0, 0)
+		require.NoError(t, storeErr)
+		require.Empty(t, activePagesAfter.Posts, "no active pages should remain in backing channel after failed DuplicatePage")
+	})
+
 	t.Run("truncates title when exceeding max length", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
@@ -1178,4 +1230,50 @@ func TestAddPageToWiki(t *testing.T) {
 		appErr = th.App.AddPageToWiki(rctx, page.Id, model.NewId())
 		require.NotNil(t, appErr)
 	})
+}
+
+// TestDeleteWikiAtomicity documents issue #1: DeleteWiki runs three sequential
+// non-transactional store calls. If PermanentDeleteChannel (step 3) fails after
+// the pages and wiki row are already gone (steps 1 and 2), the backing channel
+// survives as a zombie with no wiki record pointing to it.
+//
+// This test verifies the happy path and records the invariant that after a
+// successful DeleteWiki the wiki record, all its pages, and the backing channel
+// are all gone. A full atomicity test (step-3 injection failure) would require
+// a mock store; that is left for a follow-up.
+func TestDeleteWikiAtomicity(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	rctx := th.CreateSessionContext()
+
+	wiki, err := th.App.CreateWiki(th.Context, &model.Wiki{Title: "Delete Atomicity Wiki"}, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	// Create a page so there is something to clean up.
+	page, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Page To Delete", "", th.BasicUser.Id, "", "")
+	require.Nil(t, err)
+
+	backingChannelId := wiki.ChannelId
+
+	// Delete the wiki — all three steps must succeed.
+	delErr := th.App.DeleteWiki(rctx, wiki.Id, th.BasicUser.Id, wiki)
+	require.Nil(t, delErr, "DeleteWiki must succeed in the happy path")
+
+	// Step 1: pages must be gone.
+	_, pageErr := th.App.GetPage(rctx, page.Id)
+	require.NotNil(t, pageErr, "page must be deleted after DeleteWiki")
+
+	// Step 2: wiki record must be gone.
+	_, wikiErr := th.App.GetWiki(rctx, wiki.Id)
+	require.NotNil(t, wikiErr, "wiki record must be deleted after DeleteWiki")
+
+	// Step 3: backing channel must be gone.
+	// BUG #1: if PermanentDeleteChannel failed (e.g., crash), this channel
+	// would still exist as a zombie. No recovery path exists in current code.
+	_, chanErr := th.App.GetChannel(rctx, backingChannelId)
+	require.NotNil(t, chanErr,
+		"BUG #1 guard: backing channel must be permanently deleted; "+
+			"if step 3 fails the channel becomes a zombie with no recovery path")
 }

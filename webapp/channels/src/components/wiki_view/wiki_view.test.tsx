@@ -45,6 +45,14 @@ jest.mock('./hooks', () => ({
         handleSave: jest.fn(),
         handlePublish: jest.fn(),
         handleDelete: jest.fn(),
+        handleEdit: jest.fn(),
+        handleTitleChange: jest.fn(),
+        handleTitleBlur: jest.fn(),
+        handleContentChange: jest.fn(),
+        handleDraftStatusChange: jest.fn(),
+        cancelAutosave: jest.fn(),
+        publishError: null,
+        clearPublishError: jest.fn(),
     }),
     useFullscreen: () => ({
         isFullscreen: false,
@@ -60,6 +68,13 @@ jest.mock('./hooks', () => ({
 
 jest.mock('hooks/usePublishedDraftCleanup', () => ({
     usePublishedDraftCleanup: jest.fn(),
+}));
+
+// fetchWikiBundle drives the local wikiBundleLoading state inside WikiView.
+// Without this mock the dispatch never resolves and the component is stuck
+// rendering the LoadingScreen branch.
+jest.mock('actions/wiki_actions', () => ({
+    fetchWikiBundle: () => () => Promise.resolve({data: true}),
 }));
 
 jest.mock('react-router-dom', () => ({
@@ -138,24 +153,26 @@ describe('components/wiki_view/WikiView', () => {
     });
 
     describe('Rendering', () => {
-        test('should render wiki view container', () => {
+        test('should render wiki view container', async () => {
             renderWithContext(<WikiView/>, getInitialState());
 
-            // Should render pages hierarchy panel
-            expect(screen.getByTestId('pages-hierarchy-panel')).toBeInTheDocument();
+            // Should render pages hierarchy panel after wiki bundle loads
+            expect(await screen.findByTestId('pages-hierarchy-panel')).toBeInTheDocument();
         });
 
-        test('should render wiki page header', () => {
+        test('should render wiki page header', async () => {
             renderWithContext(<WikiView/>, getInitialState());
 
-            expect(screen.getByTestId('wiki-page-header')).toBeInTheDocument();
+            expect(await screen.findByTestId('wiki-page-header')).toBeInTheDocument();
         });
     });
 
     describe('Loading state', () => {
-        test('should not show loading screen when not loading', () => {
+        test('should not show loading screen when not loading', async () => {
             renderWithContext(<WikiView/>, getInitialState());
 
+            // Wait for the post-load tree before asserting the LoadingScreen is gone
+            await screen.findByTestId('pages-hierarchy-panel');
             expect(screen.queryByTestId('loading-screen')).not.toBeInTheDocument();
         });
     });

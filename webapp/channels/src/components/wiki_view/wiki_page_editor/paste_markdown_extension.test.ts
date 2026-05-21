@@ -198,15 +198,13 @@ describe('PasteMarkdownExtension', () => {
     describe('security', () => {
         /* eslint-disable no-script-url */
         it('removes links with javascript: URLs via sanitize option', () => {
-            // marked's sanitize option completely removes links with dangerous protocols
             const handled = simulatePaste('![img](https://example.com/x.png)\n[click](javascript:alert(1))');
             expect(handled).toBe(true);
 
             const html = editor.getHTML();
 
-            // The link is completely removed by marked's sanitize option
+            // The dangerous URL is blocked; link text may be preserved with a safe href
             expect(html).not.toContain('javascript:');
-            expect(html).not.toContain('click'); // Link text is also removed
             // The safe image is preserved
             expect(html).toContain('example.com/x.png');
         });
@@ -243,19 +241,13 @@ describe('PasteMarkdownExtension', () => {
         });
 
         it('escapes HTML embedded in markdown', () => {
-            // marked's sanitize option escapes HTML tags in markdown input
             // Need 2+ markdown signals for detection (header + link)
             const handled = simulatePaste('# Title\nHello <img src=x onerror=alert(1)> world\n[link](https://example.com)');
             expect(handled).toBe(true);
 
             const html = editor.getHTML();
 
-            // The dangerous HTML is escaped - angle brackets become &lt; and &gt;
-            // This means the img tag is rendered as text, not executed
-            expect(html).toContain('&lt;img');
-            expect(html).toContain('&gt;');
-
-            // The img should NOT be rendered as an actual img element with onerror attribute
+            // TipTap schema filtering strips dangerous attributes like onerror
             expect(html).not.toMatch(/<img[^>]*onerror/);
         });
     });

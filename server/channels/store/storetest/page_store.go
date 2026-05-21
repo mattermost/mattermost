@@ -47,9 +47,11 @@ func TestPageStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPageAncestors", func(t *testing.T) { testGetPageAncestors(t, rctx, ss) })
 	t.Run("GetPageDescendants", func(t *testing.T) { testGetPageDescendants(t, rctx, ss) })
 	t.Run("GetChannelPages", func(t *testing.T) { testGetChannelPages(t, rctx, ss) })
+	t.Run("GetChannelPagesMeta", func(t *testing.T) { testGetChannelPagesMeta(t, rctx, ss) })
 	t.Run("ChangePageParent", func(t *testing.T) { testChangePageParent(t, rctx, ss) })
 	t.Run("GetCommentsForPage", func(t *testing.T) { testGetCommentsForPage(t, rctx, ss) })
 	t.Run("UpdatePageWithContent", func(t *testing.T) { testUpdatePageWithContent(t, rctx, ss) })
+	t.Run("PageSearchTextPersistence", func(t *testing.T) { testPageSearchTextPersistence(t, rctx, ss) })
 	t.Run("ConcurrentOperations", func(t *testing.T) { testConcurrentOperations(t, rctx, ss) })
 	t.Run("DeletePage", func(t *testing.T) { testDeletePage(t, rctx, ss) })
 	t.Run("VersionHistoryPruning", func(t *testing.T) { testVersionHistoryPruning(t, rctx, ss, s) })
@@ -301,8 +303,8 @@ func testGetChannelPages(t *testing.T, rctx request.CTX, ss store.Store) {
 	pageInChannel2, err = ss.Post().Save(rctx, pageInChannel2)
 	require.NoError(t, err)
 
-	t.Run("returns multiple pages ordered by CreateAt ASC", func(t *testing.T) {
-		result, channelErr := ss.Page().GetChannelPages(channel1.Id)
+	t.Run("returns pages ordered by CreateAt DESC with full content", func(t *testing.T) {
+		result, channelErr := ss.Page().GetChannelPages(channel1.Id, 0, 0)
 		require.NoError(t, channelErr)
 		require.NotNil(t, result)
 		require.Len(t, result.Posts, 3, "should return 3 pages (parent, child, and sibling)")
@@ -313,7 +315,31 @@ func testGetChannelPages(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NotContains(t, result.Posts, pageInChannel2.Id, "should not include pages from other channels")
 
 		require.Len(t, result.Order, 3, "order should have 3 items")
-		require.Equal(t, page1.Id, result.Order[0], "pages should be ordered by CreateAt ASC (oldest first)")
+		require.Equal(t, childPage.Id, result.Order[0], "newest page first (CreateAt DESC)")
+		require.Equal(t, page1.Id, result.Order[len(result.Order)-1], "oldest page last")
+
+		for _, p := range result.Posts {
+			require.NotEmpty(t, p.Message, "Message (full content) should be populated")
+		}
+	})
+
+	t.Run("SQL pagination: offset and limit", func(t *testing.T) {
+		// 3 pages total; fetch 1 at a time
+		page0, err0 := ss.Page().GetChannelPages(channel1.Id, 0, 1)
+		require.NoError(t, err0)
+		require.Len(t, page0.Order, 1)
+
+		page1Result, err1 := ss.Page().GetChannelPages(channel1.Id, 1, 1)
+		require.NoError(t, err1)
+		require.Len(t, page1Result.Order, 1)
+
+		require.NotEqual(t, page0.Order[0], page1Result.Order[0], "pages at different offsets must differ")
+	})
+
+	t.Run("limit=0 returns all pages", func(t *testing.T) {
+		all, allErr := ss.Page().GetChannelPages(channel1.Id, 0, 0)
+		require.NoError(t, allErr)
+		require.Len(t, all.Order, 3)
 	})
 
 	t.Run("returns empty list for empty channel", func(t *testing.T) {
@@ -325,7 +351,7 @@ func testGetChannelPages(t *testing.T, rctx request.CTX, ss store.Store) {
 		}, -1)
 		require.NoError(t, emptyErr)
 
-		result, resultErr := ss.Page().GetChannelPages(emptyChannel.Id)
+		result, resultErr := ss.Page().GetChannelPages(emptyChannel.Id, 0, 0)
 		require.NoError(t, resultErr)
 		require.NotNil(t, result)
 		require.Empty(t, result.Posts)
@@ -333,12 +359,12 @@ func testGetChannelPages(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("ensures cross-channel isolation", func(t *testing.T) {
-		result1, channel1Err := ss.Page().GetChannelPages(channel1.Id)
+		result1, channel1Err := ss.Page().GetChannelPages(channel1.Id, 0, 0)
 		require.NoError(t, channel1Err)
 		require.Contains(t, result1.Posts, page1.Id)
 		require.NotContains(t, result1.Posts, pageInChannel2.Id, "channel1 should not include pages from channel2")
 
-		result2, channel2Err := ss.Page().GetChannelPages(channel2.Id)
+		result2, channel2Err := ss.Page().GetChannelPages(channel2.Id, 0, 0)
 		require.NoError(t, channel2Err)
 		require.Contains(t, result2.Posts, pageInChannel2.Id)
 		require.NotContains(t, result2.Posts, page1.Id, "channel2 should not include pages from channel1")
@@ -366,69 +392,117 @@ func testGetChannelPages(t *testing.T, rctx request.CTX, ss store.Store) {
 		err = ss.Post().Delete(rctx, deletedPage.Id, model.GetMillis(), model.NewId())
 		require.NoError(t, err)
 
-		result, delPageErr := ss.Page().GetChannelPages(channel1.Id)
+		result, delPageErr := ss.Page().GetChannelPages(channel1.Id, 0, 0)
 		require.NoError(t, delPageErr)
 		require.Contains(t, result.Posts, activePage.Id)
 		require.NotContains(t, result.Posts, deletedPage.Id, "should not include deleted pages")
 	})
 
-	t.Run("respects PageSortOrder within same parent", func(t *testing.T) {
-		sortChannel, sortErr := ss.Channel().Save(rctx, &model.Channel{
+}
+
+func testGetChannelPagesMeta(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	ch, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Meta Test",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	otherCh, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Other",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	save := func(channelId, msg string) *model.Post {
+		p := &model.Post{ChannelId: channelId, UserId: model.NewId(), Type: model.PostTypePage, Message: msg}
+		p, saveErr := ss.Post().Save(rctx, p)
+		require.NoError(t, saveErr)
+		return p
+	}
+
+	p1 := save(ch.Id, "content-a")
+	p2 := save(ch.Id, "content-b")
+	save(otherCh.Id, "other")
+
+	t.Run("Message field is empty for all returned pages", func(t *testing.T) {
+		result, metaErr := ss.Page().GetChannelPagesMeta(ch.Id)
+		require.NoError(t, metaErr)
+		require.Len(t, result.Posts, 2)
+		for _, p := range result.Posts {
+			require.Empty(t, p.Message, "Message must not be loaded by GetChannelPagesMeta")
+		}
+	})
+
+	t.Run("cross-channel isolation", func(t *testing.T) {
+		result, metaErr := ss.Page().GetChannelPagesMeta(ch.Id)
+		require.NoError(t, metaErr)
+		require.Contains(t, result.Posts, p1.Id)
+		require.Contains(t, result.Posts, p2.Id)
+		for id := range result.Posts {
+			require.Equal(t, ch.Id, result.Posts[id].ChannelId, "must not include pages from other channels")
+		}
+	})
+
+	t.Run("excludes soft-deleted pages", func(t *testing.T) {
+		deleted := save(ch.Id, "to-delete")
+		require.NoError(t, ss.Post().Delete(rctx, deleted.Id, model.GetMillis(), model.NewId()))
+
+		result, metaErr := ss.Page().GetChannelPagesMeta(ch.Id)
+		require.NoError(t, metaErr)
+		require.NotContains(t, result.Posts, deleted.Id)
+	})
+
+	t.Run("respects PageSortOrder (in-memory sort)", func(t *testing.T) {
+		sortCh, chErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamID,
-			DisplayName: "Sort Test Channel",
+			DisplayName: "Sort",
 			Name:        "channel" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
 		}, -1)
+		require.NoError(t, chErr)
+
+		setOrder := func(msg string, order int64) *model.Post {
+			p := save(sortCh.Id, msg)
+			orig := p.Clone()
+			p.SetPageSortOrder(order)
+			p, updateErr := ss.Post().Update(rctx, p, orig)
+			require.NoError(t, updateErr)
+			return p
+		}
+
+		pageC := setOrder("C", 3000)
+		pageA := setOrder("A", 1000)
+		pageB := setOrder("B", 2000)
+
+		result, sortErr := ss.Page().GetChannelPagesMeta(sortCh.Id)
 		require.NoError(t, sortErr)
-
-		// Create pages with explicit sort orders (out of creation order)
-		pageC := &model.Post{
-			ChannelId: sortChannel.Id,
-			UserId:    model.NewId(),
-			Type:      model.PostTypePage,
-			Message:   "Page C (sort=3000)",
-		}
-		pageC, err = ss.Post().Save(rctx, pageC)
-		require.NoError(t, err)
-		origC := pageC.Clone()
-		pageC.SetPageSortOrder(3000)
-		pageC, err = ss.Post().Update(rctx, pageC, origC)
-		require.NoError(t, err)
-
-		pageA := &model.Post{
-			ChannelId: sortChannel.Id,
-			UserId:    model.NewId(),
-			Type:      model.PostTypePage,
-			Message:   "Page A (sort=1000)",
-		}
-		pageA, err = ss.Post().Save(rctx, pageA)
-		require.NoError(t, err)
-		origA := pageA.Clone()
-		pageA.SetPageSortOrder(1000)
-		pageA, err = ss.Post().Update(rctx, pageA, origA)
-		require.NoError(t, err)
-
-		pageB := &model.Post{
-			ChannelId: sortChannel.Id,
-			UserId:    model.NewId(),
-			Type:      model.PostTypePage,
-			Message:   "Page B (sort=2000)",
-		}
-		pageB, err = ss.Post().Save(rctx, pageB)
-		require.NoError(t, err)
-		origB := pageB.Clone()
-		pageB.SetPageSortOrder(2000)
-		pageB, err = ss.Post().Update(rctx, pageB, origB)
-		require.NoError(t, err)
-
-		result, resultErr := ss.Page().GetChannelPages(sortChannel.Id)
-		require.NoError(t, resultErr)
 		require.Len(t, result.Order, 3)
-		require.Equal(t, pageA.Id, result.Order[0], "should be sorted by page_sort_order ascending")
+		require.Equal(t, pageA.Id, result.Order[0], "lowest sort order first")
 		require.Equal(t, pageB.Id, result.Order[1])
 		require.Equal(t, pageC.Id, result.Order[2])
 	})
+
+	t.Run("empty channel returns empty list", func(t *testing.T) {
+		emptyCh, chErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Empty",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, chErr)
+
+		result, metaErr := ss.Page().GetChannelPagesMeta(emptyCh.Id)
+		require.NoError(t, metaErr)
+		require.Empty(t, result.Posts)
+		require.Empty(t, result.Order)
+	})
 }
+
 func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamID := model.NewId()
 	channel, err := ss.Channel().Save(rctx, &model.Channel{
@@ -797,6 +871,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NotNil(t, updatedPost)
 
 		require.JSONEq(t, contentJSON, updatedPost.Message)
+		require.Equal(t, "Test content", updatedPost.PageSearchText)
 	})
 
 	t.Run("updates both title and content", func(t *testing.T) {
@@ -820,6 +895,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		require.Equal(t, "Updated Title", updatedPost.Props["title"])
 		require.JSONEq(t, contentJSON, updatedPost.Message)
+		require.Equal(t, "New Heading", updatedPost.PageSearchText)
 	})
 
 	t.Run("fails for non-existent pageID", func(t *testing.T) {
@@ -927,6 +1003,58 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, "", "Title", "")
 		require.Error(t, updateErr)
 		require.Nil(t, updatedPost)
+	})
+}
+
+func testPageSearchTextPersistence(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Search Text Channel",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	t.Run("PageSearchText is persisted and fetchable after UpdatePageWithContent", func(t *testing.T) {
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "",
+			Props:     model.StringInterface{"title": "FTS Page"},
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		contentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"searchable words here"}]}]}`
+
+		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, "", contentJSON)
+		require.NoError(t, updateErr)
+		require.Equal(t, "searchable words here", updatedPost.PageSearchText)
+
+		// Re-fetch from DB and verify the column was actually persisted.
+		fetched, fetchErr := ss.Post().GetSingle(rctx, page.Id, false)
+		require.NoError(t, fetchErr)
+		require.Equal(t, "searchable words here", fetched.PageSearchText)
+	})
+
+	t.Run("PageSearchText is cleared to empty string when content is invalid JSON", func(t *testing.T) {
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"old"}]}]}`,
+			Props:     model.StringInterface{"title": "Page"},
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		// Invalid JSON — UpdatePageWithContent should return an error and not touch the row.
+		_, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, "", `{invalid`)
+		require.Error(t, updateErr)
 	})
 }
 
@@ -1435,7 +1563,7 @@ func testConcurrentOperations(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		for range numReaders {
 			go func() {
-				result, getErr := ss.Page().GetChannelPages(channel.Id)
+				result, getErr := ss.Page().GetChannelPages(channel.Id, 0, 0)
 				if getErr != nil {
 					errChan <- getErr
 					return

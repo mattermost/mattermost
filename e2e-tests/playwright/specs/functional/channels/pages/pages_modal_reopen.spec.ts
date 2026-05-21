@@ -130,47 +130,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
     /**
      * @objective Verify Rename Page modal can be opened, cancelled, and reopened
      */
-    test('Rename Page modal can be reopened after cancel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-        const {team, user, adminClient} = sharedPagesSetup;
-        const channel = await createTestChannel(adminClient, team.id, uniqueName('Modal Test'));
-
-        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
-
-        // # Create wiki and page through UI
-        await createWikiThroughUI(page, uniqueName('Test Wiki'));
-        await createPageThroughUI(page, 'Page To Rename', 'Content');
-        await page.waitForTimeout(EDITOR_LOAD_WAIT);
-        await ensurePanelOpen(page);
-
-        // # Open page context menu and click rename
-        let contextMenu = await openPageContextMenu(page, 'Page To Rename');
-        await contextMenu.locator('[data-testid="page-context-menu-rename"]').click();
-        let renameModal = page.getByRole('dialog', {name: /Rename/i});
-
-        // * Verify Rename modal is visible
-        await expect(renameModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-
-        // # Cancel the modal
-        const cancelButton = renameModal.locator('button:has-text("Cancel")').first();
-        await cancelButton.click();
-
-        // * Verify modal is closed
-        await expect(renameModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
-
-        // # Open page context menu and click rename again
-        contextMenu = await openPageContextMenu(page, 'Page To Rename');
-        await contextMenu.locator('[data-testid="page-context-menu-rename"]').click();
-        renameModal = page.getByRole('dialog', {name: /Rename/i});
-
-        // * Verify modal can be reopened after cancel
-        await expect(renameModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-
-        // # Cancel the modal again
-        await renameModal.locator('button:has-text("Cancel")').first().click();
-
-        // * Verify modal is closed
-        await expect(renameModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
-    });
+    // The "Rename Page modal can be reopened after cancel" test was removed: B11 (see
+    // plans/feedback-bugs-fix-plan.md) intentionally removed the Rename entry from the
+    // page context menu and the associated rename modal. Renaming a page is now an
+    // inline title edit (`wiki-page-title-input`) with no modal lifecycle to reopen.
+    // The negative assertion that the Rename menu item is absent lives in
+    // pages_rename.spec.ts:339.
 
     /**
      * @objective Verify Create Page modal can be opened, cancelled, and reopened
@@ -479,22 +444,12 @@ test.describe('Wiki/Pages Modal Reopening', () => {
         // * Verify Move modal is closed
         await expect(moveModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-        // # Open Rename modal via context menu
-        let contextMenu = await openPageContextMenu(page, 'Multi Modal Test');
-        await contextMenu.locator('[data-testid="page-context-menu-rename"]').click();
-        const renameModal = page.getByRole('dialog', {name: /Rename/i});
-
-        // * Verify Rename modal is visible
-        await expect(renameModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-
-        // # Cancel Rename modal
-        await renameModal.locator('button:has-text("Cancel")').first().click();
-
-        // * Verify Rename modal is closed
-        await expect(renameModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // Rename is no longer a modal (B11 removed it in favor of inline title editing),
+        // so the sequence skips from Move → Delete. The other modals in this sequence
+        // still provide the cross-modal-interference coverage this test is for.
 
         // # Open Delete modal via context menu
-        contextMenu = await openPageContextMenu(page, 'Multi Modal Test');
+        const contextMenu = await openPageContextMenu(page, 'Multi Modal Test');
         await contextMenu.locator('[data-testid="page-context-menu-delete"]').click();
         const deleteModal = page.getByRole('dialog', {name: /Delete/i});
 

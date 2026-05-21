@@ -36,7 +36,11 @@ type Props = OwnProps & StateProps & DispatchProps;
 
 class WikiRouter extends React.PureComponent<Props> {
     componentDidMount() {
+        // eslint-disable-next-line no-console
+        console.log('[wiki_router] componentDidMount', {resolvedChannelId: this.props.resolvedChannelId, channelExists: this.props.channelExists, url: window.location.pathname});
         if (this.props.resolvedChannelId && this.props.channelExists) {
+            // eslint-disable-next-line no-console
+            console.log('[wiki_router] selectChannel on mount', this.props.resolvedChannelId);
             this.props.selectChannel(this.props.resolvedChannelId);
         }
     }
@@ -48,11 +52,17 @@ class WikiRouter extends React.PureComponent<Props> {
         // never sync the sidebar.
         const {resolvedChannelId, channelExists} = this.props;
         if (!resolvedChannelId || !channelExists) {
+            // eslint-disable-next-line no-console
+            console.log('[wiki_router] componentDidUpdate skip', {resolvedChannelId, channelExists});
             return;
         }
         const idChanged = prevProps.resolvedChannelId !== resolvedChannelId;
         const becameKnown = !prevProps.channelExists && channelExists;
+        // eslint-disable-next-line no-console
+        console.log('[wiki_router] componentDidUpdate', {resolvedChannelId, idChanged, becameKnown, prevResolved: prevProps.resolvedChannelId, url: window.location.pathname});
         if (idChanged || becameKnown) {
+            // eslint-disable-next-line no-console
+            console.log('[wiki_router] selectChannel on update', resolvedChannelId);
             this.props.selectChannel(resolvedChannelId);
         }
     }
@@ -66,6 +76,8 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps): StateProps {
     const wikiId = ownProps.match?.params.wikiId ?? '';
     const resolvedChannelId = getResolvedChannelId(state, wikiId);
     const channel = resolvedChannelId ? getChannel(state, resolvedChannelId) : undefined;
+    // eslint-disable-next-line no-console
+    console.log('[TRACE][wiki_router] mapStateToProps', {wikiId, resolvedChannelId, channelExists: Boolean(channel), url: window.location.pathname});
     return {
         resolvedChannelId,
         channelExists: Boolean(channel),

@@ -7,7 +7,6 @@ import {
     createPageThroughUI,
     createTestChannel,
     createWikiThroughUI,
-    DEFAULT_PAGE_STATUS,
     deleteDefaultDraftThroughUI,
     deletePageThroughUI,
     editPageThroughUI,
@@ -219,10 +218,12 @@ test('displays page metadata', {tag: '@pages'}, async ({pw, sharedPagesSetup}) =
     await expect(author).toContainText('By');
     await expect(author).toContainText(user.username);
 
-    // * Verify status displays default status for published pages
+    // * Verify status is visible; newly published pages without an explicit
+    // status show "No status" (see pages_status.spec.ts "does not auto-flip
+    // status to In progress on first publish")
     const status = page.locator('[data-testid="page-viewer-status"]');
     await expect(status).toBeVisible();
-    await expect(status).toContainText(DEFAULT_PAGE_STATUS);
+    await expect(status).toContainText('No status');
 });
 
 /**

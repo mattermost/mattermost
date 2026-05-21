@@ -268,7 +268,7 @@ describe('mattermost-redux/actions/wikis', () => {
     });
 
     describe('deletePage', () => {
-        test('should delete page and dispatch DELETED_PAGE', async () => {
+        test('should delete page and dispatch DELETED_PAGE and POST_REMOVED', async () => {
             mockClient.deletePage.mockResolvedValue({status: 'OK'} as any);
 
             const dispatch = createMockDispatch();
@@ -277,9 +277,18 @@ describe('mattermost-redux/actions/wikis', () => {
             const result = await deletePage('wiki123', 'page123')(dispatch, getState, undefined);
 
             expect(result.data).toBe(true);
-            expect(dispatch.getActions()).toContainEqual({
+
+            // deletePage batches DELETED_PAGE (for pages state) and POST_REMOVED
+            // (for threads state) so the general threads reducers stay isolated from WikiTypes.
+            const actions = dispatch.getActions();
+            const batch = actions[0];
+            expect(batch.payload).toContainEqual({
                 type: WikiTypes.DELETED_PAGE,
                 data: {id: 'page123', wikiId: 'wiki123'},
+            });
+            expect(batch.payload).toContainEqual({
+                type: PostTypes.POST_REMOVED,
+                data: {id: 'page123', root_id: ''},
             });
         });
     });

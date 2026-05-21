@@ -11,3 +11,7 @@ import type {GlobalState} from '@mattermost/types/store';
 export function getPageById(state: GlobalState, pageId: string): Post | undefined {
     return state.entities.pages?.byId?.[pageId];
 }
+
+export function getPageCommentById(state: GlobalState, commentId: string): Post | undefined {
+    return state.entities.pages?.commentsById?.[commentId];
+}

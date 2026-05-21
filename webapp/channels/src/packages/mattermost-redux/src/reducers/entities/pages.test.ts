@@ -989,6 +989,209 @@ describe('pages reducer', () => {
         });
     });
 
+    describe('commentsById', () => {
+        const mockComment = (id: string, pageId = 'page1'): Post => ({
+            id,
+            create_at: 1000,
+            update_at: 1000,
+            delete_at: 0,
+            edit_at: 0,
+            is_pinned: false,
+            user_id: 'user1',
+            channel_id: 'channel1',
+            root_id: 'page1',
+            original_id: '',
+            page_parent_id: '',
+            message: 'comment',
+            type: 'page_comment' as any,
+            props: {page_id: pageId},
+            hashtags: '',
+            pending_post_id: '',
+            reply_count: 0,
+            metadata: {embeds: [], emojis: [], files: [], images: {}},
+        });
+
+        test('RECEIVED_PAGE_COMMENTS stores all comments by id', () => {
+            const c1 = mockComment('c1');
+            const c2 = mockComment('c2');
+            const result = pagesReducer(initialState as any, {
+                type: WikiTypes.RECEIVED_PAGE_COMMENTS,
+                data: {pageId: 'page1', comments: [c1, c2]},
+            });
+            expect(result.commentsById.c1).toEqual(c1);
+            expect(result.commentsById.c2).toEqual(c2);
+        });
+
+        test('RECEIVED_PAGE_COMMENTS is no-op for empty array', () => {
+            const result = pagesReducer(initialState as any, {
+                type: WikiTypes.RECEIVED_PAGE_COMMENTS,
+                data: {pageId: 'page1', comments: []},
+            });
+            expect(result.commentsById).toEqual({});
+        });
+
+        test('RECEIVED_PAGE_COMMENT inserts single comment', () => {
+            const c = mockComment('c1');
+            const result = pagesReducer(initialState as any, {
+                type: WikiTypes.RECEIVED_PAGE_COMMENT,
+                data: {comment: c},
+            });
+            expect(result.commentsById.c1).toEqual(c);
+        });
+
+        test('RECEIVED_PAGE_COMMENT updates existing comment', () => {
+            const c = mockComment('c1');
+            const updated = {...c, message: 'updated'};
+            const state = {...initialState, commentsById: {c1: c}};
+            const result = pagesReducer(state as any, {
+                type: WikiTypes.RECEIVED_PAGE_COMMENT,
+                data: {comment: updated},
+            });
+            expect(result.commentsById.c1.message).toBe('updated');
+        });
+
+        test('DELETED_PAGE_COMMENT removes comment', () => {
+            const c = mockComment('c1');
+            const state = {...initialState, commentsById: {c1: c}};
+            const result = pagesReducer(state as any, {
+                type: WikiTypes.DELETED_PAGE_COMMENT,
+                data: {commentId: 'c1', pageId: 'page1'},
+            });
+            expect(result.commentsById.c1).toBeUndefined();
+        });
+
+        test('DELETED_PAGE_COMMENT is no-op when comment not in store', () => {
+            const result = pagesReducer(initialState as any, {
+                type: WikiTypes.DELETED_PAGE_COMMENT,
+                data: {commentId: 'missing', pageId: 'page1'},
+            });
+            expect(result.commentsById).toEqual({});
+        });
+
+        test('DELETED_PAGE removes all comments for that page', () => {
+            const c1 = mockComment('c1', 'page1');
+            const c2 = mockComment('c2', 'page2');
+            const state = {...initialState, commentsById: {c1, c2}};
+            const result = pagesReducer(state as any, {
+                type: WikiTypes.DELETED_PAGE,
+                data: {id: 'page1'},
+            });
+            expect(result.commentsById.c1).toBeUndefined();
+            expect(result.commentsById.c2).toEqual(c2);
+        });
+
+        test('LOGOUT_SUCCESS clears all comments', () => {
+            const state = {...initialState, commentsById: {c1: mockComment('c1')}};
+            const result = pagesReducer(state as any, {type: 'LOGOUT_SUCCESS'});
+            expect(result.commentsById).toEqual({});
+        });
+    });
+
+    describe('commentsByPageId', () => {
+        const mockComment = (id: string, pageId = 'page1'): Post => ({
+            id,
+            create_at: 1000,
+            update_at: 1000,
+            delete_at: 0,
+            edit_at: 0,
+            is_pinned: false,
+            user_id: 'user1',
+            channel_id: 'channel1',
+            root_id: 'page1',
+            original_id: '',
+            page_parent_id: '',
+            message: 'comment',
+            type: 'page_comment' as any,
+            props: {page_id: pageId},
+            hashtags: '',
+            pending_post_id: '',
+            reply_count: 0,
+            metadata: {embeds: [], emojis: [], files: [], images: {}},
+        });
+
+        test('RECEIVED_PAGE_COMMENTS sets ids in order', () => {
+            const result = pagesReducer(initialState as any, {
+                type: WikiTypes.RECEIVED_PAGE_COMMENTS,
+                data: {pageId: 'page1', comments: [mockComment('c1'), mockComment('c2')]},
+            });
+            expect(result.commentsByPageId.page1).toEqual(['c1', 'c2']);
+        });
+
+        test('RECEIVED_PAGE_COMMENTS preserves WS-added ids not in fetch result', () => {
+            const state = {...initialState, commentsByPageId: {page1: ['c-ws']}};
+            const result = pagesReducer(state as any, {
+                type: WikiTypes.RECEIVED_PAGE_COMMENTS,
+                data: {pageId: 'page1', comments: [mockComment('c1'), mockComment('c2')]},
+            });
+            expect(result.commentsByPageId.page1).toContain('c-ws');
+            expect(result.commentsByPageId.page1).toContain('c1');
+            expect(result.commentsByPageId.page1).toContain('c2');
+        });
+
+        test('RECEIVED_PAGE_COMMENT appends new comment id', () => {
+            const c = mockComment('c1');
+            const result = pagesReducer(initialState as any, {
+                type: WikiTypes.RECEIVED_PAGE_COMMENT,
+                data: {comment: c},
+            });
+            expect(result.commentsByPageId.page1).toEqual(['c1']);
+        });
+
+        test('RECEIVED_PAGE_COMMENT does not duplicate existing id', () => {
+            const c = mockComment('c1');
+            const state = {...initialState, commentsByPageId: {page1: ['c1']}};
+            const result = pagesReducer(state as any, {
+                type: WikiTypes.RECEIVED_PAGE_COMMENT,
+                data: {comment: c},
+            });
+            expect(result.commentsByPageId.page1).toEqual(['c1']);
+        });
+
+        test('RECEIVED_PAGE_COMMENT is no-op when comment lacks page_id prop', () => {
+            const c = {...mockComment('c1'), props: {}};
+            const result = pagesReducer(initialState as any, {
+                type: WikiTypes.RECEIVED_PAGE_COMMENT,
+                data: {comment: c},
+            });
+            expect(result.commentsByPageId).toEqual({});
+        });
+
+        test('DELETED_PAGE_COMMENT removes id from correct page', () => {
+            const state = {...initialState, commentsByPageId: {page1: ['c1', 'c2']}};
+            const result = pagesReducer(state as any, {
+                type: WikiTypes.DELETED_PAGE_COMMENT,
+                data: {commentId: 'c1', pageId: 'page1'},
+            });
+            expect(result.commentsByPageId.page1).toEqual(['c2']);
+        });
+
+        test('DELETED_PAGE_COMMENT scans all pages when pageId is absent', () => {
+            const state = {...initialState, commentsByPageId: {page1: ['c1'], page2: ['c1', 'c2']}};
+            const result = pagesReducer(state as any, {
+                type: WikiTypes.DELETED_PAGE_COMMENT,
+                data: {commentId: 'c1'},
+            });
+            expect(result.commentsByPageId.page1).toEqual([]);
+            expect(result.commentsByPageId.page2).toEqual(['c2']);
+        });
+
+        test('DELETED_PAGE removes the page key', () => {
+            const state = {...initialState, commentsByPageId: {page1: ['c1'], page2: ['c2']}};
+            const result = pagesReducer(state as any, {
+                type: WikiTypes.DELETED_PAGE,
+                data: {id: 'page1'},
+            });
+            expect(result.commentsByPageId.page1).toBeUndefined();
+            expect(result.commentsByPageId.page2).toEqual(['c2']);
+        });
+
+        test('LOGOUT_SUCCESS clears all', () => {
+            const state = {...initialState, commentsByPageId: {page1: ['c1']}};
+            const result = pagesReducer(state as any, {type: 'LOGOUT_SUCCESS'});
+            expect(result.commentsByPageId).toEqual({});
+        });
+    });
+
     describe('Single Source of Truth', () => {
         // These tests assert against the reducer's ACTUAL default state, not the
         // test-local `initialState` constant. Asserting on the constant would pass

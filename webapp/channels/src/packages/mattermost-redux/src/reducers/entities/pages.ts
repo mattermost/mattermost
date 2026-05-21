@@ -6,7 +6,8 @@ import {combineReducers} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {UserTypes, WikiTypes} from 'mattermost-redux/action_types';
+import {SearchTypes, UserTypes, WikiTypes} from 'mattermost-redux/action_types';
+import {PagePropsKeys} from 'mattermost-redux/constants/pages';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 
 function shouldReplacePage(existing: Post | undefined, incoming: Post, isRevert = false): boolean {
@@ -109,6 +110,19 @@ function byId(state: Record<string, Post> = {}, action: AnyAction): Record<strin
                     nextState = {...state};
                 }
                 nextState[page.id] = mergePreservedMessage(nextState[page.id], page);
+            }
+        });
+        return nextState;
+    }
+    case SearchTypes.RECEIVED_SEARCH_POSTS: {
+        const posts: Record<string, Post> = action.data?.posts ?? {};
+        let nextState = state;
+        Object.values(posts).forEach((post: Post) => {
+            if (post?.type === PostTypes.PAGE && post.id && shouldReplacePage(nextState[post.id], post)) {
+                if (nextState === state) {
+                    nextState = {...state};
+                }
+                nextState[post.id] = mergePreservedMessage(nextState[post.id], post);
             }
         });
         return nextState;
@@ -400,6 +414,139 @@ function deletedDraftTimestamps(state: Record<string, number> = {}, action: AnyA
     }
 }
 
+function commentsById(state: Record<string, Post> = {}, action: AnyAction): Record<string, Post> {
+    switch (action.type) {
+    case WikiTypes.RECEIVED_PAGE_COMMENTS: {
+        const {comments} = action.data as {pageId: string; comments: Post[]};
+        if (!comments || comments.length === 0) {
+            return state;
+        }
+        const next = {...state};
+        comments.forEach((c: Post) => {
+            if (c?.id) {
+                next[c.id] = c;
+            }
+        });
+        return next;
+    }
+    case WikiTypes.RECEIVED_PAGE_COMMENT: {
+        const {comment} = action.data as {comment: Post};
+        if (!comment?.id) {
+            return state;
+        }
+        return {...state, [comment.id]: comment};
+    }
+    case WikiTypes.DELETED_PAGE_COMMENT: {
+        const {commentId} = action.data as {commentId: string; pageId?: string};
+        if (!commentId || !state[commentId]) {
+            return state;
+        }
+        const next = {...state};
+        delete next[commentId];
+        return next;
+    }
+    case WikiTypes.DELETED_PAGE: {
+        const {id: pageId} = action.data;
+        if (!pageId) {
+            return state;
+        }
+        const next: Record<string, Post> = {};
+        let changed = false;
+        Object.values(state).forEach((c) => {
+            if (c.props?.[PagePropsKeys.PAGE_ID] === pageId) {
+                changed = true;
+            } else {
+                next[c.id] = c;
+            }
+        });
+        return changed ? next : state;
+    }
+    case WikiTypes.DELETED_WIKI: {
+        // We don't have a direct wiki→page mapping here; stale entries will be
+        // overwritten on next fetch. Only clean up from byWiki is handled in that sub-reducer.
+        return state;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+function commentsByPageId(state: Record<string, string[]> = {}, action: AnyAction): Record<string, string[]> {
+    switch (action.type) {
+    case WikiTypes.RECEIVED_PAGE_COMMENTS: {
+        const {pageId, comments} = action.data as {pageId: string; comments: Post[]};
+        if (!pageId || !comments) {
+            return state;
+        }
+        const ids = comments.map((c: Post) => c.id).filter(Boolean);
+        // Preserve any IDs added via WS during fetch (not in the fetched list)
+        const existing = state[pageId] || [];
+        const fetched = new Set(ids);
+        const addedDuringFetch = existing.filter((id) => !fetched.has(id));
+        return {
+            ...state,
+            [pageId]: Array.from(new Set([...ids, ...addedDuringFetch])),
+        };
+    }
+    case WikiTypes.RECEIVED_PAGE_COMMENT: {
+        const {comment} = action.data as {comment: Post};
+        if (!comment?.id) {
+            return state;
+        }
+        const pageId = comment.props?.[PagePropsKeys.PAGE_ID] as string | undefined;
+        if (!pageId) {
+            return state;
+        }
+        const existing = state[pageId] || [];
+        if (existing.includes(comment.id)) {
+            return state;
+        }
+        return {...state, [pageId]: [...existing, comment.id]};
+    }
+    case WikiTypes.DELETED_PAGE_COMMENT: {
+        const {commentId, pageId} = action.data as {commentId: string; pageId?: string};
+        if (!commentId) {
+            return state;
+        }
+        if (pageId && state[pageId]) {
+            return {...state, [pageId]: state[pageId].filter((id) => id !== commentId)};
+        }
+        // pageId unknown: scan all
+        let changed = false;
+        const next: Record<string, string[]> = {};
+        Object.entries(state).forEach(([pid, ids]) => {
+            const filtered = ids.filter((id) => id !== commentId);
+            if (filtered.length !== ids.length) {
+                changed = true;
+            }
+            next[pid] = filtered;
+        });
+        return changed ? next : state;
+    }
+    case WikiTypes.DELETED_PAGE: {
+        const {id: pageId} = action.data;
+        if (!pageId || !state[pageId]) {
+            return state;
+        }
+        const next = {...state};
+        delete next[pageId];
+        return next;
+    }
+    case WikiTypes.DELETED_WIKI: {
+        // We don't have a direct wiki→page mapping here; stale entries will be
+        // overwritten on next fetch. Only clean up the wiki's page IDs from byWiki
+        // is handled in that sub-reducer.
+        return state;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 const pagesReducer = combineReducers({
 
     // mapping of page id to Page (Post with type='page')
@@ -419,6 +566,12 @@ const pagesReducer = combineReducers({
 
     // timestamps of recently deleted drafts (prevents stale refetch from restoring them)
     deletedDraftTimestamps,
+
+    // flat map of comment id to Post (page_comment type)
+    commentsById,
+
+    // mapping of page id to ordered array of all comment/reply IDs for that page
+    commentsByPageId,
 });
 
 export default pagesReducer;

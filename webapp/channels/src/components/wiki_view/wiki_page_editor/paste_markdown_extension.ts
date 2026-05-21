@@ -244,8 +244,8 @@ export const PasteMarkdownExtension = Extension.create({
                             // Pre-process mentions
                             const {text: processedText, mentions} = preprocessMentions(text);
 
-                            // Convert markdown to HTML with sanitization to prevent XSS
-                            let html = marked(processedText, {sanitize: true, gfm: true}) as string;
+                            // sanitize option was removed in marked v2+; URL filtering via isUrlSafe() provides defense-in-depth
+                            let html = marked(processedText, {gfm: true}) as string;
 
                             // Convert code block language class prefix from marked to TipTap format
                             // marked outputs: <pre><code class="lang-bash">

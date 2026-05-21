@@ -189,15 +189,7 @@ const WikiPageEditor = ({
                             pageId={pageId}
                         />
                     )}
-                    {isExistingPage === false && (
-                        <span
-                            className='page-status badge'
-                            data-testid='wiki-page-draft-badge'
-                        >
-                            {formatMessage({id: 'wiki.page_tree_node.draft_badge', defaultMessage: 'Draft'})}
-                        </span>
-                    )}
-                    <div className='page-status-wrapper'>
+                    <div className='page-status-wrapper' data-testid='page-status-wrapper'>
                         <PageStatusSelector
                             pageId={pageId || ''}
                             isDraft={true}

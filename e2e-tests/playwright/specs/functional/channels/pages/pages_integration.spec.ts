@@ -32,6 +32,7 @@ import {
     openInlineCommentModal,
     openMovePageModal,
     publishPage,
+    renamePageViaContextMenu,
     selectTextInEditor,
     SHORT_WAIT,
     toggleCommentResolution,
@@ -42,6 +43,7 @@ import {
     verifyHierarchyContains,
     verifyPageContentContains,
     verifyWikiRHSContent,
+    waitForAutoSave,
     waitForSearchDebounce,
     WEBSOCKET_WAIT,
 } from './test_helpers';
@@ -110,7 +112,7 @@ test(
         await editor.type('Draft content in progress');
 
         // * Wait for auto-save
-        await page.waitForTimeout(ELEMENT_TIMEOUT);
+        await waitForAutoSave(page);
 
         // # Step 2: Navigate away (without publishing)
         await channelsPage.goto(team.name, channel.name);
@@ -349,32 +351,8 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
     const renamePage = await createPageThroughUI(page, oldTitle, 'Page content');
     const child = await createChildPageThroughContextMenu(page, renamePage.id!, 'Child of Renamed', 'Child content');
 
-    // # Rename page via context menu
-    const pageNode = page.locator(`[data-testid="page-tree-node"][data-page-id="${renamePage.id}"]`);
-    const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
-    await pageNode.hover();
-    await menuButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await menuButton.click();
-
-    const renameMenuItem = page.locator('[data-testid="page-context-menu-rename"]').first();
-    await renameMenuItem.click();
-
-    // * Verify rename modal opened
-    await expect(page.locator('[data-testid="rename-page-modal-title-input"]')).toBeVisible({timeout: ELEMENT_TIMEOUT});
-
-    // # Change title in rename modal
-    const titleInput = page.locator('[data-testid="rename-page-modal-title-input"]');
-    await titleInput.clear();
-    await titleInput.fill(newTitle);
-
-    // # Confirm rename
-    const renameButton = page.locator('button:has-text("Rename")').last();
-    await renameButton.click();
-
-    // * Verify modal closed
-    await expect(page.locator('[data-testid="rename-page-modal-title-input"]')).not.toBeVisible({
-        timeout: ELEMENT_TIMEOUT,
-    });
+    // # Rename page inline via title input (no separate context-menu rename action exists)
+    await renamePageViaContextMenu(page, oldTitle, newTitle);
 
     // * Verify title updated in hierarchy panel
     // This ensures Redux state is fully updated before we navigate away
@@ -538,7 +516,7 @@ test(
         await editor.type('Important draft content that must not be lost');
 
         // * Wait for auto-save
-        await page.waitForTimeout(ELEMENT_TIMEOUT);
+        await waitForAutoSave(page);
 
         // # Simulate browser close (navigate away)
         await page.goto(buildChannelUrl(pw.url, team.name, channel.name));

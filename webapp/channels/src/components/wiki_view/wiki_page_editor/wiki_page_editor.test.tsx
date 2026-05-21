@@ -124,9 +124,8 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const props = {...baseProps, isExistingPage: false};
             const {container} = renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
-            const statusBadge = container.querySelector('.page-status.badge');
-            expect(statusBadge).toBeInTheDocument();
-            expect(statusBadge?.textContent).toBe('Draft');
+            const statusSelector = container.querySelector('.page-status-selector');
+            expect(statusSelector).toBeInTheDocument();
         });
 
         test('should NOT render draft badge when isExistingPage is undefined (loading/unknown state)', () => {
@@ -441,7 +440,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const {container} = renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
             const meta = container.querySelector('.page-meta');
-            expect(meta?.querySelector('.page-status')).toBeInTheDocument();
+            expect(meta?.querySelector('.page-status-selector')).toBeInTheDocument();
             expect(screen.getByText('Status')).toBeInTheDocument();
             expect(screen.getByText('Select...')).toBeInTheDocument();
         });

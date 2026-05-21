@@ -386,3 +386,63 @@ func TestGetPageActiveEditors(t *testing.T) {
 		require.Empty(t, editors.UserIds)
 	})
 }
+
+func TestCreatePageSetsPageSearchText(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	contentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"searchable text here"}]}]}`
+
+	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "My Page", "", contentJSON, th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+	require.NotNil(t, page)
+	require.Equal(t, "searchable text here", page.PageSearchText)
+}
+
+func TestUpdatePageSetsPageSearchText(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	rctx := th.CreateSessionContext()
+
+	initialContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"initial content"}]}]}`
+	page, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Update Test Page", "", initialContent, th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+	require.Equal(t, "initial content", page.PageSearchText)
+
+	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"updated content words"}]}]}`
+	updated, appErr := th.App.UpdatePage(rctx, page, "Update Test Page", newContent, "", nil)
+	require.Nil(t, appErr)
+	require.Equal(t, "updated content words", updated.PageSearchText)
+}
+
+func TestPageSearchByContent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.EnableSearching = false
+	})
+
+	uniqueWord := "xqzfts" + model.NewId()[:8]
+	contentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"` + uniqueWord + `"}]}]}`
+
+	_, appErr := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "FTS Test Page", "", contentJSON, th.BasicUser.Id, "", "")
+	require.Nil(t, appErr)
+
+	results, _, searchErr := th.App.SearchPostsForUser(th.Context, "type:page "+uniqueWord, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 20)
+	require.Nil(t, searchErr)
+	require.NotNil(t, results)
+
+	var found bool
+	for _, post := range results.Posts {
+		if post.PageSearchText == uniqueWord {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "page should be findable by content word via FTS")
+}

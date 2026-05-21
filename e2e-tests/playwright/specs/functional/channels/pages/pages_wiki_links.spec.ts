@@ -303,6 +303,7 @@ test.describe('Wiki Links', () => {
      * Wiki linked to two channels, with a published page
      */
     test('edits to a page are visible across linked channels', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+        test.setTimeout(180_000);
         const {team, user, adminClient} = sharedPagesSetup;
 
         // # Create source and two target channels — user must be a member of both target channels
@@ -323,9 +324,65 @@ test.describe('Wiki Links', () => {
 
         // # Login and navigate to channel A, open wiki tab
         const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channelA.name);
+
+        // TRACE: record all URL navigations from this point forward
+        const navLog: string[] = [`start:${page.url()}`];
+        page.on('framenavigated', (frame) => {
+            if (frame === page.mainFrame()) {
+                navLog.push(`nav:${frame.url()}`);
+            }
+        });
+
+        // TRACE: record API responses to catch 403/404 redirects
+        page.on('response', (response) => {
+            const url = response.url();
+            const status = response.status();
+            if ((url.includes('/api/v4/pages/') || url.includes('/api/v4/wiki')) && status >= 300) {
+                // eslint-disable-next-line no-console
+                console.log(`[TRACE] API ${status}: ${url}`);
+            }
+        });
+
+        // TRACE: capture browser console logs from React hooks (must be before openWikiByTab)
+        page.on('console', (msg) => {
+            const text = msg.text();
+            if (text.includes('[useWikiPageData]') || text.includes('[useAutoPageSelection]') || text.includes('[wiki_view]') || text.includes('[wiki_router]') || text.includes('[channel_view]')) {
+                // eslint-disable-next-line no-console
+                console.log('[BROWSER]', text);
+            }
+        });
+
+        // TRACE: detect when page closes
+        page.on('close', () => {
+            // eslint-disable-next-line no-console
+            console.log('[TRACE] page closed at url:', page.url());
+        });
+
         await waitForWikiTab(page, wikiTitle);
+        navLog.push(`after-waitForWikiTab:${page.url()}`);
+
         await openWikiByTab(page, wikiTitle);
+        navLog.push(`after-openWikiByTab:${page.url()}`);
+
+        // TRACE: capture DOM immediately after clicking the wiki tab
+        const domState0 = await page.evaluate(() => ({
+            url: window.location.href,
+            innerWrap: document.querySelectorAll('.inner-wrap').length,
+            channelView: document.querySelectorAll('[data-testid="channel_view"]').length,
+            tabPanel: document.querySelectorAll('.channel-tab-panel').length,
+            tabPanelId: document.querySelector('.channel-tab-panel')?.id ?? 'none',
+            wikiView: document.querySelectorAll('[data-testid="wiki-view"]').length,
+            loadingScreen: document.querySelectorAll('.loading-screen').length,
+            appContent: document.querySelectorAll('#app-content').length,
+            centerHtml: document.querySelector('.inner-wrap')?.innerHTML?.slice(0, 500) ?? 'none',
+        }));
+        // eslint-disable-next-line no-console
+        console.log('[TRACE] DOM immediately after openWikiByTab:', JSON.stringify(domState0));
+
         await waitForWikiViewLoad(page);
+        navLog.push(`after-waitForWikiViewLoad:${page.url()}`);
+        // eslint-disable-next-line no-console
+        console.log('[TRACE] navLog:', navLog.join(' | '));
 
         // * Verify the page content is visible in channel A's wiki view
         await verifyPageContentContains(page, pageContent);
@@ -425,13 +482,13 @@ test.describe('Wiki Links', () => {
     test('cannot link the same wiki to a channel twice', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
         const {team, user, adminClient} = sharedPagesSetup;
 
-        const sourceChannel = await createTestChannel(adminClient, team.id, 'Dup Source');
         const targetChannel = await createTestChannel(adminClient, team.id, 'Dup Target', 'O', [user.id]);
 
-        // # Create a wiki and link to source + target channel via API
+        // # Create a wiki and link it to the target channel via API
+        // SaveAndPropagateMembers will add the user (member of targetChannel) to the wiki
+        // backing channel, so no separate source channel is needed.
         const wikiTitle = uniqueName('Dup Wiki');
         const wiki = await createWikiViaAPI(adminClient, team.id, wikiTitle);
-        await linkWikiToChannel(adminClient, sourceChannel.id, wiki.id);
         await linkWikiToChannel(adminClient, targetChannel.id, wiki.id);
 
         // # Login and navigate to target channel

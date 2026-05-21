@@ -14,7 +14,7 @@ import {
     getPage,
     getPageAncestors,
     makeGetPages,
-    getChannelPages,
+    makeGetChannelPages,
     getPagesLoading,
     getPagesError,
     getPageStatusField,
@@ -242,7 +242,7 @@ describe('pages selectors', () => {
         });
     });
 
-    describe('getChannelPages', () => {
+    describe('makeGetChannelPages', () => {
         const channelId = 'channel123';
         const otherChannelId = 'channel456';
 
@@ -271,23 +271,26 @@ describe('pages selectors', () => {
         });
 
         test('should return all pages matching the channelId', () => {
+            const selectChannelPages = makeGetChannelPages();
             const state = makeState({channelPage1, channelPage2, otherChannelPage});
 
-            const pages = getChannelPages(state as GlobalState, channelId);
+            const pages = selectChannelPages(state as GlobalState, channelId);
 
             expect(pages).toHaveLength(2);
             expect(pages.map((p) => p.id).sort()).toEqual(['channelPage1', 'channelPage2']);
         });
 
         test('should return empty array when no pages match channelId', () => {
+            const selectChannelPages = makeGetChannelPages();
             const state = makeState({otherChannelPage});
 
-            const pages = getChannelPages(state as GlobalState, channelId);
+            const pages = selectChannelPages(state as GlobalState, channelId);
 
             expect(pages).toEqual([]);
         });
 
         test('should filter out non-PAGE posts', () => {
+            const selectChannelPages = makeGetChannelPages();
             const regularPost: Post = {
                 ...mockPage1,
                 id: 'regularPost',
@@ -297,17 +300,18 @@ describe('pages selectors', () => {
 
             const state = makeState({channelPage1, regularPost});
 
-            const pages = getChannelPages(state as GlobalState, channelId);
+            const pages = selectChannelPages(state as GlobalState, channelId);
 
             expect(pages).toHaveLength(1);
             expect(pages[0].id).toBe('channelPage1');
         });
 
         test('should use memoization', () => {
+            const selectChannelPages = makeGetChannelPages();
             const state = makeState({channelPage1});
 
-            const pages1 = getChannelPages(state as GlobalState, channelId);
-            const pages2 = getChannelPages(state as GlobalState, channelId);
+            const pages1 = selectChannelPages(state as GlobalState, channelId);
+            const pages2 = selectChannelPages(state as GlobalState, channelId);
 
             expect(pages1).toBe(pages2);
         });

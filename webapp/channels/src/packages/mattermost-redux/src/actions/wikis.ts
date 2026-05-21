@@ -258,10 +258,10 @@ export function deletePage(wikiId: string, pageId: string): ActionFuncAsync<bool
         try {
             await Client4.deletePage(wikiId, pageId);
 
-            dispatch({
-                type: WikiTypes.DELETED_PAGE,
-                data: {id: pageId, wikiId},
-            });
+            dispatch(batchActions([
+                {type: WikiTypes.DELETED_PAGE, data: {id: pageId, wikiId}},
+                {type: PostActionTypes.POST_REMOVED, data: {id: pageId, root_id: ''}},
+            ]));
 
             return {data: true};
         } catch (error) {
@@ -294,6 +294,7 @@ export function movePageToWiki(sourceWikiId: string, pageId: string, targetWikiI
         try {
             await Client4.movePageToWiki(sourceWikiId, pageId, targetWikiId, parentPageId);
             const updatedPage = await Client4.getPage(targetWikiId, pageId) as Post;
+            dispatch({type: WikiTypes.REMOVED_PAGE_FROM_WIKI, data: {pageId, wikiId: sourceWikiId}});
             dispatch({type: WikiTypes.RECEIVED_PAGE, data: {page: updatedPage, wikiId: targetWikiId}});
             return {data: true};
         } catch (error) {

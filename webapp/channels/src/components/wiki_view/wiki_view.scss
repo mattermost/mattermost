@@ -12,6 +12,7 @@
 
     &__hamburgerButton {
         position: absolute;
+        z-index: 2;
         top: 12px;
         left: 12px;
     }
@@ -162,6 +163,51 @@
             flex-direction: column;
             align-items: center;
             overflow-y: auto;
+        }
+
+        &__publishError {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 8px 16px;
+            margin: 8px 16px 0;
+            border: 1px solid rgba(var(--error-text-rgb), 0.32);
+            border-radius: 4px;
+            background-color: rgba(var(--error-text-rgb), 0.08);
+            color: var(--center-channel-color);
+            font-size: 13px;
+            line-height: 18px;
+
+            > span {
+                flex: 1;
+            }
+
+            &-link {
+                padding: 0;
+                color: var(--link-color);
+                text-decoration: underline;
+
+                &:hover,
+                &:focus {
+                    text-decoration: underline;
+                }
+            }
+
+            .close {
+                padding: 0 4px;
+                border: none;
+                background: transparent;
+                color: var(--center-channel-color);
+                cursor: pointer;
+                font-size: 18px;
+                line-height: 18px;
+                opacity: 0.64;
+
+                &:hover,
+                &:focus {
+                    opacity: 1;
+                }
+            }
         }
 
         &__emptyState {
@@ -504,10 +550,6 @@ body.fullscreen-mode {
         display: none;
     }
 
-    .PagesHierarchyPanel {
-        display: none;
-    }
-
     .WikiView {
         position: fixed;
         z-index: 900;
@@ -543,6 +585,12 @@ body.fullscreen-mode {
         top: 0;
         right: 0;
         height: 100vh;
+    }
+
+    .WikiView__hamburgerButton {
+        // Must sit above the fixed PagePane__header (z-index: 902) in fullscreen
+        // so the user can click it to reopen the pages panel.
+        z-index: 903;
     }
 
     .rhs-open .WikiView,

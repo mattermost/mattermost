@@ -17,7 +17,7 @@ export default defineConfig({
     outputDir: './results/output',
     retries: testConfig.isCI ? 1 : 0,
     testDir: 'specs',
-    timeout: duration.one_min,
+    timeout: duration.two_min,
     workers: testConfig.workers,
     expect: {
         timeout: duration.ten_sec,

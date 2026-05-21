@@ -72,7 +72,35 @@
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background-color: var(--button-bg);
+        background-color: rgba(var(--center-channel-color-rgb), 0.48);
+
+        &[data-color="light_grey"] {
+            background-color: rgba(var(--center-channel-color-rgb), 0.48);
+        }
+
+        &[data-color="blue"] {
+            background-color: var(--button-bg);
+        }
+
+        &[data-color="yellow"] {
+            background-color: var(--away-indicator);
+        }
+
+        &[data-color="green"] {
+            background-color: var(--online-indicator);
+        }
+
+        &[data-color="light_blue"] {
+            background-color: var(--sidebar-text-active-border);
+        }
+
+        &[data-color="dark_blue"] {
+            background-color: rgba(var(--sidebar-text-active-border-rgb), 0.92);
+        }
+
+        &[data-color="dark_red"] {
+            background-color: var(--error-text);
+        }
     }
 
     &__content {

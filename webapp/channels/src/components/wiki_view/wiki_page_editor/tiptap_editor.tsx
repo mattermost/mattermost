@@ -38,6 +38,7 @@ import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import {openModal} from 'actions/views/modals';
+import {getPendingInlineAnchor} from 'selectors/wiki_rhs';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import useVisionCapability from 'components/common/hooks/useVisionCapability';
@@ -50,7 +51,7 @@ import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 import {slugifyHeading} from 'utils/slugify_heading';
-import {getWikiUrl, isUrlSafe, isValidUrl} from 'utils/url';
+import {getTeamNameFromPath, getWikiUrl, isUrlSafe, isValidUrl} from 'utils/url';
 import {generateId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -964,7 +965,9 @@ const TipTapEditor = ({
                                                 fileItems.forEach((item) => {
                                                     const file = item.getAsFile();
                                                     if (file) {
-                                                        handleFileUpload(editor, file).catch(() => {});
+                                                        handleFileUpload(editor, file).catch((e) => {
+                                                            console.error('TipTap: paste file upload failed:', e);
+                                                        });
                                                     }
                                                 });
 
@@ -1065,7 +1068,9 @@ const TipTapEditor = ({
                                                     editor,
                                                     file,
                                                     pos?.pos,
-                                                ).catch(() => {});
+                                                ).catch((e) => {
+                                                    console.error('TipTap: drag-drop file upload failed:', e);
+                                                });
                                             });
 
                                             return true;
@@ -1195,6 +1200,20 @@ const TipTapEditor = ({
         // Emoji autocomplete (works for all users)
         if (editable) {
             exts.push(EmojiSuggestionExtension);
+
+            // Ensure Tab/Shift-Tab indent/dedent list items (StarterKit's ListItem
+            // registers these, but they may be suppressed by the outer wrapper).
+            // Gated on `editable` so the read-only viewer does not capture Tab and
+            // block native focus navigation.
+            exts.push(Extension.create({
+                name: 'listTabShortcuts',
+                addKeyboardShortcuts() {
+                    return {
+                        Tab: () => this.editor.commands.sinkListItem('listItem'),
+                        'Shift-Tab': () => this.editor.commands.liftListItem('listItem'),
+                    };
+                },
+            }));
         }
 
         return exts;
@@ -1218,9 +1237,16 @@ const TipTapEditor = ({
         extensions,
         content: getInitialContent(content),
         editable,
-        onUpdate: ({editor: currentEditor}) => {
-            const json = currentEditor.getJSON();
-            onContentChange(JSON.stringify(json));
+        onUpdate: ({editor: currentEditor, transaction}) => {
+            if (!transaction.docChanged) {
+                return;
+            }
+            onContentChange(JSON.stringify(currentEditor.getJSON()));
+            // Only scroll for user-initiated edits; programmatic insertions
+            // (AI content, remote sync) explicitly opt out via addToHistory=false.
+            if (transaction.getMeta('addToHistory') !== false) {
+                currentEditor.commands.scrollIntoView();
+            }
         },
         editorProps: {
             attributes: {
@@ -1286,11 +1312,35 @@ const TipTapEditor = ({
         actionType: imageActionType,
         progress: imageProgress,
         createdPageTitle: imageCreatedPageTitle,
+        extractedNodes: imageExtractedNodes,
         handleImageAIAction,
         cancelExtraction,
         goToCreatedPage: goToImageCreatedPage,
         stayOnCurrentPage: stayOnCurrentPageAfterImage,
     } = useImageAI(channelId || '', wikiId || '', pageId, pageTitle, selectedImageAIAgentId, isExistingPage, onTranslatedPageCreated, setServerError);
+
+    const handleInsertExtractedContent = useCallback(() => {
+        if (editor && imageExtractedNodes) {
+            // Focus before insertContent so the cursor remains visible after the
+            // dialog dismisses (focus would otherwise stay on the dialog button).
+            // Wrap in try/catch so a malformed AI response cannot corrupt the
+            // editor — fall back to inserting concatenated plain text.
+            try {
+                editor.chain().focus().insertContent(imageExtractedNodes as Parameters<typeof editor.commands.insertContent>[0]).run();
+            } catch (insertErr) {
+                console.error('Failed to insert extracted image content, falling back to plain text:', insertErr);
+                const fallbackText = (imageExtractedNodes as Array<{content?: Array<{text?: string}>}>).
+                    flatMap((n) => n.content ?? []).
+                    map((c) => c.text ?? '').
+                    filter(Boolean).
+                    join('\n');
+                if (fallbackText) {
+                    editor.chain().focus().insertContent(fallbackText).run();
+                }
+            }
+        }
+        stayOnCurrentPageAfterImage();
+    }, [editor, imageExtractedNodes, stayOnCurrentPageAfterImage]);
 
     // Handler for image AI actions from the bubble menu
     const onImageAIAction = useCallback((action: ImageAIAction, imageElement: HTMLImageElement) => {
@@ -1371,6 +1421,11 @@ const TipTapEditor = ({
         }
     }, [channelId, teamId, editable, dispatch]);
 
+    // A18: pending-anchor decoration source — re-renders the highlight when the user
+    // clicks "Add comment" so the selected text stays visually marked after focus
+    // moves to the RHS comment textbox.
+    const pendingInlineAnchor = useSelector(getPendingInlineAnchor);
+
     // Update inline comments in both extensions when they change
     useEffect(() => {
         if (!editor) {
@@ -1382,27 +1437,14 @@ const TipTapEditor = ({
             (editor.storage as any).inlineComment.comments = inlineComments;
         }
 
-        // Update decoration plugin and trigger rebuild
+        // Update decoration plugin and trigger rebuild — the plugin handles
+        // comment-anchor-active class via decorations, no imperative DOM walk needed.
         if ((editor.storage as any).commentHighlight) {
             (editor.storage as any).commentHighlight.comments = inlineComments;
+            (editor.storage as any).commentHighlight.pendingAnchor = pendingInlineAnchor;
             editor.view.dispatch(editor.state.tr.setMeta(COMMENT_HIGHLIGHT_PLUGIN_KEY, true));
         }
-
-        // Update DOM classes for mark-based anchors
-        const updateAnchorClasses = () => {
-            const activeIds = new Set(
-                inlineComments.map((c) => c.props?.inline_anchor?.anchor_id).filter(Boolean),
-            );
-            editor.view.dom.querySelectorAll('[id^="ic-"]').forEach((el) => {
-                const anchorId = el.getAttribute('id')?.replace('ic-', '');
-                el.classList.toggle('comment-anchor-active', Boolean(anchorId && activeIds.has(anchorId)));
-            });
-        };
-
-        updateAnchorClasses();
-        const timeoutId = setTimeout(updateAnchorClasses, 100);
-        return () => clearTimeout(timeoutId);
-    }, [editor, inlineComments]);
+    }, [editor, inlineComments, pendingInlineAnchor]);
 
     // Remove marks for deleted comments (only when explicitly deleted, not resolved)
     useEffect(() => {
@@ -1617,7 +1659,7 @@ const TipTapEditor = ({
         }
 
         // Use the selected page's wiki_id (not the current page's wikiId)
-        const url = getWikiUrl(currentTeam?.name || 'team', pageWikiId, pageId, false);
+        const url = getWikiUrl(getTeamNameFromPath(window.location.pathname), pageWikiId, pageId, false);
 
         const {from, to} = editor.state.selection;
 
@@ -1714,6 +1756,16 @@ const TipTapEditor = ({
                 const {from, to} = editor.state.selection;
                 const text = editor.state.doc.textBetween(from, to, '');
                 openPageLinkModal(text);
+            }
+        }
+
+        // Intercept Ctrl+A / Cmd+A only when the editor is focused and editable —
+        // otherwise the wrapper would steal select-all from sibling inputs like
+        // the page title textarea or the comment box.
+        if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+            if (editor && editor.isEditable && editor.isFocused) {
+                e.preventDefault();
+                editor.commands.selectAll();
             }
         }
     }, [editor, pages, openPageLinkModal]);
@@ -1822,7 +1874,7 @@ const TipTapEditor = ({
                     onAIRewrite={isAIAvailable ? handleAIRewrite : undefined}
                 />
             )}
-            {editor && isAIAvailable && rewriteControl}
+            {editor && isAIAvailable && editable && rewriteControl}
             {isAIAvailable && (
                 <TranslatePageModal
                     show={showTranslateModal}
@@ -1846,6 +1898,7 @@ const TipTapEditor = ({
                         pageTitle={imageCreatedPageTitle}
                         onGoToDraft={goToImageCreatedPage}
                         onStayHere={stayOnCurrentPageAfterImage}
+                        onInsertContent={handleInsertExtractedContent}
                     />
                 </>
             )}

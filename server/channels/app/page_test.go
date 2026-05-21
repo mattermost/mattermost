@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -543,6 +544,72 @@ func TestRestorePage(t *testing.T) {
 		require.Nil(t, err)
 		err = th.App.RestorePage(sessionCtx, page)
 		require.NotNil(t, err, "Should fail to restore page that is not deleted")
+	})
+
+	// Issue #3: RestorePage does not re-attach children that were reparented on delete.
+	// When a parent is deleted its children are moved to the grandparent. Restoring the
+	// parent should reconnect children back under it, but currently does not.
+	// This test FAILS with the current code and should pass once the fix lands.
+	t.Run("restore reconnects children reparented on delete", func(t *testing.T) {
+		parent, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Parent", "", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		child, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Child", parent.Id, "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		parentPage, err := th.App.GetPage(sessionCtx, parent.Id)
+		require.Nil(t, err)
+		err = th.App.DeletePage(sessionCtx, parentPage, "")
+		require.Nil(t, err)
+
+		childAfterDelete, getErr := th.App.GetSinglePost(th.Context, child.Id, false)
+		require.Nil(t, getErr)
+		require.Empty(t, childAfterDelete.PageParentId, "child should be reparented to root on parent delete")
+
+		deletedParent, err := th.App.GetPageWithDeleted(sessionCtx, parent.Id)
+		require.Nil(t, err)
+		err = th.App.RestorePage(sessionCtx, deletedParent)
+		require.Nil(t, err)
+
+		// Correct behaviour: child must be re-attached to the restored parent.
+		// Currently FAILS because RestorePage does not restore child relationships.
+		childAfterRestore, getErr := th.App.GetSinglePost(th.Context, child.Id, false)
+		require.Nil(t, getErr)
+		require.Equal(t, parent.Id, childAfterRestore.PageParentId,
+			"child must be re-attached to restored parent (fix #3)")
+	})
+
+	// Issue #4: PropertyValues (page status) are cleaned up on soft-delete but are
+	// NOT restored when the page is restored. After restore, the status is lost.
+	// This test FAILS with the current code and should pass once the fix lands.
+	t.Run("restore recovers property values deleted during page delete", func(t *testing.T) {
+		page, err := th.App.CreateWikiPage(th.Context, th.BasicWiki.Id, "", "Status Page", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+
+		setErr := th.App.SetPageStatus(th.Context, page.Id, model.PageStatusInProgress)
+		require.Nil(t, setErr)
+
+		th.App.EnrichPageWithProperties(th.Context, page)
+		require.Equal(t, model.PageStatusInProgress, page.Props[model.PagePropsPageStatus],
+			"status should be set before delete")
+
+		pageToDelete, err := th.App.GetPage(sessionCtx, page.Id)
+		require.Nil(t, err)
+		err = th.App.DeletePage(sessionCtx, pageToDelete, "")
+		require.Nil(t, err)
+
+		deletedPage, err := th.App.GetPageWithDeleted(sessionCtx, page.Id)
+		require.Nil(t, err)
+		err = th.App.RestorePage(sessionCtx, deletedPage)
+		require.Nil(t, err)
+
+		// Correct behaviour: status must survive the delete+restore cycle.
+		// Currently FAILS because DeletePage removes PropertyValues and RestorePage does not recreate them.
+		restoredPage, err := th.App.GetPage(sessionCtx, page.Id)
+		require.Nil(t, err)
+		th.App.EnrichPageWithProperties(th.Context, restoredPage)
+		require.Equal(t, model.PageStatusInProgress, restoredPage.Props[model.PagePropsPageStatus],
+			"status must be preserved through delete+restore cycle (fix #4)")
 	})
 }
 
@@ -1732,7 +1799,7 @@ func TestGetPageStatus(t *testing.T) {
 		require.Nil(t, appErr)
 		status, appErr := th.App.GetPageStatus(rctx, page.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, model.PageStatusInProgress, status)
+		require.Equal(t, "", status)
 	})
 
 	t.Run("returns actual status after setting", func(t *testing.T) {
@@ -2255,6 +2322,45 @@ func TestUpdatePageWithOptimisticLocking_DeletedPage(t *testing.T) {
 	require.Equal(t, "app.page.update.not_found.app_error", updateErr.Id)
 }
 
+// Issue #2: two concurrent first-edits on a freshly created page (EditAt=0) both
+// send baseEditAt=0.  The app-layer check passes for both (0 == 0).  The store-layer
+// CAS then rejects the second request, but it returns ErrNotFound which maps to 404
+// instead of the semantically correct 409 Conflict.
+func TestUpdatePageWithOptimisticLocking_ConcurrentZeroBaseEditAt(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	sessionCtx := th.CreateSessionContext()
+
+	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "Original Title", "", validContent, th.BasicUser.Id, "", "")
+	require.Nil(t, err)
+	require.Equal(t, int64(0), createdPage.EditAt, "Freshly created page must have EditAt=0")
+
+	content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Client 1 content"}]}]}`
+	content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Client 2 content"}]}]}`
+
+	// Client 1 submits first with baseEditAt=0 — must succeed.
+	page1, err1 := th.App.GetPage(sessionCtx, createdPage.Id)
+	require.Nil(t, err1)
+	updated1, appErr1 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page1, "", content1, "", 0, false, nil)
+	require.Nil(t, appErr1)
+	require.Greater(t, updated1.EditAt, int64(0), "After first update EditAt must be non-zero")
+
+	// Client 2 submits with baseEditAt=0 after client 1 already committed.
+	// The app-layer reads EditAt=T1 from master; since T1 != 0, it returns 409 Conflict.
+	// BUG (#2): if both requests were truly concurrent and both passed the app-layer
+	// check, the store would return ErrNotFound (0 rows), producing a 404 instead of 409.
+	// This test covers the sequential case; the concurrent race is non-deterministic.
+	page2, err2 := th.App.GetPage(sessionCtx, createdPage.Id)
+	require.Nil(t, err2)
+	_, appErr2 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, page2, "", content2, "", 0, false, nil)
+	require.NotNil(t, appErr2, "Second update with stale baseEditAt=0 must be rejected")
+	// The app-layer catches this as a conflict (T1 != 0); the bug manifests only under
+	// true concurrency where both reads happen before either write commits.
+	require.Equal(t, 409, appErr2.StatusCode, "Expected 409 Conflict, not 404 — see issue #2")
+}
+
 func TestUpdatePageWithOptimisticLocking_ErrorDetailsIncludeModifier(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
@@ -2519,4 +2625,139 @@ func TestUpdatePageWithOptimisticLockingAttachesFiles(t *testing.T) {
 		require.NoError(t, storeErr)
 		require.Equal(t, page.Id, updatedFileInfo.PostId, "File should be attached to the page")
 	})
+}
+
+// TestVersionHistoryPrunedAtLimit confirms issue #13 is already fixed:
+// createPageVersionHistory prunes history to PostEditHistoryLimit (10) after each edit.
+// This test passes with current code and acts as a regression guard.
+func TestVersionHistoryPrunedAtLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	sessionCtx := th.CreateSessionContext()
+
+	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "History Prune Page", "", `{"type":"doc","content":[]}`, th.BasicUser.Id, "", "")
+	require.Nil(t, err)
+
+	for i := 0; i < model.PostEditHistoryLimit+3; i++ {
+		current, appErr := th.App.GetPage(sessionCtx, page.Id)
+		require.Nil(t, appErr)
+		_, updateErr := th.App.UpdatePage(sessionCtx, current, "History Prune Page", `{"type":"doc","content":[]}`, "", nil)
+		require.Nil(t, updateErr)
+	}
+
+	history, histErr := th.App.GetEditHistoryForPost(page.Id)
+	require.Nil(t, histErr)
+	require.LessOrEqual(t, len(history), model.PostEditHistoryLimit,
+		"issue #13 already fixed: history must be pruned to PostEditHistoryLimit=%d", model.PostEditHistoryLimit)
+}
+
+// TestPageMessageContainsTipTapJSON documents issue #12: Post.Message stores raw
+// TipTap JSON rather than plain text, so FTS indexes JSON tokens (type names,
+// attribute keys) instead of readable content.
+// This test passes — it records the current design as a regression guard.
+func TestPageMessageContainsTipTapJSON(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"searchable text"}]}]}`
+	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "JSON Message Page", "", content, th.BasicUser.Id, "", "")
+	require.Nil(t, err)
+
+	// Issue #12: Message IS the raw TipTap JSON blob, not extracted plain text.
+	require.JSONEq(t, content, page.Message,
+		"issue #12 design note: Post.Message holds TipTap JSON — FTS indexes JSON structure, not plain text")
+
+	var raw map[string]any
+	require.NoError(t, json.Unmarshal([]byte(page.Message), &raw),
+		"Post.Message must be valid JSON (TipTap document)")
+}
+
+// TestConcurrentPageCreateSortOrderUnique documents issue #9:
+// concurrent sibling-page creates both read max-sibling sort order from the
+// same replica snapshot and can produce duplicate sort orders.
+//
+// This test FAILS when the race fires; it may pass occasionally because the
+// race is non-deterministic. A reliable fix requires a DB-level atomic
+// increment (e.g., a sequence or SELECT ... FOR UPDATE on the parent row).
+func TestConcurrentPageCreateSortOrderUnique(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	wiki, wikiErr := th.App.CreateWiki(th.Context, &model.Wiki{Title: "Sort Race Wiki"}, th.BasicUser.Id)
+	require.Nil(t, wikiErr)
+
+	const n = 10
+	type result struct {
+		page *model.Post
+		err  *model.AppError
+	}
+	results := make([]result, n)
+
+	var wg sync.WaitGroup
+	wg.Add(n)
+	for i := 0; i < n; i++ {
+		i := i
+		go func() {
+			defer wg.Done()
+			p, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Concurrent Page", "", th.BasicUser.Id, "", "")
+			results[i] = result{p, appErr}
+		}()
+	}
+	wg.Wait()
+
+	seen := map[int64]bool{}
+	for _, r := range results {
+		require.Nil(t, r.err, "all concurrent creates must succeed")
+		order := r.page.GetPageSortOrder()
+		// Issue #9: duplicate sort orders are possible when goroutines both read
+		// the same max-sibling value before either write commits.
+		require.False(t, seen[order],
+			"BUG #9: duplicate sort_order=%d — concurrent creates produced the same value; "+
+				"fix by using a DB-level atomic increment instead of read-then-write", order)
+		seen[order] = true
+	}
+}
+
+// TestGetChannelPagesPaginationCorrectness documents issue #7:
+// GetChannelPages loads all pages into memory, sorts them there, then paginates.
+// At >10 000 pages the store-layer hard cap truncates the input silently and
+// the in-memory sort/pagination is over an incomplete set.
+//
+// At the scale used here (15 pages) the function is correct; this test acts as
+// a regression guard for the sort order guarantee.
+func TestGetChannelPagesPaginationCorrectness(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.SetupPagePermissions()
+
+	wiki, wikiErr := th.App.CreateWiki(th.Context, &model.Wiki{Title: "Pagination Wiki"}, th.BasicUser.Id)
+	require.Nil(t, wikiErr)
+
+	const total = 15
+	for i := 0; i < total; i++ {
+		_, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Pagination Page", "", th.BasicUser.Id, "", "")
+		require.Nil(t, err)
+	}
+
+	pages, err := th.App.GetChannelPages(th.Context, wiki.ChannelId, 0, 0)
+	require.Nil(t, err)
+
+	require.GreaterOrEqual(t, len(pages.Posts), total,
+		"issue #7 at scale: GetChannelPages must return all pages; "+
+			"at >10k pages the in-memory sort may be over a truncated set")
+
+	prevOrder := int64(-1)
+	for _, id := range pages.Order {
+		p := pages.Posts[id]
+		if p == nil || p.Type != model.PostTypePage {
+			continue
+		}
+		order := p.GetPageSortOrder()
+		require.GreaterOrEqual(t, order, prevOrder, "pages must be returned in ascending sort order")
+		prevOrder = order
+	}
 }

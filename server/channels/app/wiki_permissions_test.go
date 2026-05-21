@@ -123,6 +123,45 @@ func TestSessionHasPagePermission(t *testing.T) {
 	})
 }
 
+// TestSessionHasWikiPermission_CreatorBypassIrrevocable documents issue #6:
+// the IsWikiOwner shortcut grants manage_wiki / admin_wiki / delete_wiki to any
+// wiki creator who still holds PermissionViewTeam (the default for all team members).
+// An admin cannot revoke this without removing the creator from the team entirely.
+//
+// EXPECTED after fix #6: manage_wiki should require an explicit, revocable ACL entry
+// on the wiki — not implicit ownership combined with ViewTeam.
+// FAILS with current code because IsWikiOwner returns true for creator + ViewTeam.
+func TestSessionHasWikiPermission_CreatorBypassIrrevocable(t *testing.T) {
+	t.Skip("Bug #6 not yet fixed")
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Wiki created by basicUser — they are the "owner" under the current model.
+	wiki := &model.Wiki{
+		Id:        model.NewId(),
+		TeamId:    th.BasicTeam.Id,
+		CreatorId: th.BasicUser.Id,
+	}
+
+	// Session has only ViewTeam (team_user role); no manage_wiki grant from any role.
+	// This is the situation after an admin has explicitly NOT granted manage_wiki
+	// to the creator's team role — the creator should have no management rights.
+	creatorSession := model.Session{
+		UserId: th.BasicUser.Id,
+		TeamMembers: []*model.TeamMember{
+			{UserId: th.BasicUser.Id, TeamId: th.BasicTeam.Id, Roles: model.TeamUserRoleId},
+		},
+	}
+
+	// BUG #6: returns true because IsWikiOwner grants manage_wiki via ViewTeam alone.
+	// After the fix, this should be false — ownership must be backed by an explicit ACL.
+	assert.False(t, th.App.SessionHasWikiPermission(creatorSession, wiki, model.PermissionManageWiki),
+		"BUG #6: creator retains manage_wiki irrevocably while they have ViewTeam; "+
+			"fix by replacing IsWikiOwner shortcut with an explicit, revocable wiki-ACL record")
+	assert.False(t, th.App.SessionHasWikiPermission(creatorSession, wiki, model.PermissionDeleteWiki),
+		"BUG #6: same irrevocable bypass applies to delete_wiki")
+}
+
 func TestIsWikiOwner(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

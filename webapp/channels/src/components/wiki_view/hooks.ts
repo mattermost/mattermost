@@ -18,7 +18,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {savePageDraft} from 'actions/page_drafts';
+import {removePageDraft, savePageDraft} from 'actions/page_drafts';
 import {fetchChannelDefaultPage, publishPageDraft, fetchPage, fetchWiki} from 'actions/pages';
 import {openModal, closeModal} from 'actions/views/modals';
 import {openPageInEditMode} from 'actions/wiki_edit';
@@ -109,11 +109,16 @@ export function useWikiPageData(
         let cancelled = false;
 
         const loadPageOrDraft = async () => {
+            // eslint-disable-next-line no-console
+            console.log('[useWikiPageData] start', {pageId, draftId, wikiId, channelId});
+
             // Reset loading state when pageId/draftId changes to prevent flash of empty content
             setLoading(true);
 
             // No wiki context at all — nothing to load.
             if (!pageId && !wikiId) {
+                // eslint-disable-next-line no-console
+                console.log('[TRACE][useWikiPageData] early return: no pageId and no wikiId → setLoading(false)');
                 if (!cancelled) {
                     setLoading(false);
                 }
@@ -128,6 +133,9 @@ export function useWikiPageData(
                     const fetchPromises: Array<Promise<unknown>> = [];
                     const needsChannel = !channel;
                     const needsMember = !member;
+
+                    // eslint-disable-next-line no-console
+                    console.log('[useWikiPageData] channel check', {channelId, needsChannel, needsMember});
 
                     if (needsChannel) {
                         fetchPromises.push(dispatch(getChannel(channelId)));
@@ -157,6 +165,8 @@ export function useWikiPageData(
                             if (memberResult.error) {
                                 const defaultChannel = 'town-square';
                                 const teamName = currentTeamRef.current?.name || '';
+                                // eslint-disable-next-line no-console
+                                console.log('[useWikiPageData] member error → redirect', {channelId, error: memberResult.error});
                                 setLoading(false);
                                 historyRef.current.replace(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
                                 return;
@@ -167,6 +177,8 @@ export function useWikiPageData(
                     // Handle unexpected errors with redirect
                     const defaultChannel = 'town-square';
                     const teamName = currentTeamRef.current?.name || '';
+                    // eslint-disable-next-line no-console
+                    console.log('[useWikiPageData] channel fetch exception → redirect', {channelId, error: String(error)});
                     setLoading(false);
                     historyRef.current.replace(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
                     return;
@@ -182,15 +194,23 @@ export function useWikiPageData(
                     const existingPage = pageId ? getPageById(store.getState(), pageId) : undefined;
                     const hasPageContent = existingPage?.message?.trim();
 
+                    // eslint-disable-next-line no-console
+                    console.log('[useWikiPageData] page check', {pageId, hasExisting: Boolean(existingPage), hasPageContent: Boolean(hasPageContent)});
+
                     if (!hasPageContent) {
                         const result = await dispatch(fetchPage(pageId, wikiId));
                         if (cancelled) {
                             return;
                         }
 
+                        // eslint-disable-next-line no-console
+                        console.log('[useWikiPageData] fetchPage result', {pageId, error: result.error});
+
                         if (result.error && (result.error.status_code === 403 || result.error.status_code === 404)) {
                             const teamName = currentTeamRef.current?.name || '';
                             const channelName = loadedChannel?.name || channelId || 'town-square';
+                            // eslint-disable-next-line no-console
+                            console.log('[useWikiPageData] fetchPage 403/404 → redirect to channel', {pageId, channelName});
                             historyRef.current.replace(`/${teamName}/channels/${channelName}`);
                             setLoading(false);
                             return;
@@ -205,7 +225,11 @@ export function useWikiPageData(
             if (wikiId) {
                 // First check if wiki exists by trying to fetch it from Redux (or API if not cached)
                 // This will return 404 if wiki was deleted
+                // eslint-disable-next-line no-console
+                console.log('[TRACE][useWikiPageData] calling fetchWiki', {wikiId});
                 const wikiResult = await dispatch(fetchWiki(wikiId));
+                // eslint-disable-next-line no-console
+                console.log('[TRACE][useWikiPageData] fetchWiki resolved', {wikiId, hasError: Boolean(wikiResult.error), cancelled});
                 if (cancelled) {
                     return;
                 }
@@ -213,18 +237,25 @@ export function useWikiPageData(
                     // Wiki was deleted or user doesn't have permission - redirect to channel
                     const teamName = currentTeamRef.current?.name || '';
                     const channelName = loadedChannel?.name || channelId || 'town-square';
+                    // eslint-disable-next-line no-console
+                    console.log('[useWikiPageData] fetchWiki error → redirect', {wikiId, channelName, error: wikiResult.error});
                     setLoading(false);
                     historyRef.current.replace(`/${teamName}/channels/${channelName}`);
                     return;
                 }
 
+                // eslint-disable-next-line no-console
+                console.log('[TRACE][useWikiPageData] wiki exists, about to setLoading(false)', {wikiId, channelId, url: window.location.pathname});
                 // Wiki exists - pages and drafts are loaded by parent WikiView component
             } else if (channelId) {
                 // No wikiId but a channel context — load that channel's default page.
                 try {
-                    await dispatch(fetchChannelDefaultPage(channelId));
+                    const result = await dispatch(fetchChannelDefaultPage(channelId));
                     if (cancelled) {
                         return;
+                    }
+                    if ('error' in result && result.error) {
+                        dispatch(logError(result.error));
                     }
                 } catch (error) {
                     dispatch(logError(error));
@@ -234,6 +265,8 @@ export function useWikiPageData(
             }
 
             // Pages and drafts are loaded by parent WikiView component to prevent duplicate API calls
+            // eslint-disable-next-line no-console
+            console.log('[useWikiPageData] done → setLoading(false)', {pageId, wikiId});
             setLoading(false);
         };
 
@@ -257,6 +290,8 @@ type UseWikiPageActionsResult = {
     handleContentChange: (content: string) => void;
     handleDraftStatusChange: (status: string) => void;
     cancelAutosave: () => void;
+    publishError: {parentPageId: string; parentPageTitle: string | null} | null;
+    clearPublishError: () => void;
 };
 
 /**
@@ -274,14 +309,24 @@ export function useWikiPageActions(
     history: History,
 ): UseWikiPageActionsResult {
     const dispatch = useDispatch();
+    const store = useStore<GlobalState>();
     const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isPublishingRef = useRef(false);
+    const isMountedRef = useRef(true);
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
     const latestContentRef = useRef<string>('');
     const latestTitleRef = useRef<string>('');
     const latestStatusRef = useRef<string | null>(null);
     const previousDraftRef = useRef<PostDraft | null>(null);
     const draftGenerationRef = useRef(0);
     const currentDraftIdRef = useRef<string | null>(null);
+
+    // Publish error state (e.g., parent page is still a draft)
+    const [publishError, setPublishError] = useState<{parentPageId: string; parentPageTitle: string | null} | null>(null);
 
     // Conflict modal state
     const [, setConflictPageData] = useState<Post | null>(null);
@@ -564,14 +609,15 @@ export function useWikiPageActions(
         const draftRootId = capturedDraft.rootId;
         const pageParentIdFromDraft = capturedDraft.props?.[PagePropsKeys.PAGE_PARENT_ID];
 
-        if (pageParentIdFromDraft && pageParentIdFromDraft.startsWith('draft-')) {
-            const error = {
-                message: 'Parent page must be published before publishing this page',
-                server_error_id: 'api.page.publish.parent_is_draft.app_error',
-                status_code: 400,
-            };
-            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
-            return;
+        if (pageParentIdFromDraft) {
+            const latestState = store.getState();
+            const parentPage = getPageById(latestState, pageParentIdFromDraft);
+            // The redux pages.byId map only contains published pages. A parent draft that has
+            // never been published has no entry here, so its child cannot be published yet.
+            if (!parentPage) {
+                setPublishError({parentPageId: pageParentIdFromDraft, parentPageTitle: null});
+                return;
+            }
         }
 
         try {
@@ -618,15 +664,54 @@ export function useWikiPageActions(
                         dialogType: ConflictWarningModal,
                         dialogProps: {
                             currentPage: conflictPage,
-                            onViewChanges: () => {
-                                if (conflictPage?.id && capturedWikiId) {
+                            draftContent: conflictContentRef.current,
+                            onDiscard: async () => {
+                                const freshDraft = currentDraftRef.current;
+                                if (!capturedWikiId || !freshDraft) {
+                                    throw new Error('Missing draft state for discard');
+                                }
+                                const result = await dispatch(removePageDraft(capturedWikiId, freshDraft.rootId));
+                                if (result?.error) {
+                                    throw result.error;
+                                }
+                                if (conflictPage?.id) {
                                     const teamName = getTeamNameFromPath(location.pathname);
                                     const pageUrl = getWikiUrl(teamName, capturedWikiId, conflictPage.id, false);
                                     history.push(pageUrl);
                                 }
                             },
-                            onContinueEditing: () => {
-                                // Modal closed, user stays on their draft
+                            onContinueEditing: async () => {
+                                if (isPublishingRef.current) {
+                                    return;
+                                }
+                                isPublishingRef.current = true;
+                                try {
+                                    if (autosaveTimeoutRef.current) {
+                                        clearTimeout(autosaveTimeoutRef.current);
+                                        autosaveTimeoutRef.current = null;
+                                    }
+                                    const freshDraft = currentDraftRef.current;
+                                    if (!capturedWikiId || !freshDraft) {
+                                        return;
+                                    }
+                                    const additionalProps = extractDraftAdditionalProps(freshDraft) ?? {};
+                                    additionalProps[PagePropsKeys.ORIGINAL_PAGE_EDIT_AT] = conflictPage.update_at;
+                                    await dispatch(savePageDraft(
+                                        capturedChannelId,
+                                        capturedWikiId,
+                                        freshDraft.rootId,
+                                        conflictContentRef.current ?? freshDraft.message ?? '',
+                                        latestTitleRef.current ?? freshDraft.props?.[PagePropsKeys.TITLE] ?? '',
+                                        undefined,
+                                        additionalProps,
+                                    ));
+                                } catch (e) {
+                                    if (isMountedRef.current) {
+                                        dispatch(logError(e as ServerError, {errorBarMode: LogErrorBarMode.Always}));
+                                    }
+                                } finally {
+                                    isPublishingRef.current = false;
+                                }
                             },
                             onOverwrite: async () => {
                                 const freshDraft = currentDraftRef.current;
@@ -731,6 +816,8 @@ export function useWikiPageActions(
         }
     }, []);
 
+    const clearPublishError = useCallback(() => setPublishError(null), []);
+
     return {
         handleEdit,
         handlePublish,
@@ -739,6 +826,8 @@ export function useWikiPageActions(
         handleContentChange,
         handleDraftStatusChange,
         cancelAutosave,
+        publishError,
+        clearPublishError,
     };
 }
 
@@ -819,7 +908,11 @@ export function useAutoPageSelection({
     history,
 }: UseAutoPageSelectionParams): void {
     useEffect(() => {
+        // eslint-disable-next-line no-console
+        console.log('[useAutoPageSelection] fired', {pageId, draftId, wikiId, allPages: allPages.length, newDrafts: newDrafts.length, lastViewedPageId, path: location.pathname});
         if (pageId || draftId) {
+            // eslint-disable-next-line no-console
+            console.log('[useAutoPageSelection] skip: already on a page/draft', {pageId, draftId});
             return;
         }
 
@@ -832,10 +925,14 @@ export function useAutoPageSelection({
 
             if (lastViewedNewDraft && wikiId) {
                 const draftUrl = getWikiUrl(teamName, wikiId, lastViewedNewDraft.rootId, true);
+                // eslint-disable-next-line no-console
+                console.log('[useAutoPageSelection] P1 → draft', draftUrl);
                 history.replace(draftUrl);
                 return;
             } else if (lastViewedPage && wikiId) {
                 const pageUrl = getWikiUrl(teamName, wikiId, lastViewedPage.id, false);
+                // eslint-disable-next-line no-console
+                console.log('[useAutoPageSelection] P1 → page', pageUrl);
                 history.replace(pageUrl);
                 return;
             }
@@ -846,6 +943,8 @@ export function useAutoPageSelection({
             const firstDraft = newDrafts[0];
             if (firstDraft) {
                 const draftUrl = getWikiUrl(teamName, wikiId, firstDraft.rootId, true);
+                // eslint-disable-next-line no-console
+                console.log('[useAutoPageSelection] P2 → new draft', draftUrl);
                 history.replace(draftUrl);
                 return;
             }
@@ -856,8 +955,13 @@ export function useAutoPageSelection({
             const firstPage = allPages[0];
             if (firstPage) {
                 const pageUrl = getWikiUrl(teamName, wikiId, firstPage.id, false);
+                // eslint-disable-next-line no-console
+                console.log('[useAutoPageSelection] P3 → published page', pageUrl);
                 history.replace(pageUrl);
             }
+        } else {
+            // eslint-disable-next-line no-console
+            console.log('[useAutoPageSelection] nothing to navigate to', {allPages: allPages.length, newDrafts: newDrafts.length});
         }
     }, [pageId, draftId, allDrafts, newDrafts, allPages, channelId, wikiId, location.pathname, history, lastViewedPageId]);
 }

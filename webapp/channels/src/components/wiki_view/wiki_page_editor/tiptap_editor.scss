@@ -585,6 +585,16 @@
     }
 }
 
+// A18: pending-anchor decoration — visible while the user is composing a comment
+// in the RHS but focus has left the editor. Slightly stronger than .active so the
+// in-flight target reads as distinct from already-committed comments.
+.comment-anchor-pending {
+    padding: 2px 0;
+    border-radius: 2px;
+    border-bottom: 2px solid rgba(var(--mention-highlight-link-rgb), 0.9);
+    background-color: rgba(var(--mention-highlight-bg-rgb), 0.45);
+}
+
 // Native :target selector for fragment navigation
 // Triggered when URL hash matches the anchor id (e.g., #ic-abc123)
 // Only apply to active anchors

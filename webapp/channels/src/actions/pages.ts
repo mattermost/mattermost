@@ -113,6 +113,8 @@ export const GET_PAGES_FAILURE = WikiTypes.GET_PAGES_FAILURE;
 // Fetch all pages for a wiki (with automatic pagination)
 export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
     return async (dispatch, getState) => {
+        // eslint-disable-next-line no-console
+        console.log('[TRACE][fetchPages] dispatching GET_PAGES_REQUEST', {wikiId, url: window.location.pathname});
         dispatch({type: GET_PAGES_REQUEST, data: {wikiId}});
 
         try {
@@ -120,9 +122,12 @@ export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
             const allPages: Post[] = [];
             let offset = 0;
             const limit = PageConstants.PAGE_FETCH_LIMIT;
+            const MAX_FETCH_ITERATIONS = 100;
             let hasMore = true;
+            let iterations = 0;
 
-            while (hasMore) {
+            while (hasMore && iterations < MAX_FETCH_ITERATIONS) {
+                iterations++;
                 // eslint-disable-next-line no-await-in-loop
                 const batch = await Client4.getPages(wikiId, offset, limit);
 
@@ -142,6 +147,8 @@ export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
             // otherwise arePagesLoaded stays false and callers refetch in a loop.
             // The reducer preserves any non-empty message already in state, so list
             // endpoints (which return pages without TipTap content) don't clobber it.
+            // eslint-disable-next-line no-console
+            console.log('[TRACE][fetchPages] dispatching RECEIVED_PAGES', {wikiId, count: allPages.length});
             dispatch({
                 type: WikiTypes.RECEIVED_PAGES,
                 data: {wikiId, pages: allPages},
@@ -149,6 +156,8 @@ export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
 
             return {data: allPages};
         } catch (error) {
+            // eslint-disable-next-line no-console
+            console.log('[TRACE][fetchPages] error, dispatching GET_PAGES_FAILURE', {wikiId, error: String(error)});
             handleApiError(error, dispatch, getState);
             dispatch({type: GET_PAGES_FAILURE, data: {wikiId, error}});
             return {error};
@@ -215,8 +224,12 @@ export function fetchWiki(wikiId: string): ActionFuncAsync<Wiki> {
 
         // Return cached wiki if it exists
         if (existingWiki) {
+            // eslint-disable-next-line no-console
+            console.log('[TRACE][fetchWiki] cache hit', {wikiId});
             return {data: existingWiki};
         }
+        // eslint-disable-next-line no-console
+        console.log('[TRACE][fetchWiki] cache miss, fetching from API', {wikiId});
 
         try {
             const wiki = await Client4.getWiki(wikiId);
@@ -517,8 +530,7 @@ export function updatePage(pageId: string, newTitle: string, wikiId: string): Ac
             if (pageActions.length === 0) {
                 // Server returned something that isn't a page-typed post; the
                 // optimistic entry would remain without a confirming dispatch.
-                // eslint-disable-next-line no-console
-                console.warn('updatePage: server response is not a page-typed post', pageId, data?.type);
+                dispatch(logError(new Error(`updatePage: server response is not a page-typed post pageId=${pageId} type=${data?.type}`)));
             } else {
                 pageActions.forEach((action) => dispatch(action));
             }
@@ -547,10 +559,10 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
 
         const optimisticId = beginOptimistic(pageId);
 
-        dispatch({
-            type: WikiTypes.DELETED_PAGE,
-            data: {id: pageId, wikiId},
-        });
+        dispatch(batchActions([
+            {type: WikiTypes.DELETED_PAGE, data: {id: pageId, wikiId}},
+            {type: PostActionTypes.POST_REMOVED, data: {id: pageId, root_id: ''}},
+        ]));
 
         try {
             await Client4.deletePage(wikiId, pageId);
@@ -569,10 +581,10 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
             if (isLatestOptimistic(pageId, optimisticId)) {
                 endOptimistic(pageId, optimisticId);
                 if (originalPost) {
-                    dispatch({
-                        type: WikiTypes.RECEIVED_PAGE,
-                        data: {page: originalPost, wikiId, isRevert: true},
-                    });
+                    dispatch(batchActions([
+                        {type: PostActionTypes.RECEIVED_POST, data: originalPost},
+                        {type: WikiTypes.RECEIVED_PAGE, data: {page: originalPost, wikiId, isRevert: true}},
+                    ]));
                 }
             }
 
@@ -834,19 +846,14 @@ export function getPageComments(wikiId: string, pageId: string): ActionFuncAsync
         try {
             const comments = await Client4.getPageComments(wikiId, pageId);
 
-            // Dispatch comments to Redux store (they are Posts)
+            // Dispatch comments to both wiki-scoped store and standard posts store
+            // (Reply components read from entities.posts.posts via getPost selector)
             if (comments && comments.length > 0) {
-                const postsById = comments.reduce((acc: Record<string, Post>, comment: Post) => {
-                    acc[comment.id] = comment;
-                    return acc;
-                }, {});
-
-                dispatch({
-                    type: PostActionTypes.RECEIVED_POSTS,
-                    data: {
-                        posts: postsById,
-                    },
-                });
+                const postsById = Object.fromEntries(comments.map((c) => [c.id, c]));
+                dispatch(batchActions([
+                    {type: WikiTypes.RECEIVED_PAGE_COMMENTS, data: {pageId, comments}},
+                    {type: PostActionTypes.RECEIVED_POSTS, data: {posts: postsById}},
+                ]));
             }
 
             return {data: comments};
@@ -881,6 +888,8 @@ export function createPageComment(wikiId: string, pageId: string, message: strin
             const state = getState();
             const crtEnabled = isCollapsedThreadsEnabled(state);
 
+            // Dual-dispatch: wiki store for wiki RHS, posts store for channel feed
+            dispatch({type: WikiTypes.RECEIVED_PAGE_COMMENT, data: {comment}});
             dispatch(receivedNewPost(comment, crtEnabled));
 
             return {data: comment};
@@ -903,6 +912,8 @@ export function createPageCommentReply(wikiId: string, pageId: string, parentCom
             const state = getState();
             const crtEnabled = isCollapsedThreadsEnabled(state);
 
+            // Dual-dispatch: wiki store for wiki RHS, posts store for channel feed
+            dispatch({type: WikiTypes.RECEIVED_PAGE_COMMENT, data: {comment: reply}});
             dispatch(receivedNewPost(reply, crtEnabled));
 
             return {data: reply};
@@ -918,10 +929,12 @@ export function resolvePageComment(wikiId: string, pageId: string, commentId: st
         try {
             const resolvedComment = await Client4.resolvePageComment(wikiId, pageId, commentId);
 
-            dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data: resolvedComment,
-            });
+            // Dual-dispatch: wiki store (for comment resolution state) and standard posts store
+            // (so DotMenu's isCommentResolved selector reads the up-to-date post props)
+            dispatch(batchActions([
+                {type: WikiTypes.RECEIVED_PAGE_COMMENT, data: {comment: resolvedComment}},
+                {type: PostActionTypes.RECEIVED_POSTS, data: {posts: {[resolvedComment.id]: resolvedComment}}},
+            ]));
 
             return {data: resolvedComment};
         } catch (error) {
@@ -936,10 +949,12 @@ export function unresolvePageComment(wikiId: string, pageId: string, commentId: 
         try {
             const unresolvedComment = await Client4.unresolvePageComment(wikiId, pageId, commentId);
 
-            dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data: unresolvedComment,
-            });
+            // Dual-dispatch: wiki store (for comment resolution state) and standard posts store
+            // (so DotMenu's isCommentResolved selector reads the up-to-date post props)
+            dispatch(batchActions([
+                {type: WikiTypes.RECEIVED_PAGE_COMMENT, data: {comment: unresolvedComment}},
+                {type: PostActionTypes.RECEIVED_POSTS, data: {posts: {[unresolvedComment.id]: unresolvedComment}}},
+            ]));
 
             return {data: unresolvedComment};
         } catch (error) {
@@ -973,22 +988,20 @@ export function updatePageStatus(postId: string, status: string, wikiId: string)
         try {
             await Client4.updatePageStatus(wikiId, postId, status);
 
-            // Update the page in the pages store with new status in props
-            const state = getState();
-            const post = state.entities.pages.byId[postId];
-
+            const post = getState().entities.pages.byId[postId];
             if (post) {
-                const updatedPost = {
-                    ...post,
-                    props: {
-                        ...post.props,
-                        [PagePropsKeys.PAGE_STATUS]: status,
-                    },
-                };
-
                 dispatch({
                     type: WikiTypes.RECEIVED_PAGE,
-                    data: {page: updatedPost, wikiId},
+                    data: {
+                        page: {
+                            ...post,
+                            props: {
+                                ...post.props,
+                                [PagePropsKeys.PAGE_STATUS]: status,
+                            },
+                        },
+                        wikiId,
+                    },
                 });
             }
 
@@ -1049,13 +1062,10 @@ export function setPageTranslationMetadata(
             const freshPage = getState().entities.pages.byId[pageId];
             const props = freshPage?.props || {};
 
-            const data = await Client4.patchPost({
-                id: pageId,
-                props: {
-                    ...props,
-                    [PagePropsKeys.TRANSLATED_FROM]: sourcePageId,
-                    [PagePropsKeys.TRANSLATION_LANGUAGE]: languageCode,
-                },
+            const data = await Client4.patchPageProps(wikiId, pageId, {
+                ...props,
+                [PagePropsKeys.TRANSLATED_FROM]: sourcePageId,
+                [PagePropsKeys.TRANSLATION_LANGUAGE]: languageCode,
             });
 
             dispatch({
@@ -1090,6 +1100,11 @@ export function addPageTranslationReference(
         const {wikiId} = result;
 
         try {
+            // NOTE: This function has a read-modify-write race: two concurrent calls for different
+            // languages each read the same existingTranslations array, make separate patchPost calls,
+            // and the last write wins. This should be moved to a dedicated server endpoint that
+            // applies the update atomically. For now, concurrent translation creation is rare enough
+            // that this is acceptable.
             // Re-read the source page inside the async path so that any WS updates
             // that arrived between the initial snapshot above and the network call
             // below aren't silently overwritten by a stale props map.
@@ -1108,12 +1123,9 @@ export function addPageTranslationReference(
                 newTranslationRef,
             ];
 
-            const data = await Client4.patchPost({
-                id: sourcePageId,
-                props: {
-                    ...existingProps,
-                    [PagePropsKeys.TRANSLATIONS]: updatedTranslations,
-                },
+            const data = await Client4.patchPageProps(wikiId, sourcePageId, {
+                ...existingProps,
+                [PagePropsKeys.TRANSLATIONS]: updatedTranslations,
             });
 
             dispatch({

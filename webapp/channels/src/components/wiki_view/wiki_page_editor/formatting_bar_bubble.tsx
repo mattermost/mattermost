@@ -412,6 +412,8 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
         <div
             className='formatting-bar-bubble tiptap-toolbar link-bubble-menu'
             data-testid='link-bubble-menu'
+            role='toolbar'
+            aria-label='Link toolbar'
         >
             <div className='link-url-display'>
                 <i className='icon icon-link-variant'/>
@@ -481,7 +483,11 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
 
     // Render standard formatting toolbar
     const renderFormattingToolbar = () => (
-        <div className='formatting-bar-bubble tiptap-toolbar'>
+        <div
+            className='formatting-bar-bubble tiptap-toolbar'
+            role='toolbar'
+            aria-label='Formatting toolbar'
+        >
             {buttons}
 
             {editor.isActive('table') && (
@@ -697,7 +703,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
                         leadingElement={<PencilOutlineIcon size={18}/>}
                         labels={
                             <span>
-                                {formatMessage({id: 'image_ai.extract_handwriting', defaultMessage: 'Extract handwriting'})}
+                                {formatMessage({id: 'image_ai.extract_handwriting', defaultMessage: 'Extract text'})}
                             </span>
                         }
                         onClick={handleExtractHandwriting}

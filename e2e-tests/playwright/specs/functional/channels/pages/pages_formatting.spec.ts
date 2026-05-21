@@ -1050,17 +1050,21 @@ test('tab indents bullet list item and shift-tab outdents it', {tag: '@pages'}, 
     await newPageButton.click();
     await fillCreatePageModal(page, 'Tab Indent Test');
 
-    // # Open editor and create a bullet list item by typing "- " (TipTap auto-converts to bullet)
+    // # Open editor and create TWO bullet items by typing "- " (TipTap auto-converts to bullet).
+    //   ProseMirror's sinkListItem requires a previous sibling, so a single-item list
+    //   cannot be nested — the test author needs a sibling to demonstrate Tab indent.
     const editor = await getEditorAndWait(page);
     await editor.click();
-    await page.keyboard.type('- List item');
+    await page.keyboard.type('- First item');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('Second item');
     await page.waitForTimeout(UI_MICRO_WAIT);
 
-    // # Press Tab to indent the bullet
+    // # Press Tab to indent the second bullet under the first
     await page.keyboard.press('Tab');
     await page.waitForTimeout(UI_MICRO_WAIT);
 
-    // * Assert the bullet is now nested (ul > li > ul > li structure)
+    // * Assert the second bullet is now nested (ul > li > ul > li structure)
     const editorLocator = getEditor(page);
     const nestedItem = editorLocator.locator('ul li ul li').first();
     await expect(nestedItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
@@ -1072,7 +1076,7 @@ test('tab indents bullet list item and shift-tab outdents it', {tag: '@pages'}, 
     await page.keyboard.press('Shift+Tab');
     await page.waitForTimeout(UI_MICRO_WAIT);
 
-    // * Assert the nested list is gone (back to top-level bullet)
+    // * Assert the nested list is gone (back to two top-level bullets)
     const nestedItemCount = await editorLocator.locator('ul li ul li').count();
     expect(nestedItemCount).toBe(0);
 

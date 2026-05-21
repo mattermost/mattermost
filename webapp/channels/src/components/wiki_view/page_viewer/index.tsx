@@ -9,7 +9,7 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {fetchPage} from 'actions/pages';
-import {getPage, getPageStatus} from 'selectors/pages';
+import {getPage, getPageStatus, getPageStatusField} from 'selectors/pages';
 
 import ActiveEditorsIndicator from 'components/active_editors_indicator/active_editors_indicator';
 import {useUser} from 'components/common/hooks/useUser';
@@ -36,6 +36,11 @@ const PageViewer = ({pageId, wikiId}: Props) => {
     const dispatch = useDispatch();
     const page = useSelector((state: GlobalState) => getPage(state, pageId));
     const pageStatus = useSelector((state: GlobalState) => getPageStatus(state, pageId));
+    const pageStatusField = useSelector(getPageStatusField);
+    const statusColor = React.useMemo(
+        () => pageStatusField?.attrs?.options?.find((opt) => opt.name === pageStatus)?.color || '',
+        [pageStatusField, pageStatus],
+    );
     const currentUserId = useSelector(getCurrentUserId);
     const currentTeamId = useSelector(getCurrentTeamId);
 
@@ -147,11 +152,15 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                         className='PageViewer__status'
                         data-testid='page-viewer-status'
                     >
-                        <span className='PageViewer__status-indicator'/>
+                        <span
+                            className='PageViewer__status-indicator'
+                            data-color={statusColor}
+                            aria-hidden='true'
+                        />
                         {pageStatus || (
                             <FormattedMessage
-                                id='page_viewer.status.in_progress'
-                                defaultMessage='In progress'
+                                id='page_viewer.status.none'
+                                defaultMessage='No status'
                             />
                         )}
                     </span>

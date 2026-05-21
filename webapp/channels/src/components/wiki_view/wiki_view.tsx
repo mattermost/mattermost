@@ -49,6 +49,8 @@ const WikiView = () => {
     const location = useLocation();
     const {params, path} = useRouteMatch<{pageId?: string; draftId?: string; wikiId: string}>();
     const {pageId, draftId, wikiId} = params;
+    // eslint-disable-next-line no-console
+    console.log('[TRACE][wiki_view] render', {wikiId, pageId, draftId, url: window.location.pathname, path});
     const channelId = useSelector((state: GlobalState) => getResolvedChannelId(state, wikiId || ''));
 
     const teamId = useSelector(getCurrentTeamId);
@@ -65,6 +67,10 @@ const WikiView = () => {
     // AI tools handlers from editor - lifted up to pass to header
     const [aiToolsHandlers, setAIToolsHandlers] = React.useState<AIToolsHandlers | null>(null);
 
+    // Current editor content ref — updated on every change so the outline button can read it
+    const currentEditorContentRef = React.useRef<string>('');
+    const getEditorContent = React.useCallback(() => currentEditorContentRef.current, []);
+
     // Cleanup stale published draft timestamps periodically
     usePublishedDraftCleanup();
 
@@ -72,24 +78,42 @@ const WikiView = () => {
     const isSelectingDraftRef = React.useRef(false);
 
     const [wikiBundleLoadError, setWikiBundleLoadError] = React.useState(false);
+    const [wikiBundleLoading, setWikiBundleLoading] = React.useState(Boolean(wikiId));
 
     // Load wiki data (pages, drafts) on wiki change
     // Uses cache-first pattern: only fetches pages if not already loaded
     React.useEffect(() => {
+        // eslint-disable-next-line no-console
+        console.log('[TRACE][wiki_view] fetchWikiBundle effect', {wikiId, url: window.location.pathname});
         if (!wikiId) {
+            // eslint-disable-next-line no-console
+            console.log('[TRACE][wiki_view] fetchWikiBundle skipped: no wikiId');
+            setWikiBundleLoading(false);
             return undefined;
         }
         let cancelled = false;
         setWikiBundleLoadError(false);
+        setWikiBundleLoading(true);
+        // eslint-disable-next-line no-console
+        console.log('[TRACE][wiki_view] dispatching fetchWikiBundle', {wikiId});
         dispatch(fetchWikiBundle(wikiId)).then((result) => {
             if (cancelled) {
                 return;
             }
+            setWikiBundleLoading(false);
             if ('error' in result && result.error) {
+                // eslint-disable-next-line no-console
+                console.log('[wiki_view] fetchWikiBundle error', {wikiId, error: result.error});
                 setWikiBundleLoadError(true);
+            } else {
+                // eslint-disable-next-line no-console
+                console.log('[wiki_view] fetchWikiBundle ok', {wikiId});
             }
-        }).catch(() => {
+        }).catch((err) => {
             if (!cancelled) {
+                setWikiBundleLoading(false);
+                // eslint-disable-next-line no-console
+                console.log('[wiki_view] fetchWikiBundle exception', {wikiId, err: String(err)});
                 setWikiBundleLoadError(true);
             }
         });
@@ -98,7 +122,7 @@ const WikiView = () => {
         };
     }, [wikiId, dispatch]);
 
-    const {isLoading} = useWikiPageData(
+    const {isLoading: isRouteLoading} = useWikiPageData(
         pageId,
         draftId,
         channelId,
@@ -109,12 +133,18 @@ const WikiView = () => {
         path,
         isSelectingDraftRef,
     );
+    const isLoading = isRouteLoading || wikiBundleLoading;
+    // eslint-disable-next-line no-console
+    console.log('[TRACE][wiki_view] loading state', {isRouteLoading, wikiBundleLoading, isLoading, wikiId, channelId});
 
     const currentDraft = useSelector((state: GlobalState) => {
         if (!wikiId || !draftId) {
             return null;
         }
-        return getPageDraft(state, wikiId, draftId);
+        const d = getPageDraft(state, wikiId, draftId);
+        // eslint-disable-next-line no-console
+        console.log('[TRACE][wiki_view] currentDraft lookup', {wikiId, draftId, found: Boolean(d)});
+        return d;
     });
 
     const currentPage = useSelector((state: GlobalState) => {
@@ -156,6 +186,8 @@ const WikiView = () => {
     const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
     const newDrafts = useSelector((state: GlobalState) => (wikiId ? getNewDraftsForWiki(state, wikiId) : []));
     const allPages = useSelector((state: GlobalState) => (wikiId ? getPages(state, wikiId) : []));
+    // eslint-disable-next-line no-console
+    console.log('[TRACE][wiki_view] data counts', {allPages: allPages.length, allDrafts: allDrafts.length, newDrafts: newDrafts.length, wikiId, pageId, draftId});
 
     // Refs to track latest values to avoid stale closures in async callbacks
     const newDraftsRef = React.useRef(newDrafts);
@@ -173,6 +205,7 @@ const WikiView = () => {
 
     // isDraft derived from route - draftId in URL (via /drafts/ path) means we're editing
     const isDraft = Boolean(draftId);
+    const onGetPageContent = draftId ? getEditorContent : undefined;
 
     // Channel for sidebar selection. channelId comes from getResolvedChannelId,
     // which walks WikiLinks for a member-channel match. Lazy-fetch if not in Redux
@@ -198,6 +231,8 @@ const WikiView = () => {
 
     // Single source of truth for empty state (no drafts, no pages)
     const isEmptyState = !currentDraft && !pageId && allDrafts.length === 0 && allPages.length === 0;
+    // eslint-disable-next-line no-console
+    console.log('[TRACE][wiki_view] empty-state check', {isEmptyState, '!currentDraft': !currentDraft, '!pageId': !pageId, allDraftsLen: allDrafts.length, allPagesLen: allPages.length});
 
     // Store last viewed page when pageId or draftId changes
     React.useEffect(() => {
@@ -287,7 +322,7 @@ const WikiView = () => {
         return undefined;
     }, [location.search, location.pathname, location.hash, pageId, draftId, wikiId, isWikiRhsOpen, isLoading, dispatch, history]);
 
-    const {handleEdit, handlePublish, handleTitleChange, handleTitleBlur, handleContentChange, handleDraftStatusChange, cancelAutosave} = useWikiPageActions(
+    const {handleEdit, handlePublish, handleTitleChange, handleTitleBlur, handleContentChange, handleDraftStatusChange, cancelAutosave, publishError, clearPublishError} = useWikiPageActions(
         channelId,
         pageId,
         draftId,
@@ -297,6 +332,30 @@ const WikiView = () => {
         location,
         history,
     );
+
+    // Stable callback so TipTapEditor's custom arePropsEqual doesn't see a new
+    // reference on every render and reinitialize the editor.
+    const handleEditorContentChange = React.useCallback((content: string) => {
+        currentEditorContentRef.current = content;
+        handleContentChange(content);
+    }, [handleContentChange]);
+
+    // Clear the publish error when the user navigates to a different page/draft —
+    // the error is scoped to the publish attempt, not to the wiki as a whole.
+    React.useEffect(() => {
+        clearPublishError();
+    }, [pageId, draftId, clearPublishError]);
+
+    const handleGoToParentPage = React.useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        if (!publishError) {
+            return;
+        }
+        const rawId = publishError.parentPageId.replace(/^draft-/, '');
+        const teamName = getTeamNameFromPath(location.pathname);
+        history.push(getWikiUrl(teamName, wikiId || '', rawId, true));
+        clearPublishError();
+    }, [publishError, location.pathname, history, wikiId, clearPublishError]);
 
     // Auto-resume draft like Confluence (no modal prompt)
     const onEdit = React.useCallback(async () => {
@@ -367,19 +426,22 @@ const WikiView = () => {
     });
 
     const handleOpenPagesPanel = React.useCallback(() => {
+        if (isFullscreen) {
+            toggleFullscreen();
+        }
         dispatch(openPagesPanel());
-    }, [dispatch]);
+    }, [dispatch, isFullscreen, toggleFullscreen]);
 
     React.useEffect(() => {
+        // eslint-disable-next-line no-console
+        console.log('[wiki_view] page-gone-check', {pageId, hasPage: Boolean(currentPage), isLoading, path: location.pathname});
         if (pageId && !currentPage && !isLoading) {
             const currentPath = location.pathname;
             const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-
-            if (pageParentIdRef.current) {
-                history.replace(`${basePath}/${pageParentIdRef.current}`);
-            } else {
-                history.replace(basePath);
-            }
+            const target = pageParentIdRef.current ? `${basePath}/${pageParentIdRef.current}` : basePath;
+            // eslint-disable-next-line no-console
+            console.log('[wiki_view] page-gone: navigating away', {pageId, target});
+            history.replace(target);
         }
     }, [pageId, currentPage, isLoading, location.pathname, history]);
 
@@ -390,7 +452,7 @@ const WikiView = () => {
         }
 
         const currentPageIdForHeader = currentDraft ? draftId : (pageId || '');
-        const pageLink = currentPageIdForHeader && wikiId ? getWikiUrl(currentTeam?.name || 'team', wikiId, currentPageIdForHeader, false) : undefined;
+        const pageLink = currentPageIdForHeader && wikiId ? getWikiUrl(getTeamNameFromPath(location.pathname), wikiId, currentPageIdForHeader, false) : undefined;
 
         // For drafts, wait until currentDraft is loaded to avoid breadcrumb issues
         if (isDraft && draftId && !currentDraft) {
@@ -414,18 +476,12 @@ const WikiView = () => {
             draftTitle: effectiveTitle,
             pageLink,
         };
-    }, [isEmptyState, currentDraft, draftId, pageId, wikiId, channelId, currentTeam?.name, isDraft]);
+    }, [isEmptyState, currentDraft, draftId, pageId, wikiId, channelId, location.pathname, isDraft]);
 
     // Memoized header action callbacks to avoid recreating functions on every render
     const handleCreateChild = React.useCallback(() => {
         if (headerProps?.pageId) {
             menuHandlers.handleCreateChild(headerProps.pageId);
-        }
-    }, [headerProps?.pageId, menuHandlers]);
-
-    const handleRename = React.useCallback(() => {
-        if (headerProps?.pageId) {
-            menuHandlers.handleRename(headerProps.pageId);
         }
     }, [headerProps?.pageId, menuHandlers]);
 
@@ -507,6 +563,8 @@ const WikiView = () => {
     // Auto-updating RHS on page navigation is intentionally not done — the RHS ThreadViewer
     // mount blocks PageViewer rendering for ~60s; users toggle RHS manually instead.
 
+    // eslint-disable-next-line no-console
+    console.log('[TRACE][wiki_view] returning JSX', {isLoading, wikiBundleLoadError, isEmptyState, wikiId});
     if (wikiBundleLoadError) {
         return (
             <div
@@ -532,6 +590,9 @@ const WikiView = () => {
             data-testid='wiki-view'
         >
             {isLoading ? (
+                (() => { /* eslint-disable-next-line no-console */ console.log('[TRACE][wiki_view] BRANCH: outer LoadingScreen', {isRouteLoading, wikiBundleLoading}); return null; })()
+            ) : null}
+            {isLoading ? (
                 <div
                     className='no-results__holder'
                     data-testid='wiki-view-loading'
@@ -551,7 +612,7 @@ const WikiView = () => {
                         </button>
                     )}
 
-                    {wikiId && (
+                    {wikiId && !isFullscreen && (
                         <PagesHierarchyPanel
                             wikiId={wikiId}
                             channelId={channelId}
@@ -559,6 +620,7 @@ const WikiView = () => {
                             onPageSelect={handlePageSelect}
                             onVersionHistory={handleVersionHistory}
                             onCancelAutosave={cancelAutosave}
+                            onGetPageContent={onGetPageContent}
                         />
                     )}
 
@@ -582,7 +644,6 @@ const WikiView = () => {
                                 isFullscreen={isFullscreen}
                                 onToggleFullscreen={toggleFullscreen}
                                 onCreateChild={handleCreateChild}
-                                onRename={handleRename}
                                 onDuplicate={handleDuplicate}
                                 onMove={handleMove}
                                 onDelete={handleHeaderDelete}
@@ -593,12 +654,50 @@ const WikiView = () => {
                                 onTranslatePage={aiToolsHandlers?.openTranslateModal}
                                 isAIProcessing={aiToolsHandlers?.isProcessing}
                                 onCopyMarkdown={handleCopyMarkdown}
+                                onGetPageContent={onGetPageContent}
                             />
+                        )}
+                        {publishError && (
+                            <div
+                                role='alert'
+                                className='PagePane__publishError'
+                                data-testid='wiki-page-publish-error'
+                            >
+                                <span>
+                                    <FormattedMessage
+                                        id='wiki.publish_error.parent_is_draft'
+                                        defaultMessage='Cannot publish: the parent page "{title}" must be published first.'
+                                        values={{
+                                            title: publishError.parentPageTitle ?? formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'}),
+                                        }}
+                                    />
+                                    {' '}
+                                    <button
+                                        type='button'
+                                        className='btn btn-link PagePane__publishError-link'
+                                        onClick={handleGoToParentPage}
+                                    >
+                                        <FormattedMessage
+                                            id='wiki.publish_error.go_to_parent'
+                                            defaultMessage='Go to parent page'
+                                        />
+                                    </button>
+                                </span>
+                                <button
+                                    type='button'
+                                    className='close'
+                                    onClick={clearPublishError}
+                                    aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+                                >
+                                    {'×'}
+                                </button>
+                            </div>
                         )}
                         <div
                             className='PagePane__content'
                             data-testid='wiki-page-content'
                         >
+                            {draftId && (!currentDraft || currentDraft.rootId !== draftId) && (() => { /* eslint-disable-next-line no-console */ console.log('[TRACE][wiki_view] RENDERING: inner draft LoadingScreen', {draftId, currentDraftRootId: currentDraft?.rootId}); return null; })()}
                             {draftId && (!currentDraft || currentDraft.rootId !== draftId) && (
                                 <div className='no-results__holder'>
                                     <LoadingScreen/>
@@ -609,7 +708,7 @@ const WikiView = () => {
                                     {...editorProps}
                                     onTitleChange={handleTitleChange}
                                     onTitleBlur={handleTitleBlur}
-                                    onContentChange={handleContentChange}
+                                    onContentChange={handleEditorContentChange}
                                     onDraftStatusChange={handleDraftStatusChange}
                                     onAIToolsReady={setAIToolsHandlers}
                                 />
@@ -621,6 +720,7 @@ const WikiView = () => {
                                     wikiId={wikiId}
                                 />
                             )}
+                            {isEmptyState && (() => { /* eslint-disable-next-line no-console */ console.log('[TRACE][wiki_view] RENDERING: No Pages Yet', {isEmptyState, allDraftsLen: allDrafts.length, allPagesLen: allPages.length, currentDraft: Boolean(currentDraft), pageId, draftId, isLoading}); return null; })()}
                             {isEmptyState && (
                                 <div className='PagePane__emptyState'>
                                     <i className='icon-file-document-outline'/>

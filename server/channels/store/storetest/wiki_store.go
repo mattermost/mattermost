@@ -98,7 +98,7 @@ func TestWikiStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 func testSaveWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -140,7 +140,7 @@ func testSaveWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -215,7 +215,7 @@ func testGetWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -293,7 +293,7 @@ func testGetForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 func testUpdateWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -384,7 +384,7 @@ func testUpdateWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 func testDeleteWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -465,7 +465,7 @@ func testDeleteWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetPages(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -665,7 +665,7 @@ func testGetPages(t *testing.T, rctx request.CTX, ss store.Store) {
 func testMovePageToWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -822,7 +822,7 @@ func testMovePageToWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 func testCreate(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -895,7 +895,7 @@ func testCreate(t *testing.T, rctx request.CTX, ss store.Store) {
 func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -1000,7 +1000,7 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetAbandonedPages(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -1093,7 +1093,7 @@ func testGetAbandonedPages(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetLinkedToChannel(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -1303,7 +1303,7 @@ func testGetLinkedToChannel(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 func testGetByChannelId(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -1384,7 +1384,7 @@ func testGetByChannelId(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetForTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -1534,7 +1534,7 @@ func testGetForTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}
@@ -1714,7 +1714,7 @@ func testGetForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetPageByTitleInWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       "test@example.com",
 		Type:        model.TeamOpen,
 	}

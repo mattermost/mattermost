@@ -11,16 +11,16 @@ import type {GlobalState} from 'types/store';
 
 export function makeGetFilteredPostIdsForWikiThread(): (
     state: GlobalState,
-    rootId: string,
+    pageId: string,
     focusedInlineCommentId: string | null
 ) => string[] {
     return createIdsSelector(
         'makeGetFilteredPostIdsForWikiThread',
-        (state: GlobalState) => state.entities.posts.posts,
-        (state: GlobalState, rootId: string) => state.entities.posts.postsInThread[rootId] || [],
-        (state: GlobalState, rootId: string, focusedInlineCommentId: string | null) => focusedInlineCommentId,
-        (allPostsById, postIdsInThread, focusedInlineCommentId) => {
-            return computeFilteredPostIds(allPostsById, postIdsInThread, focusedInlineCommentId);
+        (state: GlobalState) => state.entities.pages.commentsById || {},
+        (state: GlobalState, pageId: string) => state.entities.pages.commentsByPageId?.[pageId] || [],
+        (state: GlobalState, pageId: string, focusedInlineCommentId: string | null) => focusedInlineCommentId,
+        (allCommentsById, commentIdsForPage, focusedInlineCommentId) => {
+            return computeFilteredPostIds(allCommentsById, commentIdsForPage, focusedInlineCommentId);
         },
     );
 }
@@ -39,17 +39,20 @@ function computeFilteredPostIds(
 
     let result: string[];
 
-    // If an inline comment is focused, show ONLY that comment + its replies
+    // If an inline comment is focused, show ONLY that comment + its replies.
+    // commentsByPageId contains ALL comments for the page (not just the thread),
+    // so filter to the focused comment + posts where parent_comment_id matches.
     if (focusedInlineCommentId) {
-        // postsInThread contains only replies, not the root post itself
-        // Prepend the focused inline comment ID as the root post
         const seen = new Set<string>();
         result = [focusedInlineCommentId];
         seen.add(focusedInlineCommentId);
 
         for (let i = 0; i < posts.length; i++) {
             const post = posts[i];
-            if (!seen.has(post.id)) {
+            if (
+                !seen.has(post.id) &&
+                (post.props?.parent_comment_id as string | undefined) === focusedInlineCommentId
+            ) {
                 seen.add(post.id);
                 result.push(post.id);
             }
@@ -104,22 +107,22 @@ export function getPageCommentResolutionInfo(post: Post): {
 
 export function makeGetFilteredCommentsByResolution(): (
     state: GlobalState,
-    rootId: string,
+    pageId: string,
     showResolved: boolean
 ) => string[] {
     return createIdsSelector(
         'makeGetFilteredCommentsByResolution',
-        (state: GlobalState) => state.entities.posts.posts,
-        (state: GlobalState, rootId: string) => state.entities.posts.postsInThread[rootId] || [],
-        (state: GlobalState, rootId: string, showResolved: boolean) => showResolved,
-        (allPostsById, postIdsInThread, showResolved) => {
-            return postIdsInThread.filter((postId) => {
-                const post = allPostsById[postId];
-                if (!post) {
+        (state: GlobalState) => state.entities.pages.commentsById || {},
+        (state: GlobalState, pageId: string) => state.entities.pages.commentsByPageId?.[pageId] || [],
+        (state: GlobalState, pageId: string, showResolved: boolean) => showResolved,
+        (allCommentsById, commentIdsForPage, showResolved) => {
+            return commentIdsForPage.filter((commentId) => {
+                const comment = allCommentsById[commentId];
+                if (!comment) {
                     return false;
                 }
 
-                const resolved = isPageCommentResolved(post);
+                const resolved = isPageCommentResolved(comment);
                 return showResolved ? resolved : !resolved;
             });
         },

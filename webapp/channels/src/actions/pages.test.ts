@@ -180,19 +180,20 @@ describe('actions/pages - Translation Metadata', () => {
             };
 
             testStore.getState().entities.pages.byId = {[pageId]: mockPage as any};
-            (Client4.patchPost as jest.Mock).mockResolvedValue(mockUpdatedPage);
+            (Client4.patchPageProps as jest.Mock).mockResolvedValue(mockUpdatedPage);
 
             await testStore.dispatch(Actions.setPageTranslationMetadata(pageId, sourcePageId, languageCode));
 
-            expect(Client4.patchPost).toHaveBeenCalledWith({
-                id: pageId,
-                props: {
+            expect(Client4.patchPageProps).toHaveBeenCalledWith(
+                wikiId,
+                pageId,
+                {
                     title: 'Test Page',
                     [PagePropsKeys.WIKI_ID]: wikiId,
                     [PagePropsKeys.TRANSLATED_FROM]: sourcePageId,
                     [PagePropsKeys.TRANSLATION_LANGUAGE]: languageCode,
                 },
-            });
+            );
 
             const actions = testStore.getActions();
             expect(actions).toHaveLength(1);
@@ -210,7 +211,7 @@ describe('actions/pages - Translation Metadata', () => {
             );
 
             expect(result.error).toBeTruthy();
-            expect(Client4.patchPost).not.toHaveBeenCalled();
+            expect(Client4.patchPageProps).not.toHaveBeenCalled();
         });
 
         test('should handle error when setting translation metadata fails', async () => {
@@ -223,7 +224,7 @@ describe('actions/pages - Translation Metadata', () => {
             testStore.getState().entities.pages.byId = {
                 [pageId]: {id: pageId, type: 'page', props: {[PagePropsKeys.WIKI_ID]: wikiId}} as any,
             };
-            (Client4.patchPost as jest.Mock).mockRejectedValue(error);
+            (Client4.patchPageProps as jest.Mock).mockRejectedValue(error);
 
             const result = await testStore.dispatch(Actions.setPageTranslationMetadata(pageId, sourcePageId, languageCode));
 
@@ -253,18 +254,19 @@ describe('actions/pages - Translation Metadata', () => {
             };
 
             testStore.getState().entities.pages.byId = {[sourcePageId]: mockSourcePage as any};
-            (Client4.patchPost as jest.Mock).mockResolvedValue(mockUpdatedPage);
+            (Client4.patchPageProps as jest.Mock).mockResolvedValue(mockUpdatedPage);
 
             await testStore.dispatch(Actions.addPageTranslationReference(sourcePageId, translatedPageId, languageCode));
 
-            expect(Client4.patchPost).toHaveBeenCalledWith({
-                id: sourcePageId,
-                props: {
+            expect(Client4.patchPageProps).toHaveBeenCalledWith(
+                wikiId,
+                sourcePageId,
+                {
                     title: 'Source Page',
                     [PagePropsKeys.WIKI_ID]: wikiId,
                     [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
                 },
-            });
+            );
 
             const actions = testStore.getActions();
             expect(actions).toHaveLength(1);
@@ -298,18 +300,19 @@ describe('actions/pages - Translation Metadata', () => {
             };
 
             testStore.getState().entities.pages.byId = {[sourcePageId]: mockSourcePage as any};
-            (Client4.patchPost as jest.Mock).mockResolvedValue(mockUpdatedPage);
+            (Client4.patchPageProps as jest.Mock).mockResolvedValue(mockUpdatedPage);
 
             await testStore.dispatch(Actions.addPageTranslationReference(sourcePageId, translatedPageId, languageCode));
 
-            expect(Client4.patchPost).toHaveBeenCalledWith({
-                id: sourcePageId,
-                props: {
+            expect(Client4.patchPageProps).toHaveBeenCalledWith(
+                wikiId,
+                sourcePageId,
+                {
                     title: 'Source Page',
                     [PagePropsKeys.WIKI_ID]: wikiId,
                     [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
                 },
-            });
+            );
         });
 
         test('should replace existing translation for same language', async () => {
@@ -342,18 +345,19 @@ describe('actions/pages - Translation Metadata', () => {
             };
 
             testStore.getState().entities.pages.byId = {[sourcePageId]: mockSourcePage as any};
-            (Client4.patchPost as jest.Mock).mockResolvedValue(mockUpdatedPage);
+            (Client4.patchPageProps as jest.Mock).mockResolvedValue(mockUpdatedPage);
 
             await testStore.dispatch(Actions.addPageTranslationReference(sourcePageId, translatedPageId, languageCode));
 
-            expect(Client4.patchPost).toHaveBeenCalledWith({
-                id: sourcePageId,
-                props: {
+            expect(Client4.patchPageProps).toHaveBeenCalledWith(
+                wikiId,
+                sourcePageId,
+                {
                     title: 'Source Page',
                     [PagePropsKeys.WIKI_ID]: wikiId,
                     [PagePropsKeys.TRANSLATIONS]: expectedTranslations,
                 },
-            });
+            );
         });
 
         test('should return error without API call when source page has no wiki_id', async () => {
@@ -366,7 +370,7 @@ describe('actions/pages - Translation Metadata', () => {
             );
 
             expect(result.error).toBeTruthy();
-            expect(Client4.patchPost).not.toHaveBeenCalled();
+            expect(Client4.patchPageProps).not.toHaveBeenCalled();
         });
 
         test('should handle error when adding translation reference fails', async () => {
@@ -378,7 +382,7 @@ describe('actions/pages - Translation Metadata', () => {
             testStore.getState().entities.pages.byId = {
                 [sourcePageId]: {id: sourcePageId, type: 'page', props: {[PagePropsKeys.WIKI_ID]: wikiId}} as any,
             };
-            (Client4.patchPost as jest.Mock).mockRejectedValue(error);
+            (Client4.patchPageProps as jest.Mock).mockRejectedValue(error);
 
             const result = await testStore.dispatch(Actions.addPageTranslationReference(sourcePageId, translatedPageId, languageCode));
 

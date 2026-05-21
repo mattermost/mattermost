@@ -237,9 +237,8 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
 
     // # Navigate to page1 using hierarchy panel
     const hierarchyPanel = getHierarchyPanel(page);
-    const page1Node = hierarchyPanel.locator('text="First Page"').first();
+    const page1Node = hierarchyPanel.getByText('First Page', {exact: true}).first();
     await page1Node.click();
-    await page.waitForLoadState('networkidle');
 
     // * Verify page1 content
     const pageContent = getPageViewerContent(page);
@@ -247,52 +246,42 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
     await expect(pageContent).toContainText('First page content');
 
     // # Navigate to page2 using hierarchy panel
-    const page2Node = hierarchyPanel.locator('text="Second Page"').first();
+    const page2Node = hierarchyPanel.getByText('Second Page', {exact: true}).first();
     await page2Node.click();
-    await page.waitForLoadState('networkidle');
 
     // * Verify page2 content
-    await expect(pageContent).toBeVisible();
-    await expect(pageContent).toContainText('Second page content');
+    await expect(pageContent).toContainText('Second page content', {timeout: ELEMENT_TIMEOUT});
 
     // # Navigate to page3 using hierarchy panel
-    const page3Node = hierarchyPanel.locator('text="Third Page"').first();
+    const page3Node = hierarchyPanel.getByText('Third Page', {exact: true}).first();
     await page3Node.click();
-    await page.waitForLoadState('networkidle');
 
     // * Verify page3 content
-    await expect(pageContent).toBeVisible();
-    await expect(pageContent).toContainText('Third page content');
+    await expect(pageContent).toContainText('Third page content', {timeout: ELEMENT_TIMEOUT});
 
     // # Click browser back button
     await page.goBack();
-    await page.waitForLoadState('networkidle');
 
     // * Verify back to page2
     let currentUrl = page.url();
     expect(currentUrl).toContain(page2.id);
-    await expect(pageContent).toBeVisible();
-    await expect(pageContent).toContainText('Second page content');
+    await expect(pageContent).toContainText('Second page content', {timeout: ELEMENT_TIMEOUT});
 
     // # Click browser back button again
     await page.goBack();
-    await page.waitForLoadState('networkidle');
 
     // * Verify back to page1
     currentUrl = page.url();
     expect(currentUrl).toContain(page1.id);
-    await expect(pageContent).toBeVisible();
-    await expect(pageContent).toContainText('First page content');
+    await expect(pageContent).toContainText('First page content', {timeout: ELEMENT_TIMEOUT});
 
     // # Click browser forward button
     await page.goForward();
-    await page.waitForLoadState('networkidle');
 
     // * Verify forward to page2
     currentUrl = page.url();
     expect(currentUrl).toContain(page2.id);
-    await expect(pageContent).toBeVisible();
-    await expect(pageContent).toContainText('Second page content');
+    await expect(pageContent).toContainText('Second page content', {timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -612,9 +601,7 @@ test('shows hamburger button to reopen tree in fullscreen mode', {tag: '@pages'}
 
     // * Verify a control exists to reopen the hierarchy panel
     const reopenControl = page
-        .locator(
-            '[data-testid="hierarchy-open-button"], .pages-panel-toggle, [aria-label*="open"], [aria-label*="navigation"]',
-        )
+        .locator('[data-testid="wiki-view-hamburger-button"]')
         .first();
     await expect(reopenControl).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
@@ -646,23 +633,28 @@ test('copied page link navigates to the page not the channel', {tag: '@pages'}, 
 
     // # Open the page actions menu (3-dot / copy link button)
     const actionsMenu = page
-        .locator('[data-testid="wiki-page-actions-menu"], [data-testid="page-header-menu"]')
+        .locator('[data-testid="wiki-page-more-actions"]')
         .first();
     await expect(actionsMenu).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await actionsMenu.click();
 
     // # Click the "Copy link" menu item
     const copyLinkItem = page
-        .locator('[data-testid="copy-link"], button:text("Copy link"), [role="menuitem"]:text("Copy link")')
+        .locator('[data-testid="page-context-menu-copy-link"]')
         .first();
     await expect(copyLinkItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await copyLinkItem.click();
 
-    // # Read the URL from the clipboard
-    const copiedUrl = await page.evaluate(() => navigator.clipboard.readText());
-
-    // * Verify the copied URL contains /wiki/ (not a bare channel path)
-    expect(copiedUrl).toContain('/wiki/');
+    // # Poll the clipboard — copyToClipboard() does not await the
+    // navigator.clipboard.writeText() promise, so the value can lag the click.
+    let copiedUrl = '';
+    await expect.poll(
+        async () => {
+            copiedUrl = await page.evaluate(() => navigator.clipboard.readText());
+            return copiedUrl;
+        },
+        {timeout: ELEMENT_TIMEOUT, message: 'clipboard never received the copied page link'},
+    ).toContain('/wiki/');
 
     // # Navigate to the copied URL
     await page.goto(copiedUrl);
