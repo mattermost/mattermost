@@ -238,6 +238,26 @@ func TestGetImageOrientation(t *testing.T) {
 	}
 }
 
+func TestGetImageOrientationEdgeCases(t *testing.T) {
+	imgDir, ok := fileutils.FindDir("tests/exif_samples")
+	require.True(t, ok, "Failed to find exif samples directory")
+
+	t.Run("MIME type format string", func(t *testing.T) {
+		file, err := os.Open(filepath.Join(imgDir, "up.jpg"))
+		require.NoError(t, err)
+		defer file.Close()
+
+		orientation, err := GetImageOrientation(file, "image/jpeg")
+		require.NoError(t, err)
+		require.Equal(t, Upright, orientation)
+	})
+
+	t.Run("unsupported format returns error", func(t *testing.T) {
+		_, err := GetImageOrientation(bytes.NewReader([]byte("data")), "gif")
+		require.EqualError(t, err, "unsupported image format: gif")
+	})
+}
+
 func TestMakeImageUpright(t *testing.T) {
 	// Each case loads the canonical EXIF fixture for orientation N (the
 	// 128x128 quadrants pattern in its stored, uncorrected form), applies
