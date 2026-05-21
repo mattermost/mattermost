@@ -112,7 +112,7 @@ describe('PostPreviewPropertyRenderer', () => {
 
         const previewAttachment = container.querySelector('.attachment');
         expect(previewAttachment).toHaveClass('attachment--permalink', 'attachment--prevent-click');
-        expect(previewAttachment).not.toHaveAttribute('role', 'button');
+        expect(previewAttachment).not.toHaveAttribute('role');
     });
 
     it('should return null when post is not found', async () => {
