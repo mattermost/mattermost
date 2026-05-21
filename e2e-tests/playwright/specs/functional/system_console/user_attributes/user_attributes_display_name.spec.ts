@@ -35,6 +35,9 @@ async function createAdminClient(): Promise<{adminClient: Client4; adminUser: Ad
 }
 
 async function setupTest(pw: PlaywrightExtended): Promise<TestContext> {
+    await pw.ensureLicense();
+    await pw.skipIfNoLicense();
+
     const {adminClient, adminUser} = await createAdminClient();
 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -181,8 +184,11 @@ test.describe('System Console - User Attributes display names', () => {
                 await sp.lastNameInput().fill(invalidIdentifier);
                 await sp.lastNameInput().blur();
 
-                // * Verify the warning appears and Save stays disabled before any POST
-                await expect(sp.identifierValidationError()).toHaveText(IDENTIFIER_VALIDATION_MESSAGE);
+                // * Verify the in-cell error icon and bottom banner are rendered,
+                //   and Save stays disabled before any POST is issued.
+                await expect(sp.identifierValidationError()).toBeVisible();
+                await expect(sp.validationBannerByTitle(IDENTIFIER_VALIDATION_MESSAGE)).toBeVisible();
+                await expect(sp.validationBannerByTitle(/not a valid identifier/)).toBeVisible();
                 await expect(sp.saveButton).toBeDisabled();
             }
 

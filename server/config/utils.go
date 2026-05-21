@@ -35,6 +35,9 @@ func Desanitize(actual, target *model.Config) {
 	if target.FileSettings.AmazonS3SecretAccessKey != nil && *target.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting && actual.FileSettings.AmazonS3SecretAccessKey != nil {
 		target.FileSettings.AmazonS3SecretAccessKey = actual.FileSettings.AmazonS3SecretAccessKey
 	}
+	if target.FileSettings.ExportAmazonS3SecretAccessKey != nil && *target.FileSettings.ExportAmazonS3SecretAccessKey == model.FakeSetting && actual.FileSettings.ExportAmazonS3SecretAccessKey != nil {
+		target.FileSettings.ExportAmazonS3SecretAccessKey = actual.FileSettings.ExportAmazonS3SecretAccessKey
+	}
 	if target.FileSettings.AzureAccessKey != nil && *target.FileSettings.AzureAccessKey == model.FakeSetting && actual.FileSettings.AzureAccessKey != nil {
 		target.FileSettings.AzureAccessKey = actual.FileSettings.AzureAccessKey
 	}
@@ -99,6 +102,24 @@ func Desanitize(actual, target *model.Config) {
 
 	if target.ServiceSettings.SplitKey != nil && *target.ServiceSettings.SplitKey == model.FakeSetting && actual.ServiceSettings.SplitKey != nil {
 		*target.ServiceSettings.SplitKey = *actual.ServiceSettings.SplitKey
+	}
+
+	if target.ServiceSettings.GoogleDeveloperKey != nil && *target.ServiceSettings.GoogleDeveloperKey == model.FakeSetting {
+		target.ServiceSettings.GoogleDeveloperKey = actual.ServiceSettings.GoogleDeveloperKey
+	}
+
+	if target.ServiceSettings.GiphySdkKey != nil && *target.ServiceSettings.GiphySdkKey == model.FakeSetting {
+		target.ServiceSettings.GiphySdkKey = actual.ServiceSettings.GiphySdkKey
+	}
+
+	if target.CacheSettings.RedisPassword != nil && *target.CacheSettings.RedisPassword == model.FakeSetting {
+		target.CacheSettings.RedisPassword = actual.CacheSettings.RedisPassword
+	}
+
+	if target.AutoTranslationSettings.LibreTranslate != nil &&
+		target.AutoTranslationSettings.LibreTranslate.APIKey != nil &&
+		*target.AutoTranslationSettings.LibreTranslate.APIKey == model.FakeSetting {
+		target.AutoTranslationSettings.LibreTranslate.APIKey = actual.AutoTranslationSettings.LibreTranslate.APIKey
 	}
 
 	for id, settings := range target.PluginSettings.Plugins {

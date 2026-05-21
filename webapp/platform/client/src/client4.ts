@@ -2210,6 +2210,13 @@ export default class Client4 {
         );
     };
 
+    patchPropertyValues = <T>(groupName: string, objectType: string, targetId: string, items: Array<{field_id: string; value: T}>) => {
+        return this.doFetch<Array<PropertyValue<T>>>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
+            {method: 'PATCH', body: JSON.stringify(items)},
+        );
+    };
+
     // Remote Clusters Routes
 
     getRemoteClusters = (options: {
@@ -2739,6 +2746,13 @@ export default class Client4 {
         return this.doFetch<PostActionResponse>(
             `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
             {method: 'post', body: JSON.stringify(msg)},
+        );
+    };
+
+    doPostActionWithQuery = (postId: string, actionId: string, query: Record<string, string>) => {
+        return this.doFetch<PostActionResponse>(
+            `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
+            {method: 'post', body: JSON.stringify({query})},
         );
     };
 

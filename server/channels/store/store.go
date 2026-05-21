@@ -79,6 +79,7 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
+	GetDiagnostics(ctx context.Context) (*DatabaseDiagnostics, error)
 	ReplicaLagTime() error
 	ReplicaLagAbs() error
 	CheckIntegrity() <-chan model.IntegrityCheckResult
@@ -655,6 +656,7 @@ type WebhookStore interface {
 	GetIncomingByTeam(teamID string, offset, limit int) ([]*model.IncomingWebhook, error)
 	GetIncomingByTeamByUser(teamID string, userID string, offset, limit int) ([]*model.IncomingWebhook, error)
 	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error)
+	UpdateIncomingLastUsed(webhookID string, lastUsed int64) error
 	GetIncomingByChannel(channelID string) ([]*model.IncomingWebhook, error)
 	DeleteIncoming(webhookID string, timestamp int64) error
 	PermanentDeleteIncomingByChannel(channelID string) error
