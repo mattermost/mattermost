@@ -11,14 +11,15 @@ export default function MarkdownListOrdered({children, start = 1, ...otherProps}
     const style = useMemo<React.CSSProperties>(() => {
         const digits = end.toString().length;
 
-        // Add 1.5 characters to account for the width of the decimal and two spaces
+        // Add 1.5 characters to account for the width of the decimal and two spaces. There's a chance that this
+        // doesn't work on all fonts, but it works at least with the default one
         const markerWidth = `${digits + 1.5}ch`;
 
         return {
             counterReset: `list ${start - 1}`,
 
-            // There's a chance that this doesn't work on all fonts, but it works at least with the default one
-            '--marker-width': markerWidth,
+            // Leave space for the item numbers
+            paddingLeft: markerWidth,
         };
     }, [end, start]);
 

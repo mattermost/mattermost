@@ -354,8 +354,7 @@ h6.markdown__heading {
 }
 
 ol.markdown__list {
-    padding-left: calc(var(--marker-width));
-    counter-reset: list;
+    // This element has padding-left and counter-reset set by the MarkdownListOrdered component
     list-style-type: decimal;
 
     >li {
