@@ -257,8 +257,7 @@ func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 	implType := reflect.TypeOf(s.impl)
 	selfType := reflect.TypeFor[*hooksRPCServer]()
 	var methods []string
-	for i := 0; i < ifaceType.NumMethod(); i++ {
-		method := ifaceType.Method(i)
+	for method := range ifaceType.Methods() {
 		m, ok := implType.MethodByName(method.Name)
 		if !ok {
 			continue
@@ -1261,6 +1260,7 @@ func (s *apiRPCServer) ReceiveSharedChannelAttachmentSyncMsg(args *Z_ReceiveShar
 	defer dataReader.Close()
 
 	returns.A, returns.B = hook.ReceiveSharedChannelAttachmentSyncMsg(args.A, args.B, args.C, dataReader)
+	returns.B = encodableError(returns.B)
 	return nil
 }
 

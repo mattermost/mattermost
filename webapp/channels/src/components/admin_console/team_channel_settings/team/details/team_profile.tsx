@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import noop from 'lodash/noop';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Team} from '@mattermost/types/teams';
 
@@ -19,8 +18,6 @@ import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
 import {imageURLForTeam} from 'utils/utils';
-
-import './team_profile.scss';
 
 type Props = {
     team: Team;
@@ -65,51 +62,28 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                     title={intl.formatMessage({id: 'workspace_limits.teams_limit_reached.upgrade_to_unarchive', defaultMessage: 'Upgrade to Unarchive'})}
                     hint={intl.formatMessage({id: 'workspace_limits.teams_limit_reached.tool_tip', defaultMessage: 'You\'ve reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams'})}
                 >
-                    <div
-                        className={'disabled-overlay-wrapper'}
+                    <Button
+                        type='button'
+                        disabled={isDisabled || restoreDisabled}
+                        emphasis='secondary'
+                        variant='destructive'
                     >
-                        <button
-                            type='button'
-                            disabled={restoreDisabled}
-                            style={{pointerEvents: 'none'}}
-                            className={
-                                classNames(
-                                    'btn',
-                                    'btn-danger',
-                                    'ArchiveButton',
-                                    {ArchiveButton___archived: isArchived},
-                                    {ArchiveButton___unarchived: !isArchived},
-                                    {disabled: isDisabled},
-                                    'cloud-limits-disabled',
-                                )
-                            }
-                            onClick={noop}
-                        >
-                            {isArchived ? (
-                                <i className='icon icon-archive-arrow-up-outline'/>
-                            ) : (
-                                <i className='icon icon-archive-outline'/>
-                            )}
-                            <FormattedMessage {...archiveBtn}/>
-                        </button>
-                    </div>
+                        {isArchived ? (
+                            <i className='icon icon-archive-arrow-up-outline'/>
+                        ) : (
+                            <i className='icon icon-archive-outline'/>
+                        )}
+                        <FormattedMessage {...archiveBtn}/>
+                    </Button>
                 </WithTooltip>
             );
         }
         return (
-            <button
+            <Button
                 type='button'
-                disabled={restoreDisabled}
-                className={
-                    classNames(
-                        'btn',
-                        'ArchiveButton',
-                        {ArchiveButton___archived: isArchived},
-                        {ArchiveButton___unarchived: !isArchived},
-                        {disabled: isDisabled},
-                        'cloud-limits-disabled',
-                    )
-                }
+                disabled={isDisabled}
+                emphasis='secondary'
+                variant='destructive'
                 onClick={toggleArchive}
             >
                 {isArchived ? (
@@ -118,7 +92,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                     <i className='icon icon-archive-outline'/>
                 )}
                 <FormattedMessage {...archiveBtn}/>
-            </button>
+            </Button>
         );
     };
 
@@ -168,22 +142,16 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                     <div className='AdminChannelDetails_archiveContainer'>
                         {button()}
                         {restoreDisabled && !isAirGapped &&
-                            <button
+                            <Button
                                 onClick={openPricingModal}
                                 type='button'
-                                className={
-                                    classNames(
-                                        'btn',
-                                        'btn-secondary',
-                                        'upgrade-options-button',
-                                    )
-                                }
+                                emphasis='secondary'
                             >
                                 <FormattedMessage
                                     id={'workspace_limits.teams_limit_reached.view_upgrade_options'}
                                     defaultMessage={'View upgrade options'}
                                 />
-                            </button>}
+                            </Button>}
                     </div>
                 </div>
             </div>

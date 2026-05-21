@@ -114,6 +114,10 @@ func (us *UserService) GetUserByAuth(authData *string, authService string) (*mod
 	return us.store.GetByAuth(authData, authService)
 }
 
+func (us *UserService) GetUserByAuthData(authData *string) (*model.User, error) {
+	return us.store.GetByAuthData(authData)
+}
+
 func (us *UserService) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, error) {
 	return us.store.GetAllProfiles(options)
 }

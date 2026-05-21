@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -136,8 +137,9 @@ interface HelpTextProps {
 
 export function TestButton({onClick, disabled, disabledTooltip}: TestButtonProps): JSX.Element {
     const button = (
-        <button
-            className='btn btn-sm btn-tertiary'
+        <Button
+            emphasis='tertiary'
+            size='sm'
             onClick={onClick}
             disabled={disabled}
         >
@@ -146,7 +148,7 @@ export function TestButton({onClick, disabled, disabledTooltip}: TestButtonProps
                 id='admin.access_control.table_editor.test_access_rule'
                 defaultMessage='Test access rule'
             />
-        </button>
+        </Button>
     );
 
     if (disabled && disabledTooltip) {
@@ -162,8 +164,9 @@ export function TestButton({onClick, disabled, disabledTooltip}: TestButtonProps
 
 export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps): JSX.Element {
     return (
-        <button
-            className='btn btn-sm btn-tertiary'
+        <Button
+            emphasis='tertiary'
+            size='sm'
             onClick={onClick}
             disabled={disabled}
         >
@@ -172,7 +175,7 @@ export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps)
                 id='admin.access_control.table_editor.add_attribute'
                 defaultMessage='Add attribute'
             />
-        </button>
+        </Button>
     );
 }
 

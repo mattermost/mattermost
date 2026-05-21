@@ -6,6 +6,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
@@ -194,25 +195,29 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
             </span>
             {
                 this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText &&
-                <button
+                <Button
                     onClick={this.props.onButtonClick}
                     disabled={this.props.ctaDisabled}
-                    className='btn btn-tertiary btn-xs btn-inverted'
+                    emphasis='tertiary'
+                    size='xs'
+                    variant='inverted'
                 >
                     <FormattedMessage
                         {...this.props.modalButtonText}
                     />
-                </button>
+                </Button>
             }
             {
                 this.props.showLinkAsButton && this.props.showCTA && this.props.ctaText &&
-                <button
+                <Button
                     onClick={this.props.onButtonClick}
                     disabled={this.props.ctaDisabled}
-                    className='btn btn-tertiary btn-xs btn-inverted'
+                    emphasis='tertiary'
+                    size='xs'
+                    variant='inverted'
                 >
                     {this.props.ctaText}
-                </button>
+                </Button>
             }
         </div>);
 

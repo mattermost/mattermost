@@ -6,6 +6,7 @@ import type {ChangeEvent, ClipboardEvent, MouseEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
@@ -433,15 +434,15 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                     onClick={this.selectTheme}
                 />
                 <div className='mt-3'>
-                    <button
-                        className='btn btn-tertiary'
+                    <Button
+                        emphasis='tertiary'
                         onClick={this.copyTheme}
                     >
                         <FormattedMessage
                             id='user.settings.custom_theme.copyThemeColors'
                             defaultMessage='Copy Theme Colors'
                         />
-                    </button>
+                    </Button>
                     <span
                         className='alert alert-success copy-theme-success'
                         role='alert'

@@ -233,7 +233,9 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {
 }
 
 func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
-	a.Srv().Platform().ClearSessionCacheForAllUsersSkipClusterSend()
+	if err := a.Srv().Platform().ClearSessionCacheForAllUsersSkipClusterSend(); err != nil {
+		a.Srv().Platform().Log().Error("Failed to clear session cache for all users", mlog.Err(err))
+	}
 }
 
 func (a *App) RevokeSessionsForDeviceId(rctx request.CTX, userID string, deviceID string, currentSessionId string) *model.AppError {

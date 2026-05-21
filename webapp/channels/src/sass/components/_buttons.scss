@@ -5,7 +5,7 @@
     border: none;
     background: transparent;
 
-    &:focus {
+    &:focus, &.btn-force-focus {
         outline: 0;
         text-decoration: none;
     }
@@ -16,7 +16,7 @@
     }
 
     &:hover,
-    &:active {
+    &:active, &.btn-force-active {
         text-decoration: none;
     }
 }
@@ -62,12 +62,12 @@ button {
         background-color: transparent;
         color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
 
-        &:hover {
+        &:hover, &.btn-force-hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
         }
 
-        &:active {
+        &:active, &.btn-force-active {
             background-color: rgba(var(--button-bg-rgb), 0.08);
             color: rgba(var(--button-bg-rgb), 1);
         }
@@ -135,7 +135,7 @@ button {
         box-shadow: none;
     }
 
-    &:active {
+    &:active, &.btn-force-active {
         box-shadow: none;
     }
 
@@ -203,9 +203,9 @@ button {
         background: transparent;
         color: rgba(var(--button-bg-rgb), 1);
 
-        &:hover,
-        &:focus,
-        &:active {
+        &:hover, &.btn-force-hover,
+        &:focus, &.btn-force-focus,
+        &:active, &.btn-force-active {
             text-decoration: underline;
         }
     }
@@ -217,16 +217,16 @@ button {
         color: rgb(var(--button-color-rgb)) !important;
 
         // These hover and active values are for things outside the app__body, the correct theme styles for the primary button are applied in utils.jsx
-        &:hover {
+        &:hover, &.btn-force-hover {
             background-color: #1a51c8;
         }
 
-        &:active,
-        &:focus {
+        &:active, &.btn-force-active,
+        &:focus, &.btn-force-focus {
             background-color: #184ab6;
         }
 
-        &:disabled,
+        &:disabled, &.btn-force-disabled,
         &:disabled:hover,
         &:disabled:active {
             background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -238,11 +238,11 @@ button {
             background-color: var(--online-indicator);
             color: var(--button-color-rgb);
 
-            &:hover {
+            &:hover, &.btn-force-hover {
                 background-color: var(--online-indicator);
             }
 
-            &:active {
+            &:active, &.btn-force-active {
                 background-color: var(--online-indicator);
             }
         }
@@ -258,21 +258,21 @@ button {
             background: transparent;
             color: var(--error-text);
 
-            &:hover {
+            &:hover, &.btn-force-hover {
                 border-color: currentColor;
                 background-color: rgba(var(--error-text-color-rgb), 0.08);
                 color: var(--error-text);
             }
 
-            &:active,
-            &:focus {
+            &:active, &.btn-force-active,
+            &:focus, &.btn-force-focus {
                 border-color: currentColor;
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
                 color: var(--error-text);
             }
         }
 
-        &:disabled,
+        &:disabled, &.btn-force-disabled,
         &:disabled:hover,
         &:disabled:active {
             border-color: rgba(var(--center-channel-color-rgb), 0.32);
@@ -280,11 +280,11 @@ button {
             color: rgba(var(--center-channel-color-rgb), 0.32) !important;
         }
 
-        &:hover {
+        &:hover, &.btn-force-hover {
             background-color: rgb(var(--button-bg-rgb), 0.08);
         }
 
-        &:active {
+        &:active, &.btn-force-active {
             background-color: rgb(var(--button-bg-rgb), 0.16);
         }
     }
@@ -293,16 +293,16 @@ button {
         background: rgba(var(--button-bg-rgb), 0.08);
         color: rgb(var(--button-bg-rgb));
 
-        &:hover {
+        &:hover, &.btn-force-hover {
             background-color: rgb(var(--button-bg-rgb), 0.12);
         }
 
-        &:active {
+        &:active, &.btn-force-active {
             background-color: rgb(var(--button-bg-rgb), 0.16);
             outline: none;
         }
 
-        &:disabled,
+        &:disabled, &.btn-force-disabled,
         &:disabled:hover,
         &:disabled:active {
             background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -314,13 +314,13 @@ button {
             background-color: rgba(var(--error-text-color-rgb), 0.08);
             color: var(--error-text);
 
-            &:hover {
+            &:hover, &.btn-force-hover {
                 background-color: rgba(var(--error-text-color-rgb), 0.12);
                 color: var(--error-text);
             }
 
-            &:active,
-            &:focus {
+            &:active, &.btn-force-active,
+            &:focus, &.btn-force-focus {
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
                 color: var(--error-text);
             }
@@ -330,11 +330,11 @@ button {
         background-color: rgba(var(--sidebar-text-rgb), 0.12);
         color: rgba(var(--sidebar-text-rgb), 1);
 
-        &:hover {
+        &:hover, &.btn-force-hover {
             background-color: rgb(var(--sidebar-text-rgb), 0.16);
         }
 
-        &:active,
+        &:active, &.btn-force-active,
         &[aria-expanded="true"][aria-haspopup="true"] {
             background-color: rgb(var(--sidebar-text-rgb), 0.24);
             outline: none;
@@ -345,22 +345,22 @@ button {
         background: transparent;
         color: rgb(var(--button-bg-rgb));
 
-        &:hover {
+        &:hover, &.btn-force-hover {
             background: rgba(var(--button-bg-rgb), 0.08);
         }
 
-        &:active {
+        &:active, &.btn-force-active {
             background-color: rgb(var(--button-bg-rgb), 0.12);
         }
 
         &.btn-inverted {
             color: rgb(var(--button-color-rgb));
 
-            &:hover {
+            &:hover, &.btn-force-hover {
                 background: rgba(var(--button-color-rgb), 0.12);
             }
 
-            &:active,
+            &:active, &.btn-force-active,
             &[aria-expanded="true"][aria-haspopup="true"] {
                 background-color: rgb(var(--button-color-rgb), 0.16);
             }
@@ -374,16 +374,16 @@ button {
         .app__body & {
             color: variables.$white;
 
-            &:hover,
-            &:focus,
-            &:active {
+            &:hover, &.btn-force-hover,
+            &:focus, &.btn-force-focus,
+            &:active, &.btn-force-active {
                 color: variables.$white;
             }
         }
 
-        &:hover,
-        &:focus,
-        &:active {
+        &:hover, &.btn-force-hover,
+        &:focus, &.btn-force-focus,
+        &:active, &.btn-force-active {
             color: variables.$white;
         }
     }

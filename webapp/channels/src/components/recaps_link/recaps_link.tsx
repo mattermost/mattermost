@@ -8,6 +8,7 @@ import {shallowEqual, useSelector} from 'react-redux';
 import {Link, useLocation, matchPath, useRouteMatch} from 'react-router-dom';
 
 import {AlertOutlineIcon, CreationOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getUnreadFinishedRecapsBadge} from 'mattermost-redux/selectors/entities/recaps';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -15,7 +16,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
-import WithTooltip from 'components/with_tooltip';
 
 import './recaps_link.scss';
 

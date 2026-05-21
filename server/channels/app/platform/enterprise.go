@@ -26,6 +26,12 @@ func RegisterLdapDiagnosticInterface(f func(*PlatformService) einterfaces.LdapDi
 	ldapDiagnosticInterface = f
 }
 
+var samlDiagnosticInterface func(*PlatformService) einterfaces.SamlDiagnosticInterface
+
+func RegisterSamlDiagnosticInterface(f func(*PlatformService) einterfaces.SamlDiagnosticInterface) {
+	samlDiagnosticInterface = f
+}
+
 var licenseInterface func(*PlatformService) einterfaces.LicenseInterface
 
 func RegisterLicenseInterface(f func(*PlatformService) einterfaces.LicenseInterface) {

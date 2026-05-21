@@ -63,6 +63,9 @@ export const enum WebSocketEvents {
     SidebarCategoryUpdated = 'sidebar_category_updated',
     SidebarCategoryDeleted = 'sidebar_category_deleted',
     SidebarCategoryOrderUpdated = 'sidebar_category_order_updated',
+    PropertyFieldCreated = 'property_field_created',
+    PropertyFieldUpdated = 'property_field_updated',
+    PropertyFieldDeleted = 'property_field_deleted',
     PropertyValuesUpdated = 'property_values_updated',
     CloudSubscriptionChanged = 'cloud_subscription_changed',
     ThreadUpdated = 'thread_updated',
@@ -96,4 +99,6 @@ export const enum WebSocketEvents {
     FileDownloadRejected = 'file_download_rejected',
     ShowToast = 'show_toast',
     SharedChannelRemoteUpdated = 'shared_channel_remote_updated',
+    ChannelJoinRequestCreated = 'channel_join_request_created',
+    ChannelJoinRequestUpdated = 'channel_join_request_updated',
 }

@@ -16,6 +16,7 @@ import {temporarilySetPageLoadContext} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
+import GlobalClassificationBanner from 'components/global_classification_banner';
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
@@ -417,6 +418,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
                         <WindowSizeObserver/>
                         <ModalController/>
+                        <GlobalClassificationBanner position='top'/>
                         <AnnouncementBarController/>
                         <SystemNotice/>
                         <GlobalHeader/>
@@ -491,6 +493,7 @@ export default class Root extends React.PureComponent<Props, State> {
                             </Switch>
                             <SidebarRight/>
                         </div>
+                        <GlobalClassificationBanner position='bottom'/>
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
                         <Readout/>

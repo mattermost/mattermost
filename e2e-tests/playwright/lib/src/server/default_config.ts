@@ -239,6 +239,7 @@ const defaultServerConfig: AdminConfig = {
         LockTeammateNameDisplay: false,
         ExperimentalPrimaryTeam: '',
         ExperimentalDefaultChannels: [],
+        EnableChannelCategorySorting: true,
     },
     ClientRequirements: {
         AndroidLatestVersion: '',
@@ -346,7 +347,7 @@ const defaultServerConfig: AdminConfig = {
         SendEmailNotifications: true,
         UseChannelInEmailNotifications: false,
         RequireEmailVerification: false,
-        FeedbackName: '',
+        FeedbackName: 'Mattermost',
         FeedbackEmail: 'test@example.com',
         ReplyToAddress: 'test@example.com',
         FeedbackOrganization: '',
@@ -618,7 +619,6 @@ const defaultServerConfig: AdminConfig = {
         DisableWakeUpReconnectHandler: false,
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
-        ExperimentalChannelCategorySorting: false,
         EnableWatermark: false,
     },
     AnalyticsSettings: {
@@ -779,7 +779,6 @@ const defaultServerConfig: AdminConfig = {
         AttributeBasedAccessControl: true,
         PermissionPolicies: true,
         ContentFlagging: true,
-        InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
         AutoTranslation: true,
@@ -789,6 +788,8 @@ const defaultServerConfig: AdminConfig = {
         ClassificationMarkings: true,
         IntegratedBoards: false,
         CJKSearch: false,
+        ManagedChannelCategories: false,
+        MobileEphemeralMode: true,
     },
     ImportSettings: {
         Directory: './import',
@@ -817,11 +818,11 @@ const defaultServerConfig: AdminConfig = {
         MemberSyncBatchSize: 20,
     },
     AccessControlSettings: {
-        EnableAttributeBasedAccessControl: false,
-        EnableUserManagedAttributes: false,
+        EnableAttributeBasedAccessControl: true,
+        EnableUserManagedAttributes: true,
     },
     ContentFlaggingSettings: {
-        EnableContentFlagging: false,
+        EnableContentFlagging: true,
         NotificationSettings: {
             EventTargetMapping: {
                 assigned: ['reviewers'],
@@ -848,7 +849,7 @@ const defaultServerConfig: AdminConfig = {
             CommonReviewers: true,
             CommonReviewerIds: [],
             TeamReviewersSetting: {},
-            SystemAdminsAsReviewers: false,
+            SystemAdminsAsReviewers: true,
             TeamAdminsAsReviewers: true,
         },
     },
@@ -866,5 +867,11 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
+    },
+    MobileEphemeralModeSettings: {
+        Enable: false,
+        DisconnectionTimeoutSeconds: 60,
+        OfflinePersistenceTimerHours: 24,
+        AutoCacheCleanupDays: 7,
     },
 };

@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {matchPath} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Post} from '@mattermost/types/posts';
 
@@ -177,21 +178,21 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                     {remoteWarning}
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='delete_post.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         ref={this.deletePostBtn}
                         type='button'
                         autoFocus={true}
-                        className='btn btn-danger'
+                        variant='destructive'
                         onClick={this.handleDelete}
                         id='deletePostModalButton'
                     >
@@ -199,7 +200,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                             id='delete_post.del'
                             defaultMessage='Delete'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

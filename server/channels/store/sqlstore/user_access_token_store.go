@@ -60,7 +60,7 @@ func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.User
 }
 
 func (s SqlUserAccessTokenStore) Delete(tokenId string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -96,7 +96,7 @@ func (s SqlUserAccessTokenStore) deleteTokensById(transaction *sqlxTxWrapper, to
 }
 
 func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -216,7 +216,7 @@ func (s SqlUserAccessTokenStore) UpdateTokenEnable(tokenId string) error {
 }
 
 func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
