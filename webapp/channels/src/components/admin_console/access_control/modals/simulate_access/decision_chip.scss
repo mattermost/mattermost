@@ -1,0 +1,149 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Styles for the decision chip family. The base `__rowChip` block is
+// reused by the single-action DecisionChip, the multi-action
+// StackedDecisionChip, and the per-session SessionStateChip — every
+// callsite varies only the modifier (`--allow`, `--deny`, …). Loaded
+// once via decision_chip.tsx; the other components ride on the same
+// classes without importing this file directly.
+
+// Decision chip — matches the spec's pill design: filled-circle
+// glyph, label, near-square radius. The earlier 12px radius read as a
+// "tag", but the spec calls for a tighter 4px so the chip looks like
+// a status badge. Padding lifts to 4px vertical so the 14px icon has
+// room to breathe without the pill feeling top-heavy.
+.SimulateAccessModal__rowChip {
+    display: inline-flex;
+    overflow: hidden;
+    max-width: 240px;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 6px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &--allow {
+        background: rgba(var(--online-indicator-rgb, 6, 167, 125), 0.16);
+        color: var(--online-indicator, #06a77d);
+    }
+
+    &--allow-saved {
+        background: rgba(var(--online-indicator-rgb, 6, 167, 125), 0.12);
+        color: var(--online-indicator, #06a77d);
+    }
+
+    &--deny {
+        background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.16);
+        color: var(--error-text);
+    }
+
+    &--pending {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &--not-applicable {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &--mixed {
+        background: rgba(var(--away-indicator-rgb, 255, 188, 66), 0.18);
+        color: var(--away-indicator, #b07700);
+    }
+
+    // Multi-action rollup chip — same shape as the per-action pills,
+    // just rendered as a button with a count badge and chevron.
+    // Padding/font/radius come from the parent `__rowChip` rules so
+    // allow/mixed/deny stacked pills line up with their single-action
+    // counterparts.
+    &--stacked {
+        border: 0;
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+
+        &:disabled {
+            cursor: default;
+        }
+
+        &:hover:not(:disabled) {
+            filter: brightness(0.96);
+        }
+
+        // Keyboard users need a visible focus indicator. Mirrors the
+        // pattern used by .SimulateAccessModal__rowChipButton below
+        // (outline 2px solid + 2px offset against the button-bg
+        // primary). The brightness filter is dropped here so the
+        // outline is the unambiguous focus signal — on a hover-then-
+        // focus the hover rule above still tints the chip.
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+    }
+}
+
+// The leading status glyph at the start of every chip. Inherits
+// currentColor so each pill modifier paints the icon to match its
+// text colour automatically (allow → green, deny → red, etc).
+.SimulateAccessModal__rowChipIcon {
+    flex-shrink: 0;
+    color: currentColor;
+}
+
+.SimulateAccessModal__rowChipLabel {
+    overflow: hidden;
+    min-width: 0;
+    flex: 0 1 auto;
+    text-overflow: ellipsis;
+}
+
+.SimulateAccessModal__rowChipCount {
+    display: inline-flex;
+    min-width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.55);
+    color: inherit;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.SimulateAccessModal__rowChipChevron {
+    margin-right: -4px;
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+// The single-action chip is wrapped in a button when the row has
+// something to drill into (a deny, or a sibling_saved allow). The
+// wrapper is a transparent shell so the underlying chip still controls
+// all the visuals; we just inherit pointer/focus affordances.
+.SimulateAccessModal__rowChipButton {
+    display: inline-flex;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+
+    &:hover .SimulateAccessModal__rowChip,
+    &:focus-visible .SimulateAccessModal__rowChip {
+        filter: brightness(0.96);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+}
