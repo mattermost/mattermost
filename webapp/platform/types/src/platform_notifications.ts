@@ -20,6 +20,7 @@ export type PlatformNotification = {
     is_thread_reply: boolean;
     is_mention?: boolean;
     is_direct_message?: boolean;
+    is_group_message?: boolean;
     sender_user_id?: UserProfile['id'];
     thread_root_id?: Post['id'];
     reply_count?: number;

@@ -1004,6 +1004,7 @@ export const RHSStates = {
 
 /** Max in-app notification activity items stored and persisted per user. */
 export const PLATFORM_NOTIFICATION_ACTIVITY_MAX = 500;
+export const PLATFORM_NOTIFICATION_BURST_WINDOW_MS = 5 * 60 * 1000;
 
 export const UploadStatuses = {
     LOADING: 'loading',

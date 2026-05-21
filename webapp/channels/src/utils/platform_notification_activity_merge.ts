@@ -2,6 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isDirectChannel, isGroupChannel} from 'mattermost-redux/utils/channel_utils';
+
+import {PLATFORM_NOTIFICATION_BURST_WINDOW_MS} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 import type {PlatformNotificationRecord} from 'types/store/rhs';
@@ -14,8 +18,10 @@ export function getThreadRootId(record: PlatformNotificationRecord): string | un
         return record.threadRootId;
     }
 
-    if (record.id.startsWith(THREAD_NOTIFICATION_ID_PREFIX)) {
-        return record.id.slice(THREAD_NOTIFICATION_ID_PREFIX.length);
+    if (record.id?.startsWith(THREAD_NOTIFICATION_ID_PREFIX)) {
+        const rest = record.id.slice(THREAD_NOTIFICATION_ID_PREFIX.length);
+        const separatorIndex = rest.indexOf(':');
+        return separatorIndex >= 0 ? rest.slice(0, separatorIndex) : rest;
     }
 
     return undefined;
@@ -30,16 +36,16 @@ export function getThreadReplyGroupKey(record: PlatformNotificationRecord): stri
     return threadRootId || null;
 }
 
-export function getThreadNotificationId(threadRootId: string): string {
-    return `${THREAD_NOTIFICATION_ID_PREFIX}${threadRootId}`;
-}
-
-export function getDirectMessageNotificationId(channelId: string): string {
-    return `${DIRECT_MESSAGE_NOTIFICATION_ID_PREFIX}${channelId}`;
-}
-
 export function getDirectMessageGroupKey(record: PlatformNotificationRecord): string | null {
-    if (!record.isDirectMessage) {
+    return getPrivateMessageGroupKey(record);
+}
+
+export function getPrivateMessageGroupKey(record: PlatformNotificationRecord): string | null {
+    if (record.isThreadReply) {
+        return null;
+    }
+
+    if (!record.isDirectMessage && !record.isGroupMessage) {
         return null;
     }
 
@@ -47,7 +53,85 @@ export function getDirectMessageGroupKey(record: PlatformNotificationRecord): st
 }
 
 export function getPlatformNotificationGroupKey(record: PlatformNotificationRecord): string | null {
-    return getThreadReplyGroupKey(record) || getDirectMessageGroupKey(record);
+    return getPlatformNotificationContextKey(record);
+}
+
+export function getPlatformNotificationContextKey(record: PlatformNotificationRecord): string | null {
+    return getThreadReplyGroupKey(record) || getPrivateMessageGroupKey(record);
+}
+
+export function getThreadNotificationId(threadRootId: string, burstAnchorRecordedAt?: number): string {
+    if (burstAnchorRecordedAt) {
+        return `${THREAD_NOTIFICATION_ID_PREFIX}${threadRootId}:${burstAnchorRecordedAt}`;
+    }
+
+    return `${THREAD_NOTIFICATION_ID_PREFIX}${threadRootId}`;
+}
+
+export function getDirectMessageNotificationId(channelId: string, burstAnchorRecordedAt?: number): string {
+    if (burstAnchorRecordedAt) {
+        return `${DIRECT_MESSAGE_NOTIFICATION_ID_PREFIX}${channelId}:${burstAnchorRecordedAt}`;
+    }
+
+    return `${DIRECT_MESSAGE_NOTIFICATION_ID_PREFIX}${channelId}`;
+}
+
+export function isWithinNotificationBurstWindow(
+    earlierRecordedAt: number,
+    laterRecordedAt: number,
+    burstWindowMs: number = PLATFORM_NOTIFICATION_BURST_WINDOW_MS,
+): boolean {
+    return laterRecordedAt >= earlierRecordedAt &&
+        (laterRecordedAt - earlierRecordedAt) <= burstWindowMs;
+}
+
+export function sortPlatformNotificationsByRecency(
+    notifications: PlatformNotificationRecord[],
+): PlatformNotificationRecord[] {
+    return [...notifications].sort((a, b) => b.recordedAt - a.recordedAt);
+}
+
+export function createBurstNotificationId(record: PlatformNotificationRecord): string {
+    const threadRootId = getThreadRootId(record);
+    if (record.isThreadReply && threadRootId) {
+        return getThreadNotificationId(threadRootId, record.recordedAt);
+    }
+
+    const privateMessageKey = getPrivateMessageGroupKey(record);
+    if (privateMessageKey) {
+        return getDirectMessageNotificationId(privateMessageKey, record.recordedAt);
+    }
+
+    return record.id || `${record.postId}:${record.recordedAt}`;
+}
+
+export function findBurstMergeTarget(
+    notifications: PlatformNotificationRecord[] | null | undefined,
+    incoming: PlatformNotificationRecord,
+    burstWindowMs: number = PLATFORM_NOTIFICATION_BURST_WINDOW_MS,
+): PlatformNotificationRecord | null {
+    const contextKey = getPlatformNotificationContextKey(incoming);
+    if (!contextKey || !Array.isArray(notifications)) {
+        return null;
+    }
+
+    let mergeTarget: PlatformNotificationRecord | null = null;
+
+    for (const candidate of notifications) {
+        if (getPlatformNotificationContextKey(candidate) !== contextKey) {
+            continue;
+        }
+
+        if (!isWithinNotificationBurstWindow(candidate.recordedAt, incoming.recordedAt, burstWindowMs)) {
+            continue;
+        }
+
+        if (!mergeTarget || candidate.recordedAt > mergeTarget.recordedAt) {
+            mergeTarget = candidate;
+        }
+    }
+
+    return mergeTarget;
 }
 
 export function mergeParticipantUserIds(
@@ -70,6 +154,7 @@ export function mergeThreadReplyIntoRecord(
     incoming: PlatformNotificationRecord,
 ): PlatformNotificationRecord {
     const replyCount = (existing.replyCount || 1) + 1;
+    const latestRecordedAt = Math.max(existing.recordedAt, incoming.recordedAt);
     const useIncoming = incoming.recordedAt >= existing.recordedAt;
     const participantUserIds = mergeParticipantUserIds(
         existing.participantUserIds,
@@ -79,11 +164,11 @@ export function mergeThreadReplyIntoRecord(
 
     return {
         ...existing,
-        id: getThreadNotificationId(getThreadRootId(existing) || getThreadRootId(incoming) || existing.id),
+        id: existing.id,
+        recordedAt: latestRecordedAt,
         ...(useIncoming ? {
             postId: incoming.postId,
             previewBody: incoming.previewBody,
-            recordedAt: incoming.recordedAt,
             permalinkUrl: incoming.permalinkUrl,
             senderUserId: incoming.senderUserId,
             readAt: undefined,
@@ -98,22 +183,23 @@ export function mergeDirectMessageIntoRecord(
     incoming: PlatformNotificationRecord,
 ): PlatformNotificationRecord {
     const messageCount = (existing.replyCount || 1) + 1;
+    const latestRecordedAt = Math.max(existing.recordedAt, incoming.recordedAt);
     const useIncoming = incoming.recordedAt >= existing.recordedAt;
-    const channelId = existing.channelId || incoming.channelId;
 
     return {
         ...existing,
-        id: getDirectMessageNotificationId(channelId),
+        id: existing.id,
+        recordedAt: latestRecordedAt,
         ...(useIncoming ? {
             postId: incoming.postId,
             previewBody: incoming.previewBody,
-            recordedAt: incoming.recordedAt,
             permalinkUrl: incoming.permalinkUrl,
             senderUserId: incoming.senderUserId,
             readAt: undefined,
         } : {}),
         replyCount: messageCount,
-        isDirectMessage: true,
+        isDirectMessage: existing.isDirectMessage ?? incoming.isDirectMessage,
+        isGroupMessage: existing.isGroupMessage ?? incoming.isGroupMessage,
     };
 }
 
@@ -125,51 +211,51 @@ export function mergeGroupedPlatformNotification(
         return mergeThreadReplyIntoRecord(existing, incoming);
     }
 
-    if (getDirectMessageGroupKey(existing)) {
+    if (getPrivateMessageGroupKey(existing)) {
         return mergeDirectMessageIntoRecord(existing, incoming);
     }
 
     return incoming;
 }
 
+function normalizeGroupedRecord(record: PlatformNotificationRecord): PlatformNotificationRecord {
+    return {
+        ...record,
+        replyCount: record.replyCount || 1,
+        participantUserIds: record.participantUserIds ||
+            (record.senderUserId ? [record.senderUserId] : []),
+    };
+}
+
 export function consolidateThreadReplyNotifications(
     notifications: PlatformNotificationRecord[],
 ): PlatformNotificationRecord[] {
-    const nonThreadReplies: PlatformNotificationRecord[] = [];
-    const groups = new Map<string, PlatformNotificationRecord>();
+    const ungrouped: PlatformNotificationRecord[] = [];
+    const grouped: PlatformNotificationRecord[] = [];
 
     const sorted = [...notifications].sort((a, b) => a.recordedAt - b.recordedAt);
 
     for (const record of sorted) {
-        const key = getPlatformNotificationGroupKey(record);
-        if (!key) {
-            nonThreadReplies.push(record);
+        const contextKey = getPlatformNotificationContextKey(record);
+        if (!contextKey) {
+            ungrouped.push(record);
             continue;
         }
 
-        const normalizedRecord: PlatformNotificationRecord = {
-            ...record,
-            replyCount: record.replyCount || 1,
-            participantUserIds: record.participantUserIds ||
-                (record.senderUserId ? [record.senderUserId] : []),
-        };
-
-        if (getDirectMessageGroupKey(record)) {
-            normalizedRecord.id = getDirectMessageNotificationId(record.channelId);
-        } else if (getThreadReplyGroupKey(record)) {
-            normalizedRecord.id = getThreadNotificationId(getThreadRootId(record) || record.id);
-        }
-
-        const existing = groups.get(key);
-        if (existing) {
-            groups.set(key, mergeGroupedPlatformNotification(existing, normalizedRecord));
+        const normalizedRecord = normalizeGroupedRecord(record);
+        const mergeTarget = findBurstMergeTarget(grouped, normalizedRecord);
+        if (mergeTarget) {
+            const mergeTargetIndex = grouped.findIndex((candidate) => candidate.id === mergeTarget.id);
+            grouped[mergeTargetIndex] = mergeGroupedPlatformNotification(mergeTarget, normalizedRecord);
         } else {
-            groups.set(key, normalizedRecord);
+            grouped.push({
+                ...normalizedRecord,
+                id: createBurstNotificationId(normalizedRecord),
+            });
         }
     }
 
-    return [...groups.values(), ...nonThreadReplies].
-        sort((a, b) => b.recordedAt - a.recordedAt);
+    return sortPlatformNotificationsByRecency([...grouped, ...ungrouped]);
 }
 
 export function enrichPlatformNotificationRecords(
@@ -177,28 +263,39 @@ export function enrichPlatformNotificationRecords(
     notifications: PlatformNotificationRecord[],
 ): PlatformNotificationRecord[] {
     return notifications.map((record) => {
+        let enriched = record;
+
         if (!record.isThreadReply) {
-            return record;
+            const channel = getChannel(state, record.channelId);
+            if (channel) {
+                enriched = {
+                    ...enriched,
+                    isDirectMessage: isDirectChannel(channel),
+                    isGroupMessage: isGroupChannel(channel),
+                };
+            }
         }
 
-        const threadRootIdFromId = getThreadRootId(record);
+        if (!enriched.isThreadReply) {
+            return enriched;
+        }
+
+        const threadRootIdFromId = getThreadRootId(enriched);
         if (threadRootIdFromId) {
             return {
-                ...record,
+                ...enriched,
                 threadRootId: threadRootIdFromId,
-                id: getThreadNotificationId(threadRootIdFromId),
             };
         }
 
-        const post = getPost(state, record.postId);
+        const post = getPost(state, enriched.postId);
         if (!post?.root_id) {
-            return record;
+            return enriched;
         }
 
         return {
-            ...record,
+            ...enriched,
             threadRootId: post.root_id,
-            id: getThreadNotificationId(post.root_id),
         };
     });
 }

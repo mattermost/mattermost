@@ -18,7 +18,7 @@ import {
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import {isChannelMuted, isDirectChannel} from 'mattermost-redux/utils/channel_utils';
+import {isChannelMuted, isDirectChannel, isGroupChannel} from 'mattermost-redux/utils/channel_utils';
 import {ensureString, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
@@ -28,7 +28,7 @@ import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {ActionTypes, NotificationLevels, UserStatuses, IgnoreChannelMentions, DesktopSound} from 'utils/constants';
-import {getDirectMessageNotificationId, getThreadNotificationId} from 'utils/platform_notification_activity_merge';
+import {createBurstNotificationId, findBurstMergeTarget} from 'utils/platform_notification_activity_merge';
 import {upsertPlatformNotificationOnServer} from 'utils/platform_notification_activity_storage';
 import DesktopApp from 'utils/desktop_api';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
@@ -106,6 +106,79 @@ export function getDesktopNotificationSound(channelMember: ChannelMembership | u
     return DesktopNotificationSounds.BING;
 }
 
+function resolveChannelForNotification(state: GlobalState, post: Post, msgProps: NewPostMessageProps): Channel {
+    const fromStore = makeGetChannel()(state, post.channel_id);
+    if (fromStore) {
+        return {
+            ...fromStore,
+            type: fromStore.type || msgProps.channel_type || fromStore.type,
+            display_name: fromStore.display_name || msgProps.channel_display_name || fromStore.display_name,
+        } as Channel;
+    }
+
+    return {
+        id: post.channel_id,
+        name: msgProps.channel_name || '',
+        display_name: msgProps.channel_display_name || '',
+        type: msgProps.channel_type || '',
+    } as Channel;
+}
+
+function isPrivateMessageChannel(channel: Pick<Channel, 'type'>, msgProps: NewPostMessageProps): boolean {
+    const channelType = channel.type || msgProps.channel_type;
+    return channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL;
+}
+
+function shouldSkipActivityNotification(
+    state: GlobalState,
+    post: Post,
+    msgProps: NewPostMessageProps,
+    user: UserProfile,
+    channel: Channel,
+    member: ChannelMembership | undefined,
+    forceNotification: boolean,
+    isCrtReply: boolean,
+): NotificationResult | undefined {
+    const currentUserId = getCurrentUserId(state);
+    if ((currentUserId === post.user_id && post.props.from_webhook !== 'true')) {
+        return {status: 'not_sent', reason: 'own_post'};
+    }
+
+    if (isSystemMessage(post) && !isUserAddedInChannel(post, currentUserId)) {
+        return {status: 'not_sent', reason: 'system_message'};
+    }
+
+    if (!member) {
+        return {status: 'error', reason: 'no_member'};
+    }
+
+    if (forceNotification) {
+        return undefined;
+    }
+
+    // DMs and GMs are always listed in Activity for incoming messages. Desktop
+    // notification prefs (e.g. GM "mentions only") still control toasts/sounds.
+    if (isPrivateMessageChannel(channel, msgProps)) {
+        if (isChannelMuted(member)) {
+            return {status: 'not_sent', reason: 'channel_muted'};
+        }
+
+        return undefined;
+    }
+
+    return shouldSkipNotification(
+        state,
+        post,
+        msgProps,
+        user,
+        channel,
+        member,
+        forceNotification,
+        isCrtReply,
+        true,
+    );
+}
+
 function getSidebarNotificationContextLabel(state: GlobalState, msgProps: NewPostMessageProps, isCrtReply: boolean): string {
     const currentUserId = getCurrentUserId(state);
     let mentions: string[] = [];
@@ -138,18 +211,13 @@ export function recordPlatformNotificationForActivity(post: Post, msgProps: NewP
         const state = getState();
         const teamId = msgProps.team_id || '';
 
-        const channel = makeGetChannel()(state, post.channel_id) || {
-            id: post.channel_id,
-            name: msgProps.channel_name,
-            display_name: msgProps.channel_display_name,
-            type: msgProps.channel_type,
-        } as Channel;
+        const channel = resolveChannelForNotification(state, post, msgProps);
         const user = getCurrentUser(state);
         const member = getMyChannelMember(state, post.channel_id);
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
         const forceNotification = Boolean(post.props?.force_notification);
 
-        const skipForActivity = shouldSkipNotification(
+        const skipForActivity = shouldSkipActivityNotification(
             state,
             post,
             msgProps,
@@ -158,7 +226,6 @@ export function recordPlatformNotificationForActivity(post: Post, msgProps: NewP
             member,
             forceNotification,
             isCrtReply,
-            true,
         );
         if (skipForActivity) {
             return {data: false};
@@ -179,15 +246,13 @@ export function recordPlatformNotificationForActivity(post: Post, msgProps: NewP
         const currentUserId = getCurrentUserId(recordState);
         const isMention = mentions.includes(currentUserId);
 
-        const isDirectMessage = isDirectChannel(channel);
+        const isDirectMessage = isDirectChannel(channel) || msgProps.channel_type === Constants.DM_CHANNEL;
+        const isGroupMessage = isGroupChannel(channel) || msgProps.channel_type === Constants.GM_CHANNEL;
+        const isPrivateMessage = isDirectMessage || isGroupMessage;
 
-        const record = {
-            id: isCrtReply ?
-                getThreadNotificationId(post.root_id) :
-                isDirectMessage ?
-                    getDirectMessageNotificationId(channel.id) :
-                    `${post.id}:${Date.now()}`,
-            recordedAt: Date.now(),
+        const recordedAt = Date.now();
+        const baseRecord = {
+            recordedAt,
             postId: post.id,
             channelId: channel.id,
             teamId,
@@ -197,10 +262,25 @@ export function recordPlatformNotificationForActivity(post: Post, msgProps: NewP
             isThreadReply: isCrtReply,
             isMention,
             isDirectMessage,
+            isGroupMessage,
             senderUserId: post.user_id,
             threadRootId: isCrtReply ? post.root_id : undefined,
             participantUserIds: isCrtReply ? [post.user_id] : undefined,
             previewBody: body,
+        };
+
+        const existingNotifications = getPlatformNotifications(getState());
+        const mergeTarget = (isCrtReply || isPrivateMessage) ?
+            findBurstMergeTarget(existingNotifications, baseRecord) :
+            null;
+
+        const record = {
+            ...baseRecord,
+            id: mergeTarget?.id ?? (
+                isCrtReply || isPrivateMessage ?
+                    createBurstNotificationId(baseRecord) :
+                    `${post.id}:${recordedAt}`
+            ),
         };
 
         dispatch({
@@ -236,10 +316,16 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
         const forceNotification = Boolean(post.props?.force_notification);
 
-        dispatch(recordPlatformNotificationForActivity(post, msgProps));
+        try {
+            dispatch(recordPlatformNotificationForActivity(post, msgProps));
+        } catch (error) {
+            if (process.env.NODE_ENV !== 'production') {
+                console.warn('Failed to record platform notification for activity', error); // eslint-disable-line no-console
+            }
+        }
 
         const skipNotificationReason = shouldSkipNotification(
-            state,
+            getState(),
             post,
             msgProps,
             user,

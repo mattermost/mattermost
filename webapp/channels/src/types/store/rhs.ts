@@ -26,6 +26,7 @@ export type PlatformNotificationRecord = {
     isThreadReply: boolean;
     isMention?: boolean;
     isDirectMessage?: boolean;
+    isGroupMessage?: boolean;
     senderUserId?: UserProfile['id'];
     threadRootId?: Post['id'];
     replyCount?: number;

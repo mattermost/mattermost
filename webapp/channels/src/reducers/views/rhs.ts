@@ -15,10 +15,11 @@ import {SidebarSize} from 'components/resizable_sidebar/constants';
 import {ActionTypes, RHSStates, Threads, PLATFORM_NOTIFICATION_ACTIVITY_MAX} from 'utils/constants';
 import {
     consolidateThreadReplyNotifications,
-    getDirectMessageNotificationId,
-    getPlatformNotificationGroupKey,
-    getThreadNotificationId,
+    createBurstNotificationId,
+    findBurstMergeTarget,
+    getPlatformNotificationContextKey,
     mergeGroupedPlatformNotification,
+    sortPlatformNotificationsByRecency,
 } from 'utils/platform_notification_activity_merge';
 
 import type {MMAction} from 'types/store';
@@ -448,6 +449,12 @@ function mentionRhsPanel(state: MentionRhsPanel = DEFAULT_MENTION_RHS_PANEL, act
     }
 }
 
+function finalizePlatformNotifications(notifications: PlatformNotificationRecord[]): PlatformNotificationRecord[] {
+    return sortPlatformNotificationsByRecency(
+        consolidateThreadReplyNotifications(notifications),
+    ).slice(0, PLATFORM_NOTIFICATION_ACTIVITY_MAX);
+}
+
 function platformNotifications(state: PlatformNotificationRecord[] = [], action: MMAction): PlatformNotificationRecord[] {
     switch (action.type) {
     case ActionTypes.HYDRATE_PLATFORM_NOTIFICATIONS: {
@@ -465,8 +472,7 @@ function platformNotifications(state: PlatformNotificationRecord[] = [], action:
                 byPostId.set(r.postId, r);
             }
         }
-        return consolidateThreadReplyNotifications(Array.from(byPostId.values())).
-            slice(0, PLATFORM_NOTIFICATION_ACTIVITY_MAX);
+        return finalizePlatformNotifications(Array.from(byPostId.values()));
     }
     case ActionTypes.RECORD_PLATFORM_NOTIFICATION: {
         const entry = (action as unknown as {data: PlatformNotificationRecord}).data;
@@ -477,33 +483,25 @@ function platformNotifications(state: PlatformNotificationRecord[] = [], action:
                 (entry.senderUserId ? [entry.senderUserId] : []),
         };
 
-        const groupKey = getPlatformNotificationGroupKey(normalizedEntry);
-        let nextState = state;
-        if (groupKey) {
-            const existingIndex = state.findIndex((record) => getPlatformNotificationGroupKey(record) === groupKey);
-            if (existingIndex !== -1) {
-                const merged = mergeGroupedPlatformNotification(state[existingIndex], normalizedEntry);
-                const rest = state.filter((_, index) => index !== existingIndex);
-                nextState = [merged, ...rest];
-            } else {
-                const withoutGroupDupes = state.filter((record) => getPlatformNotificationGroupKey(record) !== groupKey);
-                const withoutPostDupe = withoutGroupDupes.filter((record) => record.postId !== normalizedEntry.postId);
-                nextState = [normalizedEntry, ...withoutPostDupe];
-            }
-        } else {
-            const withoutDup = state.filter((record) => record.postId !== normalizedEntry.postId);
-            nextState = [normalizedEntry, ...withoutDup];
+        const mergeTarget = findBurstMergeTarget(state, normalizedEntry);
+        if (mergeTarget) {
+            const merged = mergeGroupedPlatformNotification(mergeTarget, normalizedEntry);
+            const rest = state.filter((record) => record.id !== mergeTarget.id);
+            return finalizePlatformNotifications([merged, ...rest]);
         }
 
-        return consolidateThreadReplyNotifications(nextState).
-            slice(0, PLATFORM_NOTIFICATION_ACTIVITY_MAX);
+        const nextEntry = getPlatformNotificationContextKey(normalizedEntry) ?
+            {...normalizedEntry, id: createBurstNotificationId(normalizedEntry)} :
+            normalizedEntry;
+        const withoutPostDupe = state.filter((record) => record.postId !== nextEntry.postId);
+        return finalizePlatformNotifications([nextEntry, ...withoutPostDupe]);
     }
     case ActionTypes.RECONCILE_PLATFORM_NOTIFICATIONS: {
         const next = (action as unknown as {data: PlatformNotificationRecord[]}).data;
         if (!Array.isArray(next)) {
             return state;
         }
-        return next.slice(0, PLATFORM_NOTIFICATION_ACTIVITY_MAX);
+        return sortPlatformNotificationsByRecency(next).slice(0, PLATFORM_NOTIFICATION_ACTIVITY_MAX);
     }
     case ActionTypes.REMOVE_PLATFORM_NOTIFICATION: {
         const id = (action as unknown as {data: string}).data;

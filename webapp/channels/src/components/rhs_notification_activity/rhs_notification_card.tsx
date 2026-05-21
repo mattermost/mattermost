@@ -13,7 +13,7 @@ import {getChannel, isMyChannelAutotranslated} from 'mattermost-redux/selectors/
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getTeammateNameDisplaySetting, get} from 'mattermost-redux/selectors/entities/preferences';
 import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import {isDirectChannel} from 'mattermost-redux/utils/channel_utils';
+import {isDirectChannel, isGroupChannel} from 'mattermost-redux/utils/channel_utils';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
@@ -154,7 +154,8 @@ export default function RhsNotificationCard({record}: Props) {
     const sender = useSelector((state: GlobalState) => getUser(state, senderUserId));
     const teammateNameDisplay = useSelector(getTeammateNameDisplaySetting);
     const channel = useSelector((state: GlobalState) => getChannel(state, record.channelId));
-    const isDirectMessage = record.isDirectMessage || (channel ? isDirectChannel(channel) : false);
+    const isGroupMessage = record.isGroupMessage || (channel ? isGroupChannel(channel) : false);
+    const isDirectMessage = !isGroupMessage && (record.isDirectMessage || (channel ? isDirectChannel(channel) : false));
     const participantIds = getParticipantIds(record, senderUserId);
     const getMentionKeysForPost = useMemo(() => makeGetMentionKeysForPost(), []);
     const isMention = recordIsMention(record);
@@ -199,6 +200,34 @@ export default function RhsNotificationCard({record}: Props) {
     );
 
     const headerMessage = useMemo(() => {
+        if (isGroupMessage) {
+            const messageCount = record.replyCount || 1;
+            if (messageCount > 1) {
+                return (
+                    <FormattedMessage
+                        id='rhs_notification_activity.header.group_messages'
+                        defaultMessage='{sender} sent you {count} messages in {channel}.'
+                        values={{
+                            sender: <span className='RhsNotificationCard__senderName'>{senderName}</span>,
+                            count: messageCount,
+                            channel: <span className='RhsNotificationCard__channelName'>{channelName}</span>,
+                        }}
+                    />
+                );
+            }
+
+            return (
+                <FormattedMessage
+                    id='rhs_notification_activity.header.group_message'
+                    defaultMessage='{sender} sent you a message in {channel}.'
+                    values={{
+                        sender: <span className='RhsNotificationCard__senderName'>{senderName}</span>,
+                        channel: <span className='RhsNotificationCard__channelName'>{channelName}</span>,
+                    }}
+                />
+            );
+        }
+
         if (isDirectMessage) {
             const messageCount = record.replyCount || 1;
             if (messageCount > 1) {
@@ -273,7 +302,7 @@ export default function RhsNotificationCard({record}: Props) {
                 }}
             />
         );
-    }, [isDirectMessage, isMention, record.isThreadReply, record.replyCount, senderName, channelName, otherParticipantCount, intl]);
+    }, [isGroupMessage, isDirectMessage, isMention, record.isThreadReply, record.replyCount, senderName, channelName, otherParticipantCount, intl]);
 
     const headerUser = useSelector((state: GlobalState) => getUser(state, headerUserId));
     const headerUserStatus = useSelector((state: GlobalState) => getStatusForUserId(state, headerUserId));

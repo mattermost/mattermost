@@ -6251,6 +6251,8 @@
   "rhs_notification_activity.empty_title": "No notifications yet",
   "rhs_notification_activity.header.direct_message": "{sender} sent you a direct message.",
   "rhs_notification_activity.header.direct_messages": "{sender} sent you {count} direct messages.",
+  "rhs_notification_activity.header.group_message": "{sender} sent you a message in {channel}.",
+  "rhs_notification_activity.header.group_messages": "{sender} sent you {count} messages in {channel}.",
   "rhs_notification_activity.header.mention": "{sender} mentioned you in {channel}",
   "rhs_notification_activity.header.message": "{sender} sent a message in {channel}",
   "rhs_notification_activity.header.thread_reply": "{sender} replied in a thread that you're following.",
