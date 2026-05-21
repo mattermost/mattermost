@@ -61,6 +61,7 @@ describe('components/Markdown', () => {
             const {rerender} = renderWithContext(<Markdown {...baseProps}/>);
 
             for (const [startIndex, endIndex, expectedPadding] of [
+                [0, 3, '2.5ch'],
                 [1, 9, '2.5ch'],
                 [5, 10, '3.5ch'],
                 [10, 99, '3.5ch'],
