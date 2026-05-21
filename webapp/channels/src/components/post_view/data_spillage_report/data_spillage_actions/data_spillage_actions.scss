@@ -9,6 +9,6 @@
 }
 
 .PropertyCardView_fields > .row > .value:has(> .DataSpillageAction) {
-    flex: 1;
     min-width: 0;
+    flex: 1;
 }
