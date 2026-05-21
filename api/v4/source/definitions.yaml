@@ -4891,9 +4891,13 @@ components:
           description: Provides team context for team-level delegated admins.
         users:
           type: array
+          minItems: 1
           items:
             $ref: "#/components/schemas/PolicySimulationUserOverride"
-          description: Explicit user list to evaluate, with per-user session-attribute overrides.
+          description: |
+            Explicit user list to evaluate, with per-user session-attribute
+            overrides. At least one user is required (the backend rejects
+            empty arrays with `app.pap.simulate.missing_users`).
         evaluation_scope:
           type: string
           enum: [all, this_rule]

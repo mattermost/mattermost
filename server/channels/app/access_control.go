@@ -269,17 +269,13 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 			return appErr
 		}
 		rule.Expression = mergedExpr
-		// If hidden values were re-injected into the expression, the
-		// caller was working from a masked view of this rule. Lock
-		// Actions to the stored value too — without this, a caller
-		// who sees "--------" could swap the action type (e.g.
-		// "membership" → "upload_file_attachment") and the merge
-		// would restore the hidden CEL value while silently removing
-		// the original access restriction. Pair-by-Name/membership
-		// (above) makes `stored` the right anchor here even if the
-		// caller reordered or inserted rules in the editor.
+		// Hidden values were re-injected → caller was working from a
+		// masked view. Lock Actions AND Role to stored so they can't
+		// silently swap the gate's action type or role audience while
+		// reusing the hidden CEL.
 		if mergedExpr != submittedExpr {
 			rule.Actions = stored.Actions
+			rule.Role = stored.Role
 		}
 	}
 
@@ -322,15 +318,18 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 	return nil
 }
 
-// isMembershipRule reports whether a rule is the policy's membership
-// rule. v0.4 membership rules carry no Name (the editor never names
-// them) and surface the membership action; this is the same pair we
-// use to round-trip the membership rule through the editor on save.
+// isMembershipRule reports whether a rule fills the policy's
+// membership slot for the merge-time pairing logic. v0.4 membership
+// rules carry no Name and the membership action; legacy v0.1/v0.2
+// channel policies used the wildcard "*" (rejected at v0.3+ IsValid)
+// for the same role, so both anchor the same single storedMembership
+// pairing slot.
 func isMembershipRule(rule *model.AccessControlPolicyRule) bool {
 	if rule == nil || rule.Name != "" {
 		return false
 	}
-	return slices.Contains(rule.Actions, model.AccessControlPolicyActionMembership)
+	return slices.Contains(rule.Actions, model.AccessControlPolicyActionMembership) ||
+		slices.Contains(rule.Actions, "*")
 }
 
 // expressionHasMaskedValuesForCaller reports whether storedExpr contains any value the caller cannot see.
@@ -838,6 +837,14 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (map[string]stru
 		}
 		f, err := model.NewCPAFieldFromPropertyField(pf)
 		if err != nil {
+			// Fail-closed: an unparseable field is treated as protected
+			// rather than leaked through the masking layer as public.
+			rctx.Logger().Warn("Failed to parse property field for CPA protection check; treating as protected",
+				mlog.String("field_name", pf.Name),
+				mlog.String("field_id", pf.ID),
+				mlog.Err(err),
+			)
+			protected[pf.Name] = struct{}{}
 			continue
 		}
 		if cpaFieldIsProtectedForChannelAdmin(f) {
@@ -1431,11 +1438,11 @@ func filterBlameToEditingRuleScope(blame []model.PolicySimulationBlame, editingR
 			continue
 		}
 		// Defensive: when the editing rule's name is known, only keep
-		// blame entries that explicitly target it. The simulator's
-		// contribution restriction already enforces this; this is the
-		// belt-and-suspenders for any edge case where the simulator
-		// emits a this_rule-tagged blame from a different rule.
-		if editingRuleName != "" && b.RuleName != "" && b.RuleName != editingRuleName {
+		// blame entries that explicitly target it. sibling_saved is the
+		// deliberate exception — by definition it names the rescuing
+		// sibling, never the editing rule.
+		if editingRuleName != "" && b.RuleName != "" && b.RuleName != editingRuleName &&
+			b.Source != model.PolicySimulationBlameSourceSiblingSaved {
 			continue
 		}
 		out = append(out, b)

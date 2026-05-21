@@ -555,7 +555,16 @@ func (p *AccessControlPolicy) Inherit(parent *AccessControlPolicy) *AppError {
 		if slices.Contains(p.Imports, parent.ID) {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.already_imported.app_error", nil, "", 400)
 		}
-		p.Imports = append(p.Imports, parent.ID)
+		// Stage Imports on a probe copy so a post-merge IsValid failure
+		// leaves the receiver untouched (transactional contract).
+		newImports := append(slices.Clone(p.Imports), parent.ID)
+		probe := *p
+		probe.Imports = newImports
+		if appErr := probe.IsValid(); appErr != nil {
+			return appErr
+		}
+		p.Imports = newImports
+		return nil
 	default:
 		return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.version.app_error", nil, "", 400)
 	}

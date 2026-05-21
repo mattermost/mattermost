@@ -576,8 +576,22 @@ function PermissionPolicyDetails({
                                             // separate, always-on feature; only
                                             // the dual-lane simulation override
                                             // is gated.
-                                            onTestClick={policySimulationEnabled ? () => setShowTest(true) : undefined}
-                                            testButtonLabel={policySimulationEnabled ? (
+                                            //
+                                            // Additionally require at least one
+                                            // selected permission: SimulateAccessModal
+                                            // forwards `actions={selectedPermissions}`
+                                            // to /cel/simulate_users, which rejects
+                                            // empty action arrays with HTTP 400
+                                            // (app.pap.simulate.missing_actions). The
+                                            // editor card renders before the
+                                            // permission-picker card, so the button
+                                            // is otherwise clickable in the no-action
+                                            // state — leaving the override off in
+                                            // that case lets the legacy
+                                            // expression-only test path stay usable
+                                            // until the author picks an action.
+                                            onTestClick={policySimulationEnabled && selectedPermissions.length > 0 ? () => setShowTest(true) : undefined}
+                                            testButtonLabel={policySimulationEnabled && selectedPermissions.length > 0 ? (
                                                 <FormattedMessage
                                                     id='admin.permission_policies.editor.simulate_rules'
                                                     defaultMessage='Simulate rules'
@@ -599,8 +613,8 @@ function PermissionPolicyDetails({
                                             }}
                                             enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                                             actions={abacActions}
-                                            onTestClick={policySimulationEnabled ? () => setShowTest(true) : undefined}
-                                            testButtonLabel={policySimulationEnabled ? (
+                                            onTestClick={policySimulationEnabled && selectedPermissions.length > 0 ? () => setShowTest(true) : undefined}
+                                            testButtonLabel={policySimulationEnabled && selectedPermissions.length > 0 ? (
                                                 <FormattedMessage
                                                     id='admin.permission_policies.editor.simulate_rules'
                                                     defaultMessage='Simulate rules'
