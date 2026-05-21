@@ -69,6 +69,25 @@ export type Channel = {
     policy_id?: string | null;
     banner_info?: ChannelBanner;
     policy_enforced?: boolean;
+
+    /**
+     * Per-action map of the policy(ies) attached to this channel. Populated
+     * lazily by the server only when {@link policy_enforced} is true and the
+     * read path goes through a hydrated seam (e.g. App.GetChannel).
+     *
+     * Keys are action identifiers (e.g. "membership",
+     * "upload_file_attachment"); values are always true when the key is
+     * present. Consumers that care about a specific action should check
+     * `policy_actions?.membership` rather than `policy_enforced`, because a
+     * channel with only a permission-policy (e.g. file upload restriction)
+     * will have `policy_enforced=true` but `policy_actions.membership=false`.
+     *
+     * Treat as optional everywhere — older server builds and unhydrated
+     * read paths leave this undefined, in which case callers should fall
+     * back to {@link policy_enforced} for the legacy "any AC policy
+     * attached" semantic.
+     */
+    policy_actions?: Record<string, boolean>;
     policy_is_active?: boolean;
     default_category_name?: string;
     managed_category_name?: string;

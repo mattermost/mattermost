@@ -105,6 +105,7 @@ type SqlStoreStores struct {
 	postPersistentNotification store.PostPersistentNotificationStore
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
+	channelGuard               store.ChannelGuardStore
 	scheduledPost              store.ScheduledPostStore
 	view                       store.ViewStore
 	propertyGroup              store.PropertyGroupStore
@@ -292,6 +293,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
+	store.stores.channelGuard = newSqlChannelGuardStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
 	store.stores.view = newSqlViewStore(store)
 	store.stores.propertyGroup = newPropertyGroupStore(store)
@@ -547,6 +549,10 @@ func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMaster().Stats().OpenConnections
 }
 
+func (ss *SqlStore) MasterDBStats() sql.DBStats {
+	return ss.GetMaster().Stats()
+}
+
 // ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
 // and updates the Prometheus metric with it.
 func (ss *SqlStore) ReplicaLagAbs() error {
@@ -599,6 +605,27 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 	}
 
 	return count
+}
+
+func (ss *SqlStore) ReplicaDBStats() sql.DBStats {
+	var stats sql.DBStats
+	for _, db := range ss.ReplicaXs {
+		if !db.Load().Online() {
+			continue
+		}
+
+		dbStats := db.Load().Stats()
+		stats.OpenConnections += dbStats.OpenConnections
+		stats.InUse += dbStats.InUse
+		stats.Idle += dbStats.Idle
+		stats.WaitCount += dbStats.WaitCount
+		stats.WaitDuration += dbStats.WaitDuration
+		stats.MaxIdleClosed += dbStats.MaxIdleClosed
+		stats.MaxIdleTimeClosed += dbStats.MaxIdleTimeClosed
+		stats.MaxLifetimeClosed += dbStats.MaxLifetimeClosed
+	}
+
+	return stats
 }
 
 func (ss *SqlStore) TotalSearchDbConnections() int {
@@ -886,6 +913,10 @@ func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
 
 func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
 	return ss.stores.channelBookmarks
+}
+
+func (ss *SqlStore) ChannelGuard() store.ChannelGuardStore {
+	return ss.stores.channelGuard
 }
 
 func (ss *SqlStore) View() store.ViewStore {

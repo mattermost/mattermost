@@ -6,9 +6,11 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -531,5 +533,191 @@ func TestLookupDialog(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, lookupResp)
 		assert.Empty(t, lookupResp.Items)
+	})
+}
+
+// newAttachmentActionPost posts an attachment action pointing at upstreamURL,
+// attributed to th.BasicUser so th.Client has access to call the action.
+func newAttachmentActionPost(t *testing.T, th *TestHelper, upstreamURL string) (*model.Post, string) {
+	t.Helper()
+	basicPost := &model.Post{
+		Message:   "attachment action post",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Type: model.PostActionTypeButton,
+							Name: "click",
+							Integration: &model.PostActionIntegration{
+								URL: upstreamURL,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	created, _, appErr := th.App.CreatePostAsUser(th.Context, basicPost, "", true)
+	require.Nil(t, appErr)
+
+	attachments, ok := created.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	require.True(t, ok)
+	require.NotEmpty(t, attachments)
+	require.NotEmpty(t, attachments[0].Actions)
+	require.NotEmpty(t, attachments[0].Actions[0].Id)
+	return created, attachments[0].Actions[0].Id
+}
+
+func TestDoPostActionQuery_ValidationErrors(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("{}"))
+	}))
+	defer ts.Close()
+
+	created, actionID := newAttachmentActionPost(t, th, ts.URL)
+	route := "/posts/" + created.Id + "/actions/" + actionID
+
+	t.Run("too many entries returns 400 with expected error id", func(t *testing.T) {
+		ctxMap := make(map[string]string, model.MaxActionQueryEntries+1)
+		for i := range model.MaxActionQueryEntries + 1 {
+			ctxMap[fmt.Sprintf("k%d", i)] = "v"
+		}
+		payload, err := json.Marshal(model.DoPostActionRequest{Query: ctxMap})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(payload))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(resp))
+		CheckErrorID(t, err, "api.post.do_action.query.app_error")
+	})
+
+	t.Run("oversized key returns 400", func(t *testing.T) {
+		ctxMap := map[string]string{strings.Repeat("k", model.MaxActionQueryKeyLength+1): "v"}
+		payload, err := json.Marshal(model.DoPostActionRequest{Query: ctxMap})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(payload))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(resp))
+		CheckErrorID(t, err, "api.post.do_action.query.app_error")
+	})
+
+	t.Run("oversized value returns 400", func(t *testing.T) {
+		ctxMap := map[string]string{"k": strings.Repeat("v", model.MaxActionQueryValueLength+1)}
+		payload, err := json.Marshal(model.DoPostActionRequest{Query: ctxMap})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(payload))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(resp))
+		CheckErrorID(t, err, "api.post.do_action.query.app_error")
+	})
+
+	t.Run("small valid context returns 200", func(t *testing.T) {
+		payload, err := json.Marshal(model.DoPostActionRequest{Query: map[string]string{"tail": "214"}})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(payload))
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+}
+
+func TestDoPostActionQuery_OmitempyCompat(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("{}"))
+	}))
+	defer ts.Close()
+
+	created, actionID := newAttachmentActionPost(t, th, ts.URL)
+	route := "/posts/" + created.Id + "/actions/" + actionID
+
+	// Older clients do not know about query — their request body has no such
+	// key. The omitempty tag should make this equivalent to sending a nil
+	// map, which ValidateActionQuery accepts.
+	payload := `{"selected_option":""}`
+	resp, err := client.DoAPIPost(context.Background(), route, payload)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	// Completely empty body should also be accepted — same as older clients
+	// calling DoPostActionWithCookie with no selection and no cookie.
+	resp, err = client.DoAPIPost(context.Background(), route, "")
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+// TestDoPostActionMalformedBody verifies non-EOF JSON decode errors now
+// return 400 instead of silently running the action with an empty request.
+// A body like `{"query":{"k":1}}` (value is not a string) would otherwise
+// deserialize to a zero-value Query and skip validation.
+func TestDoPostActionMalformedBody(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("{}"))
+	}))
+	defer ts.Close()
+
+	created, actionID := newAttachmentActionPost(t, th, ts.URL)
+	route := "/posts/" + created.Id + "/actions/" + actionID
+
+	t.Run("wrong type for query value returns 400", func(t *testing.T) {
+		// query must be map[string]string; passing an int value triggers a
+		// json UnmarshalTypeError which must not fall through.
+		resp, err := client.DoAPIPost(context.Background(), route, `{"query":{"k":1}}`)
+		require.Error(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("syntactically invalid JSON returns 400", func(t *testing.T) {
+		resp, err := client.DoAPIPost(context.Background(), route, `{not json`)
+		require.Error(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("trailing JSON values after the first object return 400", func(t *testing.T) {
+		// json.Decoder.Decode stops after the first complete value, so a
+		// body like `{"query":{}}{"cookie":"x"}` would otherwise execute
+		// the action with the first object's intent and silently drop the
+		// rest. The handler explicitly rejects trailing values.
+		resp, err := client.DoAPIPost(context.Background(), route, `{"query":{}}{"cookie":"x"}`)
+		require.Error(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
