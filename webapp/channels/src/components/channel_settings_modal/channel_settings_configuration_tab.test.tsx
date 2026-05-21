@@ -1030,7 +1030,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     expect.objectContaining({
                         banner_info: expect.objectContaining({
                             enabled: true,
-                            background_color: '#AA00AA',
+                            background_color: '#aa00aa',
                         }),
                     }),
                 );
@@ -1051,7 +1051,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#AA00AA');
+                expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#aa00aa');
             });
 
             await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
