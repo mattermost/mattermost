@@ -75,10 +75,6 @@ type BannerConfig = {
 
 // Normalize legacy Enterprise Edition SKU short names to their modern equivalents:
 //   E10 → Professional, E20 → Enterprise.
-// Rationale: in the rest of the webapp (utils/subscription.ts, sku_tag.tsx) E10 is
-// surfaced as the lower-tier "Enterprise E10" and E20 as the higher "Enterprise E20".
-// isEnterpriseLicense() treats E20 (not E10) as Enterprise — consistent with E10
-// being a Professional-equivalent tier and E20 the Enterprise tier.
 const normalizeSku = (skuShortName: string | undefined): string | undefined => {
     const lower = skuShortName?.toLowerCase();
     switch (lower) {
