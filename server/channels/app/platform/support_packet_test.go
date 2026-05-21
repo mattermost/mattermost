@@ -6,6 +6,8 @@ package platform
 import (
 	"bufio"
 	"bytes"
+	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net"
@@ -17,6 +19,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
@@ -25,12 +28,38 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	semocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
+
+type fixedDBStatsStore struct {
+	store.Store
+	masterStats  sql.DBStats
+	replicaStats sql.DBStats
+}
+
+func (s *fixedDBStatsStore) GetDiagnostics(_ context.Context) (*store.DatabaseDiagnostics, error) {
+	diagnostics := &store.DatabaseDiagnostics{
+		MasterConnectionsInUse:              s.masterStats.InUse,
+		MasterConnectionsIdle:               s.masterStats.Idle,
+		MasterPoolWaitCount:                 s.masterStats.WaitCount,
+		MasterPoolWaitDurationMs:            s.masterStats.WaitDuration.Milliseconds(),
+		MasterConnectionsClosedMaxIdle:      s.masterStats.MaxIdleClosed,
+		MasterConnectionsClosedMaxLifetime:  s.masterStats.MaxLifetimeClosed,
+		ReplicaConnectionsInUse:             s.replicaStats.InUse,
+		ReplicaConnectionsIdle:              s.replicaStats.Idle,
+		ReplicaPoolWaitCount:                s.replicaStats.WaitCount,
+		ReplicaPoolWaitDurationMs:           s.replicaStats.WaitDuration.Milliseconds(),
+		ReplicaConnectionsClosedMaxIdle:     s.replicaStats.MaxIdleClosed,
+		ReplicaConnectionsClosedMaxLifetime: s.replicaStats.MaxLifetimeClosed,
+	}
+
+	return diagnostics, nil
+}
 
 func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -235,9 +264,21 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, d.Database.Type)
 		assert.NotEmpty(t, d.Database.Version)
 		assert.NotEmpty(t, d.Database.SchemaVersion)
-		assert.NotZero(t, d.Database.MasterConnectios)
-		assert.Zero(t, d.Database.ReplicaConnectios)
+		assert.NotZero(t, d.Database.MasterConnections)
+		assert.Zero(t, d.Database.ReplicaConnections)
 		assert.Zero(t, d.Database.SearchConnections)
+		assert.GreaterOrEqual(t, d.Database.MasterConnectionsInUse, 0)
+		assert.GreaterOrEqual(t, d.Database.MasterConnectionsIdle, 0)
+		assert.GreaterOrEqual(t, d.Database.MasterPoolWaitCount, int64(0))
+		assert.GreaterOrEqual(t, d.Database.MasterPoolWaitDurationMs, int64(0))
+		assert.GreaterOrEqual(t, d.Database.MasterConnectionsClosedMaxIdle, int64(0))
+		assert.GreaterOrEqual(t, d.Database.MasterConnectionsClosedMaxLifetime, int64(0))
+		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsInUse, 0)
+		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsIdle, 0)
+		assert.GreaterOrEqual(t, d.Database.ReplicaPoolWaitCount, int64(0))
+		assert.GreaterOrEqual(t, d.Database.ReplicaPoolWaitDurationMs, int64(0))
+		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsClosedMaxIdle, int64(0))
+		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsClosedMaxLifetime, int64(0))
 
 		/* File store */
 		assert.Equal(t, "OK", d.FileStore.Status)
@@ -828,6 +869,47 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		assert.Equal(t, model.StatusFail, packet.Notifications.Email.Status)
 		assert.NotEmpty(t, packet.Notifications.Email.Error)
+	})
+
+	t.Run("maps connection pool diagnostics for master and replica", func(t *testing.T) {
+		originalStore := th.Service.Store
+		customStore := &fixedDBStatsStore{
+			Store: originalStore,
+			masterStats: sql.DBStats{
+				InUse:             3,
+				Idle:              7,
+				WaitCount:         11,
+				WaitDuration:      2*time.Second + 25*time.Millisecond,
+				MaxIdleClosed:     13,
+				MaxLifetimeClosed: 17,
+			},
+			replicaStats: sql.DBStats{
+				InUse:             5,
+				Idle:              9,
+				WaitCount:         19,
+				WaitDuration:      4*time.Second + 90*time.Millisecond,
+				MaxIdleClosed:     23,
+				MaxLifetimeClosed: 29,
+			},
+		}
+		th.Service.Store = customStore
+		t.Cleanup(func() {
+			th.Service.Store = originalStore
+		})
+
+		packet := getDiagnostics(t)
+		assert.Equal(t, 3, packet.Database.MasterConnectionsInUse)
+		assert.Equal(t, 7, packet.Database.MasterConnectionsIdle)
+		assert.Equal(t, int64(11), packet.Database.MasterPoolWaitCount)
+		assert.Equal(t, int64(2025), packet.Database.MasterPoolWaitDurationMs)
+		assert.Equal(t, int64(13), packet.Database.MasterConnectionsClosedMaxIdle)
+		assert.Equal(t, int64(17), packet.Database.MasterConnectionsClosedMaxLifetime)
+		assert.Equal(t, 5, packet.Database.ReplicaConnectionsInUse)
+		assert.Equal(t, 9, packet.Database.ReplicaConnectionsIdle)
+		assert.Equal(t, int64(19), packet.Database.ReplicaPoolWaitCount)
+		assert.Equal(t, int64(4090), packet.Database.ReplicaPoolWaitDurationMs)
+		assert.Equal(t, int64(23), packet.Database.ReplicaConnectionsClosedMaxIdle)
+		assert.Equal(t, int64(29), packet.Database.ReplicaConnectionsClosedMaxLifetime)
 	})
 
 	t.Run("OpenID disabled", func(t *testing.T) {

@@ -49,12 +49,34 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"config"`
 
 	Database struct {
-		Type              string `yaml:"type"`
-		Version           string `yaml:"version"`
-		SchemaVersion     string `yaml:"schema_version"`
-		MasterConnectios  int    `yaml:"master_connections"`
-		ReplicaConnectios int    `yaml:"replica_connections"`
-		SearchConnections int    `yaml:"search_connections"`
+		Type                                string     `yaml:"type"`
+		Version                             string     `yaml:"version"`
+		SchemaVersion                       string     `yaml:"schema_version"`
+		MasterConnections                   int        `yaml:"master_connections"`
+		ReplicaConnections                  int        `yaml:"replica_connections"`
+		SearchConnections                   int        `yaml:"search_connections"`
+		MasterConnectionsInUse              int        `yaml:"master_connections_in_use"`
+		MasterConnectionsIdle               int        `yaml:"master_connections_idle"`
+		MasterPoolWaitCount                 int64      `yaml:"master_pool_wait_count"`
+		MasterPoolWaitDurationMs            int64      `yaml:"master_pool_wait_duration_ms"`
+		MasterConnectionsClosedMaxIdle      int64      `yaml:"master_connections_closed_max_idle"`
+		MasterConnectionsClosedMaxLifetime  int64      `yaml:"master_connections_closed_max_lifetime"`
+		ReplicaConnectionsInUse             int        `yaml:"replica_connections_in_use"`
+		ReplicaConnectionsIdle              int        `yaml:"replica_connections_idle"`
+		ReplicaPoolWaitCount                int64      `yaml:"replica_pool_wait_count"`
+		ReplicaPoolWaitDurationMs           int64      `yaml:"replica_pool_wait_duration_ms"`
+		ReplicaConnectionsClosedMaxIdle     int64      `yaml:"replica_connections_closed_max_idle"`
+		ReplicaConnectionsClosedMaxLifetime int64      `yaml:"replica_connections_closed_max_lifetime"`
+		CacheHitRatio                       *float64   `yaml:"cache_hit_ratio,omitempty"`
+		Deadlocks                           *int64     `yaml:"deadlocks,omitempty"`
+		TempFiles                           *int64     `yaml:"temp_files,omitempty"`
+		TempBytesMB                         *float64   `yaml:"temp_bytes_mb,omitempty"`
+		Rollbacks                           *int64     `yaml:"rollbacks,omitempty"`
+		IdleInTransactionCount              *int64     `yaml:"idle_in_transaction_count,omitempty"`
+		LongestQueryDurationSeconds         *float64   `yaml:"longest_query_duration_seconds,omitempty"`
+		WaitingForLockCount                 *int64     `yaml:"waiting_for_lock_count,omitempty"`
+		PostsDeadTuples                     *int64     `yaml:"posts_dead_tuples,omitempty"`
+		PostsLastAutovacuum                 *time.Time `yaml:"posts_last_autovacuum,omitempty"`
 	} `yaml:"database"`
 
 	FileStore struct {

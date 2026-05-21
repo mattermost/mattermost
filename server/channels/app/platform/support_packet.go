@@ -161,9 +161,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	} else {
 		d.Database.Version = databaseVersion
 	}
-	d.Database.MasterConnectios = ps.Store.TotalMasterDbConnections()
-	d.Database.ReplicaConnectios = ps.Store.TotalReadDbConnections()
+	d.Database.MasterConnections = ps.Store.TotalMasterDbConnections()
+	d.Database.ReplicaConnections = ps.Store.TotalReadDbConnections()
 	d.Database.SearchConnections = ps.Store.TotalSearchDbConnections()
+
+	err = ps.applyStoreDiagnostics(rctx.Context(), &d)
+	if err != nil {
+		rErr = multierror.Append(rErr, err)
+	}
 
 	/* File store */
 	d.FileStore.Status = model.StatusOk
@@ -326,6 +331,45 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		Body:     b,
 	}
 	return fileData, rErr.ErrorOrNil()
+}
+
+func (ps *PlatformService) applyStoreDiagnostics(ctx context.Context, diagnostics *model.SupportPacketDiagnostics) error {
+	storeDiagnostics, err := ps.Store.GetDiagnostics(ctx)
+	if storeDiagnostics == nil {
+		if err != nil {
+			return errors.Wrap(err, "error while collecting support packet database diagnostics")
+		}
+		return nil
+	}
+
+	diagnostics.Database.MasterConnectionsInUse = storeDiagnostics.MasterConnectionsInUse
+	diagnostics.Database.MasterConnectionsIdle = storeDiagnostics.MasterConnectionsIdle
+	diagnostics.Database.MasterPoolWaitCount = storeDiagnostics.MasterPoolWaitCount
+	diagnostics.Database.MasterPoolWaitDurationMs = storeDiagnostics.MasterPoolWaitDurationMs
+	diagnostics.Database.MasterConnectionsClosedMaxIdle = storeDiagnostics.MasterConnectionsClosedMaxIdle
+	diagnostics.Database.MasterConnectionsClosedMaxLifetime = storeDiagnostics.MasterConnectionsClosedMaxLifetime
+	diagnostics.Database.ReplicaConnectionsInUse = storeDiagnostics.ReplicaConnectionsInUse
+	diagnostics.Database.ReplicaConnectionsIdle = storeDiagnostics.ReplicaConnectionsIdle
+	diagnostics.Database.ReplicaPoolWaitCount = storeDiagnostics.ReplicaPoolWaitCount
+	diagnostics.Database.ReplicaPoolWaitDurationMs = storeDiagnostics.ReplicaPoolWaitDurationMs
+	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = storeDiagnostics.ReplicaConnectionsClosedMaxIdle
+	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = storeDiagnostics.ReplicaConnectionsClosedMaxLifetime
+	diagnostics.Database.CacheHitRatio = storeDiagnostics.CacheHitRatio
+	diagnostics.Database.Deadlocks = storeDiagnostics.Deadlocks
+	diagnostics.Database.TempFiles = storeDiagnostics.TempFiles
+	diagnostics.Database.TempBytesMB = storeDiagnostics.TempBytesMB
+	diagnostics.Database.Rollbacks = storeDiagnostics.Rollbacks
+	diagnostics.Database.IdleInTransactionCount = storeDiagnostics.IdleInTransactionCount
+	diagnostics.Database.LongestQueryDurationSeconds = storeDiagnostics.LongestQueryDurationSeconds
+	diagnostics.Database.WaitingForLockCount = storeDiagnostics.WaitingForLockCount
+	diagnostics.Database.PostsDeadTuples = storeDiagnostics.PostsDeadTuples
+	diagnostics.Database.PostsLastAutovacuum = storeDiagnostics.PostsLastAutovacuum
+
+	if err != nil {
+		return errors.Wrap(err, "error while collecting support packet database diagnostics")
+	}
+
+	return nil
 }
 
 // probeOAuthProvider checks connectivity for an OAuth2/OpenID Connect provider.
