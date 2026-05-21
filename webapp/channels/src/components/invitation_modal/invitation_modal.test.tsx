@@ -236,4 +236,94 @@ describe('InvitationModal', () => {
         expect(guestChannelsWithSearch.length).toBe(1);
         expect(guestChannelsWithSearch[0].id).toBe('regular-channel');
     });
+
+    it('matches invitable channels using fuzzy word prefixes', async () => {
+        const nativeMobileChannel = TestHelper.getChannelMock({
+            id: 'native-mobile-channel',
+            display_name: 'Native Mobile Apps',
+            name: 'native-mobile-apps',
+        });
+
+        props = {
+            ...props,
+            invitableChannels: [nativeMobileChannel],
+        };
+
+        const ref = React.createRef<InvitationModal>();
+
+        renderWithContext(
+            <InvitationModal
+                {...props}
+                ref={ref}
+            />,
+            state,
+        );
+
+        act(() => {
+            ref.current!.setState({
+                invite: {
+                    ...ref.current!.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
+        });
+
+        const guestChannels = await ref.current!.channelsLoader('nat mob');
+
+        expect(guestChannels).toEqual([nativeMobileChannel]);
+        expect(props.actions.searchChannels).not.toHaveBeenCalled();
+    });
+
+    it('returns server channel search results for guest invites', async () => {
+        const nativeMobileChannel = TestHelper.getChannelMock({
+            id: 'native-mobile-channel',
+            display_name: 'Native Mobile Apps',
+            name: 'native-mobile-apps',
+        });
+        const policyEnforcedChannel = TestHelper.getChannelMock({
+            id: 'policy-enforced-channel',
+            display_name: 'Policy Enforced Channel',
+            name: 'policy-enforced-channel',
+            policy_enforced: true,
+        });
+        const searchChannels = jest.fn().mockResolvedValue({
+            data: [nativeMobileChannel, policyEnforcedChannel],
+        });
+
+        props = {
+            ...props,
+            actions: {
+                ...props.actions,
+                searchChannels,
+            },
+            currentTeam: {
+                ...props.currentTeam,
+                id: 'team-id',
+            } as Team,
+        };
+
+        const ref = React.createRef<InvitationModal>();
+
+        renderWithContext(
+            <InvitationModal
+                {...props}
+                ref={ref}
+            />,
+            state,
+        );
+
+        act(() => {
+            ref.current!.setState({
+                invite: {
+                    ...ref.current!.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
+        });
+
+        const guestChannels = await ref.current!.channelsLoader('nat mob');
+
+        expect(searchChannels).toHaveBeenCalledWith('team-id', 'nat mob');
+        expect(guestChannels).toEqual([nativeMobileChannel]);
+    });
 });

@@ -41,6 +41,36 @@ const messages = defineMessages({
     },
 });
 
+function getSearchWords(searchTerm: string) {
+    return searchTerm.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+}
+
+function channelMatchesSearchTerm(channel: Channel, searchTerm: string) {
+    const searchWords = getSearchWords(searchTerm);
+    if (searchWords.length === 0) {
+        return true;
+    }
+
+    const channelWords = getSearchWords(`${channel.display_name} ${channel.name}`);
+    return searchWords.every((searchWord) => (
+        channelWords.some((channelWord) => channelWord.startsWith(searchWord))
+    ));
+}
+
+function mergeChannels(channels: Channel[], additionalChannels: Channel[]) {
+    const channelIds = new Set(channels.map((channel) => channel.id));
+    const mergedChannels = [...channels];
+
+    for (const channel of additionalChannels) {
+        if (!channelIds.has(channel.id)) {
+            channelIds.add(channel.id);
+            mergedChannels.push(channel);
+        }
+    }
+
+    return mergedChannels;
+}
+
 export type Props = {
     actions: {
         searchChannels: (teamId: string, term: string) => Promise<ActionResult<Channel[]>>;
@@ -265,21 +295,14 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         }));
     };
 
-    debouncedSearchChannels = debounce((term) => this.props.currentTeam && this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
-
-    // Filter channels based on the current invite type and search term
     filterChannels = (channels: Channel[], isGuestInvite: boolean, searchTerm: string = '') => {
         return channels.filter((channel) => {
-            // For guest invites, filter out policy_enforced channels
             if (isGuestInvite && channel.policy_enforced) {
                 return false;
             }
 
-            // If there's a search term, filter by name match
             if (searchTerm) {
-                const lowerSearchTerm = searchTerm.toLowerCase();
-                return channel.display_name.toLowerCase().includes(lowerSearchTerm) ||
-                       channel.name.toLowerCase().includes(lowerSearchTerm);
+                return channelMatchesSearchTerm(channel, searchTerm);
             }
 
             return true;
@@ -288,18 +311,24 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
 
     channelsLoader = async (value: string) => {
         const isGuestInvite = this.state.invite.inviteType === InviteType.GUEST;
-
-        // If there's a search term, search the channels from the server
-        if (value) {
-            this.debouncedSearchChannels(value);
-        }
-
-        // Apply filtering to the channels
-        return this.filterChannels(
+        const matchingInvitableChannels = this.filterChannels(
             this.props.invitableChannels,
             isGuestInvite,
             value,
         );
+
+        if (!value || !this.props.currentTeam?.id) {
+            return matchingInvitableChannels;
+        }
+
+        try {
+            const {data} = await this.props.actions.searchChannels(this.props.currentTeam.id, value);
+            const matchingServerChannels = this.filterChannels(data ?? [], isGuestInvite);
+
+            return mergeChannels(matchingServerChannels, matchingInvitableChannels);
+        } catch {
+            return matchingInvitableChannels;
+        }
     };
 
     onChannelsChange = (channels: Channel[]) => {
