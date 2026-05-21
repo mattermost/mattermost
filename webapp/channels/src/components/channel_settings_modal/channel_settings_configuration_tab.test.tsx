@@ -1001,7 +1001,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 banner_info: {
                     enabled: true,
                     text: `**${LEVEL_UNCLASSIFIED.name}**`,
-                    background_color: '#AA00AA',
+                    background_color: '#aa00aa',
                 },
             });
 
@@ -1035,6 +1035,12 @@ describe('ChannelSettingsConfigurationTab', () => {
                     }),
                 );
             });
+            expect(Client4.patchPropertyValues).toHaveBeenCalledWith(
+                'classification_markings',
+                'channel',
+                'channel1',
+                [{field_id: CHANNEL_FIELD_ID, value: null}],
+            );
 
             mockedUseChannelClassificationBanner.mockReturnValue({
                 hasClassification: false,
@@ -1053,6 +1059,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             await waitFor(() => {
                 expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#aa00aa');
             });
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
 
             await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
 
