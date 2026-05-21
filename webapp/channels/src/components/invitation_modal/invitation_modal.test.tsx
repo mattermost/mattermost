@@ -243,10 +243,15 @@ describe('InvitationModal', () => {
             display_name: 'Native Mobile Apps',
             name: 'native-mobile-apps',
         });
+        const marketingChannel = TestHelper.getChannelMock({
+            id: 'marketing-channel',
+            display_name: 'Marketing',
+            name: 'marketing',
+        });
 
         props = {
             ...props,
-            invitableChannels: [nativeMobileChannel],
+            invitableChannels: [nativeMobileChannel, marketingChannel],
         };
 
         const ref = React.createRef<InvitationModal>();
@@ -332,6 +337,11 @@ describe('InvitationModal', () => {
             display_name: 'Native Mobile Apps',
             name: 'native-mobile-apps',
         });
+        const marketingChannel = TestHelper.getChannelMock({
+            id: 'marketing-channel',
+            display_name: 'Marketing',
+            name: 'marketing',
+        });
         const searchChannels = jest.fn().mockRejectedValue(new Error('search failed'));
 
         props = {
@@ -344,7 +354,7 @@ describe('InvitationModal', () => {
                 ...props.currentTeam,
                 id: 'team-id',
             } as Team,
-            invitableChannels: [nativeMobileChannel],
+            invitableChannels: [nativeMobileChannel, marketingChannel],
         };
 
         const ref = React.createRef<InvitationModal>();
@@ -388,6 +398,11 @@ describe('InvitationModal', () => {
             display_name: 'Native Mobile QA',
             name: 'native-mobile-qa',
         });
+        const marketingChannel = TestHelper.getChannelMock({
+            id: 'marketing-channel',
+            display_name: 'Marketing',
+            name: 'marketing',
+        });
         const searchChannels = jest.fn().mockResolvedValue({
             data: [serverNativeMobileChannel],
         });
@@ -402,7 +417,7 @@ describe('InvitationModal', () => {
                 ...props.currentTeam,
                 id: 'team-id',
             } as Team,
-            invitableChannels: [localNativeMobileChannel, localNativeMobileQaChannel],
+            invitableChannels: [localNativeMobileChannel, localNativeMobileQaChannel, marketingChannel],
         };
 
         const ref = React.createRef<InvitationModal>();
