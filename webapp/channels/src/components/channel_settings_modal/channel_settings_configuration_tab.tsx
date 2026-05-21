@@ -108,10 +108,16 @@ function ChannelSettingsConfigurationTab({
     const canManageClassification = classification.available && isSystemAdmin;
     const [classificationEnabled, setClassificationEnabled] = useState(classificationBanner.hasClassification);
     const [selectedClassificationId, setSelectedClassificationId] = useState(classificationBanner.classificationId || '');
+    const bannerTouchedRef = useRef(false);
+    const classificationTouchedRef = useRef(false);
 
     const bannerLockedByClassification = classificationEnabled && Boolean(selectedClassificationId);
 
     useEffect(() => {
+        if (bannerTouchedRef.current || classificationTouchedRef.current) {
+            return;
+        }
+
         setClassificationEnabled(classificationBanner.hasClassification);
         setSelectedClassificationId(classificationBanner.classificationId || '');
 
@@ -159,8 +165,10 @@ function ChannelSettingsConfigurationTab({
         selectedClassificationId !== initialClassificationState.classificationId;
 
     const handleClassificationToggle = useCallback(() => {
+        classificationTouchedRef.current = true;
         setClassificationEnabled((prev) => {
             if (!prev) {
+                bannerTouchedRef.current = true;
                 const lowestRank = classification.levels[0];
                 if (lowestRank) {
                     setSelectedClassificationId(lowestRank.id);
@@ -179,6 +187,8 @@ function ChannelSettingsConfigurationTab({
     }, [classification.levels]);
 
     const handleClassificationLevelChange = useCallback((selected: ValueType) => {
+        bannerTouchedRef.current = true;
+        classificationTouchedRef.current = true;
         setSelectedClassificationId(selected.value);
         const level = classification.levels.find((l) => l.id === selected.value);
         if (level) {
@@ -192,6 +202,7 @@ function ChannelSettingsConfigurationTab({
     }, [classification.levels]);
 
     const handleBannerToggle = useCallback(() => {
+        bannerTouchedRef.current = true;
         const newValue = !updatedChannelBanner.enabled;
         const toUpdate = {
             ...updatedChannelBanner,
@@ -206,6 +217,7 @@ function ChannelSettingsConfigurationTab({
     }, [initialBannerInfo, updatedChannelBanner]);
 
     const handleBannerTextChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
+        bannerTouchedRef.current = true;
         const newValue = e.target.value;
         setUpdatedChannelBanner((prev) => ({
             ...prev,
@@ -231,6 +243,7 @@ function ChannelSettingsConfigurationTab({
     }, [formatMessage, resetFormErrors]);
 
     const handleBannerColorChange = useCallback((color: string) => {
+        bannerTouchedRef.current = true;
         setUpdatedChannelBanner((prev) => ({
             ...prev,
             background_color: color,
@@ -526,6 +539,8 @@ function ChannelSettingsConfigurationTab({
             text: prev.text?.trim() || '',
             background_color: prev.background_color?.trim() || '',
         }));
+        bannerTouchedRef.current = false;
+        classificationTouchedRef.current = false;
 
         resetFormErrors();
         setSaveChangesPanelState('saved');
@@ -564,6 +579,8 @@ function ChannelSettingsConfigurationTab({
 
         setClassificationEnabled(initialClassificationState.enabled);
         setSelectedClassificationId(initialClassificationState.classificationId);
+        bannerTouchedRef.current = false;
+        classificationTouchedRef.current = false;
 
         if (canManageSharedChannels) {
             setSharingEnabled(initialSharingEnabled.current);
