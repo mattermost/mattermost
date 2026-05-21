@@ -166,6 +166,7 @@ describe('InvitationModal', () => {
             display_name: 'Policy Enforced Channel',
             name: 'policy-enforced-channel',
             policy_enforced: true,
+            policy_actions: {membership: true},
         });
 
         props = {
@@ -289,6 +290,7 @@ describe('InvitationModal', () => {
             display_name: 'Policy Enforced Channel',
             name: 'policy-enforced-channel',
             policy_enforced: true,
+            policy_actions: {membership: true},
         });
         const searchChannels = jest.fn().mockResolvedValue({
             data: [nativeMobileChannel, policyEnforcedChannel],
@@ -442,5 +444,51 @@ describe('InvitationModal', () => {
         const guestChannels = await ref.current!.channelsLoader('nat mob');
 
         expect(guestChannels).toEqual([serverNativeMobileChannel, localNativeMobileQaChannel]);
+    });
+
+    it('keeps permission-only-policy channels selectable for guest invites', async () => {
+        const regularChannel = TestHelper.getChannelMock({
+            id: 'regular-channel',
+            display_name: 'Regular Channel',
+            name: 'regular-channel',
+            policy_enforced: false,
+        });
+        const permissionOnlyChannel = TestHelper.getChannelMock({
+            id: 'permission-only-channel',
+            display_name: 'Permission Only Channel',
+            name: 'permission-only-channel',
+            policy_enforced: true,
+            policy_actions: {upload_file_attachment: true},
+        });
+
+        const localProps = {
+            ...props,
+            invitableChannels: [regularChannel, permissionOnlyChannel],
+        };
+
+        const ref = React.createRef<InvitationModal>();
+        renderWithContext(
+            <InvitationModal
+                {...localProps}
+                ref={ref}
+            />,
+            state,
+        );
+        const instance = ref.current!;
+
+        act(() => {
+            instance.setState({
+                invite: {
+                    ...instance.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
+        });
+
+        const guestChannels = await instance.channelsLoader('');
+        expect(guestChannels.map((c) => c.id)).toEqual(
+            expect.arrayContaining(['regular-channel', 'permission-only-channel']),
+        );
+        expect(guestChannels.length).toBe(2);
     });
 });

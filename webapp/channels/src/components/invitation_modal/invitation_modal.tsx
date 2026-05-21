@@ -15,6 +15,7 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {focusElement} from 'utils/a11y_utils';
+import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 
 import {InviteType} from './invite_as';
 import InviteView, {initializeInviteState} from './invite_view';
@@ -297,7 +298,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
 
     filterChannels = (channels: Channel[], isGuestInvite: boolean, searchTerm: string = '') => {
         return channels.filter((channel) => {
-            if (isGuestInvite && channel.policy_enforced) {
+            if (isGuestInvite && isMembershipPolicyEnforced(channel)) {
                 return false;
             }
 
