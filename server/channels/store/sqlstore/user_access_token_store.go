@@ -278,7 +278,7 @@ func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (deleted int64, 
 		return 0, nil
 	}
 
-	transaction, beginErr := s.GetMaster().Beginx()
+	transaction, beginErr := s.GetMaster().Begin()
 	if beginErr != nil {
 		err = errors.Wrap(beginErr, "begin_transaction")
 		return
