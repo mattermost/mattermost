@@ -105,6 +105,7 @@ type SqlStoreStores struct {
 	postPersistentNotification store.PostPersistentNotificationStore
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
+	channelGuard               store.ChannelGuardStore
 	scheduledPost              store.ScheduledPostStore
 	view                       store.ViewStore
 	propertyGroup              store.PropertyGroupStore
@@ -292,6 +293,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
+	store.stores.channelGuard = newSqlChannelGuardStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
 	store.stores.view = newSqlViewStore(store)
 	store.stores.propertyGroup = newPropertyGroupStore(store)
@@ -911,6 +913,10 @@ func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
 
 func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
 	return ss.stores.channelBookmarks
+}
+
+func (ss *SqlStore) ChannelGuard() store.ChannelGuardStore {
+	return ss.stores.channelGuard
 }
 
 func (ss *SqlStore) View() store.ViewStore {
