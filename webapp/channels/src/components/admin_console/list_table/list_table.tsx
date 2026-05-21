@@ -262,7 +262,6 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                 className={classNames(
                     'adminConsoleListTable',
                     tableMeta.tableId,
-                    {reorderable: Boolean(tableMeta.onReorder)},
                 )}
             >
                 <caption className='sr-only'>{tableMeta.tableCaption}</caption>

@@ -15,13 +15,6 @@ table.adminConsoleListTable {
 
     width: 100%;
 
-    // Fixed layout keeps column widths stable while a dragged row is out
-    // of flow. Non-reorderable consumers need auto layout — otherwise
-    // pinned columns overflow into neighbouring cells and intercept clicks.
-    &.reorderable {
-        table-layout: fixed;
-    }
-
     thead {
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
