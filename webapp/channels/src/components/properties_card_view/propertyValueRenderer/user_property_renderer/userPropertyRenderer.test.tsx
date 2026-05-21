@@ -105,7 +105,7 @@ describe('UserPropertyRenderer', () => {
         it('should render selectable user property renderer', () => {
             const editableField = {...mockField, attrs: {editable: true}};
 
-            renderWithContext(
+            const {container} = renderWithContext(
                 <UserPropertyRenderer
                     field={editableField}
                 />,
@@ -122,6 +122,7 @@ describe('UserPropertyRenderer', () => {
             // Check that the UserSelector component is rendered
             const userSelector = screen.getByRole('combobox');
             expect(userSelector).toBeVisible();
+            expect(container.querySelector('.UserMultiSelector__dropdown-indicator')).not.toBeInTheDocument();
         });
     });
 });

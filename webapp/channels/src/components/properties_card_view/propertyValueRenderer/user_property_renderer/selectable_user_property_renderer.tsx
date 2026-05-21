@@ -49,7 +49,6 @@ export function SelectableUserPropertyRenderer({field, metadata, initialValue}: 
                 isMulti={false}
                 id={`selectable-user-property-renderer-${field.id}`}
                 placeholder={placeholder}
-                showDropdownIndicator={true}
                 searchFunc={metadata?.searchUsers}
                 singleSelectOnChange={onSelect}
                 singleSelectInitialValue={value}
