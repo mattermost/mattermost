@@ -165,7 +165,10 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
 
     useEffect(() => {
         applyTheme(effectiveTheme);
-    }, [effectiveTheme]);
+        // Native shell (title bar) always follows OS appearance, not the server
+        // theme — so the window frame matches the OS regardless of user theme choice.
+        DesktopApp.updateTheme(osDark ? Preferences.THEMES.onyx : Preferences.THEMES.quartz);
+    }, [effectiveTheme, osDark]);
 
 
     // Re-apply synchronously before the browser paints on every navigation
