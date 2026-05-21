@@ -264,7 +264,7 @@ test('MM-T5776 Hide custom profile attributes when visibility is set to hidden @
 
 /**
  * Verify that custom profile attributes with visibility set to always
- * are displayed in the profile popover even if they have no value.
+ * are not displayed in the profile popover if they have no value.
  *
  * Precondition:
  * 1. A test server with valid license to support 'Custom Profile Attributes'
@@ -272,7 +272,7 @@ test('MM-T5776 Hide custom profile attributes when visibility is set to hidden @
  * 3. Other user has values set for custom profile attributes
  * 4. Two user accounts exist and are members of the same channel
  */
-test('MM-T5777 Always display custom profile attributes with visibility set to always @custom_profile_attributes', async ({
+test('MM-T5777 Do not display valueless custom profile attributes with visibility set to always @custom_profile_attributes', async ({
     pw,
 }) => {
     // 1. Update the visibility of the Title attribute to always
@@ -289,16 +289,9 @@ test('MM-T5777 Always display custom profile attributes with visibility set to a
     const lastPost = await channelsPage.getLastPost();
     await channelsPage.openProfilePopover(lastPost);
 
-    // * Verify custom attributes are displayed correctly
+    // * Verify custom attributes without values are not displayed
     for (const attribute of customAttributes) {
-        if (attribute.name === 'Title') {
-            // * Verify the Title attribute is displayed even though it has no value
-            const popover = channelsPage.userProfilePopover.container;
-            const nameElement = popover.getByText('Title', {exact: false});
-            await expect(nameElement).toBeVisible();
-        } else {
-            await verifyAttributeNotInPopover(channelsPage, attribute.name);
-        }
+        await verifyAttributeNotInPopover(channelsPage, attribute.name);
     }
 });
 

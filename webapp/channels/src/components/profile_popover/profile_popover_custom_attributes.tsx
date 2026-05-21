@@ -4,7 +4,7 @@
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {UserPropertyValueType} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyValueType} from '@mattermost/types/properties';
 
 import {getCustomProfileAttributeValues} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
@@ -23,6 +23,33 @@ type Props = {
     userID: string;
     hideStatus?: boolean;
 }
+
+const hasDisplayableAttributeValue = (attribute: UserPropertyField, customProfileAttributes: Record<string, string | string[]>): boolean => {
+    const attributeValue = customProfileAttributes[attribute.id];
+    if (Array.isArray(attributeValue)) {
+        if (attributeValue.length === 0) {
+            return false;
+        }
+    } else if (!attributeValue) {
+        return false;
+    }
+
+    if (attribute.type === 'multiselect' || attribute.type === 'select') {
+        const options = attribute.attrs.options;
+        if (!options?.length) {
+            return false;
+        }
+
+        if (Array.isArray(attributeValue)) {
+            return attributeValue.some((value) => options.some((option) => option.id === value));
+        }
+
+        return options.some((option) => option.id === attributeValue);
+    }
+
+    return true;
+};
+
 const ProfilePopoverCustomAttributes = ({
     userID,
     hideStatus = false,
@@ -49,30 +76,8 @@ const ProfilePopoverCustomAttributes = ({
                 return null;
             }
 
-            // Check if the attribute has a value
-            const hasValue = userProfile.custom_profile_attributes[attribute.id]?.length > 0;
-
-            if (!hasValue && visibility === 'when_set') {
+            if (!hasDisplayableAttributeValue(attribute, userProfile.custom_profile_attributes)) {
                 return null;
-            } else if (visibility === 'when_set' && (attribute.type === 'multiselect' || attribute.type === 'select')) {
-                const attributeValue = userProfile.custom_profile_attributes[attribute.id];
-
-                // make sure attribute contains legitimate values
-                if (Array.isArray(attributeValue)) {
-                    // Handle multiselect
-                    const options = attributeValue.map((value) => {
-                        return attribute.attrs.options?.find((o) => o.id === value);
-                    }).filter((o) => o != null);
-                    if (options.length === 0) {
-                        return null;
-                    }
-                } else {
-                    // Handle single select
-                    const option = attribute.attrs.options?.find((o) => o.id === attributeValue);
-                    if (option === undefined) {
-                        return null;
-                    }
-                }
             }
 
             const valueType = (attribute.attrs?.value_type as UserPropertyValueType) || '';

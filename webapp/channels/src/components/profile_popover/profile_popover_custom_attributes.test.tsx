@@ -279,6 +279,95 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         expect(screen.queryByText('Text Attribute')).not.toBeInTheDocument();
     });
 
+    test('should not render always-visible attribute labels when the value is missing', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                users: {
+                    profiles: {
+                        user_id: TestHelper.getUserMock({
+                            id: 'user_id',
+                            custom_profile_attributes: {
+                                phone_attribute_id: '+1 (555) 123-4567',
+                                url_attribute_id: 'https://example.com',
+                                select_attribute_id: 'option1',
+                            },
+                        }),
+                    },
+                },
+                general: {
+                    ...baseState.entities.general,
+                    customProfileAttributes: {
+                        ...baseState.entities.general.customProfileAttributes,
+                        text_attribute_id: {
+                            ...textAttribute,
+                            attrs: {
+                                ...textAttribute.attrs,
+                                visibility: 'always',
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(state);
+
+        renderWithContext(
+            <Provider store={store}>
+                <ProfilePopoverCustomAttributes {...baseProps}/>
+            </Provider>,
+        );
+
+        expect(screen.queryByText('Text Attribute')).not.toBeInTheDocument();
+        expect(screen.getByText('Phone Number')).toBeInTheDocument();
+    });
+
+    test('should not render always-visible select labels when the value is not displayable', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                users: {
+                    profiles: {
+                        user_id: TestHelper.getUserMock({
+                            id: 'user_id',
+                            custom_profile_attributes: {
+                                ...userProfile.custom_profile_attributes,
+                                select_attribute_id: 'filtered-option',
+                            },
+                        }),
+                    },
+                },
+                general: {
+                    ...baseState.entities.general,
+                    customProfileAttributes: {
+                        ...baseState.entities.general.customProfileAttributes,
+                        select_attribute_id: {
+                            ...selectAttribute,
+                            attrs: {
+                                ...selectAttribute.attrs,
+                                visibility: 'always',
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(state);
+
+        renderWithContext(
+            <Provider store={store}>
+                <ProfilePopoverCustomAttributes {...baseProps}/>
+            </Provider>,
+        );
+
+        expect(screen.queryByText('Select Attribute')).not.toBeInTheDocument();
+        expect(screen.queryByText('filtered-option')).not.toBeInTheDocument();
+    });
+
     test('should render display_name as the visible label when set', () => {
         const state = {
             ...baseState,
