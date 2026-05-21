@@ -1784,6 +1784,7 @@
   "admin.license.upgradeTitle": "Purchase one of our plans to unlock more features",
   "admin.license.upgradeToEnterprise": "Upgrade to Enterprise",
   "admin.license.upgradeToEnterpriseAdvanced": "Upgrade to Enterprise Advanced",
+  "admin.license.upload-modal.error.title": "License validation failed",
   "admin.license.upload-modal.loading.subtitle": "Please wait while we validate your license file...",
   "admin.license.upload-modal.loading.title": "Validating License",
   "admin.license.upload-modal.preview.subtitle": "Please review the changes before applying the new license.",
