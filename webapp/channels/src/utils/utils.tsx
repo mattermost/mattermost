@@ -356,7 +356,6 @@ export function toRgbValues(hexStr: string): string {
 }
 
 export function applyTheme(theme: Theme) {
-    DesktopApp.updateTheme({...theme, isUsingSystemTheme: false});
 
     if (theme.centerChannelColor) {
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));

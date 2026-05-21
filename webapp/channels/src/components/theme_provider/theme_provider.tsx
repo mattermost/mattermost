@@ -165,10 +165,13 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
 
     useEffect(() => {
         applyTheme(effectiveTheme);
-        // Native shell (title bar) always follows OS appearance, not the server
-        // theme — so the window frame matches the OS regardless of user theme choice.
-        DesktopApp.updateTheme(osDark ? Preferences.THEMES.onyx : Preferences.THEMES.quartz);
-    }, [effectiveTheme, osDark]);
+        // Tell the Desktop App shell (title bar, window chrome) about the theme.
+        // isUsingSystemTheme=true when syncWithOS is on — Desktop App won't try
+        // to push a server-saved theme back to the web app, preventing the
+        // "Synchronize Desktop App theme with server" checkbox from overriding
+        // the OS-based theme with a stale server value.
+        DesktopApp.updateTheme({...effectiveTheme, isUsingSystemTheme: syncWithOS});
+    }, [effectiveTheme, syncWithOS]);
 
 
     // Re-apply synchronously before the browser paints on every navigation
