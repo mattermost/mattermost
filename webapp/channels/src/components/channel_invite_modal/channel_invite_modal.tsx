@@ -32,6 +32,7 @@ import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';
 import {sortUsersAndGroups} from 'utils/utils';
@@ -122,17 +123,21 @@ const ChannelInviteModalComponent = (props: Props) => {
     // overwrite abacFilteredUsers after the user switches channels.
     const abacProfilesFetchRequestId = useRef<number>(0);
 
-    // Public channels with a policy are advisory — the invite list is not
-    // filtered and matching users are merely surfaced as a recommendation.
-    // Private channels with a policy remain a hard gate.
-    const isPolicyEnforcedPrivate = props.channel.policy_enforced && props.channel.type !== Constants.OPEN_CHANNEL;
-    const isPolicyRecommendedPublic = props.channel.policy_enforced && props.channel.type === Constants.OPEN_CHANNEL;
+    // Public channels with a membership policy are advisory — the invite
+    // list is not filtered and matching users are merely surfaced as a
+    // recommendation. Private channels with a membership policy remain a
+    // hard gate. Permission-only policies (e.g. file upload) must not flip
+    // either branch, which is why we read the membership action key
+    // specifically instead of the broad policy_enforced flag.
+    const isMembershipPolicy = isMembershipPolicyEnforced(props.channel);
+    const isPolicyEnforcedPrivate = isMembershipPolicy && props.channel.type !== Constants.OPEN_CHANNEL;
+    const isPolicyRecommendedPublic = isMembershipPolicy && props.channel.type === Constants.OPEN_CHANNEL;
 
     // Use the useAccessControlAttributes hook
     const {structuredAttributes} = useAccessControlAttributes(
         EntityType.Channel,
         props.channel.id,
-        props.channel.policy_enforced,
+        isMembershipPolicy,
     );
 
     // Memoise the rendered access-control tags so they don't re-render on
@@ -866,7 +871,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         >
             <div className='channel-invite__wrapper'>
                 {inviteError && <label className='has-error control-label'>{inviteError}</label>}
-                {(channel.policy_enforced) && (
+                {isMembershipPolicy && (
                     <div className='channel-invite__policy-banner'>
                         <AlertBanner
                             mode='info'

@@ -85,8 +85,8 @@ test.describe('Global Classification Banner', () => {
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [
-                    {id: 'lvl-unclassified', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
-                    {id: 'lvl-secret', name: 'SECRET', color: '#C8102E', rank: 2},
+                    {id: 'lvlunclassified00000000000', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'lvlsecret00000000000000000', name: 'SECRET', color: '#C8102E', rank: 2},
                 ],
                 {levelId: '', enabled: false, placement: 'top'},
             );
@@ -149,10 +149,10 @@ test.describe('Global Classification Banner', () => {
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [
-                    {id: 'lvl-unclassified', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
-                    {id: 'lvl-secret', name: 'SECRET', color: '#C8102E', rank: 2},
+                    {id: 'lvlunclassified00000000000', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'lvlsecret00000000000000000', name: 'SECRET', color: '#C8102E', rank: 2},
                 ],
-                {levelId: 'lvl-secret', enabled: true, placement: 'top'},
+                {levelId: 'lvlsecret00000000000000000', enabled: true, placement: 'top'},
             );
 
             const {channelsPage} = await pw.testBrowser.login(adminUser);
@@ -184,8 +184,8 @@ test.describe('Global Classification Banner', () => {
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
-                [{id: 'lvl-top-secret', name: 'TOP SECRET', color: '#FCE83A', rank: 1}],
-                {levelId: 'lvl-top-secret', enabled: true, placement: 'top_and_bottom'},
+                [{id: 'lvltopsecret00000000000000', name: 'TOP SECRET', color: '#FCE83A', rank: 1}],
+                {levelId: 'lvltopsecret00000000000000', enabled: true, placement: 'top_and_bottom'},
             );
 
             const {channelsPage} = await pw.testBrowser.login(adminUser);
@@ -222,8 +222,8 @@ test.describe('Global Classification Banner', () => {
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
-                [{id: 'lvl-confidential', name: 'CONFIDENTIAL', color: '#FFD700', rank: 1}],
-                {levelId: 'lvl-confidential', enabled: true, placement: 'top'},
+                [{id: 'lvlconfidential00000000000', name: 'CONFIDENTIAL', color: '#FFD700', rank: 1}],
+                {levelId: 'lvlconfidential00000000000', enabled: true, placement: 'top'},
             );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -251,8 +251,8 @@ test.describe('Global Classification Banner', () => {
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
-                [{id: 'lvl-restricted', name: 'RESTRICTED', color: '#FF8C00', rank: 1}],
-                {levelId: 'lvl-restricted', enabled: true, placement: 'top'},
+                [{id: 'lvlrestricted0000000000000', name: 'RESTRICTED', color: '#FF8C00', rank: 1}],
+                {levelId: 'lvlrestricted0000000000000', enabled: true, placement: 'top'},
             );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -289,9 +289,9 @@ test.describe('Global Classification Banner', () => {
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
-                [{id: 'lvl-secret', name: 'SECRET', color: '#C8102E', rank: 1}],
+                [{id: 'lvlsecret00000000000000000', name: 'SECRET', color: '#C8102E', rank: 1}],
                 {
-                    levelId: 'lvl-secret',
+                    levelId: 'lvlsecret00000000000000000',
                     enabled: true,
                     placement: 'top',
                 },
@@ -334,8 +334,8 @@ test.describe('Global Classification Banner', () => {
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
-                [{id: 'lvl-top-secret', name: 'TOP SECRET', color: '#FF0000', rank: 1}],
-                {levelId: 'lvl-top-secret', enabled: true, placement: 'top_and_bottom'},
+                [{id: 'lvltopsecret00000000000000', name: 'TOP SECRET', color: '#FF0000', rank: 1}],
+                {levelId: 'lvltopsecret00000000000000', enabled: true, placement: 'top_and_bottom'},
             );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -376,10 +376,10 @@ test.describe('Global Classification Banner', () => {
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [
-                    {id: 'lvl-unclassified', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
-                    {id: 'lvl-secret', name: 'SECRET', color: '#C8102E', rank: 2},
+                    {id: 'lvlunclassified00000000000', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'lvlsecret00000000000000000', name: 'SECRET', color: '#C8102E', rank: 2},
                 ],
-                {levelId: 'lvl-unclassified', enabled: true, placement: 'top'},
+                {levelId: 'lvlunclassified00000000000', enabled: true, placement: 'top'},
             );
 
             // Login the non-admin user
@@ -395,10 +395,10 @@ test.describe('Global Classification Banner', () => {
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [
-                    {id: 'lvl-unclassified', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
-                    {id: 'lvl-secret', name: 'SECRET', color: '#C8102E', rank: 2},
+                    {id: 'lvlunclassified00000000000', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'lvlsecret00000000000000000', name: 'SECRET', color: '#C8102E', rank: 2},
                 ],
-                {levelId: 'lvl-secret', enabled: true, placement: 'top'},
+                {levelId: 'lvlsecret00000000000000000', enabled: true, placement: 'top'},
             );
 
             // The non-admin user should see the updated banner via websocket
@@ -425,8 +425,8 @@ test.describe('Global Classification Banner', () => {
             // Light background (#FFFFFF) — text should be dark (#000000)
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
-                [{id: 'lvl-unclassified', name: 'UNCLASSIFIED', color: '#FFFFFF', rank: 1}],
-                {levelId: 'lvl-unclassified', enabled: true, placement: 'top'},
+                [{id: 'lvlunclassified00000000000', name: 'UNCLASSIFIED', color: '#FFFFFF', rank: 1}],
+                {levelId: 'lvlunclassified00000000000', enabled: true, placement: 'top'},
             );
 
             const {channelsPage} = await pw.testBrowser.login(adminUser);
@@ -440,8 +440,8 @@ test.describe('Global Classification Banner', () => {
             // Dark background (#000000) — text should be white (#FFFFFF)
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
-                [{id: 'lvl-top-secret', name: 'TOP SECRET', color: '#000000', rank: 1}],
-                {levelId: 'lvl-top-secret', enabled: true, placement: 'top'},
+                [{id: 'lvltopsecret00000000000000', name: 'TOP SECRET', color: '#000000', rank: 1}],
+                {levelId: 'lvltopsecret00000000000000', enabled: true, placement: 'top'},
             );
 
             await channelsPage.page.reload();
