@@ -84,6 +84,9 @@ const (
 	AuditEventAddChannelMember                   = "addChannelMember"                   // add member to channel
 	AuditEventConvertGroupMessageToChannel       = "convertGroupMessageToChannel"       // convert group message to private channel
 	AuditEventCreateChannel                      = "createChannel"                      // create public or private channel
+	AuditEventCreateChannelJoinRequest           = "createChannelJoinRequest"           // request to join a discoverable private channel
+	AuditEventUpdateChannelJoinRequest           = "updateChannelJoinRequest"           // approve or deny a channel join request
+	AuditEventWithdrawChannelJoinRequest         = "withdrawChannelJoinRequest"         // requester cancels their channel join request
 	AuditEventCreateDirectChannel                = "createDirectChannel"                // create direct message channel between two users
 	AuditEventCreateGroupChannel                 = "createGroupChannel"                 // create group message channel with multiple users
 	AuditEventDeleteChannel                      = "deleteChannel"                      // delete channel
