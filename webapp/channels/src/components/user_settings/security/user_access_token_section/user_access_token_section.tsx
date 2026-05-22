@@ -31,23 +31,23 @@ const TOKEN_NOT_CREATING = 'not_creating';
 
 const APPROACHING_EXPIRY_DAYS = 7;
 
-type ExpiryPreset = 'none' | '7d' | '30d' | '90d' | '1y' | 'custom';
+export type ExpiryPreset = 'none' | '7d' | '30d' | '90d' | '1y' | 'custom';
 
-const PRESET_DAYS: Record<Exclude<ExpiryPreset, 'none' | 'custom'>, number> = {
+export const PRESET_DAYS: Record<Exclude<ExpiryPreset, 'none' | 'custom'>, number> = {
     '7d': 7,
     '30d': 30,
     '90d': 90,
     '1y': 365,
 };
 
-function endOfLocalDayPlusDays(days: number): number {
+export function endOfLocalDayPlusDays(days: number): number {
     const d = new Date();
     d.setDate(d.getDate() + days);
     d.setHours(23, 59, 59, 999);
     return d.getTime();
 }
 
-function endOfLocalDayFromIsoDate(isoDate: string): number {
+export function endOfLocalDayFromIsoDate(isoDate: string): number {
     // isoDate is YYYY-MM-DD from <input type="date">; parse as local date.
     const [y, m, d] = isoDate.split('-').map(Number);
     if (!y || !m || !d) {
@@ -71,9 +71,9 @@ function isoPlusDays(days: number): string {
     return `${d.getFullYear()}-${m}-${day}`;
 }
 
-type TokenStatus = 'active' | 'expired' | 'inactive';
+export type TokenStatus = 'active' | 'expired' | 'inactive';
 
-function deriveTokenStatus(token: {is_active: boolean; expires_at?: number}): TokenStatus {
+export function deriveTokenStatus(token: {is_active: boolean; expires_at?: number}): TokenStatus {
     if (!token.is_active) {
         return 'inactive';
     }
@@ -83,7 +83,7 @@ function deriveTokenStatus(token: {is_active: boolean; expires_at?: number}): To
     return 'active';
 }
 
-function mapServerErrorIdToMessage(errorId?: string, maxDays?: number): React.ReactNode | null {
+export function mapServerErrorIdToMessage(errorId?: string, maxDays?: number): React.ReactNode | null {
     switch (errorId) {
     case 'api.user.create_user_access_token.expires_at_required.app_error':
     case 'expires_at_required':
