@@ -122,10 +122,7 @@ export class UsersTable {
         const previousSort = await header.getAttribute('aria-sort');
         const expectedSort = expectedSortDirection(previousSort);
 
-        await Promise.all([
-            waitForUsersReportResponse(this.container.page()),
-            header.click(),
-        ]);
+        await Promise.all([waitForUsersReportResponse(this.container.page()), header.click()]);
 
         // aria-sort updates with Redux; disabled={loading} on the header clears when the fetch ends
         await expect(header).toHaveAttribute('aria-sort', expectedSort);
@@ -141,7 +138,6 @@ export class UsersTable {
         const texts = await this.bodyRows.locator('.emailColumn').allTextContents();
         return texts.map((text) => text.trim()).filter(Boolean);
     }
-
 }
 
 /**
