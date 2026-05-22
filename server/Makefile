@@ -404,11 +404,15 @@ mmctl-mocks: setup-go-work ## Creates mocks for mmctl
 pluginapi: setup-go-work ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
+default-roles-permissions: start-docker ## Generates default_roles_permissions.js by snapshotting a live database.
+	$(GO) run $(GOFLAGS) ./scripts/default_permissions_generator \
+		-out ../e2e-tests/cypress/tests/support/api/default_roles_permissions.js
+
 mocks: store-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
 
 layers: store-layers pluginapi
 
-generated: mocks layers
+generated: mocks layers default-roles-permissions
 
 check-prereqs-enterprise: setup-go-work ## Checks prerequisite software status for enterprise.
 ifeq ($(BUILD_ENTERPRISE_READY),true)

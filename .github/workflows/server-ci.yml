@@ -195,6 +195,36 @@ jobs:
         run: make store-layers
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+  check-default-roles-permissions:
+    name: Check default roles permissions
+    needs: go
+    runs-on: ubuntu-22.04
+    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Run setup-go-work
+        run: make setup-go-work
+      - name: Generate default roles permissions
+        env:
+          IS_CI: "true"
+        run: make default-roles-permissions
+      - name: Check generated code
+        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the default roles permissions using make default-roles-permissions"; exit 1; fi
   check-mmctl-docs:
     name: Check mmctl docs
     needs: go
