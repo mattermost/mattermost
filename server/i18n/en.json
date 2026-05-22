@@ -416,6 +416,54 @@
     "translation": "Unable to delete direct or group message channels"
   },
   {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "You are already a member of this channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "Cannot request to join an archived channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
+    "translation": "This channel requires admin approval to join. Please send a request from the Browse Channels modal."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.duplicate.app_error",
+    "translation": "You already have a pending request to join this channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
+    "translation": "Discoverable channels are not enabled on this server."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.guest.app_error",
+    "translation": "Guests cannot request to join discoverable private channels."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
+    "translation": "Invalid update for the channel join request."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
+    "translation": "This channel is not discoverable."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_pending.app_error",
+    "translation": "The join request is no longer pending."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_private.app_error",
+    "translation": "Only private channels accept join requests."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.policy_denied.app_error",
+    "translation": "You do not satisfy the access rules required to join this channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.shared.app_error",
+    "translation": "Shared channels do not accept discoverable join requests."
+  },
+  {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
     "translation": "Channel ID does not match the channel ID of the flagged post."
   },
@@ -5609,6 +5657,22 @@
   {
     "id": "app.channel.group_message_conversion.post_message.error",
     "translation": "Failed to create group message to channel conversion post"
+  },
+  {
+    "id": "app.channel.join_request.get.app_error",
+    "translation": "Failed to load channel join request."
+  },
+  {
+    "id": "app.channel.join_request.not_found.app_error",
+    "translation": "Channel join request not found."
+  },
+  {
+    "id": "app.channel.join_request.save.app_error",
+    "translation": "Failed to save channel join request."
+  },
+  {
+    "id": "app.channel.join_request.update.app_error",
+    "translation": "Failed to update channel join request."
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
