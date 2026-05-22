@@ -16,12 +16,10 @@ import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
 import {generateId} from 'utils/utils';
 
-import type {CollectionIO} from '../system_properties/section_utils';
+import type {CollectionIO, PendingOps} from '../system_properties/section_utils';
 import {useThing, usePendingThing, BatchProcessingError} from '../system_properties/section_utils';
 
 export type BoardPropertyFields = IDMappedCollection<BoardPropertyField>;
-
-type PendingOps<T extends {id: string}> = {[op: string]: T[]};
 
 export const BOARDS_GROUP_NAME = 'boards' satisfies BoardPropertyFieldGroupID;
 export const OBJECT_TYPE_POST = 'post';
