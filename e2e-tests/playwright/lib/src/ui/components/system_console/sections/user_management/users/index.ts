@@ -7,7 +7,7 @@ import UserDetail from '../user_detail';
 
 import {ColumnToggleMenu, DateRangeMenu, FilterMenu, FilterPopover} from './menus';
 import {ManageRolesModal, ResetPasswordModal, UpdateEmailModal} from './modals';
-import {UsersTable} from './users_table';
+import {UsersTable, waitForUsersReportResponse} from './users_table';
 
 import {ConfirmModal} from '@/ui/components/system_console/base_modal';
 
@@ -117,18 +117,11 @@ export default class Users {
      * Search for users by typing in the search input
      */
     async searchUsers(searchTerm: string) {
-        const responsePromise = this.page.waitForResponse(
-            (response) =>
-                response.url().includes('/api/v4/reports/users') &&
-                !response.url().includes('/count') &&
-                response.request().method() === 'GET' &&
-                response.ok(),
-            {timeout: 30_000},
-        );
+        const responsePromise = waitForUsersReportResponse(this.page);
         await this.searchInput.fill(searchTerm);
         // SystemUsersSearch debounces dispatch by 500ms before fetching.
-        await responsePromise.catch(() => {});
-        await this.isLoadingComplete();
+        await responsePromise;
+        await expect(this.usersTable.getColumnHeader('User details')).toBeEnabled();
     }
 
     /**
