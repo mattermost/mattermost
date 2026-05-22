@@ -65,15 +65,17 @@ jobs:
 
       - name: Resolve image references
         id: resolve
+        env:
+          GO_VERSION: ${{ steps.calculate.outputs.GO_VERSION }}
         run: |
-          if docker manifest inspect "mattermost/mattermost-build-server:${{ steps.calculate.outputs.GO_VERSION }}" > /dev/null 2>&1; then
-            echo "image=mattermost/mattermost-build-server:${{ steps.calculate.outputs.GO_VERSION }}" >> "${GITHUB_OUTPUT}"
+          if docker manifest inspect "mattermost/mattermost-build-server:${GO_VERSION}" > /dev/null 2>&1; then
+            echo "image=mattermost/mattermost-build-server:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
           else
             echo "image=ghcr.io/mattermost/mattermost-build-server:${{ github.sha }}" >> "${GITHUB_OUTPUT}"
             echo "BUILDENV_NEEDED=true" >> "${GITHUB_ENV}"
           fi
-          if docker manifest inspect "mattermost/mattermost-build-server-fips:${{ steps.calculate.outputs.GO_VERSION }}" > /dev/null 2>&1; then
-            echo "image-fips=mattermost/mattermost-build-server-fips:${{ steps.calculate.outputs.GO_VERSION }}" >> "${GITHUB_OUTPUT}"
+          if docker manifest inspect "mattermost/mattermost-build-server-fips:${GO_VERSION}" > /dev/null 2>&1; then
+            echo "image-fips=mattermost/mattermost-build-server-fips:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
           else
             echo "image-fips=ghcr.io/mattermost/mattermost-build-server-fips:${{ github.sha }}" >> "${GITHUB_OUTPUT}"
             echo "BUILDENV_FIPS_NEEDED=true" >> "${GITHUB_ENV}"

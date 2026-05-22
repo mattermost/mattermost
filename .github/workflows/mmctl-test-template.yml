@@ -45,8 +45,10 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Setup BUILD_IMAGE
         id: build
+        env:
+          BUILD_IMAGE: ${{ inputs.build-image }}
         run: |
-          echo "BUILD_IMAGE=${{ inputs.build-image }}" >> "${GITHUB_OUTPUT}"
+          echo "BUILD_IMAGE=${BUILD_IMAGE}" >> "${GITHUB_OUTPUT}"
           if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
           else
