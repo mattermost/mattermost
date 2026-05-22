@@ -28,7 +28,7 @@ describe('Environment - File Storage (Azure Blob Storage)', () => {
             should('have.text', 'Azure Blob Storage');
     });
 
-    it('enables Azure-only fields and disables S3-only fields when Azure is selected', () => {
+    it('enables Azure-only fields and hides S3-only fields when Azure is selected', () => {
         // # Select the Azure driver
         cy.findByTestId('FileSettings.DriverNamedropdown').select('azureblob');
 
@@ -45,11 +45,11 @@ describe('Environment - File Storage (Azure Blob Storage)', () => {
         cy.findByTestId('FileSettings.AzureClouddropdown').find('option[value="government"]').should('have.text', 'Azure Government');
         cy.findByTestId('FileSettings.AzureClouddropdown').find('option[value="custom"]').should('have.text', 'Custom Endpoint');
 
-        // * S3 fields are disabled when the driver is not S3
-        cy.findByTestId('FileSettings.AmazonS3Bucketinput').should('be.disabled');
-        cy.findByTestId('FileSettings.AmazonS3AccessKeyIdinput').should('be.disabled');
+        // * S3 fields are not rendered when the driver is not S3
+        cy.findByTestId('FileSettings.AmazonS3Bucketinput').should('not.exist');
+        cy.findByTestId('FileSettings.AmazonS3AccessKeyIdinput').should('not.exist');
 
-        // * Local directory is also disabled
+        // * Local directory is disabled (still rendered)
         cy.findByTestId('FileSettings.Directoryinput').should('be.disabled');
     });
 
