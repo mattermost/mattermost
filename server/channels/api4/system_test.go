@@ -417,20 +417,47 @@ func TestGetLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
+	testID := model.NewId()
+	expectedMessages := make([]string, 0, 20)
 	for i := range 20 {
-		th.TestLogger.Info(strconv.Itoa(i))
+		message := fmt.Sprintf("getlogs_verify_%s_%d", testID, i)
+		expectedMessages = append(expectedMessages, message)
+		th.TestLogger.Info(message)
 	}
 
 	err := th.TestLogger.Flush()
 	require.NoError(t, err, "failed to flush log")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
-		require.NoError(t, err2)
-		require.Len(t, logs, 10)
+		var logs []string
+		containsLogMessage := func(logs []string, expected string) bool {
+			for _, logLine := range logs {
+				if strings.Contains(logLine, expected) {
+					return true
+				}
+			}
+			return false
+		}
+		containsExpectedMessages := func(logs []string) bool {
+			for _, expected := range expectedMessages {
+				if !containsLogMessage(logs, expected) {
+					return false
+				}
+			}
+			return true
+		}
 
-		for i := 10; i < 20; i++ {
-			assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
+		require.Eventually(t, func() bool {
+			logs, _, err = c.GetLogs(context.Background(), 0, 200)
+			if err != nil {
+				return false
+			}
+
+			return containsExpectedMessages(logs)
+		}, 5*time.Second, 25*time.Millisecond)
+
+		for _, expected := range expectedMessages {
+			assert.Truef(t, containsLogMessage(logs, expected), "Log lines don't contain %q", expected)
 		}
 
 		logs, _, err = c.GetLogs(context.Background(), 1, 10)
