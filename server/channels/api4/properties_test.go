@@ -163,6 +163,30 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionOptions)
 	})
 
+	t.Run("admin can set permission level=admin on a channel-target field", func(t *testing.T) {
+		adminLevel := model.PermissionLevelAdmin
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotNil(t, createdField.PermissionField)
+		require.Equal(t, model.PermissionLevelAdmin, *createdField.PermissionField)
+		require.NotNil(t, createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelAdmin, *createdField.PermissionValues)
+		require.NotNil(t, createdField.PermissionOptions)
+		require.Equal(t, model.PermissionLevelAdmin, *createdField.PermissionOptions)
+	})
+
 	t.Run("invalid group name should fail", func(t *testing.T) {
 		th.LoginBasic(t)
 
@@ -1828,7 +1852,7 @@ func TestPatchPropertyValues(t *testing.T) {
 	createdNoneField, appErr := th.App.CreatePropertyField(th.Context, noneField, false, "")
 	require.Nil(t, appErr)
 
-	// Use a real post as the target so target access checks pass
+	// Use a real post as the target so target access checks pass.
 	targetID := th.BasicPost.Id
 
 	t.Run("unauthenticated request should fail", func(t *testing.T) {
@@ -2053,8 +2077,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		require.Equal(t, json.RawMessage(`"channel-value"`), values[0].Value)
 	})
 
-	t.Run("non-member cannot set values on channel-scoped field with values permission member", func(t *testing.T) {
-		// Create a channel that BasicUser is NOT a member of
+	t.Run("non-member cannot set values on post in a channel they don't belong to", func(t *testing.T) {
 		privateChannel, chanErr := th.App.CreateChannel(th.Context, &model.Channel{
 			TeamId:      th.BasicTeam.Id,
 			Type:        model.ChannelTypePrivate,
@@ -2064,26 +2087,14 @@ func TestPatchPropertyValues(t *testing.T) {
 		}, false)
 		require.Nil(t, chanErr)
 
-		channelField := &model.PropertyField{
-			Name:              model.NewId(),
-			Type:              model.PropertyFieldTypeText,
-			GroupID:           group.ID,
-			ObjectType:        "post",
-			TargetType:        "channel",
-			TargetID:          privateChannel.Id,
-			PermissionField:   &memberLevel,
-			PermissionValues:  &memberLevel,
-			PermissionOptions: &memberLevel,
-		}
-		createdChannelField, fieldErr := th.App.CreatePropertyField(th.Context, channelField, false, "")
-		require.Nil(t, fieldErr)
+		// Create a post in the private channel as SystemAdmin (BasicUser is not a member).
+		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
 
 		th.LoginBasic(t)
-
 		items := []model.PropertyValuePatchItem{
-			{FieldID: createdChannelField.ID, Value: json.RawMessage(`"should-fail"`)},
+			{FieldID: createdMemberField.ID, Value: json.RawMessage(`"should-fail"`)},
 		}
-		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", privatePost.Id, items)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
