@@ -11715,6 +11715,10 @@
     "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
   },
   {
+    "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
+    "translation": "Invalid MaximumPersonalAccessTokenLifetimeDays. Must be between 0 (unlimited) and {{.Max}} days."
+  },
+  {
     "id": "model.config.is_valid.max_url_length.app_error",
     "translation": "Invalid max URL length for service settings. Must be a whole number greater than zero."
   },

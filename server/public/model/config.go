@@ -305,6 +305,12 @@ const (
 	StorageClassGlacierIR          = "GLACIER_IR"
 	StorageClassSnow               = "SNOW"
 	StorageClassExpressOnezone     = "EXPRESS_ONEZONE"
+
+	// MaxPersonalAccessTokenLifetimeDays is the upper bound accepted for
+	// ServiceSettings.MaximumPersonalAccessTokenLifetimeDays. 100 years is well
+	// past any realistic operational use and leaves ample headroom against
+	// int64 overflow when computing token expiry millis.
+	MaxPersonalAccessTokenLifetimeDays = 36500
 )
 
 func GetDefaultAppCustomURLSchemes() []string {
@@ -4925,6 +4931,14 @@ func (s *ServiceSettings) isValid() *AppError {
 		if err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.local_mode_socket.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
 		}
+	}
+
+	// MaximumPersonalAccessTokenLifetimeDays: 0 means unlimited; negative is
+	// nonsensical; an upper bound of MaxPersonalAccessTokenLifetimeDays guards
+	// against int64 overflow when computing now + days*86_400_000 millis at
+	// token-creation time.
+	if *s.MaximumPersonalAccessTokenLifetimeDays < 0 || *s.MaximumPersonalAccessTokenLifetimeDays > MaxPersonalAccessTokenLifetimeDays {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_personal_access_token_lifetime_days.app_error", map[string]any{"Max": MaxPersonalAccessTokenLifetimeDays}, "", http.StatusBadRequest)
 	}
 
 	return nil
