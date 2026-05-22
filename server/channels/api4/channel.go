@@ -2631,8 +2631,11 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Reject policy-enforced (ABAC) channels
-	if channel.PolicyEnforced {
+	// Reject channels whose policy controls membership (ABAC). Channels
+	// carrying only a permission policy (e.g. file upload restriction) keep
+	// the bulk-edit endpoint usable — those policies do not gate joins.
+	// App.GetChannel hydrates PolicyActions so this check is reliable.
+	if channel.HasMembershipPolicyAction() {
 		c.Err = model.NewAppError("setChannelMembers", "api.channel.set_members.policy_enforced.app_error", nil, "", http.StatusBadRequest)
 		return
 	}

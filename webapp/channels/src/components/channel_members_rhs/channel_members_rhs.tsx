@@ -19,6 +19,7 @@ import MoreDirectChannels from 'components/more_direct_channels';
 import AlertTag from 'components/widgets/tag/alert_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';
 
@@ -79,10 +80,14 @@ export default function ChannelMembersRHS({
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
     const {formatMessage} = useIntl();
 
+    // Only channels whose policy controls membership surface attribute
+    // tags in the RHS — a permission-only policy (e.g. file upload) has
+    // no bearing on who can be a member.
+    const isMembershipPolicy = isMembershipPolicyEnforced(channel);
     const {structuredAttributes, loading} = useAccessControlAttributes(
         EntityType.Channel,
         channel.id,
-        channel.policy_enforced,
+        isMembershipPolicy,
     );
 
     // Memoise the rendered access-control tags so they don't re-render on
@@ -250,8 +255,8 @@ export default function ChannelMembersRHS({
                 onClose={actions.closeRightHandSide}
                 goBack={actions.goBack}
             />
-            {/* Show banner for policy-enforced channels */}
-            {channel.policy_enforced && (
+            {/* Show banner only for channels whose policy gates membership. */}
+            {isMembershipPolicy && (
                 <div className='channel-members-rhs__alert-container policy-enforced'>
                     <AlertBanner
                         mode='info'
