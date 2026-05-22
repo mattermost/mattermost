@@ -254,6 +254,7 @@ function sysadminSetup(user) {
 
 function resetUserPreference(userId) {
     cy.apiSaveTeammateNameDisplayPreference('username');
+    cy.apiSaveMessageDisplayPreference('clean');
     cy.apiSaveLinkPreviewsPreference('true');
     cy.apiSaveCollapsePreviewsPreference('false');
     cy.apiSaveClockDisplayModeTo24HourPreference(false);
