@@ -53,6 +53,11 @@ const enterpriseAdvancedLicense = {
     SkuShortName: LicenseSkus.EnterpriseAdvanced,
 } as ClientLicense;
 
+const entryLicense = {
+    IsLicensed: 'true',
+    SkuShortName: LicenseSkus.Entry,
+} as ClientLicense;
+
 type CustomAdminDefinitionSetting = Extract<AdminDefinitionSetting, {type: 'custom'}>;
 
 function isHidden(subsection: AdminDefinitionSubSection, config: Partial<AdminConfig>, license: ClientLicense) {
@@ -91,6 +96,10 @@ describe('AdminDefinition - Data Spillage discovery', () => {
     test('shows settings instead of discovery for Enterprise Advanced licenses', () => {
         expect(isHidden(settingsSubsection, contentFlaggingConfigEnabled, enterpriseAdvancedLicense)).toBe(false);
         expect(isHidden(discoverySubsection, contentFlaggingConfigEnabled, enterpriseAdvancedLicense)).toBe(true);
+    });
+
+    test('hides discovery for Entry licenses', () => {
+        expect(isHidden(discoverySubsection, contentFlaggingConfigEnabled, entryLicense)).toBe(true);
     });
 
     test('hides discovery when the Content Flagging feature flag is disabled', () => {
