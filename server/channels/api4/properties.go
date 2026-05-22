@@ -598,7 +598,7 @@ func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request,
 			c.Err = model.NewAppError("patchPropertyValues", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
 			return
 		}
-		if !c.App.SessionHasPermissionToSetPropertyFieldValues(rctx, *c.AppContext.Session(), f) {
+		if !c.App.SessionHasPermissionToSetPropertyFieldValues(rctx, *c.AppContext.Session(), f, targetID) {
 			c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.no_values_permission.app_error", nil, "", http.StatusForbidden)
 			return
 		}
