@@ -14,6 +14,7 @@ import {
     getPostThreads,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
@@ -1833,9 +1834,6 @@ describe('handleChannelConvertedEvent', () => {
 
 describe('handleSharedChannelRemoteUpdatedEvent', () => {
     const channelId = 'shared-remote-channel';
-
-    // eslint-disable-next-line global-require
-    const {fetchChannelRemotes} = require('mattermost-redux/actions/shared_channels');
 
     beforeEach(() => {
         store.dispatch.mockClear();
