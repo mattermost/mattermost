@@ -5008,10 +5008,6 @@
     "translation": "دریافت کانال ها امکان پذیر نیست."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "شمارش کانال امکان پذیر نیست."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "گرفتن کانالهای طرح ارائه شده امکان پذیر نیست."
   },
@@ -6306,14 +6302,6 @@
     "translation": "بارگذاری پرونده امکان پذیر نیست. شناسه کانال نادرست است: {{.channelId}}"
   },
   {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "اطمینان حاصل کنید که bucket آمازون S3 شما در دسترس است و مجوزهای bucket خود را تأیید کنید."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "امکان اتصال به S3 وجود ندارد. پارامترهای مجوز اتصال آمازون S3 و تنظیمات احراز هویت را تأیید کنید."
-  },
-  {
     "id": "api.file.test_connection.app_error",
     "translation": "دسترسی به حافظه فایل امکان پذیر نیست."
   },
@@ -7042,7 +7030,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} از قبل در کانال است."
+    "translation": {
+      "one": "{{.User}} از قبل در کانال است.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite.success",

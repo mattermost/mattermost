@@ -3696,7 +3696,12 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} je že v kanalu."
+    "translation": {
+      "few": "",
+      "one": "{{.User}} je že v kanalu.",
+      "other": "",
+      "two": ""
+    }
   },
   {
     "id": "api.command_invite.success",
