@@ -75,6 +75,7 @@ import {
     AnnouncementBannerFeatureDiscovery,
     ComplianceExportFeatureDiscovery,
     CustomTermsOfServiceFeatureDiscovery,
+    DataSpillageFeatureDiscovery,
     DataRetentionFeatureDiscovery,
     GitLabFeatureDiscovery,
     GroupsFeatureDiscovery,
@@ -3701,6 +3702,28 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'ContentFlaggingSettings',
                     component: ContentFlaggingSettings,
                 },
+            },
+            content_flagging_feature_discovery: {
+                url: 'site_config/data_spillage',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.dataSpillage', defaultMessage: 'Data Spillage Handling'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                    it.configIsFalse('FeatureFlags', 'ContentFlagging'),
+                ),
+                schema: {
+                    id: 'ContentFlaggingSettings',
+                    name: defineMessage({id: 'admin.sidebar.dataSpillage', defaultMessage: 'Data Spillage Handling'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: DataSpillageFeatureDiscovery,
+                            key: 'DataSpillageFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
             wrangler: {
                 url: 'site_config/wrangler',
