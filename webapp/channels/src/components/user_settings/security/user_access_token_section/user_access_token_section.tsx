@@ -169,7 +169,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             serverError: null,
             saving: false,
             expiryPreset: this.defaultExpiryPreset(),
-            customExpiryDate: isoPlusDays(30),
+            customExpiryDate: this.defaultCustomExpiryDate(),
         };
         this.newtokendescriptionRef = React.createRef();
         this.minRef = React.createRef();
@@ -201,6 +201,14 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         }
         return {active: nextProps.active};
     }
+
+    defaultCustomExpiryDate = (): string => {
+        const {maxLifetimeDays} = this.props;
+        if (maxLifetimeDays > 0) {
+            return isoPlusDays(Math.max(1, Math.min(30, maxLifetimeDays)));
+        }
+        return isoPlusDays(30);
+    };
 
     defaultExpiryPreset = (): ExpiryPreset => {
         if (!this.props.enforceExpiry) {
@@ -242,7 +250,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         this.setState({
             tokenCreationState: TOKEN_CREATING,
             expiryPreset: this.defaultExpiryPreset(),
-            customExpiryDate: isoPlusDays(30),
+            customExpiryDate: this.defaultCustomExpiryDate(),
             tokenError: '',
         });
     };
@@ -281,8 +289,15 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         }
 
         const {enforceExpiry, maxLifetimeDays} = this.props;
+        const {expiryPreset} = this.state;
         const expiresAt = this.resolveExpiresAt();
 
+        if (expiryPreset === 'custom' && expiresAt <= 0) {
+            this.setState({
+                tokenError: mapServerErrorIdToMessage('expires_at_required'),
+            });
+            return;
+        }
         if (enforceExpiry && expiresAt <= 0) {
             this.setState({
                 tokenError: mapServerErrorIdToMessage('expires_at_required'),
@@ -309,7 +324,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         this.props.setRequireConfirm(true, this.confirmCopyToken);
 
         const userId = this.props.user ? this.props.user.id : '';
-        const {data, error} = await this.props.actions.createUserAccessToken(userId, description, expiresAt || undefined);
+        const {data, error} = await this.props.actions.createUserAccessToken(userId, description, expiresAt > 0 ? expiresAt : undefined);
 
         if (data && this.state.tokenCreationState === TOKEN_CREATING) {
             this.setState({tokenCreationState: TOKEN_CREATED, newToken: data, saving: false});

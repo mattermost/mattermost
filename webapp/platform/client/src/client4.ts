@@ -1278,7 +1278,7 @@ export default class Client4 {
 
     createUserAccessToken = (userId: string, description: string, expiresAt?: number) => {
         const body: {description: string; expires_at?: number} = {description};
-        if (expiresAt) {
+        if (expiresAt !== undefined) {
             body.expires_at = expiresAt;
         }
         return this.doFetch<UserAccessToken>(
