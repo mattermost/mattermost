@@ -835,6 +835,14 @@ func (a *App) UpdateChannelScheme(rctx request.CTX, channel *model.Channel) (*mo
 }
 
 func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
+	wasDiscoverable := oldChannel.Discoverable
+	// Public channels are inherently joinable; the discoverable flag only
+	// has meaning for private channels. Clear it eagerly so callers reading
+	// the row mid-conversion don't see an inconsistent state.
+	if oldChannel.Type == model.ChannelTypeOpen {
+		oldChannel.Discoverable = false
+	}
+
 	channel, err := a.UpdateChannel(rctx, oldChannel)
 	if err != nil {
 		return channel, err
@@ -844,6 +852,11 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 	if postErr != nil {
 		if channel.Type == model.ChannelTypeOpen {
 			channel.Type = model.ChannelTypePrivate
+			// Restore the discoverable flag we eagerly cleared above so
+			// the rollback fully undoes the conversion. Without this the
+			// caller would see a private channel with discoverable=false
+			// (and would have to re-toggle it).
+			channel.Discoverable = wasDiscoverable
 		} else {
 			channel.Type = model.ChannelTypeOpen
 		}
@@ -852,6 +865,19 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 			a.Log().Error("Failed to revert channel privacy after posting an update message failed", mlog.Err(err))
 		}
 		return channel, postErr
+	}
+
+	// Now that the conversion is fully committed, cancel pending join
+	// requests for the formerly discoverable private channel — the WS
+	// broadcast inside the helper updates each requester's My Pending
+	// Requests list in real-time. Doing this after the privacy-message
+	// step ensures a transient post failure (which triggers the rollback
+	// above) cannot leave requests cancelled against a still-private
+	// channel.
+	if wasDiscoverable && channel.Type == model.ChannelTypeOpen {
+		a.Srv().Go(func() {
+			a.CancelPendingChannelJoinRequestsOnConvert(rctx, channel)
+		})
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
@@ -3229,6 +3255,10 @@ func (a *App) AutocompleteChannels(rctx request.CTX, userID, term string) (model
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	channelList, _, appErr = a.FilterChannelListWithTeamDataForUserVisibility(rctx, channelList, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
 	return channelList, nil
 }
 
@@ -3246,7 +3276,7 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return channelList, nil
+	return a.FilterChannelListForUserVisibility(rctx, channelList, userID)
 }
 
 func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, userID, term string, privateOnly, excludeGroupConstrained bool) (model.ChannelList, *model.AppError) {
@@ -3263,7 +3293,7 @@ func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, user
 		return nil, model.NewAppError("AutocompleteChannelsForTeamFiltered", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return channelList, nil
+	return a.FilterChannelListForUserVisibility(rctx, channelList, userID)
 }
 
 func (a *App) AutocompleteChannelsForSearch(rctx request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
