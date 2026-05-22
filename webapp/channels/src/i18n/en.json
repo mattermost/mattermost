@@ -1021,6 +1021,8 @@
   "admin.data_retention.retention_years": "{count} {count, plural, one {year} other {years}}",
   "admin.data_retention.settings.title": "Data Retention Policies",
   "admin.data_retention.title": "Data Retention Policy",
+  "admin.data_spillage_feature_discovery.desc": "Set up the ability for users to quarantine messages so designated Content Reviewers can decide whether to keep or remove them.",
+  "admin.data_spillage_feature_discovery.title": "Handle data spillage with Mattermost Enterprise Advanced",
   "admin.data_spillage.enableTitle": "Enable Data Spillage Handling",
   "admin.database.migrations_table.help_text": "All applied migrations.",
   "admin.database.migrations_table.name": "Name",
