@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -40,14 +39,6 @@ const opensearchMaxVersion = 3
 var (
 	purgeIndexListAllowedIndexes = []string{common.IndexBaseChannels}
 )
-
-// isIndexNotFound reports whether err is a 404 index_not_found_exception from
-// OpenSearch. This happens when an index has never been created (e.g. no
-// reindex has run yet) and should be treated as an empty result, not an error.
-func isIndexNotFound(err error) bool {
-	var osErr *opensearch.StructError
-	return errors.As(err, &osErr) && osErr.Status == http.StatusNotFound
-}
 
 type OpensearchInterfaceImpl struct {
 	client      *opensearchapi.Client
@@ -849,9 +840,6 @@ func (os *OpensearchInterfaceImpl) DeleteChannelPosts(rctx request.CTX, channelI
 	if err != nil {
 		return model.NewAppError("Opensearch.DeleteChannelPosts", "ent.elasticsearch.delete_channel_posts.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if len(postIndexes) == 0 {
-		return nil
-	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 	defer cancel()
@@ -892,9 +880,6 @@ func (os *OpensearchInterfaceImpl) UpdatePostsChannelTypeByChannelId(rctx reques
 	postIndexes, err := os.getPostIndexNames()
 	if err != nil {
 		return model.NewAppError("Opensearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if len(postIndexes) == 0 {
-		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
@@ -957,9 +942,6 @@ func (os *OpensearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX, ch
 	postIndexes, err := os.getPostIndexNames()
 	if err != nil {
 		return model.NewAppError("Opensearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if len(postIndexes) == 0 {
-		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
@@ -1031,9 +1013,6 @@ func (os *OpensearchInterfaceImpl) DeleteUserPosts(rctx request.CTX, userID stri
 	postIndexes, err := os.getPostIndexNames()
 	if err != nil {
 		return model.NewAppError("Opensearch.DeleteUserPosts", "ent.elasticsearch.delete_user_posts.error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if len(postIndexes) == 0 {
-		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
@@ -2148,9 +2127,6 @@ func (os *OpensearchInterfaceImpl) SearchFiles(channels model.ChannelList, searc
 		},
 	})
 	if err != nil {
-		if isIndexNotFound(err) {
-			return []string{}, nil
-		}
 		errorStr := "err=" + err.Error()
 		if *os.Platform.Config().ElasticsearchSettings.Trace == "error" {
 			errorStr = "Query=" + getJSONOrErrorStr(query) + ", " + errorStr
@@ -2234,9 +2210,6 @@ func (os *OpensearchInterfaceImpl) DeleteUserFiles(rctx request.CTX, userID stri
 		Body:    bytes.NewReader(queryBuf),
 	})
 	if err != nil {
-		if isIndexNotFound(err) {
-			return nil
-		}
 		return model.NewAppError("Opensearch.DeleteUserFiles", "ent.elasticsearch.delete_user_files.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	rctx.Logger().Info("User files deleted", mlog.String("user_id", userID), mlog.Int("deleted", response.Deleted))
@@ -2273,9 +2246,6 @@ func (os *OpensearchInterfaceImpl) DeletePostFiles(rctx request.CTX, postID stri
 		Body:    bytes.NewReader(queryBuf),
 	})
 	if err != nil {
-		if isIndexNotFound(err) {
-			return nil
-		}
 		return model.NewAppError("Opensearch.DeletePostFiles", "ent.elasticsearch.delete_post_files.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	rctx.Logger().Info("Post files deleted", mlog.String("post_id", postID), mlog.Int("deleted", response.Deleted))
@@ -2323,9 +2293,6 @@ func (os *OpensearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime, l
 		},
 	})
 	if err != nil {
-		if isIndexNotFound(err) {
-			return nil
-		}
 		return model.NewAppError("Opensearch.DeleteUserPosts", "ent.elasticsearch.delete_user_posts.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	rctx.Logger().Info("Files batch deleted", mlog.Int("end_time", endTime), mlog.Int("limit", limit), mlog.Int("deleted", response.Deleted))
