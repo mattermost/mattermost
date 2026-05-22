@@ -2310,7 +2310,7 @@ func (os *OpensearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime, l
 		Query: query,
 	})
 	if err != nil {
-		return model.NewAppError("Opensearch.DeleteFilesBatch", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.DeleteUserFiles", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	response, err := os.client.Document.DeleteByQuery(ctx, opensearchapi.DocumentDeleteByQueryReq{
 		Indices: []string{*os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles},
@@ -2326,7 +2326,7 @@ func (os *OpensearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime, l
 		if isIndexNotFound(err) {
 			return nil
 		}
-		return model.NewAppError("Opensearch.DeleteFilesBatch", "ent.elasticsearch.delete_files_batch.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.DeleteUserPosts", "ent.elasticsearch.delete_user_posts.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	rctx.Logger().Info("Files batch deleted", mlog.Int("end_time", endTime), mlog.Int("limit", limit), mlog.Int("deleted", response.Deleted))
 
