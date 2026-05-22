@@ -9,7 +9,7 @@ import {LicenseSkus} from 'utils/constants';
 
 import AdminDefinition from './admin_definition';
 import DataSpillageFeatureDiscovery from './feature_discovery/features/data_spillage';
-import type {AdminDefinitionSubSection, Check, ConsoleAccess} from './types';
+import type {AdminDefinitionSetting, AdminDefinitionSubSection, Check, ConsoleAccess} from './types';
 
 const contentFlaggingConfigEnabled = {
     FeatureFlags: {
@@ -52,6 +52,8 @@ const enterpriseAdvancedLicense = {
     IsLicensed: 'true',
     SkuShortName: LicenseSkus.EnterpriseAdvanced,
 } as ClientLicense;
+
+type CustomAdminDefinitionSetting = Extract<AdminDefinitionSetting, {type: 'custom'}>;
 
 function isHidden(subsection: AdminDefinitionSubSection, config: Partial<AdminConfig>, license: ClientLicense) {
     const check = subsection.isHidden as Extract<Check, (...args: any[]) => boolean>;
@@ -100,8 +102,10 @@ describe('AdminDefinition - Data Spillage discovery', () => {
         const schema = discoverySubsection.schema;
         expect('settings' in schema).toBe(true);
 
-        const settings = 'settings' in schema ? schema.settings : [];
-        const discoverySetting = settings.find((setting) => setting.key === 'DataSpillageFeatureDiscovery');
+        const settings = 'settings' in schema ? schema.settings ?? [] : [];
+        const discoverySetting = settings.find((setting): setting is CustomAdminDefinitionSetting => (
+            setting.type === 'custom' && setting.key === 'DataSpillageFeatureDiscovery'
+        ));
 
         expect(discoverySetting).toBeDefined();
         expect(discoverySetting?.type).toBe('custom');
