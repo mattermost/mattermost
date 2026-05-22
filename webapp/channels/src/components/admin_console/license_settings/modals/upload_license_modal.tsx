@@ -99,7 +99,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
         };
 
         doPreview();
-    }, [fileObj, show, dispatch]);
+    }, [fileObj, show, dispatch, intl]);
 
     if (!show) {
         return null;
@@ -153,8 +153,8 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                 </div>
                 <div className='content-footer'>
                     <div className='btn-upload-wrapper'>
-                        <button
-                            className='btn btn-primary'
+                        <Button
+                            emphasis='primary'
                             onClick={handleOnClose}
                             id='close-button'
                         >
@@ -162,7 +162,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                                 id='admin.license.modal.close'
                                 defaultMessage='Close'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </>
@@ -225,8 +225,8 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                     )}
                 </div>
                 <div className='content-footer preview-footer'>
-                    <button
-                        className='btn btn-tertiary'
+                    <Button
+                        emphasis='tertiary'
                         onClick={handleOnClose}
                         id='cancel-button'
                     >
@@ -234,9 +234,9 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                             id='admin.license.modal.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
-                        className='btn btn-primary'
+                    </Button>
+                    <Button
+                        emphasis='primary'
                         onClick={handleConfirmUpload}
                         disabled={isLoading}
                         id='confirm-button'
@@ -250,7 +250,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                                 defaultMessage='Apply License'
                             />
                         </LoadingWrapper>
-                    </button>
+                    </Button>
                 </div>
             </>
         );

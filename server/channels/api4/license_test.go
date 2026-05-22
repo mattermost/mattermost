@@ -208,13 +208,17 @@ func TestPreviewLicenseFile(t *testing.T) {
 	})
 
 	t.Run("as restricted system admin user", func(t *testing.T) {
+		originalRestrictSystemAdmin := *th.App.Config().ExperimentalSettings.RestrictSystemAdmin
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ExperimentalSettings.RestrictSystemAdmin = originalRestrictSystemAdmin
+			})
+		})
 
 		_, resp, err := th.SystemAdminClient.PreviewLicenseFile(context.Background(), []byte{})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
 	})
 
 	t.Run("preview valid license", func(t *testing.T) {
