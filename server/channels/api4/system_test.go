@@ -448,25 +448,24 @@ func TestGetLogs(t *testing.T) {
 		}
 
 		require.Eventually(t, func() bool {
-			var err2 error
-			logs, _, err2 = c.GetLogs(context.Background(), 0, 200)
-			if err2 != nil {
+			logs, _, err = c.GetLogs(context.Background(), 0, 200)
+			if err != nil {
 				return false
 			}
 
 			return containsExpectedMessages(logs)
-		}, 15*time.Second, 25*time.Millisecond)
+		}, 5*time.Second, 25*time.Millisecond)
 
 		for _, expected := range expectedMessages {
 			assert.Truef(t, containsLogMessage(logs, expected), "Log lines don't contain %q", expected)
 		}
 
-		logs, _, err2 := c.GetLogs(context.Background(), 1, 10)
-		require.NoError(t, err2)
+		logs, _, err = c.GetLogs(context.Background(), 1, 10)
+		require.NoError(t, err)
 		require.Len(t, logs, 10)
 
-		logs, _, err2 = c.GetLogs(context.Background(), -1, -1)
-		require.NoError(t, err2)
+		logs, _, err = c.GetLogs(context.Background(), -1, -1)
+		require.NoError(t, err)
 		require.NotEmpty(t, logs, "should not be empty")
 	})
 
