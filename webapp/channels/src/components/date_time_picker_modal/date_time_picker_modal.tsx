@@ -35,6 +35,7 @@ type Props = {
     className?: string;
     errorText?: string | React.ReactNode;
     timePickerInterval?: number;
+    timezone?: string;
 };
 
 export default function DateTimePickerModal({
@@ -54,14 +55,22 @@ export default function DateTimePickerModal({
     className,
     errorText,
     timePickerInterval,
+    timezone: timezoneProp,
 }: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
-    const currentTime = getCurrentMomentForTimezone(userTimezone);
+    const activeTimezone = timezoneProp || userTimezone;
+    const currentTime = getCurrentMomentForTimezone(activeTimezone);
     const initialRoundedTime = getRoundedTime(currentTime);
 
     const [dateTime, setDateTime] = useState(initialTime || initialRoundedTime);
 
     const [isInteracting, setIsInteracting] = useState(false);
+
+    useEffect(() => {
+        if (initialTime) {
+            setDateTime(initialTime);
+        }
+    }, [initialTime?.valueOf()]); // eslint-disable-line react-hooks/exhaustive-deps -- sync when parent updates time
 
     useEffect(() => {
         function handleKeyDown(event: KeyboardEvent) {
@@ -120,7 +129,7 @@ export default function DateTimePickerModal({
             <DateTimeInput
                 time={dateTime}
                 handleChange={handleChange}
-                timezone={userTimezone}
+                timezone={activeTimezone}
                 setIsInteracting={setIsInteracting}
                 relativeDate={relativeDate}
                 timePickerInterval={timePickerInterval}

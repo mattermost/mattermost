@@ -12,6 +12,10 @@ export default class ScheduleMessageModal {
     readonly closeButton: Locator;
     readonly scheduleButton: Locator;
     readonly cancelButton: Locator;
+    readonly perspectiveToggle: Locator;
+    readonly myTimeToggle: Locator;
+    readonly recipientTimeToggle: Locator;
+    readonly dualTimePreview: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -21,6 +25,10 @@ export default class ScheduleMessageModal {
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.scheduleButton = container.locator('button:has-text("Schedule")');
         this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.perspectiveToggle = container.locator('.SchedulePerspectiveToggle');
+        this.myTimeToggle = container.getByRole('radio', {name: 'My time'});
+        this.recipientTimeToggle = container.getByRole('radio', {name: /time$/});
+        this.dualTimePreview = container.locator('.ScheduleDualTimePreview');
     }
 
     async toBeVisible() {

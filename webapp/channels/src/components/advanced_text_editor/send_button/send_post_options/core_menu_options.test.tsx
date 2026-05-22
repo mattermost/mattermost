@@ -9,10 +9,17 @@ import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
+import {isDmScheduleRedesign} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
+
 import CoreMenuOptions from './core_menu_options';
+
+jest.mock('components/advanced_text_editor/send_button/schedule_message_dm_utils', () => ({
+    isDmScheduleRedesign: jest.fn(),
+}));
 
 jest.mock('components/advanced_text_editor/use_post_box_indicator');
 const mockedUseTimePostBoxIndicator = jest.mocked(useTimePostBoxIndicator);
+const mockedIsDmScheduleRedesign = jest.mocked(isDmScheduleRedesign);
 
 const teammateDisplayName = 'John Doe';
 const userCurrentTimezone = 'America/New_York';
@@ -49,6 +56,7 @@ describe('CoreMenuOptions Component', () => {
 
     beforeEach(() => {
         handleOnSelect.mockReset();
+        mockedIsDmScheduleRedesign.mockReturnValue(false);
         mockedUseTimePostBoxIndicator.mockReturnValue({
             ...defaultUseTimePostBoxIndicatorReturnValue,
             isDM: false,
@@ -62,7 +70,7 @@ describe('CoreMenuOptions Component', () => {
     });
 
     function renderComponent(state = initialState, handleOnSelectOverride = handleOnSelect) {
-        renderWithContext(
+        return renderWithContext(
             <WithTestMenuContext>
                 <CoreMenuOptions
                     handleOnSelect={handleOnSelectOverride}
@@ -106,28 +114,14 @@ describe('CoreMenuOptions Component', () => {
         expect(screen.queryByText(/Tomorrow at/)).not.toBeInTheDocument();
     });
 
-    it('should include trailing element when isDM true', () => {
-        setMockDate(2); // Tuesday
-
-        mockedUseTimePostBoxIndicator.mockReturnValue({
-            ...defaultUseTimePostBoxIndicatorReturnValue,
-            isDM: true,
-            isSelfDM: false,
-            isBot: false,
-        });
+    it('should render nothing when DM schedule redesign is active', () => {
+        setMockDate(2);
+        mockedIsDmScheduleRedesign.mockReturnValue(true);
 
         renderComponent();
 
-        // Check the trailing element is rendered in the component
-        expect(screen.getAllByText(/John Doe/)[0]).toBeInTheDocument();
-    });
-
-    it('should NOT include trailing element when isDM false', () => {
-        setMockDate(2); // Tuesday
-
-        renderComponent();
-
-        expect(screen.queryByText(/John Doe/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Tomorrow at/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Monday at/)).not.toBeInTheDocument();
     });
 
     it('should call handleOnSelect with the right timestamp if tomorrow option is clicked', () => {
@@ -149,67 +143,4 @@ describe('CoreMenuOptions Component', () => {
         expect(handleOnSelect).toHaveBeenCalledWith(expect.anything(), expectedTimestamp);
     });
 
-    it('should NOT include trailing element when isDM and isBot are true', () => {
-        setMockDate(2); // Tuesday
-
-        mockedUseTimePostBoxIndicator.mockReturnValue({
-            ...defaultUseTimePostBoxIndicatorReturnValue,
-            isDM: true,
-            isSelfDM: false,
-            isBot: true,
-        });
-
-        renderComponent();
-
-        // Check the trailing element is NOT rendered in the component as this is a bot
-        expect(screen.queryByText(/John Doe/)).toBeNull();
-    });
-
-    it('should NOT include trailing element when the DM is with oneself', () => {
-        setMockDate(2); // Tuesday
-
-        mockedUseTimePostBoxIndicator.mockReturnValue({
-            ...defaultUseTimePostBoxIndicatorReturnValue,
-            isDM: true,
-            isSelfDM: true,
-            isBot: false,
-        });
-
-        renderComponent();
-
-        // Check the trailing element is NOT rendered in the component as this is a bot
-        expect(screen.queryByText(/John Doe/)).toBeNull();
-    });
-
-    it('should format teammate time according to user locale', () => {
-        setMockDate(2); // Tuesday
-
-        const stateWithFrenchLocale = {
-            ...initialState,
-            entities: {
-                ...initialState.entities,
-                users: {
-                    ...initialState.entities.users,
-                    profiles: {
-                        currentUserId: {
-                            locale: 'fr',
-                        },
-                    },
-                },
-            },
-        };
-
-        mockedUseTimePostBoxIndicator.mockReturnValue({
-            ...defaultUseTimePostBoxIndicatorReturnValue,
-            isDM: true,
-            isSelfDM: false,
-            isBot: false,
-        });
-
-        renderComponent(stateWithFrenchLocale);
-
-        // Verify French format (no AM/PM)
-        const timeTexts = screen.getAllByText(/\d{2}:\d{2}(?!\s*[AP]M)/);
-        expect(timeTexts.length).toBeGreaterThan(0);
-    });
 });

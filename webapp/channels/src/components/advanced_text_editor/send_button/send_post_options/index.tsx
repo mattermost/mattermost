@@ -4,17 +4,23 @@
 import classNames from 'classnames';
 import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {openModal} from 'actions/views/modals';
 
+import {isDmScheduleRedesign} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
 import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/core_menu_options';
+import DmMenuOptions, {DmScheduleHeader} from 'components/advanced_text_editor/send_button/send_post_options/dm_menu_options';
+import RecentUsedCustomDate from 'components/advanced_text_editor/send_button/send_post_options/recent_used_custom_date';
+import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 
@@ -29,6 +35,8 @@ type Props = {
 export function SendPostOptions({disabled, onSelect, channelId}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const isDmRedesign = useSelector((state: GlobalState) => isDmScheduleRedesign(state, channelId));
+    const {userCurrentTimezone, recipientTimezoneString} = useTimePostBoxIndicator(channelId);
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
         e.preventDefault();
@@ -61,6 +69,10 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
         }));
     }, [channelId, dispatch, handleSelectCustomTime]);
 
+    const customTimeLeadingElement = isDmRedesign ? (
+        <i className='icon-calendar-outline'/>
+    ) : undefined;
+
     return (
         <Menu.Container
             menuButtonTooltip={{
@@ -92,19 +104,38 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
                 horizontal: 'right',
             }}
         >
-            <Menu.Item
-                disabled={true}
-                labels={
-                    <FormattedMessage
-                        id='create_post_button.option.schedule_message.options.header'
-                        defaultMessage='Schedule message'
-                    />
-                }
-            />
+            {isDmRedesign ? (
+                <DmScheduleHeader channelId={channelId}/>
+            ) : (
+                <Menu.Item
+                    disabled={true}
+                    labels={
+                        <FormattedMessage
+                            id='create_post_button.option.schedule_message.options.header'
+                            defaultMessage='Schedule message'
+                        />
+                    }
+                />
+            )}
 
-            <CoreMenuOptions
+            {isDmRedesign ? (
+                <DmMenuOptions
+                    handleOnSelect={handleOnSelect}
+                    channelId={channelId}
+                />
+            ) : (
+                <CoreMenuOptions
+                    handleOnSelect={handleOnSelect}
+                    channelId={channelId}
+                />
+            )}
+
+            <RecentUsedCustomDate
                 handleOnSelect={handleOnSelect}
+                userCurrentTimezone={userCurrentTimezone}
                 channelId={channelId}
+                isDmRedesign={isDmRedesign}
+                recipientTimezoneString={recipientTimezoneString}
             />
 
             <Menu.Separator/>
@@ -112,10 +143,11 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
             <Menu.Item
                 onClick={handleChooseCustomTime}
                 key={'choose_custom_time'}
+                leadingElement={customTimeLeadingElement}
                 labels={
                     <FormattedMessage
                         id='create_post_button.option.schedule_message.options.choose_custom_time'
-                        defaultMessage='Choose a custom time'
+                        defaultMessage='Choose a custom time…'
                     />
                 }
             />

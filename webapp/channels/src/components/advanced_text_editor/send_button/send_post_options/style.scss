@@ -7,10 +7,31 @@ ul#dropdown_send_post_options {
         }
     }
 
-    li.core-menu-options{
+    li.dm-schedule-header {
+        .label-elements {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .secondary-label {
+            font-size: 12px;
+            font-weight: 400;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+    }
+
+    li.core-menu-options,
+    li.dm-menu-options {
         display: flex;
         flex-direction: column;
         align-items: baseline;
+
+        .secondary-label {
+            font-size: 12px;
+            font-weight: 400;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            margin-top: 2px;
+        }
 
         .trailing-elements {
             margin-top: 4px;

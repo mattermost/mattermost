@@ -15,9 +15,22 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {
     DMUserTimezone,
 } from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/dm_user_timezone';
+import ScheduleDualTimePreview from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/schedule_dual_time_preview';
+import SchedulePerspectiveToggle from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/schedule_perspective_toggle';
+import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
+import {
+    getDefaultScheduleDateTime,
+    isDmScheduleRedesign,
+    reinterpretWallClock,
+    type SchedulePerspective,
+} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
 import {scheduledPosts} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+
+import './scheduled_post_dm_custom_time_modal.scss';
 
 const SCHEDULED_POST_CUSTOM_TIME_INTERVAL = 15; // minutes
 
@@ -32,18 +45,52 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
     const {formatMessage} = useIntl();
     const [errorMessage, setErrorMessage] = useState<string>();
     const userTimezone = useSelector(getCurrentTimezone);
-    const now = moment().tz(userTimezone);
     const currentUserId = useSelector(getCurrentUserId);
     const dispatch = useDispatch();
+    const isDmRedesign = useSelector((state: GlobalState) => isDmScheduleRedesign(state, channelId));
+    const {
+        teammateDisplayName,
+        teammateFirstName,
+        recipientTimezoneString,
+    } = useTimePostBoxIndicator(channelId);
+
+    const [perspective, setPerspective] = useState<SchedulePerspective>('theirs');
+
+    const activeTimezone = useMemo(() => {
+        if (!isDmRedesign) {
+            return userTimezone;
+        }
+        return perspective === 'theirs' ? recipientTimezoneString : userTimezone;
+    }, [isDmRedesign, perspective, recipientTimezoneString, userTimezone]);
+
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
         if (initialTime) {
             return initialTime;
         }
 
-        return now.add(1, 'days').set({hour: 9, minute: 0, second: 0, millisecond: 0});
+        if (isDmRedesign) {
+            return getDefaultScheduleDateTime('theirs', userTimezone, recipientTimezoneString);
+        }
+
+        return moment().tz(userTimezone).add(1, 'days').set({
+            hour: 9,
+            minute: 0,
+            second: 0,
+            millisecond: 0,
+        });
     });
 
     const userTimezoneLabel = useMemo(() => generateCurrentTimezoneLabel(userTimezone), [userTimezone]);
+
+    const handlePerspectiveChange = useCallback((newPerspective: SchedulePerspective) => {
+        if (newPerspective === perspective) {
+            return;
+        }
+
+        const newTimezone = newPerspective === 'theirs' ? recipientTimezoneString : userTimezone;
+        setSelectedDateTime((current) => reinterpretWallClock(current, newTimezone));
+        setPerspective(newPerspective);
+    }, [perspective, recipientTimezoneString, userTimezone]);
 
     const handleOnConfirm = useCallback(async (dateTime: Moment) => {
         const selectedTime = dateTime.valueOf();
@@ -66,9 +113,13 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
         } else {
             onExited();
         }
-    }, [onConfirm, onExited]);
+    }, [currentUserId, dispatch, onConfirm, onExited, userTimezone]);
 
-    const bodySuffix = useMemo(() => {
+    const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
+
+    const timePickerInterval = useSelector(testingEnabled) ? 1 : SCHEDULED_POST_CUSTOM_TIME_INTERVAL;
+
+    const legacyBodySuffix = useMemo(() => {
         return (
             <DMUserTimezone
                 channelId={channelId}
@@ -77,9 +128,68 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
         );
     }, [channelId, selectedDateTime]);
 
-    const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
+    if (isDmRedesign) {
+        const bodyPrefix = (
+            <SchedulePerspectiveToggle
+                perspective={perspective}
+                recipientFirstName={teammateFirstName}
+                onChange={handlePerspectiveChange}
+            />
+        );
 
-    const timePickerInterval = useSelector(testingEnabled) ? 1 : SCHEDULED_POST_CUSTOM_TIME_INTERVAL;
+        const bodySuffix = (
+            <ScheduleDualTimePreview
+                selectedDateTime={selectedDateTime}
+                perspective={perspective}
+                recipientName={teammateDisplayName}
+                senderTimezone={userTimezone}
+                recipientTimezone={recipientTimezoneString}
+            />
+        );
+
+        return (
+            <DateTimePickerModal
+                className='scheduled_post_custom_time_modal scheduled_post_dm_custom_time_modal'
+                initialTime={selectedDateTime}
+                header={
+                    <FormattedMessage
+                        id='schedule_post.custom_time_modal.title'
+                        defaultMessage='Schedule message'
+                    />
+                }
+                subheading={
+                    <FormattedMessage
+                        id='schedule_post.custom_time_modal.dm_subtitle'
+                        defaultMessage='to {recipientName}'
+                        values={{recipientName: teammateDisplayName}}
+                    />
+                }
+                confirmButtonText={
+                    <FormattedMessage
+                        id='schedule_post.custom_time_modal.confirm_button_text'
+                        defaultMessage='Schedule'
+                    />
+                }
+                cancelButtonText={
+                    <FormattedMessage
+                        id='schedule_post.custom_time_modal.cancel_button_text'
+                        defaultMessage='Cancel'
+                    />
+                }
+                ariaLabel={label}
+                onExited={onExited}
+                onConfirm={handleOnConfirm}
+                onChange={setSelectedDateTime}
+                bodyPrefix={bodyPrefix}
+                bodySuffix={bodySuffix}
+                relativeDate={true}
+                onCancel={onExited}
+                errorText={errorMessage}
+                timePickerInterval={timePickerInterval}
+                timezone={activeTimezone}
+            />
+        );
+    }
 
     return (
         <DateTimePickerModal
@@ -108,7 +218,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
             onExited={onExited}
             onConfirm={handleOnConfirm}
             onChange={setSelectedDateTime}
-            bodySuffix={bodySuffix}
+            bodySuffix={legacyBodySuffix}
             relativeDate={true}
             onCancel={onExited}
             errorText={errorMessage}

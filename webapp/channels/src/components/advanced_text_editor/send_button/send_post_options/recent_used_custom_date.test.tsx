@@ -56,7 +56,6 @@ describe('CoreMenuOptions Component', () => {
         jest.useFakeTimers();
         jest.setSystemTime(now.toJSDate());
 
-        // Hardcode `tomorrow9amTime` and `nextMonday`
         tomorrow9amTime = DateTime.fromISO('2024-11-02T09:00:00', {zone: userCurrentTimezone}).toMillis();
         nextMonday = DateTime.fromISO('2024-11-04T09:00:00', {zone: userCurrentTimezone}).toMillis();
     });
@@ -81,13 +80,18 @@ describe('CoreMenuOptions Component', () => {
         };
     }
 
-    function renderComponent(state = initialState, handleOnSelectOverride = handleOnSelect) {
+    function renderComponent(
+        state = initialState,
+        handleOnSelectOverride = handleOnSelect,
+        options: {isDmRedesign?: boolean; recipientTimezoneString?: string} = {},
+    ) {
         renderWithContext(
             <RecentUsedCustomDate
                 handleOnSelect={handleOnSelectOverride}
                 userCurrentTimezone={userCurrentTimezone}
-                tomorrow9amTime={tomorrow9amTime}
-                nextMonday={nextMonday}
+                channelId='channelId'
+                isDmRedesign={options.isDmRedesign}
+                recipientTimezoneString={options.recipientTimezoneString}
             />,
             state,
         );
@@ -273,5 +277,24 @@ describe('CoreMenuOptions Component', () => {
         const monthDay = scheduledDate.toFormat('MMMM d');
 
         expect(screen.getByText(new RegExp(`${monthDay} at`))).toBeInTheDocument();
+    });
+
+    it('should render DM redesign labels when isDmRedesign is true', () => {
+        const recentTimestamp = DateTime.now().plus({days: 7}).toMillis();
+
+        const recentlyUsedCustomDateVal = {
+            update_at: DateTime.now().toMillis(),
+            timestamp: recentTimestamp,
+        };
+
+        const state = createStateWithRecentlyUsedCustomDate(JSON.stringify(recentlyUsedCustomDateVal));
+
+        renderComponent(state, handleOnSelect, {
+            isDmRedesign: true,
+            recipientTimezoneString: 'Europe/London',
+        });
+
+        expect(screen.getByText(/Your time · recently used/)).toBeInTheDocument();
+        expect(screen.queryByText(recentUsedCustomDateString)).not.toBeInTheDocument();
     });
 });

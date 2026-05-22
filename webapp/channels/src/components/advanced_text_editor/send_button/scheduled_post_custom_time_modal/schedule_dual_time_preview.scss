@@ -1,0 +1,45 @@
+.ScheduleDualTimePreview {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+    border-radius: var(--radius-s);
+
+    &__row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        font-size: 13px;
+        line-height: 20px;
+
+        & + & {
+            margin-top: 8px;
+        }
+
+        &.primary {
+            color: var(--center-channel-color);
+            font-weight: 600;
+
+            .ScheduleDualTimePreview__value {
+                font-weight: 600;
+            }
+        }
+
+        &.secondary {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-weight: 400;
+        }
+    }
+
+    &__label {
+        flex-shrink: 0;
+    }
+
+    &__value {
+        text-align: right;
+    }
+
+    &__offset {
+        font-weight: 400;
+    }
+}
