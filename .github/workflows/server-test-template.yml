@@ -87,6 +87,9 @@ jobs:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
+
       - name: Restore test timing data
         if: inputs.shard-total > 1
         id: timing-cache
@@ -220,6 +223,9 @@ jobs:
             DOCKER_CMD="/mattermost/server/run-shard-tests.sh"
           fi
 
+          # GOBIN is not mounted separately: server/bin is inside the workspace
+          # mount below, and the Makefile sets GOBIN=$(PWD)/bin which resolves
+          # to /mattermost/server/bin — exactly where run-shard-tests.sh expects it.
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
@@ -232,6 +238,10 @@ jobs:
             --env RACE_MODE \
             --env TEST_TARGET \
             --env BUILD_NUMBER \
+            --env GOMODCACHE \
+            --env GOCACHE \
+            -v "$GOMODCACHE":"$GOMODCACHE" \
+            -v "$GOCACHE":"$GOCACHE" \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
