@@ -130,6 +130,30 @@ reset_demo_data() {
         fi
     done
 
+    demo_log "Clearing channel headers (demo + sample teams)"
+
+    local cleared_headers
+    cleared_headers=$("${pgcmd[@]}" -c "
+WITH updated AS (
+    UPDATE channels c
+    SET header = '',
+        updateat = (floor(extract(epoch FROM clock_timestamp()) * 1000))::bigint
+    FROM teams t
+    WHERE c.teamid = t.id
+      AND t.name IN ('demo', 'ad-1', 'reiciendis-0')
+      AND c.deleteat = 0
+      AND length(trim(coalesce(c.header, ''))) > 0
+    RETURNING c.id
+)
+SELECT count(*) FROM updated;
+")
+    cleared_headers=$(echo "$cleared_headers" | tr -d '[:space:]')
+    if [ "${cleared_headers:-0}" -gt 0 ]; then
+        demo_ok "Cleared header text on $cleared_headers channel(s)"
+    else
+        demo_ok "No channel headers to clear"
+    fi
+
     demo_log "Cleaning up previously-seeded posts (props.demo_seed='v1')"
 
     local existing
