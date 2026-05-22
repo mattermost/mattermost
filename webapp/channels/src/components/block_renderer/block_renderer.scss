@@ -29,13 +29,13 @@ $mm-blocks-container-max-heights: (
 
 @mixin mm-blocks-capped-width {
     width: 100%;
-    max-width: 700px;
     box-sizing: border-box;
 }
 
 .mm-blocks {
     display: flex;
     min-width: 0;
+    max-width: 700px;
     min-height: 0;
     flex-direction: column;
     gap: 12px;
