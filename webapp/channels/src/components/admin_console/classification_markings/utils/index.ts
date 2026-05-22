@@ -8,6 +8,13 @@ import {Client4} from 'mattermost-redux/client';
 import type {ClassificationLevel} from './presets';
 import {PRESET_CUSTOM, presets} from './presets';
 
+// Classification Markings stores an explicit semantic rank (UNCLASSIFIED=1,
+// CONFIDENTIAL=2, SECRET=3, …) on its options. Other property-field
+// features use array order from attrs.options and don't carry this field.
+export type ClassificationOption = PropertyFieldOption & {
+    rank?: number;
+};
+
 // ---------------------------------------------------------------------------
 // Property-field identifiers for the classification-markings feature.
 //
@@ -127,7 +134,7 @@ export function detectPreset(levels: ClassificationLevel[]): string {
     return PRESET_CUSTOM;
 }
 
-export function optionsToLevels(options: PropertyFieldOption[]): ClassificationLevel[] {
+export function optionsToLevels(options: ClassificationOption[]): ClassificationLevel[] {
     return options.map((opt, i) => ({
         id: opt.id,
         name: opt.name,
@@ -146,7 +153,7 @@ export function levelsToOptions(levels: ClassificationLevel[]): Array<{id: strin
 }
 
 export function processClassificationField(field: PropertyField): {levels: ClassificationLevel[]; presetId: string} {
-    const options = (field.attrs?.options as PropertyFieldOption[]) || [];
+    const options = (field.attrs?.options as ClassificationOption[]) || [];
     const levels = optionsToLevels(options);
     const presetId = detectPreset(levels);
     return {levels, presetId};

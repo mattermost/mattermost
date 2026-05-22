@@ -80,14 +80,14 @@ describe('board_attributes_utils', () => {
             ]);
         });
 
-        test('preserves option properties beyond id (name, color, rank)', () => {
+        test('preserves option properties beyond id (name, color)', () => {
             const pendingId = newPendingId();
             const options: PropertyFieldOption[] = [
-                {id: pendingId, name: 'X', color: 'blue', rank: 5},
+                {id: pendingId, name: 'X', color: 'blue'},
             ];
 
             const result = stripPendingOptionIds(options);
-            expect(result?.[0]).toEqual({id: '', name: 'X', color: 'blue', rank: 5});
+            expect(result?.[0]).toEqual({id: '', name: 'X', color: 'blue'});
         });
     });
 

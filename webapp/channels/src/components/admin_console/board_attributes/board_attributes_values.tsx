@@ -14,12 +14,11 @@ import * as Menu from 'components/menu';
 
 import {useFLIPAnimation} from 'hooks/use_flip_animation';
 import {
+    COLOR_DESCRIPTOR,
     COLOR_TOKEN_NAMES,
     type ColorToken,
-    colorTokenLabels,
-    colorTokenMap,
     normalizeColor,
-} from 'utils/property_option_colors';
+} from 'utils/board_property_colors';
 
 import {ValidationWarningOptionsUnique, isOptionNameTaken, newPendingId} from './board_attributes_utils';
 import {useBoardOptionDnd} from './hooks/use_board_option_dnd';
@@ -48,7 +47,7 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
 
     const options = field.attrs?.options ?? [];
 
-    const setOptions = (next: PropertyFieldOption[]) => {
+    const setOptions = (next: Array<PropertyFieldOption<ColorToken>>) => {
         updateField({...field, attrs: {...field.attrs, options: next}});
     };
 
@@ -160,9 +159,9 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
 };
 
 type ChipProps = {
-    option: PropertyFieldOption;
-    options: PropertyFieldOption[];
-    setOptions: (next: PropertyFieldOption[]) => void;
+    option: PropertyFieldOption<ColorToken>;
+    options: Array<PropertyFieldOption<ColorToken>>;
+    setOptions: (next: Array<PropertyFieldOption<ColorToken>>) => void;
     fieldId: string;
 
     // When true, render the chip with no menu, no delete affordance, and no
@@ -201,7 +200,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
         getDragPreview: () => {
             const node = document.createElement('span');
             node.className = 'BoardAttributes__optionDragPreview';
-            node.style.backgroundColor = colorTokenMap[color];
+            node.style.backgroundColor = COLOR_DESCRIPTOR[color].color;
             node.textContent = option.name;
             return node;
         },
@@ -269,7 +268,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                 <ChipShell
                     $invalid={false}
                     $readonly={true}
-                    style={{backgroundColor: colorTokenMap[color]}}
+                    style={{backgroundColor: COLOR_DESCRIPTOR[color].color}}
                 >
                     <span
                         className='property-option-chip-trigger'
@@ -290,7 +289,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
             <ChipShell
                 ref={setChipElement}
                 $invalid={isInvalid}
-                style={{backgroundColor: colorTokenMap[color]}}
+                style={{backgroundColor: COLOR_DESCRIPTOR[color].color}}
             >
                 <Menu.Container
                     menuButton={{
@@ -362,8 +361,8 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                             aria-checked={color === token}
                             forceCloseOnSelect={false}
                             onClick={() => setColor(token)}
-                            leadingElement={<ColorPreview style={{backgroundColor: colorTokenMap[token]}}/>}
-                            labels={<FormattedMessage {...colorTokenLabels[token]}/>}
+                            leadingElement={<ColorPreview style={{backgroundColor: COLOR_DESCRIPTOR[token].color}}/>}
+                            labels={<FormattedMessage {...COLOR_DESCRIPTOR[token].label}/>}
                             trailingElements={color === token ? (
                                 <CheckIcon
                                     size={16}

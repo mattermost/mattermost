@@ -6,14 +6,16 @@ import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {useEffect} from 'react';
 
-import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {ColorToken, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {useLatest} from 'hooks/useLatest';
 
+type BoardOption = PropertyFieldOption<ColorToken>;
+
 type UseBoardOptionsDndOptions = {
     fieldId: string;
-    options: PropertyFieldOption[];
-    setOptions: (next: PropertyFieldOption[]) => void;
+    options: BoardOption[];
+    setOptions: (next: BoardOption[]) => void;
     enabled: boolean;
 };
 
