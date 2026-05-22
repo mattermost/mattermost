@@ -14,7 +14,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getPermalinkURL} from 'selectors/urls';
 
 import {ActionTypes, AnnouncementBarTypes} from 'utils/constants';
-import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import {getSiteURL} from 'utils/url';
 import {getTimestamp} from 'utils/utils';
@@ -101,10 +100,7 @@ export function selectAttachmentMenuAction(postId, actionId, cookie, dataSource,
             },
         });
 
-        const result = await dispatch(PostActions.doPostActionWithCookie(postId, actionId, cookie, value, undefined, 'attachment'));
-        if (!result.error && result.data?.goto_location) {
-            applyIntegrationGotoLocation(result.data.goto_location);
-        }
+        dispatch(PostActions.doPostActionWithCookie(postId, actionId, cookie, value, undefined, ''));
 
         return {data: true};
     };

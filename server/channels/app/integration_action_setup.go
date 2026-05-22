@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"maps"
@@ -89,32 +90,123 @@ func (a *App) resolvePostActionSetup(
 		PostId: postID,
 	}
 
-	pchan := make(chan store.StoreResult[*model.Post], 1)
-	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(rctx, postID, false)
-		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
-		close(pchan)
-	}()
+	userChan := a.startUpstreamUserFetch(userID)
+	postChan := a.startUpstreamPostFetch(rctx, postID)
+	channelChan := a.startUpstreamChannelFetch(postID)
 
-	cchan := make(chan store.StoreResult[*model.Channel], 1)
-	go func() {
-		channel, err := a.Srv().Store().Channel().GetForPost(postID)
-		cchan <- store.StoreResult[*model.Channel]{Data: channel, NErr: err}
-		close(cchan)
-	}()
-
-	postResult := <-pchan
+	postResult := <-postChan
 	if postResult.NErr != nil {
-		return a.resolvePostActionSetupFromCookies(postID, actionID, legacyCookie, mmBlocksCookie, clientQuery, upstreamRequest, postResult)
+		setup, gotoURL, appErr := a.resolvePostActionSetupFromCookies(postID, actionID, legacyCookie, mmBlocksCookie, clientQuery, upstreamRequest, postResult)
+		return a.finishPostActionSetup(setup, gotoURL, appErr, userChan)
 	}
 
 	post := postResult.Data
-	chResult := <-cchan
+	chResult := <-channelChan
 	if chResult.NErr != nil {
 		return nil, "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(chResult.NErr)
 	}
 
-	return a.resolvePostActionSetupFromPost(post, chResult.Data, actionID, clientQuery, integrationContext, upstreamRequest)
+	setup, gotoURL, appErr := a.resolvePostActionSetupFromPost(post, chResult.Data, actionID, clientQuery, integrationContext, upstreamRequest)
+	return a.finishPostActionSetup(setup, gotoURL, appErr, userChan)
+}
+
+func (a *App) startUpstreamPostFetch(rctx request.CTX, postID string) <-chan store.StoreResult[*model.Post] {
+	postChan := make(chan store.StoreResult[*model.Post], 1)
+	go func() {
+		post, err := a.Srv().Store().Post().GetSingle(rctx, postID, false)
+		postChan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
+		close(postChan)
+	}()
+	return postChan
+}
+
+func (a *App) startUpstreamChannelFetch(postID string) <-chan store.StoreResult[*model.Channel] {
+	channelChan := make(chan store.StoreResult[*model.Channel], 1)
+	go func() {
+		channel, err := a.Srv().Store().Channel().GetForPost(postID)
+		channelChan <- store.StoreResult[*model.Channel]{Data: channel, NErr: err}
+		close(channelChan)
+	}()
+	return channelChan
+}
+
+func (a *App) startUpstreamUserFetch(userID string) <-chan store.StoreResult[*model.User] {
+	userChan := make(chan store.StoreResult[*model.User], 1)
+	go func() {
+		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
+		close(userChan)
+	}()
+	return userChan
+}
+
+func (a *App) startUpstreamTeamFetch(teamID string) <-chan store.StoreResult[*model.Team] {
+	if teamID == "" {
+		return nil
+	}
+
+	teamChan := make(chan store.StoreResult[*model.Team], 1)
+	go func() {
+		defer close(teamChan)
+
+		team, err := a.Srv().Store().Team().Get(teamID)
+		teamChan <- store.StoreResult[*model.Team]{Data: team, NErr: err}
+	}()
+	return teamChan
+}
+
+func (a *App) populateUpstreamRequestIdentity(
+	upstreamRequest *model.PostActionIntegrationRequest,
+	userChan <-chan store.StoreResult[*model.User],
+) *model.AppError {
+	teamChan := a.startUpstreamTeamFetch(upstreamRequest.TeamId)
+
+	ur := <-userChan
+	if ur.NErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(ur.NErr, &nfErr):
+			return model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, "", http.StatusNotFound).Wrap(ur.NErr)
+		default:
+			return model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
+		}
+	}
+	upstreamRequest.UserName = ur.Data.Username
+
+	if teamChan != nil {
+		if tr, ok := <-teamChan; ok {
+			if tr.NErr != nil {
+				var nfErr *store.ErrNotFound
+				switch {
+				case errors.As(tr.NErr, &nfErr):
+					return model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(tr.NErr)
+				default:
+					return model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
+				}
+			}
+			upstreamRequest.TeamName = tr.Data.Name
+		}
+	}
+
+	return nil
+}
+
+func (a *App) finishPostActionSetup(
+	setup *postActionSetup,
+	gotoURL string,
+	appErr *model.AppError,
+	userChan <-chan store.StoreResult[*model.User],
+) (*postActionSetup, string, *model.AppError) {
+	if appErr != nil {
+		return nil, "", appErr
+	}
+	if gotoURL != "" {
+		return nil, gotoURL, nil
+	}
+	if appErr := a.populateUpstreamRequestIdentity(setup.upstreamRequest, userChan); appErr != nil {
+		return nil, "", appErr
+	}
+	return setup, "", nil
 }
 
 func (a *App) resolvePostActionSetupFromCookies(

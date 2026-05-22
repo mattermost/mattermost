@@ -35,7 +35,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -46,13 +45,6 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.query.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	userChan := make(chan store.StoreResult[*model.User], 1)
-	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
-		close(userChan)
-	}()
-
 	setup, gotoURL, appErr := a.resolvePostActionSetup(rctx, postID, actionId, userID, legacyCookie, mmBlocksCookie, clientQuery, integrationContext)
 	if appErr != nil {
 		return "", "", appErr
@@ -62,43 +54,6 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 	}
 
 	upstreamRequest := setup.upstreamRequest
-
-	teamChan := make(chan store.StoreResult[*model.Team], 1)
-	go func() {
-		defer close(teamChan)
-
-		// Direct and group channels won't have teams.
-		if upstreamRequest.TeamId == "" {
-			return
-		}
-		team, err := a.Srv().Store().Team().Get(upstreamRequest.TeamId)
-		teamChan <- store.StoreResult[*model.Team]{Data: team, NErr: err}
-	}()
-
-	ur := <-userChan
-	if ur.NErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(ur.NErr, &nfErr):
-			return "", "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, "", http.StatusNotFound).Wrap(ur.NErr)
-		default:
-			return "", "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
-		}
-	}
-	upstreamRequest.UserName = ur.Data.Username
-
-	if tr, ok := <-teamChan; ok {
-		if tr.NErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(tr.NErr, &nfErr):
-				return "", "", model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(tr.NErr)
-			default:
-				return "", "", model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
-			}
-		}
-		upstreamRequest.TeamName = tr.Data.Name
-	}
 
 	if selectedOption != "" {
 		if upstreamRequest.Context == nil {
