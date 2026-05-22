@@ -6197,10 +6197,6 @@
     "translation": "Post deletion incomplete. Review the Error Log and escalate to a System Administrator for manual remediation."
   },
   {
-    "id": "app.data_spillage.report.marshal_comment.app_error",
-    "translation": "An error occurred while marshaling the comment for the flagged post report."
-  },
-  {
     "id": "app.data_spillage.report.post_id",
     "translation": "Post ID:"
   },
