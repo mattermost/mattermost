@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-freebsd build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-elasticsearch test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public run-server-faketime default-roles-permissions generated
+.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-freebsd build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-elasticsearch test-server-opensearch test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public run-server-faketime default-roles-permissions generated
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -166,7 +166,7 @@ PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.9.0
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.3
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.4
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.5
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.1
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1
@@ -180,7 +180,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.9.0%2Bdfb5b30-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.3%2Bcab391a-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.4%2B5855fe1-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.5%2Bf4fc5d6-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -511,6 +511,15 @@ test-server-elasticsearch: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-elasticsearch: check-prereqs-enterprise start-docker gotestsum ## Runs Elasticsearch tests.
 	@echo Running only Elasticsearch tests
 	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(ES_PACKAGES)" -- $(GOFLAGS) -timeout=20m
+
+OS_PACKAGES=$(shell $(GO) list ./enterprise/elasticsearch/opensearch/...)
+
+test-server-opensearch: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-server-opensearch: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-server-opensearch: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
+test-server-opensearch: check-prereqs-enterprise start-docker gotestsum ## Runs OpenSearch tests.
+	@echo Running only OpenSearch tests
+	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(OS_PACKAGES)" -- $(GOFLAGS) -timeout=20m
 
 test-server-quick: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server-quick: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)

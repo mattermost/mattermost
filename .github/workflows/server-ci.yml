@@ -297,6 +297,21 @@ jobs:
       elasticsearch-version: "8.9.0"
       test-target: "test-server-elasticsearch"
 
+  test-opensearch-v2:
+    name: OpenSearch v2 Compatibility
+    needs: go
+    uses: ./.github/workflows/server-test-template.yml
+    secrets: inherit
+    with:
+      name: OpenSearch v2 Compatibility
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: opensearch-v2-server-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+      opensearch-version: "2.19.0"
+      test-target: "test-server-opensearch"
+
   # FIPS tests: run on PRs when go.mod changed or branch name contains "fips".
   # Sharded for fast iteration. Weekly workflow provides regular full coverage.
   test-postgres-normal-fips:
