@@ -124,6 +124,14 @@ jest.mock('components/common/hooks/useAccessControlAttributes', () => ({
     invalidateAccessControlAttributesCache: jest.fn(),
 }));
 
+jest.mock('mattermost-redux/actions/shared_channels', () => ({
+    fetchChannelRemotes: jest.fn((channelId, forceRefresh) => ({
+        type: 'MOCK_FETCH_CHANNEL_REMOTES',
+        channelId,
+        forceRefresh,
+    })),
+}));
+
 let mockState = {
     entities: {
         apps: {
@@ -1820,5 +1828,86 @@ describe('handleChannelConvertedEvent', () => {
                 name: 'test-channel',
             },
         });
+    });
+});
+
+describe('handleSharedChannelRemoteUpdatedEvent', () => {
+    const channelId = 'shared-remote-channel';
+
+    // eslint-disable-next-line global-require
+    const {fetchChannelRemotes} = require('mattermost-redux/actions/shared_channels');
+
+    beforeEach(() => {
+        store.dispatch.mockClear();
+        fetchChannelRemotes.mockClear();
+        mockState = {
+            ...mockState,
+            entities: {
+                ...mockState.entities,
+                channels: {
+                    ...mockState.entities.channels,
+                    channels: {
+                        ...mockState.entities.channels.channels,
+                        [channelId]: {
+                            id: channelId,
+                            team_id: 'currentTeamId',
+                            type: Constants.OPEN_CHANNEL,
+                            name: 'shared-channel',
+                            shared: true,
+                        },
+                    },
+                },
+            },
+        };
+    });
+
+    test('dispatches fetchChannelRemotes when local channel is shared', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: channelId},
+            broadcast: {channel_id: channelId},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).toHaveBeenCalledWith(channelId, true);
+    });
+
+    test('skips fetch when local channel is not shared (regression: MM-66162)', () => {
+        mockState.entities.channels.channels[channelId].shared = false;
+
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: channelId},
+            broadcast: {channel_id: channelId},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+
+    test('skips fetch when channel is absent from local state', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: 'unknown-channel'},
+            broadcast: {channel_id: 'unknown-channel'},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+
+    test('skips fetch when channel_id is missing from both data and broadcast', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {},
+            broadcast: {},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
     });
 });
