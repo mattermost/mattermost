@@ -401,6 +401,43 @@ func (a *App) SetSessionExpireInHours(session *model.Session, hours int) {
 	a.ch.srv.platform.SetSessionExpireInHours(session, hours)
 }
 
+// validateUserAccessTokenExpiry enforces the server-side PAT expiry policy
+// (ServiceSettings.EnforcePersonalAccessTokenExpiry and
+// MaximumPersonalAccessTokenLifetimeDays) against a token's ExpiresAt before
+// it is persisted. ExpiresAt == 0 means "never expires" and is only allowed
+// when enforcement is off. MaximumPersonalAccessTokenLifetimeDays == 0 means
+// unlimited.
+func (a *App) validateUserAccessTokenExpiry(token *model.UserAccessToken) *model.AppError {
+	cfg := a.Config().ServiceSettings
+
+	if token.ExpiresAt == 0 {
+		if cfg.EnforcePersonalAccessTokenExpiry != nil && *cfg.EnforcePersonalAccessTokenExpiry {
+			return model.NewAppError("CreateUserAccessToken", "app.user_access_token.expires_at_required.app_error", nil, "", http.StatusBadRequest)
+		}
+		return nil
+	}
+
+	if token.ExpiresAt <= model.GetMillis() {
+		return model.NewAppError("CreateUserAccessToken", "app.user_access_token.expires_at_in_past.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if cfg.MaximumPersonalAccessTokenLifetimeDays != nil && *cfg.MaximumPersonalAccessTokenLifetimeDays > 0 {
+		maxDays := int64(*cfg.MaximumPersonalAccessTokenLifetimeDays)
+		maxExpiry := model.GetMillis() + maxDays*24*60*60*1000
+		if token.ExpiresAt > maxExpiry {
+			return model.NewAppError(
+				"CreateUserAccessToken",
+				"app.user_access_token.expires_at_too_far.app_error",
+				map[string]any{"Days": maxDays},
+				"",
+				http.StatusBadRequest,
+			)
+		}
+	}
+
+	return nil
+}
+
 func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 	user, nErr := a.ch.srv.userService.GetUser(token.UserId)
 	if nErr != nil {
@@ -415,6 +452,10 @@ func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	if err := a.validateUserAccessTokenExpiry(token); err != nil {
+		return nil, err
 	}
 
 	token.Token = model.NewId()

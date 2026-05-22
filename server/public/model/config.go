@@ -347,48 +347,50 @@ type ServiceSettings struct {
 	TLSMinVer           *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	TLSStrictTransport  *bool   `access:"write_restrictable,cloud_restrictable"`
 	// In seconds.
-	TLSStrictTransportMaxAge            *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	TLSOverwriteCiphers                 []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	UseLetsEncrypt                      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	LetsEncryptCertificateCacheFile     *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
-	Forward80To443                      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TrustedProxyIPHeader                []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	ReadTimeout                         *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	WriteTimeout                        *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	IdleTimeout                         *int     `access:"write_restrictable,cloud_restrictable"`
-	MaximumLoginAttempts                *int     `access:"authentication_password,write_restrictable,cloud_restrictable"`
-	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
-	EnableDynamicClientRegistration     *bool    `access:"integrations_integration_management"`
-	DCRRedirectURIAllowlist             []string `access:"integrations_integration_management"`
-	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
-	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
-	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
-	EnableCommands                      *bool    `access:"integrations_integration_management"`
-	OutgoingIntegrationRequestsTimeout  *int64   `access:"integrations_integration_management"` // In seconds.
-	EnablePostUsernameOverride          *bool    `access:"integrations_integration_management"`
-	EnablePostIconOverride              *bool    `access:"integrations_integration_management"`
-	GoogleDeveloperKey                  *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
-	EnableLinkPreviews                  *bool    `access:"site_posts"`
-	EnablePermalinkPreviews             *bool    `access:"site_posts"`
-	RestrictLinkPreviews                *string  `access:"site_posts"`
-	EnableTesting                       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	EnableDeveloper                     *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	DeveloperFlags                      *string  `access:"environment_developer,cloud_restrictable"`
-	EnableClientPerformanceDebugging    *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
-	EnableSecurityFixAlert              *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
-	EnableInsecureOutgoingConnections   *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	AllowedUntrustedInternalConnections *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	EnableMultifactorAuthentication     *bool    `access:"authentication_mfa"`
-	EnforceMultifactorAuthentication    *bool    `access:"authentication_mfa"`
-	EnableUserAccessTokens              *bool    `access:"integrations_integration_management"`
-	AllowCorsFrom                       *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	CorsExposedHeaders                  *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	CorsAllowCredentials                *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	CorsDebug                           *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
-	AllowCookiesForSubdomains           *bool    `access:"write_restrictable,cloud_restrictable"`
-	ExtendSessionLengthWithActivity     *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
-	TerminateSessionsOnPasswordChange   *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	TLSStrictTransportMaxAge               *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	TLSOverwriteCiphers                    []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	UseLetsEncrypt                         *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	LetsEncryptCertificateCacheFile        *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
+	Forward80To443                         *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TrustedProxyIPHeader                   []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	ReadTimeout                            *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	WriteTimeout                           *int     `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	IdleTimeout                            *int     `access:"write_restrictable,cloud_restrictable"`
+	MaximumLoginAttempts                   *int     `access:"authentication_password,write_restrictable,cloud_restrictable"`
+	GoroutineHealthThreshold               *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableOAuthServiceProvider             *bool    `access:"integrations_integration_management"`
+	EnableDynamicClientRegistration        *bool    `access:"integrations_integration_management"`
+	DCRRedirectURIAllowlist                []string `access:"integrations_integration_management"`
+	EnableIncomingWebhooks                 *bool    `access:"integrations_integration_management"`
+	EnableOutgoingWebhooks                 *bool    `access:"integrations_integration_management"`
+	EnableOutgoingOAuthConnections         *bool    `access:"integrations_integration_management"`
+	EnableCommands                         *bool    `access:"integrations_integration_management"`
+	OutgoingIntegrationRequestsTimeout     *int64   `access:"integrations_integration_management"` // In seconds.
+	EnablePostUsernameOverride             *bool    `access:"integrations_integration_management"`
+	EnablePostIconOverride                 *bool    `access:"integrations_integration_management"`
+	GoogleDeveloperKey                     *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
+	EnableLinkPreviews                     *bool    `access:"site_posts"`
+	EnablePermalinkPreviews                *bool    `access:"site_posts"`
+	RestrictLinkPreviews                   *string  `access:"site_posts"`
+	EnableTesting                          *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	EnableDeveloper                        *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	DeveloperFlags                         *string  `access:"environment_developer,cloud_restrictable"`
+	EnableClientPerformanceDebugging       *bool    `access:"environment_developer,write_restrictable,cloud_restrictable"`
+	EnableSecurityFixAlert                 *bool    `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	EnableInsecureOutgoingConnections      *bool    `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	AllowedUntrustedInternalConnections    *string  `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	EnableMultifactorAuthentication        *bool    `access:"authentication_mfa"`
+	EnforceMultifactorAuthentication       *bool    `access:"authentication_mfa"`
+	EnableUserAccessTokens                 *bool    `access:"integrations_integration_management"`
+	EnforcePersonalAccessTokenExpiry       *bool    `access:"integrations_integration_management"`
+	MaximumPersonalAccessTokenLifetimeDays *int     `access:"integrations_integration_management"`
+	AllowCorsFrom                          *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsExposedHeaders                     *string  `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsAllowCredentials                   *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	CorsDebug                              *bool    `access:"integrations_cors,write_restrictable,cloud_restrictable"`
+	AllowCookiesForSubdomains              *bool    `access:"write_restrictable,cloud_restrictable"`
+	ExtendSessionLengthWithActivity        *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
+	TerminateSessionsOnPasswordChange      *bool    `access:"environment_session_lengths,write_restrictable,cloud_restrictable"`
 
 	// Deprecated
 	SessionLengthWebInDays  *int `access:"environment_session_lengths,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -553,6 +555,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableUserAccessTokens == nil {
 		s.EnableUserAccessTokens = new(false)
+	}
+
+	if s.EnforcePersonalAccessTokenExpiry == nil {
+		s.EnforcePersonalAccessTokenExpiry = new(false)
+	}
+
+	if s.MaximumPersonalAccessTokenLifetimeDays == nil {
+		s.MaximumPersonalAccessTokenLifetimeDays = new(0)
 	}
 
 	if s.GoroutineHealthThreshold == nil {
