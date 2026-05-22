@@ -8,6 +8,7 @@ import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 import {LicenseSkus} from 'utils/constants';
 
 import AdminDefinition from './admin_definition';
+import DataSpillageFeatureDiscovery from './feature_discovery/features/data_spillage';
 import type {AdminDefinitionSubSection, Check, ConsoleAccess} from './types';
 
 const contentFlaggingConfigEnabled = {
@@ -24,11 +25,21 @@ const contentFlaggingConfigDisabled = {
 
 const consoleAccess = {
     read: {
+        [RESOURCE_KEYS.SITE.POSTS]: true,
         [RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES]: true,
     },
     write: {
+        [RESOURCE_KEYS.SITE.POSTS]: true,
         [RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES]: true,
         [RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE]: true,
+    },
+} as ConsoleAccess;
+
+const consoleAccessWithoutLicenseWrite = {
+    ...consoleAccess,
+    write: {
+        ...consoleAccess.write,
+        [RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE]: false,
     },
 } as ConsoleAccess;
 
@@ -47,6 +58,11 @@ function isHidden(subsection: AdminDefinitionSubSection, config: Partial<AdminCo
     return check(config, {}, license, true, consoleAccess);
 }
 
+function isDisabled(check: Check | undefined, access: ConsoleAccess) {
+    const disabledCheck = check as Extract<Check, (...args: any[]) => boolean>;
+    return disabledCheck(contentFlaggingConfigEnabled, {}, professionalLicense, true, access);
+}
+
 describe('AdminDefinition - Data Spillage discovery', () => {
     const settingsSubsection = AdminDefinition.site.subsections.content_flagging;
     const discoverySubsection = AdminDefinition.site.subsections.content_flagging_feature_discovery;
@@ -57,9 +73,15 @@ describe('AdminDefinition - Data Spillage discovery', () => {
         expect(discoverySubsection.isDiscovery).toBe(true);
         expect(discoverySubsection.title).toEqual(settingsSubsection.title);
         expect(discoverySubsection.restrictedIndicator).toBeDefined();
+
+        const schema = discoverySubsection.schema;
+        expect('name' in schema ? schema.name : undefined).toEqual(settingsSubsection.title);
     });
 
     test('shows discovery instead of settings for Professional licenses', () => {
+        const siteSectionHiddenCheck = AdminDefinition.site.isHidden as Extract<Check, (...args: any[]) => boolean>;
+
+        expect(siteSectionHiddenCheck(contentFlaggingConfigEnabled, {}, professionalLicense, true, consoleAccess)).toBe(false);
         expect(isHidden(settingsSubsection, contentFlaggingConfigEnabled, professionalLicense)).toBe(true);
         expect(isHidden(discoverySubsection, contentFlaggingConfigEnabled, professionalLicense)).toBe(false);
     });
@@ -70,6 +92,7 @@ describe('AdminDefinition - Data Spillage discovery', () => {
     });
 
     test('hides discovery when the Content Flagging feature flag is disabled', () => {
+        expect(isHidden(settingsSubsection, contentFlaggingConfigDisabled, professionalLicense)).toBe(true);
         expect(isHidden(discoverySubsection, contentFlaggingConfigDisabled, professionalLicense)).toBe(true);
     });
 
@@ -82,7 +105,8 @@ describe('AdminDefinition - Data Spillage discovery', () => {
 
         expect(discoverySetting).toBeDefined();
         expect(discoverySetting?.type).toBe('custom');
-        expect(discoverySetting?.component).toBeDefined();
-        expect(discoverySetting?.isDisabled).toBeDefined();
+        expect(discoverySetting?.component).toBe(DataSpillageFeatureDiscovery);
+        expect(isDisabled(discoverySetting?.isDisabled, consoleAccess)).toBe(false);
+        expect(isDisabled(discoverySetting?.isDisabled, consoleAccessWithoutLicenseWrite)).toBe(true);
     });
 });
