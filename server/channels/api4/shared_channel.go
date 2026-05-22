@@ -274,7 +274,7 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 		if errors.Is(err, model.ErrChannelNotShared) {
 			remoteStatuses = []*model.SharedChannelRemoteStatus{}
 		} else {
-			c.Err = model.NewAppError("getSharedChannelRemotes", "api.command_share.fetch_remote_status.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			c.Err = model.NewAppError("getSharedChannelRemotes", "api.command_share.fetch_remote_status.error", map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 	}

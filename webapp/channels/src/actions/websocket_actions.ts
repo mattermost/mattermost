@@ -779,11 +779,23 @@ export function handleEvent(msg: WebSocketMessage) {
     });
 }
 
+// The server publishes shared_channel_remote_updated from the onInvite callback after a remote
+// (cluster or plugin) accepts a channel invitation. The channel is already shared at that point,
+// and the channel_updated event that set shared=true ran earlier in the share flow, so the local
+// channel should already reflect shared=true when this arrives. If it doesn't, the event isn't
+// meaningful for us and we skip the fetch.
 function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChannelRemoteUpdated) {
     const channelId = msg.data.channel_id || msg.broadcast.channel_id;
-    if (channelId) {
-        dispatch(fetchChannelRemotes(channelId, true));
+    if (!channelId) {
+        return;
     }
+
+    const channel = getChannel(getState(), channelId);
+    if (!channel?.shared) {
+        return;
+    }
+
+    dispatch(fetchChannelRemotes(channelId, true));
 }
 
 // handleChannelConvertedEvent handles updating of channel which is converted between public and private
