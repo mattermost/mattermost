@@ -46,7 +46,7 @@ var (
 // reindex has run yet) and should be treated as an empty result, not an error.
 func isIndexNotFound(err error) bool {
 	var osErr *opensearch.StructError
-	return errors.As(err, &osErr) && osErr.Status == http.StatusNotFound
+	return errors.As(err, &osErr) && osErr.Status == http.StatusNotFound && osErr.Err.Type == "index_not_found_exception"
 }
 
 type OpensearchInterfaceImpl struct {
