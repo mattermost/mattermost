@@ -3709,7 +3709,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.dataSpillage', defaultMessage: 'Data Spillage Handling'}),
                 isHidden: it.any(
                     it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
-                    it.licensedForSku(LicenseSkus.Entry),
                     it.configIsFalse('FeatureFlags', 'ContentFlagging'),
                 ),
                 schema: {
