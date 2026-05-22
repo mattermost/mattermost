@@ -2565,10 +2565,11 @@ func TestMmBlocksActionsKeptForWebhookImpersonation(t *testing.T) {
 }
 
 // TestMmBlocksActionsStripGate locks the create-time strip policy: keep
-// when the post is bot-authored OR the session is an integration; strip
-// when neither signal is present. The bot-author signal covers
-// PluginAPI.CreatePost (whose static rctx is unmarked) where the post is
-// authored by the plugin's bot user; the integration-session signal
+// when the post is bot-authored or the session is an integration; strip
+// when neither signal is present. Incoming webhooks use AllowMmBlocksActions
+// (see TestCreateWebhookPostKeepsMmBlocksActions). The bot-author signal
+// covers PluginAPI.CreatePost (whose static rctx is unmarked) where the post
+// is authored by the plugin's bot user; the integration-session signal
 // covers REST callers using bot tokens, PATs, or OAuth apps.
 func TestMmBlocksActionsStripGate(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -2778,15 +2779,12 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 	})
 }
 
-// TestCreateWebhookPostStripsMmBlocksActions locks the contract that an
-// incoming webhook cannot persist mm_blocks_actions even if the payload
-// includes the prop in its `props` map. CreateWebhookPost's prop iteration
-// has no explicit blocklist entry for mm_blocks_actions; it falls through
-// to AddProp and would land on the post object. The strip in CreatePost
-// (post.go) then fires because the webhook flow has no integration session
-// (incomingWebhook is registered with RequireSession: false). If a future
-// refactor changes the webhook session model, this test catches it.
-func TestCreateWebhookPostStripsMmBlocksActions(t *testing.T) {
+// TestCreateWebhookPostKeepsMmBlocksActions locks the contract that an
+// incoming webhook can persist mm_blocks_actions from its props map.
+// CreateWebhookPost passes AllowMmBlocksActions into CreatePost so the
+// create-time strip does not remove the prop (the webhook URL is the
+// trust boundary, same as legacy attachment actions).
+func TestCreateWebhookPostKeepsMmBlocksActions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2811,15 +2809,16 @@ func TestCreateWebhookPostStripsMmBlocksActions(t *testing.T) {
 		"", "", nil)
 	require.Nil(t, appErr)
 
-	assert.Nil(t, post.GetProp(model.PostPropsMmBlocksActions),
-		"incoming webhook payload must not be able to persist mm_blocks_actions; the strip in CreatePost should fire because the webhook session has IsIntegration()==false")
+	require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions),
+		"incoming webhook payload must persist mm_blocks_actions for client action dispatch")
 
-	// Belt and suspenders: read back from the DB to confirm the prop is
-	// not persisted either.
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
 	require.NoError(t, nErr)
-	assert.Nil(t, stored.GetProp(model.PostPropsMmBlocksActions),
-		"stored webhook post must not carry mm_blocks_actions")
+	require.NotNil(t, stored.GetProp(model.PostPropsMmBlocksActions),
+		"stored webhook post must carry mm_blocks_actions")
+	spec := stored.GetMmBlocksActionSpec("actx")
+	require.NotNil(t, spec)
+	assert.Equal(t, "http://127.0.0.1/plugins/myplugin/x", spec.URL)
 }
 
 func TestSendEphemeralPostEncryptsMmBlocksActionsCookie(t *testing.T) {

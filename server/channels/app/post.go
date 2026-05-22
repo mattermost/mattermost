@@ -256,19 +256,11 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	}
 
 	// Strip mm_blocks_actions from posts that are neither bot-authored nor
-	// created via an integration session. Either signal is sufficient:
-	//   - user.IsBot (DB-verified) covers PluginAPI.CreatePost where the
-	//     plugin's static rctx has no integration markers but the post
-	//     is authored by a bot user.
-	//   - rctx.Session().IsIntegration() (server-derived, unspoofable)
-	//     covers REST callers using bot tokens, PATs, or OAuth apps.
-	//
-	// Webhooks are handled separately at their entry point
-	// (CreateWebhookPost) — webhook payloads are user-controlled even
-	// when bound to a bot user, so the prop is dropped before the post
-	// reaches CreatePost. See TestCreateWebhookPostStripsMmBlocksActions.
+	// created via an integration session. CreateWebhookPost passes
+	// AllowMmBlocksActions instead of relying on from_webhook, which clients
+	// can forge on the public create-post API when hardened mode is off.
 	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
-		if !user.IsBot && !rctx.Session().IsIntegration() {
+		if !user.IsBot && !rctx.Session().IsIntegration() && !flags.AllowMmBlocksActions {
 			post.DelProp(model.PostPropsMmBlocksActions)
 		}
 	}

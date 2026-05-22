@@ -410,6 +410,9 @@ type CreatePostFlags struct {
 	TriggerWebhooks   bool
 	SetOnline         bool
 	ForceNotification bool
+	// AllowMmBlocksActions permits props.mm_blocks_actions on create. Set only
+	// by CreateWebhookPost — from_webhook is user-forgeable on the REST API.
+	AllowMmBlocksActions bool
 }
 
 type GetPostsSinceOptions struct {
