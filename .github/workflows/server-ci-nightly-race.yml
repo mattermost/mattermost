@@ -46,6 +46,7 @@ jobs:
       logsartifact: race-detector-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      build-image: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
       fullyparallel: false
       race-enabled: true
       runner: ubuntu-22.04

@@ -64,6 +64,10 @@ on:
         required: false
         type: boolean
         default: false
+      build-image:
+        description: "The build image to use (Docker Hub ref normally, ghcr.io ref for in-flight Go bumps)"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -110,11 +114,10 @@ jobs:
       - name: Setup BUILD_IMAGE
         id: build
         run: |
+          echo "BUILD_IMAGE=${{ inputs.build-image }}" >> "${GITHUB_OUTPUT}"
           if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
           else
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}" >> "${GITHUB_OUTPUT}"
           fi
 
