@@ -833,7 +833,6 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                 </div>
             );
 
-
             newTokenSection = (
                 <div className='pl-3'>
                     <div className='row'>
