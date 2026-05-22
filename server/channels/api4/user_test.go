@@ -5920,6 +5920,38 @@ func TestCreateUserAccessToken(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "app.user_access_token.expires_at_too_far.app_error")
 	})
+
+	t.Run("bot tokens are exempt from expiry enforcement", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+			*cfg.ServiceSettings.EnforcePersonalAccessTokenExpiry = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		createdBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
+			require.Nil(t, appErr)
+		}()
+
+		// Bot is allowed a non-expiring token even though enforcement is on and a
+		// max lifetime is configured — bots are programmatic clients and bypass
+		// the PAT expiry policy, matching the existing EnableUserAccessTokens bypass.
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test bot token")
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), rtoken.ExpiresAt)
+		assert.True(t, rtoken.IsActive)
+	})
 }
 
 func TestGetUserAccessToken(t *testing.T) {

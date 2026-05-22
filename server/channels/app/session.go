@@ -454,8 +454,14 @@ func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := a.validateUserAccessTokenExpiry(token); err != nil {
-		return nil, err
+	// Bot accounts are exempt from the PAT expiry policy, matching the existing
+	// EnableUserAccessTokens bypass above: bots are programmatic clients that
+	// typically need long-lived credentials, and integrations that provision
+	// them would otherwise break the moment an admin enables enforcement.
+	if !user.IsBot {
+		if err := a.validateUserAccessTokenExpiry(token); err != nil {
+			return nil, err
+		}
 	}
 
 	token.Token = model.NewId()
