@@ -3965,7 +3965,7 @@
             type: string
       responses:
         "200":
-          $ref: "#/components/responses/OK"
+          $ref: "#/components/schemas/StatusOK"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3999,7 +3999,7 @@
             type: string
       responses:
         "200":
-          $ref: "#/components/responses/OK"
+          $ref: "#/components/schemas/StatusOK"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

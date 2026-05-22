@@ -1,1 +1,0 @@
-DROP INDEX IF EXISTS idx_userplatformnotifications_userid_recordedat;
