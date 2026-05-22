@@ -9,14 +9,14 @@ ul#dropdown_send_post_options {
 
     li.dm-schedule-header {
         .label-elements {
-            font-weight: 500;
             font-size: 14px;
+            font-weight: 500;
         }
 
         .secondary-label {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 12px;
             font-weight: 400;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
         }
     }
 
@@ -27,10 +27,10 @@ ul#dropdown_send_post_options {
         align-items: baseline;
 
         .secondary-label {
+            margin-top: 2px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 12px;
             font-weight: 400;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-            margin-top: 2px;
         }
 
         .trailing-elements {

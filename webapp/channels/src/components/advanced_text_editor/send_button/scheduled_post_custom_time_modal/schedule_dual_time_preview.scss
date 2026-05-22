@@ -1,15 +1,15 @@
 .ScheduleDualTimePreview {
-    margin-top: 16px;
     padding: 12px 16px;
-    background-color: rgba(var(--center-channel-color-rgb), 0.04);
     border-radius: var(--radius-s);
+    margin-top: 16px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.04);
 
     &__row {
         display: flex;
-        justify-content: space-between;
         align-items: baseline;
-        gap: 12px;
+        justify-content: space-between;
         font-size: 13px;
+        gap: 12px;
         line-height: 20px;
 
         & + & {

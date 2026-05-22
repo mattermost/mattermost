@@ -1,30 +1,30 @@
 .SchedulePerspectiveToggle {
     display: flex;
-    align-items: center;
-    gap: 3px;
-    margin-bottom: 16px;
-    padding: 3px;
-    background-color: rgba(var(--center-channel-color-rgb), 0.04);
-    border-radius: var(--radius-m);
-    border: var(--border-default);
     width: fit-content;
+    align-items: center;
+    padding: 3px;
+    border: var(--border-default);
+    border-radius: var(--radius-m);
+    margin-bottom: 16px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+    gap: 3px;
 
     &__option {
         display: flex;
-        cursor: pointer;
         padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
         background-color: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.75);
-        border-radius: 4px;
+        cursor: pointer;
         font-size: 13px;
-        line-height: 18px;
         font-weight: 500;
-        border: none;
+        line-height: 18px;
 
         &[data-selected='true'] {
             background-color: var(--center-channel-bg);
-            color: var(--center-channel-color);
             box-shadow: var(--elevation-1);
+            color: var(--center-channel-color);
         }
 
         &:hover {
