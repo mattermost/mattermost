@@ -77,11 +77,11 @@ $mm-blocks-container-max-heights: (
 
             // `border: true` with `accent_color` — outer top/right/bottom frame on the same element.
             &.mm-blocks-container--accent-border {
-                margin: 5px 0;
+                border-radius: 0 4px 4px 4px;
                 border-top: 1px solid $mm-blocks-border-strong;
                 border-right: 1px solid $mm-blocks-border-strong;
                 border-bottom: 1px solid $mm-blocks-border-strong;
-                border-radius: 0 4px 4px 4px;
+                margin: 5px 0;
             }
         }
 
@@ -126,11 +126,11 @@ $mm-blocks-container-max-heights: (
         // `max_height: none` uses `mm-blocks-container--max-height-none` (no extra rules).
         @each $name, $height in $mm-blocks-container-max-heights {
             &--max-height-#{$name} {
+                min-height: 0;
+                max-height: $height;
                 flex-shrink: 0;
                 margin: 4px 0;
-                max-height: $height;
                 overflow-y: auto;
-                min-height: 0;
             }
         }
     }

@@ -1,15 +1,15 @@
 .MmBlocksHierarchyEditor {
     display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
     max-width: 56rem;
+    flex-wrap: wrap;
     margin-bottom: 16px;
+    gap: 16px;
 }
 
 .MmBlocksHierarchyEditor__treePanel,
 .MmBlocksHierarchyEditor__propertiesPanel {
-    flex: 1 1 240px;
     min-width: 220px;
+    flex: 1 1 240px;
     padding: 12px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
@@ -18,15 +18,15 @@
 
 .MmBlocksHierarchyEditor__heading {
     margin: 0 0 10px;
+    color: var(--center-channel-color);
     font-size: 13px;
     font-weight: 600;
-    color: var(--center-channel-color);
 }
 
 .MmBlocksHierarchyEditor__empty {
     margin: 0;
-    font-size: 12px;
     color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
 }
 
 .MmBlocksHierarchyEditor__emptyRoot {
@@ -42,19 +42,19 @@
 
 .MmBlocksHierarchyEditor__tree,
 .MmBlocksHierarchyEditor__children {
-    margin: 0;
     padding: 0;
+    margin: 0;
     list-style: none;
 }
 
 .MmBlocksHierarchyEditor__listLabel {
     margin: 6px 0 2px;
+    color: rgba(var(--center-channel-color-rgb), 0.48);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: rgba(var(--center-channel-color-rgb), 0.48);
     list-style: none;
+    text-transform: uppercase;
 }
 
 .MmBlocksHierarchyEditor__node {
@@ -64,10 +64,10 @@
 .MmBlocksHierarchyEditor__row {
     position: relative;
     display: flex;
-    align-items: center;
-    gap: 4px;
     min-height: 28px;
+    align-items: center;
     border-radius: 3px;
+    gap: 4px;
 
     &:hover,
     &:focus-within {
@@ -104,9 +104,9 @@
     border: none;
     background: transparent;
     color: rgba(var(--center-channel-color-rgb), 0.44);
+    cursor: grab;
     font-size: 12px;
     line-height: 1;
-    cursor: grab;
     opacity: 0;
     user-select: none;
 
@@ -122,15 +122,15 @@
 }
 
 .MmBlocksHierarchyEditor__rowButton {
-    flex: 1;
     min-width: 0;
+    flex: 1;
     padding: 4px 6px;
     border: none;
     background: transparent;
     color: var(--center-channel-color);
+    cursor: pointer;
     font-size: 12px;
     text-align: left;
-    cursor: pointer;
 
     &:focus-visible {
         outline: 2px solid var(--button-bg);
@@ -142,9 +142,9 @@
     display: inline-block;
     min-width: 5.5rem;
     margin-right: 6px;
+    color: var(--link-color);
     font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
     font-size: 11px;
-    color: var(--link-color);
 }
 
 .MmBlocksHierarchyEditor__summary {
@@ -155,8 +155,8 @@
     display: flex;
     flex-shrink: 0;
     align-items: center;
-    gap: 2px;
     padding-right: 4px;
+    gap: 2px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.12s ease;
@@ -178,11 +178,11 @@
 
 .MmBlocksHierarchyEditor__addMenuHeading {
     padding: 6px 12px 2px;
+    color: rgba(var(--center-channel-color-rgb), 0.48);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: rgba(var(--center-channel-color-rgb), 0.48);
 }
 
 .MmBlocksHierarchyEditor__addMenuItem {
@@ -192,9 +192,9 @@
     border: none;
     background: transparent;
     color: var(--center-channel-color);
+    cursor: pointer;
     font-size: 12px;
     text-align: left;
-    cursor: pointer;
 
     &:hover {
         background: rgba(var(--button-bg-rgb), 0.1);
@@ -209,10 +209,10 @@
 
 .MmBlocksHierarchyEditor__propertyRow {
     display: grid;
-    grid-template-columns: 7rem 1fr;
-    gap: 8px;
     align-items: center;
     font-size: 12px;
+    gap: 8px;
+    grid-template-columns: 7rem 1fr;
 
     &--stacked {
         grid-template-columns: 1fr;
@@ -233,9 +233,9 @@
 }
 
 .MmBlocksHierarchyEditor__propertyLabel {
+    color: rgba(var(--center-channel-color-rgb), 0.8);
     font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
     font-size: 11px;
-    color: rgba(var(--center-channel-color-rgb), 0.8);
 }
 
 .MmBlocksHierarchyEditor__propertyJson {
@@ -246,15 +246,15 @@
 
 .clMmBlocksEditorLayout {
     display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    align-items: flex-start;
     max-width: 72rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 16px;
 }
 
 .clMmBlocksEditorLayout__json {
-    flex: 1 1 280px;
     min-width: 260px;
+    flex: 1 1 280px;
 }
 
 .clMmBlocksEditorLayout__json .clJsonEditor {

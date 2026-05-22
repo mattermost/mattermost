@@ -2049,6 +2049,9 @@ func TestDoPostActionWithCookie_MmBlocksExternalForwardsSelectedOption(t *testin
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
+	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
+
 	var gotJSON string
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, readErr := io.ReadAll(r.Body)
@@ -2062,7 +2065,7 @@ func TestDoPostActionWithCookie_MmBlocksExternalForwardsSelectedOption(t *testin
 	root := model.Post{
 		Message:   "mm_blocks static_select host post",
 		ChannelId: th.BasicChannel.Id,
-		UserId:    th.BasicUser.Id,
+		UserId:    botUser.Id,
 		Props: model.StringInterface{
 			"mm_blocks": []any{
 				map[string]any{
@@ -2075,9 +2078,9 @@ func TestDoPostActionWithCookie_MmBlocksExternalForwardsSelectedOption(t *testin
 					},
 				},
 			},
-			"mm_blocks_actions": map[string]any{
+			model.PostPropsMmBlocksActions: map[string]any{
 				"mm_blocks_sel_act": map[string]any{
-					"type":    "external",
+					"type":    model.MmBlocksActionTypeExternal,
 					"url":     ts.URL,
 					"context": map[string]any{"track": "mm_blocks_select"},
 				},
@@ -2085,8 +2088,9 @@ func TestDoPostActionWithCookie_MmBlocksExternalForwardsSelectedOption(t *testin
 		},
 	}
 
-	post, _, appErr := th.App.CreatePostAsUser(th.Context, &root, "", true)
+	post, _, appErr := th.App.CreatePostAsUser(intSeedCtx, &root, "", true)
 	require.Nil(t, appErr)
+	require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions))
 
 	_, _, err := th.App.DoPostActionWithCookie(
 		th.Context,
@@ -2311,6 +2315,9 @@ func TestDoPostActionIntegrationContextCollision(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
+	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
+
 	sharedActionID := "dupact1"
 	var sawAttachment, sawMmBlock bool
 	tsAttachment := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -2330,7 +2337,7 @@ func TestDoPostActionIntegrationContextCollision(t *testing.T) {
 		Message:       "collision",
 		ChannelId:     th.BasicChannel.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
-		UserId:        th.BasicUser.Id,
+		UserId:        botUser.Id,
 		Props: model.StringInterface{
 			model.PostPropsAttachments: []*model.MessageAttachment{
 				{
@@ -2356,8 +2363,9 @@ func TestDoPostActionIntegrationContextCollision(t *testing.T) {
 		},
 	}
 
-	post, _, err := th.App.CreatePostAsUser(th.Context, interactivePost, "", true)
+	post, _, err := th.App.CreatePostAsUser(intSeedCtx, interactivePost, "", true)
 	require.Nil(t, err)
+	require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions))
 
 	sawAttachment = false
 	sawMmBlock = false
@@ -3111,6 +3119,9 @@ func TestDoPostActionMmBlocksActions(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
+	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
+
 	t.Run("external posts integration request with merged query on URL", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var request model.PostActionIntegrationRequest
@@ -3131,7 +3142,7 @@ func TestDoPostActionMmBlocksActions(t *testing.T) {
 			Message:       "mm_blocks action",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
-			UserId:        th.BasicUser.Id,
+			UserId:        botUser.Id,
 			Props: model.StringInterface{
 				model.PostPropsMmBlocksActions: map[string]any{
 					actionID: map[string]any{
@@ -3147,8 +3158,9 @@ func TestDoPostActionMmBlocksActions(t *testing.T) {
 			},
 		}
 
-		post, _, err := th.App.CreatePostAsUser(th.Context, interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(intSeedCtx, interactivePost, "", true)
 		require.Nil(t, err)
+		require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions))
 
 		clientQuery := map[string]string{"c": "fromClient"}
 		_, _, appErr := th.App.DoPostActionWithCookie(th.Context, post.Id, actionID, th.BasicUser.Id, "", nil, nil, clientQuery, model.PostActionIntegrationFormatMmBlock)
@@ -3161,7 +3173,7 @@ func TestDoPostActionMmBlocksActions(t *testing.T) {
 			Message:       "mm_blocks open",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
-			UserId:        th.BasicUser.Id,
+			UserId:        botUser.Id,
 			Props: model.StringInterface{
 				model.PostPropsMmBlocksActions: map[string]any{
 					actionID: map[string]any{
@@ -3175,8 +3187,9 @@ func TestDoPostActionMmBlocksActions(t *testing.T) {
 				},
 			},
 		}
-		post, _, err := th.App.CreatePostAsUser(th.Context, interactivePost, "", true)
+		post, _, err := th.App.CreatePostAsUser(intSeedCtx, interactivePost, "", true)
 		require.Nil(t, err)
+		require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions))
 
 		trigger, gotoLoc, appErr := th.App.DoPostActionWithCookie(th.Context, post.Id, actionID, th.BasicUser.Id, "", nil, nil, nil, model.PostActionIntegrationFormatMmBlock)
 		require.Nil(t, appErr)
