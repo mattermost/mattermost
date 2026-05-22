@@ -146,7 +146,7 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
                                 </div>
                                 <div className='whitespace--nowrap overflow--ellipsis'>
                                     <FormattedMessage
-                                        id='admin.manage_tokens.userAccessTokensExpiryLabel'
+                                        id='admin.manage_tokens.expiry'
                                         defaultMessage='Expires: '
                                     />
                                     {hasExpiry ? (

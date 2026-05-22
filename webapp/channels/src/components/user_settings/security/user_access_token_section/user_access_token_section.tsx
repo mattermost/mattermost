@@ -4,10 +4,12 @@
 import moment from 'moment-timezone';
 import type {Moment} from 'moment-timezone';
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import {isMobile} from '@mattermost/shared/utils/user_agent';
+import type {ServerError} from '@mattermost/types/errors';
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -77,7 +79,7 @@ function mapServerErrorIdToMessage(errorId?: string, maxDays?: number): React.Re
     }
 }
 
-type Props = {
+type OwnProps = {
     user: UserProfile;
     active?: boolean;
     areAllSectionsInactive: boolean;
@@ -96,6 +98,8 @@ type Props = {
     };
 }
 
+type Props = OwnProps & WrappedComponentProps;
+
 type State = {
     active?: boolean;
     showConfirmModal: boolean;
@@ -113,7 +117,7 @@ type State = {
     showExpiryPicker: boolean;
 }
 
-export default class UserAccessTokenSection extends React.PureComponent<Props, State> {
+class UserAccessTokenSection extends React.PureComponent<Props, State> {
     private minRef: React.RefObject<SettingItemMinComponent>;
     private newtokendescriptionRef: React.RefObject<HTMLInputElement>;
 
@@ -226,19 +230,19 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         const {enforceExpiry, maxLifetimeDays} = this.props;
         const {expiresAt} = this.state;
 
-        if (enforceExpiry && !expiresAt) {
+        if (enforceExpiry && expiresAt <= 0) {
             this.setState({
                 tokenError: mapServerErrorIdToMessage('expires_at_required'),
             });
             return;
         }
-        if (expiresAt && expiresAt <= Date.now()) {
+        if (expiresAt > 0 && expiresAt <= Date.now()) {
             this.setState({
                 tokenError: mapServerErrorIdToMessage('expires_at_in_past'),
             });
             return;
         }
-        if (expiresAt && maxLifetimeDays > 0) {
+        if (expiresAt > 0 && maxLifetimeDays > 0) {
             const maxAllowed = moment().add(maxLifetimeDays, 'days').valueOf();
             if (expiresAt > maxAllowed) {
                 this.setState({
@@ -257,11 +261,12 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         if (data && this.state.tokenCreationState === TOKEN_CREATING) {
             this.setState({tokenCreationState: TOKEN_CREATED, newToken: data, saving: false});
         } else if (error) {
-            const mapped = mapServerErrorIdToMessage((error as {server_error_id?: string; id?: string}).server_error_id || (error as {id?: string}).id, maxLifetimeDays);
+            const serverError = error as ServerError;
+            const mapped = mapServerErrorIdToMessage(serverError.server_error_id, maxLifetimeDays);
             if (mapped) {
                 this.setState({tokenError: mapped, serverError: null, saving: false});
             } else {
-                this.setState({serverError: error.message, saving: false});
+                this.setState({serverError: serverError.message, saving: false});
             }
         }
     };
@@ -533,6 +538,13 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
             const msUntilExpiry = hasExpiry ? (token.expires_at as number) - Date.now() : Infinity;
             const approachingExpiry = status === 'active' && hasExpiry && msUntilExpiry > 0 && msUntilExpiry < APPROACHING_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
             const daysUntilExpiry = Math.max(0, Math.ceil(msUntilExpiry / (24 * 60 * 60 * 1000)));
+            const expiresSoonLabel = approachingExpiry ? this.props.intl.formatMessage(
+                {
+                    id: 'user.settings.tokens.expiresSoon',
+                    defaultMessage: 'Expires in {days, number} {days, plural, one {day} other {days}}',
+                },
+                {days: daysUntilExpiry},
+            ) : undefined;
 
             const expiryRow = (
                 <div className='setting-box__token-expiry whitespace--nowrap overflow--ellipsis'>
@@ -553,16 +565,12 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                             {approachingExpiry && (
                                 <span
                                     className='setting-box__token-expiry-warning'
-                                    title={`Expires in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'}`}
+                                    title={expiresSoonLabel}
                                 >
                                     {' '}
                                     <WarningIcon/>
                                     {' '}
-                                    <FormattedMessage
-                                        id='user.settings.tokens.expiresSoon'
-                                        defaultMessage='Expires in {days, number} {days, plural, one {day} other {days}}'
-                                        values={{days: daysUntilExpiry}}
-                                    />
+                                    {expiresSoonLabel}
                                 </span>
                             )}
                         </>
@@ -692,7 +700,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
             const {enforceExpiry, maxLifetimeDays} = this.props;
             const {expiresAt} = this.state;
 
-            const expiryLabel = expiresAt ? (
+            const expiryLabel = expiresAt > 0 ? (
                 <>
                     <FormattedDate
                         value={expiresAt}
@@ -714,7 +722,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                 <div className='row pt-3'>
                     <label className='col-sm-auto control-label pr-3'>
                         <FormattedMessage
-                            id='user.settings.tokens.expiryLabel'
+                            id='user.settings.tokens.expiry'
                             defaultMessage='Expires: '
                         />
                     </label>
@@ -725,7 +733,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                             size='sm'
                             onClick={this.openExpiryPicker}
                         >
-                            {expiresAt ? (
+                            {expiresAt > 0 ? (
                                 <FormattedMessage
                                     id='user.settings.tokens.changeExpiry'
                                     defaultMessage='Change'
@@ -737,7 +745,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                                 />
                             )}
                         </Button>
-                        {expiresAt && !enforceExpiry ? (
+                        {expiresAt > 0 && !enforceExpiry ? (
                             <Button
                                 emphasis='tertiary'
                                 size='sm'
@@ -935,7 +943,10 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                 />
                 {this.state.showExpiryPicker && (
                     <DateTimePickerModal
-                        ariaLabel='Personal access token expiry'
+                        ariaLabel={this.props.intl.formatMessage({
+                            id: 'user.settings.tokens.pickerHeader',
+                            defaultMessage: 'Select token expiry',
+                        })}
                         header={
                             <FormattedMessage
                                 id='user.settings.tokens.pickerHeader'
@@ -949,7 +960,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                                 values={{days: this.props.maxLifetimeDays}}
                             />
                         ) : undefined}
-                        initialTime={this.state.expiresAt ? moment(this.state.expiresAt) : moment().add(this.props.maxLifetimeDays > 0 ? Math.min(DEFAULT_EXPIRY_DAYS, this.props.maxLifetimeDays) : DEFAULT_EXPIRY_DAYS, 'days')}
+                        initialTime={this.state.expiresAt > 0 ? moment(this.state.expiresAt) : moment().add(this.props.maxLifetimeDays > 0 ? Math.min(DEFAULT_EXPIRY_DAYS, this.props.maxLifetimeDays) : DEFAULT_EXPIRY_DAYS, 'days')}
                         confirmButtonText={
                             <FormattedMessage
                                 id='user.settings.tokens.pickerConfirm'
@@ -965,3 +976,6 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
         );
     }
 }
+
+export default injectIntl(UserAccessTokenSection);
+
