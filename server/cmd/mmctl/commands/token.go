@@ -71,7 +71,7 @@ func generateTokenForAUserCmdF(c client.Client, command *cobra.Command, args []s
 		return errors.Errorf("could not retrieve user information of %q", userArg)
 	}
 
-	token, _, err := c.CreateUserAccessToken(context.TODO(), user.Id, args[1])
+	token, _, err := c.CreateUserAccessToken(context.TODO(), user.Id, args[1], 0)
 	if err != nil {
 		return errors.Errorf("could not create token for %q: %s", userArg, err.Error())
 	}

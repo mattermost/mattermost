@@ -38,7 +38,7 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUserAccessToken(context.TODO(), mockUser.Id, mockToken.Description).
+			CreateUserAccessToken(context.TODO(), mockUser.Id, mockToken.Description, int64(0)).
 			Return(&mockToken, &model.Response{}, nil).
 			Times(1)
 
@@ -83,7 +83,7 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUserAccessToken(context.TODO(), mockUser.Id, "description").
+			CreateUserAccessToken(context.TODO(), mockUser.Id, "description", int64(0)).
 			Return(nil, &model.Response{}, errors.New("error-message")).
 			Times(1)
 
