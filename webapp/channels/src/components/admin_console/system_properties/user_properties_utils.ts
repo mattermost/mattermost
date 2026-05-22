@@ -179,7 +179,7 @@ export const useUserPropertyFields = () => {
                     }
                 }
 
-                if (field.type === 'select' || field.type === 'multiselect') {
+                if (field.type === 'select' || field.type === 'multiselect' || field.type === 'rank') {
                     const options = field.attrs?.options;
                     if (!options?.length) {
                         acc[field.id] = {attrs: ValidationWarningOptionsRequired};

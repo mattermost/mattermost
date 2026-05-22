@@ -57,6 +57,7 @@ const AttributeIcon = (props: IconProps & { attribute?: UserPropertyField }) => 
         // If no specific value_type, check the field type
         switch (attribute.type) {
         case 'select':
+        case 'rank':
             return <ChevronDownCircleOutlineIcon {...iconProps}/>;
         case 'multiselect':
             return <FormatListBulletedIcon {...iconProps}/>;

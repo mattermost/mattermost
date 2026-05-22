@@ -143,7 +143,7 @@ func (a *App) maskConditionValues(rctx request.CTX, callerID string, condition *
 		condition.Value = nil
 		condition.HasMaskedValues = true
 	case model.PropertyAccessModeSharedOnly:
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect || field.Type == model.PropertyFieldTypeRank {
 			filterConditionValues(condition, extractVisibleOptionNames(field))
 		} else {
 			filterConditionValues(condition, a.getCallerTextValues(rctx, callerID, field, cpaGroupID))
@@ -299,7 +299,7 @@ func (a *App) getHiddenValues(rctx request.CTX, callerID string, stored *model.C
 		return extractStringValues(stored.Value)
 	case model.PropertyAccessModeSharedOnly:
 		var visibleNames map[string]struct{}
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect || field.Type == model.PropertyFieldTypeRank {
 			visibleNames = extractVisibleOptionNames(field)
 		} else {
 			visibleNames = a.getCallerTextValues(rctx, callerID, field, cpaGroupID)
@@ -720,7 +720,7 @@ func (a *App) validateConditionValues(rctx request.CTX, cond *model.Condition, c
 		return nil
 	case model.PropertyAccessModeSharedOnly:
 		var visibleNames map[string]struct{}
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect || field.Type == model.PropertyFieldTypeRank {
 			visibleNames = extractVisibleOptionNames(field)
 		} else {
 			callerID, _ := CallerIDFromRequestContext(rctx)
@@ -802,7 +802,7 @@ func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, co
 		return true
 	case model.PropertyAccessModeSharedOnly:
 		var visibleNames map[string]struct{}
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect || field.Type == model.PropertyFieldTypeRank {
 			visibleNames = extractVisibleOptionNames(field)
 		} else {
 			visibleNames = a.getCallerTextValues(rctx, callerID, field, cpaGroupID)
@@ -1124,7 +1124,7 @@ func (a *App) callerCanSeeFieldValue(field *model.PropertyField, value string, m
 		return false
 	case model.PropertyAccessModeSharedOnly:
 		var visibleNames map[string]struct{}
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect || field.Type == model.PropertyFieldTypeRank {
 			visibleNames = extractVisibleOptionNames(field)
 		} else {
 			visibleNames = a.getCallerTextValues(mc.rctxWithCaller, mc.callerID, field, mc.cpaGroupID)

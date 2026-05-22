@@ -821,7 +821,7 @@ func (h *AccessControlHook) extractOptionIDsFromValue(fieldType model.PropertyFi
 	optionIDs := make(map[string]struct{})
 
 	switch fieldType {
-	case model.PropertyFieldTypeSelect:
+	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank:
 		var optionID string
 		if err := json.Unmarshal(value, &optionID); err != nil {
 			return nil, err
@@ -890,7 +890,7 @@ func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerI
 
 // filterSharedOnlyFieldOptions filters a field's options to only include those the caller has values for.
 func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
-	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
+	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect && field.Type != model.PropertyFieldTypeRank {
 		return field
 	}
 
@@ -944,7 +944,7 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(field *model.PropertyFi
 // existence is itself controlled information: a caller who doesn't hold the same value
 // must not see the target's value through any read endpoint.
 func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
-	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
+	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect && field.Type != model.PropertyFieldTypeRank {
 		return h.filterSharedOnlyScalarValue(field, value, callerID)
 	}
 
@@ -972,7 +972,7 @@ func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, va
 	filteredValue := *value
 
 	switch field.Type {
-	case model.PropertyFieldTypeSelect:
+	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank:
 		jsonValue, err := json.Marshal(intersection[0])
 		if err != nil {
 			return nil
@@ -1036,7 +1036,7 @@ func (h *AccessControlHook) applyFieldReadAccessControl(field *model.PropertyFie
 
 	// Source-only or unknown: return with empty options (secure default)
 	filteredField := h.copyPropertyField(field)
-	if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+	if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect || field.Type == model.PropertyFieldTypeRank {
 		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
 	}
 	return filteredField

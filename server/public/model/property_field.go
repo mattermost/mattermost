@@ -28,6 +28,7 @@ const (
 	PropertyFieldTypeDate        PropertyFieldType = "date"
 	PropertyFieldTypeUser        PropertyFieldType = "user"
 	PropertyFieldTypeMultiuser   PropertyFieldType = "multiuser"
+	PropertyFieldTypeRank        PropertyFieldType = "rank"
 
 	PropertyFieldNameMaxRunes       = 255
 	PropertyFieldTargetIDMaxRunes   = 255
@@ -138,7 +139,7 @@ func (pf *PropertyField) PreSave() {
 // EnsureOptionIDs generates IDs for any options that don't have them in select/multiselect fields.
 // This ensures option IDs are always set, similar to how field IDs are auto-generated.
 func (pf *PropertyField) EnsureOptionIDs() error {
-	if pf.Type != PropertyFieldTypeSelect && pf.Type != PropertyFieldTypeMultiselect {
+	if pf.Type != PropertyFieldTypeSelect && pf.Type != PropertyFieldTypeMultiselect && pf.Type != PropertyFieldTypeRank {
 		return nil
 	}
 
@@ -256,7 +257,8 @@ func (pf *PropertyField) IsValid() error {
 		pf.Type != PropertyFieldTypeMultiselect &&
 		pf.Type != PropertyFieldTypeDate &&
 		pf.Type != PropertyFieldTypeUser &&
-		pf.Type != PropertyFieldTypeMultiuser {
+		pf.Type != PropertyFieldTypeMultiuser &&
+		pf.Type != PropertyFieldTypeRank {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
@@ -353,7 +355,8 @@ func (pfp *PropertyFieldPatch) IsValid() error {
 		*pfp.Type != PropertyFieldTypeMultiselect &&
 		*pfp.Type != PropertyFieldTypeDate &&
 		*pfp.Type != PropertyFieldTypeUser &&
-		*pfp.Type != PropertyFieldTypeMultiuser {
+		*pfp.Type != PropertyFieldTypeMultiuser &&
+		*pfp.Type != PropertyFieldTypeRank {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
 	}
 

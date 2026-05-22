@@ -9,7 +9,8 @@ export type FieldType = (
     'multiselect' |
     'date' |
     'user' |
-    'multiuser'
+    'multiuser' |
+    'rank'
 );
 
 export type PropertyField = {
@@ -113,7 +114,7 @@ export type SelectPropertyField = PropertyField & {
 }
 
 export const supportsOptions = (field: UserPropertyField) => {
-    return field.type === 'select' || field.type === 'multiselect';
+    return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 };
 
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;

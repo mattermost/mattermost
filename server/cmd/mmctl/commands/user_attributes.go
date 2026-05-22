@@ -179,7 +179,7 @@ func setupCPATemplateContext(c client.Client) error {
 // resolveDisplayValue converts raw field values to human-readable display format
 func resolveDisplayValue(field *model.PropertyField, rawValue json.RawMessage) string {
 	switch field.Type {
-	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect:
+	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect, model.PropertyFieldTypeRank:
 		return resolveOptionDisplayValue(field, rawValue)
 	default:
 		var value any
@@ -208,7 +208,7 @@ func resolveOptionDisplayValue(field *model.PropertyField, rawValue json.RawMess
 		optionMap[option.ID] = option.Name
 	}
 
-	if field.Type == model.PropertyFieldTypeSelect {
+	if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeRank {
 		// Single select - expect a string
 		var optionID string
 		if err := json.Unmarshal(rawValue, &optionID); err != nil {
