@@ -30,6 +30,39 @@ export function isPermissionPoliciesEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPermissionPolicies === 'true';
 }
 
+/**
+ * Whether channel-scope policies may carry permission-rule actions
+ * (file upload/download) — i.e. whether the Channel Settings →
+ * Permissions Policy tab should be exposed.
+ *
+ * The sub-flag `ChannelPermissionPolicies` AND the umbrella
+ * `PermissionPolicies` must BOTH be on. Mirrors the server-side
+ * `FeatureFlags.IsChannelPermissionPoliciesEnabled()` helper so the
+ * dependency direction is consistent across the wire. Centralizing
+ * the check here means every consumer (settings tab, save buttons,
+ * etc.) automatically picks up future changes to the dependency.
+ */
+export function isChannelPermissionPoliciesEnabled(state: GlobalState): boolean {
+    return isPermissionPoliciesEnabled(state) &&
+        getConfig(state).FeatureFlagChannelPermissionPolicies === 'true';
+}
+
+/**
+ * Whether the "Simulate access" preview UX should be exposed
+ * (System Console policy editor + Channel Settings tab).
+ *
+ * The sub-flag `PolicySimulation` AND the umbrella
+ * `PermissionPolicies` must BOTH be on. Mirrors the server-side
+ * `FeatureFlags.IsPolicySimulationEnabled()` helper. The backing
+ * `/cel/simulate_users` endpoint returns 501 when this is off, so
+ * hiding the entry points here also prevents users from seeing an
+ * "Evaluating…" button that can never resolve.
+ */
+export function isPolicySimulationEnabled(state: GlobalState): boolean {
+    return isPermissionPoliciesEnabled(state) &&
+        getConfig(state).FeatureFlagPolicySimulation === 'true';
+}
+
 export type PasswordConfig = {
     minimumLength: number;
     requireLowercase: boolean;

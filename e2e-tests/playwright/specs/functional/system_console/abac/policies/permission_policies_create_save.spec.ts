@@ -44,7 +44,11 @@ test.describe('Permission Policies - Create Policy', () => {
             await expect(systemConsolePage.page.getByRole('heading', {name: 'Permission Policies'})).toBeVisible();
             const policyRow = systemConsolePage.page.locator('.DataGrid_row').filter({hasText: policyName});
             await expect(policyRow).toBeVisible();
-            await expect(policyRow.getByText('Members and system administrators')).toBeVisible();
+            // Role label was shortened from "Members and system administrators"
+            // to just "Members" in the UX pass; the "system admins fall back
+            // when no admin-specific rule exists" semantics moved into the
+            // role's description copy.
+            await expect(policyRow.getByText('Members', {exact: true})).toBeVisible();
             await expect(policyRow.getByText('Download Files')).toBeVisible();
         } finally {
             await deletePermissionPolicyByName(adminClient, policyName);
