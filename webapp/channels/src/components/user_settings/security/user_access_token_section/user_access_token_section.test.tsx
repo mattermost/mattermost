@@ -14,23 +14,34 @@ import {
 } from './user_access_token_section';
 
 describe('user_access_token_section helpers', () => {
-    describe('deriveTokenStatus', () => {
-        const now = Date.now();
+    // Freeze time so date arithmetic (Date.now, endOfLocalDayPlusDays) doesn't
+    // flake across midnight boundaries. 2026-06-15T12:00 local sits in the
+    // middle of a day with no DST transitions.
+    const FROZEN_NOW = new Date(2026, 5, 15, 12, 0, 0).getTime();
 
+    beforeAll(() => {
+        jest.useFakeTimers().setSystemTime(FROZEN_NOW);
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
+    describe('deriveTokenStatus', () => {
         test('inactive when is_active=false, regardless of expires_at', () => {
             expect(deriveTokenStatus({is_active: false})).toBe('inactive');
-            expect(deriveTokenStatus({is_active: false, expires_at: now + 1_000_000})).toBe('inactive');
-            expect(deriveTokenStatus({is_active: false, expires_at: now - 1_000_000})).toBe('inactive');
+            expect(deriveTokenStatus({is_active: false, expires_at: FROZEN_NOW + 1_000_000})).toBe('inactive');
+            expect(deriveTokenStatus({is_active: false, expires_at: FROZEN_NOW - 1_000_000})).toBe('inactive');
         });
 
         test('expired when active and expires_at is in the past', () => {
-            expect(deriveTokenStatus({is_active: true, expires_at: now - 1_000})).toBe('expired');
+            expect(deriveTokenStatus({is_active: true, expires_at: FROZEN_NOW - 1_000})).toBe('expired');
         });
 
         test('active when no expires_at, expires_at=0, or future expires_at', () => {
             expect(deriveTokenStatus({is_active: true})).toBe('active');
             expect(deriveTokenStatus({is_active: true, expires_at: 0})).toBe('active');
-            expect(deriveTokenStatus({is_active: true, expires_at: now + 1_000_000})).toBe('active');
+            expect(deriveTokenStatus({is_active: true, expires_at: FROZEN_NOW + 1_000_000})).toBe('active');
         });
     });
 
