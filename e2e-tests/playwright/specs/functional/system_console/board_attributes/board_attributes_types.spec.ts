@@ -8,7 +8,13 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {BOARDS_GROUP, OBJECT_TYPE_POST, SYSTEM_TARGET_TYPE, setupBoardAttributesTest, cleanupCustomBoardFields} from './setup';
+import {
+    BOARDS_GROUP,
+    OBJECT_TYPE_POST,
+    SYSTEM_TARGET_TYPE,
+    setupBoardAttributesTest,
+    cleanupCustomBoardFields,
+} from './setup';
 import type {BoardAttributeType} from './setup';
 
 const SERVER_TYPE_BY_UI_LABEL: Record<BoardAttributeType, string> = {
