@@ -8,11 +8,11 @@ import {useSelector} from 'react-redux';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
-import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import {
     getRecipientLocationLabel,
     getTheirMorningTimestamp,
 } from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
+import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
 import Timestamp from 'components/timestamp';
 
@@ -38,7 +38,6 @@ function formatWeekdayInTimezone(timestamp: number, timezone: string, locale: st
 function DmMenuOptions({handleOnSelect, channelId}: Props) {
     const {
         userCurrentTimezone,
-        teammateTimezone,
         recipientTimezoneString,
     } = useTimePostBoxIndicator(channelId);
 

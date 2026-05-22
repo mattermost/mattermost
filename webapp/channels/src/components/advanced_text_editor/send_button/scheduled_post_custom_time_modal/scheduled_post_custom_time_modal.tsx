@@ -13,17 +13,17 @@ import {generateCurrentTimezoneLabel, getCurrentTimezone} from 'mattermost-redux
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {
-    DMUserTimezone,
-} from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/dm_user_timezone';
-import ScheduleDualTimePreview from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/schedule_dual_time_preview';
-import SchedulePerspectiveToggle from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/schedule_perspective_toggle';
-import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
-import {
     getDefaultScheduleDateTime,
     isDmScheduleRedesign,
     reinterpretWallClock,
     type SchedulePerspective,
 } from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
+import {
+    DMUserTimezone,
+} from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/dm_user_timezone';
+import ScheduleDualTimePreview from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/schedule_dual_time_preview';
+import SchedulePerspectiveToggle from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/schedule_perspective_toggle';
+import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
 import {scheduledPosts} from 'utils/constants';

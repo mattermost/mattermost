@@ -9,8 +9,8 @@ import type {UserProfile, UserTimezone} from '@mattermost/types/users';
 
 import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {generateCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
-import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
+import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import type {GlobalState} from 'types/store';
 

@@ -4,12 +4,11 @@
 import {DateTime} from 'luxon';
 import React from 'react';
 
+import {isDmScheduleRedesign} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
-
-import {isDmScheduleRedesign} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
 
 import CoreMenuOptions from './core_menu_options';
 
@@ -142,5 +141,4 @@ describe('CoreMenuOptions Component', () => {
 
         expect(handleOnSelect).toHaveBeenCalledWith(expect.anything(), expectedTimestamp);
     });
-
 });

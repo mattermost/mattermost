@@ -10,13 +10,13 @@ import type {UserProfile} from '@mattermost/types/users';
 import {getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getTimezoneForUserProfile, getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 import {
     getCurrentUserId,
     getStatusForUserId,
     getUser,
     makeGetDisplayName,
 } from 'mattermost-redux/selectors/entities/users';
+import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import Constants, {UserStatuses} from 'utils/constants';
 

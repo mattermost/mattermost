@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import type {Moment} from 'moment-timezone';
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
 
 import type {SchedulePerspective} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
 import {formatTimezoneOffsetShort} from 'components/advanced_text_editor/send_button/schedule_message_dm_utils';
@@ -95,7 +95,9 @@ export default function ScheduleDualTimePreview({
                     />
                     {' '}
                     <span className='ScheduleDualTimePreview__offset'>
-                        ({senderOffset})
+                        {'('}
+                        {senderOffset}
+                        {')'}
                     </span>
                 </span>
             </div>

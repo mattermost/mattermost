@@ -27,11 +27,21 @@ function getNextWeekday(dateTime: DateTime, targetWeekday: number) {
 
 function CoreMenuOptions({handleOnSelect, channelId}: Props) {
     const isDmRedesign = useSelector((state: GlobalState) => isDmScheduleRedesign(state, channelId));
-    const {userCurrentTimezone} = useTimePostBoxIndicator(channelId);
 
     if (isDmRedesign) {
         return null;
     }
+
+    return (
+        <LegacyCoreMenuOptions
+            handleOnSelect={handleOnSelect}
+            channelId={channelId}
+        />
+    );
+}
+
+function LegacyCoreMenuOptions({handleOnSelect, channelId}: Props) {
+    const {userCurrentTimezone} = useTimePostBoxIndicator(channelId);
 
     const now = DateTime.now().setZone(userCurrentTimezone);
     const tomorrow9amTime = DateTime.now().
