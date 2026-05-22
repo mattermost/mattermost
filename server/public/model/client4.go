@@ -1893,6 +1893,9 @@ func (c *Client4) SetProfileImage(ctx context.Context, userId string, data []byt
 // (ServiceSettings.EnforcePersonalAccessTokenExpiry,
 // ServiceSettings.MaximumPersonalAccessTokenLifetimeDays).
 func (c *Client4) CreateUserAccessToken(ctx context.Context, userId, description string, expiresAt ...int64) (*UserAccessToken, *Response, error) {
+	if len(expiresAt) > 1 {
+		return nil, nil, errors.New("CreateUserAccessToken: at most one expiresAt value is supported")
+	}
 	var expiry int64
 	if len(expiresAt) > 0 {
 		expiry = expiresAt[0]
