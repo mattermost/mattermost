@@ -1869,6 +1869,11 @@ describe('handleSharedChannelRemoteUpdatedEvent', () => {
         handleEvent(msg);
 
         expect(fetchChannelRemotes).toHaveBeenCalledWith(channelId, true);
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'MOCK_FETCH_CHANNEL_REMOTES',
+            channelId,
+            forceRefresh: true,
+        });
     });
 
     test('skips fetch when local channel is not shared (regression: MM-66162)', () => {
