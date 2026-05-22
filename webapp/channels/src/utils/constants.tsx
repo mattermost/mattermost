@@ -202,6 +202,13 @@ export const ActionTypes = keyMirror({
     UPDATE_RHS_SEARCH_TYPE: null,
     UPDATE_RHS_SEARCH_RESULTS_TERMS: null,
     UPDATE_RHS_SEARCH_RESULTS_TYPE: null,
+    RECORD_PLATFORM_NOTIFICATION: null,
+    SET_MENTION_RHS_PANEL: null,
+    HYDRATE_PLATFORM_NOTIFICATIONS: null,
+    RECONCILE_PLATFORM_NOTIFICATIONS: null,
+    REMOVE_PLATFORM_NOTIFICATION: null,
+    MARK_PLATFORM_NOTIFICATION_READ: null,
+    CLEAR_PLATFORM_NOTIFICATIONS: null,
 
     SET_RHS_SIZE: null,
 
@@ -816,6 +823,7 @@ export const StoragePrefixes = {
     HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER: 'hideNotificationPermissionRequestBanner',
     MARK_ALL_READ_WITHOUT_CONFIRM: 'mark_all_as_read_without_confirm',
     HAS_SEEN_FEATURE_TOAST: 'has_seen_feature_toast',
+    PLATFORM_NOTIFICATION_ACTIVITY: 'platform_notification_activity_',
 };
 
 export const LandingPreferenceTypes = {
@@ -993,6 +1001,10 @@ export const RHSStates = {
     CHANNEL_MEMBERS: 'channel-members',
     EDIT_HISTORY: 'edit-history',
 };
+
+/** Max in-app notification activity items stored and persisted per user. */
+export const PLATFORM_NOTIFICATION_ACTIVITY_MAX = 500;
+export const PLATFORM_NOTIFICATION_BURST_WINDOW_MS = 5 * 60 * 1000;
 
 export const UploadStatuses = {
     LOADING: 'loading',

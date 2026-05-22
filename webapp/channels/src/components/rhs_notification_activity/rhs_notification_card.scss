@@ -1,0 +1,186 @@
+@use 'utils/_mixins';
+
+.RhsNotificationCard {
+    position: relative;
+    padding: 20px 20px 20px 6px;
+    border-bottom: var(--border-default);
+    cursor: pointer;
+
+    .alt-visible {
+        pointer-events: none;
+        visibility: hidden;
+    }
+
+    &:hover,
+    &:has(.menu-anchor [aria-expanded='true']) {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+
+        .alt-visible {
+            pointer-events: auto;
+            visibility: visible;
+        }
+
+        .alt-hidden {
+            pointer-events: none;
+            visibility: hidden;
+        }
+    }
+
+    .MenuWrapper .dropdown-menu {
+        min-width: 220px;
+    }
+
+    &__layout {
+        display: grid;
+        grid-template-columns: 53px minmax(0, 1fr);
+    }
+
+    &__avatarSlot {
+        display: flex;
+        width: 53px;
+        flex-shrink: 0;
+        align-items: flex-start;
+        align-self: start;
+        justify-content: flex-end;
+        padding-right: 10px;
+
+        .status-wrapper {
+            cursor: auto;
+            pointer-events: none;
+        }
+    }
+
+    &__avatar {
+        flex-shrink: 0;
+    }
+
+    &__content {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+    }
+
+    &__headerWrap {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        padding: 0;
+        margin-bottom: 2px;
+        gap: 8px;
+    }
+
+    &__header {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        align-items: flex-start;
+    }
+
+    &__headerActions {
+        position: relative;
+        display: flex;
+        width: 80px;
+        height: 20px;
+        flex-shrink: 0;
+        align-items: center;
+        align-self: flex-start;
+        justify-content: flex-end;
+        gap: 6px;
+
+        .menu-anchor {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            height: 20px;
+            align-items: center;
+            justify-content: flex-end;
+            transition: none;
+
+            .btn {
+                width: 32px;
+                min-width: 32px;
+                max-width: 32px;
+                height: 32px;
+                min-height: 32px;
+                padding: 0;
+                margin: -6px 0;
+                font-size: 18px;
+                transition: none;
+            }
+        }
+    }
+
+    &__unreadIndicator {
+        display: flex;
+        height: 20px;
+        flex-shrink: 0;
+        align-items: center;
+    }
+
+    .dot-unreads {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(var(--sidebar-text-active-border-rgb), 1);
+    }
+
+    &.has-unreads {
+        .RhsNotificationCard__timestamp {
+            color: rgba(var(--sidebar-text-active-border-rgb), 1);
+            opacity: 1;
+        }
+    }
+
+    &__summary {
+        min-width: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+        word-break: break-word;
+    }
+
+    &__senderName {
+        color: var(--center-channel-color);
+        font-weight: 600;
+    }
+
+    &__channelName {
+        color: var(--center-channel-color);
+        font-weight: 600;
+    }
+
+    &__timestamp {
+        flex-shrink: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        font-weight: normal;
+        line-height: 20px;
+        opacity: 0.73;
+        transition: none;
+        white-space: nowrap;
+    }
+
+    &__body {
+        width: 100%;
+        padding: 0 0 0.2em;
+    }
+
+    &__preview {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+        text-align: left;
+
+        @include mixins.text-clamp(2, 20);
+    }
+
+    .btn:focus-visible,
+    .btn[aria-expanded='true'] {
+        border-radius: 4px;
+        box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
+    }
+}

@@ -14,11 +14,12 @@ import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage
 import type {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {PostTypes, RHSStates, StoragePrefixes} from 'utils/constants';
+import {sortPlatformNotificationsByRecency} from 'utils/platform_notification_activity_merge';
 import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import type {RhsState, FakePost, SearchType} from 'types/store/rhs';
+import type {RhsState, FakePost, SearchType, PlatformNotificationRecord} from 'types/store/rhs';
 
 export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;
@@ -239,4 +240,13 @@ export function getIsRhsExpanded(state: GlobalState): boolean {
 
 export function getIsEditingMembers(state: GlobalState): boolean {
     return state.views.rhs.editChannelMembers === true;
+}
+
+export function getMentionRhsPanel(state: GlobalState) {
+    return state.views.rhs.mentionRhsPanel;
+}
+
+export function getPlatformNotifications(state: GlobalState): PlatformNotificationRecord[] {
+    const notifications = state.views.rhs.platformNotifications || [];
+    return sortPlatformNotificationsByRecency(notifications);
 }

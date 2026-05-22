@@ -48,7 +48,7 @@ const AtMentionsButton = (): JSX.Element => {
             }
         >
             <IconButton
-                icon={'at'}
+                icon={'bell-outline'}
                 toggled={rhsState === RHSStates.MENTION}
                 onClick={mentionButtonClick}
                 aria-expanded={rhsState === RHSStates.MENTION}

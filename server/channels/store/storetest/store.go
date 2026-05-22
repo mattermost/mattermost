@@ -62,6 +62,7 @@ type Store struct {
 	PostPriorityStore               mocks.PostPriorityStore
 	PostAcknowledgementStore        mocks.PostAcknowledgementStore
 	PostPersistentNotificationStore mocks.PostPersistentNotificationStore
+	PlatformNotificationStore       mocks.PlatformNotificationStore
 	DesktopTokensStore              mocks.DesktopTokensStore
 	ChannelBookmarkStore            mocks.ChannelBookmarkStore
 	ChannelGuardStore               mocks.ChannelGuardStore
@@ -138,6 +139,9 @@ func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 }
 func (s *Store) PostPersistentNotification() store.PostPersistentNotificationStore {
 	return &s.PostPersistentNotificationStore
+}
+func (s *Store) PlatformNotification() store.PlatformNotificationStore {
+	return &s.PlatformNotificationStore
 }
 func (s *Store) MarkSystemRanUnitTests()             { /* do nothing */ }
 func (s *Store) Close()                              { /* do nothing */ }
@@ -239,6 +243,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PostPriorityStore,
 		&s.PostAcknowledgementStore,
 		&s.PostPersistentNotificationStore,
+		&s.PlatformNotificationStore,
 		&s.DesktopTokensStore,
 		&s.ChannelBookmarkStore,
 		&s.ChannelGuardStore,

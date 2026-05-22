@@ -117,6 +117,9 @@ describe('components/SearchResults', () => {
         setSearchFilterType: jest.fn(),
         updateSearchTeam: jest.fn(),
         updateSearchTerms: jest.fn(),
+        mentionRhsPanel: 'activity',
+        platformNotifications: [],
+        setMentionRhsPanel: jest.fn(),
     };
 
     beforeEach(() => {

@@ -96,6 +96,12 @@ export type Props = {
     matches?: string[];
     term?: string;
     isMentionSearch?: boolean;
+
+    /** When true, omits the search-result channel/thread title row (e.g. Activity sidebar already shows context). */
+    hideSearchChannelHeader?: boolean;
+
+    /** When true, omits avatar and author row; keeps post controls (e.g. Activity notification cards). */
+    hideNotificationPostHeader?: boolean;
     location: keyof typeof Locations;
     actions: {
         markPostAsUnread: (post: Post, location: string) => void;
@@ -147,6 +153,8 @@ function PostComponent(props: Props) {
     const {formatMessage} = useIntl();
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
+    const showSearchChannelHeader = !props.hideSearchChannelHeader &&
+        (Boolean(isSearchResultItem) || (props.location !== Locations.CENTER && props.isFlagged));
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const isModal = props.location === Locations.MODAL;
     const postRef = useRef<HTMLDivElement>(null);
@@ -526,7 +534,7 @@ function PostComponent(props: Props) {
     );
 
     let comment;
-    if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
+    if (!props.hideNotificationPostHeader && props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
         comment = (
             <CommentedOn
                 onCommentClick={handleCommentClick}
@@ -549,7 +557,8 @@ function PostComponent(props: Props) {
     }
 
     let profilePic;
-    const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
+    const hideProfilePicture = props.hideNotificationPostHeader ||
+        (hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post));
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
@@ -619,7 +628,7 @@ function PostComponent(props: Props) {
     }
 
     const slotBasedOnEditOrMessageView = props.isPostBeingEdited ? AutoHeightSlots.SLOT2 : AutoHeightSlots.SLOT1;
-    const threadFooter = props.location !== Locations.RHS_ROOT && props.isCollapsedThreadsEnabled && !post.root_id && (props.hasReplies || post.is_following) ? (
+    const threadFooter = !props.hideNotificationPostHeader && props.location !== Locations.RHS_ROOT && props.isCollapsedThreadsEnabled && !post.root_id && (props.hasReplies || post.is_following) ? (
         <ThreadFooter
             threadId={post.id}
             replyClick={handleThreadClick}
@@ -743,7 +752,7 @@ function PostComponent(props: Props) {
                 {props.isChannelAutotranslated && isTranslating && (
                     <div className='post-message__shimmer'/>
                 )}
-                {(Boolean(isSearchResultItem) || (props.location !== Locations.CENTER && props.isFlagged)) &&
+                {showSearchChannelHeader &&
                     <div
                         className='search-channel__name__container'
                         aria-hidden='true'
@@ -786,74 +795,85 @@ function PostComponent(props: Props) {
                 <div
                     className={classNames('post__content', {
                         center: props.center,
+                        'post__content--notificationActivity': props.hideNotificationPostHeader,
                     })}
                     data-testid='postContent'
                 >
-                    <div className='post__img'>
-                        {profilePic}
-                    </div>
+                    {!props.hideNotificationPostHeader && (
+                        <div className='post__img'>
+                            {profilePic}
+                        </div>
+                    )}
                     <div>
                         <div
-                            className='post__header'
+                            className={classNames('post__header', {
+                                'post__header--notificationActivity': props.hideNotificationPostHeader,
+                            })}
                             ref={postHeaderRef}
                         >
-                            <PostUserProfile
-                                {...props}
-                                isSystemMessage={isSystemMessage}
-                            />
+                            {!props.hideNotificationPostHeader && (
+                                <PostUserProfile
+                                    {...props}
+                                    isSystemMessage={isSystemMessage}
+                                />
+                            )}
                             <div className='badges-wrapper col d-flex align-items-center'>
-                                {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
-                                    <PostTime
-                                        isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
-                                        teamName={props.team?.name}
-                                        eventTime={post.create_at}
-                                        postId={post.id}
-                                        location={props.location}
-                                        timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
-                                    />
-                                }
-                                {priority}
-                                {burnOnReadBadge}
-                                {burnOnReadTimerChip}
-                                {((!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost)) || (props.compactDisplay && isRHS)) &&
-                                    PostUtils.hasAiGeneratedMetadata(post) && (
-                                    <AiGeneratedIndicator
-                                        userId={post.props.ai_generated_by as string}
-                                        username={post.props.ai_generated_by_username as string}
-                                        postAuthorId={post.user_id}
-                                    />
-                                )}
-                                {!isModal && !props.isConsecutivePost && props.isChannelAutotranslated && (
-                                    <PostHeaderTranslateIcon
-                                        postId={post.id}
-                                        translationState={translation?.state}
-                                        postType={post.type}
-                                    />
-                                )}
-                                {Boolean(post.props && post.props.card) &&
-                                    <WithTooltip
-                                        title={
-                                            <FormattedMessage
-                                                id='post_info.info.view_additional_info'
-                                                defaultMessage='View additional info'
+                                {!props.hideNotificationPostHeader && (
+                                    <>
+                                        {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
+                                            <PostTime
+                                                isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
+                                                teamName={props.team?.name}
+                                                eventTime={post.create_at}
+                                                postId={post.id}
+                                                location={props.location}
+                                                timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                             />
                                         }
-                                    >
-                                        <button
-                                            className={'card-icon__container icon--show style--none ' + (props.isCardOpen ? 'active' : '')}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                handleCardClick(post);
-                                            }}
-                                        >
-                                            <InfoSmallIcon
-                                                className='icon icon__info'
-                                                aria-hidden='true'
+                                        {priority}
+                                        {burnOnReadBadge}
+                                        {burnOnReadTimerChip}
+                                        {((!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost)) || (props.compactDisplay && isRHS)) &&
+                                            PostUtils.hasAiGeneratedMetadata(post) && (
+                                            <AiGeneratedIndicator
+                                                userId={post.props.ai_generated_by as string}
+                                                username={post.props.ai_generated_by_username as string}
+                                                postAuthorId={post.user_id}
                                             />
-                                        </button>
-                                    </WithTooltip>
-                                }
-                                {visibleMessage}
+                                        )}
+                                        {!isModal && !props.isConsecutivePost && props.isChannelAutotranslated && (
+                                            <PostHeaderTranslateIcon
+                                                postId={post.id}
+                                                translationState={translation?.state}
+                                                postType={post.type}
+                                            />
+                                        )}
+                                        {Boolean(post.props && post.props.card) &&
+                                            <WithTooltip
+                                                title={
+                                                    <FormattedMessage
+                                                        id='post_info.info.view_additional_info'
+                                                        defaultMessage='View additional info'
+                                                    />
+                                                }
+                                            >
+                                                <button
+                                                    className={'card-icon__container icon--show style--none ' + (props.isCardOpen ? 'active' : '')}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleCardClick(post);
+                                                    }}
+                                                >
+                                                    <InfoSmallIcon
+                                                        className='icon icon__info'
+                                                        aria-hidden='true'
+                                                    />
+                                                </button>
+                                            </WithTooltip>
+                                        }
+                                        {visibleMessage}
+                                    </>
+                                )}
                             </div>
                             {!isModal && !props.isPostBeingEdited &&
                             <PostOptions

@@ -12,10 +12,18 @@ import {
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import {ActionTypes, RHSStates, Threads} from 'utils/constants';
+import {ActionTypes, RHSStates, Threads, PLATFORM_NOTIFICATION_ACTIVITY_MAX} from 'utils/constants';
+import {
+    consolidateThreadReplyNotifications,
+    createBurstNotificationId,
+    findBurstMergeTarget,
+    getPlatformNotificationContextKey,
+    mergeGroupedPlatformNotification,
+    sortPlatformNotificationsByRecency,
+} from 'utils/platform_notification_activity_merge';
 
 import type {MMAction} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
+import type {MentionRhsPanel, PlatformNotificationRecord, RhsState} from 'types/store/rhs';
 
 function selectedPostId(state = '', action: MMAction) {
     switch (action.type) {
@@ -423,6 +431,97 @@ function shouldFocusRHS(state = false, action: MMAction) {
     }
 }
 
+const DEFAULT_MENTION_RHS_PANEL: MentionRhsPanel = 'activity';
+
+function mentionRhsPanel(state: MentionRhsPanel = DEFAULT_MENTION_RHS_PANEL, action: MMAction): MentionRhsPanel {
+    switch (action.type) {
+    case ActionTypes.SET_MENTION_RHS_PANEL:
+        return (action as unknown as {panel: MentionRhsPanel}).panel;
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (action.state !== RHSStates.MENTION) {
+            return DEFAULT_MENTION_RHS_PANEL;
+        }
+        return state;
+    case UserTypes.LOGOUT_SUCCESS:
+        return DEFAULT_MENTION_RHS_PANEL;
+    default:
+        return state;
+    }
+}
+
+function finalizePlatformNotifications(notifications: PlatformNotificationRecord[]): PlatformNotificationRecord[] {
+    return sortPlatformNotificationsByRecency(
+        consolidateThreadReplyNotifications(notifications),
+    ).slice(0, PLATFORM_NOTIFICATION_ACTIVITY_MAX);
+}
+
+function platformNotifications(state: PlatformNotificationRecord[] = [], action: MMAction): PlatformNotificationRecord[] {
+    switch (action.type) {
+    case ActionTypes.HYDRATE_PLATFORM_NOTIFICATIONS: {
+        const incoming = (action as unknown as {data: PlatformNotificationRecord[]}).data;
+        if (!Array.isArray(incoming)) {
+            return state;
+        }
+        const byPostId = new Map<string, PlatformNotificationRecord>();
+        for (const r of incoming) {
+            byPostId.set(r.postId, r);
+        }
+        for (const r of state) {
+            const existing = byPostId.get(r.postId);
+            if (!existing || existing.recordedAt < r.recordedAt) {
+                byPostId.set(r.postId, r);
+            }
+        }
+        return finalizePlatformNotifications(Array.from(byPostId.values()));
+    }
+    case ActionTypes.RECORD_PLATFORM_NOTIFICATION: {
+        const entry = (action as unknown as {data: PlatformNotificationRecord}).data;
+        const normalizedEntry: PlatformNotificationRecord = {
+            ...entry,
+            replyCount: entry.replyCount || 1,
+            participantUserIds: entry.participantUserIds ||
+                (entry.senderUserId ? [entry.senderUserId] : []),
+        };
+
+        const mergeTarget = findBurstMergeTarget(state, normalizedEntry);
+        if (mergeTarget) {
+            const merged = mergeGroupedPlatformNotification(mergeTarget, normalizedEntry);
+            const rest = state.filter((record) => record.id !== mergeTarget.id);
+            return finalizePlatformNotifications([merged, ...rest]);
+        }
+
+        const nextEntry = getPlatformNotificationContextKey(normalizedEntry) ?
+            {...normalizedEntry, id: createBurstNotificationId(normalizedEntry)} :
+            normalizedEntry;
+        const withoutPostDupe = state.filter((record) => record.postId !== nextEntry.postId);
+        return finalizePlatformNotifications([nextEntry, ...withoutPostDupe]);
+    }
+    case ActionTypes.RECONCILE_PLATFORM_NOTIFICATIONS: {
+        const next = (action as unknown as {data: PlatformNotificationRecord[]}).data;
+        if (!Array.isArray(next)) {
+            return state;
+        }
+        return sortPlatformNotificationsByRecency(next).slice(0, PLATFORM_NOTIFICATION_ACTIVITY_MAX);
+    }
+    case ActionTypes.REMOVE_PLATFORM_NOTIFICATION: {
+        const id = (action as unknown as {data: string}).data;
+        return state.filter((r) => r.id !== id);
+    }
+    case ActionTypes.MARK_PLATFORM_NOTIFICATION_READ: {
+        const {id, readAt} = (action as unknown as {data: {id: string; readAt: number}}).data;
+        return state.map((record) => (
+            record.id === id ? {...record, readAt} : record
+        ));
+    }
+    case ActionTypes.CLEAR_PLATFORM_NOTIFICATIONS:
+        return [];
+    case UserTypes.LOGOUT_SUCCESS:
+        return [];
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     selectedPostId,
     selectedPostFocussedAt,
@@ -446,4 +545,6 @@ export default combineReducers({
     isMenuOpen,
     editChannelMembers,
     shouldFocusRHS,
+    mentionRhsPanel,
+    platformNotifications,
 });

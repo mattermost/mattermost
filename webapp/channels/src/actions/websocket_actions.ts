@@ -146,7 +146,7 @@ import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'acti
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
-import {closeRightHandSide} from 'actions/views/rhs';
+import {closeRightHandSide, hydratePlatformNotificationActivity} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {getCurrentLocale} from 'selectors/i18n';
@@ -172,6 +172,7 @@ import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import {isEnterpriseLicense} from 'utils/license_utils';
+import {fromServerPlatformNotification} from 'utils/platform_notification_activity_storage';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 
@@ -725,6 +726,18 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
     case WebSocketEvents.DraftDeleted:
         dispatch(handleDeleteDraftEvent(msg));
+        break;
+    case WebSocketEvents.PlatformNotificationUpserted:
+        dispatch(handlePlatformNotificationUpsertedEvent(msg));
+        break;
+    case WebSocketEvents.PlatformNotificationDeleted:
+        dispatch(handlePlatformNotificationDeletedEvent(msg));
+        break;
+    case WebSocketEvents.PlatformNotificationsCleared:
+        dispatch(handlePlatformNotificationsClearedEvent());
+        break;
+    case WebSocketEvents.PlatformNotificationsReplaced:
+        dispatch(handlePlatformNotificationsReplacedEvent());
         break;
     case WebSocketEvents.ScheduledPostCreated:
         dispatch(handleCreateScheduledPostEvent(msg));
@@ -1559,6 +1572,7 @@ function handleHelloEvent(msg: WebSocketMessages.Hello) {
     dispatch(setServerVersion(msg.data.server_version));
     dispatch(setConnectionId(msg.data.connection_id));
     dispatch(setServerHostname(msg.data.server_hostname));
+    dispatch(hydratePlatformNotificationActivity(true));
 }
 
 function handleReactionAddedEvent(msg: WebSocketMessages.PostReaction) {
@@ -2108,6 +2122,39 @@ function handleDeleteDraftEvent(msg: WebSocketMessages.PostDraft): ThunkActionFu
             fileInfos: [],
             uploadsInProgress: [],
         }));
+    };
+}
+
+function handlePlatformNotificationUpsertedEvent(msg: WebSocketMessages.PlatformNotificationUpserted): ThunkActionFunc<void> {
+    return async (doDispatch) => {
+        const notification = JSON.parse(msg.data.notification);
+        const record = fromServerPlatformNotification(notification);
+
+        doDispatch({
+            type: ActionTypes.RECORD_PLATFORM_NOTIFICATION,
+            data: record,
+        });
+    };
+}
+
+function handlePlatformNotificationDeletedEvent(msg: WebSocketMessages.PlatformNotificationDeleted): ThunkActionFunc<void> {
+    return async (doDispatch) => {
+        doDispatch({
+            type: ActionTypes.REMOVE_PLATFORM_NOTIFICATION,
+            data: msg.data.id,
+        });
+    };
+}
+
+function handlePlatformNotificationsClearedEvent(): ThunkActionFunc<void> {
+    return async (doDispatch) => {
+        doDispatch({type: ActionTypes.CLEAR_PLATFORM_NOTIFICATIONS});
+    };
+}
+
+function handlePlatformNotificationsReplacedEvent(): ThunkActionFunc<void> {
+    return async (doDispatch) => {
+        doDispatch(hydratePlatformNotificationActivity(true));
     };
 }
 

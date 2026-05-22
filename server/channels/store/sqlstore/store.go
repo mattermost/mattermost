@@ -99,6 +99,7 @@ type SqlStoreStores struct {
 	linkMetadata               store.LinkMetadataStore
 	sharedchannel              store.SharedChannelStore
 	draft                      store.DraftStore
+	platformNotification       store.PlatformNotificationStore
 	notifyAdmin                store.NotifyAdminStore
 	postPriority               store.PostPriorityStore
 	postAcknowledgement        store.PostAcknowledgementStore
@@ -287,6 +288,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
 	store.stores.draft = newSqlDraftStore(store, metrics)
+	store.stores.platformNotification = newSqlPlatformNotificationStore(store)
 	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
 	store.stores.postPriority = newSqlPostPriorityStore(store)
 	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
@@ -897,6 +899,10 @@ func (ss *SqlStore) PostPriority() store.PostPriorityStore {
 
 func (ss *SqlStore) Draft() store.DraftStore {
 	return ss.stores.draft
+}
+
+func (ss *SqlStore) PlatformNotification() store.PlatformNotificationStore {
+	return ss.stores.platformNotification
 }
 
 func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
