@@ -9999,10 +9999,6 @@
     "translation": "Failed to delete file"
   },
   {
-    "id": "ent.elasticsearch.delete_files_batch.error",
-    "translation": "Failed to delete files batch"
-  },
-  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
