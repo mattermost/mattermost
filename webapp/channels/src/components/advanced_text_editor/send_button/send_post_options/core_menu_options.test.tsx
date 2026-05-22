@@ -30,8 +30,13 @@ const teammateTimezone = {
 const defaultUseTimePostBoxIndicatorReturnValue = {
     userCurrentTimezone: 'America/New_York',
     teammateTimezone,
+    recipientTimezoneString: 'Europe/London',
     teammateDisplayName,
+    teammateFirstName: 'John',
+    teammate: undefined,
     isDM: false,
+    isSelfDM: false,
+    isBot: false,
     showRemoteUserHour: false,
     currentUserTimesStamp: 0,
     isScheduledPostEnabled: false,
@@ -56,12 +61,7 @@ describe('CoreMenuOptions Component', () => {
     beforeEach(() => {
         handleOnSelect.mockReset();
         mockedIsDmScheduleRedesign.mockReturnValue(false);
-        mockedUseTimePostBoxIndicator.mockReturnValue({
-            ...defaultUseTimePostBoxIndicatorReturnValue,
-            isDM: false,
-            isSelfDM: false,
-            isBot: false,
-        });
+        mockedUseTimePostBoxIndicator.mockReturnValue(defaultUseTimePostBoxIndicatorReturnValue as unknown as ReturnType<typeof useTimePostBoxIndicator>);
     });
 
     afterEach(() => {

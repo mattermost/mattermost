@@ -32,7 +32,6 @@ function PreviewTime({value, timeZone}: {value: number; timeZone: string}) {
             ranges={DATE_RANGES}
             value={value}
             timeZone={timeZone}
-            useDate={DATE_RANGES}
             useTime={{
                 hour: 'numeric',
                 minute: 'numeric',
