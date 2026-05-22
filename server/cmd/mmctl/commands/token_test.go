@@ -26,14 +26,16 @@ func TestParseExpiresIn(t *testing.T) {
 		want    time.Duration
 		wantErr bool
 	}{
-		"days":               {input: "30d", want: 30 * 24 * time.Hour},
-		"single day":         {input: "1d", want: 24 * time.Hour},
-		"hours":              {input: "12h", want: 12 * time.Hour},
-		"compound stdlib":    {input: "1h30m", want: 90 * time.Minute},
-		"minutes":            {input: "45m", want: 45 * time.Minute},
-		"non-numeric days":   {input: "xd", wantErr: true},
-		"non-numeric stdlib": {input: "abc", wantErr: true},
-		"empty":              {input: "", wantErr: true},
+		"days":                 {input: "30d", want: 30 * 24 * time.Hour},
+		"single day":           {input: "1d", want: 24 * time.Hour},
+		"hours":                {input: "12h", want: 12 * time.Hour},
+		"compound stdlib":      {input: "1h30m", want: 90 * time.Minute},
+		"minutes":              {input: "45m", want: 45 * time.Minute},
+		"non-numeric days":     {input: "xd", wantErr: true},
+		"non-numeric stdlib":   {input: "abc", wantErr: true},
+		"empty":                {input: "", wantErr: true},
+		"days beyond cap":      {input: "36501d", wantErr: true},
+		"days at cap accepted": {input: "36500d", want: 36500 * 24 * time.Hour},
 	} {
 		t.Run(name, func(t *testing.T) {
 			got, err := parseExpiresIn(tc.input)

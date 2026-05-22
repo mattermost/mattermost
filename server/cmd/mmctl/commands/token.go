@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
@@ -121,6 +122,12 @@ func parseExpiresIn(s string) (time.Duration, error) {
 		days, err := strconv.Atoi(prefix)
 		if err != nil {
 			return 0, errors.Errorf("%q is not a valid day count", s)
+		}
+		// time.Duration is int64 nanoseconds; days * 24h overflows past ~106751.
+		// Cap at the server-side bound so the CLI rejects values that the server
+		// would reject anyway, well below the int64-overflow point.
+		if days > model.MaxPersonalAccessTokenLifetimeDays {
+			return 0, errors.Errorf("%q exceeds maximum supported day count of %d", s, model.MaxPersonalAccessTokenLifetimeDays)
 		}
 		return time.Duration(days) * 24 * time.Hour, nil
 	}
