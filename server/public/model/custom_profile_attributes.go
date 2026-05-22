@@ -100,6 +100,7 @@ type CustomProfileAttributesSelectOption struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Color string `json:"color"`
+	Rank  *int   `json:"rank,omitempty"`
 }
 
 func (c CustomProfileAttributesSelectOption) GetID() string {

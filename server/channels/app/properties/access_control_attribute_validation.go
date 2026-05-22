@@ -165,6 +165,30 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
 	}
 
+	// Rank validation. For rank fields every option must carry a positive,
+	// unique rank. For other field types rank is not meaningful, so any stray
+	// values are stripped to prevent them from drifting into persisted attrs.
+	if field.Type == model.PropertyFieldTypeRank {
+		ranks := make(map[int]struct{}, len(options))
+		for i, opt := range options {
+			if opt.Rank == nil {
+				return fmt.Errorf("invalid options: option at index %d is missing rank for rank field: %w", i, ErrInvalidFieldAttrs)
+			}
+			rank := *opt.Rank
+			if rank < 0 {
+				return fmt.Errorf("invalid options: option rank must be non-negative, got %d at index %d: %w", rank, i, ErrInvalidFieldAttrs)
+			}
+			if _, exists := ranks[rank]; exists {
+				return fmt.Errorf("invalid options: duplicate option rank %d at index %d: %w", rank, i, ErrInvalidFieldAttrs)
+			}
+			ranks[rank] = struct{}{}
+		}
+	} else {
+		for i := range options {
+			options[i].Rank = nil
+		}
+	}
+
 	for i := range options {
 		if options[i].ID == "" {
 			options[i].ID = model.NewId()
