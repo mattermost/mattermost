@@ -12,8 +12,9 @@
 #   8. Prints a summary of what landed where
 #
 # Assumes:
-#   - Mattermost is running locally (see ../README or .cursor/cursor.md)
 #   - The `yvette` user and the `demo` team already exist (created via signup)
+#   - If nothing is listening on :8065, starts the server via make run-server
+#     (MM_NO_DOCKER=true, RUN_SERVER_IN_BACKGROUND=true); webapp is not started
 #   - Native Homebrew Postgres is the backing DB (see psql detection below)
 #
 # Re-running is safe; the script is idempotent.
@@ -44,15 +45,39 @@ ok()   { printf '  \033[1;32m✓\033[0m %s\n' "$*"; }
 warn() { printf '  \033[1;33m!\033[0m %s\n' "$*"; }
 die()  { printf '\033[1;31m✗\033[0m %s\n' "$*" >&2; exit 1; }
 
+mattermost_ping() {
+    curl -fsS --max-time 3 http://localhost:8065/api/v4/system/ping >/dev/null 2>&1
+}
+
+ensure_mattermost_server() {
+    if mattermost_ping; then
+        ok "Mattermost server reachable on :8065"
+        return 0
+    fi
+
+    log "Starting Mattermost server (native Postgres, background)"
+    export MM_NO_DOCKER=true
+    export RUN_SERVER_IN_BACKGROUND=true
+    if ! (cd "$SERVER_DIR" && make run-server); then
+        die "Failed to start Mattermost server from $SERVER_DIR"
+    fi
+
+    for _ in {1..120}; do
+        if mattermost_ping; then
+            ok "Mattermost server reachable on :8065"
+            return 0
+        fi
+        sleep 1
+    done
+    die "Mattermost server did not respond on http://localhost:8065 within 120s"
+}
+
 # ---- preflight --------------------------------------------------------------
 log "Preflight"
 
 [ -x "$MMCTL" ] || die "mmctl not found at $MMCTL — run 'make mmctl-build' first"
 
-if ! curl -fsS --max-time 3 http://localhost:8065/api/v4/system/ping >/dev/null; then
-    die "Mattermost server is not responding on http://localhost:8065 — start it with 'MM_NO_DOCKER=true RUN_SERVER_IN_BACKGROUND=true make run' from server/"
-fi
-ok "Mattermost server reachable on :8065"
+ensure_mattermost_server
 
 if ! "$MMCTL" --local system status >/dev/null 2>&1; then
     die "mmctl --local cannot reach the server (check LocalModeSocketLocation in config.json)"
