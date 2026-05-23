@@ -164,7 +164,19 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 
 		// We made a copy to avoid decoding and parsing all the time
 		tmpMessage := msg.DeepCopy()
-		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
+
+		// For calls notifications, prefer the VoIP device ID if the session has
+		// one. The prefix on the VoIP token (e.g. "apple_voip_rn:") tells the
+		// push proxy to dispatch to its VoIP send path. If no VoIP token is
+		// registered, fall back to the standard device ID so the user still
+		// gets a regular push notification.
+		deviceID := session.DeviceId
+		if tmpMessage.SubType == model.PushSubTypeCalls {
+			if voipDeviceID := session.Props[model.SessionPropVoIPDeviceId]; voipDeviceID != "" {
+				deviceID = voipDeviceID
+			}
+		}
+		tmpMessage.SetDeviceIdAndPlatform(deviceID)
 		tmpMessage.AckId = model.NewId()
 		signature, err := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
 			AckId:    tmpMessage.AckId,

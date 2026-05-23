@@ -29,6 +29,7 @@ const (
 	SessionPropLastRemovedDeviceId        = "last_removed_device_id"
 	SessionPropDeviceNotificationDisabled = "device_notification_disabled"
 	SessionPropMobileVersion              = "mobile_version"
+	SessionPropVoIPDeviceId               = "voip_device_id"
 	SessionTypeUserAccessToken            = "UserAccessToken"
 	SessionTypeCloudKey                   = "CloudKey"
 	SessionTypeRemoteclusterToken         = "RemoteClusterToken"
@@ -45,6 +46,17 @@ type MobileSessionMetadata struct {
 	Platform             string
 	Count                float64
 	NotificationDisabled string
+}
+
+// LoginOptions carries optional inputs to App.DoLogin. It's a struct rather
+// than a positional argument list so future additions don't keep changing
+// the DoLogin signature and rippling through every caller.
+type LoginOptions struct {
+	DeviceID     string
+	VoIPDeviceID string
+	IsMobile     bool
+	IsOAuthUser  bool
+	IsSaml       bool
 }
 
 // Session contains the user session details.
@@ -290,4 +302,19 @@ func (s *Session) ExpiresAt_() float64 {
 
 func (s *Session) LastActivityAt_() float64 {
 	return float64(s.LastActivityAt)
+}
+
+// IsValidVoIPDeviceID returns true if the given value is a valid VoIP device
+// identifier in the form "<platform>:<token>", where <platform> is in the
+// allowlist of VoIP platforms (currently iOS-only) and <token> is non-empty.
+func IsValidVoIPDeviceID(voipDeviceID string) bool {
+	platform, token, ok := strings.Cut(voipDeviceID, ":")
+	if !ok || token == "" {
+		return false
+	}
+	switch platform {
+	case PushNotifyAppleReactNativeVoIP, PushNotifyAppleReactNativeVoIP + "beta":
+		return true
+	}
+	return false
 }

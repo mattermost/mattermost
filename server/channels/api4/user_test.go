@@ -4775,6 +4775,61 @@ func TestAttachDeviceId(t *testing.T) {
 		assert.Equal(t, "2.19.0", updatedSession.Props[model.SessionPropMobileVersion])
 		assert.Equal(t, "2.19.0", storeSession.Props[model.SessionPropMobileVersion])
 	})
+
+	resetVoIP := func(session *model.Session) {
+		session.AddProp(model.SessionPropVoIPDeviceId, "")
+		err := th.Server.Store().Session().UpdateProps(session)
+		require.NoError(t, err)
+		th.App.ClearSessionCacheForUser(session.UserId)
+	}
+
+	t.Run("Invalid voip_device_id is rejected", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropVoIPDeviceId: "android_voip_rn:abcd"})
+		assert.Error(t, err)
+
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+		assert.Empty(t, storeSession.Props[model.SessionPropVoIPDeviceId])
+	})
+
+	t.Run("voip_device_id without platform separator is rejected", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropVoIPDeviceId: "abcd"})
+		assert.Error(t, err)
+
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+		assert.Empty(t, storeSession.Props[model.SessionPropVoIPDeviceId])
+	})
+
+	t.Run("Valid voip_device_id persists into session props", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		voipID := model.PushNotifyAppleReactNativeVoIP + ":abcd1234"
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropVoIPDeviceId: voipID})
+		assert.NoError(t, err)
+
+		updatedSession, _ := th.App.GetSession(client.AuthToken)
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, voipID, updatedSession.Props[model.SessionPropVoIPDeviceId])
+		assert.Equal(t, voipID, storeSession.Props[model.SessionPropVoIPDeviceId])
+	})
+
+	t.Run("Beta voip_device_id persists into session props", func(t *testing.T) {
+		session, _ := th.App.GetSession(client.AuthToken)
+		defer resetVoIP(session)
+		voipID := model.PushNotifyAppleReactNativeVoIP + "beta:abcd1234"
+		res, err := client.AttachDeviceProps(context.Background(), map[string]string{model.SessionPropVoIPDeviceId: voipID})
+		assert.NoError(t, err)
+
+		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, voipID, storeSession.Props[model.SessionPropVoIPDeviceId])
+	})
 }
 
 func TestGetUserAudits(t *testing.T) {

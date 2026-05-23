@@ -1104,6 +1104,109 @@ func TestSendPushNotifications(t *testing.T) {
 	})
 }
 
+func TestSendPushNotificationsForCallsRouting(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	const (
+		standardToken = model.PushNotifyAppleReactNative + ":standardtoken"
+		voipToken     = model.PushNotifyAppleReactNativeVoIP + ":voiptoken"
+	)
+
+	for _, tc := range []struct {
+		name             string
+		deviceID         string
+		voipDeviceID     string
+		subType          model.PushSubType
+		expectSent       bool
+		expectedPlatform string
+		expectedDeviceID string
+	}{
+		{
+			name:             "calls push with VoIP token registered routes to VoIP",
+			deviceID:         standardToken,
+			voipDeviceID:     voipToken,
+			subType:          model.PushSubTypeCalls,
+			expectSent:       true,
+			expectedPlatform: model.PushNotifyAppleReactNativeVoIP,
+			expectedDeviceID: "voiptoken",
+		},
+		{
+			name:             "calls push without VoIP token falls back to standard token",
+			deviceID:         standardToken,
+			voipDeviceID:     "",
+			subType:          model.PushSubTypeCalls,
+			expectSent:       true,
+			expectedPlatform: model.PushNotifyAppleReactNative,
+			expectedDeviceID: "standardtoken",
+		},
+		{
+			name:             "non-calls push ignores VoIP token even when registered",
+			deviceID:         standardToken,
+			voipDeviceID:     voipToken,
+			subType:          "",
+			expectSent:       true,
+			expectedPlatform: model.PushNotifyAppleReactNative,
+			expectedDeviceID: "standardtoken",
+		},
+		{
+			name:         "session with neither token is skipped",
+			deviceID:     "",
+			voipDeviceID: "",
+			subType:      model.PushSubTypeCalls,
+			expectSent:   false,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			th := Setup(t).InitBasic(t)
+
+			handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+			pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+			defer pushServer.Close()
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			})
+
+			session, err := th.App.CreateSession(th.Context, &model.Session{
+				UserId:    th.BasicUser.Id,
+				DeviceId:  tc.deviceID,
+				ExpiresAt: model.GetMillis() + 100000,
+			})
+			require.Nil(t, err)
+
+			if tc.voipDeviceID != "" {
+				err = th.App.SetExtraSessionProps(session, map[string]string{
+					model.SessionPropVoIPDeviceId: tc.voipDeviceID,
+				})
+				require.Nil(t, err)
+				th.App.ClearSessionCacheForUser(session.UserId)
+			}
+
+			msg := &model.PushNotification{
+				Type:    model.PushTypeMessage,
+				SubType: tc.subType,
+			}
+			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+			require.Nil(t, appErr)
+
+			if !tc.expectSent {
+				require.Never(t, func() bool {
+					return len(handler.notifications()) > 0
+				}, 200*time.Millisecond, 20*time.Millisecond, "expected no push notifications to be sent")
+				return
+			}
+
+			require.Eventually(t, func() bool {
+				return len(handler.notifications()) == 1
+			}, 2*time.Second, 10*time.Millisecond, "expected exactly one push notification")
+
+			notifications := handler.notifications()
+			assert.Equal(t, tc.expectedPlatform, notifications[0].Platform)
+			assert.Equal(t, tc.expectedDeviceID, notifications[0].DeviceId)
+		})
+	}
+}
+
 func TestShouldSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

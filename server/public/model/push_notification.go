@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	PushNotifyApple              = "apple"
-	PushNotifyAndroid            = "android"
-	PushNotifyAppleReactNative   = "apple_rn"
-	PushNotifyAndroidReactNative = "android_rn"
+	PushNotifyApple                = "apple"
+	PushNotifyAndroid              = "android"
+	PushNotifyAppleReactNative     = "apple_rn"
+	PushNotifyAndroidReactNative   = "android_rn"
+	PushNotifyAppleReactNativeVoIP = "apple_voip_rn"
 
 	PushTypeMessage     = "message"
 	PushTypeClear       = "clear"

@@ -132,7 +132,7 @@ func (a *App) GetUserForLogin(rctx request.CTX, id, loginId string) (*model.User
 	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)
 }
 
-func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) (*model.Session, *model.AppError) {
+func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, opts model.LoginOptions) (*model.Session, *model.AppError) {
 	var rejectionReason string
 	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -144,24 +144,35 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 		return nil, model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
 	}
 
-	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceID, IsOAuth: false, Props: map[string]string{
-		model.UserAuthServiceIsMobile: strconv.FormatBool(isMobile),
-		model.UserAuthServiceIsSaml:   strconv.FormatBool(isSaml),
-		model.UserAuthServiceIsOAuth:  strconv.FormatBool(isOAuthUser),
+	// Presence of a device or VoIP token is authoritative for mobile-ness:
+	// trust the explicit signal over the user-agent sniff.
+	if opts.DeviceID != "" || opts.VoIPDeviceID != "" {
+		opts.IsMobile = true
+	}
+
+	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: opts.DeviceID, IsOAuth: false, Props: map[string]string{
+		model.UserAuthServiceIsMobile: strconv.FormatBool(opts.IsMobile),
+		model.UserAuthServiceIsSaml:   strconv.FormatBool(opts.IsSaml),
+		model.UserAuthServiceIsOAuth:  strconv.FormatBool(opts.IsOAuthUser),
 	}}
+	if opts.VoIPDeviceID != "" {
+		session.AddProp(model.SessionPropVoIPDeviceId, opts.VoIPDeviceID)
+	}
 	session.GenerateCSRF()
 
-	if deviceID != "" {
+	if opts.DeviceID != "" {
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 
-		// A special case where we logout of all other sessions with the same Id
-		if err := a.RevokeSessionsForDeviceId(rctx, user.Id, deviceID, ""); err != nil {
+		// A special case where we logout of all other sessions with the same Id.
+		// The VoIP token, if any, lives on the same session and is therefore
+		// revoked together with it.
+		if err := a.RevokeSessionsForDeviceId(rctx, user.Id, opts.DeviceID, ""); err != nil {
 			err.StatusCode = http.StatusInternalServerError
 			return nil, err
 		}
-	} else if isMobile {
+	} else if opts.IsMobile {
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
-	} else if isOAuthUser || isSaml {
+	} else if opts.IsOAuthUser || opts.IsSaml {
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthSSOInHours)
 	} else {
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthWebInHours)

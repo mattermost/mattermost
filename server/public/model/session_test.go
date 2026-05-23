@@ -153,3 +153,26 @@ func TestIsIntegration(t *testing.T) {
 		})
 	}
 }
+
+func TestIsValidVoIPDeviceID(t *testing.T) {
+	testCases := []struct {
+		Description string
+		Value       string
+		Valid       bool
+	}{
+		{"empty string", "", false},
+		{"missing token", PushNotifyAppleReactNativeVoIP + ":", false},
+		{"missing separator", PushNotifyAppleReactNativeVoIP, false},
+		{"missing platform", ":abcd", false},
+		{"unknown platform", "android_voip_rn:abcd", false},
+		{"standard apple prefix is not VoIP", PushNotifyAppleReactNative + ":abcd", false},
+		{"valid apple_voip_rn", PushNotifyAppleReactNativeVoIP + ":abcd", true},
+		{"valid apple_voip_rnbeta", PushNotifyAppleReactNativeVoIP + "beta:abcd", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Description, func(t *testing.T) {
+			assert.Equal(t, tc.Valid, IsValidVoIPDeviceID(tc.Value))
+		})
+	}
+}
