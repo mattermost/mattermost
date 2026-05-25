@@ -178,6 +178,20 @@ func TestValidateInteractiveActionsForWebhook_messageMmaction(t *testing.T) {
 	require.Error(t, ValidateInteractiveActionsForWebhook(postMissing))
 }
 
+func TestApplyMmBlocksWithActionsToProps_nilProps(t *testing.T) {
+	blocks := []any{
+		map[string]any{"type": "button", "text": "Go", "action_id": "act1"},
+	}
+	actions := map[string]any{
+		"act1": map[string]any{"type": "external", "url": "http://example.com"},
+	}
+
+	props := ApplyMmBlocksWithActionsToProps(nil, blocks, actions)
+	require.NotNil(t, props)
+	require.Equal(t, blocks, props[PostPropsMmBlocks])
+	require.Equal(t, actions, props[PostPropsMmBlocksActions])
+}
+
 func TestPost_InteractiveBlocksImageURLs(t *testing.T) {
 	assert.Nil(t, (&Post{}).InteractiveBlocksImageURLs())
 

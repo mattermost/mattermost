@@ -690,9 +690,14 @@ func RefreshInteractiveActionsOnPost(o *Post, allActions any) {
 }
 
 // ApplyMmBlocksWithActionsToProps sets mm_blocks and refreshes mm_blocks_actions for the props payload.
-func ApplyMmBlocksWithActionsToProps(props map[string]any, blocks []any, allActions any) {
+// When props is nil, a new map is allocated and returned.
+func ApplyMmBlocksWithActionsToProps(props map[string]any, blocks []any, allActions any) StringInterface {
+	if props == nil {
+		props = make(map[string]any)
+	}
 	props[PostPropsMmBlocks] = blocks
 	RefreshInteractiveActionsOnPost(&Post{Props: props}, allActions)
+	return props
 }
 
 // validateMmBlocksActionsPairing requires mm_blocks_actions to define exactly the actions
