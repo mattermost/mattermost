@@ -1,14 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
+import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+
+// Teams created by pw.initSetup() in each test are tracked here and deleted in
+// afterEach so local environments don't accumulate stale teams across runs.
+const createdTeamIds: string[] = [];
+
+async function initSetupTracked(pw: PlaywrightExtended) {
+    const setup = await pw.initSetup();
+    createdTeamIds.push(setup.team.id);
+    return setup;
+}
+
+test.afterEach(async () => {
+    if (createdTeamIds.length === 0) {
+        return;
+    }
+    const ids = createdTeamIds.splice(0);
+    try {
+        const {adminClient} = await getAdminClient({skipLog: true});
+        await Promise.allSettled(ids.map((id) => adminClient.deleteTeam(id)));
+    } catch {
+        // Best-effort cleanup
+    }
+});
 
 test(
     'sidebar icon updates from globe to lock when channel converted to private via API',
     {tag: ['@channels', '@channel_privacy']},
     async ({pw}) => {
         // # Initialize setup
-        const {adminClient, user, team} = await pw.initSetup();
+        const {adminClient, user, team} = await initSetupTracked(pw);
 
         // # Create a public channel
         const channel = await adminClient.createChannel(
@@ -47,7 +71,7 @@ test(
     {tag: ['@channels', '@channel_privacy']},
     async ({pw}) => {
         // # Initialize setup
-        const {adminClient, user, team} = await pw.initSetup();
+        const {adminClient, user, team} = await initSetupTracked(pw);
 
         // # Create a private channel
         const channel = await adminClient.createChannel(

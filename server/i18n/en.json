@@ -48,6 +48,10 @@
     "translation": "September"
   },
   {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "Channel-level permission policies feature is not enabled."
+  },
+  {
     "id": "api.access_control_policy.get_channels.limit.app_error",
     "translation": "Get channels limit is not valid."
   },
@@ -58,6 +62,14 @@
   {
     "id": "api.access_control_policy.permission_policies.feature_disabled",
     "translation": "Permission policies feature is not enabled."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "Policy simulation feature is not enabled."
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "All users in the simulation must be members of the team or channel in the request."
   },
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
@@ -414,6 +426,54 @@
   {
     "id": "api.channel.delete_channel.type.invalid",
     "translation": "Unable to delete direct or group message channels"
+  },
+  {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "You are already a member of this channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "Cannot request to join an archived channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
+    "translation": "This channel requires admin approval to join. Please send a request from the Browse Channels modal."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.duplicate.app_error",
+    "translation": "You already have a pending request to join this channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
+    "translation": "Discoverable channels are not enabled on this server."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.guest.app_error",
+    "translation": "Guests cannot request to join discoverable private channels."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
+    "translation": "Invalid update for the channel join request."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
+    "translation": "This channel is not discoverable."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_pending.app_error",
+    "translation": "The join request is no longer pending."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_private.app_error",
+    "translation": "Only private channels accept join requests."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.policy_denied.app_error",
+    "translation": "You do not satisfy the access rules required to join this channel."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.shared.app_error",
+    "translation": "Shared channels do not accept discoverable join requests."
   },
   {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
@@ -2046,10 +2106,6 @@
     "translation": "invalid User Attribute field patch"
   },
   {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Your license does not support User Attributes."
-  },
-  {
     "id": "api.custom_status.disabled",
     "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
   },
@@ -2377,16 +2433,16 @@
     "translation": "Unable to access the file storage."
   },
   {
+    "id": "api.file.test_connection_auth.app_error",
+    "translation": "Unable to authenticate against the file storage backend. Verify your credentials and authentication settings."
+  },
+  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
-    "translation": "Email settings has unset values."
+    "translation": "Email settings have unset values."
   },
   {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Unable to connect to S3. Verify your Amazon S3 connection authorization parameters and authentication settings."
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Ensure your Amazon S3 bucket is available, and verify your bucket permissions."
+    "id": "api.file.test_connection_no_bucket.app_error",
+    "translation": "The configured bucket or container does not exist. Verify your file storage configuration and permissions."
   },
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
@@ -2945,6 +3001,14 @@
     "translation": "Action integration error."
   },
   {
+    "id": "api.post.do_action.merge_query.app_error",
+    "translation": "Failed to merge query into action URL."
+  },
+  {
+    "id": "api.post.do_action.query.app_error",
+    "translation": "Invalid action query."
+  },
+  {
     "id": "api.post.error_get_post_id.pending",
     "translation": "Unable to get the pending post."
   },
@@ -3183,10 +3247,6 @@
     "translation": "You do not have permission to delete this property field."
   },
   {
-    "id": "api.property_field.delete.protected_via_api.app_error",
-    "translation": "Cannot delete a protected property field via API."
-  },
-  {
     "id": "api.property_field.get.invalid_target_type.app_error",
     "translation": "A valid target_type (system, team, or channel) is required."
   },
@@ -3203,24 +3263,8 @@
     "translation": "Property field object type does not match URL."
   },
   {
-    "id": "api.property_field.patch.cannot_link_existing.app_error",
-    "translation": "Cannot set linked_field_id on an existing field. It can only be set at creation time."
-  },
-  {
     "id": "api.property_field.patch.legacy_field.app_error",
     "translation": "Cannot patch a v1 property field via this API."
-  },
-  {
-    "id": "api.property_field.patch.linked_field_change.app_error",
-    "translation": "Cannot change link target. Unlink first, then create a new linked field."
-  },
-  {
-    "id": "api.property_field.patch.linked_options_change.app_error",
-    "translation": "Cannot modify options of a linked field. Options are inherited from the source."
-  },
-  {
-    "id": "api.property_field.patch.linked_type_change.app_error",
-    "translation": "Cannot modify type of a linked field. Type is inherited from the source."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
@@ -3229,14 +3273,6 @@
   {
     "id": "api.property_field.update.no_options_permission.app_error",
     "translation": "You do not have permission to manage options for this property field."
-  },
-  {
-    "id": "api.property_field.update.protected_via_api.app_error",
-    "translation": "Cannot update a protected property field via API."
-  },
-  {
-    "id": "api.property_value.field_object_type_mismatch.app_error",
-    "translation": "One or more property fields do not match the route's object type."
   },
   {
     "id": "api.property_value.invalid_object_type.app_error",
@@ -3249,6 +3285,10 @@
   {
     "id": "api.property_value.patch.empty_body.app_error",
     "translation": "Request body must contain at least one property value update."
+  },
+  {
+    "id": "api.property_value.patch.field_not_found.app_error",
+    "translation": "Property field {{.FieldID}} was not found in this group."
   },
   {
     "id": "api.property_value.patch.invalid_field_id.app_error",
@@ -3265,10 +3305,6 @@
   {
     "id": "api.property_value.system_use_dedicated_route.app_error",
     "translation": "System values must use the dedicated system values endpoint."
-  },
-  {
-    "id": "api.property_value.target_user.forbidden.app_error",
-    "translation": "You do not have permission to access property values for another user."
   },
   {
     "id": "api.property_value.template_no_values.app_error",
@@ -4687,6 +4723,10 @@
     "translation": "Unable to convert the user to guest because is already a guest."
   },
   {
+    "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
+    "translation": "Bot accounts cannot be converted to guest accounts."
+  },
+  {
     "id": "api.user.email_to_ldap.not_available.app_error",
     "translation": "AD/LDAP not available on this server."
   },
@@ -5211,6 +5251,10 @@
     "translation": "Failed to retrieve the access control attribute group."
   },
   {
+    "id": "app.access_control.get_channel_role.app_error",
+    "translation": "Unable to get channel role for the user. Please try again."
+  },
+  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "You do not have permission to manage this access control policy."
   },
@@ -5639,6 +5683,22 @@
     "translation": "Failed to create group message to channel conversion post"
   },
   {
+    "id": "app.channel.join_request.get.app_error",
+    "translation": "Failed to load channel join request."
+  },
+  {
+    "id": "app.channel.join_request.not_found.app_error",
+    "translation": "Channel join request not found."
+  },
+  {
+    "id": "app.channel.join_request.save.app_error",
+    "translation": "Failed to save channel join request."
+  },
+  {
+    "id": "app.channel.join_request.update.app_error",
+    "translation": "Failed to update channel join request."
+  },
+  {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Failed to select the batch of channel members."
   },
@@ -5703,6 +5763,10 @@
     "translation": "Unable to restore the channel."
   },
   {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "Channel restore rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.save_member.app_error",
     "translation": "Unable to save channel member."
   },
@@ -5747,6 +5811,14 @@
     "translation": "Unable to update channel."
   },
   {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "Plugin {{.PluginID}} attempted to mutate channel type via ChannelWillBeUpdated; type changes must go through the dedicated type-change path"
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "Channel update rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.update_last_viewed_at.app_error",
     "translation": "Unable to update the last viewed at time."
   },
@@ -5765,6 +5837,26 @@
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels."
+  },
+  {
+    "id": "app.channel_guard.invalid_channel.app_error",
+    "translation": "Channel ID is not a valid channel identifier."
+  },
+  {
+    "id": "app.channel_guard.register.app_error",
+    "translation": "Unable to register the channel guard."
+  },
+  {
+    "id": "app.channel_guard.register.empty_channel.app_error",
+    "translation": "Channel ID is required to register a channel guard."
+  },
+  {
+    "id": "app.channel_guard.unregister.app_error",
+    "translation": "Unable to unregister the channel guard."
+  },
+  {
+    "id": "app.channel_guard.unregister.empty_channel.app_error",
+    "translation": "Channel ID is required to unregister a channel guard."
   },
   {
     "id": "app.channel_member_history.log_join_event.internal_error",
@@ -5879,6 +5971,10 @@
     "translation": "Failed to write CSV headers."
   },
   {
+    "id": "app.compile_csv_chunks.write_error",
+    "translation": "Failed to write CSV data."
+  },
+  {
     "id": "app.compile_report_chunks.unsupported_format",
     "translation": "Unsupported report format."
   },
@@ -5907,80 +6003,8 @@
     "translation": "group name is not unique"
   },
   {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Unable to count the number of fields for the User Attributes group"
-  },
-  {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Unable to retrieve the User Attributes property group."
-  },
-  {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Unable to delete User Attribute values for user"
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Unable to get User Attribute field"
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_value.app_error",
-    "translation": "Unable to get User Attribute value"
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "User Attributes field limit reached"
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Unable to get User Attribute values"
-  },
-  {
-    "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Unable to patch User Attribute field"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
     "translation": "Unable to convert the property field to a User Attribute field"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Unable to delete User Attribute field"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Cannot update value for an admin-managed User Attribute field"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Cannot update value for a synced User Attribute field"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "User Attribute field not found"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Unable to update User Attribute field"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Unable to upsert User Attribute fields"
-  },
-  {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "Invalid property value attributes : {{.AttributeName}} ({{.Reason}})."
-  },
-  {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.display_name_too_long.app_error",
-    "translation": "CPA field display_name exceeds the maximum length of {{.MaxRunes}} characters."
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Unable to search User Attribute fields"
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "Failed to validate property value"
   },
   {
     "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
@@ -6383,6 +6407,10 @@
   {
     "id": "app.draft.save.app_error",
     "translation": "Unable to save the Draft."
+  },
+  {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "Draft rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.drafts.permanent_delete_by_user.app_error",
@@ -7593,6 +7621,10 @@
     "translation": "Unable to delete access control policy."
   },
   {
+    "id": "app.pap.delete_policy.masked_values",
+    "translation": "You cannot delete this policy because it contains attribute values you do not have permission to view."
+  },
+  {
     "id": "app.pap.expression_to_visual_ast.app_error",
     "translation": "Could not genereate visual AST from expression."
   },
@@ -7629,12 +7661,20 @@
     "translation": "Could not get attributes for policy."
   },
   {
+    "id": "app.pap.hydrate_actions.app_error",
+    "translation": "Could not load the action set declared by the channel's access control policy."
+  },
+  {
     "id": "app.pap.init.app_error",
     "translation": "Unable to initialize access control service."
   },
   {
     "id": "app.pap.is_ready.app_error",
     "translation": "Access control service is not ready."
+  },
+  {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": "Could not merge policy expression."
   },
   {
     "id": "app.pap.missing_attribute.app_error",
@@ -7649,16 +7689,88 @@
     "translation": "Could not query for expression."
   },
   {
+    "id": "app.pap.save_policy.advanced_expression_blocked",
+    "translation": "This rule expression cannot be safely edited while restricted values are present."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
+  },
+  {
+    "id": "app.pap.save_policy.invalid_value",
+    "translation": "Invalid value."
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "You cannot remove a condition that contains attribute values you do not have permission to view."
+  },
+  {
+    "id": "app.pap.save_policy.masked_rule_deleted",
+    "translation": "You cannot remove a rule that contains attribute values you do not have permission to view."
   },
   {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "A policy with this name already exists. Please choose a different name."
   },
   {
+    "id": "app.pap.save_policy.rule_name_unique.app_error",
+    "translation": "Permission rule names must be unique within the policy."
+  },
+  {
+    "id": "app.pap.save_policy.self_exclusion",
+    "translation": "You do not satisfy one or more conditions in this policy."
+  },
+  {
+    "id": "app.pap.save_policy.user_session_unsupported.app_error",
+    "translation": "Session attributes are not supported for policy simulation."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
+  },
+  {
+    "id": "app.pap.simulate.attribute_refresh",
+    "translation": "Failed to refresh attributes for the simulation."
+  },
+  {
+    "id": "app.pap.simulate.compile_failed",
+    "translation": "Failed to compile the policy for simulation."
+  },
+  {
+    "id": "app.pap.simulate.feature_disabled",
+    "translation": "The permission policies feature is currently disabled."
+  },
+  {
+    "id": "app.pap.simulate.invalid_policy",
+    "translation": "The policy is not valid."
+  },
+  {
+    "id": "app.pap.simulate.missing_actions",
+    "translation": "At least one action is required for simulation."
+  },
+  {
+    "id": "app.pap.simulate.missing_channel_id",
+    "translation": "A channel is required to simulate a channel-scoped policy."
+  },
+  {
+    "id": "app.pap.simulate.missing_policy",
+    "translation": "A policy is required for simulation."
+  },
+  {
+    "id": "app.pap.simulate.missing_users",
+    "translation": "At least one user is required for simulation."
+  },
+  {
+    "id": "app.pap.simulate.too_many_users",
+    "translation": "Too many users requested. Maximum allowed is {{.Max}}."
+  },
+  {
+    "id": "app.pap.simulate.unavailable",
+    "translation": "Policy Administration Point is not initialized."
+  },
+  {
+    "id": "app.pap.simulate.unsupported_type",
+    "translation": "Policy type \"{{.Type}}\" is not supported by the simulator."
   },
   {
     "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
@@ -7667,6 +7779,10 @@
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
     "translation": "Could not update active status of access control policies."
+  },
+  {
+    "id": "app.pap.validate_expression_values.app_error",
+    "translation": "Could not validate policy expression values."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -7719,6 +7835,14 @@
   {
     "id": "app.plugin.get_statuses.app_error",
     "translation": "Unable to get plugin statuses."
+  },
+  {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "Operation rejected: claiming plugin {{.PluginID}} hook call failed"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "Operation rejected: a required plugin is not active"
   },
   {
     "id": "app.plugin.install.app_error",
@@ -8113,6 +8237,26 @@
     "translation": "Prepackged plugin version could not be parsed."
   },
   {
+    "id": "app.property.access_denied.app_error",
+    "translation": "You do not have permission to perform this operation."
+  },
+  {
+    "id": "app.property.invalid_access_mode.app_error",
+    "translation": "The access_mode attribute is invalid."
+  },
+  {
+    "id": "app.property.license_error",
+    "translation": "Your license does not support this property group."
+  },
+  {
+    "id": "app.property.not_found.app_error",
+    "translation": "The specified property does not exist."
+  },
+  {
+    "id": "app.property.sync_lock.app_error",
+    "translation": "This property field is managed by external sync and cannot be modified directly."
+  },
+  {
     "id": "app.property_field.count_for_group.app_error",
     "translation": "Unable to count property fields for group."
   },
@@ -8123,6 +8267,14 @@
   {
     "id": "app.property_field.create.app_error",
     "translation": "Unable to create property field."
+  },
+  {
+    "id": "app.property_field.create.group_limit_reached.app_error",
+    "translation": "The maximum number of property fields for this group has been reached."
+  },
+  {
+    "id": "app.property_field.create.limit_reached.app_error",
+    "translation": "The maximum number of property fields for this object type has been reached."
   },
   {
     "id": "app.property_field.create.linked_source_cross_group.app_error",
@@ -8197,12 +8349,20 @@
     "translation": "Unable to get property fields."
   },
   {
-    "id": "app.property_field.get_many.fields_not_found.app_error",
-    "translation": "One or more property field IDs were not found in the specified group."
+    "id": "app.property_field.invalid_attrs.app_error",
+    "translation": "Invalid property field attributes."
   },
   {
     "id": "app.property_field.invalid_input.app_error",
     "translation": "Invalid input provided."
+  },
+  {
+    "id": "app.property_field.managed_admin.permission.app_error",
+    "translation": "You do not have permission to mark this property field as admin-managed."
+  },
+  {
+    "id": "app.property_field.not_found.app_error",
+    "translation": "The specified property field does not exist."
   },
   {
     "id": "app.property_field.search.app_error",
@@ -8317,8 +8477,32 @@
     "translation": "Unable to upsert property values."
   },
   {
+    "id": "app.property_value.upsert.duplicate_field_id.app_error",
+    "translation": "Duplicate field ID in property value batch."
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "Property field {{.FieldID}} was not found."
+  },
+  {
+    "id": "app.property_value.upsert.invalid_field_id.app_error",
+    "translation": "Invalid property field ID."
+  },
+  {
+    "id": "app.property_value.upsert.mixed_groups.app_error",
+    "translation": "All property values in a batch must belong to the same property group."
+  },
+  {
+    "id": "app.property_value.upsert.object_type_mismatch.app_error",
+    "translation": "Property field object type does not match the request."
+  },
+  {
     "id": "app.property_value.upsert_many.app_error",
     "translation": "Unable to upsert property values."
+  },
+  {
+    "id": "app.property_value.validate.app_error",
+    "translation": "Property value failed validation."
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
@@ -8627,8 +8811,16 @@
     "translation": "Private channel"
   },
   {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "Scheduled post rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Unknown Channel"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "Scheduled post update rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -9331,6 +9523,10 @@
     "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
   },
   {
+    "id": "app.user_access_token.expired",
+    "translation": "The personal access token has expired."
+  },
+  {
     "id": "app.user_access_token.get_all.app_error",
     "translation": "Unable to get all personal access tokens."
   },
@@ -9805,6 +10001,10 @@
   {
     "id": "ent.elasticsearch.delete_file.error",
     "translation": "Failed to delete file"
+  },
+  {
+    "id": "ent.elasticsearch.delete_files_batch.error",
+    "translation": "Failed to delete files batch"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -10563,6 +10763,10 @@
     "translation": "The parent is already imported."
   },
   {
+    "id": "model.access_policy.inherit.parent_type.app_error",
+    "translation": "Imports must target a membership parent policy."
+  },
+  {
     "id": "model.access_policy.inherit.permission.app_error",
     "translation": "Permission policies cannot inherit from other policies."
   },
@@ -10573,6 +10777,14 @@
   {
     "id": "model.access_policy.is_valid.actions.app_error",
     "translation": "Action(s) is not valid."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
+    "translation": "Membership cannot be combined with other actions in the same rule."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.permission_type.app_error",
+    "translation": "Permission action rules are only allowed on channel policies."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
@@ -10593,6 +10805,18 @@
   {
     "id": "model.access_policy.is_valid.roles.app_error",
     "translation": "Permission policies must be applied to exactly one role."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name.app_error",
+    "translation": "Permission rules require a non-empty name within the policy max length."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name_unique.app_error",
+    "translation": "Permission rule names must be unique within the policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": "Invalid role for the rule."
   },
   {
     "id": "model.access_policy.is_valid.rules.app_error",
@@ -10779,6 +11003,10 @@
     "translation": "Invalid creator id."
   },
   {
+    "id": "model.channel.is_valid.discoverable.app_error",
+    "translation": "Only private channels can be marked as discoverable."
+  },
+  {
     "id": "model.channel.is_valid.display_name.app_error",
     "translation": "Invalid display name."
   },
@@ -10869,6 +11097,50 @@
   {
     "id": "model.channel_bookmark.is_valid.update_at.app_error",
     "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason.app_error",
+    "translation": "Denial reason is too long."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.denial_reason_status.app_error",
+    "translation": "Denial reason can only be set on a denied join request."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.id.app_error",
+    "translation": "Invalid Id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.message.app_error",
+    "translation": "Join request message is too long."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewed_by.app_error",
+    "translation": "Invalid reviewer id."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.reviewer.app_error",
+    "translation": "An approved or denied join request must record the reviewer and review time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.status.app_error",
+    "translation": "Invalid join request status."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.user_id.app_error",
+    "translation": "Invalid user id."
   },
   {
     "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
@@ -11087,6 +11359,10 @@
     "translation": "Workers must be between 1 and 64."
   },
   {
+    "id": "model.config.is_valid.azure_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "Cache type must be either lru or redis."
   },
@@ -11161,6 +11437,10 @@
   {
     "id": "model.config.is_valid.directory.app_error",
     "translation": "Invalid Local Storage Directory. Must be a non-empty string."
+  },
+  {
+    "id": "model.config.is_valid.directory_traversal.app_error",
+    "translation": "Path traversal sequences (\"..\") are not allowed in {{.Setting}}. Found \"{{.Value}}\"."
   },
   {
     "id": "model.config.is_valid.directory_whitespace.app_error",
@@ -11267,8 +11547,12 @@
     "translation": "Invalid value for RetentionDays. Value should be greater than 0"
   },
   {
+    "id": "model.config.is_valid.export_azure_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Invalid driver name for file settings. Must be 'local' or 'amazons3'."
+    "translation": "Invalid driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'."
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
@@ -11485,6 +11769,18 @@
   {
     "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
     "translation": "Invalid version number. Must be a valid semantic version (e.g. 5.0.0)."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+    "translation": "Invalid Auto Cache Cleanup value. Must be between {{.Min}} and {{.Max}} days."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+    "translation": "Invalid Disconnection Timeout value. Must be between {{.Min}} and {{.Max}} seconds."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+    "translation": "Invalid Offline Persistence Timer value. Must be between {{.Min}} and {{.Max}} hours."
   },
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
@@ -12699,6 +12995,10 @@
     "translation": "Invalid description, must be 255 or less characters."
   },
   {
+    "id": "model.user_access_token.is_valid.expires_at.app_error",
+    "translation": "Invalid expires_at, must be zero or a positive Unix timestamp in milliseconds."
+  },
+  {
     "id": "model.user_access_token.is_valid.id.app_error",
     "translation": "Invalid value for id."
   },
@@ -12797,6 +13097,10 @@
   {
     "id": "plugin.api.get_users_in_channel",
     "translation": "Unable to get the users, invalid sorting criteria."
+  },
+  {
+    "id": "plugin.api.update_post.mm_blocks_actions.app_error",
+    "translation": "Invalid mm_blocks_actions in plugin post update."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",

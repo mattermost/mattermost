@@ -114,7 +114,7 @@ func getData(app ExportUsersToCSVAppIFace) func(jobData model.StringMap) ([]mode
 
 		users, appErr := app.GetUsersForReporting(filter)
 		if appErr != nil {
-			return nil, nil, false, errors.Wrapf(err, "failed to get the next batch (column_value=%v, user_id=%v)", filter.FromColumnValue, filter.FromId)
+			return nil, nil, false, errors.Wrapf(appErr, "failed to get the next batch (column_value=%v, user_id=%v)", filter.FromColumnValue, filter.FromId)
 		}
 
 		if len(users) == 0 {

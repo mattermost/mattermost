@@ -5,6 +5,7 @@
 # If you rename this workflow, be sure to update those workflows as well.
 name: Server CI
 on:
+  workflow_dispatch:  # Allow manual/API triggering for linked plugin CI
   push:
     branches:
       - master
@@ -247,6 +248,7 @@ jobs:
       artifact-pattern: postgres-server-test-logs-shard-*
       artifact-name: postgres-server-test-logs
       save-timing-cache: true
+      all-shards-passed: ${{ needs.test-postgres-normal.result == 'success' }}
 
   test-elasticsearch-v8:
     name: Elasticsearch v8 Compatibility
@@ -262,6 +264,21 @@ jobs:
       fips-enabled: false
       elasticsearch-version: "8.9.0"
       test-target: "test-server-elasticsearch"
+
+  test-opensearch-v2:
+    name: OpenSearch v2 Compatibility
+    needs: go
+    uses: ./.github/workflows/server-test-template.yml
+    secrets: inherit
+    with:
+      name: OpenSearch v2 Compatibility
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: opensearch-v2-server-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+      opensearch-version: "2.19.0"
+      test-target: "test-server-opensearch"
 
   # FIPS tests: run on PRs when go.mod changed or branch name contains "fips".
   # Sharded for fast iteration. Weekly workflow provides regular full coverage.

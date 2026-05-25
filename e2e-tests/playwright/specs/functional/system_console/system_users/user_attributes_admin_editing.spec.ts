@@ -36,6 +36,15 @@ let cpaFieldNames: {
     skills: string;
 };
 
+/** Rendered label for each CPA field: attrs.display_name when set, else field.name. */
+let cpaDisplayLabels: {
+    department: string;
+    workEmail: string;
+    personalWebsite: string;
+    location: string;
+    skills: string;
+};
+
 let testUserAttributes: CustomProfileAttribute[];
 
 let team: Team;
@@ -76,6 +85,14 @@ test.describe('System Console - Admin User Profile Editing', () => {
             location: `UAAE_Location_${suffix}`,
             skills: `UAAE_Skills_${suffix}`,
         };
+        // Mirror display_name values from testUserAttributes; absent display_name falls back to name.
+        cpaDisplayLabels = {
+            department: cpaFieldNames.department,
+            workEmail: 'Work Email',
+            personalWebsite: 'Personal Website',
+            location: cpaFieldNames.location,
+            skills: cpaFieldNames.skills,
+        };
         testUserAttributes = [
             {
                 name: cpaFieldNames.department,
@@ -92,6 +109,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
                 attrs: {
                     value_type: 'email',
                     visibility: 'when_set',
+                    display_name: 'Work Email',
                 },
             },
             {
@@ -101,6 +119,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
                 attrs: {
                     value_type: 'url',
                     visibility: 'when_set',
+                    display_name: 'Personal Website',
                 },
             },
             {
@@ -242,8 +261,8 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
         await systemConsolePage!.users.userDetail.userCard.container.waitFor({state: 'visible'});
         const {userCard} = systemConsolePage!.users.userDetail;
-        await expect(userCard.getFieldInputByExactLabel(cpaFieldNames.department)).toBeVisible({timeout: 30_000});
-        await expect(userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail)).toBeVisible({timeout: 30_000});
+        await expect(userCard.getFieldInputByExactLabel(cpaDisplayLabels.department)).toBeVisible({timeout: 30_000});
+        await expect(userCard.getFieldInputByExactLabel(cpaDisplayLabels.workEmail)).toBeVisible({timeout: 30_000});
 
         // Remove the intercept now that field visibility is confirmed.
         // Keeping it active through the test body would intercept the save API call
@@ -271,7 +290,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userCard} = userDetail;
 
         // # Find and edit Department field (custom text attribute)
-        const departmentInput = userCard.getFieldInputByExactLabel(cpaFieldNames.department);
+        const departmentInput = userCard.getFieldInputByExactLabel(cpaDisplayLabels.department);
         await departmentInput.clear();
         await departmentInput.fill('Marketing');
 
@@ -300,9 +319,8 @@ test.describe('System Console - Admin User Profile Editing', () => {
 
         // * Verify custom user attributes are present
         for (const field of testUserAttributes) {
-            await expect(
-                systemConsolePage!.page.locator('label').filter({hasText: new RegExp(field.name)}),
-            ).toBeVisible();
+            const label = field.attrs?.display_name || field.name;
+            await expect(systemConsolePage!.page.locator('label').filter({hasText: label})).toBeVisible();
         }
 
         // * Verify we have input fields (at least 4-5 total)
@@ -339,7 +357,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userCard} = userDetail;
 
         // # Find Location select field
-        const locationSelect = userCard.getSelectByExactLabel(cpaFieldNames.location);
+        const locationSelect = userCard.getSelectByExactLabel(cpaDisplayLabels.location);
 
         // # Get the first available option (since we can't predict the option value/ID)
         const firstOption = await locationSelect.locator('option').nth(1); // Skip the default "Select an option"
@@ -363,11 +381,11 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userCard} = userDetail;
 
         // * Verify Skills multiselect component is displayed
-        const skillsColumn = userCard.getCpaMultiselectContainer(cpaFieldNames.skills);
+        const skillsColumn = userCard.getCpaMultiselectContainer(cpaDisplayLabels.skills);
         await expect(skillsColumn).toBeVisible();
 
         // # Make a change to a different field to trigger save state
-        const departmentInput = userCard.getFieldInputByExactLabel(cpaFieldNames.department);
+        const departmentInput = userCard.getFieldInputByExactLabel(cpaDisplayLabels.department);
         await departmentInput.fill('Engineering Updated');
 
         // # Verify save button becomes enabled
@@ -407,7 +425,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         });
         try {
             // # Find CPA email field (Work Email)
-            const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
+            const workEmailInput = userCard.getFieldInputByExactLabel(cpaDisplayLabels.workEmail);
             await workEmailInput.scrollIntoViewIfNeeded();
             const originalEmail = await workEmailInput.inputValue();
 
@@ -416,7 +434,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
             await workEmailInput.fill('not-an-email');
 
             // * Verify inline validation error appears
-            const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
+            const fieldError = userCard.getFieldError(cpaDisplayLabels.workEmail);
             await expect(fieldError).toBeVisible({timeout: 30000});
             await expect(fieldError).toContainText('Invalid email address');
 
@@ -461,7 +479,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         });
         try {
             // # Find custom URL field (Personal Website)
-            const urlInput = userCard.getFieldInputByExactLabel(cpaFieldNames.personalWebsite);
+            const urlInput = userCard.getFieldInputByExactLabel(cpaDisplayLabels.personalWebsite);
             const originalUrl = await urlInput.inputValue();
 
             // # Enter invalid URL (specifically the one mentioned: "<%>")
@@ -469,7 +487,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
             await urlInput.fill('<%>');
 
             // * Verify inline validation error appears
-            const fieldError = userCard.getFieldError(cpaFieldNames.personalWebsite);
+            const fieldError = userCard.getFieldError(cpaDisplayLabels.personalWebsite);
             await expect(fieldError).toBeVisible();
             await expect(fieldError).toContainText('Invalid URL');
 
@@ -511,14 +529,14 @@ test.describe('System Console - Admin User Profile Editing', () => {
         });
         try {
             // # Find custom email field (Work Email)
-            const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
+            const workEmailInput = userCard.getFieldInputByExactLabel(cpaDisplayLabels.workEmail);
 
             // # Enter invalid email
             await workEmailInput.clear();
             await workEmailInput.fill('not-an-email-either');
 
             // * Verify inline validation error appears
-            const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
+            const fieldError = userCard.getFieldError(cpaDisplayLabels.workEmail);
             await expect(fieldError).toBeVisible();
             await expect(fieldError).toContainText('Invalid email address');
 
@@ -541,7 +559,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(userDetail.cancelButton).not.toBeVisible();
 
         // # Make a change to trigger save needed state
-        const departmentInput = userCard.getFieldInputByExactLabel(cpaFieldNames.department);
+        const departmentInput = userCard.getFieldInputByExactLabel(cpaDisplayLabels.department);
         const originalValue = await departmentInput.inputValue();
         await departmentInput.clear();
         await departmentInput.fill('Changed Value');
@@ -573,7 +591,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await userCard.emailInput.clear();
         await userCard.emailInput.fill(newEmail);
 
-        const departmentInput = userCard.getFieldInputByExactLabel(cpaFieldNames.department);
+        const departmentInput = userCard.getFieldInputByExactLabel(cpaDisplayLabels.department);
         await departmentInput.clear();
         await departmentInput.fill('Sales');
 

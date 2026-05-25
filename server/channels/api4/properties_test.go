@@ -163,6 +163,30 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionOptions)
 	})
 
+	t.Run("admin can set permission level=admin on a channel-target field", func(t *testing.T) {
+		adminLevel := model.PermissionLevelAdmin
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotNil(t, createdField.PermissionField)
+		require.Equal(t, model.PermissionLevelAdmin, *createdField.PermissionField)
+		require.NotNil(t, createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelAdmin, *createdField.PermissionValues)
+		require.NotNil(t, createdField.PermissionOptions)
+		require.Equal(t, model.PermissionLevelAdmin, *createdField.PermissionOptions)
+	})
+
 	t.Run("invalid group name should fail", func(t *testing.T) {
 		th.LoginBasic(t)
 
@@ -901,13 +925,14 @@ func TestPatchPropertyField(t *testing.T) {
 		newName := model.NewId()
 		patch := &model.PropertyFieldPatch{Name: &newName}
 
-		// Try to update with wrong object_type in URL
+		// Try to update with wrong object_type in URL. Expected 404 to match
+		// the shape of a non-existent field.
 		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "channel", createdField.ID, patch)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("patch with wrong group name should fail", func(t *testing.T) {
+	t.Run("patch with wrong group name should fail 404", func(t *testing.T) {
 		field := &model.PropertyField{
 			Name:              model.NewId(),
 			Type:              model.PropertyFieldTypeText,
@@ -924,11 +949,12 @@ func TestPatchPropertyField(t *testing.T) {
 		newName := model.NewId()
 		patch := &model.PropertyFieldPatch{Name: &newName}
 
-		// Try to patch using the other group's name — field belongs to `group`, not `otherGroup`
+		// Try to patch using the other group's name — field belongs to `group`, not `otherGroup`.
+		// A field not found because of a wrong group must surface as 404, not a generic 500.
 		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), otherGroup.Name, "post", createdField.ID, patch)
 		require.Error(t, err)
-		// GetPropertyField with the wrong groupID should not find the field
-		require.NotEqual(t, http.StatusOK, resp.StatusCode)
+		CheckNotFoundStatus(t, resp)
+		require.Equal(t, "app.property.not_found.app_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("options-only update should check options permission", func(t *testing.T) {
@@ -1435,13 +1461,14 @@ func TestDeletePropertyField(t *testing.T) {
 		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
-		// Try to delete with wrong object_type in URL
+		// Try to delete with wrong object_type in URL. Expected 404 to match
+		// the shape of a non-existent field.
 		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), group.Name, "channel", createdField.ID)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("delete with wrong group name should fail", func(t *testing.T) {
+	t.Run("delete with wrong group name should fail 404", func(t *testing.T) {
 		field := &model.PropertyField{
 			Name:              model.NewId(),
 			Type:              model.PropertyFieldTypeText,
@@ -1455,12 +1482,13 @@ func TestDeletePropertyField(t *testing.T) {
 		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
-		// Try to delete using the other group's name — field belongs to `group`, not `otherGroup`
-		th.LoginBasic(t)
-		resp, err := th.Client.DeletePropertyField(context.Background(), otherGroup.Name, "post", createdField.ID)
+		// Try to delete using the other group's name — field belongs to `group`, not `otherGroup`.
+		// A field not found because of a wrong group must surface as 404, not a generic 500.
+		th.LoginSystemAdmin(t)
+		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), otherGroup.Name, "post", createdField.ID)
 		require.Error(t, err)
-		// GetPropertyField with the wrong groupID should not find the field
-		require.NotEqual(t, http.StatusOK, resp.StatusCode)
+		CheckNotFoundStatus(t, resp)
+		require.Equal(t, "app.property.not_found.app_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("user without permission should not be able to delete", func(t *testing.T) {
@@ -1824,7 +1852,7 @@ func TestPatchPropertyValues(t *testing.T) {
 	createdNoneField, appErr := th.App.CreatePropertyField(th.Context, noneField, false, "")
 	require.Nil(t, appErr)
 
-	// Use a real post as the target so target access checks pass
+	// Use a real post as the target so target access checks pass.
 	targetID := th.BasicPost.Id
 
 	t.Run("unauthenticated request should fail", func(t *testing.T) {
@@ -1978,7 +2006,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		}
 		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
 		require.Error(t, patchErr)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("nonexistent group should fail", func(t *testing.T) {
@@ -1990,6 +2018,35 @@ func TestPatchPropertyValues(t *testing.T) {
 		_, resp, err := th.Client.PatchPropertyValues(context.Background(), "nonexistent_group", "post", targetID, items)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("field with mismatched object type should fail 404", func(t *testing.T) {
+		// A field in the same group but scoped to a different ObjectType must not
+		// be patchable through the URL of a peer ObjectType; the mismatch collapses
+		// to 404 so callers cannot distinguish "no such field" from "field exists
+		// but in a different object-type bucket".
+		userField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdUserField, appErr := th.App.CreatePropertyField(th.Context, userField, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginSystemAdmin(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: createdUserField.ID, Value: json.RawMessage(`"test"`)},
+		}
+		_, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		require.Equal(t, "api.property_field.object_type_mismatch.app_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("channel member can set values on channel-scoped field with values permission member", func(t *testing.T) {
@@ -2020,8 +2077,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		require.Equal(t, json.RawMessage(`"channel-value"`), values[0].Value)
 	})
 
-	t.Run("non-member cannot set values on channel-scoped field with values permission member", func(t *testing.T) {
-		// Create a channel that BasicUser is NOT a member of
+	t.Run("non-member cannot set values on post in a channel they don't belong to", func(t *testing.T) {
 		privateChannel, chanErr := th.App.CreateChannel(th.Context, &model.Channel{
 			TeamId:      th.BasicTeam.Id,
 			Type:        model.ChannelTypePrivate,
@@ -2031,26 +2087,14 @@ func TestPatchPropertyValues(t *testing.T) {
 		}, false)
 		require.Nil(t, chanErr)
 
-		channelField := &model.PropertyField{
-			Name:              model.NewId(),
-			Type:              model.PropertyFieldTypeText,
-			GroupID:           group.ID,
-			ObjectType:        "post",
-			TargetType:        "channel",
-			TargetID:          privateChannel.Id,
-			PermissionField:   &memberLevel,
-			PermissionValues:  &memberLevel,
-			PermissionOptions: &memberLevel,
-		}
-		createdChannelField, fieldErr := th.App.CreatePropertyField(th.Context, channelField, false, "")
-		require.Nil(t, fieldErr)
+		// Create a post in the private channel as SystemAdmin (BasicUser is not a member).
+		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
 
 		th.LoginBasic(t)
-
 		items := []model.PropertyValuePatchItem{
-			{FieldID: createdChannelField.ID, Value: json.RawMessage(`"should-fail"`)},
+			{FieldID: createdMemberField.ID, Value: json.RawMessage(`"should-fail"`)},
 		}
-		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", privatePost.Id, items)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -2245,6 +2289,23 @@ func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotEmpty(t, values)
+	})
+
+	t.Run("non-admin cannot get values of a user they cannot see", func(t *testing.T) {
+		// Strip system-wide view_members so UserCanSeeOtherUser falls back to team/channel membership.
+		th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+
+		// Drop BasicUser2 from BasicTeam so they no longer share a team with BasicUser.
+		resp, err := th.SystemAdminClient.RemoveTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		th.LoginBasic2(t)
+
+		_, resp, err = th.Client.GetPropertyValues(context.Background(), group.Name, "user", th.BasicUser.Id, model.PropertyValueSearch{PerPage: 60})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
 	})
 }
 
@@ -3353,7 +3414,9 @@ func TestSystemObjectType(t *testing.T) {
 		}
 		_, resp, patchErr := th.SystemAdminClient.PatchSystemPropertyValues(context.Background(), group.Name, items)
 		require.Error(t, patchErr)
-		CheckBadRequestStatus(t, resp)
+		// Mismatch (template field ObjectType != system route's objectType)
+		// collapses to 404 to match the executePatchPropertyField shape.
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("system field round-trips a value via the dedicated route", func(t *testing.T) {
@@ -3502,10 +3565,11 @@ func TestSystemObjectType(t *testing.T) {
 			{FieldID: systemField.ID, Value: json.RawMessage(`"smuggled"`)},
 		}
 		// Even sysadmin should be rejected — this is a structural check on
-		// the route, not a permission check.
+		// the route, not a permission check. Mismatch collapses to 404 to
+		// match the executePatchPropertyField/executeDeletePropertyField shape.
 		_, resp, patchErr := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, th.SystemAdminUser.Id, items)
 		require.Error(t, patchErr)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("system values PATCH route rejects body referencing a non-system field ID", func(t *testing.T) {
@@ -3531,6 +3595,6 @@ func TestSystemObjectType(t *testing.T) {
 		}
 		_, resp, patchErr := th.SystemAdminClient.PatchSystemPropertyValues(context.Background(), group.Name, items)
 		require.Error(t, patchErr)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 }

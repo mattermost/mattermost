@@ -28,14 +28,14 @@ describe('Customization', () => {
     });
 
     it('MM-T1214 - Can change Report a Problem Link setting', () => {
-        // * Verify Report a Problem link label is visible and matches the text
-        cy.findByTestId('SupportSettings.ReportAProblemLinklabel').scrollIntoView().should('be.visible').and('have.text', 'Report a Problem Link:');
+        // # Select 'Custom link' from the Report a Problem dropdown
+        cy.findByTestId('SupportSettings.ReportAProblemTypedropdown').scrollIntoView().select('Custom link');
 
-        // * Verify Report a Problem link input box has default value. The default value depends on the setup before running the test.
-        cy.findByTestId('SupportSettings.ReportAProblemLinkinput').should('have.value', origConfig.SupportSettings.ReportAProblemLink);
+        // * Verify Report a Problem link label is visible and matches the text
+        cy.findByTestId('SupportSettings.ReportAProblemLinklabel').scrollIntoView().should('be.visible').and('have.text', 'Custom Report a Problem Link:');
 
         // * Verify Report a Problem link help text is visible and matches the text
-        cy.findByTestId('SupportSettings.ReportAProblemLinkhelp-text').find('span').should('be.visible').and('have.text', 'The URL for the Report a Problem link in the Help Menu. If this field is empty, the link is removed from the Help Menu.');
+        cy.findByTestId('SupportSettings.ReportAProblemLinkhelp-text').find('span').should('be.visible').and('have.text', 'Enter the URL that users will be directed to when they choose "Report a Problem".');
 
         // # Enter a problem link
         const reportAProblemLink = 'https://mattermost.com/pl/report-a-bug';

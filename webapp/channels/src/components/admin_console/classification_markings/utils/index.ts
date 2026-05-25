@@ -8,30 +8,48 @@ import {Client4} from 'mattermost-redux/client';
 import type {ClassificationLevel} from './presets';
 import {PRESET_CUSTOM, presets} from './presets';
 
-export const GROUP_NAME = 'classification_markings';
+// ---------------------------------------------------------------------------
+// Property-field identifiers for the classification-markings feature.
+//
+// Three logical fields participate:
+//   1. Template field  — canonical schema (Linked Properties template). The
+//                        admin defines the level options here; per-channel
+//                        and system fields link to it and inherit them.
+//   2. System field    — linked-to-template; drives the GLOBAL banner. Lives
+//                        on the dedicated 'system' object-type path
+//                        introduced in #36250.
+//   3. Channel field   — linked-to-template; drives PER-CHANNEL banners.
+//
+// All three fields are scoped server-side as system fields, so they share the
+// same field-level target attributes (`target_type='system'`, `target_id=''`).
+// Property *values* for the system field are stored on the dedicated system
+// endpoint and use the sentinel target_id 'system'.
+// ---------------------------------------------------------------------------
 
-// OBJECT_TYPE is 'template' so the classification field acts as the canonical schema
-// (a Linked Properties template). Per-channel fields will link to it and inherit its options.
-export const OBJECT_TYPE = 'template';
-export const TARGET_TYPE = 'system';
+// Property-field group for all classification-markings entities.
+export const CLASSIFICATIONS_GROUP_NAME = 'access_control';
 
-// TARGET_ID is intentionally empty for system-scoped template fields.
-export const TARGET_ID = '';
-export const FIELD_NAME = 'classification';
-export const LINKED_FIELD_NAME = 'system_classification';
+// Field-level target attributes shared by template, system, and channel fields.
+// `target_type` is always 'system'; `target_id` is empty for system-scoped
+// field definitions (the server canonicalizes both).
+export const CLASSIFICATIONS_FIELD_TARGET_TYPE = 'system';
+export const CLASSIFICATIONS_FIELD_TARGET_ID = '';
 
-// The linked field uses the 'system' object type introduced in #36250.
-// System fields are canonicalized server-side: target_type='system', target_id=''.
-// System values use the sentinel target_id 'system' and dedicated API routes.
-export const LINKED_OBJECT_TYPE = 'system';
+// Template field — the canonical schema.
+export const CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE = 'template';
+export const CLASSIFICATIONS_TEMPLATE_FIELD_NAME = 'classification';
 
-// System-scoped fields have target_id '' on the field definition.
-export const SYSTEM_FIELD_TARGET_ID = '';
+// System field — drives the global banner. Property *values* live on the
+// dedicated system endpoint and use the sentinel target_id 'system'.
+export const CLASSIFICATIONS_SYSTEM_OBJECT_TYPE = 'system';
+export const CLASSIFICATIONS_SYSTEM_FIELD_NAME = 'system_classification';
+export const CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID = 'system';
 
-// The sentinel target_id used by the server for system-scoped property values.
-export const SYSTEM_VALUE_TARGET_ID = 'system';
+// Channel field — drives the per-channel banner.
+export const CLASSIFICATIONS_CHANNEL_OBJECT_TYPE = 'channel';
+export const CLASSIFICATIONS_CHANNEL_FIELD_NAME = 'channel_classification';
 
-// Actions stored on the linked field's attrs.actions to control banner display.
+// Actions stored on the linked fields' attrs.actions to control banner placement.
 export const DISPLAY_BANNER_TOP = 'display_banner_top';
 export const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
 
@@ -143,8 +161,14 @@ export async function fetchClassificationField(): Promise<PropertyField | undefi
     let cursorCreateAt: number | undefined;
 
     while (fetched < maxItems) {
-        const fields = await Client4.getPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID, {cursorId, cursorCreateAt}); // eslint-disable-line no-await-in-loop
-        const found = fields.find((f: PropertyField) => f.name === FIELD_NAME && f.delete_at === 0);
+        const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
+            CLASSIFICATIONS_GROUP_NAME,
+            CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_ID,
+            {cursorId, cursorCreateAt},
+        );
+        const found = fields.find((f: PropertyField) => f.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME && f.delete_at === 0);
         if (found || fields.length === 0) {
             return found;
         }
@@ -160,30 +184,30 @@ export async function fetchClassificationField(): Promise<PropertyField | undefi
 
 export async function saveCreateField(levels: ClassificationLevel[]): Promise<PropertyField> {
     const options = levelsToOptions(levels);
-    return Client4.createPropertyField(GROUP_NAME, OBJECT_TYPE, {
-        name: FIELD_NAME,
+    return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, {
+        name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
         type: 'select' as PropertyField['type'],
-        target_type: TARGET_TYPE,
-        target_id: TARGET_ID,
-        attrs: {options, managed: 'admin'},
-        permission_field: 'sysadmin',
-        permission_values: 'sysadmin',
-        permission_options: 'sysadmin',
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
+        attrs: {options},
+        permission_field: 'admin',
+        permission_values: 'admin',
+        permission_options: 'admin',
     });
 }
 
 export async function saveDeleteField(fieldId: string): Promise<void> {
-    await Client4.deletePropertyField(GROUP_NAME, OBJECT_TYPE, fieldId);
+    await Client4.deletePropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, fieldId);
 }
 
 export async function savePatchField(fieldId: string, levels: ClassificationLevel[]): Promise<PropertyField> {
     const options = levelsToOptions(levels);
-    return Client4.patchPropertyField(GROUP_NAME, OBJECT_TYPE, fieldId, {
+    return Client4.patchPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, fieldId, {
         attrs: {options},
     } as Partial<PropertyField>);
 }
 
-// --- Linked system classification field API ---
+// --- System field API (drives the global banner) ---
 
 export async function fetchLinkedClassificationField(): Promise<PropertyField | undefined> {
     const maxItems = 500;
@@ -192,8 +216,14 @@ export async function fetchLinkedClassificationField(): Promise<PropertyField | 
     let cursorCreateAt: number | undefined;
 
     while (fetched < maxItems) {
-        const fields = await Client4.getPropertyFields(GROUP_NAME, LINKED_OBJECT_TYPE, TARGET_TYPE, SYSTEM_FIELD_TARGET_ID, {cursorId, cursorCreateAt}); // eslint-disable-line no-await-in-loop
-        const found = fields.find((f: PropertyField) => f.name === LINKED_FIELD_NAME && f.delete_at === 0 && f.linked_field_id);
+        const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
+            CLASSIFICATIONS_GROUP_NAME,
+            CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_ID,
+            {cursorId, cursorCreateAt},
+        );
+        const found = fields.find((f: PropertyField) => f.name === CLASSIFICATIONS_SYSTEM_FIELD_NAME && f.delete_at === 0 && f.linked_field_id);
         if (found || fields.length === 0) {
             return found;
         }
@@ -208,20 +238,23 @@ export async function fetchLinkedClassificationField(): Promise<PropertyField | 
 }
 
 export async function saveCreateLinkedField(templateFieldId: string, config: GlobalBannerConfig): Promise<PropertyField> {
-    return Client4.createPropertyField(GROUP_NAME, LINKED_OBJECT_TYPE, {
-        name: LINKED_FIELD_NAME,
+    return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, {
+        name: CLASSIFICATIONS_SYSTEM_FIELD_NAME,
         type: 'select' as PropertyField['type'],
-        target_type: TARGET_TYPE,
-        target_id: SYSTEM_FIELD_TARGET_ID,
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         linked_field_id: templateFieldId,
         attrs: {
             actions: placementToActions(config),
         },
+        permission_field: 'admin',
+        permission_values: 'admin',
+        permission_options: 'admin',
     });
 }
 
 export async function savePatchLinkedField(linkedFieldId: string, config: GlobalBannerConfig): Promise<PropertyField> {
-    return Client4.patchPropertyField(GROUP_NAME, LINKED_OBJECT_TYPE, linkedFieldId, {
+    return Client4.patchPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, linkedFieldId, {
         attrs: {
             actions: placementToActions(config),
         },
@@ -229,7 +262,7 @@ export async function savePatchLinkedField(linkedFieldId: string, config: Global
 }
 
 export async function saveDeleteLinkedField(fieldId: string): Promise<void> {
-    await Client4.deletePropertyField(GROUP_NAME, LINKED_OBJECT_TYPE, fieldId);
+    await Client4.deletePropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, fieldId);
 }
 
 // --- System classification property value API ---
@@ -239,7 +272,7 @@ export async function saveDeleteLinkedField(fieldId: string): Promise<void> {
  * Uses the dedicated system values endpoint (no target_id in URL).
  */
 export async function fetchSystemClassificationValue(linkedFieldId: string): Promise<string | undefined> {
-    const values = await Client4.getSystemPropertyValues<string>(GROUP_NAME);
+    const values = await Client4.getSystemPropertyValues<string>(CLASSIFICATIONS_GROUP_NAME);
     const match = ((values as Array<PropertyValue<string>>) ?? []).find((v) => v.field_id === linkedFieldId);
     return match?.value;
 }
@@ -250,7 +283,54 @@ export async function fetchSystemClassificationValue(linkedFieldId: string): Pro
  * Returns the saved property values so callers can eagerly update the store.
  */
 export async function saveUpsertSystemValue(linkedFieldId: string, optionId: string): Promise<Array<PropertyValue<string>>> {
-    return Client4.patchSystemPropertyValues<string>(GROUP_NAME, [
+    return Client4.patchSystemPropertyValues<string>(CLASSIFICATIONS_GROUP_NAME, [
         {field_id: linkedFieldId, value: optionId},
     ]);
+}
+
+// --- Channel field API (drives per-channel banners) ---
+
+export async function fetchChannelClassificationField(): Promise<PropertyField | undefined> {
+    const maxItems = 500;
+    let fetched = 0;
+    let cursorId: string | undefined;
+    let cursorCreateAt: number | undefined;
+
+    while (fetched < maxItems) {
+        const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
+            CLASSIFICATIONS_GROUP_NAME,
+            CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_ID,
+            {cursorId, cursorCreateAt},
+        );
+        const found = fields.find((f: PropertyField) => f.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME && f.delete_at === 0 && f.linked_field_id);
+        if (found || fields.length === 0) {
+            return found;
+        }
+
+        fetched += fields.length;
+        const last = fields[fields.length - 1];
+        cursorId = last.id;
+        cursorCreateAt = last.create_at;
+    }
+
+    return undefined;
+}
+
+export async function saveCreateChannelLinkedField(templateFieldId: string): Promise<PropertyField> {
+    return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, {
+        name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
+        type: 'select' as PropertyField['type'],
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
+        linked_field_id: templateFieldId,
+        permission_field: 'admin',
+        permission_values: 'admin',
+        permission_options: 'admin',
+    });
+}
+
+export async function saveDeleteChannelLinkedField(fieldId: string): Promise<void> {
+    await Client4.deletePropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, fieldId);
 }
