@@ -618,3 +618,18 @@ func TestGetLicenseLoadMetric(t *testing.T) {
 		require.Equal(t, 1500, loadValue)
 	})
 }
+
+func TestAddLicenseNilLicense(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("nil license does not panic", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		// addLicense checks License().IsCloud() after saving — but the upload
+		// itself will fail validation. Key assertion: no panic, no 500.
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/license", "not-a-real-license")
+		require.Error(t, err)
+		require.NotEqual(t, http.StatusInternalServerError, resp.StatusCode)
+	})
+}

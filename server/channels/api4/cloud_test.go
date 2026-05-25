@@ -486,3 +486,20 @@ func TestCheckCWSConnection(t *testing.T) {
 		assert.Equal(t, "unavailable", response["status"])
 	})
 }
+
+func TestGetSubscriptionNilLicense(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	t.Run("nil license does not panic", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		// getSubscription calls License().IsCloudPreview() and License().IsCloud()
+		// — must not panic when license is nil. The exact error depends on the
+		// test environment (cloud interface may not be available), but the key
+		// assertion is no panic and no 500.
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/cloud/subscription", "")
+		require.Error(t, err)
+		require.NotEqual(t, http.StatusInternalServerError, resp.StatusCode)
+	})
+}

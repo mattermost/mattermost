@@ -10268,3 +10268,61 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
+
+func TestLoginNilLicense(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("nil license does not panic on login", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
+
+		// Login calls isCWSLogin and AttachSessionCookies, both of which
+		// reference License().IsCloud() — must not panic when license is nil.
+		_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+	})
+}
+
+func TestDemoteUserToGuestNilLicense(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("nil license does not panic", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		// demoteUserToGuest checks License() == nil — should return 501, not panic.
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/users/"+th.BasicUser.Id+"/demote", "")
+		require.Error(t, err)
+		require.NotEqual(t, http.StatusInternalServerError, resp.StatusCode)
+	})
+}
+
+func TestMigrateAuthToLDAPNilLicense(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("nil license does not panic", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		jsonBody := `{"from":"email","force":false,"match_field":"email"}`
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/users/migrate_auth/ldap", jsonBody)
+		require.Error(t, err)
+		require.NotEqual(t, http.StatusInternalServerError, resp.StatusCode)
+	})
+}
+
+func TestMigrateAuthToSamlNilLicense(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("nil license does not panic", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		jsonBody := `{"from":"email","auto":false,"matches":{}}`
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/users/migrate_auth/saml", jsonBody)
+		require.Error(t, err)
+		require.NotEqual(t, http.StatusInternalServerError, resp.StatusCode)
+	})
+}

@@ -124,7 +124,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	license, appErr = c.App.Srv().SaveLicense(licenseBytes)
+	_, appErr = c.App.Srv().SaveLicense(licenseBytes)
 	if appErr != nil {
 		if appErr.Id == model.ExpiredLicenseError {
 			c.LogAudit("failed - expired or non-started license")
@@ -137,7 +137,8 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Channels().License().IsCloud() {
+	license = c.App.Channels().License()
+	if license != nil && license.IsCloud() {
 		// If cloud, invalidate the caches when a new license is loaded
 		defer func() {
 			if err := c.App.Srv().Cloud.HandleLicenseChange(); err != nil {

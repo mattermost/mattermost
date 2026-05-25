@@ -551,3 +551,22 @@ func TestUploadDataMultipart(t *testing.T) {
 		require.Equal(t, file, data)
 	})
 }
+
+func TestCreateUploadNilLicense(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("nil license does not panic on import upload", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		us := &model.UploadSession{
+			Type:     model.UploadTypeImport,
+			Filename: "import.zip",
+			FileSize: 1024,
+		}
+		_, resp, err := th.SystemAdminClient.CreateUpload(context.Background(), us)
+		require.Error(t, err)
+		require.NotEqual(t, http.StatusInternalServerError, resp.StatusCode,
+			"nil license must not cause a 500 panic in createUpload")
+	})
+}

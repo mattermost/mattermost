@@ -217,7 +217,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
-	if c.App.Channels().License().IsCloud() {
+	license := c.App.Channels().License()
+	if license != nil && license.IsCloud() {
 		siteURLHeader = *c.App.Config().ServiceSettings.SiteURL + subpath
 	}
 	c.SetSiteURLHeader(siteURLHeader)
@@ -289,7 +290,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.RemoveSessionCookie(w, r)
 			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 		}
-	} else if token != "" && c.App.Channels().License().IsCloud() && tokenLocation == app.TokenLocationCloudHeader {
+	} else if token != "" && license != nil && license.IsCloud() && tokenLocation == app.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
@@ -298,7 +299,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.AppContext = c.AppContext.WithSession(session)
 		}
-	} else if token != "" && c.App.Channels().License() != nil && c.App.Channels().License().HasRemoteClusterService() && tokenLocation == app.TokenLocationRemoteClusterHeader {
+	} else if token != "" && license != nil && license.HasRemoteClusterService() && tokenLocation == app.TokenLocationRemoteClusterHeader {
 		// Get the remote cluster
 		if remoteId := c.GetRemoteID(r); remoteId == "" {
 			c.Logger.Warn("Missing remote cluster id") //

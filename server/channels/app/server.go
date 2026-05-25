@@ -1445,7 +1445,8 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 func (s *Server) doReportUserCountForCloudSubscriptionJob() {
 	s.LoadLicense()
 
-	if !s.License().IsCloud() {
+	license := s.License()
+	if license == nil || !license.IsCloud() {
 		return
 	}
 

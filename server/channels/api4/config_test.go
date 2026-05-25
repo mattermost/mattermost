@@ -66,6 +66,14 @@ func TestGetConfig(t *testing.T) {
 		require.NotEqual(t, model.FakeSetting, *cfg.SqlSettings.DataSource)
 		require.NotEqual(t, model.FakeSetting, *cfg.FileSettings.PublicLinkSalt)
 	})
+
+	t.Run("nil license does not panic", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		// GetConfig calls License().IsCloud() — must not panic when license is nil
+		_, _, err := th.SystemAdminClient.GetConfig(context.Background())
+		require.NoError(t, err)
+	})
 }
 
 func TestGetConfigWithAccessTag(t *testing.T) {
