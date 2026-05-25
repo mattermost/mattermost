@@ -5,7 +5,6 @@ go 1.25.10
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Masterminds/semver/v3 v3.4.0
-	github.com/boxes-ltd/imaging v1.7.5
 	github.com/avct/uasurfer v0.0.0-20250915105040-a942f6fb6edc
 	github.com/aws/aws-sdk-go-v2 v1.41.5
 	github.com/aws/aws-sdk-go-v2/config v1.32.13
@@ -14,6 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.36.3
 	github.com/bep/imagemeta v0.12.0
 	github.com/blang/semver/v4 v4.0.0
+	github.com/boxes-ltd/imaging v1.7.5
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
@@ -70,13 +70,13 @@ require (
 	github.com/wiggin77/merror v1.0.5
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 	github.com/yuin/goldmark v1.8.2
-	golang.org/x/crypto v0.49.0
-	golang.org/x/image v0.38.0
-	golang.org/x/net v0.52.0
+	golang.org/x/crypto v0.50.0
+	golang.org/x/image v0.40.0
+	golang.org/x/net v0.53.0
 	golang.org/x/sync v0.20.0
-	golang.org/x/sys v0.42.0
-	golang.org/x/term v0.41.0
-	golang.org/x/text v0.35.0
+	golang.org/x/sys v0.43.0
+	golang.org/x/term v0.42.0
+	golang.org/x/text v0.37.0
 	gopkg.in/mail.v2 v2.3.1
 )
 
@@ -213,8 +213,8 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	go4.org v0.0.0-20260112195520-a5071408f32f // indirect
 	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90 // indirect
-	golang.org/x/mod v0.34.0 // indirect
-	golang.org/x/tools v0.43.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260319201613-d00831a3d3e7 // indirect
 	google.golang.org/grpc v1.79.3 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
