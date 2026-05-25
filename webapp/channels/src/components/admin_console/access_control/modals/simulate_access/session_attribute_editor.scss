@@ -1,0 +1,95 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Pencil-icon popover styles. The popover is portaled to <body> via
+// FloatingPortal, so the rules sit at the document root rather than
+// nested under the modal — same pattern as the AddUsersInline panel.
+
+.SimulateAccessModal__editorPanel {
+    z-index: 1080;
+    width: 520px;
+    max-width: 90vw;
+    padding: 16px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 8px;
+    background: var(--center-channel-bg);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.SimulateAccessModal__editorForm {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.SimulateAccessModal__editorTitle {
+    color: var(--center-channel-color);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.SimulateAccessModal__editorDescription {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 13px;
+    line-height: 18px;
+}
+
+.SimulateAccessModal__editorEmpty {
+    padding: 24px 0;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 13px;
+    text-align: center;
+}
+
+// Two-column responsive grid: pairs of fields share a row on wide
+// displays, collapse to a single column on narrow popovers.
+.SimulateAccessModal__editorGrid {
+    display: grid;
+    gap: 12px 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.SimulateAccessModal__editorField {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.SimulateAccessModal__editorFieldLabel {
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.SimulateAccessModal__editorFieldInput,
+.SimulateAccessModal__editorFieldSelect {
+    height: 32px;
+    padding: 4px 10px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    font-size: 13px;
+
+    // Keep the keyboard focus indicator visible. Solid border on
+    // focus + a 1px outline gives a clear contrast ring against the
+    // input's own --center-channel-bg background while preserving
+    // the rounded corners. WCAG 2.4.7 — focus must not be silent.
+    &:focus,
+    &:focus-visible {
+        border-color: var(--button-bg);
+        outline: 1px solid var(--button-bg);
+        outline-offset: 0;
+    }
+}
+
+.SimulateAccessModal__editorActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+    gap: 8px;
+}

@@ -1,0 +1,413 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Frame-level styles for the picker modal: the GenericModal flex chain,
+// the subheader band (description copy + inline search), the controls
+// band (permission filter + "Evaluate against" segmented toggle), the
+// table scaffolding, the paginator footer below the table, and the
+// custom modal footer (summary + Close / Re-run). Component-specific
+// styles live in sibling .scss files imported by the component that
+// owns them:
+//   - picker_row.scss              — per-user row layout
+//   - decision_chip.scss           — every chip variant
+//   - session_row.scss             — per-session unfold rows
+//   - session_attribute_editor.scss — pencil-icon popover
+//   - decision_details_modal.scss   — stacked details modal + AST trace
+
+.SimulateAccessModal {
+    // Widen the picker so the result chip + recent-activity column
+    // don't fight the user-name column for breathing room. 720px fits
+    // the column layout comfortably without dwarfing the host
+    // ChannelSettingsModal (920px), and we respect the viewport on
+    // small windows.
+    width: 720px !important;
+    max-width: min(720px, 90vw) !important;
+    margin-top: 5vh !important;
+
+    // Cap the modal height and stack the header / body / footer as a
+    // flex column so the body region can claim the remaining space.
+    // `overflow: hidden` is critical: without it, when the table grows
+    // past the body's allotted slot the .modal-footer renders BELOW
+    // the modal-content's bounding box (visible on the gray overlay
+    // rather than inside the white frame). With it, the flex chain
+    // forces the body to honor min-height: 0 + overflow-y: auto and
+    // the footer stays pinned at the modal's bottom.
+    .modal-content {
+        display: flex;
+        overflow: hidden;
+        max-height: 90vh;
+        flex-direction: column;
+    }
+
+    // React-Bootstrap renders <Modal.Body> as a `.modal-body` wrapper
+    // around <GenericModal__body>. Both layers need to be flex columns
+    // with min-height:0 so the inner __body's `flex: 1 1 auto;
+    // overflow-y: auto` actually has something to size against.
+    // Without the .modal-body rule the body just expands to its content
+    // height and pushes the Re-run / Close footer below the modal frame
+    // — exactly the regression we hit with 12+ picked users.
+    .modal-body {
+        display: flex;
+        overflow: hidden;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+    }
+
+    .GenericModal__body {
+        display: flex;
+        overflow: hidden;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+        padding: 0 !important;
+    }
+
+    // Pin the modal footer above the bottom edge regardless of the
+    // body's height. Bootstrap's `.modal-footer` defaults to
+    // `flex-wrap: wrap` which would push the right-aligned paginator
+    // onto a second line when the inner `__footer`'s natural width
+    // exceeds the available row, hiding the buttons just below the
+    // modal frame's visible area. We force a single-row layout +
+    // `flex-shrink: 0` so the footer keeps its natural height even
+    // when `.modal-content` hits its 90vh cap. Padding (24/32)
+    // matches the `.filter-controls` band SearchableUserList uses so
+    // the pagination row reads consistently across admin-console
+    // user-list modals.
+    .modal-footer {
+        flex-shrink: 0;
+        flex-wrap: nowrap;
+        padding: 24px 32px;
+    }
+
+    // Subheader / controls / body / summary share a 32px horizontal
+    // gutter so the row content "snaps" to the modal edges instead of
+    // sitting in a narrow centred strip. Stacks vertically (description
+    // on top, search input below) so the search bar can claim the full
+    // width — typing room matters more than aligning the search box on
+    // the same row as the copy.
+    &__subheader {
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        padding: 0 32px 12px;
+        gap: 12px;
+
+        p {
+            margin: 0;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 13px;
+            line-height: 18px;
+        }
+    }
+
+    // Inline search input. Plain bordered text input — we deliberately
+    // avoid the Mattermost <Input> widget here because its floating-
+    // label fieldset chrome is too heavy for a single-input picker
+    // (the previous attempt rendered as a thick blue outline with a
+    // floating "Search users" label fighting the placeholder copy).
+    // A 1px border + 4px radius matches the standard admin-console
+    // search affordance and stays readable both at rest and on focus.
+    &__search {
+        width: 100%;
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        box-shadow: none;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+        outline: 0;
+
+        &::placeholder {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+
+        // Brand-color border on focus, no separate outline ring —
+        // doubling up looked busy against the dense table below.
+        &:focus,
+        &:focus-visible {
+            border-color: var(--button-bg);
+            box-shadow: inset 0 0 0 1px var(--button-bg);
+            outline: 0;
+        }
+    }
+
+    // Controls band sandwiched between the subheader and the table —
+    // hosts the permission filter dropdown on the left and the
+    // "Evaluate against" segmented toggle on the right. Aligning them
+    // on a shared row keeps the controls scannable; the dense Compass
+    // spacing (8px above the table) matches the rest of the
+    // admin-console editors.
+    &__controls {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 32px 12px;
+        gap: 16px;
+    }
+
+    &__scopeToggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__scopeLabel {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 13px;
+    }
+
+    &__scopeSegments {
+        display: inline-flex;
+        padding: 2px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+
+    &__scopeSegment {
+        padding: 4px 12px;
+        border: 0;
+        border-radius: 3px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+
+        &:hover:not(.SimulateAccessModal__scopeSegment--active) {
+            background: rgba(var(--center-channel-color-rgb), 0.06);
+            color: var(--center-channel-color);
+        }
+
+        &--active {
+            background: var(--center-channel-bg);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            color: var(--center-channel-color);
+        }
+    }
+
+    // Compact, low-chrome dropdown trigger used by the permission filter
+    // on the left side of the controls row. Mattermost's `btn-transparent`
+    // provides the base reset; we add inline-flex alignment, a tighter
+    // padding, and a max-width so an unusually long action label
+    // ellipsizes instead of expanding the row past the modal width.
+    // The negative `margin-left` cancels the button's own padding-left
+    // so the label's text-start lines up with the 32px modal gutter
+    // (used by the subheader copy directly above and the empty-state /
+    // table content below). Without this shift the label reads ~8px
+    // further right than every other line in the modal — visually
+    // distracting even though the button's hover/focus surface is still
+    // where the eye expects.
+    &__filterButton {
+        display: inline-flex;
+        max-width: 240px;
+        align-items: center;
+        padding: 4px 8px;
+        margin-left: -12px;
+        color: var(--center-channel-color);
+        font-size: 13px;
+        font-weight: 600;
+        gap: 6px;
+
+        // Force line-height to the controls row's 18px so the button
+        // is the same height as the segmented "Evaluate against"
+        // buttons next to it. The base `.btn` class otherwise applies
+        // line-height: 1.5 * 14px = 21px, which makes the dropdown
+        // taller than the segmented control and shifts the label's
+        // baseline ~2px below the rest of the row.
+        line-height: 18px;
+    }
+
+    // No hover background on the permission filter trigger — the
+    // chevron + cursor pointer is enough affordance, and a hover
+    // surface here would compete with the adjacent segmented control
+    // which also lights up on hover. The class is repeated in the
+    // selector to bump specificity from (0,2,0) up to (0,3,0) so we
+    // win over the global `.btn-transparent:hover` rule shipped from
+    // _buttons.scss without resorting to !important.
+    &__filterButton.SimulateAccessModal__filterButton {
+        &:hover,
+        &:focus,
+        &:active {
+            background: transparent;
+            box-shadow: none;
+        }
+
+        // Keyboard focus must remain visibly indicated (WCAG 2.4.7):
+        // we suppress the global hover/focus tints above, so add an
+        // explicit accessible focus ring for keyboard navigation.
+        // Mirrors the .SimulateAccessModal__rowChipButton pattern
+        // (outline 2px solid + 2px offset against --button-bg) so
+        // every focusable trigger inside the picker shares the same
+        // ring.
+        &:focus-visible {
+            background: transparent;
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+    }
+
+    &__filterButtonLabel {
+        overflow: hidden;
+        min-width: 0;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // Body has no horizontal padding so the table — and its row
+    // borders — span the modal edge-to-edge. The 32px content gutter
+    // that matches the modal header / subheader is re-introduced via
+    // the first/last table cell padding overrides below, so each row
+    // still has the same inner padding as the rest of the modal but
+    // the gray separators between rows reach all the way to the edge.
+    &__body {
+        // Body holds the user table and is the scroll container.
+        // `max-height` is a viewport-aware cap that subtracts the
+        // approximate chrome (modal header + subheader + permission/
+        // scope row + table head + modal footer ≈ 320px) from the
+        // .modal-content's 90vh cap. Capping the body explicitly
+        // is more reliable than depending on the flex chain to
+        // shrink a <table> child — tables don't always honor flex
+        // min-height: 0, which lets the modal footer escape past
+        // the 90vh boundary on short viewports. `flex: 1 1 auto`
+        // (basis auto) so the body still claims available space and
+        // grows naturally; the max-height simply prevents it from
+        // exceeding the safe budget.
+        min-height: 0;
+        max-height: calc(90vh - 320px);
+        flex: 1 1 auto;
+        padding: 0 0 16px;
+        overflow-y: auto;
+    }
+
+    &__empty {
+        padding: 48px 16px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 13px;
+        text-align: center;
+
+        // Error variant: same layout, error-tinted copy + a subtle
+        // background so the user notices a load failure rather than
+        // confusing it with a "no results" message.
+        &--error {
+            background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.04);
+            color: var(--error-text, #d24b4e);
+        }
+    }
+
+    // Inline banner for simulator failures. Sits above the existing
+    // table/empty-state region rather than replacing it so authors
+    // still see the most recent successful run alongside the error
+    // message.
+    &__simulateError {
+        padding: 10px 12px;
+        border-radius: 4px;
+        margin: 0 16px 12px;
+        background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
+        color: var(--error-text, #d24b4e);
+        font-size: 13px;
+    }
+
+    // USER column takes all the slack (`width: 100%` on the first
+    // column) so the result chip and the trailing pencil/x icons hug
+    // the right edge. The other columns sit at their intrinsic content
+    // size via `width: 1%; white-space: nowrap` — the classic flex-tab
+    // pattern for tables. When session attributes aren't configured,
+    // the RECENT ACTIVITY column is omitted entirely (see the
+    // `--noActivity` modifier).
+    &__table {
+        width: 100%;
+        border-collapse: collapse;
+
+        th {
+            padding: 0 12px 8px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-align: left;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        th:first-child,
+        td:first-child {
+            width: 100%;
+
+            // First cell carries the 32px left gutter so USER header +
+            // avatar/name align with the modal header / subheader text,
+            // while the row's bottom border still reaches the modal's
+            // left edge (the body itself has 0 horizontal padding).
+            padding-left: 32px;
+        }
+
+        th:not(:first-child),
+        td:not(:first-child) {
+            width: 1%;
+            white-space: nowrap;
+        }
+
+        // Last cell carries the 32px right gutter for the trailing X
+        // button — same reason as the first-cell rule above.
+        th:last-child,
+        td:last-child {
+            padding-right: 32px;
+        }
+    }
+
+    // Right-align the RESULT column so the chip and its header label
+    // hug the column's trailing edge, next to the pencil column. The
+    // chip is rendered as inline-flex so `text-align: right` on the
+    // td shifts it to the right; the same rule on the th lines the
+    // "RESULT" header up over the chip.
+    &__table th:nth-child(2),
+    &__table td.SimulateAccessModal__rowResult {
+        text-align: right;
+    }
+
+    // Custom footer row hosting the Previous / Next paginator. We
+    // mirror the layout pattern SearchableUserList uses for its
+    // `.filter-controls` band (border-top + 24/32 padding, Previous
+    // on the left and Next on the right) so the picker's pagination
+    // reads identically to the rest of the admin-console user
+    // lists. Buttons fall back to the shared
+    // `Button emphasis='tertiary'` default chrome — no extra border
+    // or background overrides here. The summary line that used to
+    // live on the left was dropped because paginated results only
+    // ever summarized the visible page, which mislead the eye.
+    // `flex: 1 1 auto` lets the row claim the full footer width;
+    // `justify-content: space-between` parks Previous at the left
+    // edge and Next at the right edge.  `flex-shrink: 0` on the
+    // children themselves keeps both buttons at their intrinsic
+    // width on narrow viewports — without this they'd collapse
+    // before disappearing entirely.
+    &__footer {
+        display: flex;
+        flex: 1 1 auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+
+        > .btn {
+            flex-shrink: 0;
+        }
+    }
+}
