@@ -188,6 +188,10 @@
     "translation": "failed to add user to group-teams and group-channels"
   },
   {
+    "id": "api.admin.test_azure.missing_azure_field",
+    "translation": "An Azure Blob Storage setting is missing or invalid."
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "It appears your Mattermost email is setup correctly!"
   },
@@ -2445,8 +2449,12 @@
     "translation": "The configured bucket or container does not exist. Verify your file storage configuration and permissions."
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "File storage settings has unset values."
+    "id": "api.file.test_connection_settings_nil.app_error",
+    "translation": "File storage settings have unset values."
+  },
+  {
+    "id": "api.file.test_connection_unsupported_driver.app_error",
+    "translation": "Unsupported file storage driver \"{{.Driver}}\". Supported values are \"local\", \"amazons3\", and \"azureblob\"."
   },
   {
     "id": "api.file.upload_file.abac_denied.app_error",
@@ -5763,6 +5771,10 @@
     "translation": "Unable to restore the channel."
   },
   {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "Channel restore rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.save_member.app_error",
     "translation": "Unable to save channel member."
   },
@@ -5807,6 +5819,14 @@
     "translation": "Unable to update channel."
   },
   {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "Plugin {{.PluginID}} attempted to mutate channel type via ChannelWillBeUpdated; type changes must go through the dedicated type-change path"
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "Channel update rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.update_last_viewed_at.app_error",
     "translation": "Unable to update the last viewed at time."
   },
@@ -5825,6 +5845,26 @@
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels."
+  },
+  {
+    "id": "app.channel_guard.invalid_channel.app_error",
+    "translation": "Channel ID is not a valid channel identifier."
+  },
+  {
+    "id": "app.channel_guard.register.app_error",
+    "translation": "Unable to register the channel guard."
+  },
+  {
+    "id": "app.channel_guard.register.empty_channel.app_error",
+    "translation": "Channel ID is required to register a channel guard."
+  },
+  {
+    "id": "app.channel_guard.unregister.app_error",
+    "translation": "Unable to unregister the channel guard."
+  },
+  {
+    "id": "app.channel_guard.unregister.empty_channel.app_error",
+    "translation": "Channel ID is required to unregister a channel guard."
   },
   {
     "id": "app.channel_member_history.log_join_event.internal_error",
@@ -6377,6 +6417,10 @@
     "translation": "Unable to save the Draft."
   },
   {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "Draft rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.drafts.permanent_delete_by_user.app_error",
     "translation": "Unable to delete drafts for user."
   },
@@ -6699,6 +6743,10 @@
   {
     "id": "app.import.import_direct_channel.no_members.error",
     "translation": "There are no members for the direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.save_member.error",
+    "translation": "Failed to save channel member during direct channel import"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
@@ -7801,6 +7849,14 @@
     "translation": "Unable to get plugin statuses."
   },
   {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "Operation rejected: claiming plugin {{.PluginID}} hook call failed"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "Operation rejected: a required plugin is not active"
+  },
+  {
     "id": "app.plugin.install.app_error",
     "translation": "Unable to install plugin."
   },
@@ -8767,8 +8823,16 @@
     "translation": "Private channel"
   },
   {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "Scheduled post rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Unknown Channel"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "Scheduled post update rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -9471,6 +9535,10 @@
     "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
   },
   {
+    "id": "app.user_access_token.expired",
+    "translation": "The personal access token has expired."
+  },
+  {
     "id": "app.user_access_token.get_all.app_error",
     "translation": "Unable to get all personal access tokens."
   },
@@ -9945,6 +10013,10 @@
   {
     "id": "ent.elasticsearch.delete_file.error",
     "translation": "Failed to delete file"
+  },
+  {
+    "id": "ent.elasticsearch.delete_files_batch.error",
+    "translation": "Failed to delete files batch"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -12933,6 +13005,10 @@
   {
     "id": "model.user_access_token.is_valid.description.app_error",
     "translation": "Invalid description, must be 255 or less characters."
+  },
+  {
+    "id": "model.user_access_token.is_valid.expires_at.app_error",
+    "translation": "Invalid expires_at, must be zero or a positive Unix timestamp in milliseconds."
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",

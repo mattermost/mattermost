@@ -8,9 +8,8 @@ import (
 	context "context"
 
 	model "github.com/mattermost/mattermost/server/public/model"
-	mock "github.com/stretchr/testify/mock"
-
 	request "github.com/mattermost/mattermost/server/public/shared/request"
+	mock "github.com/stretchr/testify/mock"
 
 	time "time"
 )

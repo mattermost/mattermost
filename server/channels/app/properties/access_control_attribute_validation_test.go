@@ -935,6 +935,36 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		require.Error(t, upsertErr)
 		assert.Contains(t, upsertErr.Error(), "maximum length")
 	})
+
+	t.Run("sanitizeAndValidateOptions writes back canonical []any of map[string]any", func(t *testing.T) {
+		// Downstream readers (asOptionSlice, EnsureOptionIDs, store-layer
+		// serialization) expect the canonical loose-typed shape. Writing back
+		// a typed PropertyOptions slice from the hook used to break the linked-
+		// options diff on every no-op patch — see commit bc15075016.
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "A", "color": "#fff"},
+					map[string]any{"id": model.NewId(), "name": "B", "color": "#000"},
+				},
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		opts, ok := created.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok, "options should be []any after hook canonicalization, got %T", created.Attrs[model.PropertyFieldAttributeOptions])
+		require.Len(t, opts, 2)
+		for _, opt := range opts {
+			_, ok := opt.(map[string]any)
+			assert.True(t, ok, "each option element should be map[string]any, got %T", opt)
+		}
+	})
 }
 
 func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) {

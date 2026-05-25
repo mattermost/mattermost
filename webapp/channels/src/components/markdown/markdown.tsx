@@ -26,11 +26,6 @@ export type OwnProps = {
     options?: Partial<TextFormattingOptions>;
 
     /**
-     * Whether or not to proxy image URLs
-     */
-    proxyImages?: boolean;
-
-    /**
      * prop for passed down to image component for dimensions
      */
     imagesMetadata?: Record<string, PostImage>;
@@ -85,7 +80,6 @@ export type OwnProps = {
 
 function Markdown({
     options = {},
-    proxyImages = true,
     imagesMetadata = {},
     postId = '', // Needed to avoid proptypes console errors for cases like channel header, which doesn't have a proper value
     editedAt = 0,
@@ -101,7 +95,6 @@ function Markdown({
     allowInlineActions,
     enableFormatting,
     siteURL,
-    hasImageProxy,
     team,
     minimumHashtagLength,
     managedResourcePaths,
@@ -124,7 +117,6 @@ function Markdown({
         highlightKeys,
         atMentions: true,
         channelNamesMap,
-        proxyImages: hasImageProxy && proxyImages,
         team,
         minimumHashtagLength,
         managedResourcePaths,

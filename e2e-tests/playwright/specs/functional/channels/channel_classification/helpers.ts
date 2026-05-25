@@ -3,7 +3,7 @@
 
 import type {Client4} from '@mattermost/client';
 
-const PROPERTY_GROUP = 'classification_markings';
+const PROPERTY_GROUP = 'access_control';
 const TEMPLATE_OBJECT_TYPE = 'template';
 const CHANNEL_OBJECT_TYPE = 'channel';
 const TARGET_TYPE = 'system';
@@ -102,11 +102,10 @@ export async function setupClassificationWithChannelField(
         target_id: '',
         attrs: {
             options: levels.map((l) => ({id: '', name: l.name, color: l.color, rank: l.rank})),
-            managed: 'admin',
         },
-        permission_field: 'sysadmin',
-        permission_values: 'sysadmin',
-        permission_options: 'sysadmin',
+        permission_field: 'admin',
+        permission_values: 'admin',
+        permission_options: 'admin',
     } as Parameters<Client4['createPropertyField']>[2]);
 
     // Create channel linked field
