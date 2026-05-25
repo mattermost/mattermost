@@ -1065,6 +1065,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check edit_file_attachment permission if file IDs are being changed (files added or removed)
+	checkEditFileAttachmentPermission(c, post.FileIds, originalPost)
+	if c.Err != nil {
+		return
+	}
+
 	if c.AppContext.Session().UserId != originalPost.UserId {
 		// We don't need to check the member here, since we already checked it above
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts); !ok {
@@ -1136,6 +1142,11 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if post.FileIds != nil {
 		checkUploadFilePermissionForNewFiles(c, *post.FileIds, originalPost)
+		if c.Err != nil {
+			return
+		}
+
+		checkEditFileAttachmentPermission(c, *post.FileIds, originalPost)
 		if c.Err != nil {
 			return
 		}

@@ -130,6 +130,16 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         }
     });
 
+    test('should include edit_file_attachment in the posts permission group', () => {
+        const wrapper = shallow(
+            <PermissionsTree {...defaultProps}/>,
+        );
+
+        const groups = wrapper.find(PermissionGroup).first().prop('permissions') as Array<Group | Permission>;
+        expect(groups[6].id).toBe('posts');
+        expect(groups[6].permissions).toContain('edit_file_attachment');
+    });
+
     test('should hide disabbled integration options', () => {
         const wrapper = shallow(
             <PermissionsTree

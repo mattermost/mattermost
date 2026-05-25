@@ -60,6 +60,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
           },
           Object {
             "combined": true,
+            "id": "guest_edit_file_attachment",
+            "permissions": Array [
+              "edit_file_attachment",
+            ],
+          },
+          Object {
+            "combined": true,
             "id": "guest_delete_post",
             "permissions": Array [
               "delete_post",
@@ -185,6 +192,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
           },
           Object {
             "combined": true,
+            "id": "guest_edit_file_attachment",
+            "permissions": Array [
+              "edit_file_attachment",
+            ],
+          },
+          Object {
+            "combined": true,
             "id": "guest_delete_post",
             "permissions": Array [
               "delete_post",
@@ -299,6 +313,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "id": "guest_edit_post",
             "permissions": Array [
               "edit_post",
+            ],
+          },
+          Object {
+            "combined": true,
+            "id": "guest_edit_file_attachment",
+            "permissions": Array [
+              "edit_file_attachment",
             ],
           },
           Object {
@@ -428,6 +449,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
           },
           Object {
             "combined": true,
+            "id": "guest_edit_file_attachment",
+            "permissions": Array [
+              "edit_file_attachment",
+            ],
+          },
+          Object {
+            "combined": true,
             "id": "guest_delete_post",
             "permissions": Array [
               "delete_post",
@@ -549,6 +577,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "id": "guest_edit_post",
             "permissions": Array [
               "edit_post",
+            ],
+          },
+          Object {
+            "combined": true,
+            "id": "guest_edit_file_attachment",
+            "permissions": Array [
+              "edit_file_attachment",
             ],
           },
           Object {
@@ -690,6 +725,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "id": "guest_edit_post",
             "permissions": Array [
               "edit_post",
+            ],
+          },
+          Object {
+            "combined": true,
+            "id": "guest_edit_file_attachment",
+            "permissions": Array [
+              "edit_file_attachment",
             ],
           },
           Object {
