@@ -137,7 +137,7 @@ func buildAzureServiceURL(cloud, scheme, account, endpoint string) (string, erro
 		}
 		// The admin owns this URL end to end, but we still reject inputs
 		// that the SDK is guaranteed to fail on later (missing scheme,
-		// missing host, an http(s) scheme other than http/https) so the
+		// missing host, a scheme other than http/https) so the
 		// failure mode is a clear configuration error at startup rather
 		// than an opaque SDK error on the first blob request.
 		parsed, err := url.Parse(endpoint)

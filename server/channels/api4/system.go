@@ -243,7 +243,7 @@ func testNotifications(c *Context, w http.ResponseWriter, r *http.Request) {
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cfg *model.Config
 	err := json.NewDecoder(r.Body).Decode(&cfg)
-	if err != nil && err != io.EOF {
+	if err != nil {
 		c.Logger.Warn("Error decoding the config", mlog.Err(err))
 	}
 	if cfg == nil {
@@ -565,7 +565,7 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 func testFileStore(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cfg *model.Config
 	err := json.NewDecoder(r.Body).Decode(&cfg)
-	if err != nil && err != io.EOF {
+	if err != nil {
 		c.Logger.Warn("Error decoding the config", mlog.Err(err))
 	}
 	if cfg == nil {

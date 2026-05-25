@@ -4584,7 +4584,9 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_timeout.app_error", map[string]any{"Value": *s.AzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
 	}
 
-	if !slices.Contains([]string{AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom}, *s.AzureCloud) {
+	switch *s.AzureCloud {
+	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom:
+	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_cloud.app_error", map[string]any{"Setting": "FileSettings.AzureCloud", "Value": *s.AzureCloud}, "", http.StatusBadRequest)
 	}
 
@@ -4616,7 +4618,9 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.export_azure_timeout.app_error", map[string]any{"Value": *s.ExportAzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
 	}
 
-	if !slices.Contains([]string{AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom}, *s.ExportAzureCloud) {
+	switch *s.ExportAzureCloud {
+	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom:
+	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_cloud.app_error", map[string]any{"Setting": "FileSettings.ExportAzureCloud", "Value": *s.ExportAzureCloud}, "", http.StatusBadRequest)
 	}
 
