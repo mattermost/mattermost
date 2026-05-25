@@ -11240,7 +11240,7 @@ SOFTWARE.
 
 ## react-intl
 
-This product contains 'react-intl' by Eric Ferraiuolo.
+This product contains 'react-intl'.
 
 Internationalize React apps. This library provides React components and an API to format dates, numbers, and strings, including pluralization and handling translations.
 
@@ -11255,7 +11255,7 @@ Internationalize React apps. This library provides React components and an API t
 
 ## react-intl
 
-This product contains 'react-intl' by Eric Ferraiuolo.
+This product contains 'react-intl'.
 
 Internationalize React apps. This library provides React components and an API to format dates, numbers, and strings, including pluralization and handling translations.
 
