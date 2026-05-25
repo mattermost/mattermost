@@ -24,27 +24,33 @@ type Props = {
     hideStatus?: boolean;
 }
 
-const hasDisplayableAttributeValue = (attribute: UserPropertyField, customProfileAttributes: Record<string, string | string[]>): boolean => {
+const shouldRenderAttribute = (attribute: UserPropertyField, customProfileAttributes: Record<string, string | string[]>): boolean => {
     const attributeValue = customProfileAttributes[attribute.id];
+    const visibility = attribute.attrs?.visibility || 'when_set';
+    const shouldHideUnavailableValue = visibility === 'when_set' || attribute.attrs?.access_mode === 'shared_only';
+
     if (Array.isArray(attributeValue)) {
         if (attributeValue.length === 0) {
-            return false;
+            return !shouldHideUnavailableValue;
         }
     } else if (!attributeValue) {
-        return false;
+        return !shouldHideUnavailableValue;
     }
 
     if (attribute.type === 'multiselect' || attribute.type === 'select') {
         const options = attribute.attrs?.options;
         if (!options?.length) {
-            return false;
+            return !shouldHideUnavailableValue;
         }
 
+        let hasDisplayableOption = false;
         if (Array.isArray(attributeValue)) {
-            return attributeValue.some((value) => options.some((option) => option.id === value));
+            hasDisplayableOption = attributeValue.some((value) => options.some((option) => option.id === value));
+        } else {
+            hasDisplayableOption = options.some((option) => option.id === attributeValue);
         }
 
-        return options.some((option) => option.id === attributeValue);
+        return hasDisplayableOption || !shouldHideUnavailableValue;
     }
 
     return true;
@@ -76,7 +82,7 @@ const ProfilePopoverCustomAttributes = ({
                 return null;
             }
 
-            if (!hasDisplayableAttributeValue(attribute, userProfile.custom_profile_attributes)) {
+            if (!shouldRenderAttribute(attribute, userProfile.custom_profile_attributes)) {
                 return null;
             }
 

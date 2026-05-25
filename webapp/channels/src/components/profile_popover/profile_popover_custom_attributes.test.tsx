@@ -279,6 +279,51 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         expect(screen.queryByText('Text Attribute')).not.toBeInTheDocument();
     });
 
+    test('should render public always-visible attribute labels when the value is missing', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                users: {
+                    profiles: {
+                        user_id: TestHelper.getUserMock({
+                            id: 'user_id',
+                            custom_profile_attributes: {
+                                phone_attribute_id: '+1 (555) 123-4567',
+                                url_attribute_id: 'https://example.com',
+                                select_attribute_id: 'option1',
+                            },
+                        }),
+                    },
+                },
+                general: {
+                    ...baseState.entities.general,
+                    customProfileAttributes: {
+                        ...baseState.entities.general.customProfileAttributes,
+                        text_attribute_id: {
+                            ...textAttribute,
+                            attrs: {
+                                ...textAttribute.attrs,
+                                visibility: 'always',
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(state);
+
+        renderWithContext(
+            <Provider store={store}>
+                <ProfilePopoverCustomAttributes {...baseProps}/>
+            </Provider>,
+        );
+
+        expect(screen.getByText('Text Attribute')).toBeInTheDocument();
+        expect(screen.getByText('Phone Number')).toBeInTheDocument();
+    });
+
     test('should not render shared-only always-visible attribute labels when the value is missing', () => {
         const state = {
             ...baseState,
@@ -325,7 +370,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         expect(screen.getByText('Phone Number')).toBeInTheDocument();
     });
 
-    test('should not render always-visible select labels when the value is not displayable', () => {
+    test('should render public always-visible select labels when the value is not displayable', () => {
         const state = {
             ...baseState,
             entities: {
@@ -365,19 +410,75 @@ describe('components/ProfilePopoverCustomAttributes', () => {
             </Provider>,
         );
 
+        expect(screen.getByText('Select Attribute')).toBeInTheDocument();
+        expect(screen.queryByText('filtered-option')).not.toBeInTheDocument();
+    });
+
+    test('should not render shared-only always-visible select labels when the value is not displayable', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                users: {
+                    profiles: {
+                        user_id: TestHelper.getUserMock({
+                            id: 'user_id',
+                            custom_profile_attributes: {
+                                ...userProfile.custom_profile_attributes,
+                                select_attribute_id: 'filtered-option',
+                            },
+                        }),
+                    },
+                },
+                general: {
+                    ...baseState.entities.general,
+                    customProfileAttributes: {
+                        ...baseState.entities.general.customProfileAttributes,
+                        select_attribute_id: {
+                            ...selectAttribute,
+                            attrs: {
+                                ...selectAttribute.attrs,
+                                visibility: 'always',
+                                access_mode: 'shared_only',
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        const store = mockStore(state);
+
+        renderWithContext(
+            <Provider store={store}>
+                <ProfilePopoverCustomAttributes {...baseProps}/>
+            </Provider>,
+        );
+
         expect(screen.queryByText('Select Attribute')).not.toBeInTheDocument();
         expect(screen.queryByText('filtered-option')).not.toBeInTheDocument();
     });
 
-    test('should render multiselect labels only when at least one value is displayable', () => {
-        const hiddenMultiselectAttribute: UserPropertyField = {
+    test('should hide only shared-only multiselect labels when values are not displayable', () => {
+        const publicMultiselectAttribute: UserPropertyField = {
             ...selectAttribute,
-            id: 'hidden_multiselect_attribute_id',
-            name: 'Hidden Multiselect Attribute',
+            id: 'public_multiselect_attribute_id',
+            name: 'Public Multiselect Attribute',
             type: 'multiselect',
             attrs: {
                 ...selectAttribute.attrs,
                 visibility: 'always',
+            },
+        };
+        const sharedOnlyMultiselectAttribute: UserPropertyField = {
+            ...selectAttribute,
+            id: 'shared_only_multiselect_attribute_id',
+            name: 'Shared Only Multiselect Attribute',
+            type: 'multiselect',
+            attrs: {
+                ...selectAttribute.attrs,
+                visibility: 'always',
+                access_mode: 'shared_only',
             },
         };
         const visibleMultiselectAttribute: UserPropertyField = {
@@ -399,7 +500,8 @@ describe('components/ProfilePopoverCustomAttributes', () => {
                         user_id: TestHelper.getUserMock({
                             id: 'user_id',
                             custom_profile_attributes: {
-                                hidden_multiselect_attribute_id: ['filtered-option'],
+                                public_multiselect_attribute_id: ['filtered-option'],
+                                shared_only_multiselect_attribute_id: ['filtered-option'],
                                 visible_multiselect_attribute_id: ['filtered-option', 'option1'],
                             },
                         }),
@@ -408,7 +510,8 @@ describe('components/ProfilePopoverCustomAttributes', () => {
                 general: {
                     ...baseState.entities.general,
                     customProfileAttributes: {
-                        hidden_multiselect_attribute_id: hiddenMultiselectAttribute,
+                        public_multiselect_attribute_id: publicMultiselectAttribute,
+                        shared_only_multiselect_attribute_id: sharedOnlyMultiselectAttribute,
                         visible_multiselect_attribute_id: visibleMultiselectAttribute,
                     },
                 },
@@ -423,7 +526,8 @@ describe('components/ProfilePopoverCustomAttributes', () => {
             </Provider>,
         );
 
-        expect(screen.queryByText('Hidden Multiselect Attribute')).not.toBeInTheDocument();
+        expect(screen.getByText('Public Multiselect Attribute')).toBeInTheDocument();
+        expect(screen.queryByText('Shared Only Multiselect Attribute')).not.toBeInTheDocument();
         expect(screen.getByText('Visible Multiselect Attribute')).toBeInTheDocument();
         expect(screen.getByText('Option 1')).toBeInTheDocument();
         expect(screen.queryByText('filtered-option')).not.toBeInTheDocument();
