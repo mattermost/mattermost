@@ -688,6 +688,24 @@ func TestValidateWebhookPostInteractiveActions(t *testing.T) {
 		err := validateWebhookPostInteractiveActions(post)
 		require.NotNil(t, err)
 	})
+
+	t.Run("disabled button without mm_blocks_actions", func(t *testing.T) {
+		post := &model.Post{
+			Message: "foo",
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{
+						"type":      "button",
+						"text":      "Disabled",
+						"action_id": "act",
+						"disabled":  true,
+					},
+				},
+			},
+		}
+		err := validateWebhookPostInteractiveActions(post)
+		require.Nil(t, err)
+	})
 }
 
 func TestSplitWebhookPost(t *testing.T) {

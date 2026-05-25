@@ -146,7 +146,7 @@ test.describe('Interactive mm_blocks (incoming webhook)', () => {
                 {type: 'text', text: 'y', extra_field: true},
                 {type: 'divider', invalid: 'extra-keys'},
                 {type: 'container', content: 'string-instead-of-array'},
-                {type: 'static_select', action_id: 'a', placeholder: 'p', options: {not: 'array'}},
+                {type: 'static_select', placeholder: 'p', options: {not: 'array'}},
                 {
                     type: 'collapsible',
                     header: 'string-instead-of-array',

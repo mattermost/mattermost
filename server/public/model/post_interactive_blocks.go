@@ -399,6 +399,11 @@ func mergeActionIDs(into, from map[string]struct{}) {
 	}
 }
 
+func interactiveControlDisabled(m map[string]any) bool {
+	disabled, ok := m["disabled"].(bool)
+	return ok && disabled
+}
+
 func collectMmBlockActionIDsFromMap(m map[string]any, ids map[string]struct{}) {
 	typ, _ := m["type"].(string)
 	switch typ {
@@ -407,6 +412,9 @@ func collectMmBlockActionIDsFromMap(m map[string]any, ids map[string]struct{}) {
 			collectMmactionIDsFromText(s, ids)
 		}
 	case "button", "static_select":
+		if interactiveControlDisabled(m) {
+			break
+		}
 		if id, ok := m["action_id"].(string); ok && id != "" {
 			ids[id] = struct{}{}
 		}
@@ -477,6 +485,9 @@ func collectBlockKitAccessory(accessory map[string]any, ids map[string]struct{})
 	typ, _ := accessory["type"].(string)
 	switch typ {
 	case "button", "static_select":
+		if interactiveControlDisabled(accessory) {
+			return
+		}
 		if id, ok := accessory["action_id"].(string); ok && id != "" {
 			ids[id] = struct{}{}
 		}
@@ -491,6 +502,9 @@ func collectBlockKitActionElement(el any, ids map[string]struct{}) {
 	typ, _ := e["type"].(string)
 	switch typ {
 	case "button", "static_select":
+		if interactiveControlDisabled(e) {
+			return
+		}
 		if id, ok := e["action_id"].(string); ok && id != "" {
 			ids[id] = struct{}{}
 		}

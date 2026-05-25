@@ -178,6 +178,22 @@ func TestValidateInteractiveActionsForWebhook_messageMmaction(t *testing.T) {
 	require.Error(t, ValidateInteractiveActionsForWebhook(postMissing))
 }
 
+func TestValidateMmBlocksActions_disabledControlSkipsActionRegistry(t *testing.T) {
+	post := &Post{
+		Props: map[string]any{
+			PostPropsMmBlocks: []any{
+				map[string]any{
+					"type":      "button",
+					"text":      "Disabled",
+					"action_id": "disabled_only",
+					"disabled":  true,
+				},
+			},
+		},
+	}
+	require.NoError(t, ValidateMmBlocksActions(post))
+}
+
 func TestApplyMmBlocksWithActionsToProps_nilProps(t *testing.T) {
 	blocks := []any{
 		map[string]any{"type": "button", "text": "Go", "action_id": "act1"},
