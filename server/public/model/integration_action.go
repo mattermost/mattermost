@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"math/big"
 	"net/http"
 	"net/url"
@@ -94,9 +95,7 @@ func (o *Post) PostActionPreserveState() PostActionPreserve {
 	var originalProps map[string]any
 	if props := o.GetProps(); props != nil {
 		originalProps = make(map[string]any, len(props))
-		for k, v := range props {
-			originalProps[k] = v
-		}
+		maps.Copy(originalProps, props)
 	}
 	return PostActionPreserve{
 		Retain:               retain,

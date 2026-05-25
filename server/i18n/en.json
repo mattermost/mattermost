@@ -1902,6 +1902,10 @@
     "translation": "Unable to get user from session UserID."
   },
   {
+    "id": "api.context.invalid_body.app_error",
+    "translation": "Invalid post props."
+  },
+  {
     "id": "api.context.invalid_body_param.app_error",
     "translation": "Invalid or missing {{.Name}} in request body."
   },

@@ -830,8 +830,8 @@ func TestSplitWebhookPost(t *testing.T) {
 							"type": "actions",
 							"elements": []any{
 								map[string]any{
-									"type": "button",
-									"text": map[string]any{"type": "plain_text", "text": "Go"},
+									"type":      "button",
+									"text":      map[string]any{"type": "plain_text", "text": "Go"},
 									"action_id": "bk1",
 								},
 							},
@@ -854,8 +854,8 @@ func TestSplitWebhookPost(t *testing.T) {
 								"type": "actions",
 								"elements": []any{
 									map[string]any{
-										"type": "button",
-										"text": map[string]any{"type": "plain_text", "text": "Go"},
+										"type":      "button",
+										"text":      map[string]any{"type": "plain_text", "text": "Go"},
 										"action_id": "bk1",
 									},
 								},
