@@ -153,6 +153,73 @@ func (ss *SqlStore) migrate(direction migrationDirection, dryRun, enableMorphLog
 	}
 }
 
+// readTrackingMigrationsDir is the embed-relative directory holding the
+// migrations applied to the independent read-tracking database.
+const readTrackingMigrationsDir = "postgres_readtracking"
+
+func (ss *SqlStore) initReadTrackingMorph(enableLogging bool) (*morph.Morph, error) {
+	assets := db.Assets()
+
+	assetsList, err := assets.ReadDir(path.Join("migrations", readTrackingMigrationsDir))
+	if err != nil {
+		return nil, err
+	}
+
+	assetNamesForDriver := make([]string, len(assetsList))
+	for i, entry := range assetsList {
+		assetNamesForDriver[i] = entry.Name()
+	}
+
+	src, err := mbindata.WithInstance(&mbindata.AssetSource{
+		Names: assetNamesForDriver,
+		AssetFunc: func(name string) ([]byte, error) {
+			return assets.ReadFile(path.Join("migrations", readTrackingMigrationsDir, name))
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	driver, err := ps.WithInstance(ss.readTrackingX.DB().DB)
+	if err != nil {
+		return nil, err
+	}
+
+	var logWriter io.Writer
+	if enableLogging {
+		logWriter = &morphWriter{}
+	} else {
+		logWriter = io.Discard
+	}
+
+	// The read-tracking schema is independent — use its own advisory lock key
+	// so it doesn't contend with the main DB's migration lock.
+	opts := []morph.EngineOption{
+		morph.WithLogger(log.New(logWriter, "", log.Lshortfile)),
+		morph.WithLock("mm-readtracking-lock-key"),
+		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
+		morph.SetDryRun(false),
+	}
+
+	return morph.New(context.Background(), driver, src, opts...)
+}
+
+func (ss *SqlStore) migrateReadTracking(direction migrationDirection, enableMorphLogging bool) error {
+	engine, err := ss.initReadTrackingMorph(enableMorphLogging)
+	if err != nil {
+		return err
+	}
+	defer engine.Close()
+
+	switch direction {
+	case migrationsDirectionDown:
+		_, err = engine.ApplyDown(-1)
+		return err
+	default:
+		return engine.ApplyAll()
+	}
+}
+
 func (m *Migrator) GeneratePlan(shouldRecover bool) (*models.Plan, error) {
 	diff, err := m.engine.Diff(models.Up)
 	if err != nil {

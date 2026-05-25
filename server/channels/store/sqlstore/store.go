@@ -119,6 +119,7 @@ type SqlStoreStores struct {
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
 	channelJoinRequest         store.ChannelJoinRequestStore
+	readTracking               store.ReadTrackingStore
 }
 
 type SqlStore struct {
@@ -134,6 +135,12 @@ type SqlStore struct {
 	searchReplicaXs []*atomic.Pointer[sqlxDBWrapper]
 
 	replicaLagHandles []*sql.DB
+
+	// readTrackingX is an independent pool for the read-tracking DB. Nil when
+	// ReadTrackingSettings.Enable is false.
+	readTrackingX *sqlxDBWrapper
+	rtSettings    *model.ReadTrackingSettings
+
 	stores            SqlStoreStores
 	settings          *model.SqlSettings
 	lockedToMaster    bool
@@ -182,6 +189,15 @@ func DisableMorphLogging() Option {
 func WithFeatureFlags(fn func() *model.FeatureFlags) Option {
 	return func(s *SqlStore) error {
 		s.featureFlagsFn = fn
+		return nil
+	}
+}
+
+// WithReadTrackingSettings configures the independent read-tracking pool.
+// If omitted (or Enable=false), Store().ReadTracking() returns a no-op store.
+func WithReadTrackingSettings(rt model.ReadTrackingSettings) Option {
+	return func(s *SqlStore) error {
+		s.rtSettings = &rt
 		return nil
 	}
 }
@@ -235,6 +251,13 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		err = store.migrate(migrationsDirectionUp, false, !store.disableMorphLogging)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply database migrations")
+		}
+
+		if store.readTrackingX != nil {
+			err = store.migrateReadTracking(migrationsDirectionUp, !store.disableMorphLogging)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to apply read-tracking database migrations")
+			}
 		}
 	}
 
@@ -307,6 +330,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
+	store.stores.readTracking = newSqlReadTrackingStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -375,6 +399,20 @@ func (ss *SqlStore) initConnection() error {
 			ss.replicaLagHandles = append(ss.replicaLagHandles, replicaLagHandle)
 		}
 	}
+
+	if ss.rtSettings != nil && ss.rtSettings.Enable != nil && *ss.rtSettings.Enable {
+		rtHandle, err := sqlUtils.SetupReadTrackingConnection(ss.Logger(), "read-tracking", ss.rtSettings, DBPingAttempts)
+		if err != nil {
+			return errors.Wrap(err, "failed to setup read-tracking connection")
+		}
+		ss.readTrackingX = newSqlxDBWrapper(sqlx.NewDb(rtHandle, model.DatabaseDriverPostgres),
+			time.Duration(*ss.rtSettings.QueryTimeout)*time.Second,
+			*ss.settings.Trace)
+		if ss.metrics != nil {
+			ss.metrics.RegisterDBCollector(ss.readTrackingX.DB().DB, "read-tracking")
+		}
+	}
+
 	return nil
 }
 
@@ -725,6 +763,10 @@ func (ss *SqlStore) Close() {
 	for _, replica := range ss.replicaLagHandles {
 		replica.Close()
 	}
+
+	if ss.readTrackingX != nil {
+		ss.readTrackingX.Close()
+	}
 }
 
 func (ss *SqlStore) LockToMaster() {
@@ -961,6 +1003,10 @@ func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
 
 func (ss *SqlStore) ChannelJoinRequest() store.ChannelJoinRequestStore {
 	return ss.stores.channelJoinRequest
+}
+
+func (ss *SqlStore) ReadTracking() store.ReadTrackingStore {
+	return ss.stores.readTracking
 }
 
 func (ss *SqlStore) DropAllTables() {
