@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/bep/imagemeta"
@@ -65,8 +66,8 @@ type bufReadSeeker struct {
 	pos int64
 }
 
-// maxExifScanSize mirrors imagemeta's internal maxBufSize (10 MB); imagemeta
-// independently rejects any data past this offset, so no valid EXIF tag can exist beyond it.
+// maxExifScanSize prevents the buffer from growing over a reasonable limit;
+// EXIF data lives near the file start in all common formats.
 const maxExifScanSize = 10 * 1024 * 1024
 
 func (b *bufReadSeeker) Read(p []byte) (int, error) {
@@ -113,7 +114,7 @@ func (b *bufReadSeeker) Seek(offset int64, whence int) (int64, error) {
 	// Seek forward past buffered data: read ahead into the buffer in-place.
 	toRead := int(newPos - int64(len(b.buf)))
 	oldLen := len(b.buf)
-	b.buf = append(b.buf, make([]byte, toRead)...)
+	b.buf = slices.Grow(b.buf, toRead)[:oldLen+toRead]
 	n, err := io.ReadFull(b.r, b.buf[oldLen:])
 	b.buf = b.buf[:oldLen+n]
 	b.pos = int64(len(b.buf))
