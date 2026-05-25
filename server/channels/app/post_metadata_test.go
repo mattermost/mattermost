@@ -1589,6 +1589,56 @@ func TestGetImagesForPost(t *testing.T) {
 		assert.Equal(t, images, map[string]*model.PostImage{})
 	})
 
+	t.Run("with message attachment image URLs", func(t *testing.T) {
+		th := Setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		imageURL := server.URL + "/attachment.png"
+		thumbURL := server.URL + "/thumb.png"
+		authorIconURL := server.URL + "/author.png"
+		footerIconURL := server.URL + "/footer.png"
+		post := &model.Post{
+			Metadata: &model.PostMetadata{},
+			Props: model.StringInterface{
+				model.PostPropsAttachments: []*model.MessageAttachment{
+					{
+						ImageURL:   imageURL,
+						ThumbURL:   thumbURL,
+						AuthorIcon: authorIconURL,
+						FooterIcon: footerIconURL,
+					},
+				},
+			},
+		}
+
+		images := th.App.getImagesForPost(th.Context, post, false)
+
+		expected := &model.PostImage{
+			Format: "png",
+			Width:  408,
+			Height: 336,
+		}
+		assert.Equal(t, map[string]*model.PostImage{
+			imageURL:      expected,
+			thumbURL:      expected,
+			authorIconURL: expected,
+			footerIconURL: expected,
+		}, images)
+	})
+
 	t.Run("skips all when unsafe links including interactive props", func(t *testing.T) {
 		th := Setup(t)
 
@@ -1597,7 +1647,7 @@ func TestGetImagesForPost(t *testing.T) {
 		})
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusInternalServerError)
+			t.Fatalf("unexpected HTTP request to test server: %s %s", r.Method, r.URL.String())
 		}))
 		t.Cleanup(server.Close)
 

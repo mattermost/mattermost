@@ -1701,6 +1701,15 @@ func TestPost_PostActionPreserveState(t *testing.T) {
 		p := &Post{Id: "replyid", RootId: "rootid"}
 		assert.Equal(t, "rootid", p.PostActionPreserveState().RootPostId)
 	})
+
+	t.Run("original props snapshot", func(t *testing.T) {
+		p := &Post{Props: StringInterface{"k": "v"}}
+		state := p.PostActionPreserveState()
+		p.Props["k"] = "mutated"
+		p.Props["new"] = "y"
+		assert.Equal(t, "v", state.OriginalProps["k"])
+		assert.NotContains(t, state.OriginalProps, "new")
+	})
 }
 
 func TestNormalizePostActionIntegrationContext(t *testing.T) {
@@ -1794,6 +1803,21 @@ func mmBlocksExternalEntry(url string, context map[string]any) map[string]any {
 		entry["context"] = context
 	}
 	return entry
+}
+
+// ensureMmBlocksReferenceActions adds mm_blocks buttons so each mm_blocks_actions key is referenced.
+func ensureMmBlocksReferenceActions(p *Post) {
+	actions, ok := coerceToStringAnyMap(p.GetProp(PostPropsMmBlocksActions))
+	if !ok {
+		return
+	}
+	blocks := make([]any, 0, len(actions))
+	for id := range actions {
+		blocks = append(blocks, map[string]any{
+			"type": "button", "text": "Btn", "action_id": id,
+		})
+	}
+	p.AddProp(PostPropsMmBlocks, blocks)
 }
 
 func TestGetMmBlocksActionSpec(t *testing.T) {
@@ -1890,6 +1914,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 			"btn2": mmBlocksExternalEntry("/plugins/myplugin/action", nil),
 			"btn3": mmBlocksExternalEntry("plugins/myplugin/action", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
@@ -1900,6 +1925,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		}
 		p := &Post{}
 		p.AddProp(PostPropsMmBlocksActions, actions)
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "exceeds maximum")
@@ -1921,6 +1947,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			key: mmBlocksExternalEntry("http://example.com/hook", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
@@ -1960,6 +1987,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "non-empty URL")
@@ -1973,6 +2001,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("/plugins/../../../etc/passwd", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "path traversal")
@@ -1983,6 +2012,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("/plugins/myplugin/..", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "path traversal")
@@ -2004,6 +2034,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 			p.AddProp(PostPropsMmBlocksActions, map[string]any{
 				"btn1": mmBlocksExternalEntry(encoded, nil),
 			})
+			ensureMmBlocksReferenceActions(p)
 			err := ValidateMmBlocksActions(p)
 			require.Error(t, err, "url=%q must be rejected", encoded)
 			assert.Contains(t, err.Error(), "path traversal", "url=%q", encoded)
@@ -2015,6 +2046,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": map[string]any{"url": "http://example.com/hook"},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid type or shape")
@@ -2028,6 +2060,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 				"url":  "http://example.com/hook",
 			},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid type or shape")
@@ -2038,6 +2071,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": "not-an-object",
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "must be an object")
@@ -2048,6 +2082,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("javascript://alert(1)", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "valid integration URL")
@@ -2058,6 +2093,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("http://legit.com", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
@@ -2066,6 +2102,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"btn1": mmBlocksExternalEntry("/plugins/foo", nil),
 		})
+		ensureMmBlocksReferenceActions(p)
 		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
@@ -2090,6 +2127,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 				"query": query,
 			},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "static query")
@@ -2104,6 +2142,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 				"query": map[string]any{"k": strings.Repeat("a", MaxActionQueryValueLength+1)},
 			},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "static query")
@@ -2122,6 +2161,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 				"context": ctx,
 			},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "context exceeds maximum")
@@ -2136,9 +2176,57 @@ func TestValidateMmBlocksActions(t *testing.T) {
 				"context": map[string]any{strings.Repeat("a", MaxActionQueryKeyLength+1): "v"},
 			},
 		})
+		ensureMmBlocksReferenceActions(p)
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "context key exceeds")
+	})
+
+	t.Run("orphan mm_blocks_actions entry is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocks, []any{
+			map[string]any{"type": "button", "text": "Go", "action_id": "needed"},
+		})
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"needed": mmBlocksExternalEntry("http://example.com/hook", nil),
+			"unused": mmBlocksExternalEntry("http://example.com/other", nil),
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not referenced")
+	})
+
+	t.Run("missing mm_blocks_actions entry is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocks, []any{
+			map[string]any{"type": "button", "text": "Go", "action_id": "needed"},
+		})
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"other": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "missing entry")
+	})
+
+	t.Run("mm_blocks_actions without interactive references is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must only define actions referenced")
+	})
+
+	t.Run("interactive control without mm_blocks_actions is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocks, []any{
+			map[string]any{"type": "button", "text": "Go", "action_id": "act"},
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "requires mm_blocks_actions")
 	})
 }
 

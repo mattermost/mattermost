@@ -540,7 +540,10 @@ func TestPostAction(t *testing.T) {
 			require.Nil(t, err)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.ServiceSettings.SiteURL = "http://127.1.1.1"
+				// Unreachable localhost port fails immediately (connection refused) instead of
+				// waiting for OutgoingIntegrationRequestsTimeout on black-holed addresses.
+				*cfg.ServiceSettings.SiteURL = "http://127.0.0.1:1"
+				cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
 			})
 
 			interactivePostSiteURL := model.Post{
@@ -562,7 +565,7 @@ func TestPostAction(t *testing.T) {
 											"s": "foo",
 											"n": 3,
 										},
-										URL: "http://127.1.1.1/plugins/myplugin/myaction",
+										URL: "http://127.0.0.1:1/plugins/myplugin/myaction",
 									},
 								},
 							},
@@ -2804,6 +2807,9 @@ func TestCreateWebhookPostKeepsMmBlocksActions(t *testing.T) {
 
 	post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "hello", "user", "http://iconurl", "",
 		model.StringInterface{
+			model.PostPropsMmBlocks: []any{
+				map[string]any{"type": "button", "text": "Go", "action_id": "actx"},
+			},
 			model.PostPropsMmBlocksActions: inline,
 		},
 		"", "", nil)
@@ -2819,6 +2825,73 @@ func TestCreateWebhookPostKeepsMmBlocksActions(t *testing.T) {
 	spec := stored.GetMmBlocksActionSpec("actx")
 	require.NotNil(t, spec)
 	assert.Equal(t, "http://127.0.0.1/plugins/myplugin/x", spec.URL)
+}
+
+// TestCreateWebhookPostKeepsMmBlocksActionsOnInteractiveSplit verifies split
+// webhook posts persist mm_blocks_actions on the chunk that carries mm_blocks.
+// CreateWebhookPost returns the first split (typically the leading message chunk).
+func TestCreateWebhookPostKeepsMmBlocksActionsOnInteractiveSplit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, hookErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, hookErr)
+	defer func() {
+		_ = th.App.DeleteIncomingWebhook(hook.Id)
+	}()
+
+	inline := buildMmBlocksActionsProp(
+		"actx",
+		"http://127.0.0.1/plugins/myplugin/x",
+		nil,
+	)
+
+	marker := "mm-blocks-split-" + model.NewId()
+	longMessage := marker + strings.Repeat("x", th.App.MaxPostSize()+100)
+
+	returned, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, longMessage, "user", "http://iconurl", "",
+		model.StringInterface{
+			model.PostPropsMmBlocks: []any{
+				map[string]any{"type": "text", "text": "interactive body"},
+				map[string]any{"type": "button", "text": "Go", "action_id": "actx"},
+			},
+			model.PostPropsMmBlocksActions: inline,
+		},
+		"", "", nil)
+	require.Nil(t, appErr)
+	require.True(t, strings.HasPrefix(returned.Message, marker))
+	require.Nil(t, returned.GetProp(model.PostPropsMmBlocks))
+	require.Nil(t, returned.GetProp(model.PostPropsMmBlocksActions))
+
+	list, listErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 20)
+	require.Nil(t, listErr)
+
+	var mmBlocksPost *model.Post
+	messageChunks := 0
+	for _, p := range list.Posts {
+		if p.Message != "" && strings.Contains(longMessage, p.Message) {
+			messageChunks++
+		}
+		if p.GetProp(model.PostPropsMmBlocks) != nil {
+			mmBlocksPost = p
+		}
+	}
+	require.Greater(t, messageChunks, 1, "message should be split into multiple posts")
+	require.NotNil(t, mmBlocksPost)
+	require.NotEqual(t, returned.Id, mmBlocksPost.Id, "interactive props should be on a later split, not the returned first chunk")
+
+	stored, err := th.App.Srv().Store().Post().GetSingle(th.Context, mmBlocksPost.Id, false)
+	require.NoError(t, err)
+	require.NotNil(t, stored.GetProp(model.PostPropsMmBlocksActions),
+		"mm_blocks_actions must be on the post that carries mm_blocks")
+
+	for _, p := range list.Posts {
+		if p.GetProp(model.PostPropsMmBlocksActions) != nil {
+			assert.Equal(t, mmBlocksPost.Id, p.Id, "only the mm_blocks post should keep mm_blocks_actions")
+		}
+	}
 }
 
 func TestSendEphemeralPostEncryptsMmBlocksActionsCookie(t *testing.T) {

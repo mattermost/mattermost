@@ -6,6 +6,7 @@ import React from 'react';
 import {doPostActionWithCookie} from 'mattermost-redux/actions/posts';
 
 import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
 
 import InlineActionButton from './index';
 
@@ -13,7 +14,12 @@ jest.mock('mattermost-redux/actions/posts', () => ({
     doPostActionWithCookie: jest.fn(),
 }));
 
+jest.mock('utils/integration_navigation', () => ({
+    applyIntegrationGotoLocation: jest.fn(),
+}));
+
 const mockedDoPostActionWithCookie = doPostActionWithCookie as jest.MockedFunction<typeof doPostActionWithCookie>;
+const mockedApplyIntegrationGotoLocation = applyIntegrationGotoLocation as jest.MockedFunction<typeof applyIntegrationGotoLocation>;
 
 /**
  * Creates a thunk-shaped mock whose inner promise is externally controllable.
@@ -42,6 +48,7 @@ describe('InlineActionButton', () => {
 
     beforeEach(() => {
         mockedDoPostActionWithCookie.mockReset();
+        mockedApplyIntegrationGotoLocation.mockReset();
     });
 
     test('renders with children as button label', () => {
@@ -416,9 +423,10 @@ describe('InlineActionButton', () => {
         }
     });
 
-    test('uses doPostActionWithCookie when mmBlocksActionCookie is set', async () => {
+    test('uses doPostActionWithCookie when mmBlocksActionCookie is set and applies goto_location from response', async () => {
+        const gotoLocation = '/some-location';
         mockedDoPostActionWithCookie.mockImplementation(
-            () => (() => Promise.resolve({data: {}})) as unknown as ReturnType<typeof doPostActionWithCookie>,
+            () => (() => Promise.resolve({data: {goto_location: gotoLocation}})) as unknown as ReturnType<typeof doPostActionWithCookie>,
         );
 
         renderWithContext(
@@ -440,5 +448,7 @@ describe('InlineActionButton', () => {
             {tail: '214', mds: 'C130J'},
             'mm_block',
         );
+        expect(mockedApplyIntegrationGotoLocation).toHaveBeenCalledTimes(1);
+        expect(mockedApplyIntegrationGotoLocation).toHaveBeenCalledWith(gotoLocation);
     });
 });

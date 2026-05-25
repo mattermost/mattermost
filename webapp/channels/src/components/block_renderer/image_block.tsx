@@ -26,6 +26,17 @@ type ImageBlockProps = {
     postId: string;
 };
 
+function extensionFromImageURL(src: string): string {
+    let pathForExt = src;
+    try {
+        pathForExt = new URL(src, window.location.href).pathname;
+    } catch {
+        // Relative or malformed URLs: fall back to parsing src as-is.
+    }
+    const index = pathForExt.lastIndexOf('.');
+    return index > 0 ? pathForExt.substring(index + 1) : '';
+}
+
 export const ImageBlock = ({block, postId}: ImageBlockProps) => {
     const dispatch = useDispatch();
     const imagesMetadata = useContext(MmBlocksImagesMetadataContext);
@@ -38,8 +49,7 @@ export const ImageBlock = ({block, postId}: ImageBlockProps) => {
         link = '',
     ) => {
         const src = link || url;
-        const index = src.lastIndexOf('.');
-        const extension = index > 0 ? src.substring(index + 1) : '';
+        const extension = extensionFromImageURL(src);
 
         e.preventDefault();
 

@@ -201,7 +201,8 @@ function translateButtonBlock(raw: Record<string, unknown>): MmButtonBlock | nul
     if (!keysAreSubset(raw, BUTTON_KEYS)) {
         return null;
     }
-    if (typeof raw.text !== 'string' || typeof raw.action_id !== 'string') {
+    if (typeof raw.text !== 'string' || raw.text.trim() === '' ||
+        typeof raw.action_id !== 'string' || raw.action_id.trim() === '') {
         return null;
     }
     const styleRaw = raw.style;
@@ -268,7 +269,8 @@ function translateStaticSelectBlock(raw: Record<string, unknown>): MmStaticSelec
     if (!keysAreSubset(raw, STATIC_SELECT_KEYS)) {
         return null;
     }
-    if (typeof raw.action_id !== 'string' || typeof raw.placeholder !== 'string') {
+    if (typeof raw.action_id !== 'string' || raw.action_id.trim() === '' ||
+        typeof raw.placeholder !== 'string' || raw.placeholder.trim() === '') {
         return null;
     }
     let options: MmStaticSelectOption[] | undefined;

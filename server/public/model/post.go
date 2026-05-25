@@ -769,10 +769,10 @@ func (o *Post) AllStrings() []string {
 }
 
 // InteractiveBlocksImageURLs collects non-markdown image URLs from props.mm_blocks, props.blocks
-// (Block Kit), and props.cards (Adaptive Cards): direct mm_blocks image URLs, Block Kit image blocks,
-// and Adaptive Card Image elements. Markdown ![alt](url) in interactive text is not included; merge
-// with URLs from Post.AllStrings separately. Link preview restrictions (e.g. RestrictLinkPreviews) are
-// not applied here; callers enforce policy when fetching metadata.
+// (Block Kit), props.cards (Adaptive Cards), and message attachments (image_url, thumb_url, author_icon, footer_icon).
+// Direct mm_blocks image URLs, Block Kit image blocks, and Adaptive Card Image elements are included.
+// Markdown ![alt](url) in interactive text is not included; merge with URLs from Post.AllStrings separately.
+// Link preview restrictions (e.g. RestrictLinkPreviews) are not applied here; callers enforce policy when fetching metadata.
 func (o *Post) InteractiveBlocksImageURLs() []string {
 	props := o.GetProps()
 	if props == nil {
@@ -788,6 +788,7 @@ func (o *Post) InteractiveBlocksImageURLs() []string {
 	if raw, ok := props[PostPropsAdaptiveCards]; ok {
 		collectAdaptiveCardImageURLs(raw, &out)
 	}
+	collectAttachmentsImageURLs(o.Attachments(), &out)
 	return out
 }
 
@@ -957,10 +958,8 @@ func (o *Post) propsIsValid() error {
 		}
 	}
 
-	if props[PostPropsMmBlocksActions] != nil {
-		if err := ValidateMmBlocksActions(o); err != nil {
-			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid mm_blocks_actions: %w", err))
-		}
+	if err := ValidateMmBlocksActions(o); err != nil {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid mm_blocks_actions: %w", err))
 	}
 
 	for i, a := range o.Attachments() {

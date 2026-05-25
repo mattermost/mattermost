@@ -8,6 +8,7 @@
 // the existing doPostAction layer, consistent with Attachments.
 
 import React, {useCallback, useState} from 'react';
+import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
@@ -25,6 +26,7 @@ type Props = {
 
 const InteractiveMessages = ({post}: Props) => {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
     const [actionError, setActionError] = useState<string | null>(null);
 
     const postProps = post.props as Record<string, unknown> | undefined;
@@ -33,6 +35,10 @@ const InteractiveMessages = ({post}: Props) => {
     const integrationFormat = getPostInteractiveIntegrationFormat(postProps ?? {});
 
     const handleAction = useCallback(async (actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string) => {
+        const actionFailedMessage = formatMessage({
+            id: 'post.message_attachment.action_failed',
+            defaultMessage: 'Action failed to execute',
+        });
         setActionError(null);
         let actionCookie = '';
         if (integrationFormat === 'attachment') {
@@ -44,7 +50,7 @@ const InteractiveMessages = ({post}: Props) => {
             const result = await dispatch(doPostActionWithCookie(post.id, actionId, actionCookie, selectedOption ?? '', query, integrationFormat));
             if (result.error) {
                 const message = typeof result.error.message === 'string' && result.error.message ? result.error.message : undefined;
-                setActionError(message ?? 'Action failed to execute');
+                setActionError(message ?? actionFailedMessage);
                 return;
             }
             const goToLocation =
@@ -57,9 +63,9 @@ const InteractiveMessages = ({post}: Props) => {
             }
         } catch (error) {
             const message = error instanceof Error ? error.message : undefined;
-            setActionError(message ?? 'Action failed to execute');
+            setActionError(message ?? actionFailedMessage);
         }
-    }, [dispatch, post.id, integrationFormat, mmBlocksActionCookie]);
+    }, [dispatch, post.id, integrationFormat, mmBlocksActionCookie, formatMessage]);
 
     const blocks = translatePostProps(post.props as Record<string, unknown>);
     if (!blocks || blocks.length === 0) {

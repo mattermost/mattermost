@@ -660,11 +660,44 @@ func TestCreateWebhookPostLinks(t *testing.T) {
 	}
 }
 
+func TestValidateWebhookPostInteractiveActions(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("orphan mm_blocks_actions", func(t *testing.T) {
+		post := &model.Post{
+			Message: "foo",
+			Props: map[string]any{
+				model.PostPropsMmBlocksActions: map[string]any{
+					"act": map[string]any{"type": "external", "url": "http://example.com"},
+				},
+			},
+		}
+		err := validateWebhookPostInteractiveActions(post)
+		require.NotNil(t, err)
+	})
+
+	t.Run("button without mm_blocks_actions", func(t *testing.T) {
+		post := &model.Post{
+			Message: "foo",
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "button", "text": "Go", "action_id": "act"},
+				},
+			},
+		}
+		err := validateWebhookPostInteractiveActions(post)
+		require.NotNil(t, err)
+	})
+}
+
 func TestSplitWebhookPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	type TestCase struct {
 		Post     *model.Post
 		Expected []*model.Post
+
+		// ExpectSplitError: props/message cannot be split to fit.
+		ExpectSplitError bool
 	}
 
 	maxPostSize := 10000
@@ -735,20 +768,147 @@ func TestSplitWebhookPost(t *testing.T) {
 					"foo": strings.Repeat("x", model.PostPropsMaxUserRunes*2),
 				},
 			},
+			ExpectSplitError: true,
+		},
+		"NoSplitFastPath": {
+			Post: &model.Post{
+				Message: "hello",
+				Props: map[string]any{
+					model.PostPropsMmBlocks: []any{
+						map[string]any{"type": "button", "text": "Go", "action_id": "act"},
+					},
+					model.PostPropsMmBlocksActions: map[string]any{
+						"act": map[string]any{"type": "external", "url": "http://example.com"},
+					},
+				},
+			},
+			Expected: []*model.Post{
+				{
+					Message: "hello",
+					Props: map[string]any{
+						model.PostPropsMmBlocks: []any{
+							map[string]any{"type": "button", "text": "Go", "action_id": "act"},
+						},
+						model.PostPropsMmBlocksActions: map[string]any{
+							"act": map[string]any{"type": "external", "url": "http://example.com"},
+						},
+					},
+				},
+			},
+		},
+		"MessageMmactionWithActions": {
+			// Message exceeds maxPostSize so splitWebhookPost uses the slow path; interactive
+			// content lands on the final chunk where the mmaction link lives.
+			Post: &model.Post{
+				Message: strings.Repeat("x", maxPostSize) + "Click [go](mmaction://go1)",
+				Props: map[string]any{
+					model.PostPropsMmBlocksActions: map[string]any{
+						"go1": map[string]any{"type": "external", "url": "http://example.com"},
+					},
+				},
+			},
+			Expected: []*model.Post{
+				{
+					Message: strings.Repeat("x", maxPostSize),
+				},
+				{
+					Message: "Click [go](mmaction://go1)",
+					Props: map[string]any{
+						model.PostPropsMmBlocksActions: map[string]any{
+							"go1": map[string]any{"type": "external", "url": "http://example.com"},
+						},
+					},
+				},
+			},
+		},
+		"BlockKitWithActions": {
+			Post: &model.Post{
+				Message: strings.Repeat("x", maxPostSize) + "hi",
+				Props: map[string]any{
+					model.PostPropsBlockKitBlocks: []any{
+						map[string]any{
+							"type": "actions",
+							"elements": []any{
+								map[string]any{
+									"type": "button",
+									"text": map[string]any{"type": "plain_text", "text": "Go"},
+									"action_id": "bk1",
+								},
+							},
+						},
+					},
+					model.PostPropsMmBlocksActions: map[string]any{
+						"bk1": map[string]any{"type": "external", "url": "http://example.com"},
+					},
+				},
+			},
+			Expected: []*model.Post{
+				{
+					Message: strings.Repeat("x", maxPostSize),
+				},
+				{
+					Message: "hi",
+					Props: map[string]any{
+						model.PostPropsBlockKitBlocks: []any{
+							map[string]any{
+								"type": "actions",
+								"elements": []any{
+									map[string]any{
+										"type": "button",
+										"text": map[string]any{"type": "plain_text", "text": "Go"},
+										"action_id": "bk1",
+									},
+								},
+							},
+						},
+						model.PostPropsMmBlocksActions: map[string]any{
+							"bk1": map[string]any{"type": "external", "url": "http://example.com"},
+						},
+					},
+				},
+			},
+		},
+		"LongPostWithMmBlocks": {
+			Post: &model.Post{
+				Message: strings.Repeat("本", maxPostSize*3/2),
+				Props: map[string]any{
+					model.PostPropsMmBlocks: []any{
+						map[string]any{"type": "text", "text": "block-a"},
+						map[string]any{"type": "text", "text": "block-b"},
+					},
+				},
+			},
+			Expected: []*model.Post{
+				{
+					Message: strings.Repeat("本", maxPostSize),
+				},
+				{
+					Message: strings.Repeat("本", maxPostSize/2),
+					Props: map[string]any{
+						model.PostPropsMmBlocks: []any{
+							map[string]any{"type": "text", "text": "block-a"},
+							map[string]any{"type": "text", "text": "block-b"},
+						},
+					},
+				},
+			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			splits, err := splitWebhookPost(tc.Post, maxPostSize)
-			if tc.Expected == nil {
+			if tc.ExpectSplitError {
 				require.NotNil(t, err)
-			} else {
-				require.Nil(t, err)
+				return
 			}
+			require.Nil(t, err)
 			assert.Equal(t, len(tc.Expected), len(splits))
 			for i, split := range splits {
 				if i < len(tc.Expected) {
 					assert.Equal(t, tc.Expected[i].Message, split.Message)
 					assert.Equal(t, tc.Expected[i].GetProp(model.PostPropsAttachments), split.GetProp(model.PostPropsAttachments))
+					assert.Equal(t, tc.Expected[i].GetProp(model.PostPropsMmBlocks), split.GetProp(model.PostPropsMmBlocks))
+					assert.Equal(t, tc.Expected[i].GetProp(model.PostPropsBlockKitBlocks), split.GetProp(model.PostPropsBlockKitBlocks))
+					assert.Equal(t, tc.Expected[i].GetProp(model.PostPropsMmBlocksActions), split.GetProp(model.PostPropsMmBlocksActions))
 				}
 			}
 		})

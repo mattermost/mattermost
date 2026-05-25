@@ -37,6 +37,7 @@ import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'matt
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
+import {scanHumanReadableStringsFromInteractiveProps} from 'mattermost-redux/utils/post_interactive_utils';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError, LogErrorBarMode} from './errors';
@@ -1148,6 +1149,10 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
                     }
                 }
             }
+        }
+
+        for (const text of scanHumanReadableStringsFromInteractiveProps(post.props)) {
+            findNeededUsernamesAndGroups(text);
         }
     }
 

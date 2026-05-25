@@ -18,10 +18,7 @@ import {isUrlSafe} from 'utils/url';
 
 import {parseMmButtonStyle} from '../utils/button';
 
-/** Matches legacy `.attachment__author-icon` in `_webhooks.scss` (14×14). */
 const AUTHOR_ICON_MAX_PX = 20;
-
-/** Matches legacy `.attachment__footer-icon` in `message_attachment.tsx` (16×16). */
 const FOOTER_ICON_MAX_PX = 16;
 
 /** Placeholder so the stretch column still exists when the body is otherwise empty (thumb-only attachment). */

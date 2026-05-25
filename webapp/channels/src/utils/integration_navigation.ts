@@ -21,5 +21,5 @@ export function applyIntegrationGotoLocation(gotoLocation: string | undefined): 
         getHistory().push(gotoLocation.substring(siteURL.length));
         return;
     }
-    window.open(gotoLocation);
+    window.open(gotoLocation, '_blank', 'noopener,noreferrer');
 }

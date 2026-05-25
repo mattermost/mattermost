@@ -91,10 +91,17 @@ func (o *Post) PostActionPreserveState() PostActionPreserve {
 	if o.RootId != "" {
 		rootPostId = o.RootId
 	}
+	var originalProps map[string]any
+	if props := o.GetProps(); props != nil {
+		originalProps = make(map[string]any, len(props))
+		for k, v := range props {
+			originalProps[k] = v
+		}
+	}
 	return PostActionPreserve{
 		Retain:               retain,
 		Remove:               remove,
-		OriginalProps:        o.GetProps(),
+		OriginalProps:        originalProps,
 		OriginalIsPinned:     o.IsPinned,
 		OriginalHasReactions: o.HasReactions,
 		RootPostId:           rootPostId,
@@ -1024,8 +1031,12 @@ var mmBlocksActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9]+$`)
 // expected shape and bounds. Each entry must coerce to a valid spec via
 // mmBlocksEntryMapToSpec.
 func ValidateMmBlocksActions(o *Post) error {
+	referenced := CollectInteractiveActionIDsFromPost(o)
 	raw := o.GetProp(PostPropsMmBlocksActions)
 	if raw == nil {
+		if len(referenced) > 0 {
+			return fmt.Errorf("interactive content requires mm_blocks_actions")
+		}
 		return nil
 	}
 	actions, ok := coerceToStringAnyMap(raw)
@@ -1074,7 +1085,7 @@ func ValidateMmBlocksActions(o *Post) error {
 			}
 		}
 	}
-	return nil
+	return validateMmBlocksActionsPairing(o, actions)
 }
 
 // ValidateActionQuery bounds the size of user-supplied per-click query

@@ -62,6 +62,8 @@ describe('Collapsed Reply Threads', () => {
         cy.postMessage('/poll "Do you like https://mattermost.com?"');
 
         cy.getLastPostId().then((pollId) => {
+            const threadAuthorName = user1.nickname || user1.username;
+
             // # Post a reply on the POLL to create a thread and follow
             cy.postMessageAs({sender: user1, message: MESSAGES.SMALL, channelId: testChannel.id, rootId: pollId});
 
@@ -75,7 +77,7 @@ describe('Collapsed Reply Threads', () => {
 
             // * Text in ThreadItem should say 'username: Do you like https://mattermost.com?'
             cy.get('.ThreadItem').last().within(() => {
-                cy.contains(user1.nickname + ': Do you like https://mattermost.com?').should('be.visible');
+                cy.contains(threadAuthorName + ': Do you like https://mattermost.com?').should('be.visible');
                 cy.contains('Total votes: 1').should('be.visible');
             });
 
@@ -96,7 +98,7 @@ describe('Collapsed Reply Threads', () => {
 
             // * Text in ThreadItem should say 'username: Do you like https://mattermost.com?'
             cy.get('.ThreadItem').last().within(() => {
-                cy.contains(user1.nickname + ': Do you like https://mattermost.com?').should('be.visible');
+                cy.contains(threadAuthorName + ': Do you like https://mattermost.com?').should('be.visible');
                 cy.contains('This poll has ended. The results are:').should('be.visible');
             });
 

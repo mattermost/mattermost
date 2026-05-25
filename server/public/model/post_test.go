@@ -1072,6 +1072,25 @@ func TestPost_AllStrings_interactiveProps(t *testing.T) {
 	require.Contains(t, got, "card-line")
 }
 
+func TestPost_AllStrings_blockKitHeaderPlainText(t *testing.T) {
+	p := &Post{
+		Props: StringInterface{
+			PostPropsBlockKitBlocks: []any{
+				map[string]any{
+					"type": "header",
+					"text": map[string]any{
+						"type":  "plain_text",
+						"text":  "Section title",
+						"emoji": true,
+					},
+				},
+			},
+		},
+	}
+	got := p.AllStrings()
+	require.Contains(t, got, "Section title")
+}
+
 func TestPost_AllStrings_includesMessageAttachments(t *testing.T) {
 	p := &Post{
 		Message: "hi",

@@ -85,6 +85,32 @@ describe('ImageBlock', () => {
         expect(screen.getByTestId('size-aware-image')).toHaveClass('mm-blocks-image__img--person');
     });
 
+    it('infers extension from pathname when url has query params', async () => {
+        const user = userEvent.setup();
+        renderWithContext(
+            <MmBlocksImagesMetadataContext.Provider value={undefined}>
+                <ImageBlock
+                    block={{
+                        type: 'image',
+                        url: 'https://example.com/photo.png?sig=abc123',
+                        alt_text: 'Signed photo',
+                    }}
+                    postId='post-42'
+                />
+            </MmBlocksImagesMetadataContext.Provider>,
+        );
+
+        await user.click(screen.getByTestId('size-aware-image'));
+        expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+            dialogProps: expect.objectContaining({
+                fileInfos: [expect.objectContaining({
+                    link: 'https://example.com/photo.png?sig=abc123',
+                    extension: 'png',
+                })],
+            }),
+        }));
+    });
+
     it('opens file preview modal when image is clicked', async () => {
         const user = userEvent.setup();
         renderWithContext(

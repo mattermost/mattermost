@@ -215,7 +215,10 @@ function parseAdaptiveCardPixelDimension(v: unknown): number | undefined {
     if (px) {
         return parseInt(px[1], 10);
     }
-    const num = parseFloat(trimmed);
+    if (!(/^\d+(\.\d+)?$/).test(trimmed)) {
+        return undefined;
+    }
+    const num = Number.parseFloat(trimmed);
     if (Number.isFinite(num) && num > 0) {
         return Math.round(num);
     }

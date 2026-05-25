@@ -160,12 +160,12 @@ function translateBlockKitAccessory(
 ): MmBlock | null {
     if (accessory.type === 'button') {
         const text = extractBlockKitPlainText(accessory.text);
-        if (!text) {
+        if (!text || typeof accessory.action_id !== 'string' || !accessory.action_id) {
             return null;
         }
         return {
             type: 'button',
-            action_id: typeof accessory.action_id === 'string' ? accessory.action_id : '',
+            action_id: accessory.action_id,
             text,
             style: parseMmButtonStyle(typeof accessory.style === 'string' ? accessory.style : undefined),
         };
