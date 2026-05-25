@@ -252,7 +252,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                             if (props.onPolicySelected) {
                                                 props.onPolicySelected(policy);
                                             } else {
-                                                history.push(`/admin_console/system_attributes/attribute_based_access_control/edit_policy/${policy.id}`);
+                                                history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                                             }
                                         }}
                                         leadingElement={<i className='icon icon-pencil-outline'/>}

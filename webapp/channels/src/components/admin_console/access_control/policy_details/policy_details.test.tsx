@@ -116,6 +116,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             createJob: jest.fn(),
             createAccessControlSyncJob: jest.fn(),
             validateExpressionAgainstRequester: jest.fn(),
+            simulatePolicyForUsers: jest.fn(),
             updateAccessControlPoliciesActive: mockUpdateAccessControlPoliciesActive,
         });
 
