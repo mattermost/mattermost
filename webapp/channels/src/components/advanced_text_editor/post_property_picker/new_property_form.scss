@@ -12,8 +12,8 @@
     display: block;
 }
 
-// `optionsError` (the "at least one option" message) is the only consumer of
-// this class now; per-field errors flow through `Input`'s `customMessage`.
+// Used for the "at least one option" and "values must be unique" messages.
+// Per-field errors flow through `Input`'s `customMessage`.
 .new-property-form__error {
     display: block;
     margin-top: 4px;
@@ -24,48 +24,12 @@
 .new-property-form__options {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
-.new-property-form__option-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-
-    .Input_container {
-        flex: 1;
-    }
-
-    button {
-        display: inline-flex;
-        width: 22px;
-        height: 22px;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: none;
-        background: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        cursor: pointer;
-
-        &:hover {
-            border-radius: 4px;
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: var(--center-channel-color);
-        }
-    }
-}
-
-.new-property-form__add-option {
-    align-self: flex-start;
-    padding: 4px 8px;
-    border: 1px dashed rgba(var(--center-channel-color-rgb), 0.24);
-    border-radius: 4px;
-    background: transparent;
-    color: var(--button-bg);
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
+.new-property-form__options-select {
+    width: 100%;
+    font-size: 13px;
 }
 
 .new-property-form__actions {

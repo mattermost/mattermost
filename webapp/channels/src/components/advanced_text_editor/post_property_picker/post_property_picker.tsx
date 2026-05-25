@@ -252,7 +252,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                 menu={{
                     id: 'post-property-picker-menu',
                     'aria-label': triggerLabel,
-                    width: '360px',
+                    width: inAddNewMode ? '420px' : '360px',
                     className: 'post-property-picker__menu',
                     onToggle: handleMenuToggle,
                     isMenuOpen: open,
