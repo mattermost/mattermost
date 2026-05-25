@@ -2262,6 +2262,34 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 			if existing.LastViewedAt > m.LastViewedAt {
 				continue
 			}
+		} else {
+			// The channel pre-existed (either from a concurrent worker that committed the Channels
+			// row but had not finished its SaveMember loop yet, an earlier import that crashed
+			// mid-loop, or a GM whose membership has since drifted) without this participant.
+			// Insert the ChannelMembers row first so UpdateMultipleMembers below has something
+			// to UPDATE — otherwise it returns ErrNotFound and aborts the import.
+			toInsert := &model.ChannelMember{
+				UserId:      u.Id,
+				ChannelId:   channel.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+				SchemeUser:  !u.IsGuest(),
+				SchemeGuest: u.IsGuest(),
+			}
+			if _, nErr := a.Srv().Store().Channel().SaveMember(rctx, toInsert); nErr != nil {
+				var cErr *store.ErrConflict
+				// A concurrent importer may have inserted the row in the meantime — the row
+				// exists, which is all we need before the UPDATE.
+				if !errors.As(nErr, &cErr) {
+					return model.NewAppError("BulkImport", "app.import.import_direct_channel.save_member.error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				}
+			} else {
+				if histErr := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(u.Id, channel.Id, model.GetMillis()); histErr != nil {
+					rctx.Logger().Warn("Failed to log channel member history join event during import",
+						mlog.String("user_id", u.Id),
+						mlog.String("channel_id", channel.Id),
+						mlog.Err(histErr))
+				}
+			}
 		}
 		m.UserId = u.Id
 		m.ChannelId = channel.Id

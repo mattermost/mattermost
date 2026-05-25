@@ -60,16 +60,33 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	var fileBackendSettings filestore.FileBackendSettings
+	bucket := settings.AmazonS3Bucket
 	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
-		fileBackendSettings = filestore.NewExportFileBackendSettingsFromConfig(settings, false, false)
-	} else {
-		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+		bucket = settings.ExportAmazonS3Bucket
 	}
+	if bucket == nil || *bucket == "" {
+		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
 
-	err := fileBackendSettings.CheckMandatoryS3Fields()
-	if err != nil {
-		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
+func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.AppError {
+	storageAccount := settings.AzureStorageAccount
+	accessKey := settings.AzureAccessKey
+	container := settings.AzureContainer
+	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+		storageAccount = settings.ExportAzureStorageAccount
+		accessKey = settings.ExportAzureAccessKey
+		container = settings.ExportAzureContainer
+	}
+	if storageAccount == nil || *storageAccount == "" {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure storage account setting", http.StatusBadRequest)
+	}
+	if container == nil || *container == "" {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure container setting", http.StatusBadRequest)
+	}
+	if accessKey == nil || *accessKey == "" {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure access key setting", http.StatusBadRequest)
 	}
 	return nil
 }
@@ -1528,7 +1545,14 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 		}
 	}
 
-	abacSubject := a.buildFileDownloadSubject(rctx, userID)
+	abacSubject, abacSubjectErr := a.buildFileDownloadSubject(rctx, userID)
+	if abacSubjectErr != nil {
+		// Fail closed: a transient subject-build failure must not silently
+		// allow files through. Surface the error to the caller — the
+		// search returns 5xx instead of leaking files past a policy that
+		// would have denied them.
+		return false, abacSubjectErr
+	}
 
 	channelPermission := make(map[string]bool)
 	filteredFiles := make(map[string]*model.FileInfo)
@@ -1567,18 +1591,28 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 	return allFilesHaveMembership, nil
 }
 
-// buildFileDownloadSubject returns a fully populated ABAC Subject for the user
-// when ABAC is active, or nil when ABAC is not configured / not enabled.
-func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.Subject {
+// buildFileDownloadSubject returns a fully populated ABAC Subject for the
+// user when ABAC is active. The error return distinguishes the two
+// failure modes that used to share `nil`:
+//   - (nil, nil): ABAC isn't configured/enabled; the file download path
+//     is allowed without further checks.
+//   - (subject, nil): ABAC is active; caller should evaluate.
+//   - (nil, err): a transient lookup failure (GetUser /
+//     BuildAccessControlSubject). The caller MUST treat this as a
+//     denial; the previous behaviour returned `nil` here too which
+//     `hasFileDownloadPermission` interpreted as "ABAC disabled,
+//     allow" — i.e. a transient DB blip silently bypassed
+//     download_file_attachment policies.
+func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) (*model.Subject, *model.AppError) {
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil {
-		return nil
+		return nil, nil
 	}
 	if !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
-		return nil
+		return nil, nil
 	}
 	if !a.Config().FeatureFlags.PermissionPolicies {
-		return nil
+		return nil, nil
 	}
 
 	user, err := a.GetUser(userID)
@@ -1587,18 +1621,52 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.S
 			mlog.String("user_id", userID),
 			mlog.Err(err),
 		)
-		return nil
+		return nil, err
 	}
 
-	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles)
+	// channelID is intentionally empty here: the subject is reused across many
+	// channels in the file-search loop. hasFileDownloadPermission attaches the
+	// channel-scoped role per-evaluation via attachChannelScopedRole.
+	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to build ABAC subject for file search filtering",
 			mlog.String("user_id", userID),
 			mlog.Err(appErr),
 		)
-		return nil
+		return nil, appErr
 	}
-	return subject
+	return subject, nil
+}
+
+// attachChannelScopedRole returns a copy of the subject with the channel-scoped
+// ScopedRole entry replaced for the given channelID. It's used in hot paths
+// where the same per-user Subject is reused across many channels — Subject
+// is taken by value and SetScopedRole always allocates a fresh ScopedRoles
+// backing array, so the caller's cached Subject is not mutated.
+//
+// Errors from GetSubjectChannelRole (e.g. transient channel-member store
+// failures) are propagated as an AppError. Callers MUST treat the error as
+// a denial — a transient DB blip is distinguishable from "no channel role"
+// (legitimate non-member), and conflating the two could let infra hiccups
+// silently degrade ABAC enforcement even with the downstream
+// PolicyGovernsAction fail-secure in place. Defense in depth: both layers
+// should fail closed independently. Callers should NOT stamp an empty
+// channel role in the error path — Subject is returned unchanged so the
+// caller can use it for logging without leaking a partially populated
+// scope onto downstream evaluators.
+func (a *App) attachChannelScopedRole(rctx request.CTX, subject model.Subject, userID, channelID string) (model.Subject, *model.AppError) {
+	channelRole, appErr := a.GetSubjectChannelRole(rctx, userID, channelID)
+	if appErr != nil {
+		rctx.Logger().Warn(
+			"Failed to resolve channel-scoped role for ABAC subject; treating as denial (transient lookup failure must not silently bypass ABAC)",
+			mlog.String("user_id", userID),
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		)
+		return subject, appErr
+	}
+	subject.SetScopedRole(model.AccessControlSubjectScopeChannel, channelRole)
+	return subject, nil
 }
 
 // hasFileDownloadPermission evaluates the ABAC download_file_attachment policy
@@ -1614,8 +1682,16 @@ func (a *App) hasFileDownloadPermission(rctx request.CTX, userID string, channel
 		return true
 	}
 
+	subjectForChannel, attachErr := a.attachChannelScopedRole(rctx, *subject, userID, channelID)
+	if attachErr != nil {
+		// Channel-role lookup failed (e.g. transient ChannelMember store
+		// error). Fail-secure: refuse access rather than evaluating against
+		// a subject missing its channel scope. The warn log was already
+		// emitted by attachChannelScopedRole.
+		return false
+	}
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-		Subject:  *subject,
+		Subject:  subjectForChannel,
 		Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},
 		Action:   model.AccessControlPolicyActionDownloadFileAttachment,
 	})

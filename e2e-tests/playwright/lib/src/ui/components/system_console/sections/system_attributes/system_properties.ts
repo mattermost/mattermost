@@ -228,6 +228,26 @@ export default class SystemProperties {
         return this.container.getByTestId('property-field-validation-error');
     }
 
+    /**
+     * Resolves the in-cell error icon for the row whose Name input currently
+     * equals `nameValue`. Use this to assert a *specific* row is highlighted
+     * (rather than `identifierValidationError()` which matches any row).
+     */
+    cellErrorIconForField(nameValue: string): Locator {
+        return this.container
+            .locator('tr')
+            .filter({has: this.nameInputByValue(nameValue)})
+            .getByTestId('property-field-validation-error');
+    }
+
+    /**
+     * Resolves the warning AlertBanner whose title text matches `title`.
+     * Banners stack below the table; one per unique error type.
+     */
+    validationBannerByTitle(title: string | RegExp): Locator {
+        return this.container.locator('.AlertBanner').filter({hasText: title});
+    }
+
     validationMessage(text: string | RegExp): Locator {
         return this.container.getByText(text);
     }

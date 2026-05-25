@@ -12,9 +12,10 @@ import {PropertyTypes} from 'mattermost-redux/action_types';
 import {patchChannel} from 'mattermost-redux/actions/channels';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {Client4} from 'mattermost-redux/client';
+import {Permissions} from 'mattermost-redux/constants';
 import {isChannelAutotranslated as isChannelAutotranslatedSelector} from 'mattermost-redux/selectors/entities/channels';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemotesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import {
@@ -104,8 +105,10 @@ function ChannelSettingsConfigurationTab({
     const classificationBanner = useChannelClassificationBanner(channel.id);
 
     const classification = useClassificationMarkings();
-    const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
-    const canManageClassification = classification.available && isSystemAdmin;
+    const canManageChannelRoles = useSelector((state: GlobalState) =>
+        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ROLES),
+    );
+    const canManageClassification = classification.available && canManageChannelRoles;
     const [classificationEnabled, setClassificationEnabled] = useState(classificationBanner.hasClassification);
     const [selectedClassificationId, setSelectedClassificationId] = useState(classificationBanner.classificationId || '');
 
@@ -115,10 +118,15 @@ function ChannelSettingsConfigurationTab({
         setClassificationEnabled(classificationBanner.hasClassification);
         setSelectedClassificationId(classificationBanner.classificationId || '');
 
+        // Mirror the classification text/color into the local banner_info form
+        // state so the user can edit text while a classification is active —
+        // but never flip banner_info.enabled. The classification banner renders
+        // off the property value (see channel_banner.tsx); leaving banner_info
+        // disabled means deleting the property value makes the banner disappear
+        // without dragging stale text/color into the manual banner slot.
         if (classificationBanner.hasClassification && classificationBanner.classificationBanner) {
             setUpdatedChannelBanner((prev) => ({
                 ...prev,
-                enabled: true,
                 text: classificationBanner.classificationBanner?.text ?? prev.text,
                 background_color: classificationBanner.classificationBanner?.background_color || prev.background_color || DEFAULT_CHANNEL_BANNER.background_color,
             }));
@@ -166,12 +174,9 @@ function ChannelSettingsConfigurationTab({
                     setSelectedClassificationId(lowestRank.id);
                     setUpdatedChannelBanner((banner) => ({
                         ...banner,
-                        enabled: true,
                         text: `**${lowestRank.name}**`,
                         background_color: lowestRank.color,
                     }));
-                } else {
-                    setUpdatedChannelBanner((banner) => ({...banner, enabled: true}));
                 }
             }
             return !prev;
@@ -184,7 +189,6 @@ function ChannelSettingsConfigurationTab({
         if (level) {
             setUpdatedChannelBanner((prev) => ({
                 ...prev,
-                enabled: true,
                 text: `**${level.name}**`,
                 background_color: level.color,
             }));
@@ -405,7 +409,7 @@ function ChannelSettingsConfigurationTab({
             updated.banner_info = {
                 text: updatedChannelBanner.text?.trim() || '',
                 background_color: updatedChannelBanner.background_color?.trim() || '',
-                enabled: true,
+                enabled: updatedChannelBanner.enabled,
             };
         }
 

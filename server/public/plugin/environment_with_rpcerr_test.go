@@ -18,14 +18,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// Both the wire-level client and the metrics-wrapping layer returned by
-// supervisor.Hooks() must implement HooksWithRPCErr — RunMultiPluginHookWithRPCErr's
-// type assertion targets the latter.
-var (
-	_ HooksWithRPCErr = (*hooksRPCClient)(nil)
-	_ HooksWithRPCErr = (*hooksTimerLayer)(nil)
-)
-
 func TestRunMultiPluginHookWithRPCErr(t *testing.T) {
 	pluginDir, err := os.MkdirTemp("", "mm-rpcerr-plugin")
 	require.NoError(t, err)
