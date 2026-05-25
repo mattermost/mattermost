@@ -2665,11 +2665,6 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		newProps[model.SessionPropVoIPDeviceId] = voipDeviceId
-
-		auditRec := c.MakeAuditRecord(model.AuditEventAttachVoIPDeviceId, model.AuditStatusFail)
-		defer c.LogAuditRec(auditRec)
-		model.AddEventParameterToAuditRec(auditRec, "voip_device_id", voipDeviceId)
-		auditRec.Success()
 	}
 
 	if deviceId != "" {
@@ -2683,6 +2678,13 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := c.App.SetExtraSessionProps(c.AppContext.Session(), newProps); err != nil {
 		c.Err = err
 		return
+	}
+
+	if voipDeviceId != "" {
+		auditRec := c.MakeAuditRecord(model.AuditEventAttachVoIPDeviceId, model.AuditStatusFail)
+		defer c.LogAuditRec(auditRec)
+		model.AddEventParameterToAuditRec(auditRec, "voip_device_id", voipDeviceId)
+		auditRec.Success()
 	}
 
 	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
