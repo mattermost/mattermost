@@ -587,6 +587,10 @@ function PostComponent(props: Props) {
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
+    const showTimestamp =
+        (!hideProfilePicture && props.location === Locations.CENTER) ||
+        hover ||
+        props.location !== Locations.CENTER;
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
@@ -828,7 +832,7 @@ function PostComponent(props: Props) {
                                 isSystemMessage={isSystemMessage}
                             />
                             <div className='badges-wrapper col d-flex align-items-center'>
-                                {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
+                                {showTimestamp &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
                                         teamName={props.team?.name}
@@ -838,7 +842,7 @@ function PostComponent(props: Props) {
                                         timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                     />
                                 }
-                                {postHeaderBadgeDecorators.length > 0 && postHeaderBadgeDecorators.map((reg) => (
+                                {showTimestamp && postHeaderBadgeDecorators.length > 0 && postHeaderBadgeDecorators.map((reg) => (
                                     <PostDecoratorRenderer
                                         key={reg.id}
                                         registration={reg}
