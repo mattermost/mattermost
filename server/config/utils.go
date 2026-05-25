@@ -21,33 +21,35 @@ func marshalConfig(cfg *model.Config) ([]byte, error) {
 	return json.MarshalIndent(cfg, "", "    ")
 }
 
-// desanitize replaces fake settings with their actual values.
-func desanitize(actual, target *model.Config) {
-	if target.LdapSettings.BindPassword != nil && *target.LdapSettings.BindPassword == model.FakeSetting {
+// Desanitize replaces fake settings with their actual values. Safe to call on
+// partial configs: every pointer dereference is nil-guarded so callers do not
+// need to run SetDefaults() first.
+func Desanitize(actual, target *model.Config) {
+	if target.LdapSettings.BindPassword != nil && *target.LdapSettings.BindPassword == model.FakeSetting && actual.LdapSettings.BindPassword != nil {
 		*target.LdapSettings.BindPassword = *actual.LdapSettings.BindPassword
 	}
 
-	if *target.FileSettings.PublicLinkSalt == model.FakeSetting {
+	if target.FileSettings.PublicLinkSalt != nil && *target.FileSettings.PublicLinkSalt == model.FakeSetting && actual.FileSettings.PublicLinkSalt != nil {
 		*target.FileSettings.PublicLinkSalt = *actual.FileSettings.PublicLinkSalt
 	}
-	if *target.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting {
+	if target.FileSettings.AmazonS3SecretAccessKey != nil && *target.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting && actual.FileSettings.AmazonS3SecretAccessKey != nil {
 		target.FileSettings.AmazonS3SecretAccessKey = actual.FileSettings.AmazonS3SecretAccessKey
 	}
-	if target.FileSettings.ExportAmazonS3SecretAccessKey != nil && *target.FileSettings.ExportAmazonS3SecretAccessKey == model.FakeSetting {
+	if target.FileSettings.ExportAmazonS3SecretAccessKey != nil && *target.FileSettings.ExportAmazonS3SecretAccessKey == model.FakeSetting && actual.FileSettings.ExportAmazonS3SecretAccessKey != nil {
 		target.FileSettings.ExportAmazonS3SecretAccessKey = actual.FileSettings.ExportAmazonS3SecretAccessKey
 	}
-	if target.FileSettings.AzureAccessKey != nil && *target.FileSettings.AzureAccessKey == model.FakeSetting {
+	if target.FileSettings.AzureAccessKey != nil && *target.FileSettings.AzureAccessKey == model.FakeSetting && actual.FileSettings.AzureAccessKey != nil {
 		target.FileSettings.AzureAccessKey = actual.FileSettings.AzureAccessKey
 	}
-	if target.FileSettings.ExportAzureAccessKey != nil && *target.FileSettings.ExportAzureAccessKey == model.FakeSetting {
+	if target.FileSettings.ExportAzureAccessKey != nil && *target.FileSettings.ExportAzureAccessKey == model.FakeSetting && actual.FileSettings.ExportAzureAccessKey != nil {
 		target.FileSettings.ExportAzureAccessKey = actual.FileSettings.ExportAzureAccessKey
 	}
 
-	if *target.EmailSettings.SMTPPassword == model.FakeSetting {
+	if target.EmailSettings.SMTPPassword != nil && *target.EmailSettings.SMTPPassword == model.FakeSetting {
 		target.EmailSettings.SMTPPassword = actual.EmailSettings.SMTPPassword
 	}
 
-	if *target.GitLabSettings.Secret == model.FakeSetting {
+	if target.GitLabSettings.Secret != nil && *target.GitLabSettings.Secret == model.FakeSetting {
 		target.GitLabSettings.Secret = actual.GitLabSettings.Secret
 	}
 
@@ -63,14 +65,14 @@ func desanitize(actual, target *model.Config) {
 		target.OpenIdSettings.Secret = actual.OpenIdSettings.Secret
 	}
 
-	if *target.SqlSettings.DataSource == model.FakeSetting {
+	if target.SqlSettings.DataSource != nil && *target.SqlSettings.DataSource == model.FakeSetting && actual.SqlSettings.DataSource != nil {
 		*target.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}
-	if *target.SqlSettings.AtRestEncryptKey == model.FakeSetting {
+	if target.SqlSettings.AtRestEncryptKey != nil && *target.SqlSettings.AtRestEncryptKey == model.FakeSetting {
 		target.SqlSettings.AtRestEncryptKey = actual.SqlSettings.AtRestEncryptKey
 	}
 
-	if *target.ElasticsearchSettings.Password == model.FakeSetting {
+	if target.ElasticsearchSettings.Password != nil && *target.ElasticsearchSettings.Password == model.FakeSetting && actual.ElasticsearchSettings.Password != nil {
 		*target.ElasticsearchSettings.Password = *actual.ElasticsearchSettings.Password
 	}
 
@@ -90,11 +92,15 @@ func desanitize(actual, target *model.Config) {
 		}
 	}
 
-	if *target.MessageExportSettings.GlobalRelaySettings.SMTPPassword == model.FakeSetting {
+	if target.MessageExportSettings.GlobalRelaySettings != nil &&
+		target.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
+		*target.MessageExportSettings.GlobalRelaySettings.SMTPPassword == model.FakeSetting &&
+		actual.MessageExportSettings.GlobalRelaySettings != nil &&
+		actual.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil {
 		*target.MessageExportSettings.GlobalRelaySettings.SMTPPassword = *actual.MessageExportSettings.GlobalRelaySettings.SMTPPassword
 	}
 
-	if *target.ServiceSettings.SplitKey == model.FakeSetting {
+	if target.ServiceSettings.SplitKey != nil && *target.ServiceSettings.SplitKey == model.FakeSetting && actual.ServiceSettings.SplitKey != nil {
 		*target.ServiceSettings.SplitKey = *actual.ServiceSettings.SplitKey
 	}
 
