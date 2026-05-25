@@ -6,17 +6,21 @@
 #   mattermost/mattermost-mobile -> .github/workflows/docs-needed.yml
 #   mattermost/desktop           -> .github/workflows/docs-needed.yml
 #
-# Cross-repo authentication (choose one):
+# Authentication — reuses the two-app pattern from changelog automation:
 #
-#   Option A - GitHub App (recommended for production):
-#     vars.DOCS_APP_ID             - GitHub App ID (repository variable)
-#     secrets.DOCS_APP_PRIVATE_KEY - GitHub App private key
-#     The app must be installed on and granted contents: write +
-#     pull-requests: write + issues: write for mattermost/docs.
-#     Short-lived installation tokens are generated automatically per run.
+#   Read app  (vars.CHANGELOG_READ_CLIENT_ID  / secrets.CHANGELOG_READ_PRIVATE_KEY)
+#     Installed on mattermost/mattermost with contents: read.
+#     Used only to look up milestones (step 3).
 #
-# Other required secrets (set in each repo's Settings -> Secrets):
-#   ANTHROPIC_API_KEY - Claude API key for doc generation
+#   Write app (vars.CHANGELOG_WRITE_CLIENT_ID / secrets.CHANGELOG_WRITE_PRIVATE_KEY)
+#     Installed on mattermost/docs with contents: write + pull-requests: write.
+#     Used to push the docs branch, open the draft PR, and manage milestones/reviewers.
+#     changelog-automation-docs[bot] must be on the CLA ignore list in mattermost/docs.
+#
+# Other required secrets (set in each repo's Settings -> Secrets and Variables):
+#   secrets.ANTHROPIC_API_KEY  - Claude API key for doc generation
+#   vars.CHANGELOG_GIT_USERNAME - Git display name for automated commits
+#   vars.CHANGELOG_GIT_EMAIL    - Git email for automated commits
 #
 # Behaviour:
 #   When Docs/Needed is added to a non-draft PR from within the same repo,
@@ -64,21 +68,28 @@ jobs:
       pull-requests: write
  
     steps:
-      # 0. Generate a short-lived installation token scoped to mattermost/docs.
-      #    Uses a GitHub App so the token is not tied to any individual user
-      #    account and expires automatically after 1 hour.
-      - name: Generate token
-        id: token
+      # 0. Generate short-lived installation tokens — one per app.
+      #    Tokens expire automatically after 1 hour and are not tied to any
+      #    individual user account.
+      #
+      #    read-token: scoped to mattermost/mattermost for milestone lookups
+      #    write-token: scoped to mattermost/docs for branch push, PR creation,
+      #                 milestone sync, and reviewer assignment
+      - name: Generate read token
+        id: read-token
         uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
         with:
-          app-id: ${{ vars.DOCS_APP_ID }}
-          private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
-          # docs: write access for branch push, PR create, milestones, reviewers
-          # mattermost: read access for milestone due-date matching (step 3,
-          #   used by mattermost-mobile and desktop to find the matching release)
-          repositories: >-
-            docs,
-            mattermost
+          app-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
+          repositories: mattermost
+ 
+      - name: Generate write token
+        id: write-token
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
+          repositories: docs
  
       # 1. Guard: milestone is required
       - name: Require milestone
@@ -125,7 +136,7 @@ jobs:
       - name: Resolve docs base branch
         id: base-branch
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GH_TOKEN: ${{ steps.read-token.outputs.token }}
           MILESTONE_TITLE: ${{ steps.vars.outputs.milestone_title }}
           MILESTONE_DUE: ${{ github.event.pull_request.milestone.due_on }}
           REPO_NAME: ${{ steps.vars.outputs.repo_name }}
@@ -200,7 +211,7 @@ jobs:
       - name: Check for existing docs PR
         id: existing
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GH_TOKEN: ${{ steps.write-token.outputs.token }}
           BRANCH: ${{ steps.vars.outputs.branch }}
         run: |
           RESULT=$(gh pr list \
@@ -228,15 +239,15 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: mattermost/docs
-          token: ${{ steps.token.outputs.token }}
+          token: ${{ steps.write-token.outputs.token }}
           path: docs-repo
           fetch-depth: 1
  
       - name: Configure git identity
         working-directory: docs-repo
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ vars.CHANGELOG_GIT_USERNAME }}"
+          git config user.email "${{ vars.CHANGELOG_GIT_EMAIL }}"
  
       - name: Set up branch
         working-directory: docs-repo
@@ -442,7 +453,7 @@ jobs:
       - name: Sync milestone
         id: docs-milestone
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GH_TOKEN: ${{ steps.write-token.outputs.token }}
           MILESTONE_TITLE: ${{ steps.vars.outputs.milestone_title }}
         run: |
           # Use --arg to pass the title safely - avoids jq injection if the
@@ -468,7 +479,7 @@ jobs:
         id: create-pr
         if: steps.existing.outputs.exists == 'false'
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GH_TOKEN: ${{ steps.write-token.outputs.token }}
           BRANCH: ${{ steps.vars.outputs.branch }}
           MILESTONE_TITLE: ${{ steps.vars.outputs.milestone_title }}
           MILESTONE_NUMBER: ${{ steps.docs-milestone.outputs.number }}
@@ -510,7 +521,7 @@ jobs:
       - name: Update existing docs PR
         if: steps.existing.outputs.exists == 'true'
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GH_TOKEN: ${{ steps.write-token.outputs.token }}
           DOCS_PR: ${{ steps.existing.outputs.number }}
           MILESTONE_NUMBER: ${{ steps.docs-milestone.outputs.number }}
         run: |
@@ -533,7 +544,7 @@ jobs:
       # 13. Add dev PR author as reviewer
       - name: Add reviewer
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GH_TOKEN: ${{ steps.write-token.outputs.token }}
           PR_AUTHOR: ${{ steps.vars.outputs.pr_author }}
         run: |
           gh pr edit "${{ steps.resolve.outputs.number }}" \
