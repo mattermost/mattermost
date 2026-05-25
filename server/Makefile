@@ -445,8 +445,8 @@ go-cache: setup-go-work install-ci-tools ## Pre-warm Go module and build cache f
 	@(cd public && $(GO) mod download all)
 	$(GO) build ./...
 	@(cd public && $(GO) build ./...)
-	$(GO) test -run=^$$ -count=1 ./... 2>&1 | tail -20
-	@(cd public && $(GO) test -run=^$$ -count=1 ./... 2>&1 | tail -20)
+	$(GO) test -run=^$$ -count=1 ./... || true
+	@(cd public && $(GO) test -run=^$$ -count=1 ./... || true)
 
 test-compile: setup-go-work gotestsum ## Compile tests.
 	@echo COMPILE TESTS
