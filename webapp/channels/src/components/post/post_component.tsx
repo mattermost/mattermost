@@ -591,6 +591,12 @@ function PostComponent(props: Props) {
         (!hideProfilePicture && props.location === Locations.CENTER) ||
         hover ||
         props.location !== Locations.CENTER;
+
+    // For a consecutive non-compact post the host renders the timestamp in narrow
+    // style, which CSS reflows out of `badges-wrapper` onto the post body's left
+    // margin. In that case post_header_badge would be visually orphaned, so suppress
+    // it — the badge stays paired with the timestamp anchor in `badges-wrapper`.
+    const showPostHeaderBadge = showTimestamp && (!props.isConsecutivePost || props.compactDisplay);
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
@@ -842,7 +848,7 @@ function PostComponent(props: Props) {
                                         timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                     />
                                 }
-                                {showTimestamp && postHeaderBadgeDecorators.length > 0 && postHeaderBadgeDecorators.map((reg) => (
+                                {showPostHeaderBadge && postHeaderBadgeDecorators.length > 0 && postHeaderBadgeDecorators.map((reg) => (
                                     <PostDecoratorRenderer
                                         key={reg.id}
                                         registration={reg}
