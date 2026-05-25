@@ -46,6 +46,7 @@ type Props = {
     inputPlaceholder?: string;
     measureRhsOpened: () => void;
     isChannelAutotranslated: boolean;
+    topAnchored?: boolean;
 }
 
 type State = {
@@ -416,8 +417,54 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         );
     };
 
+    renderTopAnchoredRows = () => {
+        // The reply id list is reverse-ordered (latest first). We want to
+        // render top-down (root post first, latest reply last), so iterate
+        // the list back-to-front. `renderRow` still receives the original
+        // (reverse-ordered) data so its previous/next id lookups remain
+        // correct.
+        const data = this.props.replyListIds;
+        const rows: React.ReactNode[] = [];
+        for (let i = data.length - 1; i >= 0; i--) {
+            rows.push(
+                <React.Fragment key={data[i]}>
+                    {this.renderRow({data, itemId: data[i], style: undefined})}
+                </React.Fragment>,
+            );
+        }
+        return rows;
+    };
+
     render() {
         const {topRhsPostId} = this.state;
+        const {topAnchored} = this.props;
+
+        const createComment = (
+            <CreateComment
+                placeholder={this.props.inputPlaceholder}
+                isThreadView={this.props.isThreadView}
+                teammate={this.props.directTeammate}
+                threadId={this.props.selected.id}
+            />
+        );
+
+        if (topAnchored) {
+            return (
+                <div className='virtual-list__ctr virtual-list__ctr--top-anchored'>
+                    <div
+                        role='application'
+                        aria-label={Utils.localizeMessage({id: 'accessibility.sections.rhsContent', defaultMessage: 'message details complementary region'})}
+                        className='post-right__content post-right__content--top-anchored a11y__region'
+                        data-a11y-sort-order='3'
+                        data-a11y-focus-child={true}
+                        data-a11y-order-reversed={true}
+                    >
+                        {this.renderTopAnchoredRows()}
+                    </div>
+                    {createComment}
+                </div>
+            );
+        }
 
         return (
             <div className='virtual-list__ctr'>
@@ -457,7 +504,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                                     ref={this.listRef}
                                     style={virtListStyles}
                                     width={width}
-                                    className={'post-list__dynamic--RHS'}
+                                    className='post-list__dynamic--RHS'
                                     correctScrollToBottom={true}
                                 >
                                     {this.renderRow}

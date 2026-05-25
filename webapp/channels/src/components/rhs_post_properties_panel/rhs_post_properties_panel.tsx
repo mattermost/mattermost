@@ -76,10 +76,12 @@ function FieldRow({
         onChangeValue(field.id, null);
     }, [field.id, onChangeValue]);
 
+    const triggerClass = `rhs-post-properties-panel__row-trigger${filled ? ' rhs-post-properties-panel__row-trigger--filled' : ''}`;
+
     const trigger = (
         <button
             type='button'
-            className='rhs-post-properties-panel__row-trigger'
+            className={triggerClass}
             aria-label={editLabel}
         >
             {summary ?? (

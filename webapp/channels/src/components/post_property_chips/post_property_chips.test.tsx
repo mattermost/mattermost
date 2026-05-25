@@ -200,7 +200,7 @@ describe('components/post_property_chips/PostPropertyChips', () => {
         expect(chip?.querySelector('svg')).toBeInTheDocument();
     });
 
-    test('renders the outer chip as a small Tag carrying the field id', () => {
+    test('renders the outer chip with the post-property-chip class carrying the field id', () => {
         const field = makeField({id: 'f1', name: 'Notes', type: 'text'});
 
         const {container} = render(
@@ -216,11 +216,11 @@ describe('components/post_property_chips/PostPropertyChips', () => {
 
         const chip = container.querySelector('[data-property-field-id="f1"]') as HTMLElement | null;
         expect(chip).not.toBeNull();
-        expect(chip).toHaveClass('Tag', 'Tag--sm');
+        expect(chip).toHaveClass('post-property-chip');
 
-        // The field-name prefix is preserved alongside the value.
-        expect(chip).toHaveTextContent('Notes');
+        // The chip shows only the value — the field name is no longer rendered inline.
         expect(chip).toHaveTextContent('remember the milk');
+        expect(chip).not.toHaveTextContent('Notes');
     });
 
     test('renders select values as a colored option Tag inside the chip', () => {
@@ -289,7 +289,8 @@ describe('components/post_property_chips/PostPropertyChips', () => {
 
         const chips = container.querySelectorAll('[data-property-field-id="f1"]');
         expect(chips).toHaveLength(1);
-        expect(chips[0]).toHaveTextContent('Tags');
+        // The chip text shows only the selected options — the field name is no longer rendered.
+        expect(chips[0]).not.toHaveTextContent('Tags');
 
         // Each selected option becomes an inner Tag with its color background.
         const allSmTags = chips[0].querySelectorAll('.Tag--sm');

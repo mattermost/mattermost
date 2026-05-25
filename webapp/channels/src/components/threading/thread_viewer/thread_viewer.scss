@@ -21,6 +21,41 @@
         }
     }
 
+    // For posts that have attached properties, the root post + panel render
+    // at the top of the RHS and the reply composer follows the content
+    // directly. When the content fits within the visible area, the composer
+    // sits inline right below the panel; when replies overflow, the content
+    // area scrolls and the composer stays at the bottom of the RHS thanks
+    // to the flex layout below.
+    //
+    // The ancestor chain (post-right-comments-container, post-right__container,
+    // sidebar-right__body, sidebar--right__content) uses default `min-height:
+    // auto`, which prevents flex items from shrinking below their content size.
+    // Absolute positioning sidesteps that — the container is sized strictly by
+    // its positioned-ancestor's bounds, so content larger than the viewport
+    // can't push the chain past the RHS height.
+    .post-right-comments-container {
+        position: relative;
+    }
+
+    .virtual-list__ctr--top-anchored {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        inset: 0;
+        overflow: hidden;
+    }
+
+    .post-right__content--top-anchored {
+        display: flex;
+        min-height: 0;
+        flex: 0 1 auto;
+        flex-direction: column;
+        overflow-y: auto;
+        scrollbar-color: var(--center-channel-color-32) #fff0;
+        scrollbar-width: thin;
+    }
+
     > div {
         flex: 1 1 auto;
     }

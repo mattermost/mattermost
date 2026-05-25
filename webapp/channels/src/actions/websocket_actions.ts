@@ -45,7 +45,6 @@ import {
     PropertyTypes,
     ScheduledPostTypes,
     ContentFlaggingTypes,
-    PropertyTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
@@ -1282,17 +1281,6 @@ function handlePropertyFieldCreatedOrUpdated(
         doDispatch({
             type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
             data: {fields: [field]},
-        });
-    };
-}
-
-function handlePropertyFieldDeleted(
-    msg: WebSocketMessages.PropertyFieldDeleted,
-): ThunkActionFunc<void> {
-    return (doDispatch) => {
-        doDispatch({
-            type: PropertyTypes.PROPERTY_FIELD_DELETED,
-            data: {fieldId: msg.data.field_id},
         });
     };
 }

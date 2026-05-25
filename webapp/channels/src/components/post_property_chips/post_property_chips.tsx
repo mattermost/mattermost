@@ -6,8 +6,7 @@ import React, {useEffect} from 'react';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {renderPropertyValue} from 'components/property_value_editor/render_property_value';
-import {GLYPH_BY_TYPE} from 'components/property_value_editor/type_icon';
-import Tag from 'components/widgets/tag/tag';
+import PropertyTypeIcon from 'components/property_value_editor/type_icon';
 
 import './post_property_chips.scss';
 
@@ -31,23 +30,28 @@ function isFilled(raw: unknown): boolean {
     return true;
 }
 
-function Chip({field, content}: {
+function Chip({field, content, hideIcon}: {
     field: PropertyField;
     content: React.ReactNode;
+    hideIcon: boolean;
 }) {
-    const text = (
-        <>
-            <span className='property-chip__name'>{field.name}</span>
-            <span className='property-chip__value'>{content}</span>
-        </>
-    );
     return (
-        <Tag
-            size='sm'
-            icon={GLYPH_BY_TYPE[field.type] ?? 'text-box-outline'}
-            text={text}
+        <span
+            className='post-property-chip'
             data-property-field-id={field.id}
-        />
+        >
+            {!hideIcon && (
+                <span className='post-property-chip__icon'>
+                    <PropertyTypeIcon
+                        type={field.type}
+                        size={14}
+                    />
+                </span>
+            )}
+            <span className='post-property-chip__label'>
+                {content}
+            </span>
+        </span>
     );
 }
 
@@ -56,11 +60,17 @@ function renderChipsForField(field: PropertyField, raw: unknown): React.ReactNod
     if (!summary) {
         return [];
     }
+
+    // For user/multiuser fields the avatar is already part of the rendered
+    // summary, so we hide the redundant type icon.
+    const hideIcon = field.type === 'user' || field.type === 'multiuser';
+
     return [
         <Chip
             key={field.id}
             field={field}
             content={summary}
+            hideIcon={hideIcon}
         />,
     ];
 }

@@ -61,30 +61,33 @@
 
 .post-property-picker__trigger {
     display: inline-flex;
-    height: 28px;
+    height: 32px;
     align-items: center;
-    padding: 0 12px 0 8px;
-    border: 1px dashed rgba(var(--center-channel-color-rgb), 0.32);
-    border-radius: 14px;
+    padding: 0 8px;
+    border: none;
+    border-radius: 4px;
     background: transparent;
-    color: var(--button-bg);
+    color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
     cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    gap: 4px;
+    font-size: 13px;
+    font-weight: 400;
+    gap: 6px;
     line-height: 16px;
-    transition: background-color 0.12s ease, border-color 0.12s ease;
+    transition: background-color 0.12s ease, color 0.12s ease;
+
+    svg {
+        color: inherit;
+    }
 
     &:hover:not(:disabled) {
-        border-color: var(--button-bg);
-        background: rgba(var(--button-bg-rgb), 0.08);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
     }
 
     &:focus-visible,
     &.post-property-picker__trigger--active {
-        border-style: solid;
-        border-color: var(--button-bg);
         background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
         outline: none;
     }
 
@@ -95,7 +98,7 @@
 }
 
 .post-property-picker__trigger-label {
-    font-weight: 600;
+    font-weight: 400;
 }
 
 .post-property-picker__add-new-row {
@@ -124,8 +127,6 @@
 }
 
 .post-property-picker__form-wrapper {
-    min-width: 280px;
-    max-width: 320px;
     padding: 0;
     list-style: none;
 
@@ -142,6 +143,103 @@
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         margin-top: 4px;
         background: var(--center-channel-bg);
+    }
+}
+
+.post-property-picker__row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+.post-property-picker__edit-btn,
+.post-property-picker__delete-btn {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    cursor: pointer;
+    transition: background-color 0.12s ease, color 0.12s ease;
+
+    &:hover,
+    &:focus-visible {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        outline: none;
+    }
+}
+
+.post-property-picker__delete-btn {
+    &:hover,
+    &:focus-visible {
+        background: rgba(var(--error-text-rgb, 210, 75, 78), 0.08);
+        color: var(--error-text, #d24b4e);
+    }
+}
+
+.post-property-picker__menu {
+    li:hover .post-property-picker__row-actions,
+    li:focus-within .post-property-picker__row-actions {
+        opacity: 1;
+    }
+}
+
+.post-property-picker__edit-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    gap: 8px;
+    list-style: none;
+
+    .post-property-picker__edit-row-icon {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    .post-property-picker__edit-row-name {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .post-property-picker__edit-row-type {
+        flex: 0 0 140px;
+        min-width: 0;
+    }
+
+    .post-property-picker__edit-row-action {
+        display: inline-flex;
+        width: 24px;
+        height: 24px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--button-bg);
+        cursor: pointer;
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--button-bg-rgb), 0.08);
+            outline: none;
+        }
     }
 }
 

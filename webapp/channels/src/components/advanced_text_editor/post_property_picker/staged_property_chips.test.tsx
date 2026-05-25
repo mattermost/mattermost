@@ -43,7 +43,7 @@ describe('components/advanced_text_editor/post_property_picker/StagedPropertyChi
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('renders one chip per staged field showing the field name', () => {
+    test('renders one chip per staged field with the unset-name placeholder', () => {
         const status = makeField({id: 'f1', name: 'Status'});
         const priority = makeField({id: 'f2', name: 'Priority'});
 
@@ -60,8 +60,9 @@ describe('components/advanced_text_editor/post_property_picker/StagedPropertyChi
             />,
         );
 
-        expect(screen.getByText('Status')).toBeInTheDocument();
-        expect(screen.getByText('Priority')).toBeInTheDocument();
+        // Unset chips show "<name>…" as the placeholder (no separate "name: value" form).
+        expect(screen.getByText('Status…')).toBeInTheDocument();
+        expect(screen.getByText('Priority…')).toBeInTheDocument();
     });
 
     test('skips staged items whose field cannot be resolved', () => {
@@ -96,7 +97,7 @@ describe('components/advanced_text_editor/post_property_picker/StagedPropertyChi
         expect(onRemove).toHaveBeenCalledWith('f1');
     });
 
-    test('renders the shared "Empty" placeholder when value is unset', () => {
+    test('renders "<name>…" placeholder when value is unset', () => {
         const items: StagedPropertyItem[] = [{field_id: 'f1', value: undefined}];
 
         render(
@@ -108,18 +109,36 @@ describe('components/advanced_text_editor/post_property_picker/StagedPropertyChi
             />,
         );
 
-        // The unset placeholder is the shared "Empty" copy used elsewhere in the UI.
-        expect(screen.getByText('Empty')).toBeInTheDocument();
+        // Unset chips show "<name>…" rather than the field name and a separate placeholder.
+        const placeholder = screen.getByText('Assignee…');
+        expect(placeholder).toBeInTheDocument();
 
         // Old "Set <field>" copy is gone.
         expect(screen.queryByText(/set assignee/i)).not.toBeInTheDocument();
 
-        // Italic-muted styling marker so the empty value is visually de-emphasized.
-        const emptyEl = screen.getByText('Empty');
-        expect(emptyEl).toHaveClass('staged-property-chip__empty');
+        // Italic-muted styling marker so the unset placeholder is visually de-emphasized.
+        expect(placeholder).toHaveClass('staged-property-chip__empty');
     });
 
-    test('renders each chip via the shared Tag widget', () => {
+    test('renders only the value (no name) when the chip has a value', () => {
+        const items: StagedPropertyItem[] = [{field_id: 'f1', value: 'Lee Renolds'}];
+
+        render(
+            <StagedPropertyChips
+                fields={[makeField({id: 'f1', name: 'Assignee', type: 'text'})]}
+                stagedItems={items}
+                onRemove={jest.fn()}
+                onChangeValue={jest.fn()}
+            />,
+        );
+
+        // The value is shown alone — the field name is no longer rendered inside the chip text.
+        expect(screen.getByText('Lee Renolds')).toBeInTheDocument();
+        expect(screen.queryByText('Assignee…')).not.toBeInTheDocument();
+        expect(screen.queryByText(/^assignee:?$/i)).not.toBeInTheDocument();
+    });
+
+    test('renders each chip with the staged-property-chip class', () => {
         const items: StagedPropertyItem[] = [{field_id: 'f1', value: undefined}];
 
         const {container} = render(
@@ -131,10 +150,10 @@ describe('components/advanced_text_editor/post_property_picker/StagedPropertyChi
             />,
         );
 
-        // Chip is a Tag (sm size) carrying the field id on its DOM node.
+        // Chip is a custom button carrying the field id on its DOM node.
         const tag = container.querySelector('[data-property-field-id="f1"]');
         expect(tag).not.toBeNull();
-        expect(tag).toHaveClass('Tag', 'Tag--sm');
+        expect(tag).toHaveClass('staged-property-chip');
     });
 
     test('clicking the chip body opens the editor in a popover', () => {

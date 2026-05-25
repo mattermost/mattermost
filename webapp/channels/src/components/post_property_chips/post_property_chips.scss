@@ -4,6 +4,83 @@
 .post__property-chips {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     margin-top: 6px;
     gap: 6px;
+}
+
+.post-property-chip {
+    display: inline-flex;
+    height: 24px;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.06);
+    color: rgba(var(--center-channel-color-rgb), 0.88);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 6px;
+    line-height: 16px;
+}
+
+.post-property-chip__icon {
+    display: inline-flex;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+
+    .property-type-icon {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    svg {
+        display: block;
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.post-property-chip__label {
+    display: inline-flex;
+    overflow: hidden;
+    align-items: center;
+    max-width: 220px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// Inline values rendered inside a chip
+.post-property-chip .property-user,
+.post-property-chip .property-users {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.post-property-chip .property-user__name {
+    color: inherit;
+    font-weight: 600;
+    line-height: 16px;
+}
+
+.post-property-chip .property-date,
+.post-property-chip .property-text {
+    color: inherit;
+    font-weight: 600;
+    line-height: 16px;
+}
+
+.post-property-chip .property-pills {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+// Avatar inside the chip ships with vertical-align: sub, which pushes the
+// image below the text baseline inside flex children. Reset so the avatar
+// sits flush with the rest of the chip content.
+.post-property-chip .Avatar {
+    display: inline-block;
+    vertical-align: middle;
 }

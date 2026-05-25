@@ -897,7 +897,7 @@ function PostComponent(props: Props) {
                                 />
                             )}
                             <div className='post__body-reactions-acks'>
-                                {post.id && post.channel_id && !isSystemMessage && !isPostPendingOrFailed(post) && (
+                                {post.id && post.channel_id && !isSystemMessage && !isPostPendingOrFailed(post) && !isRHS && (
                                     <PostPropertyChips
                                         postId={post.id}
                                         channelId={post.channel_id}

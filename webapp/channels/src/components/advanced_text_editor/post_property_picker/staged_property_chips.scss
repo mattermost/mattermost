@@ -2,16 +2,66 @@
 // See LICENSE.txt for license information.
 
 .staged-property-chips {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 6px;
 }
 
 .staged-property-chip-wrapper {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 2px;
+}
+
+.staged-property-chip {
+    display: inline-flex;
+    height: 24px;
+    align-items: center;
+    padding: 0 10px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.06);
+    color: rgba(var(--center-channel-color-rgb), 0.88);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 6px;
+    line-height: 16px;
+    transition: background-color 0.12s ease;
+
+    &:hover,
+    &:focus-visible {
+        background: rgba(var(--center-channel-color-rgb), 0.1);
+        outline: none;
+    }
+}
+
+.staged-property-chip__icon {
+    display: inline-flex;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+
+    .property-type-icon {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    svg {
+        display: block;
+        width: 14px;
+        height: 14px;
+    }
+}
+
+.staged-property-chip__label {
+    display: inline-flex;
+    overflow: hidden;
+    align-items: center;
+    max-width: 220px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .staged-property-chip__empty {
@@ -20,28 +70,34 @@
     font-weight: 400;
 }
 
-.staged-property-chip__name {
-    color: inherit;
-    font-weight: 600;
-}
-
 .staged-property-chip__remove {
-    display: inline-flex;
-    width: 18px;
-    height: 18px;
+    position: absolute;
+    z-index: 1;
+    top: -5px;
+    right: -5px;
+    display: none;
+    width: 16px;
+    height: 16px;
     align-items: center;
     justify-content: center;
     padding: 0;
-    border: none;
+    border: 1px solid var(--center-channel-bg);
     border-radius: 50%;
-    background: transparent;
-    color: rgba(var(--center-channel-color-rgb), 0.5);
+    background: rgba(var(--center-channel-color-rgb), 0.7);
+    color: var(--center-channel-bg);
     cursor: pointer;
+    transition: background-color 0.12s ease;
 
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.12);
-        color: var(--center-channel-color);
+    &:hover,
+    &:focus-visible {
+        background: rgba(var(--center-channel-color-rgb), 0.9);
+        outline: none;
     }
+}
+
+.staged-property-chip-wrapper:hover .staged-property-chip__remove,
+.staged-property-chip-wrapper:focus-within .staged-property-chip__remove {
+    display: inline-flex;
 }
 
 .staged-property-chip__editor {
@@ -51,4 +107,51 @@
     border-radius: 6px;
     background: var(--center-channel-bg);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
+
+// Inline values rendered inside a chip
+.staged-property-chip .property-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.staged-property-chip .property-user__name {
+    color: inherit;
+    font-weight: 600;
+    line-height: 16px;
+}
+
+.staged-property-chip .property-users {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.staged-property-chip .property-date,
+.staged-property-chip .property-text {
+    color: inherit;
+    font-weight: 600;
+    line-height: 16px;
+}
+
+.staged-property-chip .property-pills {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+// Avatar inside the chip ships with vertical-align: sub, which pushes the
+// image below the text baseline inside flex children. Reset so the avatar
+// sits flush with the rest of the chip content.
+.staged-property-chip .Avatar {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+// When the field is a user/multiuser, the type-icon would duplicate the avatar.
+// Hide it so we only show the avatar + name.
+.staged-property-chip--filled[data-property-field-id]:has(.property-user) .staged-property-chip__icon,
+.staged-property-chip--filled[data-property-field-id]:has(.property-users) .staged-property-chip__icon {
+    display: none;
 }

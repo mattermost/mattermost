@@ -74,13 +74,13 @@ export function fetchPropertyFields(
 
         while (fetched < maxItems) {
             // eslint-disable-next-line no-await-in-loop
-            const page = await Client4.getPropertyFields(
+            const page = (await Client4.getPropertyFields(
                 groupName,
                 objectType,
                 targetType,
                 targetId,
                 {cursorId, cursorCreateAt},
-            );
+            )) ?? [];
             fields = fields.concat(page);
 
             if (page.length === 0) {
@@ -111,12 +111,12 @@ export function loadChannelPostPropertyFields(channelId: string): ActionFuncAsyn
 
         let fields: PropertyField[];
         try {
-            fields = await Client4.getPropertyFields(
+            fields = (await Client4.getPropertyFields(
                 ChannelPostPropertyGroupName,
                 POST_OBJECT_TYPE,
                 CHANNEL_TARGET_TYPE,
                 channelId,
-            );
+            )) ?? [];
         } catch (error) {
             loadedChannelPostFields.delete(channelId);
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -142,11 +142,11 @@ export function loadPostPropertyValues(postId: string): ActionFuncAsync<Array<Pr
 
         let values: Array<PropertyValue<unknown>>;
         try {
-            values = await Client4.getPropertyValues<unknown>(
+            values = (await Client4.getPropertyValues<unknown>(
                 ChannelPostPropertyGroupName,
                 POST_OBJECT_TYPE,
                 postId,
-            );
+            )) ?? [];
         } catch (error) {
             loadedPostValues.delete(postId);
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -249,12 +249,12 @@ export function patchPostPropertyValues(
     return async (dispatch, getState) => {
         let values: Array<PropertyValue<unknown>>;
         try {
-            values = await Client4.patchPropertyValues<unknown>(
+            values = (await Client4.patchPropertyValues<unknown>(
                 ChannelPostPropertyGroupName,
                 POST_OBJECT_TYPE,
                 postId,
                 items,
-            );
+            )) ?? [];
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

@@ -5,17 +5,22 @@ import type {PopoverActions} from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {memo, useCallback, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {PlusIcon} from '@mattermost/compass-icons/components';
+import {CloseIcon, PencilOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {deleteChannelPostPropertyField} from 'mattermost-redux/actions/properties';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import CompassDesignProvider from 'components/compass_design_provider';
+import ConfirmModal from 'components/confirm_modal';
 import * as Menu from 'components/menu';
 import PropertyTypeIcon from 'components/property_value_editor/type_icon';
 
+import type {DispatchFunc} from 'types/store';
+
+import EditPropertyRow from './edit_property_row';
 import NewPropertyForm from './new_property_form';
 import type {NewPropertyData} from './new_property_form';
 
@@ -35,11 +40,29 @@ export type Props = {
 function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateField, onAddNewClick, onManageClick, disabled, mode = 'staging'}: Props) {
     const {formatMessage} = useIntl();
     const theme = useSelector(getTheme);
+    const dispatch = useDispatch<DispatchFunc>();
 
     const [open, setOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [inAddNewMode, setInAddNewMode] = useState(false);
+    const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
+    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
     const popoverActionRef = useRef<PopoverActions | null>(null);
+
+    const pendingDeleteField = pendingDeleteId ?
+        fields.find((f) => f.id === pendingDeleteId) :
+        undefined;
+
+    const handleConfirmDelete = useCallback(() => {
+        if (pendingDeleteId) {
+            dispatch(deleteChannelPostPropertyField(pendingDeleteId));
+            setPendingDeleteId(null);
+        }
+    }, [dispatch, pendingDeleteId]);
+
+    const handleCancelDelete = useCallback(() => {
+        setPendingDeleteId(null);
+    }, []);
 
     const handleFormLayoutChange = useCallback(() => {
         // Re-anchor the popover so it grows upward (per anchor/transform origin)
@@ -98,9 +121,52 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
         fields.filter((f) => f.name.toLowerCase().includes(searchQuery.trim().toLowerCase()));
 
     const items = filteredFields.map((field) => {
+        if (editingFieldId === field.id) {
+            return (
+                <EditPropertyRow
+                    key={field.id}
+                    field={field}
+                    onExit={() => setEditingFieldId(null)}
+                />
+            );
+        }
+
         const leadingElement = (
             <span className='post-property-picker__row-icon'>
                 <PropertyTypeIcon type={field.type}/>
+            </span>
+        );
+
+        const trailingActions = (
+            <span className='post-property-picker__row-actions'>
+                <button
+                    type='button'
+                    className='post-property-picker__edit-btn'
+                    aria-label={formatMessage(
+                        {id: 'post_property_picker.edit_aria', defaultMessage: 'Edit {name}'},
+                        {name: field.name},
+                    )}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingFieldId(field.id);
+                    }}
+                >
+                    <PencilOutlineIcon size={16}/>
+                </button>
+                <button
+                    type='button'
+                    className='post-property-picker__delete-btn'
+                    aria-label={formatMessage(
+                        {id: 'post_property_picker.delete_aria', defaultMessage: 'Delete {name}'},
+                        {name: field.name},
+                    )}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setPendingDeleteId(field.id);
+                    }}
+                >
+                    <CloseIcon size={16}/>
+                </button>
             </span>
         );
 
@@ -112,6 +178,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                     leadingElement={leadingElement}
                     onClick={() => handleSelect(field.id)}
                     labels={<span>{field.name}</span>}
+                    trailingElements={trailingActions}
                 />
             );
         }
@@ -126,6 +193,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                 leadingElement={leadingElement}
                 onClick={() => handleSelect(field.id)}
                 labels={<span>{field.name}</span>}
+                trailingElements={trailingActions}
             />
         );
     });
@@ -169,6 +237,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
         if (!next) {
             setInAddNewMode(false);
             setSearchQuery('');
+            setEditingFieldId(null);
         }
     }, []);
 
@@ -183,7 +252,8 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                 menu={{
                     id: 'post-property-picker-menu',
                     'aria-label': triggerLabel,
-                    width: 'max-content',
+                    width: '360px',
+                    className: 'post-property-picker__menu',
                     onToggle: handleMenuToggle,
                     isMenuOpen: open,
                 }}
@@ -309,6 +379,38 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                     ),
                 ]}
             </Menu.Container>
+            <ConfirmModal
+                show={pendingDeleteId !== null}
+                title={
+                    <FormattedMessage
+                        id='post_property_picker.confirm_delete_title'
+                        defaultMessage='Delete property'
+                    />
+                }
+                message={
+                    <FormattedMessage
+                        id='post_property_picker.confirm_delete_message'
+                        defaultMessage='Delete property "{name}"? Existing values on posts will be removed.'
+                        values={{name: pendingDeleteField?.name ?? ''}}
+                    />
+                }
+                confirmButtonVariant='destructive'
+                confirmButtonText={
+                    <FormattedMessage
+                        id='post_property_picker.confirm_delete'
+                        defaultMessage='Delete'
+                    />
+                }
+                cancelButtonText={
+                    <FormattedMessage
+                        id='post_property_picker.cancel_delete'
+                        defaultMessage='Cancel'
+                    />
+                }
+                onConfirm={handleConfirmDelete}
+                onCancel={handleCancelDelete}
+                isStacked={true}
+            />
         </CompassDesignProvider>
     );
 }

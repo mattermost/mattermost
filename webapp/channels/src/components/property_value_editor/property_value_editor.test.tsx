@@ -1,20 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import React from 'react';
-import {IntlProvider} from 'react-intl';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-jest.mock('components/admin_console/content_flagging/user_multiselector/user_multiselector', () => ({
-    UserSelector: ({id}: {id: string}) => <div data-testid={id}/>,
-}));
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import PropertyValueEditor from './index';
 
 function wrap(ui: React.ReactElement) {
-    return <IntlProvider locale='en'>{ui}</IntlProvider>;
+    return ui;
+}
+
+const usersState = {
+    entities: {
+        users: {
+            currentUserId: 'me',
+            profiles: {me: {id: 'me', username: 'me', first_name: 'Me', last_name: '', roles: ''}},
+            profilesInChannel: {'channel-1': new Set(['me'])},
+        },
+        general: {config: {TeammateNameDisplay: 'full_name'}},
+        preferences: {myPreferences: {}},
+        teams: {currentTeamId: 't1', teams: {t1: {id: 't1'}}},
+    },
+};
+
+function render(ui: React.ReactElement) {
+    return renderWithContext(ui, usersState, {useMockedStore: true});
 }
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
@@ -99,17 +113,22 @@ describe('components/property_value_editor/PropertyValueEditor', () => {
                 onChange={jest.fn()}
             />,
         ));
-        expect(screen.getByTestId('user-editor-f1')).toBeInTheDocument();
+        // The user editor mounts the picker, identified by the field id on the wrapper.
+        const wrapper = document.querySelector('[data-property-field-id="f1"]');
+        expect(wrapper).not.toBeNull();
+        expect(wrapper).toHaveClass('property-value-editor--user');
     });
 
-    test('renders a placeholder for unsupported field types', () => {
+    test('routes multiuser fields to the multi-mode user editor', () => {
         render(wrap(
             <PropertyValueEditor
                 field={makeField({type: 'multiuser', name: 'Reviewers'})}
-                value=''
+                value={[]}
                 onChange={jest.fn()}
             />,
         ));
-        expect(screen.getByText(/not yet supported/i)).toBeInTheDocument();
+        const wrapper = document.querySelector('[data-property-field-id="f1"]');
+        expect(wrapper).not.toBeNull();
+        expect(wrapper).toHaveClass('property-value-editor--user');
     });
 });

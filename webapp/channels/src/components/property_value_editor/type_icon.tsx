@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {
+    AccountMultipleOutlineIcon,
     AccountOutlineIcon,
     CalendarOutlineIcon,
     CheckCircleOutlineIcon,
@@ -26,6 +27,7 @@ const ICON_BY_TYPE: Record<string, IconComponent> = {
     select: CheckCircleOutlineIcon,
     multiselect: FormatListBulletedIcon,
     user: AccountOutlineIcon,
+    multiuser: AccountMultipleOutlineIcon,
 };
 
 export const GLYPH_BY_TYPE: Record<string, IconGlyphTypes> = {
@@ -34,6 +36,7 @@ export const GLYPH_BY_TYPE: Record<string, IconGlyphTypes> = {
     select: 'check-circle-outline',
     multiselect: 'format-list-bulleted',
     user: 'account-outline',
+    multiuser: 'account-multiple-outline',
 };
 
 export default function PropertyTypeIcon({type, size = 16}: Props) {

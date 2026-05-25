@@ -622,7 +622,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             },
         });
 
-        it('renders the +Add property trigger inside the dedicated chip row, not inside the formatting bar', () => {
+        it('renders the +Add property trigger inside the formatting bar, before the bold control', () => {
             renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 integratedBoardsState,
@@ -631,13 +631,17 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             const trigger = screen.getByRole('button', {name: /add property/i});
             expect(trigger).toBeInTheDocument();
 
-            // The trigger lives inside the dedicated chip row.
-            const chipRow = screen.getByTestId('postPropertyChipRow');
-            expect(chipRow).toContainElement(trigger);
-
-            // And is NOT inside the formatting bar container.
+            // The trigger now lives inside the formatting bar container.
             const formattingBar = screen.getByTestId('formattingBarContainer');
-            expect(formattingBar).not.toContainElement(trigger);
+            expect(formattingBar).toContainElement(trigger);
+
+            // The trigger is rendered before the bold formatting control.
+            const boldControl = screen.getByLabelText(/bold/i);
+            // eslint-disable-next-line no-bitwise
+            expect(trigger.compareDocumentPosition(boldControl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+            // The chip row is not rendered when there are no staged chips.
+            expect(screen.queryByTestId('postPropertyChipRow')).not.toBeInTheDocument();
         });
     });
 });

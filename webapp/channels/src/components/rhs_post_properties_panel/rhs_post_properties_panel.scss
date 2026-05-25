@@ -58,7 +58,13 @@
     align-items: center;
     color: rgba(var(--center-channel-color-rgb), 0.56);
 
+    .property-type-icon {
+        display: inline-flex;
+        align-items: center;
+    }
+
     svg {
+        display: block;
         width: 14px;
         height: 14px;
     }
@@ -78,21 +84,31 @@
 
 .rhs-post-properties-panel__row-trigger {
     display: inline-flex;
-    width: 100%;
     align-items: center;
-    padding: 4px 8px;
+    padding: 4px 10px;
     border: none;
     border-radius: 4px;
     background: transparent;
     color: var(--center-channel-color);
     cursor: pointer;
     font-size: 13px;
+    line-height: 16px;
     text-align: left;
+    transition: background-color 0.12s ease;
 
     &:hover,
     &:focus-visible {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
+        background: rgba(var(--center-channel-color-rgb), 0.1);
         outline: none;
+    }
+
+    &--filled {
+        background: rgba(var(--center-channel-color-rgb), 0.06);
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--center-channel-color-rgb), 0.1);
+        }
     }
 }
 
@@ -106,6 +122,34 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 4px;
+}
+
+// Inline values rendered inside the row trigger
+.rhs-post-properties-panel__row-trigger .property-user,
+.rhs-post-properties-panel__row-trigger .property-users {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rhs-post-properties-panel__row-trigger .property-user__name {
+    color: inherit;
+    font-weight: 600;
+    line-height: 16px;
+}
+
+.rhs-post-properties-panel__row-trigger .property-date,
+.rhs-post-properties-panel__row-trigger .property-text {
+    color: inherit;
+    line-height: 16px;
+}
+
+// Avatar inside the chip ships with vertical-align: sub, which pushes the
+// image below the text baseline. Reset so the avatar sits flush with the
+// rest of the trigger content.
+.rhs-post-properties-panel__row-trigger .Avatar {
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .rhs-post-properties-panel__editor {

@@ -134,6 +134,12 @@ interface FormattingBarProps {
      * AI actions menu rendered at the far left of the formatting bar
      */
     aiActionsMenu?: React.ReactNode;
+
+    /**
+     * Control rendered at the start of the formatting bar, before the markdown
+     * formatting icons (e.g. the post-properties picker trigger).
+     */
+    prependControl?: React.ReactNode;
 }
 
 const DEFAULT_MIN_MODE_X_COORD = 55;
@@ -147,6 +153,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         location,
         additionalControls,
         aiActionsMenu,
+        prependControl,
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
 
@@ -231,7 +238,8 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
             data-testid='formattingBarContainer'
         >
             {aiActionsMenu}
-            {aiActionsMenu && showSeparators && <Separator/>}
+            {prependControl}
+            {prependControl && showSeparators && <Separator/>}
             {controls.map((mode) => {
                 return (
                     <React.Fragment key={mode}>

@@ -33,7 +33,19 @@ export default function PropertyValueEditor(props: PropertyValueEditorProps) {
             />
         );
     case 'user':
-        return <UserEditor {...props}/>;
+        return (
+            <UserEditor
+                {...props}
+                multi={false}
+            />
+        );
+    case 'multiuser':
+        return (
+            <UserEditor
+                {...props}
+                multi={true}
+            />
+        );
     default:
         return (
             <span

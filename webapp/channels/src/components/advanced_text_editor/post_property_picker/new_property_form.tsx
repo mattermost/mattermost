@@ -122,6 +122,7 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
         {value: 'select', label: formatMessage({id: 'new_property_form.type.select', defaultMessage: 'Select'}), icon: <PropertyTypeIcon type='select'/>},
         {value: 'multiselect', label: formatMessage({id: 'new_property_form.type.multiselect', defaultMessage: 'Multi-select'}), icon: <PropertyTypeIcon type='multiselect'/>},
         {value: 'user', label: formatMessage({id: 'new_property_form.type.user', defaultMessage: 'User'}), icon: <PropertyTypeIcon type='user'/>},
+        {value: 'multiuser', label: formatMessage({id: 'new_property_form.type.multiuser', defaultMessage: 'Multi-user'}), icon: <PropertyTypeIcon type='multiuser'/>},
     ], [formatMessage]);
 
     const selectedTypeOption = typeOptions.find((o) => o.value === type) ?? typeOptions[0];
@@ -150,6 +151,8 @@ export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Prop
                     options={typeOptions}
                     onChange={handleTypeChange}
                     isSearchable={false}
+                    menuPlacement='top'
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
                 />
             </div>
 

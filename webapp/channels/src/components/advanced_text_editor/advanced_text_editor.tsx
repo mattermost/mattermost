@@ -705,7 +705,7 @@ const AdvancedTextEditor = ({
         if (isInEditMode) {
             return null;
         }
-        if (!postPropertiesStagedChips && !postPropertiesControl) {
+        if (!postPropertiesStagedChips) {
             return null;
         }
         return (
@@ -714,10 +714,11 @@ const AdvancedTextEditor = ({
                 data-testid='postPropertyChipRow'
             >
                 {postPropertiesStagedChips}
-                {postPropertiesControl}
             </div>
         );
-    }, [isInEditMode, postPropertiesStagedChips, postPropertiesControl]);
+    }, [isInEditMode, postPropertiesStagedChips]);
+
+    const formattingBarPrependControl = isInEditMode ? undefined : postPropertiesControl;
 
     const getSelectedText = useCallback(() => {
         const input = textboxRef.current?.getInputBox();
@@ -760,6 +761,7 @@ const AdvancedTextEditor = ({
                     additionalControls={additionalControls}
                     location={location}
                     aiActionsMenu={aiActionsMenu}
+                    prependControl={formattingBarPrependControl}
                 />
             )}
             slot2={null}
