@@ -131,11 +131,11 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
     });
 
     test('should include edit_file_attachment in the posts permission group', () => {
-        renderWithContext(
+        const wrapper = shallow(
             <PermissionsTree {...defaultProps}/>,
         );
 
-        const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
+        const groups = wrapper.find(PermissionGroup).first().prop('permissions') as Array<Group | Permission>;
         const postsGroup = groups[6];
         expect(postsGroup.id).toBe('posts');
         expect(postsGroup.permissions).toContain('edit_file_attachment');
