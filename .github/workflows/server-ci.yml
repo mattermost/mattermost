@@ -33,7 +33,6 @@ jobs:
     permissions:
       id-token: write    # for chainguard (FIPS base image pull)
       contents: read
-      packages: write    # for ghcr.io push
     outputs:
       version: ${{ steps.calculate.outputs.GO_VERSION }}
       gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
@@ -73,7 +72,7 @@ jobs:
           if docker manifest inspect "mattermost/mattermost-build-server:${GO_VERSION}" > /dev/null 2>&1; then
             echo "image=mattermost/mattermost-build-server:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
           elif [[ "${CAN_PUSH}" == "true" ]]; then
-            echo "image=ghcr.io/mattermost/mattermost-build-server:${COMMIT_SHA}" >> "${GITHUB_OUTPUT}"
+            echo "image=mattermost/mattermost-build-server-dev:${COMMIT_SHA}" >> "${GITHUB_OUTPUT}"
             echo "BUILDENV_NEEDED=true" >> "${GITHUB_ENV}"
           else
             echo "image=mattermost/mattermost-build-server:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
@@ -81,27 +80,19 @@ jobs:
           if docker manifest inspect "mattermost/mattermost-build-server-fips:${GO_VERSION}" > /dev/null 2>&1; then
             echo "image-fips=mattermost/mattermost-build-server-fips:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
           elif [[ "${CAN_PUSH}" == "true" ]]; then
-            echo "image-fips=ghcr.io/mattermost/mattermost-build-server-fips:${COMMIT_SHA}" >> "${GITHUB_OUTPUT}"
+            echo "image-fips=mattermost/mattermost-build-server-fips-dev:${COMMIT_SHA}" >> "${GITHUB_OUTPUT}"
             echo "BUILDENV_FIPS_NEEDED=true" >> "${GITHUB_ENV}"
           else
             echo "image-fips=mattermost/mattermost-build-server-fips:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
           fi
 
-      - name: Login to ghcr.io
-        if: env.BUILDENV_NEEDED == 'true' || env.BUILDENV_FIPS_NEEDED == 'true'
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Setup Chainctl
-        if: env.BUILDENV_FIPS_NEEDED == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        if: env.BUILDENV_FIPS_NEEDED == 'true'
         uses: chainguard-dev/setup-chainctl@c125f765e82b09a42af3185f3214465314d75c5d # v0.5.0
         with:
           identity: ${{ env.CHAINCTL_IDENTITY }}
 
-      - name: Build and push buildenv to ghcr.io
+      - name: Build and push buildenv to Docker Hub
         if: env.BUILDENV_NEEDED == 'true'
         uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
         with:
@@ -109,23 +100,25 @@ jobs:
           file: server/build/Dockerfile.buildenv
           push: true
           tags: ${{ steps.resolve.outputs.image }}
-          labels: org.opencontainers.image.source=https://github.com/mattermost/mattermost
 
-      - name: Build and push buildenv-fips to ghcr.io
-        if: env.BUILDENV_FIPS_NEEDED == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+      - name: Build and push buildenv-fips to Docker Hub
+        if: env.BUILDENV_FIPS_NEEDED == 'true'
         uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
         with:
           provenance: false
           file: server/build/Dockerfile.buildenv-fips
           push: true
           tags: ${{ steps.resolve.outputs.image-fips }}
-          labels: org.opencontainers.image.source=https://github.com/mattermost/mattermost
 
   check-mocks:
     name: Check mocks
     needs: go
     runs-on: ubuntu-22.04
-    container: ${{ needs.go.outputs.image }}
+    container:
+      image: ${{ needs.go.outputs.image }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server
@@ -142,7 +135,11 @@ jobs:
     name: Check go mod tidy
     needs: go
     runs-on: ubuntu-22.04
-    container: ${{ needs.go.outputs.image }}
+    container:
+      image: ${{ needs.go.outputs.image }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server
@@ -159,7 +156,11 @@ jobs:
     name: Check go fix
     needs: go
     runs-on: ubuntu-22.04
-    container: ${{ needs.go.outputs.image }}
+    container:
+      image: ${{ needs.go.outputs.image }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server
@@ -176,7 +177,11 @@ jobs:
     name: check-style
     needs: go
     runs-on: ubuntu-22.04
-    container: ${{ needs.go.outputs.image }}
+    container:
+      image: ${{ needs.go.outputs.image }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server
@@ -191,7 +196,11 @@ jobs:
     name: Check serialization methods for hot structs
     needs: go
     runs-on: ubuntu-22.04
-    container: ${{ needs.go.outputs.image }}
+    container:
+      image: ${{ needs.go.outputs.image }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server
@@ -208,7 +217,11 @@ jobs:
     name: Vet API
     needs: go
     runs-on: ubuntu-22.04
-    container: ${{ needs.go.outputs.image }}
+    container:
+      image: ${{ needs.go.outputs.image }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server
@@ -223,7 +236,11 @@ jobs:
     name: Check migration files
     needs: go
     runs-on: ubuntu-22.04
-    container: ${{ needs.go.outputs.image }}
+    container:
+      image: ${{ needs.go.outputs.image }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server
@@ -238,7 +255,11 @@ jobs:
     name: Generate email templates
     needs: go
     runs-on: ubuntu-22.04
-    container: ${{ needs.go.outputs.image }}
+    container:
+      image: ${{ needs.go.outputs.image }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server
@@ -255,7 +276,11 @@ jobs:
     name: Check store layers
     needs: go
     runs-on: ubuntu-22.04
-    container: ${{ needs.go.outputs.image }}
+    container:
+      image: ${{ needs.go.outputs.image }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server
@@ -272,7 +297,11 @@ jobs:
     name: Check mmctl docs
     needs: go
     runs-on: ubuntu-22.04
-    container: ${{ needs.go.outputs.image }}
+    container:
+      image: ${{ needs.go.outputs.image }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server
@@ -419,7 +448,11 @@ jobs:
     name: Build mattermost server app
     needs: go
     runs-on: ubuntu-22.04
-    container: ${{ needs.go.outputs.image }}
+    container:
+      image: ${{ needs.go.outputs.image }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     defaults:
       run:
         working-directory: server

@@ -65,7 +65,7 @@ on:
         type: boolean
         default: false
       build-image:
-        description: "The build image to use (Docker Hub ref normally, ghcr.io ref for in-flight Go bumps)"
+        description: "The build image to use (e.g. mattermost-build-server-dev for in-flight Go bumps)"
         required: true
         type: string
 
