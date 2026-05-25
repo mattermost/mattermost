@@ -1,4 +1,4 @@
-FROM golang:1.26.1-trixie
+FROM golang:1.26.1-bookworm
 ARG NODE_VERSION=20.11.1
 
 RUN apt-get update && apt-get install -y make git apt-transport-https ca-certificates curl software-properties-common build-essential zip xmlsec1 jq pgloader gnupg
