@@ -2659,7 +2659,12 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		newProps[model.SessionPropMobileVersion] = mobileVersion
 	}
 
+	var voipAuditRec *model.AuditRecord
 	if voipDeviceId != "" {
+		voipAuditRec = c.MakeAuditRecord(model.AuditEventAttachVoIPDeviceId, model.AuditStatusFail)
+		defer c.LogAuditRec(voipAuditRec)
+		model.AddEventParameterToAuditRec(voipAuditRec, "voip_device_id", voipDeviceId)
+
 		if !model.IsValidVoIPDeviceID(voipDeviceId) {
 			c.SetInvalidParam(model.SessionPropVoIPDeviceId)
 			return
@@ -2680,11 +2685,8 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if voipDeviceId != "" {
-		auditRec := c.MakeAuditRecord(model.AuditEventAttachVoIPDeviceId, model.AuditStatusFail)
-		defer c.LogAuditRec(auditRec)
-		model.AddEventParameterToAuditRec(auditRec, "voip_device_id", voipDeviceId)
-		auditRec.Success()
+	if voipAuditRec != nil {
+		voipAuditRec.Success()
 	}
 
 	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
