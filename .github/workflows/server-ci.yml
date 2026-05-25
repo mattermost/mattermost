@@ -68,18 +68,23 @@ jobs:
         env:
           GO_VERSION: ${{ steps.calculate.outputs.GO_VERSION }}
           COMMIT_SHA: ${{ github.sha }}
+          CAN_PUSH: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
           if docker manifest inspect "mattermost/mattermost-build-server:${GO_VERSION}" > /dev/null 2>&1; then
             echo "image=mattermost/mattermost-build-server:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
-          else
+          elif [[ "${CAN_PUSH}" == "true" ]]; then
             echo "image=ghcr.io/mattermost/mattermost-build-server:${COMMIT_SHA}" >> "${GITHUB_OUTPUT}"
             echo "BUILDENV_NEEDED=true" >> "${GITHUB_ENV}"
+          else
+            echo "image=mattermost/mattermost-build-server:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
           fi
           if docker manifest inspect "mattermost/mattermost-build-server-fips:${GO_VERSION}" > /dev/null 2>&1; then
             echo "image-fips=mattermost/mattermost-build-server-fips:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
-          else
+          elif [[ "${CAN_PUSH}" == "true" ]]; then
             echo "image-fips=ghcr.io/mattermost/mattermost-build-server-fips:${COMMIT_SHA}" >> "${GITHUB_OUTPUT}"
             echo "BUILDENV_FIPS_NEEDED=true" >> "${GITHUB_ENV}"
+          else
+            echo "image-fips=mattermost/mattermost-build-server-fips:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Login to ghcr.io
