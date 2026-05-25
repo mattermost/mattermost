@@ -36,6 +36,7 @@ describe('Environment - File Storage (Azure Blob Storage)', () => {
         cy.findByTestId('FileSettings.AzureStorageAccountinput').should('not.be.disabled');
         cy.findByTestId('FileSettings.AzureContainerinput').should('not.be.disabled');
         cy.findByTestId('FileSettings.AzurePathPrefixinput').should('not.be.disabled');
+        cy.findByTestId('FileSettings.AzureAuthModedropdown').should('not.be.disabled');
         cy.findByTestId('FileSettings.AzureAccessKeyinput').should('not.be.disabled');
         cy.findByTestId('FileSettings.AzureEndpointinput').should('not.be.disabled');
         cy.findByTestId('FileSettings.AzureRequestTimeoutMillisecondsnumber').should('not.be.disabled');
@@ -55,7 +56,29 @@ describe('Environment - File Storage (Azure Blob Storage)', () => {
         // * Azure fields are not rendered when the driver is not Azure
         cy.findByTestId('FileSettings.AzureStorageAccountinput').should('not.exist');
         cy.findByTestId('FileSettings.AzureContainerinput').should('not.exist');
+        cy.findByTestId('FileSettings.AzureAuthModedropdown').should('not.exist');
         cy.findByTestId('FileSettings.AzureAccessKeyinput').should('not.exist');
+    });
+
+    it('hides the access key when the authentication mode is default credential', () => {
+        // # Select the Azure driver
+        cy.findByTestId('FileSettings.DriverNamedropdown').select('azureblob');
+
+        // * Shared key is the default and the access key is visible
+        cy.findByTestId('FileSettings.AzureAuthModedropdown').should('have.value', 'shared_key');
+        cy.findByTestId('FileSettings.AzureAccessKeyinput').should('be.visible');
+
+        // # Switch to default credential
+        cy.findByTestId('FileSettings.AzureAuthModedropdown').select('default_credential');
+
+        // * The access key field is removed from the DOM
+        cy.findByTestId('FileSettings.AzureAccessKeyinput').should('not.exist');
+
+        // # Switch back to shared key
+        cy.findByTestId('FileSettings.AzureAuthModedropdown').select('shared_key');
+
+        // * The access key field reappears
+        cy.findByTestId('FileSettings.AzureAccessKeyinput').should('be.visible');
     });
 
     it('exposes the backend-agnostic Test Connection button when Azure is selected', () => {
