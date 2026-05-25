@@ -275,7 +275,7 @@ const useKeyHandler = (
                 e.stopPropagation();
                 e.preventDefault();
                 toggleAdvanceTextEditor();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length && !UserAgent.isMac() && showFormattingBar) {
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length) {
                 e.stopPropagation();
                 e.preventDefault();
                 toggleShowPreview();

@@ -300,7 +300,7 @@ export default class Textbox extends React.PureComponent<Props> {
                 className={classNames('textarea-wrapper', {'textarea-wrapper-preview': this.props.preview, 'textarea-wrapper-preview--disabled': Boolean(this.props.preview && this.props.disabled)})}
             >
                 <div
-                    tabIndex={this.props.tabIndex}
+                    tabIndex={this.props.tabIndex ?? -1}
                     ref={this.preview}
                     className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
                     onKeyPress={this.handleKeyPress}
