@@ -39,6 +39,14 @@ const (
 	notificationTypeDummy       notificationType = "dummy"
 
 	notificationErrorRemoveDevice = "device was reported as removed"
+
+	// pushCategoryAnsweredElsewhere is set on Type=clear, SubType=calls
+	// pushes that the Calls plugin fans out when a user joins a call from
+	// one of their devices, so the other VoIP-registered devices can clear
+	// their CallKit ringing UI. The plugin can't pass a skip-session-id
+	// through the public plugin API, so it encodes it on SenderId; the
+	// matching is done in sendPushNotificationToAllSessions.
+	pushCategoryAnsweredElsewhere = "answered_elsewhere"
 )
 
 type PushNotificationsHub struct {
@@ -162,8 +170,28 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			continue
 		}
 
+		// Plugin-side skip convention for "answered elsewhere" Calls cancel
+		// pushes: the Calls plugin can't pass a skip-session-id through the
+		// public API, so it encodes it as SenderId on a notification with
+		// Category=answered_elsewhere. We honor that here and clear SenderId
+		// on the copy below so the session id never reaches the proxy or device.
+		// See plugin: handleAnsweredElsewhere in mattermost-plugin-calls.
+		if msg.Category == pushCategoryAnsweredElsewhere && msg.SenderId == session.Id {
+			rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Session skipped for answered-elsewhere cancel push",
+				mlog.String("type", model.NotificationTypePush),
+				mlog.String("user_id", session.UserId),
+				mlog.String("session_id", session.Id),
+			)
+			continue
+		}
+
 		// We made a copy to avoid decoding and parsing all the time
 		tmpMessage := msg.DeepCopy()
+		if tmpMessage.Category == pushCategoryAnsweredElsewhere {
+			// SenderId carried the session id to skip (see above); strip it
+			// so it doesn't leak to the proxy/device.
+			tmpMessage.SenderId = ""
+		}
 
 		// For calls notifications, prefer the VoIP device ID if the session has
 		// one. The prefix on the VoIP token (e.g. "apple_voip_rn:") tells the

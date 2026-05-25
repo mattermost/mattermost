@@ -1207,6 +1207,62 @@ func TestSendPushNotificationsForCallsRouting(t *testing.T) {
 	}
 }
 
+func TestSendPushNotificationsAnsweredElsewhereSkip(t *testing.T) {
+	// Calls plugin overloads SenderId as the auth-session-id-to-skip when
+	// Category=answered_elsewhere. Core honors that and strips SenderId
+	// before forwarding so the session id never reaches the proxy.
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+	pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	// Two VoIP-registered sessions for the same user.
+	skipSession, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  model.PushNotifyAppleReactNativeVoIP + ":skiptoken",
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	require.Nil(t, err)
+
+	otherSession, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  model.PushNotifyAppleReactNativeVoIP + ":othertoken",
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	require.Nil(t, err)
+
+	msg := &model.PushNotification{
+		Type:     model.PushTypeClear,
+		SubType:  model.PushSubTypeCalls,
+		Category: "answered_elsewhere",
+		SenderId: skipSession.Id,
+	}
+	appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+	require.Nil(t, appErr)
+
+	require.Eventually(t, func() bool {
+		return len(handler.notifications()) == 1
+	}, 2*time.Second, 10*time.Millisecond, "expected exactly one push notification (the non-skipped session)")
+
+	notifications := handler.notifications()
+	assert.Equal(t, "othertoken", notifications[0].DeviceId, "should have been routed to the non-skipped VoIP token")
+	assert.Empty(t, notifications[0].SenderId, "SenderId should have been stripped before sending to proxy")
+	assert.Equal(t, "answered_elsewhere", notifications[0].Category, "Category should still travel to the device")
+
+	// And the skipped session never received anything.
+	for _, n := range notifications {
+		assert.NotEqual(t, "skiptoken", n.DeviceId)
+	}
+	_ = otherSession
+}
+
 func TestShouldSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
