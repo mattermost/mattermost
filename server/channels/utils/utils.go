@@ -277,3 +277,22 @@ func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
 	significantDigits := int64(n) / tens
 	return significantDigits * tens
 }
+
+// SliceEqualUnordered returns true if both slices contain the same set of elements,
+// regardless of order.
+func SliceEqualUnordered[K comparable](a, b []K) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	set := make(map[K]int, len(a))
+	for _, id := range a {
+		set[id]++
+	}
+	for _, id := range b {
+		set[id]--
+		if set[id] < 0 {
+			return false
+		}
+	}
+	return true
+}
