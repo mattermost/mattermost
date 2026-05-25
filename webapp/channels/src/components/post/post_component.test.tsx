@@ -914,4 +914,55 @@ describe('PostComponent — post_header_badge decorator render site', () => {
         renderWithContext(<PostComponent {...baseProps}/>, state);
         expect(screen.queryByTestId('post-decorator')).not.toBeInTheDocument();
     });
+
+    it('does not render the badge on a consecutive CENTER post (timestamp is hidden)', () => {
+        const state = {
+            plugins: {
+                components: {
+                    PostDecorator: [{
+                        id: 'dec-1',
+                        pluginId: 'test-plugin',
+                        slot: 'post_header_badge',
+                        matcher: () => true,
+                        component: () => null,
+                    }],
+                },
+            },
+        } as any;
+
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+            />,
+            state,
+        );
+        expect(screen.queryByTestId('post-decorator')).not.toBeInTheDocument();
+    });
+
+    it('renders the badge on a consecutive RHS_COMMENT post (timestamp always shown off CENTER)', () => {
+        const state = {
+            plugins: {
+                components: {
+                    PostDecorator: [{
+                        id: 'dec-1',
+                        pluginId: 'test-plugin',
+                        slot: 'post_header_badge',
+                        matcher: () => true,
+                        component: () => null,
+                    }],
+                },
+            },
+        } as any;
+
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+                location={Locations.RHS_COMMENT}
+            />,
+            state,
+        );
+        expect(screen.getByTestId('post-decorator')).toBeInTheDocument();
+    });
 });
