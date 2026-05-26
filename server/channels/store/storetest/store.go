@@ -78,7 +78,7 @@ type Store struct {
 	TemporaryPostStore              mocks.TemporaryPostStore
 	ViewStore                       mocks.ViewStore
 	ChannelJoinRequestStore         mocks.ChannelJoinRequestStore
-	AuditStorageStore          mocks.AuditStorageStore
+	AuditStorageStore               mocks.AuditStorageStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }

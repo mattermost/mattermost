@@ -141,13 +141,13 @@ type SqlStore struct {
 	auditStorageX *sqlxDBWrapper
 	asSettings    *model.AuditStorageSettings
 
-	stores            SqlStoreStores
-	settings          *model.SqlSettings
-	lockedToMaster    bool
-	license           *model.License
-	licenseMutex      sync.RWMutex
-	logger            mlog.LoggerIFace
-	metrics           einterfaces.MetricsInterface
+	stores         SqlStoreStores
+	settings       *model.SqlSettings
+	lockedToMaster bool
+	license        *model.License
+	licenseMutex   sync.RWMutex
+	logger         mlog.LoggerIFace
+	metrics        einterfaces.MetricsInterface
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string

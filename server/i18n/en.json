@@ -11335,6 +11335,30 @@
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
+    "id": "model.config.is_valid.audit_storage_conn_max_idle_time_milliseconds.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.config.is_valid.audit_storage_conn_max_lifetime_milliseconds.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.config.is_valid.audit_storage_data_src.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.config.is_valid.audit_storage_idle.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.config.is_valid.audit_storage_max_conn.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.config.is_valid.audit_storage_query_timeout.app_error",
+    "translation": ""
+  },
+  {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
     "translation": "Invalid autotranslation agents configuration: AI service must not be empty."
   },
