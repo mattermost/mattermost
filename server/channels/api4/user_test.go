@@ -2884,6 +2884,25 @@ func TestUpdateUserAuth(t *testing.T) {
 	require.Equal(t, *userAuth.AuthData, *ruser.AuthData)
 	require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
 
+	userAuth.AuthData = new("test@test.com")
+	userAuth.AuthService = "not-a-real-service"
+	_, resp, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	userAuth.AuthData = new("test@test.com")
+	userAuth.AuthService = model.UserAuthServiceEmail
+	_, resp, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	userAuth.AuthData = nil
+	userAuth.AuthService = model.UserAuthServiceEmail
+	ruser, _, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.NoError(t, err)
+	require.Nil(t, ruser.AuthData)
+	require.Empty(t, ruser.AuthService)
+
 	// When AuthData or AuthService are empty, password must be valid
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = ""
