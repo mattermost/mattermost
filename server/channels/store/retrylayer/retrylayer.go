@@ -8,11 +8,11 @@ package retrylayer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	timepkg "time"
 
 	"github.com/lib/pq"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -626,7 +626,7 @@ type RetryLayerWebhookStore struct {
 func isRepeatableError(err error) bool {
 	var pqErr *pq.Error
 	switch {
-	case errors.As(errors.Cause(err), &pqErr):
+	case errors.As(err, &pqErr):
 		if pqErr.Code == "40001" || pqErr.Code == "40P01" {
 			return true
 		}
@@ -17896,48 +17896,6 @@ func (s *RetryLayerUserAccessTokenStore) Delete(tokenID string) error {
 
 }
 
-func (s *RetryLayerUserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
-
-	tries := 0
-	for {
-		result, err := s.UserAccessTokenStore.DeleteByIds(tokenIDs)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = fmt.Errorf("giving up after 3 consecutive repeatable transaction failures: %w", err)
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
-
-	tries := 0
-	for {
-		result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = fmt.Errorf("giving up after 3 consecutive repeatable transaction failures: %w", err)
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerUserAccessTokenStore) DeleteAllForUser(userID string) error {
 
 	tries := 0
@@ -17953,6 +17911,27 @@ func (s *RetryLayerUserAccessTokenStore) DeleteAllForUser(userID string) error {
 		if tries >= 3 {
 			err = fmt.Errorf("giving up after 3 consecutive repeatable transaction failures: %w", err)
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserAccessTokenStore.DeleteByIds(tokenIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = fmt.Errorf("giving up after 3 consecutive repeatable transaction failures: %w", err)
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -18027,6 +18006,27 @@ func (s *RetryLayerUserAccessTokenStore) GetByUser(userID string, page int, perP
 	tries := 0
 	for {
 		result, err := s.UserAccessTokenStore.GetByUser(userID, page, perPage)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = fmt.Errorf("giving up after 3 consecutive repeatable transaction failures: %w", err)
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -18853,6 +18853,27 @@ func (s *RetryLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) 
 
 }
 
+func (s *RetryLayerWebhookStore) UpdateIncomingLastUsed(webhookID string, lastUsed int64) error {
+
+	tries := 0
+	for {
+		err := s.WebhookStore.UpdateIncomingLastUsed(webhookID, lastUsed)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = fmt.Errorf("giving up after 3 consecutive repeatable transaction failures: %w", err)
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
 
 	tries := 0
@@ -18900,10 +18921,6 @@ func (s *RetryLayer) TotalReadDbConnections() int {
 
 func (s *RetryLayer) TotalSearchDbConnections() int {
 	return s.Store.TotalSearchDbConnections()
-}
-
-func (s *RetryLayer) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
-	return s.Store.GetDiagnostics(ctx)
 }
 
 func (s *RetryLayer) UnlockFromMaster() {

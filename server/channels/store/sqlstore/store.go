@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"path"
 	"strconv"
@@ -22,7 +23,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/mattermost/morph/models"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -661,7 +661,8 @@ func (ss *SqlStore) MarkSystemRanUnitTests() {
 
 func IsUniqueConstraintError(err error, indexName []string) bool {
 	unique := false
-	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) && pqErr.Code == "23505" {
 		unique = true
 	}
 
@@ -1025,7 +1026,7 @@ func (ss *SqlStore) hasLicense() bool {
 // tables in the database.
 func IsDuplicate(err error) bool {
 	var pqErr *pq.Error
-	if errors.As(errors.Cause(err), &pqErr) {
+	if errors.As(err, &pqErr) {
 		if pqErr.Code == PGDupTableErrorCode {
 			return true
 		}

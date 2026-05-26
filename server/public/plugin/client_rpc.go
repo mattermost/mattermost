@@ -135,10 +135,10 @@ type apiRPCServer struct {
 }
 
 // ErrorString is a fallback for sending unregistered implementations of the error interface across
-// rpc. For example, the errorString type from the github.com/pkg/errors package cannot be
-// registered since it is not exported, but this precludes common error handling paradigms.
-// ErrorString merely preserves the string description of the error, while satisfying the error
-// interface itself to allow other registered types (such as model.AppError) to be sent unmodified.
+// rpc. Unexported error types (such as the one produced by errors.New) cannot be registered, but
+// this precludes common error handling paradigms. ErrorString merely preserves the string
+// description of the error, while satisfying the error interface itself to allow other registered
+// types (such as model.AppError) to be sent unmodified.
 type ErrorString struct {
 	Code int // Code to map to various error variables
 	Err  string

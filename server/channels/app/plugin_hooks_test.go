@@ -20,7 +20,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -1053,8 +1052,8 @@ func TestErrorString(t *testing.T) {
 		require.Len(t, activationErrors, 1)
 		require.Error(t, activationErrors[0])
 
-		cause := errors.Cause(activationErrors[0])
-		require.IsType(t, &model.AppError{}, cause)
+		var cause *model.AppError
+		require.ErrorAs(t, activationErrors[0], &cause)
 
 		// params not expected, since not exported
 		expectedErr := model.NewAppError("where", "id", nil, "details", 42)

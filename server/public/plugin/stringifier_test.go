@@ -4,9 +4,9 @@
 package plugin
 
 import (
+	"errors"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,15 +45,11 @@ func TestStringify(t *testing.T) {
 			"error",
 		}, strings)
 	})
-	t.Run("ErrorShouldReturnFormattedStack", func(t *testing.T) {
+	t.Run("ErrorShouldReturnMessage", func(t *testing.T) {
 		strings := stringify([]any{
 			errors.New("error"),
-			errors.WithStack(errors.New("error")),
 		})
-		stackRegexp := "error\n.*plugin.TestStringify.func\\d+\n\t.*plugin/stringifier_test.go:\\d+\ntesting.tRunner\n\t.*testing.go:\\d+.*"
-		assert.Len(t, strings, 2)
-		assert.Regexp(t, stackRegexp, strings[0])
-		assert.Regexp(t, stackRegexp, strings[1])
+		assert.Equal(t, []string{"error"}, strings)
 	})
 }
 

@@ -5,13 +5,13 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -507,7 +507,7 @@ func TestFileStoreSet(t *testing.T) {
 		}
 		_, _, err := configStore.Set(newReadOnlyConfig)
 		if assert.Error(t, err) {
-			assert.Equal(t, ErrReadOnlyConfiguration, errors.Cause(err))
+			assert.ErrorIs(t, err, ErrReadOnlyConfiguration)
 		}
 
 		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)

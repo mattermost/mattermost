@@ -8,10 +8,11 @@ package retrylayer
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	timepkg "time"
 
 	"github.com/lib/pq"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -40,7 +41,7 @@ type {{.Name}} struct {
 func isRepeatableError(err error) bool {
 	var pqErr *pq.Error
 	switch {
-	case errors.As(errors.Cause(err), &pqErr):
+	case errors.As(err, &pqErr):
 		if pqErr.Code == "40001" || pqErr.Code == "40P01" {
 			return true
 		}
@@ -66,7 +67,7 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
                 }
                 tries++
                 if tries >= 3 {
-                    {{$element.Results | errorVar}} = errors.Wrap({{$element.Results | errorVar}}, "giving up after 3 consecutive repeatable transaction failures")
+                    {{$element.Results | errorVar}} = fmt.Errorf("giving up after 3 consecutive repeatable transaction failures: %w", {{$element.Results | errorVar}})
                     return {{genResultsVars $element.Results false }}
                 }
                 timepkg.Sleep(100 * timepkg.Millisecond)
