@@ -1577,11 +1577,11 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
-// ReadTrackingSettings configures the independent PostgreSQL pool used by
-// the read-tracking sub-store. The pool, credentials, and migration set are
+// AuditStorageSettings configures the independent PostgreSQL pool used by
+// the audit-storage sub-store. The pool, credentials, and migration set are
 // all separate from SqlSettings; a failure in this DB does not affect the
 // main DB. Disabled by default — the sub-store is a no-op when Enable=false.
-type ReadTrackingSettings struct {
+type AuditStorageSettings struct {
 	Enable                      *bool   `access:"environment_database,write_restrictable,cloud_restrictable"`
 	DataSource                  *string `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
 	MaxIdleConns                *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
@@ -1591,14 +1591,14 @@ type ReadTrackingSettings struct {
 	QueryTimeout                *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
 }
 
-const ReadTrackingSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost:5433/mattermost_readtracking?sslmode=disable&connect_timeout=10"
+const AuditStorageSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost:5433/mattermost_auditstorage?sslmode=disable&connect_timeout=10"
 
-func (s *ReadTrackingSettings) SetDefaults() {
+func (s *AuditStorageSettings) SetDefaults() {
 	if s.Enable == nil {
 		s.Enable = new(false)
 	}
 	if s.DataSource == nil {
-		s.DataSource = new(ReadTrackingSettingsDefaultDataSource)
+		s.DataSource = new(AuditStorageSettingsDefaultDataSource)
 	}
 	if s.MaxIdleConns == nil {
 		s.MaxIdleConns = new(50)
@@ -1618,27 +1618,27 @@ func (s *ReadTrackingSettings) SetDefaults() {
 	}
 }
 
-func (s *ReadTrackingSettings) isValid() *AppError {
+func (s *AuditStorageSettings) isValid() *AppError {
 	if !*s.Enable {
 		return nil
 	}
 	if *s.DataSource == "" {
-		return NewAppError("Config.IsValid", "model.config.is_valid.read_tracking_data_src.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.audit_storage_data_src.app_error", nil, "", http.StatusBadRequest)
 	}
 	if *s.MaxIdleConns <= 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.read_tracking_idle.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.audit_storage_idle.app_error", nil, "", http.StatusBadRequest)
 	}
 	if *s.MaxOpenConns <= 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.read_tracking_max_conn.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.audit_storage_max_conn.app_error", nil, "", http.StatusBadRequest)
 	}
 	if *s.ConnMaxLifetimeMilliseconds < 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.read_tracking_conn_max_lifetime_milliseconds.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.audit_storage_conn_max_lifetime_milliseconds.app_error", nil, "", http.StatusBadRequest)
 	}
 	if *s.ConnMaxIdleTimeMilliseconds < 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.read_tracking_conn_max_idle_time_milliseconds.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.audit_storage_conn_max_idle_time_milliseconds.app_error", nil, "", http.StatusBadRequest)
 	}
 	if *s.QueryTimeout <= 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.read_tracking_query_timeout.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.audit_storage_query_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
 }
@@ -4173,7 +4173,7 @@ type Config struct {
 	TeamSettings                TeamSettings
 	ClientRequirements          ClientRequirements
 	SqlSettings                 SqlSettings
-	ReadTrackingSettings        ReadTrackingSettings
+	AuditStorageSettings        AuditStorageSettings
 	LogSettings                 LogSettings
 	ExperimentalAuditSettings   ExperimentalAuditSettings
 	PasswordSettings            PasswordSettings
@@ -4290,7 +4290,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	o.SqlSettings.SetDefaults(isUpdate)
-	o.ReadTrackingSettings.SetDefaults()
+	o.AuditStorageSettings.SetDefaults()
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
@@ -4373,7 +4373,7 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
-	if appErr := o.ReadTrackingSettings.isValid(); appErr != nil {
+	if appErr := o.AuditStorageSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
@@ -5331,8 +5331,8 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.SqlSettings.AtRestEncryptKey = FakeSetting
 	}
 
-	if o.ReadTrackingSettings.DataSource != nil {
-		*o.ReadTrackingSettings.DataSource = sanitizeDataSourceField(*o.ReadTrackingSettings.DataSource, "ReadTrackingSettings.DataSource")
+	if o.AuditStorageSettings.DataSource != nil {
+		*o.AuditStorageSettings.DataSource = sanitizeDataSourceField(*o.AuditStorageSettings.DataSource, "AuditStorageSettings.DataSource")
 	}
 
 	if o.ElasticsearchSettings.Password != nil {

@@ -30,10 +30,10 @@ func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string
 		attempts)
 }
 
-// SetupReadTrackingConnection opens a connection for the independent
-// read-tracking pool. Mirrors SetupConnection but reads pool tuning from
-// ReadTrackingSettings (driver is fixed to postgres for this DB).
-func SetupReadTrackingConnection(logger mlog.LoggerIFace, connType string, settings *model.ReadTrackingSettings, attempts int) (*dbsql.DB, error) {
+// SetupAuditStorageConnection opens a connection for the independent
+// audit-storage pool. Mirrors SetupConnection but reads pool tuning from
+// AuditStorageSettings (driver is fixed to postgres for this DB).
+func SetupAuditStorageConnection(logger mlog.LoggerIFace, connType string, settings *model.AuditStorageSettings, attempts int) (*dbsql.DB, error) {
 	return setupConnection(logger, connType, *settings.DataSource, model.DatabaseDriverPostgres,
 		*settings.MaxIdleConns, *settings.MaxOpenConns,
 		*settings.ConnMaxLifetimeMilliseconds, *settings.ConnMaxIdleTimeMilliseconds,

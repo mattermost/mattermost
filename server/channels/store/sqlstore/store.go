@@ -119,7 +119,7 @@ type SqlStoreStores struct {
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
 	channelJoinRequest         store.ChannelJoinRequestStore
-	readTracking               store.ReadTrackingStore
+	auditStorage               store.AuditStorageStore
 }
 
 type SqlStore struct {
@@ -136,10 +136,10 @@ type SqlStore struct {
 
 	replicaLagHandles []*sql.DB
 
-	// readTrackingX is an independent pool for the read-tracking DB. Nil when
-	// ReadTrackingSettings.Enable is false.
-	readTrackingX *sqlxDBWrapper
-	rtSettings    *model.ReadTrackingSettings
+	// auditStorageX is an independent pool for the audit-storage DB. Nil when
+	// AuditStorageSettings.Enable is false.
+	auditStorageX *sqlxDBWrapper
+	asSettings    *model.AuditStorageSettings
 
 	stores            SqlStoreStores
 	settings          *model.SqlSettings
@@ -193,11 +193,11 @@ func WithFeatureFlags(fn func() *model.FeatureFlags) Option {
 	}
 }
 
-// WithReadTrackingSettings configures the independent read-tracking pool.
-// If omitted (or Enable=false), Store().ReadTracking() returns a no-op store.
-func WithReadTrackingSettings(rt model.ReadTrackingSettings) Option {
+// WithAuditStorageSettings configures the independent audit-storage pool.
+// If omitted (or Enable=false), Store().AuditStorage() returns a no-op store.
+func WithAuditStorageSettings(rt model.AuditStorageSettings) Option {
 	return func(s *SqlStore) error {
-		s.rtSettings = &rt
+		s.asSettings = &rt
 		return nil
 	}
 }
@@ -253,10 +253,10 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 			return nil, errors.Wrap(err, "failed to apply database migrations")
 		}
 
-		if store.readTrackingX != nil {
-			err = store.migrateReadTracking(migrationsDirectionUp, !store.disableMorphLogging)
+		if store.auditStorageX != nil {
+			err = store.migrateAuditStorage(migrationsDirectionUp, !store.disableMorphLogging)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to apply read-tracking database migrations")
+				return nil, errors.Wrap(err, "failed to apply audit-storage database migrations")
 			}
 		}
 	}
@@ -330,7 +330,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
-	store.stores.readTracking = newSqlReadTrackingStore(store)
+	store.stores.auditStorage = newSqlAuditStorage(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -400,16 +400,19 @@ func (ss *SqlStore) initConnection() error {
 		}
 	}
 
-	if ss.rtSettings != nil && ss.rtSettings.Enable != nil && *ss.rtSettings.Enable {
-		rtHandle, err := sqlUtils.SetupReadTrackingConnection(ss.Logger(), "read-tracking", ss.rtSettings, DBPingAttempts)
+	// Open the audit-storage pool whenever settings were supplied, regardless
+	// of Enable. Enable controls runtime writes (via the no-op sub-store), but
+	// schema provisioning runs unconditionally so the table is always ready.
+	if ss.asSettings != nil && ss.asSettings.DataSource != nil && *ss.asSettings.DataSource != "" {
+		rtHandle, err := sqlUtils.SetupAuditStorageConnection(ss.Logger(), "audit-storage", ss.asSettings, DBPingAttempts)
 		if err != nil {
-			return errors.Wrap(err, "failed to setup read-tracking connection")
+			return errors.Wrap(err, "failed to setup audit-storage connection")
 		}
-		ss.readTrackingX = newSqlxDBWrapper(sqlx.NewDb(rtHandle, model.DatabaseDriverPostgres),
-			time.Duration(*ss.rtSettings.QueryTimeout)*time.Second,
+		ss.auditStorageX = newSqlxDBWrapper(sqlx.NewDb(rtHandle, model.DatabaseDriverPostgres),
+			time.Duration(*ss.asSettings.QueryTimeout)*time.Second,
 			*ss.settings.Trace)
 		if ss.metrics != nil {
-			ss.metrics.RegisterDBCollector(ss.readTrackingX.DB().DB, "read-tracking")
+			ss.metrics.RegisterDBCollector(ss.auditStorageX.DB().DB, "audit-storage")
 		}
 	}
 
@@ -764,8 +767,8 @@ func (ss *SqlStore) Close() {
 		replica.Close()
 	}
 
-	if ss.readTrackingX != nil {
-		ss.readTrackingX.Close()
+	if ss.auditStorageX != nil {
+		ss.auditStorageX.Close()
 	}
 }
 
@@ -1005,8 +1008,8 @@ func (ss *SqlStore) ChannelJoinRequest() store.ChannelJoinRequestStore {
 	return ss.stores.channelJoinRequest
 }
 
-func (ss *SqlStore) ReadTracking() store.ReadTrackingStore {
-	return ss.stores.readTracking
+func (ss *SqlStore) AuditStorage() store.AuditStorageStore {
+	return ss.stores.auditStorage
 }
 
 func (ss *SqlStore) DropAllTables() {

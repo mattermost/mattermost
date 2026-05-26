@@ -23,6 +23,7 @@ type RetryLayer struct {
 	AccessControlPolicyStore        store.AccessControlPolicyStore
 	AttributesStore                 store.AttributesStore
 	AuditStore                      store.AuditStore
+	AuditStorageStore               store.AuditStorageStore
 	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
@@ -58,7 +59,6 @@ type RetryLayer struct {
 	PropertyValueStore              store.PropertyValueStore
 	ReactionStore                   store.ReactionStore
 	ReadReceiptStore                store.ReadReceiptStore
-	ReadTrackingStore               store.ReadTrackingStore
 	RecapStore                      store.RecapStore
 	RemoteClusterStore              store.RemoteClusterStore
 	RetentionPolicyStore            store.RetentionPolicyStore
@@ -92,6 +92,10 @@ func (s *RetryLayer) Attributes() store.AttributesStore {
 
 func (s *RetryLayer) Audit() store.AuditStore {
 	return s.AuditStore
+}
+
+func (s *RetryLayer) AuditStorage() store.AuditStorageStore {
+	return s.AuditStorageStore
 }
 
 func (s *RetryLayer) AutoTranslation() store.AutoTranslationStore {
@@ -234,10 +238,6 @@ func (s *RetryLayer) ReadReceipt() store.ReadReceiptStore {
 	return s.ReadReceiptStore
 }
 
-func (s *RetryLayer) ReadTracking() store.ReadTrackingStore {
-	return s.ReadTrackingStore
-}
-
 func (s *RetryLayer) Recap() store.RecapStore {
 	return s.RecapStore
 }
@@ -334,6 +334,11 @@ type RetryLayerAttributesStore struct {
 
 type RetryLayerAuditStore struct {
 	store.AuditStore
+	Root *RetryLayer
+}
+
+type RetryLayerAuditStorageStore struct {
+	store.AuditStorageStore
 	Root *RetryLayer
 }
 
@@ -509,11 +514,6 @@ type RetryLayerReactionStore struct {
 
 type RetryLayerReadReceiptStore struct {
 	store.ReadReceiptStore
-	Root *RetryLayer
-}
-
-type RetryLayerReadTrackingStore struct {
-	store.ReadTrackingStore
 	Root *RetryLayer
 }
 
@@ -953,6 +953,69 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) error {
 	tries := 0
 	for {
 		err := s.AuditStore.Save(audit)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAuditStorageStore) HasRead(ctx context.Context, userID string, postID string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.AuditStorageStore.HasRead(ctx, userID, postID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAuditStorageStore) Mark(ctx context.Context, userID string, postID string) error {
+
+	tries := 0
+	for {
+		err := s.AuditStorageStore.Mark(ctx, userID, postID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerAuditStorageStore) MarkBulk(ctx context.Context, pairs []model.AuditStorageEntry) error {
+
+	tries := 0
+	for {
+		err := s.AuditStorageStore.MarkBulk(ctx, pairs)
 		if err == nil {
 			return nil
 		}
@@ -11271,69 +11334,6 @@ func (s *RetryLayerReadReceiptStore) Update(rctx request.CTX, receipt *model.Rea
 
 }
 
-func (s *RetryLayerReadTrackingStore) HasRead(ctx context.Context, userID string, postID string) (bool, error) {
-
-	tries := 0
-	for {
-		result, err := s.ReadTrackingStore.HasRead(ctx, userID, postID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerReadTrackingStore) Mark(ctx context.Context, userID string, postID string) error {
-
-	tries := 0
-	for {
-		err := s.ReadTrackingStore.Mark(ctx, userID, postID)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerReadTrackingStore) MarkBulk(ctx context.Context, pairs []model.UserPostRead) error {
-
-	tries := 0
-	for {
-		err := s.ReadTrackingStore.MarkBulk(ctx, pairs)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerRecapStore) DeleteRecap(id string) error {
 
 	tries := 0
@@ -18955,6 +18955,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.AccessControlPolicyStore = &RetryLayerAccessControlPolicyStore{AccessControlPolicyStore: childStore.AccessControlPolicy(), Root: &newStore}
 	newStore.AttributesStore = &RetryLayerAttributesStore{AttributesStore: childStore.Attributes(), Root: &newStore}
 	newStore.AuditStore = &RetryLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
+	newStore.AuditStorageStore = &RetryLayerAuditStorageStore{AuditStorageStore: childStore.AuditStorage(), Root: &newStore}
 	newStore.AutoTranslationStore = &RetryLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &RetryLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
@@ -18990,7 +18991,6 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.PropertyValueStore = &RetryLayerPropertyValueStore{PropertyValueStore: childStore.PropertyValue(), Root: &newStore}
 	newStore.ReactionStore = &RetryLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}
 	newStore.ReadReceiptStore = &RetryLayerReadReceiptStore{ReadReceiptStore: childStore.ReadReceipt(), Root: &newStore}
-	newStore.ReadTrackingStore = &RetryLayerReadTrackingStore{ReadTrackingStore: childStore.ReadTracking(), Root: &newStore}
 	newStore.RecapStore = &RetryLayerRecapStore{RecapStore: childStore.Recap(), Root: &newStore}
 	newStore.RemoteClusterStore = &RetryLayerRemoteClusterStore{RemoteClusterStore: childStore.RemoteCluster(), Root: &newStore}
 	newStore.RetentionPolicyStore = &RetryLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}

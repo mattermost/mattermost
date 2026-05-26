@@ -22,6 +22,7 @@ type TimerLayer struct {
 	AccessControlPolicyStore        store.AccessControlPolicyStore
 	AttributesStore                 store.AttributesStore
 	AuditStore                      store.AuditStore
+	AuditStorageStore               store.AuditStorageStore
 	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
@@ -57,7 +58,6 @@ type TimerLayer struct {
 	PropertyValueStore              store.PropertyValueStore
 	ReactionStore                   store.ReactionStore
 	ReadReceiptStore                store.ReadReceiptStore
-	ReadTrackingStore               store.ReadTrackingStore
 	RecapStore                      store.RecapStore
 	RemoteClusterStore              store.RemoteClusterStore
 	RetentionPolicyStore            store.RetentionPolicyStore
@@ -91,6 +91,10 @@ func (s *TimerLayer) Attributes() store.AttributesStore {
 
 func (s *TimerLayer) Audit() store.AuditStore {
 	return s.AuditStore
+}
+
+func (s *TimerLayer) AuditStorage() store.AuditStorageStore {
+	return s.AuditStorageStore
 }
 
 func (s *TimerLayer) AutoTranslation() store.AutoTranslationStore {
@@ -233,10 +237,6 @@ func (s *TimerLayer) ReadReceipt() store.ReadReceiptStore {
 	return s.ReadReceiptStore
 }
 
-func (s *TimerLayer) ReadTracking() store.ReadTrackingStore {
-	return s.ReadTrackingStore
-}
-
 func (s *TimerLayer) Recap() store.RecapStore {
 	return s.RecapStore
 }
@@ -333,6 +333,11 @@ type TimerLayerAttributesStore struct {
 
 type TimerLayerAuditStore struct {
 	store.AuditStore
+	Root *TimerLayer
+}
+
+type TimerLayerAuditStorageStore struct {
+	store.AuditStorageStore
 	Root *TimerLayer
 }
 
@@ -508,11 +513,6 @@ type TimerLayerReactionStore struct {
 
 type TimerLayerReadReceiptStore struct {
 	store.ReadReceiptStore
-	Root *TimerLayer
-}
-
-type TimerLayerReadTrackingStore struct {
-	store.ReadTrackingStore
 	Root *TimerLayer
 }
 
@@ -873,6 +873,54 @@ func (s *TimerLayerAuditStore) Save(audit *model.Audit) error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("AuditStore.Save", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerAuditStorageStore) HasRead(ctx context.Context, userID string, postID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.AuditStorageStore.HasRead(ctx, userID, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.HasRead", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerAuditStorageStore) Mark(ctx context.Context, userID string, postID string) error {
+	start := time.Now()
+
+	err := s.AuditStorageStore.Mark(ctx, userID, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.Mark", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerAuditStorageStore) MarkBulk(ctx context.Context, pairs []model.AuditStorageEntry) error {
+	start := time.Now()
+
+	err := s.AuditStorageStore.MarkBulk(ctx, pairs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AuditStorageStore.MarkBulk", success, elapsed)
 	}
 	return err
 }
@@ -8969,54 +9017,6 @@ func (s *TimerLayerReadReceiptStore) Update(rctx request.CTX, receipt *model.Rea
 	return result, err
 }
 
-func (s *TimerLayerReadTrackingStore) HasRead(ctx context.Context, userID string, postID string) (bool, error) {
-	start := time.Now()
-
-	result, err := s.ReadTrackingStore.HasRead(ctx, userID, postID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ReadTrackingStore.HasRead", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerReadTrackingStore) Mark(ctx context.Context, userID string, postID string) error {
-	start := time.Now()
-
-	err := s.ReadTrackingStore.Mark(ctx, userID, postID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ReadTrackingStore.Mark", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerReadTrackingStore) MarkBulk(ctx context.Context, pairs []model.UserPostRead) error {
-	start := time.Now()
-
-	err := s.ReadTrackingStore.MarkBulk(ctx, pairs)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ReadTrackingStore.MarkBulk", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerRecapStore) DeleteRecap(id string) error {
 	start := time.Now()
 
@@ -14984,6 +14984,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.AccessControlPolicyStore = &TimerLayerAccessControlPolicyStore{AccessControlPolicyStore: childStore.AccessControlPolicy(), Root: &newStore}
 	newStore.AttributesStore = &TimerLayerAttributesStore{AttributesStore: childStore.Attributes(), Root: &newStore}
 	newStore.AuditStore = &TimerLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
+	newStore.AuditStorageStore = &TimerLayerAuditStorageStore{AuditStorageStore: childStore.AuditStorage(), Root: &newStore}
 	newStore.AutoTranslationStore = &TimerLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
@@ -15019,7 +15020,6 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.PropertyValueStore = &TimerLayerPropertyValueStore{PropertyValueStore: childStore.PropertyValue(), Root: &newStore}
 	newStore.ReactionStore = &TimerLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}
 	newStore.ReadReceiptStore = &TimerLayerReadReceiptStore{ReadReceiptStore: childStore.ReadReceipt(), Root: &newStore}
-	newStore.ReadTrackingStore = &TimerLayerReadTrackingStore{ReadTrackingStore: childStore.ReadTracking(), Root: &newStore}
 	newStore.RecapStore = &TimerLayerRecapStore{RecapStore: childStore.Recap(), Root: &newStore}
 	newStore.RemoteClusterStore = &TimerLayerRemoteClusterStore{RemoteClusterStore: childStore.RemoteCluster(), Root: &newStore}
 	newStore.RetentionPolicyStore = &TimerLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}

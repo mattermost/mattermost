@@ -24,7 +24,7 @@ services:
       interval: 5s
       timeout: 10s
       retries: 3
-  postgres-readtracking:
+  postgres-auditstorage:
     image: "postgres:14"
     logging: *default-logging
     restart: always
@@ -33,11 +33,11 @@ services:
     environment:
       POSTGRES_USER: mmuser
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mostest}
-      POSTGRES_DB: mattermost_readtracking
+      POSTGRES_DB: mattermost_auditstorage
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     volumes:
-     - "./docker/postgres-readtracking.conf:/etc/postgresql/postgresql.conf:Z"
+     - "./docker/postgres-auditstorage.conf:/etc/postgresql/postgresql.conf:Z"
     healthcheck:
       test: [ "CMD", "pg_isready", "-h", "localhost" ]
       interval: 5s

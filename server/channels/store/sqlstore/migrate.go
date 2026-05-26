@@ -153,14 +153,14 @@ func (ss *SqlStore) migrate(direction migrationDirection, dryRun, enableMorphLog
 	}
 }
 
-// readTrackingMigrationsDir is the embed-relative directory holding the
-// migrations applied to the independent read-tracking database.
-const readTrackingMigrationsDir = "postgres_readtracking"
+// auditStorageMigrationsDir is the embed-relative directory holding the
+// migrations applied to the independent audit-storage database.
+const auditStorageMigrationsDir = "postgres_auditstorage"
 
-func (ss *SqlStore) initReadTrackingMorph(enableLogging bool) (*morph.Morph, error) {
+func (ss *SqlStore) initAuditStorageMorph(enableLogging bool) (*morph.Morph, error) {
 	assets := db.Assets()
 
-	assetsList, err := assets.ReadDir(path.Join("migrations", readTrackingMigrationsDir))
+	assetsList, err := assets.ReadDir(path.Join("migrations", auditStorageMigrationsDir))
 	if err != nil {
 		return nil, err
 	}
@@ -173,14 +173,14 @@ func (ss *SqlStore) initReadTrackingMorph(enableLogging bool) (*morph.Morph, err
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			return assets.ReadFile(path.Join("migrations", readTrackingMigrationsDir, name))
+			return assets.ReadFile(path.Join("migrations", auditStorageMigrationsDir, name))
 		},
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	driver, err := ps.WithInstance(ss.readTrackingX.DB().DB)
+	driver, err := ps.WithInstance(ss.auditStorageX.DB().DB)
 	if err != nil {
 		return nil, err
 	}
@@ -192,11 +192,11 @@ func (ss *SqlStore) initReadTrackingMorph(enableLogging bool) (*morph.Morph, err
 		logWriter = io.Discard
 	}
 
-	// The read-tracking schema is independent — use its own advisory lock key
+	// The audit-storage schema is independent — use its own advisory lock key
 	// so it doesn't contend with the main DB's migration lock.
 	opts := []morph.EngineOption{
 		morph.WithLogger(log.New(logWriter, "", log.Lshortfile)),
-		morph.WithLock("mm-readtracking-lock-key"),
+		morph.WithLock("mm-auditstorage-lock-key"),
 		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
 		morph.SetDryRun(false),
 	}
@@ -204,8 +204,8 @@ func (ss *SqlStore) initReadTrackingMorph(enableLogging bool) (*morph.Morph, err
 	return morph.New(context.Background(), driver, src, opts...)
 }
 
-func (ss *SqlStore) migrateReadTracking(direction migrationDirection, enableMorphLogging bool) error {
-	engine, err := ss.initReadTrackingMorph(enableMorphLogging)
+func (ss *SqlStore) migrateAuditStorage(direction migrationDirection, enableMorphLogging bool) error {
+	engine, err := ss.initAuditStorageMorph(enableMorphLogging)
 	if err != nil {
 		return err
 	}

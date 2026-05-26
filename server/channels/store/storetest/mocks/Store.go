@@ -80,6 +80,26 @@ func (_m *Store) Audit() store.AuditStore {
 	return r0
 }
 
+// AuditStorage provides a mock function with no fields
+func (_m *Store) AuditStorage() store.AuditStorageStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for AuditStorage")
+	}
+
+	var r0 store.AuditStorageStore
+	if rf, ok := ret.Get(0).(func() store.AuditStorageStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.AuditStorageStore)
+		}
+	}
+
+	return r0
+}
+
 // AutoTranslation provides a mock function with no fields
 func (_m *Store) AutoTranslation() store.AutoTranslationStore {
 	ret := _m.Called()
@@ -1048,26 +1068,6 @@ func (_m *Store) ReadReceipt() store.ReadReceiptStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.ReadReceiptStore)
-		}
-	}
-
-	return r0
-}
-
-// ReadTracking provides a mock function with no fields
-func (_m *Store) ReadTracking() store.ReadTrackingStore {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for ReadTracking")
-	}
-
-	var r0 store.ReadTrackingStore
-	if rf, ok := ret.Get(0).(func() store.ReadTrackingStore); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.ReadTrackingStore)
 		}
 	}
 

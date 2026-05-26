@@ -105,7 +105,7 @@ type Store interface {
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
-	ReadTracking() ReadTrackingStore
+	AuditStorage() AuditStorageStore
 }
 
 type RetentionPolicyStore interface {
@@ -1275,13 +1275,13 @@ type ReadReceiptStore interface {
 	GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error)
 }
 
-// ReadTrackingStore appends to an UNLOGGED user_post_reads table on a
+// AuditStorage appends to an UNLOGGED audit_storage table on a
 // separate Postgres pool. Writes are intentionally fire-then-fail-fast: no
 // retry layer, no cache layer. Duplicates are allowed at write time and
 // deduped on read.
-type ReadTrackingStore interface {
+type AuditStorageStore interface {
 	Mark(ctx context.Context, userID, postID string) error
-	MarkBulk(ctx context.Context, pairs []model.UserPostRead) error
+	MarkBulk(ctx context.Context, pairs []model.AuditStorageEntry) error
 	HasRead(ctx context.Context, userID, postID string) (bool, error)
 }
 
