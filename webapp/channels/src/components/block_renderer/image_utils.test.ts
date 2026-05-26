@@ -19,8 +19,8 @@ describe('resolveMmImageCaps', () => {
 
     it('uses named size presets', () => {
         expect(resolveMmImageCaps({type: 'image', url: 'https://example.com/x.png', size: 'small'})).toEqual({
-            maxWidth: 120,
-            maxHeight: 120,
+            maxWidth: MM_IMAGE_SIZE_CAPS.small!.maxWidth,
+            maxHeight: MM_IMAGE_SIZE_CAPS.small!.maxHeight,
         });
     });
 
