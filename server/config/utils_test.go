@@ -28,6 +28,8 @@ func TestDesanitize(t *testing.T) {
 	actual.FileSettings.PublicLinkSalt = new("public_link_salt")
 	actual.FileSettings.AmazonS3SecretAccessKey = new("amazon_s3_secret_access_key")
 	actual.FileSettings.ExportAmazonS3SecretAccessKey = new("export_amazon_s3_secret_access_key")
+	actual.FileSettings.AzureAccessKey = new("azure_access_key")
+	actual.FileSettings.ExportAzureAccessKey = new("export_azure_access_key")
 	actual.EmailSettings.SMTPPassword = new("smtp_password")
 	actual.GitLabSettings.Secret = new("secret")
 	actual.OpenIdSettings.Secret = new("secret")
@@ -59,6 +61,8 @@ func TestDesanitize(t *testing.T) {
 	target.FileSettings.PublicLinkSalt = model.NewPointer(model.FakeSetting)
 	target.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.FakeSetting)
 	target.FileSettings.ExportAmazonS3SecretAccessKey = model.NewPointer(model.FakeSetting)
+	target.FileSettings.AzureAccessKey = model.NewPointer(model.FakeSetting)
+	target.FileSettings.ExportAzureAccessKey = model.NewPointer(model.FakeSetting)
 	target.EmailSettings.SMTPPassword = model.NewPointer(model.FakeSetting)
 	target.GitLabSettings.Secret = model.NewPointer(model.FakeSetting)
 	target.OpenIdSettings.Secret = model.NewPointer(model.FakeSetting)
@@ -77,7 +81,7 @@ func TestDesanitize(t *testing.T) {
 	}
 
 	actualClone := actual.Clone()
-	desanitize(actual, target)
+	Desanitize(actual, target)
 	assert.Equal(t, actualClone, actual, "actual should not have been changed")
 
 	// Verify the settings that should have been left untouched in target
@@ -89,6 +93,8 @@ func TestDesanitize(t *testing.T) {
 	assert.Equal(t, *actual.FileSettings.PublicLinkSalt, *target.FileSettings.PublicLinkSalt)
 	assert.Equal(t, *actual.FileSettings.AmazonS3SecretAccessKey, *target.FileSettings.AmazonS3SecretAccessKey)
 	assert.Equal(t, *actual.FileSettings.ExportAmazonS3SecretAccessKey, *target.FileSettings.ExportAmazonS3SecretAccessKey)
+	assert.Equal(t, *actual.FileSettings.AzureAccessKey, *target.FileSettings.AzureAccessKey)
+	assert.Equal(t, *actual.FileSettings.ExportAzureAccessKey, *target.FileSettings.ExportAzureAccessKey)
 	assert.Equal(t, *actual.EmailSettings.SMTPPassword, *target.EmailSettings.SMTPPassword)
 	assert.Equal(t, *actual.GitLabSettings.Secret, *target.GitLabSettings.Secret)
 	assert.Equal(t, *actual.OpenIdSettings.Secret, *target.OpenIdSettings.Secret)
@@ -116,7 +122,7 @@ func TestDesanitizeRemovesAllFakeSettings(t *testing.T) {
 	sanitized := actual.Clone()
 	sanitized.Sanitize(nil, nil)
 
-	desanitize(actual, sanitized)
+	Desanitize(actual, sanitized)
 
 	assertNoFakeSettings(t, reflect.ValueOf(*sanitized), "Config")
 }

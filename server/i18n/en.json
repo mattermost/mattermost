@@ -188,6 +188,10 @@
     "translation": "failed to add user to group-teams and group-channels"
   },
   {
+    "id": "api.admin.test_azure.missing_azure_field",
+    "translation": "An Azure Blob Storage setting is missing or invalid."
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "It appears your Mattermost email is setup correctly!"
   },
@@ -2445,8 +2449,12 @@
     "translation": "The configured bucket or container does not exist. Verify your file storage configuration and permissions."
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "File storage settings has unset values."
+    "id": "api.file.test_connection_settings_nil.app_error",
+    "translation": "File storage settings have unset values."
+  },
+  {
+    "id": "api.file.test_connection_unsupported_driver.app_error",
+    "translation": "Unsupported file storage driver \"{{.Driver}}\". Supported values are \"local\", \"amazons3\", and \"azureblob\"."
   },
   {
     "id": "api.file.upload_file.abac_denied.app_error",
@@ -5251,6 +5259,10 @@
     "translation": "Failed to retrieve the access control attribute group."
   },
   {
+    "id": "app.access_control.build_subject_for_session.get_session_attributes.app_error",
+    "translation": "Failed to retrieve the session attributes."
+  },
+  {
     "id": "app.access_control.get_channel_role.app_error",
     "translation": "Unable to get channel role for the user. Please try again."
   },
@@ -6735,6 +6747,10 @@
   {
     "id": "app.import.import_direct_channel.no_members.error",
     "translation": "There are no members for the direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.save_member.error",
+    "translation": "Failed to save channel member during direct channel import"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
@@ -10003,6 +10019,10 @@
     "translation": "Failed to delete file"
   },
   {
+    "id": "ent.elasticsearch.delete_files_batch.error",
+    "translation": "Failed to delete files batch"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
@@ -10835,6 +10855,10 @@
     "translation": "Scope ID cannot be set without a scope."
   },
   {
+    "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
+    "translation": "Membership rules cannot reference session attributes (user.session). Use a permission policy instead."
+  },
+  {
     "id": "model.access_policy.is_valid.type.app_error",
     "translation": "Invalid policy type."
   },
@@ -11353,6 +11377,14 @@
   {
     "id": "model.config.is_valid.autotranslation.workers.app_error",
     "translation": "Workers must be between 1 and 64."
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "Invalid value {{.Value}} for {{.Setting}}. Must be 'commercial', 'government', or 'custom'."
+  },
+  {
+    "id": "model.config.is_valid.azure_custom_endpoint.app_error",
+    "translation": "{{.Setting}} must be set when the corresponding AzureCloud value is 'custom'."
   },
   {
     "id": "model.config.is_valid.azure_timeout.app_error",
