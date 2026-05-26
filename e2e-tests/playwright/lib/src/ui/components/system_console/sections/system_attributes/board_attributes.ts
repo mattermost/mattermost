@@ -245,7 +245,10 @@ export default class BoardAttributes {
         }
         if ((await backdrop.count()) > 0) {
             await backdrop.click({force: true});
-            await backdrop.first().waitFor({state: 'detached', timeout: 3000}).catch(() => {});
+            await backdrop
+                .first()
+                .waitFor({state: 'detached', timeout: 3000})
+                .catch(() => {});
         }
     }
 
