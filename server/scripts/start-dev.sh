@@ -16,6 +16,7 @@ set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 SERVER_DIR="$(cd -- "$SCRIPT_DIR/.." &>/dev/null && pwd)"
+REPO_DIR="$(cd -- "$SERVER_DIR/.." &>/dev/null && pwd)"
 
 RESET_DEMO=true
 START_DEV=true
@@ -63,6 +64,10 @@ export DEMO_SERVER_DIR="$SERVER_DIR"
 source "$SCRIPT_DIR/reset-demo.lib.sh"
 
 cd "$SERVER_DIR"
+
+log "Restoring tracked files in repo (git restore .)"
+git -C "$REPO_DIR" restore .
+ok "Working tree restored"
 
 log "Stopping prior Mattermost dev processes"
 make stop >/dev/null 2>&1 || true
