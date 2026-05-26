@@ -512,6 +512,7 @@ export function propertyFieldsForBlock(block: MmBlock | MmColumnBlock): Property
     case 'column':
         return [
             {key: 'width', label: 'width', type: 'enum', options: ['auto', 'stretch']},
+            {key: 'gap', label: 'gap', type: 'enum', options: CONTAINER_GAP_OPTIONS},
         ];
     case 'container':
         return [
@@ -527,7 +528,9 @@ export function propertyFieldsForBlock(block: MmBlock | MmColumnBlock): Property
             {key: 'collapsed', label: 'collapsed', type: 'boolean'},
         ];
     case 'column_set':
-        return [];
+        return [
+            {key: 'gap', label: 'gap', type: 'enum', options: CONTAINER_GAP_OPTIONS},
+        ];
     default:
         return [];
     }

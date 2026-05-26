@@ -161,6 +161,38 @@ describe('StaticSelectElement', () => {
         expect(screen.getByTestId('autocomplete-value')).toHaveTextContent('Option B');
     });
 
+    it('disables the select while onAction promise is pending', async () => {
+        let resolveAction!: () => void;
+        const onActionPending = jest.fn(() => new Promise<void>((resolve) => {
+            resolveAction = resolve;
+        }));
+        const user = userEvent.setup();
+
+        renderWithContext(
+            <StaticSelectElement
+                element={{
+                    type: 'static_select',
+                    action_id: 'sel',
+                    placeholder: 'Choose',
+                    options: [
+                        {text: 'Option A', value: 'a'},
+                        {text: 'Option B', value: 'b'},
+                    ],
+                }}
+                postId={postId}
+                onAction={onActionPending}
+            />,
+        );
+
+        await user.click(screen.getByTestId('autocomplete-select'));
+
+        expect(screen.getByTestId('autocomplete-select')).toBeDisabled();
+
+        resolveAction();
+        await screen.findByTestId('autocomplete-select');
+        expect(screen.getByTestId('autocomplete-select')).not.toBeDisabled();
+    });
+
     it('renders for users data_source without static options', () => {
         renderWithContext(
             <StaticSelectElement

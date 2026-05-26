@@ -91,6 +91,7 @@ const INITIAL_DRAFTS: Record<InputMode, string> = {
 };
 
 const COMPONENT_LIBRARY_POST_ID = 'component_library_mm_blocks';
+const SLOW_ACTION_DELAY_MS = 5000;
 
 type Props = {
     backgroundClass: string;
@@ -168,6 +169,7 @@ const MmBlocksComponentLibrary = ({
     const [inputMode, setInputMode] = useState<InputMode>('mm_blocks');
     const [drafts, setDrafts] = useState<Record<InputMode, string>>(() => ({...INITIAL_DRAFTS}));
     const [selectedBlockPath, setSelectedBlockPath] = useState<BlockPath | null>(null);
+    const [simulateSlowAction, setSimulateSlowAction] = useState(false);
 
     const jsonText = drafts[inputMode];
 
@@ -192,7 +194,16 @@ const MmBlocksComponentLibrary = ({
         setDrafts((d) => ({...d, mm_blocks: serializeMmBlocks(blocks)}));
     }, []);
 
-    const onAction = useCallback((actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string) => {
+    const onToggleSimulateSlowAction = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSimulateSlowAction(e.target.checked);
+    }, []);
+
+    const onAction = useCallback(async (actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string) => {
+        if (simulateSlowAction) {
+            await new Promise<void>((resolve) => {
+                window.setTimeout(resolve, SLOW_ACTION_DELAY_MS);
+            });
+        }
         const parts = [
             `action_id: ${actionId}`,
             selectedOption !== undefined && selectedOption !== '' ? `value: ${selectedOption}` : null,
@@ -200,7 +211,7 @@ const MmBlocksComponentLibrary = ({
             query && Object.keys(query).length > 0 ? `query: ${JSON.stringify(query)}` : null,
         ].filter(Boolean);
         window.alert(parts.join('\n'));
-    }, []);
+    }, [simulateSlowAction]);
 
     const modeOptions = useMemo(
         () =>
@@ -269,6 +280,15 @@ const MmBlocksComponentLibrary = ({
                     {'Translation produced no blocks. Check that the JSON matches the selected format and contains supported elements.'}
                 </div>
             )}
+            <label className='clInput'>
+                {'Simulate slow action: '}
+                <input
+                    type='checkbox'
+                    checked={simulateSlowAction}
+                    onChange={onToggleSimulateSlowAction}
+                />
+                {` (${SLOW_ACTION_DELAY_MS / 1000}s delay before the action alert)`}
+            </label>
             <div className={classNames('clWrapper', backgroundClass)}>
                 {parsed.ok && (
                     <PostContext.Provider value={{handlePopupOpened: null}}>

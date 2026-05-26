@@ -50,8 +50,8 @@ const IMAGE_KEYS = new Set([
     'image_style',
     'horizontal_alignment',
 ]);
-const COLUMN_KEYS = new Set(['type', 'items', 'width']);
-const COLUMN_SET_KEYS = new Set(['type', 'columns']);
+const COLUMN_KEYS = new Set(['type', 'items', 'width', 'gap']);
+const COLUMN_SET_KEYS = new Set(['type', 'columns', 'gap']);
 const CONTAINER_KEYS = new Set([
     'type',
     'content',
@@ -451,11 +451,25 @@ function translateColumnBlock(raw: Record<string, unknown>): MmColumnBlock | nul
     } else {
         return null;
     }
-    return {
+    let gap: MmContainerGap | undefined;
+    if (raw.gap === undefined) {
+        gap = undefined;
+    } else if (typeof raw.gap === 'string' && MM_CONTAINER_GAPS.has(raw.gap as MmContainerGap)) {
+        gap = raw.gap as MmContainerGap;
+    } else {
+        return null;
+    }
+    const out: MmColumnBlock = {
         type: 'column',
         items,
-        ...(width ? {width} : {}),
     };
+    if (width) {
+        out.width = width;
+    }
+    if (gap) {
+        out.gap = gap;
+    }
+    return out;
 }
 
 function translateColumnSetBlock(raw: Record<string, unknown>): MmColumnSetBlock | null {
@@ -479,7 +493,19 @@ function translateColumnSetBlock(raw: Record<string, unknown>): MmColumnSetBlock
     if (columns.length === 0) {
         return null;
     }
-    return {type: 'column_set', columns};
+    let gap: MmContainerGap | undefined;
+    if (raw.gap === undefined) {
+        gap = undefined;
+    } else if (typeof raw.gap === 'string' && MM_CONTAINER_GAPS.has(raw.gap as MmContainerGap)) {
+        gap = raw.gap as MmContainerGap;
+    } else {
+        return null;
+    }
+    const out: MmColumnSetBlock = {type: 'column_set', columns};
+    if (gap) {
+        out.gap = gap;
+    }
+    return out;
 }
 
 function translateContainerBlock(raw: Record<string, unknown>): MmContainerBlock | null {

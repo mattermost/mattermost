@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
@@ -53,6 +53,7 @@ function staticSelectDisplayValue(
 
 export const StaticSelectElement = ({element, postId, onAction}: StaticSelectElementProps) => {
     const dispatch = useDispatch();
+    const [isExecuting, setIsExecuting] = useState(false);
     const reduxSelection = useSelector((state: GlobalState) => {
         const actions = state.views.posts.menuActions[postId];
         return element.action_id ? secureGetFromRecord(actions, element.action_id) : undefined;
@@ -87,8 +88,8 @@ export const StaticSelectElement = ({element, postId, onAction}: StaticSelectEle
     const value = staticSelectDisplayValue(element, reduxSelection?.text);
 
     const handleSelected = useCallback(
-        (selected: Selected) => {
-            if (!selected || !element.action_id) {
+        async (selected: Selected) => {
+            if (!selected || !element.action_id || isExecuting) {
                 return;
             }
 
@@ -121,9 +122,14 @@ export const StaticSelectElement = ({element, postId, onAction}: StaticSelectEle
                 },
             });
 
-            onAction(element.action_id, selectedOption, element.query, element.cookie);
+            setIsExecuting(true);
+            try {
+                await onAction(element.action_id, selectedOption, element.query, element.cookie);
+            } finally {
+                setIsExecuting(false);
+            }
         },
-        [dispatch, element.action_id, element.cookie, element.data_source, element.query, onAction, postId],
+        [dispatch, element.action_id, element.cookie, element.data_source, element.query, isExecuting, onAction, postId],
     );
 
     const isDynamicSource = element.data_source === 'users' || element.data_source === 'channels';
@@ -144,7 +150,7 @@ export const StaticSelectElement = ({element, postId, onAction}: StaticSelectEle
                     inputClassName='mm-blocks-select'
                     value={value}
                     toggleFocus={handlePopupOpened}
-                    disabled={element.disabled === true}
+                    disabled={element.disabled === true || isExecuting}
                 />
             )}
         </PostContext.Consumer>

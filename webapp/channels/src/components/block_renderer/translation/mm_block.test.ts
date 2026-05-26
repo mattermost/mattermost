@@ -53,4 +53,50 @@ describe('translateMMBlocks interactive blocks', () => {
             options: [{text: 'A', value: 'a'}],
         }]);
     });
+
+    it('accepts column gap and rejects invalid gap values', () => {
+        expect(translateMMBlocks([
+            {
+                type: 'column',
+                gap: 'small',
+                items: [{type: 'text', text: 'In column'}],
+            },
+            {
+                type: 'column',
+                gap: 'invalid',
+                items: [{type: 'text', text: 'Bad gap'}],
+            },
+        ])).toEqual([{
+            type: 'column',
+            gap: 'small',
+            items: [{type: 'text', text: 'In column'}],
+        }]);
+    });
+
+    it('accepts column_set gap and rejects invalid gap values', () => {
+        expect(translateMMBlocks([
+            {
+                type: 'column_set',
+                gap: 'large',
+                columns: [
+                    {type: 'column', items: [{type: 'text', text: 'A'}]},
+                    {type: 'column', items: [{type: 'text', text: 'B'}]},
+                ],
+            },
+            {
+                type: 'column_set',
+                gap: 'huge',
+                columns: [
+                    {type: 'column', items: [{type: 'text', text: 'C'}]},
+                ],
+            },
+        ])).toEqual([{
+            type: 'column_set',
+            gap: 'large',
+            columns: [
+                {type: 'column', items: [{type: 'text', text: 'A'}]},
+                {type: 'column', items: [{type: 'text', text: 'B'}]},
+            ],
+        }]);
+    });
 });

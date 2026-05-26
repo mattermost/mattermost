@@ -12,6 +12,7 @@ import type {
     MmColumnSetBlock,
     MmContainerAccentSemantic,
     MmContainerBlock,
+    MmContainerGap,
 } from '@mattermost/types/mm_blocks';
 
 import {ButtonElement} from './button_element';
@@ -96,6 +97,17 @@ type ColumnSetBlockProps = {
     onAction: ActionHandler;
 };
 
+function mmColumnSetClassName(block: MmColumnSetBlock): string {
+    const gapKey = mmBlocksGapKey(block.gap);
+    return classNames('mm-blocks-column-set', {
+        'mm-blocks-column-set--gap-none': gapKey === 'none',
+        'mm-blocks-column-set--gap-small': gapKey === 'small',
+        'mm-blocks-column-set--gap-medium': gapKey === 'medium',
+        'mm-blocks-column-set--gap-large': gapKey === 'large',
+        'mm-blocks-column-set--gap-xlarge': gapKey === 'xlarge',
+    });
+}
+
 const ColumnSetBlock = ({block, postId, onAction}: ColumnSetBlockProps) => {
     if (!block.columns || block.columns.length === 0) {
         return null;
@@ -106,7 +118,7 @@ const ColumnSetBlock = ({block, postId, onAction}: ColumnSetBlockProps) => {
     return (
         <div
             role='group'
-            className='mm-blocks-column-set'
+            className={mmColumnSetClassName(block)}
         >
             {block.columns.map((column, i) => (
                 <ColumnBlock
@@ -130,7 +142,8 @@ const ColumnBlock = ({block, postId, onAction}: ColumnBlockProps) => {
     const innerBlock = useMemo(() => ({
         type: 'container' as const,
         content: block.items,
-    }), [block.items]);
+        ...(block.gap ? {gap: block.gap} : {}),
+    }), [block.items, block.gap]);
 
     if (!block.items || block.items.length === 0) {
         return null;
@@ -170,10 +183,10 @@ function isMmContainerSemanticAccent(accent: string): accent is MmContainerAccen
     return MM_CONTAINER_ACCENT_SEMANTIC.has(accent as MmContainerAccentSemantic);
 }
 
-type MmContainerGapKey = 'none' | 'small' | 'medium' | 'large' | 'xlarge';
+type MmBlocksGapKey = 'none' | 'small' | 'medium' | 'large' | 'xlarge';
 type MmContainerMaxHeightKey = 'none' | 'small' | 'medium' | 'large';
 
-function mmContainerGapKey(gap: MmContainerBlock['gap'] | undefined): MmContainerGapKey {
+function mmBlocksGapKey(gap: MmContainerGap | undefined): MmBlocksGapKey {
     if (gap === 'none' || gap === 'small' || gap === 'medium' || gap === 'large' || gap === 'xlarge') {
         return gap;
     }
@@ -190,7 +203,7 @@ function mmContainerMaxHeightKey(maxHeight: MmContainerBlock['max_height'] | und
 function mmContainerClassName(block: MmContainerBlock): string {
     const accent = block.accent_color;
     const isSemanticAccent = Boolean(accent && isMmContainerSemanticAccent(accent));
-    const gapKey = mmContainerGapKey(block.gap);
+    const gapKey = mmBlocksGapKey(block.gap);
     const maxHeightKey = mmContainerMaxHeightKey(block.max_height);
 
     return classNames('mm-blocks-container', {

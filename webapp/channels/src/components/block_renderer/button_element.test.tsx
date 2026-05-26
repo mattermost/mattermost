@@ -92,6 +92,38 @@ describe('ButtonElement', () => {
         expect(screen.getByRole('button', {name: 'Custom'})).toHaveStyle({color: 'rgb(40, 167, 69)'});
     });
 
+    it('shows loading spinner and disables while onAction promise is pending', async () => {
+        let resolveAction!: () => void;
+        const onActionPending = jest.fn(() => new Promise<void>((resolve) => {
+            resolveAction = resolve;
+        }));
+        const user = userEvent.setup();
+
+        renderWithContext(
+            <ButtonElement
+                element={{
+                    type: 'button',
+                    text: 'Approve',
+                    action_id: 'approve',
+                }}
+                onAction={onActionPending}
+            />,
+        );
+
+        const button = screen.getByRole('button', {name: 'Approve'});
+        await user.click(button);
+
+        expect(button).toBeDisabled();
+        expect(button).toHaveAttribute('aria-busy', 'true');
+        expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+        expect(screen.getByText('Approve')).toBeInTheDocument();
+
+        resolveAction();
+        await screen.findByRole('button', {name: 'Approve'});
+        expect(screen.getByRole('button', {name: 'Approve'})).not.toBeDisabled();
+        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+    });
+
     it('disables the button when disabled is true', () => {
         renderWithContext(
             <ButtonElement

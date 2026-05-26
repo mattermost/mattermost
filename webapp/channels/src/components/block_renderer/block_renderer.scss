@@ -26,7 +26,6 @@ $mm-blocks-container-max-heights: (
     medium: 280px,
     large: 420px,
 );
-
 @mixin mm-blocks-capped-width {
     width: 100%;
     box-sizing: border-box;
@@ -40,12 +39,22 @@ $mm-blocks-container-max-heights: (
     flex-direction: column;
     gap: 12px;
 
+    // Reset the margin on the first paragraph of a text block.
+    // Removes the style added by bootstrap.
     p {
         margin: 0;
     }
 
+    p + p {
+        margin: 0.5em 0 0;
+    }
+
     button {
         align-self: flex-start;
+
+        .LoadingSpinner .spinner {
+            margin-right: 5px;
+        }
     }
 
     .mm-blocks-container {
@@ -57,7 +66,7 @@ $mm-blocks-container-max-heights: (
         &--accent {
             @include mm-blocks-capped-width;
 
-            padding: 12px;
+            padding: 16px;
             border-top: none;
             border-right: none;
             border-bottom: none;
@@ -77,11 +86,11 @@ $mm-blocks-container-max-heights: (
 
             // `border: true` with `accent_color` — outer top/right/bottom frame on the same element.
             &.mm-blocks-container--accent-border {
-                border-radius: 0 4px 4px 4px;
+                border-radius: var(--radius-s);
                 border-top: 1px solid $mm-blocks-border-strong;
                 border-right: 1px solid $mm-blocks-border-strong;
                 border-bottom: 1px solid $mm-blocks-border-strong;
-                margin: 5px 0;
+                box-shadow: var(--elevation-1);
             }
         }
 
@@ -89,9 +98,18 @@ $mm-blocks-container-max-heights: (
         &--border {
             @include mm-blocks-capped-width;
 
-            padding: 8px;
+            padding: 16px;
             border: 1px solid $mm-blocks-border-strong;
-            border-radius: 4px;
+            border-radius: var(--radius-s);
+            box-shadow: var(--elevation-1);
+        }
+
+        // Framed containers nested inside another framed container (accent and/or border).
+        &--accent .mm-blocks-container--accent,
+        &--accent .mm-blocks-container--border,
+        &--border .mm-blocks-container--accent,
+        &--border .mm-blocks-container--border {
+            padding: 12px;
         }
 
         &--bg-gray {
@@ -129,7 +147,6 @@ $mm-blocks-container-max-heights: (
                 min-height: 0;
                 max-height: $height;
                 flex-shrink: 0;
-                margin: 4px 0;
                 overflow-y: auto;
             }
         }
@@ -206,8 +223,6 @@ $mm-blocks-container-max-heights: (
     }
 
     .mm-blocks-image {
-        margin-bottom: 1em;
-
         &__frame {
             display: block;
             overflow: hidden;
@@ -244,10 +259,12 @@ $mm-blocks-container-max-heights: (
         &__img--person {
             border-radius: 50%;
             aspect-ratio: 1;
+            object-fit: cover;
         }
     }
 
     .mm-blocks-text {
+        word-break: break-word;
         p:first-child {
             margin-top: 0;
         }
@@ -266,7 +283,7 @@ $mm-blocks-container-max-heights: (
         align-self: stretch;
         border: 0;
         border-top: 1px solid $mm-blocks-border-subtle;
-        margin: 8px 0;
+        margin: 0;
 
         &--vertical {
             width: 0;
@@ -274,7 +291,6 @@ $mm-blocks-container-max-heights: (
             align-self: stretch;
             border-top: 0;
             border-left: 1px solid $mm-blocks-border-subtle;
-            margin: 0 8px;
         }
     }
 
@@ -282,26 +298,29 @@ $mm-blocks-container-max-heights: (
         display: flex;
         width: 100%;
         flex-wrap: wrap;
-        gap: 12px;
+
+        @each $name, $gap in $mm-blocks-container-gaps {
+            &--gap-#{$name} {
+                gap: $gap;
+            }
+        }
     }
 
     .mm-blocks-column {
-        min-width: 0;
-        flex: 1 1 auto;
+        min-width: min(120px, max-content);
 
         &--auto {
             flex: 0 1 auto;
         }
 
         &--stretch {
-            flex: 1 1 0;
+            flex: 1 1 120px;
         }
     }
 
     .mm-blocks-collapsible {
         border: 1px solid $mm-blocks-border-subtle;
         border-radius: 4px;
-        margin: 4px 0;
 
         &-header {
             display: flex;

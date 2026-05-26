@@ -71,6 +71,69 @@ describe('BlockSwitch', () => {
         expect(screen.getByText('Right col')).toBeInTheDocument();
     });
 
+    it('applies column_set gap class (defaults to medium)', () => {
+        const {container} = renderWithContext(
+            <BlockSwitch
+                block={{
+                    type: 'column_set',
+                    columns: [
+                        {type: 'column', items: [{type: 'text', text: 'A'}]},
+                        {type: 'column', items: [{type: 'text', text: 'B'}]},
+                    ],
+                }}
+                postId='post-1'
+                onAction={onAction}
+            />,
+        );
+
+        expect(container.querySelector('.mm-blocks-column-set--gap-medium')).toBeInTheDocument();
+    });
+
+    it('applies column_set gap class from block gap', () => {
+        const {container} = renderWithContext(
+            <BlockSwitch
+                block={{
+                    type: 'column_set',
+                    gap: 'none',
+                    columns: [
+                        {type: 'column', items: [{type: 'text', text: 'A'}]},
+                        {type: 'column', items: [{type: 'text', text: 'B'}]},
+                    ],
+                }}
+                postId='post-1'
+                onAction={onAction}
+            />,
+        );
+
+        expect(container.querySelector('.mm-blocks-column-set--gap-none')).toBeInTheDocument();
+        expect(container.querySelector('.mm-blocks-column-set--gap-medium')).not.toBeInTheDocument();
+    });
+
+    it('applies column gap on inner container', () => {
+        const {container} = renderWithContext(
+            <BlockSwitch
+                block={{
+                    type: 'column_set',
+                    columns: [
+                        {
+                            type: 'column',
+                            gap: 'none',
+                            items: [
+                                {type: 'text', text: 'A'},
+                                {type: 'text', text: 'B'},
+                            ],
+                        },
+                    ],
+                }}
+                postId='post-1'
+                onAction={onAction}
+            />,
+        );
+
+        const column = container.querySelector('.mm-blocks-column');
+        expect(column?.querySelector('.mm-blocks-container--gap-none')).toBeInTheDocument();
+    });
+
     it('toggles collapsible content on header click', async () => {
         const user = userEvent.setup();
         renderWithContext(

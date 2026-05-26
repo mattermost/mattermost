@@ -1230,6 +1230,83 @@
                 ]
             }
         },
+        "image_size_presets": {
+            "message": "Fixture: same image at each `mm_blocks` image `size` preset — auto through stretch.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "**Image size presets** — same logo URL below; each block uses a different `size` value."
+                    },
+                    {
+                        "type": "text",
+                        "text": "First: **`auto`** — natural dimensions (no preset max width/height).",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (auto)",
+                        "size": "auto"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Next: **`xsmall`** — capped at 108×64 px.",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (xsmall)",
+                        "size": "xsmall"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Next: **`small`** — capped at 204×120 px.",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (small)",
+                        "size": "small"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Next: **`medium`** — capped at 320×184 px.",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (medium)",
+                        "size": "medium"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Next: **`large`** — capped at 428×240 px.",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (large)",
+                        "size": "large"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Next: **`stretch`** — capped at 500×350 px (legacy attachment-style banner).",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (stretch)",
+                        "size": "stretch"
+                    }
+                ]
+            }
+        },
         "static_select_initial_and_query": {
             "message": "Fixture: static select with `initial_option` and optional `query` payload.",
             "props": {

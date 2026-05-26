@@ -121,19 +121,25 @@ export type MmDividerBlock = {
     type: 'divider';
 };
 
+/** Spacing between flex children (CSS `gap`) in containers, columns, and column sets. */
+export type MmContainerGap = 'none' | 'small' | 'medium' | 'large' | 'xlarge';
+
 export type MmColumnBlock = {
     type: 'column';
     items: MmBlock[];
     width?: 'auto' | 'stretch';
+
+    /** Space between items inside the column (via inner container). Defaults to `medium` when omitted in the renderer. */
+    gap?: MmContainerGap;
 };
 
 export type MmColumnSetBlock = {
     type: 'column_set';
     columns: MmColumnBlock[];
-};
 
-/** Spacing between child blocks inside a container (CSS `gap`). Defaults to `none` when omitted. */
-export type MmContainerGap = 'none' | 'small' | 'medium' | 'large' | 'xlarge';
+    /** Space between columns. Defaults to `medium` when omitted in the renderer. */
+    gap?: MmContainerGap;
+};
 
 export type MmContainerBackground = 'none' | 'gray';
 

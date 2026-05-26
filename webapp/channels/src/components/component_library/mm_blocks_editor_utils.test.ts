@@ -10,10 +10,12 @@ import {
     moveBlockAt,
     parsePathKey,
     pathKey,
+    propertyFieldsForBlock,
     remapPathAfterMove,
     removeBlockAt,
     sameParentList,
     serializeMmBlocks,
+    setPropertyValue,
     updateBlockAt,
 } from './mm_blocks_editor_utils';
 
@@ -61,6 +63,24 @@ describe('mm_blocks_editor_utils', () => {
 
     test('createDefaultBlock returns valid shapes', () => {
         expect(createDefaultBlock('column_set').type).toBe('column_set');
+    });
+
+    test('column exposes gap in the property editor', () => {
+        const column = createDefaultBlock('column');
+        const fields = propertyFieldsForBlock(column);
+        const gapField = fields.find((f) => f.key === 'gap');
+        expect(gapField?.type).toBe('enum');
+        const updated = setPropertyValue(column, 'gap', 'large', gapField!);
+        expect(updated.type === 'column' && updated.gap).toBe('large');
+    });
+
+    test('column_set exposes gap in the property editor', () => {
+        const columnSet = createDefaultBlock('column_set');
+        const fields = propertyFieldsForBlock(columnSet);
+        const gapField = fields.find((f) => f.key === 'gap');
+        expect(gapField?.type).toBe('enum');
+        const updated = setPropertyValue(columnSet, 'gap', 'small', gapField!);
+        expect(updated.type === 'column_set' && updated.gap).toBe('small');
     });
 
     test('parsePathKey round-trips pathKey', () => {

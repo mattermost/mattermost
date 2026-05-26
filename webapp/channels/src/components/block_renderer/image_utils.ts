@@ -8,10 +8,10 @@ import type {MmImageBlock, MmImageSize} from '@mattermost/types/mm_blocks';
 /** Preset caps loosely aligned with Adaptive Cards `Image` sizes; `stretch` matches legacy attachment `image_url`. */
 export const MM_IMAGE_SIZE_CAPS: Record<MmImageSize, {maxWidth: number; maxHeight: number} | null> = {
     auto: null,
-    xsmall: {maxWidth: 64, maxHeight: 64},
-    small: {maxWidth: 120, maxHeight: 120},
-    medium: {maxWidth: 184, maxHeight: 184},
-    large: {maxWidth: 240, maxHeight: 240},
+    xsmall: {maxWidth: 108, maxHeight: 64},
+    small: {maxWidth: 204, maxHeight: 120},
+    medium: {maxWidth: 320, maxHeight: 184},
+    large: {maxWidth: 428, maxHeight: 240},
     stretch: {maxWidth: 500, maxHeight: 350},
 };
 
