@@ -61,6 +61,10 @@ func (pg *PropertyGroup) PreSave() {
 	if pg.Version == 0 {
 		pg.Version = PropertyGroupVersionV1
 	}
+
+	if pg.SchemaVersion <= 0 {
+		pg.SchemaVersion = 1
+	}
 }
 
 func (pg *PropertyGroup) IsValid() *AppError {
