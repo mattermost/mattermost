@@ -1931,14 +1931,13 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		assert.Contains(t, err.Error(), "exceeds maximum")
 	})
 
-	t.Run("action id with hyphen is rejected", func(t *testing.T) {
+	t.Run("action id with hyphen is allowed", func(t *testing.T) {
 		p := &Post{}
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"foo-bar": mmBlocksExternalEntry("http://example.com/hook", nil),
 		})
-		err := ValidateMmBlocksActions(p)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "must be alphanumeric")
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
 	t.Run("action id at MaxMmBlocksActionKeyLength is allowed", func(t *testing.T) {
@@ -1962,14 +1961,13 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		assert.Contains(t, err.Error(), "exceeds")
 	})
 
-	t.Run("action id with underscore is rejected", func(t *testing.T) {
+	t.Run("action id with underscore is allowed", func(t *testing.T) {
 		p := &Post{}
 		p.AddProp(PostPropsMmBlocksActions, map[string]any{
 			"foo_bar": mmBlocksExternalEntry("http://example.com/hook", nil),
 		})
-		err := ValidateMmBlocksActions(p)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "must be alphanumeric")
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
 	})
 
 	t.Run("action id with space is rejected", func(t *testing.T) {
@@ -1979,7 +1977,7 @@ func TestValidateMmBlocksActions(t *testing.T) {
 		})
 		err := ValidateMmBlocksActions(p)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "must be alphanumeric")
+		assert.Contains(t, err.Error(), "underscores, or hyphens")
 	})
 
 	t.Run("empty URL is rejected", func(t *testing.T) {

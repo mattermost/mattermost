@@ -1024,7 +1024,7 @@ func (o *Post) GetAction(id string) *PostAction {
 	return nil
 }
 
-var mmBlocksActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9]+$`)
+var mmBlocksActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 
 // ValidateMmBlocksActions verifies the post's mm_blocks_actions prop has the
 // expected shape and bounds. Each entry must coerce to a valid spec via
@@ -1050,7 +1050,7 @@ func ValidateMmBlocksActions(o *Post) error {
 			return fmt.Errorf("mm_blocks_actions key exceeds %d chars", MaxMmBlocksActionKeyLength)
 		}
 		if !mmBlocksActionIDRegex.MatchString(key) {
-			return fmt.Errorf("mm_blocks_actions key %q must be alphanumeric", key)
+			return fmt.Errorf("mm_blocks_actions key %q must contain only letters, numbers, underscores, or hyphens", key)
 		}
 		entryMap, ok := coerceToStringAnyMap(entry)
 		if !ok {
