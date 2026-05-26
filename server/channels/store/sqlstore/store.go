@@ -400,10 +400,15 @@ func (ss *SqlStore) initConnection() error {
 		}
 	}
 
-	// Open the audit-storage pool whenever settings were supplied, regardless
-	// of Enable. Enable controls runtime writes (via the no-op sub-store), but
-	// schema provisioning runs unconditionally so the table is always ready.
-	if ss.asSettings != nil && ss.asSettings.DataSource != nil && *ss.asSettings.DataSource != "" {
+	// Open the audit-storage pool only when Enable=true. When Enable=false the
+	// audit DB does not need to be reachable at startup; flipping Enable on
+	// later requires a server restart so the pool can open and the migration
+	// can run.
+	auditStorageEnabled := ss.asSettings != nil && ss.asSettings.Enable != nil && *ss.asSettings.Enable
+	if auditStorageEnabled {
+		if ss.asSettings.DataSource == nil || *ss.asSettings.DataSource == "" {
+			return errors.New("audit-storage is enabled but data source is empty")
+		}
 		rtHandle, err := sqlUtils.SetupAuditStorageConnection(ss.Logger(), "audit-storage", ss.asSettings, DBPingAttempts)
 		if err != nil {
 			return errors.Wrap(err, "failed to setup audit-storage connection")

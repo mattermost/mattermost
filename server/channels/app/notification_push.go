@@ -71,13 +71,6 @@ func (a *App) sendPushNotificationSync(rctx request.CTX, post *model.Post, user 
 	explicitMention bool, channelWideMention bool, replyToThreadType string,
 ) *model.AppError {
 	cfg := a.Config()
-
-	pushMech := model.AuditMechPushFull
-	if *cfg.EmailSettings.PushNotificationContents == model.IdLoadedNotification {
-		pushMech = model.AuditMechPushIDOnly
-	}
-	a.AuditRecord(rctx.Context(), user.Id, post.Id, pushMech)
-
 	msg, appErr := a.BuildPushNotificationMessage(
 		rctx,
 		*cfg.EmailSettings.PushNotificationContents,
@@ -93,6 +86,16 @@ func (a *App) sendPushNotificationSync(rctx request.CTX, post *model.Post, user 
 	if appErr != nil {
 		return appErr
 	}
+
+	// Mechanism 6/7: BuildPushNotificationMessage may downgrade ID-loaded to
+	// generic/full when the license fails (notification_push.go:734-735), so
+	// derive the audit mechanism from the actual built payload rather than
+	// the requested config.
+	pushMech := model.AuditMechPushFull
+	if msg.IsIdLoaded {
+		pushMech = model.AuditMechPushIDOnly
+	}
+	a.AuditRecord(rctx.Context(), user.Id, post.Id, pushMech)
 
 	return a.sendPushNotificationToAllSessions(rctx, msg, user.Id, "")
 }

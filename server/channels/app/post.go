@@ -401,10 +401,10 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		a.Srv().Go(func() {
 			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 				hooks.MessageHasBeenPosted(pluginContext, pluginPost)
-				// Mechanism 12: every plugin that registers MessageHasBeenPosted
-				// receives the post. Attribute to the post author (no per-plugin
-				// user identity available at this hook).
-				a.AuditRecord(context.Background(), rpost.UserId, rpost.Id, model.AuditMechPluginHook)
+				//// Mechanism 12: every plugin that registers MessageHasBeenPosted
+				//// receives the post. Attribute to the post author (no per-plugin
+				//// user identity available at this hook).
+				//a.AuditRecord(context.Background(), rpost.UserId, rpost.Id, model.AuditMechPluginHook)
 				return true
 			}, plugin.MessageHasBeenPostedID)
 		})
