@@ -2875,7 +2875,8 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, respErr, _ := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NotNil(t, respErr, "Shouldn't have permissions. Only Admins")
 
-	userAuth.AuthData = new("test@test.com")
+	samlAuthData := "test@test.com"
+	userAuth.AuthData = &samlAuthData
 	userAuth.AuthService = model.UserAuthServiceSaml
 	ruser, _, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
@@ -2889,12 +2890,22 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, resp, err := th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
+	storedUser, appErr := th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, model.UserAuthServiceSaml, storedUser.AuthService)
+	require.NotNil(t, storedUser.AuthData)
+	require.Equal(t, samlAuthData, *storedUser.AuthData)
 
 	userAuth.AuthData = new("test@test.com")
 	userAuth.AuthService = model.UserAuthServiceEmail
 	_, resp, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
+	storedUser, appErr = th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, model.UserAuthServiceSaml, storedUser.AuthService)
+	require.NotNil(t, storedUser.AuthData)
+	require.Equal(t, samlAuthData, *storedUser.AuthData)
 
 	userAuth.AuthData = nil
 	userAuth.AuthService = model.UserAuthServiceEmail
@@ -2902,6 +2913,10 @@ func TestUpdateUserAuth(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, ruser.AuthData)
 	require.Empty(t, ruser.AuthService)
+	storedUser, appErr = th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+	require.Nil(t, storedUser.AuthData)
+	require.Empty(t, storedUser.AuthService)
 
 	// When AuthData or AuthService are empty, password must be valid
 	userAuth.AuthData = user.AuthData
