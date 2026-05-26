@@ -32,6 +32,7 @@ func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
 			"UserAccessTokens.UserId",
 			"UserAccessTokens.Description",
 			"UserAccessTokens.IsActive",
+			"UserAccessTokens.ExpiresAt",
 		).
 		From("UserAccessTokens")
 
@@ -46,8 +47,8 @@ func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.User
 	}
 
 	query, args, err := s.getQueryBuilder().Insert("UserAccessTokens").
-		Columns("Id", "Token", "UserId", "Description", "IsActive").
-		Values(token.Id, token.Token, token.UserId, token.Description, token.IsActive).
+		Columns("Id", "Token", "UserId", "Description", "IsActive", "ExpiresAt").
+		Values(token.Id, token.Token, token.UserId, token.Description, token.IsActive, token.ExpiresAt).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "UserAccessToken_tosql")
@@ -229,6 +230,103 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) 
 		return errors.Wrap(err, "commit_transaction")
 	}
 	return nil
+}
+
+// GetExpiredBefore returns active tokens whose non-zero ExpiresAt is less than
+// or equal to the provided cutoff (Unix milliseconds), up to the given limit.
+// The secret Token column is intentionally NOT selected — callers use the
+// returned rows for metadata (audit logging, deletion) only.
+//
+// A non-positive limit returns an empty slice without hitting the DB rather
+// than relying on the int -> uint64 cast (which would otherwise wrap a
+// negative value into an enormous unsigned limit and effectively disable the
+// bound).
+func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+	tokens := []*model.UserAccessToken{}
+
+	if limit <= 0 {
+		return tokens, nil
+	}
+
+	query := s.getQueryBuilder().
+		Select(
+			"UserAccessTokens.Id",
+			"UserAccessTokens.UserId",
+			"UserAccessTokens.Description",
+			"UserAccessTokens.IsActive",
+			"UserAccessTokens.ExpiresAt",
+		).
+		From("UserAccessTokens").
+		Where(sq.Gt{"UserAccessTokens.ExpiresAt": 0}).
+		Where(sq.LtOrEq{"UserAccessTokens.ExpiresAt": cutoff}).
+		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
+		OrderBy("UserAccessTokens.ExpiresAt ASC").
+		Limit(uint64(limit))
+
+	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find expired UserAccessTokens")
+	}
+
+	return tokens, nil
+}
+
+// DeleteByIds deletes the tokens identified by tokenIDs along with any sessions
+// minted from those tokens, all within a single transaction. It returns the
+// number of UserAccessTokens rows actually deleted.
+func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (deleted int64, err error) {
+	if len(tokenIDs) == 0 {
+		return 0, nil
+	}
+
+	transaction, beginErr := s.GetMaster().Begin()
+	if beginErr != nil {
+		err = errors.Wrap(beginErr, "begin_transaction")
+		return
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	// Delete sessions whose Token matches any of the PAT tokens via subquery.
+	subSQL, subArgs, sqErr := s.getQueryBuilder().
+		Select("Token").
+		From("UserAccessTokens").
+		Where(sq.Eq{"Id": tokenIDs}).
+		ToSql()
+	if sqErr != nil {
+		err = errors.Wrap(sqErr, "UserAccessToken_tosql")
+		return
+	}
+	if _, sErr := transaction.Exec("DELETE FROM Sessions WHERE Token IN ("+subSQL+")", subArgs...); sErr != nil {
+		err = errors.Wrap(sErr, "failed to delete Sessions for UserAccessTokens")
+		return
+	}
+
+	tokenSQL, tokenArgs, sqErr := s.getQueryBuilder().
+		Delete("UserAccessTokens").
+		Where(sq.Eq{"Id": tokenIDs}).
+		ToSql()
+	if sqErr != nil {
+		err = errors.Wrap(sqErr, "UserAccessToken_tosql")
+		return
+	}
+	res, execErr := transaction.Exec(tokenSQL, tokenArgs...)
+	if execErr != nil {
+		err = errors.Wrap(execErr, "failed to delete UserAccessTokens")
+		return
+	}
+
+	rowCount, rErr := res.RowsAffected()
+	if rErr != nil {
+		err = errors.Wrap(rErr, "failed to read RowsAffected for UserAccessTokens delete")
+		return
+	}
+
+	if cErr := transaction.Commit(); cErr != nil {
+		err = errors.Wrap(cErr, "commit_transaction")
+		return
+	}
+
+	deleted = rowCount
+	return
 }
 
 func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *sqlxTxWrapper, tokenId string) error {

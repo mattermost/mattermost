@@ -331,39 +331,14 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
-	var metadata *model.PostMetadata
-	if post.Metadata != nil {
-		metadata = post.Metadata.Copy()
-	}
-	var rejectionError *model.AppError
 	pluginContext := pluginContext(rctx)
 
 	if post.Type != model.PostTypeBurnOnRead {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post.ForPlugin())
-			if rejectionReason != "" {
-				id := "Post rejected by plugin. " + rejectionReason
-				if rejectionReason == plugin.DismissPostError {
-					id = plugin.DismissPostError
-				}
-				rejectionError = model.NewAppError("createPost", id, nil, "", http.StatusBadRequest)
-				return false
-			}
-			if replacementPost != nil {
-				post = replacementPost
-				if post.Metadata != nil && metadata != nil {
-					post.Metadata.Priority = metadata.Priority
-				} else {
-					post.Metadata = metadata
-				}
-			}
-
-			return true
-		}, plugin.MessageWillBePostedID)
-
-		if rejectionError != nil {
-			return nil, false, rejectionError
+		newPost, guardErr := a.runGuardedMessageWillBePosted(rctx, post)
+		if guardErr != nil {
+			return nil, false, guardErr
 		}
+		post = newPost
 	}
 
 	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
@@ -930,15 +905,11 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		oldPost.RemoteId = new(*receivedUpdatedPost.RemoteId)
 	}
 
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
 	if newPost.Type != model.PostTypeBurnOnRead {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
-			return newPost != nil
-		}, plugin.MessageWillBeUpdatedID)
-		if newPost == nil {
-			return nil, false, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		var appErr2 *model.AppError
+		newPost, appErr2 = a.runGuardedMessageWillBeUpdated(rctx, newPost, oldPost)
+		if appErr2 != nil {
+			return nil, false, appErr2
 		}
 	}
 
@@ -963,12 +934,13 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		}
 	}
 
+	pCtx := pluginContext(rctx)
 	pluginOldPost := oldPost.ForPlugin()
 	pluginNewPost := newPost.ForPlugin()
 	if newPost.Type != model.PostTypeBurnOnRead {
 		a.Srv().Go(func() {
 			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-				hooks.MessageHasBeenUpdated(pluginContext, pluginNewPost, pluginOldPost)
+				hooks.MessageHasBeenUpdated(pCtx, pluginNewPost, pluginOldPost)
 				return true
 			}, plugin.MessageHasBeenUpdatedID)
 		})
@@ -1010,6 +982,8 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(atErr))
 		}
 	}
+
+	a.applyPostWillBeConsumedHook(&rpost)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
 

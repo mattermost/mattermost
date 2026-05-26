@@ -62,6 +62,7 @@ type Store interface {
 	LinkMetadata() LinkMetadataStore
 	SharedChannel() SharedChannelStore
 	Draft() DraftStore
+	ChannelGuard() ChannelGuardStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -843,10 +844,12 @@ type UserAccessTokenStore interface {
 	Save(token *model.UserAccessToken) (*model.UserAccessToken, error)
 	DeleteAllForUser(userID string) error
 	Delete(tokenID string) error
+	DeleteByIds(tokenIDs []string) (int64, error)
 	Get(tokenID string) (*model.UserAccessToken, error)
 	GetAll(offset int, limit int) ([]*model.UserAccessToken, error)
 	GetByToken(tokenString string) (*model.UserAccessToken, error)
 	GetByUser(userID string, page, perPage int) ([]*model.UserAccessToken, error)
+	GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error)
 	Search(term string) ([]*model.UserAccessToken, error)
 	UpdateTokenEnable(tokenID string) error
 	UpdateTokenDisable(tokenID string) error
@@ -1074,6 +1077,21 @@ type PostPriorityStore interface {
 	GetForPosts(ids []string) ([]*model.PostPriority, error)
 	Save(priority *model.PostPriority) (*model.PostPriority, error)
 	Delete(postID string) error
+}
+
+// ChannelGuard is a single claim row asserting that a plugin has registered as a guard for a given
+// channel. Plugins may co-claim a channel; one row per (ChannelId, PluginId) pair.
+type ChannelGuard struct {
+	ChannelId string
+	PluginId  string
+	CreatedAt int64
+}
+
+type ChannelGuardStore interface {
+	Save(rctx request.CTX, guard *ChannelGuard) error
+	Delete(rctx request.CTX, channelID, pluginID string) (rowsAffected int64, err error)
+	GetForChannel(rctx request.CTX, channelID string) ([]*ChannelGuard, error)
+	GetAll(rctx request.CTX) ([]*ChannelGuard, error)
 }
 
 type DraftStore interface {

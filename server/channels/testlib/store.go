@@ -145,6 +145,9 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyFieldStore := mocks.PropertyFieldStore{}
 	propertyValueStore := mocks.PropertyValueStore{}
 
+	channelGuardStore := mocks.ChannelGuardStore{}
+	channelGuardStore.On("GetAll", mock.Anything).Return([]*store.ChannelGuard{}, nil)
+
 	groupsByName := map[string]*model.PropertyGroup{}
 
 	accessControlGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2}
@@ -219,6 +222,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("PropertyGroup").Return(&propertyGroupStore)
 	mockStore.On("PropertyField").Return(&propertyFieldStore)
 	mockStore.On("PropertyValue").Return(&propertyValueStore)
+	mockStore.On("ChannelGuard").Return(&channelGuardStore)
 
 	return &mockStore
 }
