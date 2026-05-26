@@ -1,0 +1,1 @@
+ALTER TABLE audit_storage ADD COLUMN mechanism SMALLINT NOT NULL DEFAULT 0;

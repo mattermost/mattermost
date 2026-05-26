@@ -1280,7 +1280,7 @@ type ReadReceiptStore interface {
 // retry layer, no cache layer. Duplicates are allowed at write time and
 // deduped on read.
 type AuditStorageStore interface {
-	Mark(ctx context.Context, userID, postID string) error
+	Mark(ctx context.Context, userID, postID string, mechanism int16) error
 	MarkBulk(ctx context.Context, pairs []model.AuditStorageEntry) error
 	HasRead(ctx context.Context, userID, postID string) (bool, error)
 }

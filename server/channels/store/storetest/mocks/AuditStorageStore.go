@@ -44,17 +44,17 @@ func (_m *AuditStorageStore) HasRead(ctx context.Context, userID string, postID 
 	return r0, r1
 }
 
-// Mark provides a mock function with given fields: ctx, userID, postID
-func (_m *AuditStorageStore) Mark(ctx context.Context, userID string, postID string) error {
-	ret := _m.Called(ctx, userID, postID)
+// Mark provides a mock function with given fields: ctx, userID, postID, mechanism
+func (_m *AuditStorageStore) Mark(ctx context.Context, userID string, postID string, mechanism int16) error {
+	ret := _m.Called(ctx, userID, postID, mechanism)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Mark")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, userID, postID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, int16) error); ok {
+		r0 = rf(ctx, userID, postID, mechanism)
 	} else {
 		r0 = ret.Error(0)
 	}

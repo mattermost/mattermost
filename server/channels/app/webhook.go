@@ -99,6 +99,10 @@ func (a *App) handleWebhookEvents(rctx request.CTX, post *model.Post, team *mode
 func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
 	logger := rctx.Logger().With(mlog.String("outgoing_webhook_id", hook.Id), mlog.String("post_id", post.Id), mlog.String("channel_id", channel.Id), mlog.String("content_type", hook.ContentType))
 
+	// Mechanism 11: post left the channel via outgoing webhook. The webhook's
+	// CreatorId is the user accountable for configuring the integration.
+	a.AuditRecord(rctx.Context(), hook.CreatorId, post.Id, model.AuditMechOutgoingWebhook)
+
 	var jsonBytes []byte
 	var err error
 	contentType := "application/x-www-form-urlencoded"

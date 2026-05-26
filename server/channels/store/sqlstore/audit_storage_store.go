@@ -27,7 +27,7 @@ type SqlAuditStorage struct {
 // so callers don't have to nil-check the store before calling Mark/MarkBulk.
 type noopAuditStorage struct{}
 
-func (noopAuditStorage) Mark(context.Context, string, string) error {
+func (noopAuditStorage) Mark(context.Context, string, string, int16) error {
 	return nil
 }
 func (noopAuditStorage) MarkBulk(context.Context, []model.AuditStorageEntry) error {
@@ -50,11 +50,12 @@ func newSqlAuditStorage(s *SqlStore) store.AuditStorageStore {
 	return &SqlAuditStorage{SqlStore: s}
 }
 
-// Mark appends a single user-post read event.
-func (s *SqlAuditStorage) Mark(ctx context.Context, userID, postID string) error {
+// Mark appends a single user-post read event tagged with the delivery
+// mechanism (see model.AuditMech* constants).
+func (s *SqlAuditStorage) Mark(ctx context.Context, userID, postID string, mechanism int16) error {
 	_, err := s.auditStorageX.ExecContext(ctx,
-		`INSERT INTO `+auditStorageTableName+` (user_id, post_id, created_at) VALUES ($1, $2, $3)`,
-		userID, postID, model.GetMillis())
+		`INSERT INTO `+auditStorageTableName+` (user_id, post_id, mechanism, created_at) VALUES ($1, $2, $3, $4)`,
+		userID, postID, mechanism, model.GetMillis())
 	if err != nil {
 		return errors.Wrap(err, "failed to mark user-post read")
 	}
@@ -74,7 +75,7 @@ func (s *SqlAuditStorage) MarkBulk(ctx context.Context, pairs []model.AuditStora
 		return errors.Wrap(err, "failed to begin tx for bulk mark")
 	}
 
-	stmt, err := tx.PrepareContext(ctx, pq.CopyIn(auditStorageTableName, "user_id", "post_id", "created_at"))
+	stmt, err := tx.PrepareContext(ctx, pq.CopyIn(auditStorageTableName, "user_id", "post_id", "mechanism", "created_at"))
 	if err != nil {
 		_ = tx.Rollback()
 		return errors.Wrap(err, "failed to prepare COPY")
@@ -86,7 +87,7 @@ func (s *SqlAuditStorage) MarkBulk(ctx context.Context, pairs []model.AuditStora
 		if ts == 0 {
 			ts = now
 		}
-		if _, err = stmt.ExecContext(ctx, p.UserID, p.PostID, ts); err != nil {
+		if _, err = stmt.ExecContext(ctx, p.UserID, p.PostID, p.Mechanism, ts); err != nil {
 			_ = stmt.Close()
 			_ = tx.Rollback()
 			return errors.Wrap(err, "failed to append row to COPY")

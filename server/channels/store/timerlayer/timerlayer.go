@@ -893,10 +893,10 @@ func (s *TimerLayerAuditStorageStore) HasRead(ctx context.Context, userID string
 	return result, err
 }
 
-func (s *TimerLayerAuditStorageStore) Mark(ctx context.Context, userID string, postID string) error {
+func (s *TimerLayerAuditStorageStore) Mark(ctx context.Context, userID string, postID string, mechanism int16) error {
 	start := time.Now()
 
-	err := s.AuditStorageStore.Mark(ctx, userID, postID)
+	err := s.AuditStorageStore.Mark(ctx, userID, postID, mechanism)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

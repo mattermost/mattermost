@@ -990,11 +990,11 @@ func (s *RetryLayerAuditStorageStore) HasRead(ctx context.Context, userID string
 
 }
 
-func (s *RetryLayerAuditStorageStore) Mark(ctx context.Context, userID string, postID string) error {
+func (s *RetryLayerAuditStorageStore) Mark(ctx context.Context, userID string, postID string, mechanism int16) error {
 
 	tries := 0
 	for {
-		err := s.AuditStorageStore.Mark(ctx, userID, postID)
+		err := s.AuditStorageStore.Mark(ctx, userID, postID, mechanism)
 		if err == nil {
 			return nil
 		}

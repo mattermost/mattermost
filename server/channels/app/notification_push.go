@@ -71,6 +71,13 @@ func (a *App) sendPushNotificationSync(rctx request.CTX, post *model.Post, user 
 	explicitMention bool, channelWideMention bool, replyToThreadType string,
 ) *model.AppError {
 	cfg := a.Config()
+
+	pushMech := model.AuditMechPushFull
+	if *cfg.EmailSettings.PushNotificationContents == model.IdLoadedNotification {
+		pushMech = model.AuditMechPushIDOnly
+	}
+	a.AuditRecord(rctx.Context(), user.Id, post.Id, pushMech)
+
 	msg, appErr := a.BuildPushNotificationMessage(
 		rctx,
 		*cfg.EmailSettings.PushNotificationContents,
