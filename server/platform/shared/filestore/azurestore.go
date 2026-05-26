@@ -131,11 +131,7 @@ func newAzureClient(settings FileBackendSettings, serviceURL string, clientOptio
 			return nil, fmt.Errorf("failed to create azure blob client: %w", err)
 		}
 		return client, nil
-	case model.AzureAuthModeSharedKey, "":
-		// Empty AuthMode is treated as shared-key for backwards compatibility
-		// with direct callers (tests, library users) that construct
-		// FileBackendSettings by hand without setting the field. Config-driven
-		// callers always pass an explicit value via NewFileBackendSettingsFromConfig.
+	case model.AzureAuthModeSharedKey:
 		cred, err := azblob.NewSharedKeyCredential(settings.AzureStorageAccount, settings.AzureAccessKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create azure shared key credential: %w", err)

@@ -165,14 +165,14 @@ func TestNewAzureFileBackendAuthMode(t *testing.T) {
 		require.NotNil(t, be.client)
 	})
 
-	t.Run("empty AuthMode falls back to shared key for direct callers", func(t *testing.T) {
+	t.Run("empty AuthMode is rejected", func(t *testing.T) {
 		s := base
 		s.AzureAuthMode = ""
 		s.AzureAccessKey = azuriteWellKnownKey
 
-		be, err := NewAzureFileBackend(s)
-		require.NoError(t, err)
-		require.NotNil(t, be.client)
+		_, err := NewAzureFileBackend(s)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unknown azure auth mode")
 	})
 
 	t.Run("unknown AuthMode is rejected", func(t *testing.T) {
