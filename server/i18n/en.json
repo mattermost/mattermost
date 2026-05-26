@@ -5259,6 +5259,10 @@
     "translation": "Failed to retrieve the access control attribute group."
   },
   {
+    "id": "app.access_control.build_subject_for_session.get_session_attributes.app_error",
+    "translation": "Failed to retrieve the session attributes."
+  },
+  {
     "id": "app.access_control.get_channel_role.app_error",
     "translation": "Unable to get channel role for the user. Please try again."
   },
@@ -10849,6 +10853,10 @@
   {
     "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
     "translation": "Scope ID cannot be set without a scope."
+  },
+  {
+    "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
+    "translation": "Membership rules cannot reference session attributes (user.session). Use a permission policy instead."
   },
   {
     "id": "model.access_policy.is_valid.type.app_error",
