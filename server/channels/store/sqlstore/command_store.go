@@ -153,7 +153,7 @@ func (s SqlCommandStore) Delete(commandId string, time int64) error {
 
 	_, err = s.GetMaster().Exec(sql, args...)
 	if err != nil {
-		fmt.Errorf("delete: command_id=%s: %w", commandId, err)
+		return fmt.Errorf("delete: command_id=%s: %w", commandId, err)
 	}
 
 	return nil

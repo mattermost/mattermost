@@ -434,7 +434,10 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 			Where("Threads.LastReplyAt > ThreadMemberships.LastViewed").
 			GroupBy("Threads.ThreadTeamId")
 
-		return fmt.Errorf("failed to get total unread threads: %w", s.GetReplica().SelectBuilder(&unreadThreads, repliesQuery))
+		if err := s.GetReplica().SelectBuilder(&unreadThreads, repliesQuery); err != nil {
+			return fmt.Errorf("failed to get total unread threads: %w", err)
+		}
+		return nil
 	})
 
 	eg.Go(func() error {
@@ -445,7 +448,10 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 			Where(fetchConditions).
 			GroupBy("Threads.ThreadTeamId")
 
-		return fmt.Errorf("failed to get total unread mentions: %w", s.GetReplica().SelectBuilder(&unreadMentions, mentionsQuery))
+		if err := s.GetReplica().SelectBuilder(&unreadMentions, mentionsQuery); err != nil {
+			return fmt.Errorf("failed to get total unread mentions: %w", err)
+		}
+		return nil
 	})
 
 	if includeUrgentMentionCount {
@@ -459,7 +465,10 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 				Where(fetchConditions).
 				GroupBy("Threads.ThreadTeamId")
 
-			return fmt.Errorf("failed to get total unread urgent mentions: %w", s.GetReplica().SelectBuilder(&unreadUrgentMentions, urgentMentionsQuery))
+			if err := s.GetReplica().SelectBuilder(&unreadUrgentMentions, urgentMentionsQuery); err != nil {
+				return fmt.Errorf("failed to get total unread urgent mentions: %w", err)
+			}
+			return nil
 		})
 	}
 

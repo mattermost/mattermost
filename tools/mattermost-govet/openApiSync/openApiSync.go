@@ -282,18 +282,18 @@ func validateComments(pass *analysis.Pass) ([]string, map[string]string) {
 
 func run(pass *analysis.Pass) (any, error) {
 	if specFile == "" {
-		return nil, errors.New("Please supply a path to OpenAPI spec yaml file via -openApiSync.spec")
+		return nil, errors.New("please supply a path to OpenAPI spec yaml file via -openApiSync.spec")
 	}
 	if _, err := os.Stat(specFile); err != nil {
 		return nil, fmt.Errorf("spec file does not exist: %w", err)
 	}
 	data, err := os.ReadFile(specFile)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read spec file: %w", err)
+		return nil, fmt.Errorf("unable to read spec file: %w", err)
 	}
 	doc, err := libopenapi.NewDocument(data)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse spec file. Expected OpenAPI3 format.: %w", err)
+		return nil, fmt.Errorf("unable to parse spec file. Expected OpenAPI3 format.: %w", err)
 	}
 	model, err := doc.BuildV3Model()
 	if err != nil {

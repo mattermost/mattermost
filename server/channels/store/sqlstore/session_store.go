@@ -344,7 +344,7 @@ func (me SqlSessionStore) UpdateProps(session *model.Session) error {
 		Where(sq.Eq{"Id": session.Id}).
 		ToSql()
 	if err != nil {
-		fmt.Errorf("sessions_tosql: %w", err)
+		return fmt.Errorf("sessions_tosql: %w", err)
 	}
 	_, err = me.GetMaster().Exec(query, args...)
 	if err != nil {
