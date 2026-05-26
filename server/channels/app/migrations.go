@@ -910,9 +910,10 @@ func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string
 		return attrs
 	}
 
-	// Round-trip through JSON so we get a uniform []map[string]any regardless
-	// of how the underlying store deserialised the field (sometimes []any,
-	// sometimes []map[string]any depending on the driver).
+	// attrs is model.StringInterface (map[string]any), so after JSON
+	// deserialisation rawOptions is []any of map[string]any. Round-trip
+	// to []map[string]any so the loop below can iterate options with a
+	// typed key lookup instead of asserting each element.
 	encoded, err := json.Marshal(rawOptions)
 	if err != nil {
 		return attrs
