@@ -28,6 +28,8 @@ import './board_attributes_drag_preview.scss';
 
 const MAX_BOARD_ATTRIBUTES = 20;
 
+const col = createColumnHelper<BoardPropertyField>();
+
 type FieldActions = {
     createField: (field: BoardPropertyField) => void;
     updateField: (field: BoardPropertyField) => void;
@@ -105,7 +107,6 @@ export function BoardAttributesTable({
 }: Props & FieldActions) {
     const {formatMessage} = useIntl();
     const data = collectionToArray(collection);
-    const col = createColumnHelper<BoardPropertyField>();
     const columns = useMemo<Array<ColumnDef<BoardPropertyField, any>>>(() => {
         return [
             col.accessor('name', {

@@ -83,7 +83,6 @@ export const useBoardPropertyFields = () => {
 
             // delete
             await Promise.all(process.delete.map(async ({id, protected: isProtected}) => {
-                // skip protected fields
                 if (isProtected) {
                     return undefined;
                 }
@@ -102,16 +101,7 @@ export const useBoardPropertyFields = () => {
 
             // update
             await Promise.all(process.edit.map(async (pendingItem) => {
-                // Protected fields are immutable via the API — skip patching.
-                //
-                // TODO(MM-67412 follow-up): the UX spec calls for sysadmins to edit
-                // Status options (add/rename/recolor/delete-non-default). The server
-                // blanket-rejects PATCH on Protected fields in api4/properties.go;
-                // we'd need a server-side change to honour the per-field
-                // PermissionOptions level (already set to sysadmin on locked seeds)
-                // for option-list patches, while keeping field-level (name/type)
-                // patches blocked. File a story under MM-67606 or raise on the
-                // Boards epic before doing this.
+                // Protected fields are immutable via the generic property API.
                 if (pendingItem.protected) {
                     next.data[pendingItem.id] = prevCollection.data[pendingItem.id];
                     return undefined;
