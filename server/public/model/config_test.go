@@ -322,6 +322,82 @@ func TestFileSettingsAzureRequestTimeoutBounds(t *testing.T) {
 	}
 }
 
+func TestFileSettingsAzureCloudValidation(t *testing.T) {
+	t.Run("unknown cloud values are rejected", func(t *testing.T) {
+		cases := []struct {
+			name         string
+			configSetter func(*Config, *string)
+			errID        string
+		}{
+			{"AzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v }, "model.config.is_valid.azure_cloud.app_error"},
+			{"ExportAzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v }, "model.config.is_valid.azure_cloud.app_error"},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.configSetter(cfg, NewPointer("not-a-real-cloud"))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, tc.errID, err.Id)
+			})
+		}
+	})
+
+	t.Run("custom cloud requires endpoint", func(t *testing.T) {
+		cases := []struct {
+			name        string
+			cloudSetter func(*Config, *string)
+			errID       string
+		}{
+			{"AzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v }, "model.config.is_valid.azure_custom_endpoint.app_error"},
+			{"ExportAzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v }, "model.config.is_valid.azure_custom_endpoint.app_error"},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.cloudSetter(cfg, NewPointer(AzureCloudCustom))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, tc.errID, err.Id)
+			})
+		}
+	})
+
+	t.Run("custom cloud with a valid endpoint passes validation", func(t *testing.T) {
+		cases := []struct {
+			name           string
+			cloudSetter    func(*Config, *string)
+			endpointSetter func(*Config, *string)
+		}{
+			{
+				"AzureCloud",
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureEndpoint = v },
+			},
+			{
+				"ExportAzureCloud",
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureEndpoint = v },
+			},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.cloudSetter(cfg, NewPointer(AzureCloudCustom))
+				tc.endpointSetter(cfg, NewPointer("https://account.blob.core.windows.net/"))
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
+		}
+	})
+}
+
 func TestFileSettingsAzurePathPrefixTraversal(t *testing.T) {
 	cases := []struct {
 		name         string
