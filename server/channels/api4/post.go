@@ -665,11 +665,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
-	auditedIDs := make([]string, 0, len(posts))
-	for _, p := range posts {
-		auditedIDs = append(auditedIDs, p.Id)
-	}
-	c.App.AuditRecordBulk(c.AppContext.Session().UserId, auditedIDs, model.AuditMechAPIDirect)
+	c.App.AuditRecordBulkPosts(c.AppContext.Session().UserId, posts, model.AuditMechAPIDirect)
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsByIds, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)

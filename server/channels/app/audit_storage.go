@@ -15,8 +15,8 @@ import (
 // (push notifications, email, outgoing webhook, permalink preview,
 // single-post API GET).
 //
-// Errors are logged but never propagated — audit failures must not
-// fail the user-facing request.
+// Errors are logged but never propagated — audit failures must not fail
+// the user-facing request.
 func (a *App) AuditRecord(ctx context.Context, userID, postID string, mechanism int16) {
 	if userID == "" || postID == "" {
 		return
@@ -30,40 +30,48 @@ func (a *App) AuditRecord(ctx context.Context, userID, postID string, mechanism 
 	}
 }
 
-// AuditRecordBulk dispatches one async COPY of entries for (userID, postID)
-// over postIDs, all tagged with the same mechanism. The MarkBulk call runs
-// in a tracked goroutine via Srv().Go so the request thread returns
-// immediately. The context is detached (context.Background()) on purpose —
-// the audit write should outlive the originating request.
+// AuditRecordBulk dispatches one async INSERT … SELECT FROM unnest($postIDs)
+// for (userID, *, mechanism). The store call runs in a tracked goroutine
+// via Srv().Go so the request thread returns immediately. The context is
+// detached (context.Background()) on purpose — the audit write should
+// outlive the originating request.
 //
-// Safe to call with an empty postIDs slice or an empty userID; the function
-// short-circuits without allocating.
+// Safe to call with empty inputs; the function short-circuits without
+// allocating.
 func (a *App) AuditRecordBulk(userID string, postIDs []string, mechanism int16) {
 	if userID == "" || len(postIDs) == 0 {
 		return
 	}
-	now := model.GetMillis()
-	entries := make([]model.AuditStorageEntry, len(postIDs))
-	for i, pid := range postIDs {
-		if pid == "" {
-			continue
-		}
-		entries[i] = model.AuditStorageEntry{
-			UserID:    userID,
-			PostID:    pid,
-			Mechanism: mechanism,
-			CreatedAt: now,
-		}
-	}
 	srv := a.Srv()
 	srv.Go(func() {
-		if err := srv.Store().AuditStorage().MarkBulk(context.Background(), entries); err != nil {
-			a.Log().Warn("audit_storage MarkBulk failed",
-				mlog.Int("count", len(entries)),
+		if err := srv.Store().AuditStorage().MarkBulkSameUser(context.Background(), userID, postIDs, mechanism); err != nil {
+			a.Log().Warn("audit_storage MarkBulkSameUser failed",
+				mlog.Int("count", len(postIDs)),
 				mlog.Int("mechanism", int(mechanism)),
 				mlog.Err(err))
 		}
 	})
+}
+
+// AuditRecordBulkPosts is the post-slice variant of AuditRecordBulk. Use
+// when the caller has a []*model.Post (e.g. getPostsByIds, fan-out from
+// the App layer) so the call site doesn't need to allocate an intermediate
+// []string of IDs.
+//
+// One iteration extracts post IDs into a freshly allocated slice that is
+// passed to the store; the store itself does no client-side loop.
+func (a *App) AuditRecordBulkPosts(userID string, posts []*model.Post, mechanism int16) {
+	if userID == "" || len(posts) == 0 {
+		return
+	}
+	postIDs := make([]string, 0, len(posts))
+	for _, p := range posts {
+		if p == nil || p.Id == "" {
+			continue
+		}
+		postIDs = append(postIDs, p.Id)
+	}
+	a.AuditRecordBulk(userID, postIDs, mechanism)
 }
 
 // AuditRecordBulkMany is the fan-out variant: one post, many recipients.
@@ -73,38 +81,13 @@ func (a *App) AuditRecordBulkMany(userIDs []string, postID string, mechanism int
 	if postID == "" || len(userIDs) == 0 {
 		return
 	}
-	now := model.GetMillis()
-	entries := make([]model.AuditStorageEntry, 0, len(userIDs))
-	for _, uid := range userIDs {
-		if uid == "" {
-			continue
-		}
-		entries = append(entries, model.AuditStorageEntry{
-			UserID:    uid,
-			PostID:    postID,
-			Mechanism: mechanism,
-			CreatedAt: now,
-		})
-	}
-	if len(entries) == 0 {
-		return
-	}
 	srv := a.Srv()
 	srv.Go(func() {
-		if err := srv.Store().AuditStorage().MarkBulk(context.Background(), entries); err != nil {
-			a.Log().Warn("audit_storage MarkBulk failed",
-				mlog.Int("count", len(entries)),
+		if err := srv.Store().AuditStorage().MarkBulkSamePost(context.Background(), userIDs, postID, mechanism); err != nil {
+			a.Log().Warn("audit_storage MarkBulkSamePost failed",
+				mlog.Int("count", len(userIDs)),
 				mlog.Int("mechanism", int(mechanism)),
 				mlog.Err(err))
 		}
 	})
-}
-
-// postIDsFromList returns the slice of post IDs in the order they appear in
-// a PostList. Convenience for bulk recording over a fetched PostList.
-func postIDsFromList(list *model.PostList) []string {
-	if list == nil {
-		return nil
-	}
-	return list.Order
 }

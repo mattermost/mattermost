@@ -1281,7 +1281,13 @@ type ReadReceiptStore interface {
 // deduped on read.
 type AuditStorageStore interface {
 	Mark(ctx context.Context, userID, postID string, mechanism int16) error
-	MarkBulk(ctx context.Context, pairs []model.AuditStorageEntry) error
+	// MarkBulkSameUser records that one user received many posts (channel
+	// view, thread view, search, getPostsByIds). One SQL statement, no
+	// client-side iteration: INSERT … SELECT FROM unnest($postIDs::text[]).
+	MarkBulkSameUser(ctx context.Context, userID string, postIDs []string, mechanism int16) error
+	// MarkBulkSamePost records that one post fanned out to many users
+	// (websocket broadcast). One SQL statement, no client-side iteration.
+	MarkBulkSamePost(ctx context.Context, userIDs []string, postID string, mechanism int16) error
 	HasRead(ctx context.Context, userID, postID string) (bool, error)
 }
 

@@ -3,17 +3,10 @@
 
 package model
 
-type AuditStorageEntry struct {
-	UserID    string `json:"user_id"`
-	PostID    string `json:"post_id"`
-	Mechanism int16  `json:"mechanism"`
-	CreatedAt int64  `json:"created_at"`
-}
-
-// Mechanism identifiers map to entries in the Confluence doc
-// "Mechanisms of Viewing Post Contents". Stored as SMALLINT for compactness.
-// Gaps in the numbering (3, 4, 10, 13, 14) intentionally match the doc's
-// numbering so cross-referencing is direct.
+// Audit-storage mechanism identifiers map to entries in the Confluence doc
+// "Mechanisms of Viewing Post Contents". Stored in the audit_storage
+// table's mechanism column (SMALLINT). Gaps (3, 4, 10, 13, 14) intentionally
+// match the doc's numbering so cross-referencing is direct.
 const (
 	AuditMechUnknown            int16 = 0
 	AuditMechChannelView        int16 = 1

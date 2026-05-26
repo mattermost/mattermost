@@ -7,7 +7,6 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -62,17 +61,35 @@ func (_m *AuditStorageStore) Mark(ctx context.Context, userID string, postID str
 	return r0
 }
 
-// MarkBulk provides a mock function with given fields: ctx, pairs
-func (_m *AuditStorageStore) MarkBulk(ctx context.Context, pairs []model.AuditStorageEntry) error {
-	ret := _m.Called(ctx, pairs)
+// MarkBulkSamePost provides a mock function with given fields: ctx, userIDs, postID, mechanism
+func (_m *AuditStorageStore) MarkBulkSamePost(ctx context.Context, userIDs []string, postID string, mechanism int16) error {
+	ret := _m.Called(ctx, userIDs, postID, mechanism)
 
 	if len(ret) == 0 {
-		panic("no return value specified for MarkBulk")
+		panic("no return value specified for MarkBulkSamePost")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, []model.AuditStorageEntry) error); ok {
-		r0 = rf(ctx, pairs)
+	if rf, ok := ret.Get(0).(func(context.Context, []string, string, int16) error); ok {
+		r0 = rf(ctx, userIDs, postID, mechanism)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MarkBulkSameUser provides a mock function with given fields: ctx, userID, postIDs, mechanism
+func (_m *AuditStorageStore) MarkBulkSameUser(ctx context.Context, userID string, postIDs []string, mechanism int16) error {
+	ret := _m.Called(ctx, userID, postIDs, mechanism)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MarkBulkSameUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string, int16) error); ok {
+		r0 = rf(ctx, userID, postIDs, mechanism)
 	} else {
 		r0 = ret.Error(0)
 	}
