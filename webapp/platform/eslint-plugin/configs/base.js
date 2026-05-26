@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import path from 'path';
+import {fileURLToPath} from 'url';
+
 import {FlatCompat} from '@eslint/eslintrc';
 import js from '@eslint/js';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
@@ -8,16 +11,14 @@ import typescriptParser from '@typescript-eslint/parser';
 import headerPlugin from 'eslint-plugin-header';
 import importPlugin from 'eslint-plugin-import';
 import globals from 'globals';
-import path from 'path';
-import {fileURLToPath} from 'url';
 
 import rules from '../rules/index.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname('__filename');
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 const compat = new FlatCompat({
-    baseDirectory: __dirname
+    baseDirectory: dirname,
 });
 
 const base = {
@@ -27,7 +28,6 @@ const base = {
         globals: {
             ...globals.browser,
             ...globals.node,
-            ...globals.jquery, // TODO remove me
             ...globals.es6,
         },
         parser: typescriptParser,
@@ -36,7 +36,7 @@ const base = {
                 jsx: true,
                 impliedStrict: true,
                 modules: true,
-            }
+            },
         },
         sourceType: 'module',
     },
@@ -49,39 +49,40 @@ const base = {
         import: importPlugin,
     },
     rules: {
+
         // '@mattermost/no-dispatch-getstate': 2,
         // '@mattermost/use-external-link': 2,
-        '@typescript-eslint/array-type': [2, {'default': 'array-simple'}],
-        '@typescript-eslint/consistent-type-imports': ['error', {'disallowTypeAnnotations': false}],
+        '@typescript-eslint/array-type': [2, {default: 'array-simple'}],
+        '@typescript-eslint/consistent-type-imports': ['error', {disallowTypeAnnotations: false}],
         '@typescript-eslint/explicit-function-return-type': 0,
         '@typescript-eslint/explicit-module-boundary-types': 0,
         '@typescript-eslint/indent': [
             2,
             4,
             {
-                'SwitchCase': 0
-            }
+                SwitchCase: 0,
+            },
         ],
         '@typescript-eslint/member-delimiter-style': 2,
         '@typescript-eslint/naming-convention': [
             2,
             {
-                'selector': 'function',
-                'format': ['camelCase', 'PascalCase']
+                selector: 'function',
+                format: ['camelCase', 'PascalCase'],
             },
             {
-                'selector': 'variable',
-                'format': ['camelCase', 'PascalCase', 'UPPER_CASE']
+                selector: 'variable',
+                format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
             },
             {
-                'selector': 'parameter',
-                'format': ['camelCase', 'PascalCase'],
-                'leadingUnderscore': 'allow'
+                selector: 'parameter',
+                format: ['camelCase', 'PascalCase'],
+                leadingUnderscore: 'allow',
             },
             {
-                'selector': 'typeLike',
-                'format': ['PascalCase']
-            }
+                selector: 'typeLike',
+                format: ['PascalCase'],
+            },
         ],
         '@typescript-eslint/no-dupe-class-members': 2,
         '@typescript-eslint/no-empty-function': 0,
@@ -89,94 +90,94 @@ const base = {
         '@typescript-eslint/no-unused-vars': [
             2,
             {
-                'vars': 'all',
-                'args': 'after-used'
-            }
+                vars: 'all',
+                args: 'after-used',
+            },
         ],
         '@typescript-eslint/no-use-before-define': [
             2,
             {
-                'classes': false,
-                'functions': false,
-                'variables': false
-            }
+                classes: false,
+                functions: false,
+                variables: false,
+            },
         ],
         '@typescript-eslint/no-var-requires': 0,
         '@typescript-eslint/type-annotation-spacing': 2,
         'array-bracket-spacing': [
             2,
-            'never'
+            'never',
         ],
         'array-callback-return': 2,
         'arrow-body-style': 0,
         'arrow-parens': [
             2,
-            'always'
+            'always',
         ],
         'arrow-spacing': [
             2,
             {
-                'before': true,
-                'after': true
-            }
+                before: true,
+                after: true,
+            },
         ],
         'block-scoped-var': 2,
         'brace-style': [
             2,
             '1tbs',
             {
-                'allowSingleLine': false
-            }
+                allowSingleLine: false,
+            },
         ],
-        'camelcase': 0, // Handled by @typescript-eslint/naming-convention
+        camelcase: 0, // Handled by @typescript-eslint/naming-convention
         'capitalized-comments': 0,
         'class-methods-use-this': 0,
         'comma-dangle': [
             2,
-            'always-multiline'
+            'always-multiline',
         ],
         'comma-spacing': [
             2,
             {
-                'before': false,
-                'after': true
-            }
+                before: false,
+                after: true,
+            },
         ],
         'comma-style': [
             2,
-            'last'
+            'last',
         ],
-        'complexity': [
+        complexity: [
             0,
-            10
+            10,
         ],
         'computed-property-spacing': [
             2,
-            'never'
+            'never',
         ],
         'consistent-return': 2,
         'consistent-this': [
             2,
-            'self'
+            'self',
         ],
         'constructor-super': 2,
-        'curly': [
+        curly: [
             2,
-            'all'
+            'all',
         ],
         'dot-location': [
             2,
-            'object'
+            'object',
         ],
         'dot-notation': 2,
         'eol-last': ['error', 'always'],
-        'eqeqeq': [
+        eqeqeq: [
             2,
-            'smart'
+            'smart',
         ],
         'func-call-spacing': [
             2,
-            'never'
+            'never',
         ],
         'func-name-matching': 0,
         'func-names': 2,
@@ -184,15 +185,15 @@ const base = {
             2,
             'declaration',
             {
-                'allowArrowFunctions': true
-            }
+                allowArrowFunctions: true,
+            },
         ],
         'generator-star-spacing': [
             2,
             {
-                'before': false,
-                'after': true
-            }
+                before: false,
+                after: true,
+            },
         ],
         'global-require': 2,
         'guard-for-in': 2,
@@ -200,7 +201,7 @@ const base = {
             2,
             'line',
             ' Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n See LICENSE.txt for license information.',
-            2
+            2,
         ],
         'id-blacklist': 0,
         'import/no-duplicates': 2,
@@ -209,99 +210,99 @@ const base = {
             2,
             {
                 'newlines-between': 'always',
-                'groups': [
+                groups: [
                     'builtin',
                     'external',
                     'internal',
                     'sibling',
                     'parent',
-                    'index'
+                    'index',
                 ],
-                'pathGroups': [
+                pathGroups: [
                     {
-                        'pattern': '@mattermost/**',
-                        'group': 'external',
-                        'position': 'after'
+                        pattern: '@mattermost/**',
+                        group: 'external',
+                        position: 'after',
                     },
                     {
-                        'pattern': 'mattermost-redux/**',
-                        'group': 'external',
-                        'position': 'after'
+                        pattern: 'mattermost-redux/**',
+                        group: 'external',
+                        position: 'after',
                     },
                     {
-                        'pattern': '@(selectors|actions|stores|store|reducers){,/**}',
-                        'group': 'external',
-                        'position': 'after'
+                        pattern: '@(selectors|actions|stores|store|reducers){,/**}',
+                        group: 'external',
+                        position: 'after',
                     },
                     {
-                        'pattern': 'components/**',
-                        'group': 'external',
-                        'position': 'after'
+                        pattern: 'components/**',
+                        group: 'external',
+                        position: 'after',
                     },
                     {
-                        'pattern': 'types{,/**}',
-                        'group': 'internal',
-                        'position': 'after'
-                    }
+                        pattern: 'types{,/**}',
+                        group: 'internal',
+                        position: 'after',
+                    },
                 ],
-                'alphabetize': {
-                    'order': 'asc',
-                    'caseInsensitive': true
+                alphabetize: {
+                    order: 'asc',
+                    caseInsensitive: true,
                 },
-                'distinctGroup': true,
-                'pathGroupsExcludedImportTypes': ['builtin']
-            }
+                distinctGroup: true,
+                pathGroupsExcludedImportTypes: ['builtin'],
+            },
         ],
-        'indent': 0, // Handled by @typescript-eslint/indent
+        indent: 0, // Handled by @typescript-eslint/indent
         'jsx-quotes': [
             2,
-            'prefer-single'
+            'prefer-single',
         ],
         'key-spacing': [
             2,
             {
-                'beforeColon': false,
-                'afterColon': true,
-                'mode': 'strict'
-            }
+                beforeColon: false,
+                afterColon: true,
+                mode: 'strict',
+            },
         ],
         'keyword-spacing': [
             2,
             {
-                'before': true,
-                'after': true,
-                'overrides': {}
-            }
+                before: true,
+                after: true,
+                overrides: {},
+            },
         ],
         'line-comment-position': 0,
         'linebreak-style': 2,
         'lines-around-comment': [
             2,
             {
-                'beforeBlockComment': true,
-                'beforeLineComment': true,
-                'allowBlockStart': true,
-                'allowBlockEnd': true
-            }
+                beforeBlockComment: true,
+                beforeLineComment: true,
+                allowBlockStart: true,
+                allowBlockEnd: true,
+            },
         ],
         'max-lines': [
             'warn',
             {
-                'max': 800,
-                'skipBlankLines': true,
-                'skipComments': false
-            }
+                max: 800,
+                skipBlankLines: true,
+                skipComments: false,
+            },
         ],
         'max-nested-callbacks': ['error', 10],
         'max-statements-per-line': [
             2,
             {
-                'max': 1
-            }
+                max: 1,
+            },
         ],
         'multiline-ternary': [
             1,
-            'never'
+            'never',
         ],
         'new-cap': 2,
         'new-parens': 2,
@@ -316,7 +317,7 @@ const base = {
         'no-compare-neg-zero': 2,
         'no-cond-assign': [
             2,
-            'except-parens'
+            'except-parens',
         ],
         'no-confusing-arrow': 2,
         'no-console': 2,
@@ -360,25 +361,25 @@ const base = {
         'no-mixed-operators': [
             2,
             {
-                'allowSamePrecedence': false
-            }
+                allowSamePrecedence: false,
+            },
         ],
         'no-mixed-spaces-and-tabs': 2,
         'no-multi-assign': 2,
         'no-multi-spaces': [
             2,
             {
-                'exceptions': {
-                    'Property': false
-                }
-            }
+                exceptions: {
+                    Property: false,
+                },
+            },
         ],
         'no-multi-str': 0,
         'no-multiple-empty-lines': [
             2,
             {
-                'max': 1
-            }
+                max: 1,
+            },
         ],
         'no-native-reassign': 2,
         'no-negated-condition': 2,
@@ -397,30 +398,30 @@ const base = {
         'no-restricted-imports': [
             'error',
             {
-                'paths': [
+                paths: [
                     {
-                        'name': 'redux',
-                        'importNames': ['DeepPartial'],
-                        'message': 'Use DeepPartial from @mattermost/types/utilities instead.'
+                        name: 'redux',
+                        importNames: ['DeepPartial'],
+                        message: 'Use DeepPartial from @mattermost/types/utilities instead.',
                     },
                     {
-                        'name': 'lodash',
-                        'message': 'Import individual functions from lodash/<function> instead.'
-                    }
-                ]
-            }
+                        name: 'lodash',
+                        message: 'Import individual functions from lodash/<function> instead.',
+                    },
+                ],
+            },
         ],
         'no-return-assign': [
             2,
-            'always'
+            'always',
         ],
         'no-return-await': 2,
         'no-script-url': 2,
         'no-self-assign': [
             2,
             {
-                'props': true
-            }
+                props: true,
+            },
         ],
         'no-self-compare': 2,
         'no-sequences': 2,
@@ -435,8 +436,8 @@ const base = {
         'no-trailing-spaces': [
             2,
             {
-                'skipBlankLines': false
-            }
+                skipBlankLines: false,
+            },
         ],
         'no-undef-init': 2,
         'no-undefined': 0,
@@ -446,8 +447,8 @@ const base = {
         'no-unneeded-ternary': [
             2,
             {
-                'defaultAssignment': false
-            }
+                defaultAssignment: false,
+            },
         ],
         'no-unreachable': 2,
         'no-unsafe-finally': 2,
@@ -469,34 +470,34 @@ const base = {
         'object-curly-newline': 0,
         'object-curly-spacing': [
             2,
-            'never'
+            'never',
         ],
         'object-property-newline': [
             2,
             {
-                'allowMultiplePropertiesPerLine': true
-            }
+                allowMultiplePropertiesPerLine: true,
+            },
         ],
         'object-shorthand': [
             2,
-            'always'
+            'always',
         ],
         'one-var': [
             2,
-            'never'
+            'never',
         ],
         'one-var-declaration-per-line': 0,
         'operator-assignment': [
             2,
-            'always'
+            'always',
         ],
         'operator-linebreak': [
             2,
-            'after'
+            'after',
         ],
         'padded-blocks': [
             2,
-            'never'
+            'never',
         ],
         'prefer-arrow-callback': 2,
         'prefer-const': 2,
@@ -508,82 +509,82 @@ const base = {
         'prefer-template': 0,
         'quote-props': [
             2,
-            'as-needed'
+            'as-needed',
         ],
-        'quotes': [
+        quotes: [
             2,
             'single',
-            'avoid-escape'
+            'avoid-escape',
         ],
-        'radix': 2,
+        radix: 2,
         'require-yield': 2,
         'rest-spread-spacing': [
             2,
-            'never'
+            'never',
         ],
-        'semi': [
+        semi: [
             2,
-            'always'
+            'always',
         ],
         'semi-spacing': [
             2,
             {
-                'before': false,
-                'after': true
-            }
+                before: false,
+                after: true,
+            },
         ],
         'sort-imports': 0,
         'sort-keys': 0,
         'space-before-blocks': [
             2,
-            'always'
+            'always',
         ],
         'space-before-function-paren': [
             2,
             {
-                'anonymous': 'never',
-                'named': 'never',
-                'asyncArrow': 'always'
-            }
+                anonymous: 'never',
+                named: 'never',
+                asyncArrow: 'always',
+            },
         ],
         'space-in-parens': [
             2,
-            'never'
+            'never',
         ],
         'space-infix-ops': 2,
         'space-unary-ops': [
             2,
             {
-                'words': true,
-                'nonwords': false
-            }
+                words: true,
+                nonwords: false,
+            },
         ],
         'symbol-description': 2,
         'template-curly-spacing': [
             2,
-            'never'
+            'never',
         ],
         'valid-typeof': [
             2,
             {
-                'requireStringLiterals': false
-            }
+                requireStringLiterals: false,
+            },
         ],
         'vars-on-top': 0,
         'wrap-iife': [
             2,
-            'outside'
+            'outside',
         ],
         'wrap-regex': 2,
-        'yoda': [
+        yoda: [
             2,
             'never',
             {
-                'exceptRange': false,
-                'onlyEquality': false
-            }
-        ]
-    }
+                exceptRange: false,
+                onlyEquality: false,
+            },
+        ],
+    },
 };
 
 const testOverrides = {
@@ -611,8 +612,8 @@ const testOverrides = {
         'max-lines': 0,
         'max-nested-callbacks': 0,
         'new-cap': 0,
-        'prefer-arrow-callback': 0
-    }
+        'prefer-arrow-callback': 0,
+    },
 };
 
 export default [

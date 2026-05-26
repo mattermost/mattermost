@@ -37,8 +37,8 @@
   },
   "scripts": {
     "build": "tsc --build tsconfig.build.json --verbose",
-    "check": "eslint ./src --quiet",
-    "fix": "eslint ./src --quiet --fix",
+    "check": "eslint ./src eslint.config.mjs --quiet",
+    "fix": "eslint ./src eslint.config.mjs --quiet --fix",
     "run": "tsc --watch --preserveWatchOutput",
     "test": "jest",
     "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100% --logHeapUsage",

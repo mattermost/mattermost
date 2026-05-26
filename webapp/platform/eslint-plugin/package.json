@@ -37,6 +37,8 @@
     }
   },
   "scripts": {
+    "check": "eslint . --quiet",
+    "fix": "eslint . --quiet --fix",
     "clean": "rm -rf node_modules"
   }
 }

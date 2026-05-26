@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import formatjsPlugin from 'eslint-plugin-formatjs';
-import noOnlyTestsPlugin from 'eslint-plugin-no-only-tests';
-
 import eslintPlugin from '@mattermost/eslint-plugin';
 
 export default [
@@ -13,14 +10,14 @@ export default [
         rules: {
             'no-restricted-globals': [
                 'error',
-                'window'
-            ]
-        }
+                'window',
+            ],
+        },
     },
     {
         files: ['**/*.test.js', '**/*.test.ts'],
         rules: {
-            'no-restricted-globals': 'off'
-        }
-    }
+            'no-restricted-globals': 'off',
+        },
+    },
 ];

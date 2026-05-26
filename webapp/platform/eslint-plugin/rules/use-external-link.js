@@ -10,12 +10,11 @@ export default {
         },
     },
     create: (context) => {
-        const elementType = getElementType(context);
         return {
             JSXOpeningElement: (node) => {
-                const { attributes } = node;
                 const typeCheck = 'a';
                 const nodeType = astUtils.elementType(node);
+
                 // Only check anchor elements
                 if (!nodeType || typeCheck !== nodeType) {
                     return;
@@ -23,6 +22,7 @@ export default {
 
                 const propsToValidate = ['target'];
                 const values = propsToValidate.map((prop) => astUtils.getPropValue(astUtils.getProp(node.attributes, prop)));
+
                 // Checks if the target attribute is set to _blank (ie, is an external link)
                 const hasBlankTarget = values.some((value) => value != null && value === '_blank');
 
@@ -35,7 +35,6 @@ export default {
                     node,
                     message: 'Use ExternalLink component (components/external_link) for _blank target link-outs',
                 });
-                return
             },
         };
     },

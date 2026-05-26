@@ -171,9 +171,9 @@
   },
   "scripts": {
     "check": "npm run check:eslint && npm run check:stylelint",
-    "check:eslint": "eslint ./src --quiet --cache",
+    "check:eslint": "eslint ./src eslint.config.mjs --quiet --cache",
     "check:stylelint": "stylelint \"**/*.{css,scss}\" --cache",
-    "fix": "eslint ./src --quiet --fix --cache && stylelint \"**/*.{css,scss}\" --fix --cache",
+    "fix": "eslint ./src eslint.config.mjs --quiet --fix --cache && stylelint \"**/*.{css,scss}\" --fix --cache",
     "build": "cross-env NODE_ENV=production webpack",
     "run": "webpack --progress --watch",
     "dev-server": "webpack serve --mode development",
