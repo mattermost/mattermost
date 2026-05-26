@@ -2319,6 +2319,41 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 	})
 }
 
+func TestBuildAccessControlSubjectForSession(t *testing.T) {
+	t.Run("returns subject without session attributes when none are cached", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		subject, appErr := th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+		assert.Equal(t, th.BasicUser.Id, subject.ID)
+		assert.Empty(t, subject.Session)
+	})
+
+	t.Run("populates session attributes from the cache", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress:            "192.0.2.10",
+			model.SessionAttributesPropertyFieldUserAgentBrowserName: "Chrome",
+		}))
+
+		subject, appErr := th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+		assert.Equal(t, "192.0.2.10", subject.Session[model.SessionAttributesPropertyFieldIPAddress])
+		assert.Equal(t, "Chrome", subject.Session[model.SessionAttributesPropertyFieldUserAgentBrowserName])
+	})
+}
+
 // TestFilterResponseToEditingRuleScope locks down the post-processing
 // that turns a full-stack simulator response into a "this rule only"
 // view. Upper-scoped blame entries (system_permission, peer_policy,

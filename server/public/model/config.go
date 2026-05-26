@@ -41,6 +41,17 @@ const (
 	AzureAuthModeSharedKey         = "shared_key"
 	AzureAuthModeDefaultCredential = "default_credential"
 
+	// AzureCloudCommercial / AzureCloudGovernment select hardcoded Azure
+	// service endpoints so admins do not have to spell out the suffix
+	// for the well-known clouds. AzureCloudCustom hands control to the
+	// admin: FileSettings.AzureEndpoint becomes the full service URL,
+	// scheme and storage account included, and Mattermost passes it to
+	// the SDK unchanged. Use this for Azurite, reverse proxies, or any
+	// other non-default deployment topology.
+	AzureCloudCommercial = "commercial"
+	AzureCloudGovernment = "government"
+	AzureCloudCustom     = "custom"
+
 	DatabaseDriverPostgres = "postgres"
 
 	SearchengineElasticsearch = "elasticsearch"
@@ -1810,6 +1821,7 @@ type FileSettings struct {
 	AzureAccessKey                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzureContainer                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureCloud                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AzureEndpoint                      *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzureSSL                           *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1836,6 +1848,7 @@ type FileSettings struct {
 	ExportAzureAccessKey                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzureContainer                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureCloud                         *string `access:"environment_file_storage,write_restrictable"`
 	ExportAzureEndpoint                      *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzureSSL                           *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportAzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
@@ -1975,6 +1988,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AzurePathPrefix = NewPointer("")
 	}
 
+	if s.AzureCloud == nil {
+		s.AzureCloud = NewPointer(AzureCloudCommercial)
+	}
+
 	if s.AzureEndpoint == nil {
 		s.AzureEndpoint = NewPointer("")
 	}
@@ -2075,6 +2092,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExportAzurePathPrefix == nil {
 		s.ExportAzurePathPrefix = NewPointer("")
+	}
+
+	if s.ExportAzureCloud == nil {
+		s.ExportAzureCloud = NewPointer(AzureCloudCommercial)
 	}
 
 	if s.ExportAzureEndpoint == nil {
@@ -4580,6 +4601,16 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_auth_mode.app_error", map[string]any{"Value": *s.AzureAuthMode}, "", http.StatusBadRequest)
 	}
 
+	switch *s.AzureCloud {
+	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom:
+	default:
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_cloud.app_error", map[string]any{"Setting": "FileSettings.AzureCloud", "Value": *s.AzureCloud}, "", http.StatusBadRequest)
+	}
+
+	if *s.AzureCloud == AzureCloudCustom && *s.AzureEndpoint == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_custom_endpoint.app_error", map[string]any{"Setting": "FileSettings.AzureEndpoint"}, "", http.StatusBadRequest)
+	}
+
 	if *s.AmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.AmazonS3StorageClass) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.AmazonS3StorageClass}, "", http.StatusBadRequest)
 	}
@@ -4606,6 +4637,16 @@ func (s *FileSettings) isValid() *AppError {
 
 	if !(*s.ExportAzureAuthMode == AzureAuthModeSharedKey || *s.ExportAzureAuthMode == AzureAuthModeDefaultCredential) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.export_azure_auth_mode.app_error", map[string]any{"Value": *s.ExportAzureAuthMode}, "", http.StatusBadRequest)
+	}
+
+	switch *s.ExportAzureCloud {
+	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom:
+	default:
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_cloud.app_error", map[string]any{"Setting": "FileSettings.ExportAzureCloud", "Value": *s.ExportAzureCloud}, "", http.StatusBadRequest)
+	}
+
+	if *s.ExportAzureCloud == AzureCloudCustom && *s.ExportAzureEndpoint == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_custom_endpoint.app_error", map[string]any{"Setting": "FileSettings.ExportAzureEndpoint"}, "", http.StatusBadRequest)
 	}
 
 	if strings.TrimSpace(*s.ExportAmazonS3PathPrefix) != *s.ExportAmazonS3PathPrefix {

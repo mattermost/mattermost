@@ -71,6 +71,7 @@ type FileBackendSettings struct {
 	AzureAccessKey                     string
 	AzureContainer                     string
 	AzurePathPrefix                    string
+	AzureCloud                         string
 	AzureEndpoint                      string
 	AzureSSL                           bool
 	AzureRequestTimeoutMilliseconds    int64
@@ -91,6 +92,7 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 			AzureAccessKey:                  *fileSettings.AzureAccessKey,
 			AzureContainer:                  *fileSettings.AzureContainer,
 			AzurePathPrefix:                 *fileSettings.AzurePathPrefix,
+			AzureCloud:                      *fileSettings.AzureCloud,
 			AzureEndpoint:                   *fileSettings.AzureEndpoint,
 			AzureSSL:                        fileSettings.AzureSSL == nil || *fileSettings.AzureSSL,
 			AzureRequestTimeoutMilliseconds: *fileSettings.AzureRequestTimeoutMilliseconds,
@@ -131,6 +133,7 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 			AzureAccessKey:                  *fileSettings.ExportAzureAccessKey,
 			AzureContainer:                  *fileSettings.ExportAzureContainer,
 			AzurePathPrefix:                 *fileSettings.ExportAzurePathPrefix,
+			AzureCloud:                      *fileSettings.ExportAzureCloud,
 			AzureEndpoint:                   *fileSettings.ExportAzureEndpoint,
 			AzureSSL:                        fileSettings.ExportAzureSSL == nil || *fileSettings.ExportAzureSSL,
 			AzureRequestTimeoutMilliseconds: *fileSettings.ExportAzureRequestTimeoutMilliseconds,
