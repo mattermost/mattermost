@@ -82,14 +82,14 @@ function PolicyDetails({
     const [addChannelOpen, setAddChannelOpen] = useState(false);
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
 
-    // Check the server-provided policy rules for masked values, not the locally
-    // edited expression. When a row is deleted and the expression is rebuilt from
-    // rows, the "--------" sentinel may be absent from the rebuilt CEL even though
-    // the policy still has restricted values — the server is the authoritative
-    // source for what is masked, and that doesn't change until save + reload.
+    // Check for masked values using existingRules when available (updated after each fetch),
+    // falling back to the prop. The "--------" sentinel may be absent from a locally rebuilt
+    // CEL string even when masked values are present, so we rely on the server-sourced rules.
     const hasMaskedRows = useMemo(
-        () => policy?.rules?.some((rule) => rule.expression?.includes(MASKED_VALUE_TOKEN_LITERAL)) ?? false,
-        [policy],
+        () => (existingRules.length > 0 ? existingRules : policy?.rules ?? []).some(
+            (rule) => rule.expression?.includes(MASKED_VALUE_TOKEN_LITERAL),
+        ),
+        [existingRules, policy],
     );
     const [channelChanges, setChannelChanges] = useState<ChannelChanges>({
         removed: {},

@@ -4657,7 +4657,6 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 
 		mockACS := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockACS
-		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
 
 		_, appErr := thMock.App.UpdateAccessControlPoliciesActive(thMock.Context, []model.AccessControlPolicyActiveUpdate{
 			{ID: channelID, Active: true},
@@ -4665,6 +4664,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 
 		require.Nil(t, appErr)
 		mockACPStore.AssertExpectations(t)
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
 	})
 
 	t.Run("deactivation allowed when masking flag is off", func(t *testing.T) {
