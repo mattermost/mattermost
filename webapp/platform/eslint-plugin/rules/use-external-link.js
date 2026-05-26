@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const astUtils = require('jsx-ast-utils')
-const getElementType = require('eslint-plugin-jsx-a11y/lib/util/getElementType')
+import astUtils from 'jsx-ast-utils';
 
-module.exports =  {
+export default {
     meta: {
         docs: {
             description: 'Enforce all anchors with target="_blank" to use ExternalLink component',
@@ -16,7 +15,7 @@ module.exports =  {
             JSXOpeningElement: (node) => {
                 const { attributes } = node;
                 const typeCheck = 'a';
-                const nodeType = elementType(node);
+                const nodeType = astUtils.elementType(node);
                 // Only check anchor elements
                 if (!nodeType || typeCheck !== nodeType) {
                     return;
