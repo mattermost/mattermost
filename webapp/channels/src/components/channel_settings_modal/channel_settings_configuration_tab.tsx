@@ -108,35 +108,7 @@ function ChannelSettingsConfigurationTab({
     const canManageClassification = classification.available && isSystemAdmin;
     const [classificationEnabled, setClassificationEnabled] = useState(classificationBanner.hasClassification);
     const [selectedClassificationId, setSelectedClassificationId] = useState(classificationBanner.classificationId || '');
-    const bannerTouchedRef = useRef(false);
-    const classificationTouchedRef = useRef(false);
-
     const bannerLockedByClassification = classificationEnabled && Boolean(selectedClassificationId);
-
-    useEffect(() => {
-        if (bannerTouchedRef.current || classificationTouchedRef.current) {
-            const classificationStateMatchesLocal = classificationBanner.hasClassification === classificationEnabled &&
-                (classificationBanner.classificationId || '') === (classificationEnabled ? selectedClassificationId : '');
-            if (!classificationStateMatchesLocal) {
-                return;
-            }
-
-            bannerTouchedRef.current = false;
-            classificationTouchedRef.current = false;
-        }
-
-        setClassificationEnabled(classificationBanner.hasClassification);
-        setSelectedClassificationId(classificationBanner.classificationId || '');
-
-        if (classificationBanner.hasClassification && classificationBanner.classificationBanner) {
-            setUpdatedChannelBanner((prev) => ({
-                ...prev,
-                enabled: true,
-                text: classificationBanner.classificationBanner?.text ?? prev.text,
-                background_color: classificationBanner.classificationBanner?.background_color || prev.background_color || DEFAULT_CHANNEL_BANNER.background_color,
-            }));
-        }
-    }, [classificationBanner.hasClassification, classificationBanner.classificationId, classificationBanner.classificationBanner, classificationEnabled, selectedClassificationId]);
 
     const classificationOptions = useMemo(() => {
         return classification.levels.
@@ -169,14 +141,11 @@ function ChannelSettingsConfigurationTab({
     }), [classificationBanner.hasClassification, classificationBanner.classificationId]);
 
     const hasClassificationChanges = classificationEnabled !== initialClassificationState.enabled ||
-        selectedClassificationId !== initialClassificationState.classificationId;
+        (classificationEnabled && selectedClassificationId !== initialClassificationState.classificationId);
 
     const handleClassificationToggle = useCallback(() => {
-        resetFormErrors();
-        classificationTouchedRef.current = true;
         setClassificationEnabled((prev) => {
             if (!prev) {
-                bannerTouchedRef.current = true;
                 const lowestRank = classification.levels[0];
                 if (lowestRank) {
                     setSelectedClassificationId(lowestRank.id);
@@ -192,12 +161,9 @@ function ChannelSettingsConfigurationTab({
             }
             return !prev;
         });
-    }, [classification.levels, resetFormErrors]);
+    }, [classification.levels]);
 
     const handleClassificationLevelChange = useCallback((selected: ValueType) => {
-        resetFormErrors();
-        bannerTouchedRef.current = true;
-        classificationTouchedRef.current = true;
         setSelectedClassificationId(selected.value);
         const level = classification.levels.find((l) => l.id === selected.value);
         if (level) {
@@ -208,11 +174,9 @@ function ChannelSettingsConfigurationTab({
                 background_color: level.color,
             }));
         }
-    }, [classification.levels, resetFormErrors]);
+    }, [classification.levels]);
 
     const handleBannerToggle = useCallback(() => {
-        resetFormErrors();
-        bannerTouchedRef.current = true;
         const newValue = !updatedChannelBanner.enabled;
         const toUpdate = {
             ...updatedChannelBanner,
@@ -224,10 +188,9 @@ function ChannelSettingsConfigurationTab({
         }
 
         setUpdatedChannelBanner(toUpdate);
-    }, [initialBannerInfo, resetFormErrors, updatedChannelBanner]);
+    }, [initialBannerInfo, updatedChannelBanner]);
 
     const handleBannerTextChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
-        bannerTouchedRef.current = true;
         const newValue = e.target.value;
         setUpdatedChannelBanner((prev) => ({
             ...prev,
@@ -253,7 +216,6 @@ function ChannelSettingsConfigurationTab({
     }, [formatMessage, resetFormErrors]);
 
     const handleBannerColorChange = useCallback((color: string) => {
-        bannerTouchedRef.current = true;
         setUpdatedChannelBanner((prev) => ({
             ...prev,
             background_color: color,
@@ -380,8 +342,34 @@ function ChannelSettingsConfigurationTab({
         (canManageSharedChannels && hasWorkspaceChanges);
 
     useEffect(() => {
+        if (hasUnsavedChanges) {
+            return;
+        }
+
+        setClassificationEnabled(classificationBanner.hasClassification);
+        setSelectedClassificationId(classificationBanner.classificationId || '');
+
+        if (classificationBanner.hasClassification && classificationBanner.classificationBanner) {
+            setUpdatedChannelBanner((prev) => ({
+                ...prev,
+                enabled: true,
+                text: classificationBanner.classificationBanner?.text ?? prev.text,
+                background_color: classificationBanner.classificationBanner?.background_color || prev.background_color || DEFAULT_CHANNEL_BANNER.background_color,
+            }));
+        }
+    }, [
+        classificationBanner.hasClassification,
+        classificationBanner.classificationId,
+        classificationBanner.classificationBanner,
+        hasUnsavedChanges,
+    ]);
+
+    useEffect(() => {
         setRequireConfirm(hasUnsavedChanges);
         setAreThereUnsavedChanges?.(hasUnsavedChanges);
+        if (hasUnsavedChanges) {
+            setSaveChangesPanelState((current) => (current === 'saved' ? undefined : current));
+        }
     }, [hasUnsavedChanges, setAreThereUnsavedChanges]);
 
     const handleServerError = useCallback((err: ServerError) => {
@@ -587,8 +575,6 @@ function ChannelSettingsConfigurationTab({
 
         setClassificationEnabled(initialClassificationState.enabled);
         setSelectedClassificationId(initialClassificationState.classificationId);
-        bannerTouchedRef.current = false;
-        classificationTouchedRef.current = false;
 
         if (canManageSharedChannels) {
             setSharingEnabled(initialSharingEnabled.current);
