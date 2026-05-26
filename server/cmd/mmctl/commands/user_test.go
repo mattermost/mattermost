@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -16,7 +17,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -1863,7 +1863,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
 
 		mockError := errors.New("mock error")
-		mockErrorW := errors.Wrap(mockError, "Failed to fetch users")
+		mockErrorW := fmt.Errorf("Failed to fetch users: %w", mockError)
 
 		s.client.
 			EXPECT().

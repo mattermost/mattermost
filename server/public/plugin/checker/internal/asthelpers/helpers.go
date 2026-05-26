@@ -4,10 +4,10 @@
 package asthelpers
 
 import (
+	"fmt"
 	"go/ast"
 	"go/types"
 
-	"github.com/pkg/errors"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -21,7 +21,7 @@ func GetPackage(pkgPath string) (*packages.Package, error) {
 	}
 
 	if len(pkgs) == 0 {
-		return nil, errors.Errorf("could not find package %s", pkgPath)
+		return nil, fmt.Errorf("could not find package %s", pkgPath)
 	}
 	return pkgs[0], nil
 }
@@ -57,7 +57,7 @@ func FindInterfaceWithIdent(name string, files []*ast.File) (*ast.InterfaceType,
 			return iface, ident, nil
 		}
 	}
-	return nil, nil, errors.Errorf("could not find %s interface", name)
+	return nil, nil, fmt.Errorf("could not find %s interface", name)
 }
 
 func FindMethodsCalledOnType(info *types.Info, typ types.Type, caller *ast.FuncDecl) []string {

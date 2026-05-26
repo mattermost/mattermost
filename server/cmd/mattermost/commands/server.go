@@ -5,6 +5,7 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -12,7 +13,6 @@ import (
 	"runtime/pprof"
 	"syscall"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -40,7 +40,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	interruptChan := make(chan os.Signal, 1)
 
 	if err := utils.TranslationsPreInit(); err != nil {
-		return errors.Wrap(err, "unable to load Mattermost translation files")
+		return fmt.Errorf("unable to load Mattermost translation files: %w", err)
 	}
 
 	customDefaults, err := loadCustomDefaults()
@@ -50,7 +50,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 
 	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, customDefaults, true)
 	if err != nil {
-		return errors.Wrap(err, "failed to load configuration")
+		return fmt.Errorf("failed to load configuration: %w", err)
 	}
 	defer configStore.Close()
 

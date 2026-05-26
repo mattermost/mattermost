@@ -5,11 +5,11 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"reflect"
 	"sync"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -77,7 +77,7 @@ func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config
 	}
 
 	if err := store.Load(); err != nil {
-		return nil, errors.Wrap(err, "unable to load on store creation")
+		return nil, fmt.Errorf("unable to load on store creation: %w", err)
 	}
 
 	return store, nil
@@ -100,7 +100,7 @@ func NewStoreFromDSN(dsn string, readOnly bool, customDefaults *model.Config, cr
 	store, err := NewStoreFromBacking(backingStore, customDefaults, readOnly)
 	if err != nil {
 		backingStore.Close()
-		return nil, errors.Wrap(err, "failed to create store")
+		return nil, fmt.Errorf("failed to create store: %w", err)
 	}
 
 	return store, nil
@@ -190,7 +190,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 	fixConfig(newCfg)
 
 	if err := newCfg.IsValid(); err != nil {
-		return nil, nil, errors.Wrap(err, "new configuration is invalid")
+		return nil, nil, fmt.Errorf("new configuration is invalid: %w", err)
 	}
 
 	// We attempt to remove any environment override that may be present in the input config.
@@ -211,12 +211,12 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 	}
 
 	if err := s.backingStore.Set(newCfgNoEnv); err != nil {
-		return nil, nil, errors.Wrap(err, "failed to persist")
+		return nil, nil, fmt.Errorf("failed to persist: %w", err)
 	}
 
 	hasChanged, err := equal(oldCfg, newCfg)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to compare configs")
+		return nil, nil, fmt.Errorf("failed to compare configs: %w", err)
 	}
 
 	// We restore the previously cleared feature flags sections back.
@@ -269,7 +269,7 @@ func (s *Store) Load() error {
 		var mErr error
 		loadedCfg, mErr = Merge(s.configCustomDefaults, loadedCfg, nil)
 		if mErr != nil {
-			return errors.Wrap(mErr, "failed to merge custom config defaults")
+			return fmt.Errorf("failed to merge custom config defaults: %w", mErr)
 		}
 		s.configCustomDefaults = nil
 	}
@@ -295,7 +295,7 @@ func (s *Store) Load() error {
 		// Translating the error before displaying it in the console.
 		// Defaulting to english for server side language.
 		appErr.Translate(i18n.GetUserTranslations("en"))
-		return errors.Wrap(appErr, "invalid config")
+		return fmt.Errorf("invalid config: %w", appErr)
 	}
 
 	// Backing up feature flags section in case we need to restore them later on.
@@ -312,7 +312,7 @@ func (s *Store) Load() error {
 	// Check for changes that may have happened on load to the backing store.
 	hasChanged, err := equal(oldCfg, loadedCfg)
 	if err != nil {
-		return errors.Wrap(err, "failed to compare configs")
+		return fmt.Errorf("failed to compare configs: %w", err)
 	}
 
 	// We write back to the backing store only if the store is not read-only
@@ -320,7 +320,7 @@ func (s *Store) Load() error {
 	if !s.readOnly && (hasChanged || len(configBytes) == 0) {
 		err := s.backingStore.Set(loadedCfgNoEnv)
 		if err != nil && !errors.Is(err, ErrReadOnlyConfiguration) {
-			return errors.Wrap(err, "failed to persist")
+			return fmt.Errorf("failed to persist: %w", err)
 		}
 	}
 

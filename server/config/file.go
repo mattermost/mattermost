@@ -4,12 +4,11 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -114,12 +113,12 @@ func (fs *FileStore) Set(newCfg *model.Config) error {
 func (fs *FileStore) persist(cfg *model.Config) error {
 	b, err := marshalConfig(cfg)
 	if err != nil {
-		return errors.Wrap(err, "failed to serialize")
+		return fmt.Errorf("failed to serialize: %w", err)
 	}
 
 	err = os.WriteFile(fs.path, b, 0600)
 	if err != nil {
-		return errors.Wrap(err, "failed to write file")
+		return fmt.Errorf("failed to write file: %w", err)
 	}
 
 	return nil
@@ -131,7 +130,7 @@ func (fs *FileStore) Load() ([]byte, error) {
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
-		return nil, errors.Wrapf(err, "failed to open %s for reading", fs.path)
+		return nil, fmt.Errorf("failed to open %s for reading: %w", fs.path, err)
 	}
 	defer f.Close()
 
@@ -149,7 +148,7 @@ func (fs *FileStore) GetFile(name string) ([]byte, error) {
 
 	data, err := os.ReadFile(resolvedPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read file from %s", resolvedPath)
+		return nil, fmt.Errorf("failed to read file from %s: %w", resolvedPath, err)
 	}
 
 	return data, nil
@@ -167,7 +166,7 @@ func (fs *FileStore) SetFile(name string, data []byte) error {
 
 	err := os.WriteFile(resolvedPath, data, 0600)
 	if err != nil {
-		return errors.Wrapf(err, "failed to write file to %s", resolvedPath)
+		return fmt.Errorf("failed to write file to %s: %w", resolvedPath, err)
 	}
 
 	return nil
@@ -185,7 +184,7 @@ func (fs *FileStore) HasFile(name string) (bool, error) {
 	if err != nil && os.IsNotExist(err) {
 		return false, nil
 	} else if err != nil {
-		return false, errors.Wrap(err, "failed to check if file exists")
+		return false, fmt.Errorf("failed to check if file exists: %w", err)
 	}
 
 	return true, nil
@@ -205,7 +204,7 @@ func (fs *FileStore) RemoveFile(name string) error {
 		return nil
 	}
 	if err != nil {
-		return errors.Wrap(err, "failed to remove file")
+		return fmt.Errorf("failed to remove file: %w", err)
 	}
 
 	return nil

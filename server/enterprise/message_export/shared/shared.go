@@ -10,8 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
@@ -137,7 +135,7 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 		batchStartTime = "0"
 	}
 	if jd.BatchStartTime, err = strconv.ParseInt(batchStartTime, 10, 64); err != nil {
-		return jd, errors.Wrap(err, "error converting JobDataBatchStartTime")
+		return jd, fmt.Errorf("error converting JobDataBatchStartTime: %w", err)
 	}
 
 	jd.BatchStartId = sm[JobDataBatchStartId]
@@ -147,7 +145,7 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 		jobStartTime = "0"
 	}
 	if jd.JobStartTime, err = strconv.ParseInt(jobStartTime, 10, 64); err != nil {
-		return jd, errors.Wrap(err, "error converting JobDataJobStartTime")
+		return jd, fmt.Errorf("error converting JobDataJobStartTime: %w", err)
 	}
 
 	jobEndTime, ok := sm[JobDataJobEndTime]
@@ -155,7 +153,7 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 		jobEndTime = "0"
 	}
 	if jd.JobEndTime, err = strconv.ParseInt(jobEndTime, 10, 64); err != nil {
-		return jd, errors.Wrap(err, "error converting JobDataJobEndTime")
+		return jd, fmt.Errorf("error converting JobDataJobEndTime: %w", err)
 	}
 
 	jd.JobStartId = sm[JobDataJobStartId]
@@ -165,7 +163,7 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 		jobBatchSize = "0"
 	}
 	if jd.BatchSize, err = strconv.Atoi(jobBatchSize); err != nil {
-		return jd, errors.Wrap(err, "error converting JobDataBatchSize")
+		return jd, fmt.Errorf("error converting JobDataBatchSize: %w", err)
 	}
 
 	channelBatchSize, ok := sm[JobDataChannelBatchSize]
@@ -173,7 +171,7 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 		channelBatchSize = "0"
 	}
 	if jd.ChannelBatchSize, err = strconv.Atoi(channelBatchSize); err != nil {
-		return jd, errors.Wrap(err, "error converting JobDataChannelBatchSize")
+		return jd, fmt.Errorf("error converting JobDataChannelBatchSize: %w", err)
 	}
 
 	channelHistoryBatchSize, ok := sm[JobDataChannelHistoryBatchSize]
@@ -181,7 +179,7 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 		channelHistoryBatchSize = "0"
 	}
 	if jd.ChannelHistoryBatchSize, err = strconv.Atoi(channelHistoryBatchSize); err != nil {
-		return jd, errors.Wrap(err, "error converting JobDataChannelHistoryBatchSize")
+		return jd, fmt.Errorf("error converting JobDataChannelHistoryBatchSize: %w", err)
 	}
 
 	batchNumber, ok := sm[JobDataBatchNumber]
@@ -189,7 +187,7 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 		batchNumber = "0"
 	}
 	if jd.BatchNumber, err = strconv.Atoi(batchNumber); err != nil {
-		return jd, errors.Wrap(err, "error converting JobDataBatchNumber")
+		return jd, fmt.Errorf("error converting JobDataBatchNumber: %w", err)
 	}
 
 	totalPostsExpected, ok := sm[JobDataTotalPostsExpected]
@@ -197,7 +195,7 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 		totalPostsExpected = "0"
 	}
 	if jd.TotalPostsExpected, err = strconv.Atoi(totalPostsExpected); err != nil {
-		return jd, errors.Wrap(err, "error converting JobDataTotalPostsExpected")
+		return jd, fmt.Errorf("error converting JobDataTotalPostsExpected: %w", err)
 	}
 
 	messagesExported, ok := sm[JobDataMessagesExported]
@@ -205,7 +203,7 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 		messagesExported = "0"
 	}
 	if jd.MessagesExported, err = strconv.Atoi(messagesExported); err != nil {
-		return jd, errors.Wrap(err, "error converting JobDataMessagesExported")
+		return jd, fmt.Errorf("error converting JobDataMessagesExported: %w", err)
 	}
 
 	warningCount, ok := sm[JobDataWarningCount]
@@ -213,7 +211,7 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 		warningCount = "0"
 	}
 	if jd.WarningCount, err = strconv.Atoi(warningCount); err != nil {
-		return jd, errors.Wrap(err, "error converting JobDataWarningCount")
+		return jd, fmt.Errorf("error converting JobDataWarningCount: %w", err)
 	}
 
 	isDownloadable, ok := sm[JobDataIsDownloadable]
@@ -221,7 +219,7 @@ func StringMapToJobDataWithZeroValues(sm map[string]string) (JobData, error) {
 		isDownloadable = "0"
 	}
 	if jd.IsDownloadable, err = strconv.ParseBool(isDownloadable); err != nil {
-		return jd, errors.Wrap(err, "error converting JobDataIsDownloadable")
+		return jd, fmt.Errorf("error converting JobDataIsDownloadable: %w", err)
 	}
 
 	return jd, nil

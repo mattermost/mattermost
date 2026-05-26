@@ -5,11 +5,11 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 )
 
 type SqlDesktopTokensStore struct {
@@ -40,7 +40,7 @@ func (s *SqlDesktopTokensStore) GetUserId(token string, minCreateAt int64) (*str
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("DesktopTokens", token)
 		}
-		return nil, errors.Wrapf(err, "No token for %s", token)
+		return nil, fmt.Errorf("No token for %s: %w", token, err)
 	}
 
 	return &dt.UserId, nil
@@ -55,11 +55,11 @@ func (s *SqlDesktopTokensStore) Insert(token string, createAt int64, userId stri
 	query, args, err := builder.ToSql()
 
 	if err != nil {
-		return errors.Wrap(err, "insert_desktoptokens_tosql")
+		return fmt.Errorf("insert_desktoptokens_tosql: %w", err)
 	}
 
 	if _, err = s.GetMaster().Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to insert token row")
+		return fmt.Errorf("failed to insert token row: %w", err)
 	}
 
 	return nil
@@ -75,11 +75,11 @@ func (s *SqlDesktopTokensStore) Delete(token string) error {
 	query, args, err := builder.ToSql()
 
 	if err != nil {
-		return errors.Wrap(err, "delete_desktoptokens_tosql")
+		return fmt.Errorf("delete_desktoptokens_tosql: %w", err)
 	}
 
 	if _, err = s.GetMaster().Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to delete token row")
+		return fmt.Errorf("failed to delete token row: %w", err)
 	}
 	return nil
 }
@@ -94,11 +94,11 @@ func (s *SqlDesktopTokensStore) DeleteByUserId(userId string) error {
 	query, args, err := builder.ToSql()
 
 	if err != nil {
-		return errors.Wrap(err, "delete_by_userid_desktoptokens_tosql")
+		return fmt.Errorf("delete_by_userid_desktoptokens_tosql: %w", err)
 	}
 
 	if _, err = s.GetMaster().Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to delete token row")
+		return fmt.Errorf("failed to delete token row: %w", err)
 	}
 	return nil
 }
@@ -113,11 +113,11 @@ func (s *SqlDesktopTokensStore) DeleteOlderThan(minCreateAt int64) error {
 	query, args, err := builder.ToSql()
 
 	if err != nil {
-		return errors.Wrap(err, "delete_old_desktoptokens_tosql")
+		return fmt.Errorf("delete_old_desktoptokens_tosql: %w", err)
 	}
 
 	if _, err = s.GetMaster().Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to delete token row")
+		return fmt.Errorf("failed to delete token row: %w", err)
 	}
 	return nil
 }

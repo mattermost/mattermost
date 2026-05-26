@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -118,7 +117,7 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 	}
 
 	if err := a.handleSuccessfulScheduledPosts(rctx, successfulScheduledPostIDs); err != nil {
-		return errors.Wrap(err, "App.processScheduledPostBatch: failed to handle successfully posted scheduled posts")
+		return fmt.Errorf("App.processScheduledPostBatch: failed to handle successfully posted scheduled posts: %w", err)
 	}
 
 	a.handleFailedScheduledPosts(rctx, failedScheduledPosts)
@@ -228,7 +227,7 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 			mlog.String("error_code", model.ScheduledPostErrorUnknownError),
 			mlog.Err(appErr),
 		)
-		return model.ScheduledPostErrorUnknownError, errors.Wrapf(appErr, "App.canPostScheduledPost: failed to get user from database, userId: %s", scheduledPost.UserId)
+		return model.ScheduledPostErrorUnknownError, fmt.Errorf("App.canPostScheduledPost: failed to get user from database, userId: %s: %w", scheduledPost.UserId, appErr)
 	}
 
 	if user.DeleteAt != 0 {
@@ -268,7 +267,7 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 				mlog.Err(appErr),
 			)
 
-			return model.ScheduledPostErrorUnknownError, errors.Wrapf(appErr, "App.canPostScheduledPost: failed to get root post, scheduled_post_id: %s, root_post_id: %s", scheduledPost.Id, scheduledPost.RootId)
+			return model.ScheduledPostErrorUnknownError, fmt.Errorf("App.canPostScheduledPost: failed to get root post, scheduled_post_id: %s, root_post_id: %s: %w", scheduledPost.Id, scheduledPost.RootId, appErr)
 		}
 
 		// you do get deleted posts from `GetPostsByIds`, so need to validate that as well
@@ -353,7 +352,7 @@ func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulSchedul
 				mlog.Int("successfully_posted_count", len(successfulScheduledPostIDs)),
 				mlog.Err(err),
 			)
-			return errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to delete successfully posted scheduled posts")
+			return fmt.Errorf("App.handleSuccessfulScheduledPosts: failed to delete successfully posted scheduled posts: %w", err)
 		}
 	}
 

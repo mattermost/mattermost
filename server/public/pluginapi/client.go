@@ -1,9 +1,10 @@
 package pluginapi
 
 import (
+	"fmt"
+
 	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/mattermost/server/public/plugin"
-	"github.com/pkg/errors"
 )
 
 // Client is a streamlined wrapper over the mattermost plugin API.
@@ -76,7 +77,7 @@ func ensureServerVersion(api plugin.API, required string) error {
 	requiredVersion := semver.MustParse(required)
 
 	if currentVersion.LessThan(requiredVersion) {
-		return errors.Errorf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, serverVersion)
+		return fmt.Errorf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, serverVersion)
 	}
 
 	return nil

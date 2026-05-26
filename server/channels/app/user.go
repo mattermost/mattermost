@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -13,8 +14,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"golang.org/x/sync/errgroup"
 
@@ -2887,7 +2886,7 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 		eg.Go(func() error {
 			totalUnreadThreads, err := a.Srv().Store().Thread().GetTotalUnreadThreads(userID, teamID, options)
 			if err != nil {
-				return errors.Wrapf(err, "failed to count unread threads for user id=%s", userID)
+				return fmt.Errorf("failed to count unread threads for user id=%s: %w", userID, err)
 			}
 			result.TotalUnreadThreads = totalUnreadThreads
 
@@ -2901,7 +2900,7 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 			eg.Go(func() error {
 				totalCount, err := a.Srv().Store().Thread().GetTotalThreads(userID, teamID, options)
 				if err != nil {
-					return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
+					return fmt.Errorf("failed to count threads for user id=%s: %w", userID, err)
 				}
 				result.Total = totalCount
 
@@ -2912,7 +2911,7 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 		eg.Go(func() error {
 			totalUnreadMentions, err := a.Srv().Store().Thread().GetTotalUnreadMentions(userID, teamID, options)
 			if err != nil {
-				return errors.Wrapf(err, "failed to count threads for user id=%s", userID)
+				return fmt.Errorf("failed to count threads for user id=%s: %w", userID, err)
 			}
 			result.TotalUnreadMentions = totalUnreadMentions
 
@@ -2923,7 +2922,7 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 			eg.Go(func() error {
 				totalUnreadUrgentMentions, err := a.Srv().Store().Thread().GetTotalUnreadUrgentMentions(userID, teamID, options)
 				if err != nil {
-					return errors.Wrapf(err, "failed to count urgent mentioned threads for user id=%s", userID)
+					return fmt.Errorf("failed to count urgent mentioned threads for user id=%s: %w", userID, err)
 				}
 				result.TotalUnreadUrgentMentions = totalUnreadUrgentMentions
 
@@ -2936,7 +2935,7 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 		eg.Go(func() error {
 			threads, err := a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, options)
 			if err != nil {
-				return errors.Wrapf(err, "failed to get threads for user id=%s", userID)
+				return fmt.Errorf("failed to get threads for user id=%s: %w", userID, err)
 			}
 			result.Threads = threads
 

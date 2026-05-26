@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	_ "embed"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,7 +22,6 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp" //nolint:staticcheck
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -175,7 +175,7 @@ func canIUpgrade() error {
 
 func CanIUpgradeToE0() error {
 	if err := canIUpgrade(); err != nil {
-		return errors.Wrap(err, "unable to upgrade from TE to E0")
+		return fmt.Errorf("unable to upgrade from TE to E0: %w", err)
 	}
 	if model.BuildEnterpriseReady == "true" {
 		mlog.Warn("Unable to upgrade from TE to E0. The server is already running E0.")
@@ -259,7 +259,7 @@ func download(url string) (string, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		io.Copy(io.Discard, resp.Body)
-		return "", errors.Errorf("error downloading file %s: %s", url, resp.Status)
+		return "", fmt.Errorf("error downloading file %s: %s", url, resp.Status)
 	}
 
 	out, err := os.CreateTemp("", "*_mattermost.tar.gz")
@@ -334,7 +334,7 @@ func extractBinary(executablePath string, filename string) error {
 				err2 := os.Rename(tmpFileName, executablePath)
 				if err2 != nil {
 					mlog.Fatal("Unable to restore the backup of the executable file. Restore the executable file manually.")
-					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
+					return fmt.Errorf("critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually: %w", err2)
 				}
 				return err
 			}
@@ -343,13 +343,13 @@ func extractBinary(executablePath string, filename string) error {
 				err2 := os.Remove(executablePath)
 				if err2 != nil {
 					mlog.Fatal("Unable to restore the backup of the executable file. Restore the executable file manually.")
-					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
+					return fmt.Errorf("critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually: %w", err2)
 				}
 
 				err2 = os.Rename(tmpFileName, executablePath)
 				if err2 != nil {
 					mlog.Fatal("Unable to restore the backup of the executable file. Restore the executable file manually.")
-					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
+					return fmt.Errorf("critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually: %w", err2)
 				}
 				return err
 			}

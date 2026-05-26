@@ -5,11 +5,12 @@ package filestore
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -202,7 +203,7 @@ func newFileBackend(settings FileBackendSettings, canBeCloud bool) (FileBackend,
 		}
 		backend, err := newBackendFn(settings)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to connect to the s3 backend")
+			return nil, fmt.Errorf("unable to connect to the s3 backend: %w", err)
 		}
 		return backend, nil
 	case driverLocal:
@@ -212,7 +213,7 @@ func newFileBackend(settings FileBackendSettings, canBeCloud bool) (FileBackend,
 	case driverAzure:
 		backend, err := NewAzureFileBackend(settings)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to connect to the azure backend")
+			return nil, fmt.Errorf("unable to connect to the azure backend: %w", err)
 		}
 		return backend, nil
 	}

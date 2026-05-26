@@ -6,6 +6,7 @@ package mail
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -17,7 +18,6 @@ import (
 	"time"
 
 	"code.sajari.com/docconv/v2"
-	"github.com/pkg/errors"
 	gomail "gopkg.in/mail.v2"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -138,12 +138,12 @@ func ConnectToSMTPServerAdvanced(config *SMTPConfig) (net.Conn, error) {
 
 		conn, err = tls.DialWithDialer(dialer, "tcp", smtpAddress, tlsconfig)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to connect to the SMTP server through TLS")
+			return nil, fmt.Errorf("unable to connect to the SMTP server through TLS: %w", err)
 		}
 	} else {
 		conn, err = dialer.Dial("tcp", smtpAddress)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to connect to the SMTP server")
+			return nil, fmt.Errorf("unable to connect to the SMTP server: %w", err)
 		}
 	}
 
@@ -174,16 +174,16 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, config *SMTPConfi
 	case <-ctx.Done():
 		err := ctx.Err()
 		if err != nil && err.Error() != "context canceled" {
-			return nil, errors.Wrap(err, "unable to connect to the SMTP server")
+			return nil, fmt.Errorf("unable to connect to the SMTP server: %w", err)
 		}
 	case err := <-ec:
-		return nil, errors.Wrap(err, "unable to connect to the SMTP server")
+		return nil, fmt.Errorf("unable to connect to the SMTP server: %w", err)
 	}
 
 	if config.Hostname != "" {
 		err := c.Hello(config.Hostname)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to send hello message")
+			return nil, fmt.Errorf("unable to send hello message: %w", err)
 		}
 	}
 
@@ -197,7 +197,7 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, config *SMTPConfi
 
 	if config.EnableSMTPAuth {
 		if err := c.Auth(&authChooser{config: config}); err != nil {
-			return nil, errors.Wrap(err, "authentication failed")
+			return nil, fmt.Errorf("authentication failed: %w", err)
 		}
 	}
 	return c, nil
@@ -214,7 +214,7 @@ func NewSMTPClient(ctx context.Context, conn net.Conn, config *SMTPConfig) (*smt
 func TestConnection(config *SMTPConfig) error {
 	conn, err := ConnectToSMTPServer(config)
 	if err != nil {
-		return errors.Wrap(err, "unable to connect")
+		return fmt.Errorf("unable to connect: %w", err)
 	}
 	defer conn.Close()
 
@@ -226,7 +226,7 @@ func TestConnection(config *SMTPConfig) error {
 
 	c, err := NewSMTPClient(ctx, conn, config)
 	if err != nil {
-		return errors.Wrap(err, "unable to connect")
+		return fmt.Errorf("unable to connect: %w", err)
 	}
 	c.Close()
 	c.Quit()
@@ -353,25 +353,25 @@ func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) e
 	}
 
 	if err = c.Mail(mail.from.Address); err != nil {
-		return errors.Wrap(err, "failed to set the from address")
+		return fmt.Errorf("failed to set the from address: %w", err)
 	}
 
 	if err = c.Rcpt(mail.smtpTo); err != nil {
-		return errors.Wrap(err, "failed to set the to address")
+		return fmt.Errorf("failed to set the to address: %w", err)
 	}
 
 	w, err := c.Data()
 	if err != nil {
-		return errors.Wrap(err, "failed to add email message data")
+		return fmt.Errorf("failed to add email message data: %w", err)
 	}
 
 	_, err = m.WriteTo(w)
 	if err != nil {
-		return errors.Wrap(err, "failed to write the email message")
+		return fmt.Errorf("failed to write the email message: %w", err)
 	}
 	err = w.Close()
 	if err != nil {
-		return errors.Wrap(err, "failed to close connection to the SMTP server")
+		return fmt.Errorf("failed to close connection to the SMTP server: %w", err)
 	}
 
 	return nil

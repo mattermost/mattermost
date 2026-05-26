@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 

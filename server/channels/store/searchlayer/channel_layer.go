@@ -5,8 +5,7 @@ package searchlayer
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
+	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -246,7 +245,7 @@ func (c *SearchChannelStore) Autocomplete(rctx request.CTX, userID, term string,
 		rctx.Logger().Debug("Using database search because no other search engine is available")
 		channelList, err = c.ChannelStore.Autocomplete(rctx, userID, term, includeDeleted, isGuest)
 		if err != nil {
-			return nil, errors.Wrap(err, "Failed to autocomplete channels in team")
+			return nil, fmt.Errorf("Failed to autocomplete channels in team: %w", err)
 		}
 	}
 
@@ -279,7 +278,7 @@ func (c *SearchChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID
 		rctx.Logger().Debug("Using database search because no other search engine is available")
 		channelList, err = c.ChannelStore.AutocompleteInTeam(rctx, teamID, userID, term, includeDeleted, isGuest)
 		if err != nil {
-			return nil, errors.Wrap(err, "Failed to autocomplete channels in team")
+			return nil, fmt.Errorf("Failed to autocomplete channels in team: %w", err)
 		}
 	}
 
@@ -301,7 +300,7 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 	if len(channelIds) > 0 {
 		channelList, nErr = c.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 		if nErr != nil {
-			return nil, errors.Wrap(nErr, "Failed to get channels by ids")
+			return nil, fmt.Errorf("Failed to get channels by ids: %w", nErr)
 		}
 	}
 
@@ -319,7 +318,7 @@ func (c *SearchChannelStore) searchAutocompleteChannelsAllTeams(engine searcheng
 	if len(channelIds) > 0 {
 		channelList, nErr = c.ChannelStore.GetChannelsWithTeamDataByIds(channelIds, includeDeleted)
 		if nErr != nil {
-			return nil, errors.Wrap(nErr, "Failed to get channels by ids")
+			return nil, fmt.Errorf("Failed to get channels by ids: %w", nErr)
 		}
 	}
 

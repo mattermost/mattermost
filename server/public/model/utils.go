@@ -9,6 +9,7 @@ import (
 	"database/sql/driver"
 	"encoding/base32"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -25,7 +26,6 @@ import (
 	"unicode"
 
 	"github.com/pborman/uuid"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -356,7 +356,7 @@ func AppErrorFromJSON(r io.Reader) error {
 			return errors.New("The request was too large. Consider asking your System Admin to raise the FileSettings.MaxFileSize setting.")
 		}
 
-		return errors.Wrapf(err, "failed to decode JSON payload into AppError. Body: %s", string(data))
+		return fmt.Errorf("failed to decode JSON payload into AppError. Body: %s: %w", string(data), err)
 	}
 
 	return &er

@@ -6,6 +6,7 @@ package commands
 import (
 	"archive/zip"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"

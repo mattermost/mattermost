@@ -5,13 +5,13 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/url"
 	"path"
 	"reflect"
 	"slices"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // AutocompleteArgType describes autocomplete argument type
@@ -204,7 +204,7 @@ func (ad *AutocompleteData) UpdateRelativeURLsForPluginCommands(baseURL *url.URL
 		}
 		dynamicListURL, err := url.Parse(dynamicList.FetchURL)
 		if err != nil {
-			return errors.Wrapf(err, "FetchURL is not a proper url")
+			return fmt.Errorf("FetchURL is not a proper url: %w", err)
 		}
 		if !dynamicListURL.IsAbs() {
 			absURL := &url.URL{}
@@ -259,7 +259,7 @@ func (ad *AutocompleteData) IsValid() error {
 				}
 				_, err := url.Parse(dynamicList.FetchURL)
 				if err != nil {
-					return errors.Wrapf(err, "FetchURL is not a proper url")
+					return fmt.Errorf("FetchURL is not a proper url: %w", err)
 				}
 			} else if arg.Type == AutocompleteArgTypeStaticList {
 				staticList, ok := arg.Data.(*AutocompleteStaticListArg)
@@ -306,77 +306,77 @@ func (a *AutocompleteArg) Equals(arg *AutocompleteArg) bool {
 func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 	var arg map[string]any
 	if err := json.Unmarshal(b, &arg); err != nil {
-		return errors.Wrapf(err, "Can't unmarshal argument %s", string(b))
+		return fmt.Errorf("Can't unmarshal argument %s: %w", string(b), err)
 	}
 	var ok bool
 	a.Name, ok = arg["Name"].(string)
 	if !ok {
-		return errors.Errorf("No field Name in the argument %s", string(b))
+		return fmt.Errorf("No field Name in the argument %s", string(b))
 	}
 
 	a.HelpText, ok = arg["HelpText"].(string)
 	if !ok {
-		return errors.Errorf("No field HelpText in the argument %s", string(b))
+		return fmt.Errorf("No field HelpText in the argument %s", string(b))
 	}
 
 	t, ok := arg["Type"].(string)
 	if !ok {
-		return errors.Errorf("No field Type in the argument %s", string(b))
+		return fmt.Errorf("No field Type in the argument %s", string(b))
 	}
 	a.Type = AutocompleteArgType(t)
 
 	a.Required, ok = arg["Required"].(bool)
 	if !ok {
-		return errors.Errorf("No field Required in the argument %s", string(b))
+		return fmt.Errorf("No field Required in the argument %s", string(b))
 	}
 
 	data, ok := arg["Data"]
 	if !ok {
-		return errors.Errorf("No field Data in the argument %s", string(b))
+		return fmt.Errorf("No field Data in the argument %s", string(b))
 	}
 
 	if a.Type == AutocompleteArgTypeText {
 		m, ok := data.(map[string]any)
 		if !ok {
-			return errors.Errorf("Wrong Data type in the TextInput argument %s", string(b))
+			return fmt.Errorf("Wrong Data type in the TextInput argument %s", string(b))
 		}
 		pattern, ok := m["Pattern"].(string)
 		if !ok {
-			return errors.Errorf("No field Pattern in the TextInput argument %s", string(b))
+			return fmt.Errorf("No field Pattern in the TextInput argument %s", string(b))
 		}
 		hint, ok := m["Hint"].(string)
 		if !ok {
-			return errors.Errorf("No field Hint in the TextInput argument %s", string(b))
+			return fmt.Errorf("No field Hint in the TextInput argument %s", string(b))
 		}
 		a.Data = &AutocompleteTextArg{Hint: hint, Pattern: pattern}
 	} else if a.Type == AutocompleteArgTypeStaticList {
 		m, ok := data.(map[string]any)
 		if !ok {
-			return errors.Errorf("Wrong Data type in the StaticList argument %s", string(b))
+			return fmt.Errorf("Wrong Data type in the StaticList argument %s", string(b))
 		}
 		list, ok := m["PossibleArguments"].([]any)
 		if !ok {
-			return errors.Errorf("No field PossibleArguments in the StaticList argument %s", string(b))
+			return fmt.Errorf("No field PossibleArguments in the StaticList argument %s", string(b))
 		}
 
 		possibleArguments := []AutocompleteListItem{}
 		for i := range list {
 			args, ok := list[i].(map[string]any)
 			if !ok {
-				return errors.Errorf("Wrong AutocompleteStaticListItem type in the StaticList argument %s", string(b))
+				return fmt.Errorf("Wrong AutocompleteStaticListItem type in the StaticList argument %s", string(b))
 			}
 			item, ok := args["Item"].(string)
 			if !ok {
-				return errors.Errorf("No field Item in the StaticList's possible arguments %s", string(b))
+				return fmt.Errorf("No field Item in the StaticList's possible arguments %s", string(b))
 			}
 
 			hint, ok := args["Hint"].(string)
 			if !ok {
-				return errors.Errorf("No field Hint in the StaticList's possible arguments %s", string(b))
+				return fmt.Errorf("No field Hint in the StaticList's possible arguments %s", string(b))
 			}
 			helpText, ok := args["HelpText"].(string)
 			if !ok {
-				return errors.Errorf("No field Hint in the StaticList's possible arguments %s", string(b))
+				return fmt.Errorf("No field Hint in the StaticList's possible arguments %s", string(b))
 			}
 
 			possibleArguments = append(possibleArguments, AutocompleteListItem{
@@ -389,11 +389,11 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 	} else if a.Type == AutocompleteArgTypeDynamicList {
 		m, ok := data.(map[string]any)
 		if !ok {
-			return errors.Errorf("Wrong type in the DynamicList argument %s", string(b))
+			return fmt.Errorf("Wrong type in the DynamicList argument %s", string(b))
 		}
 		url, ok := m["FetchURL"].(string)
 		if !ok {
-			return errors.Errorf("No field FetchURL in the DynamicList's argument %s", string(b))
+			return fmt.Errorf("No field FetchURL in the DynamicList's argument %s", string(b))
 		}
 		a.Data = &AutocompleteDynamicListArg{FetchURL: url}
 	}

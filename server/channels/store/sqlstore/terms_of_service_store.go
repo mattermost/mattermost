@@ -5,9 +5,9 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -51,7 +51,7 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*mod
 				`
 
 	if _, err := s.GetMaster().NamedExec(query, termsOfService); err != nil {
-		return nil, errors.Wrapf(err, "could not save a new TermsOfService")
+		return nil, fmt.Errorf("could not save a new TermsOfService: %w", err)
 	}
 
 	return termsOfService, nil
@@ -68,7 +68,7 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfSe
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TermsOfService", "CreateAt=latest")
 		}
-		return nil, errors.Wrap(err, "could not find latest TermsOfService")
+		return nil, fmt.Errorf("could not find latest TermsOfService: %w", err)
 	}
 
 	return &termsOfService, nil
@@ -84,7 +84,7 @@ func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.Term
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TermsOfService", "id")
 		}
-		return nil, errors.Wrapf(err, "could not find TermsOfService with id=%s", id)
+		return nil, fmt.Errorf("could not find TermsOfService with id=%s: %w", id, err)
 	}
 	return &termsOfService, nil
 }

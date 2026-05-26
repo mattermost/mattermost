@@ -5,9 +5,8 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
-
-	"github.com/pkg/errors"
 )
 
 type ProductNotices []ProductNotice

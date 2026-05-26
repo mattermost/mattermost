@@ -6,12 +6,12 @@ package sql
 import (
 	"context"
 	dbsql "database/sql"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -26,7 +26,7 @@ const (
 func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string, settings *model.SqlSettings, attempts int) (*dbsql.DB, error) {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to open SQL connection")
+		return nil, fmt.Errorf("failed to open SQL connection: %w", err)
 	}
 
 	// At this point, we have passed sql.Open, so we deliberately ignore any errors.

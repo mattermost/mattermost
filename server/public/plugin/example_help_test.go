@@ -4,10 +4,9 @@
 package plugin_test
 
 import (
+	"fmt"
 	"strings"
 	"sync"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -67,17 +66,17 @@ func (p *HelpPlugin) OnConfigurationChange() error {
 
 	// Load the public configuration fields from the Mattermost server configuration.
 	if err := p.API.LoadPluginConfiguration(configuration); err != nil {
-		return errors.Wrap(err, "failed to load plugin configuration")
+		return fmt.Errorf("failed to load plugin configuration: %w", err)
 	}
 
 	team, err := p.API.GetTeamByName(configuration.TeamName)
 	if err != nil {
-		return errors.Wrapf(err, "failed to find team %s", configuration.TeamName)
+		return fmt.Errorf("failed to find team %s: %w", configuration.TeamName, err)
 	}
 
 	channel, err := p.API.GetChannelByName(team.Id, configuration.ChannelName, false)
 	if err != nil {
-		return errors.Wrapf(err, "failed to find channel %s", configuration.ChannelName)
+		return fmt.Errorf("failed to find channel %s: %w", configuration.ChannelName, err)
 	}
 
 	configuration.channelID = channel.Id

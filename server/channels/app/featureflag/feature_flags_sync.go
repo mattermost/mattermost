@@ -4,12 +4,12 @@
 package featureflag
 
 import (
+	"fmt"
 	"math"
 	"reflect"
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/splitio/go-client/v6/splitio/client"
 	"github.com/splitio/go-client/v6/splitio/conf"
 
@@ -44,7 +44,7 @@ func NewSynchronizer(params SyncParams) (*Synchronizer, error) {
 	}
 	factory, err := client.NewSplitFactory(params.SplitKey, cfg)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to create split factory")
+		return nil, fmt.Errorf("unable to create split factory: %w", err)
 	}
 
 	return &Synchronizer{
@@ -58,7 +58,7 @@ func NewSynchronizer(params SyncParams) (*Synchronizer, error) {
 // EnsureReady blocks until the synchronizer is ready to update feature flag values
 func (f *Synchronizer) EnsureReady() error {
 	if err := f.client.BlockUntilReady(10); err != nil {
-		return errors.Wrap(err, "split.io client could not initialize")
+		return fmt.Errorf("split.io client could not initialize: %w", err)
 	}
 
 	return nil

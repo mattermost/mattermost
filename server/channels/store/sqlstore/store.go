@@ -216,7 +216,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 
 	err := store.initConnection()
 	if err != nil {
-		return nil, errors.Wrap(err, "error setting up connections")
+		return nil, fmt.Errorf("error setting up connections: %w", err)
 	}
 
 	store.wgMonitor.Add(1)
@@ -224,29 +224,29 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 
 	ver, err := store.GetDbVersion(true)
 	if err != nil {
-		return nil, errors.Wrap(err, "error while getting DB version")
+		return nil, fmt.Errorf("error while getting DB version: %w", err)
 	}
 
 	ok, err := store.ensureMinimumDBVersion(ver)
 	if !ok {
-		return nil, errors.Wrap(err, "error while checking DB version")
+		return nil, fmt.Errorf("error while checking DB version: %w", err)
 	}
 
 	if !store.skipMigrations {
 		err = store.migrate(migrationsDirectionUp, false, !store.disableMorphLogging)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to apply database migrations")
+			return nil, fmt.Errorf("failed to apply database migrations: %w", err)
 		}
 	}
 
 	store.isBinaryParam, err = store.computeBinaryParam()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to compute binary param")
+		return nil, fmt.Errorf("failed to compute binary param: %w", err)
 	}
 
 	store.pgDefaultTextSearchConfig, err = store.computeDefaultTextSearchConfig()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to compute default text search config")
+		return nil, fmt.Errorf("failed to compute default text search config: %w", err)
 	}
 
 	store.stores.team = newSqlTeamStore(store)
@@ -1092,7 +1092,7 @@ func (ss *SqlStore) GetLocalSchemaVersion() (int, error) {
 func (ss *SqlStore) GetDBSchemaVersion() (int, error) {
 	var version int
 	if err := ss.GetMaster().Get(&version, "SELECT Version FROM db_migrations ORDER BY Version DESC LIMIT 1"); err != nil {
-		return 0, errors.Wrap(err, "unable to select from db_migrations")
+		return 0, fmt.Errorf("unable to select from db_migrations: %w", err)
 	}
 	return version, nil
 }
@@ -1100,7 +1100,7 @@ func (ss *SqlStore) GetDBSchemaVersion() (int, error) {
 func (ss *SqlStore) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	migrations := []model.AppliedMigration{}
 	if err := ss.GetMaster().Select(&migrations, "SELECT Version, Name FROM db_migrations ORDER BY Version DESC"); err != nil {
-		return nil, errors.Wrap(err, "unable to select from db_migrations")
+		return nil, fmt.Errorf("unable to select from db_migrations: %w", err)
 	}
 
 	return migrations, nil

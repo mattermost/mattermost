@@ -4,10 +4,11 @@
 package retrylayer
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/lib/pq"
-	"github.com/pkg/errors"
 
 	"github.com/lib/pq/pqerror"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -106,7 +107,7 @@ func TestRetry(t *testing.T) {
 				mock := genStore()
 				mockBotStore := mock.Bot().(*mocks.BotStore)
 				pqErr := pq.Error{Code: pqerror.Code(errCode)}
-				mockBotStore.On("Get", "test", false).Return(nil, errors.Wrap(&pqErr, "test-error")).Times(3)
+				mockBotStore.On("Get", "test", false).Return(nil, fmt.Errorf("test-error: %w", &pqErr)).Times(3)
 				mock.On("Bot").Return(&mockBotStore)
 				layer := New(mock)
 				layer.Bot().Get("test", false)
@@ -119,7 +120,7 @@ func TestRetry(t *testing.T) {
 		mock := genStore()
 		mockBotStore := mock.Bot().(*mocks.BotStore)
 		pqErr := pq.Error{Code: "20000"}
-		mockBotStore.On("Get", "test", false).Return(nil, errors.Wrap(&pqErr, "test-error")).Times(1)
+		mockBotStore.On("Get", "test", false).Return(nil, fmt.Errorf("test-error: %w", &pqErr)).Times(1)
 		mock.On("Bot").Return(&mockBotStore)
 		layer := New(mock)
 		layer.Bot().Get("test", false)

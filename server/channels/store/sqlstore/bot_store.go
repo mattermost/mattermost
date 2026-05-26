@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -97,7 +95,7 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, er
 	if err := us.GetReplica().Get(&bot, query, botUserId); err == sql.ErrNoRows {
 		return nil, store.NewErrNotFound("Bot", botUserId)
 	} else if err != nil {
-		return nil, errors.Wrapf(err, "selectone: user_id=%s", botUserId)
+		return nil, fmt.Errorf("selectone: user_id=%s: %w", botUserId, err)
 	}
 
 	return &bot, nil
@@ -156,7 +154,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 
 	bots := []*model.Bot{}
 	if err := us.GetReplica().Select(&bots, sql, args...); err != nil {
-		return nil, errors.Wrap(err, "error selecting all bots")
+		return nil, fmt.Errorf("error selecting all bots: %w", err)
 	}
 
 	return bots, nil
@@ -176,7 +174,7 @@ func (us SqlBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 		(UserId, Description, OwnerId, LastIconUpdate, CreateAt, UpdateAt, DeleteAt)
 		VALUES
 		(:UserId, :Description, :OwnerId, :LastIconUpdate, :CreateAt, :UpdateAt, :DeleteAt)`, botFromModel(bot)); err != nil {
-		return nil, errors.Wrapf(err, "insert: user_id=%s", bot.UserId)
+		return nil, fmt.Errorf("insert: user_id=%s: %w", bot.UserId, err)
 	}
 
 	return bot, nil
@@ -209,11 +207,11 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 			UpdateAt=:UpdateAt, DeleteAt=:DeleteAt
 		WHERE UserId=:UserId`, botFromModel(bot))
 	if err != nil {
-		return nil, errors.Wrapf(err, "update: user_id=%s", bot.UserId)
+		return nil, fmt.Errorf("update: user_id=%s: %w", bot.UserId, err)
 	}
 	count, err := res.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrap(err, "error while getting rows_affected")
+		return nil, fmt.Errorf("error while getting rows_affected: %w", err)
 	}
 	if count > 1 {
 		return nil, fmt.Errorf("unexpected count while updating bot: count=%d, userId=%s", count, bot.UserId)
@@ -237,12 +235,12 @@ func (us SqlBotStore) GetAllAfter(limit int, afterId string) ([]*model.Bot, erro
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "get_all_after_tosql")
+		return nil, fmt.Errorf("get_all_after_tosql: %w", err)
 	}
 
 	bots := []*model.Bot{}
 	if err := us.GetReplica().Select(&bots, queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to find Bots")
+		return nil, fmt.Errorf("failed to find Bots: %w", err)
 	}
 
 	return bots, nil
@@ -254,16 +252,16 @@ func (us SqlBotStore) GetByUsername(username string) (*model.Bot, error) {
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "get_by_username_tosql")
+		return nil, fmt.Errorf("get_by_username_tosql: %w", err)
 	}
 
 	bot := model.Bot{}
 	if err := us.GetReplica().Get(&bot, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.Wrap(store.NewErrNotFound("Bot", fmt.Sprintf("username=%s", username)), "failed to find Bot")
+			return nil, fmt.Errorf("failed to find Bot: %w", store.NewErrNotFound("Bot", fmt.Sprintf("username=%s", username)))
 		}
 
-		return nil, errors.Wrapf(err, "failed to find Bot with username=%s", username)
+		return nil, fmt.Errorf("failed to find Bot with username=%s: %w", username, err)
 	}
 
 	return &bot, nil

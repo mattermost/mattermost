@@ -4,8 +4,9 @@
 package sqlstore
 
 import (
+	"fmt"
+
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -35,7 +36,7 @@ func (s *SqlChannelGuardStore) Save(rctx request.CTX, guard *store.ChannelGuard)
 		SuffixExpr(sq.Expr("ON CONFLICT (ChannelId, PluginId) DO NOTHING"))
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return errors.Wrapf(err, "failed to save channel guard for channel=%s plugin=%s", guard.ChannelId, guard.PluginId)
+		return fmt.Errorf("failed to save channel guard for channel=%s plugin=%s: %w", guard.ChannelId, guard.PluginId, err)
 	}
 
 	return nil
@@ -51,12 +52,12 @@ func (s *SqlChannelGuardStore) Delete(rctx request.CTX, channelID, pluginID stri
 
 	result, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to delete channel guard for channel=%s plugin=%s", channelID, pluginID)
+		return 0, fmt.Errorf("failed to delete channel guard for channel=%s plugin=%s: %w", channelID, pluginID, err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to get rows affected for channel guard delete channel=%s plugin=%s", channelID, pluginID)
+		return 0, fmt.Errorf("failed to get rows affected for channel guard delete channel=%s plugin=%s: %w", channelID, pluginID, err)
 	}
 
 	return rowsAffected, nil
@@ -67,7 +68,7 @@ func (s *SqlChannelGuardStore) GetForChannel(rctx request.CTX, channelID string)
 
 	guards := []*store.ChannelGuard{}
 	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&guards, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get channel guards for channel=%s", channelID)
+		return nil, fmt.Errorf("failed to get channel guards for channel=%s: %w", channelID, err)
 	}
 
 	return guards, nil
@@ -76,7 +77,7 @@ func (s *SqlChannelGuardStore) GetForChannel(rctx request.CTX, channelID string)
 func (s *SqlChannelGuardStore) GetAll(rctx request.CTX) ([]*store.ChannelGuard, error) {
 	guards := []*store.ChannelGuard{}
 	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&guards, s.channelGuardSelectQuery); err != nil {
-		return nil, errors.Wrap(err, "failed to get all channel guards")
+		return nil, fmt.Errorf("failed to get all channel guards: %w", err)
 	}
 
 	return guards, nil

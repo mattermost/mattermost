@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -20,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -510,15 +510,15 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	username, erru := cmd.Flags().GetString("username")
 	if erru != nil {
-		return errors.Wrap(erru, "Username is required")
+		return fmt.Errorf("Username is required: %w", erru)
 	}
 	email, erre := cmd.Flags().GetString("email")
 	if erre != nil {
-		return errors.Wrap(erre, "Email is required")
+		return fmt.Errorf("Email is required: %w", erre)
 	}
 	password, errp := cmd.Flags().GetString("password")
 	if errp != nil {
-		return errors.Wrap(errp, "Password is required")
+		return fmt.Errorf("Password is required: %w", errp)
 	}
 	nickname, _ := cmd.Flags().GetString("nickname")
 	firstname, _ := cmd.Flags().GetString("firstname")
@@ -553,7 +553,7 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	} else if guest {
 		if _, err := c.DemoteUserToGuest(context.TODO(), ruser.Id); err != nil {
-			return errors.Wrapf(err, "Unable to demote use to guest")
+			return fmt.Errorf("Unable to demote use to guest: %w", err)
 		}
 	}
 
@@ -633,7 +633,7 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 			var err error
 			current, err = getPasswordFromStdin()
 			if err != nil {
-				return errors.Wrap(err, "couldn't read password")
+				return fmt.Errorf("couldn't read password: %w", err)
 			}
 		}
 
@@ -641,7 +641,7 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		var err error
 		password, err = getPasswordFromStdin()
 		if err != nil {
-			return errors.Wrap(err, "couldn't read password")
+			return fmt.Errorf("couldn't read password: %w", err)
 		}
 	}
 
@@ -652,11 +652,11 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 
 	if hashed {
 		if _, err := c.UpdateUserHashedPassword(context.TODO(), user.Id, password); err != nil {
-			return errors.Wrap(err, "changing user hashed password failed")
+			return fmt.Errorf("changing user hashed password failed: %w", err)
 		}
 	} else {
 		if _, err := c.UpdateUserPassword(context.TODO(), user.Id, current, password); err != nil {
-			return errors.Wrap(err, "changing user password failed")
+			return fmt.Errorf("changing user password failed: %w", err)
 		}
 	}
 
@@ -834,7 +834,7 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		var err error
 		team, _, err = c.GetTeamByName(context.TODO(), teamName, "")
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("Failed to get team %s", teamName))
+			return fmt.Errorf("%s: %w", fmt.Sprintf("Failed to get team %s", teamName), err)
 		}
 	}
 
@@ -854,7 +854,7 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	for {
 		users, _, err := c.GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, params.Encode(), "")
 		if err != nil {
-			return errors.Wrap(err, "Failed to fetch users")
+			return fmt.Errorf("Failed to fetch users: %w", err)
 		}
 
 		if len(users) == 0 {

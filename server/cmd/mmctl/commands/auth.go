@@ -6,6 +6,7 @@ package commands
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -14,7 +15,6 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/term"
@@ -212,7 +212,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Password: ")
 		stdinPassword, err := getPasswordFromStdin()
 		if err != nil {
-			return errors.WithMessage(err, "couldn't read password")
+			return fmt.Errorf("couldn't read password: %w", err)
 		}
 		password = stdinPassword
 	}
@@ -374,7 +374,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 			fmt.Printf("Password: ")
 			stdinPassword, err := getPasswordFromStdin()
 			if err != nil {
-				return errors.WithMessage(err, "couldn't read password")
+				return fmt.Errorf("couldn't read password: %w", err)
 			}
 			password = stdinPassword
 		}
@@ -411,7 +411,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 		credentials.AuthToken = c.AuthToken
 
 	default:
-		return errors.Errorf("invalid auth method %q", credentials.AuthMethod)
+		return fmt.Errorf("invalid auth method %q", credentials.AuthMethod)
 	}
 
 	if err := SaveCredentials(*credentials); err != nil {
@@ -432,7 +432,7 @@ func deleteCmdF(cmd *cobra.Command, args []string) error {
 	name := args[0]
 	credentials := (*credentialsList)[name]
 	if credentials == nil {
-		return errors.Errorf("cannot find credentials for server name %q", name)
+		return fmt.Errorf("cannot find credentials for server name %q", name)
 	}
 
 	delete(*credentialsList, name)

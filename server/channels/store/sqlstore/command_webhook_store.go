@@ -5,9 +5,9 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -67,7 +67,7 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comm
 		)
 
 	if _, err := s.GetMaster().ExecBuilder(insertQuery); err != nil {
-		return nil, errors.Wrapf(err, "save: id=%s", webhook.Id)
+		return nil, fmt.Errorf("save: id=%s: %w", webhook.Id, err)
 	}
 
 	return webhook, nil
@@ -84,14 +84,14 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "get_tosql")
+		return nil, fmt.Errorf("get_tosql: %w", err)
 	}
 
 	if err := s.GetReplica().Get(&webhook, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("CommandWebhook", id)
 		}
-		return nil, errors.Wrapf(err, "get: id=%s", id)
+		return nil, fmt.Errorf("get: id=%s: %w", id, err)
 	}
 
 	return &webhook, nil
@@ -106,11 +106,11 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "tryuse_tosql")
+		return fmt.Errorf("tryuse_tosql: %w", err)
 	}
 
 	if sqlResult, err := s.GetMaster().Exec(queryString, args...); err != nil {
-		return errors.Wrapf(err, "tryuse: id=%s limit=%d", id, limit)
+		return fmt.Errorf("tryuse: id=%s limit=%d: %w", id, limit, err)
 	} else if rows, err := sqlResult.RowsAffected(); rows == 0 {
 		return store.NewErrInvalidInput("CommandWebhook", "id", id).Wrap(err)
 	}

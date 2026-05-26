@@ -1,12 +1,11 @@
 package flow
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -250,7 +249,7 @@ func buttonContext(request *model.PostActionIntegrationRequest) (Name, int, erro
 	}
 	buttonIndex, err := strconv.Atoi(buttonStr)
 	if err != nil {
-		return "", 0, errors.Wrap(err, "invalid button number")
+		return "", 0, fmt.Errorf("invalid button number: %w", err)
 	}
 
 	return fromName, buttonIndex, nil
@@ -264,7 +263,7 @@ func dialogContext(request *model.SubmitDialogRequest) (Name, int, error) {
 	fromName := Name(data[0])
 	buttonIndex, err := strconv.Atoi(data[1])
 	if err != nil {
-		return "", 0, errors.Wrap(err, "malformed button number")
+		return "", 0, fmt.Errorf("malformed button number: %w", err)
 	}
 	return fromName, buttonIndex, nil
 }

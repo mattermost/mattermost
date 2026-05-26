@@ -5,10 +5,10 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -106,7 +106,7 @@ func (s *SqlReadReceiptStore) Get(rctx request.CTX, postID, userID string) (*mod
 			return nil, store.NewErrNotFound("ReadReceipt", postID+"_"+userID)
 		}
 
-		return nil, errors.Wrapf(err, "failed to get ReadReceipt with id=%s", postID+"_"+userID)
+		return nil, fmt.Errorf("failed to get ReadReceipt with id=%s: %w", postID+"_"+userID, err)
 	}
 
 	return &receipt, nil
@@ -119,7 +119,7 @@ func (s *SqlReadReceiptStore) GetByPost(rctx request.CTX, postID string) ([]*mod
 	var receipts []*model.ReadReceipt
 	err := s.GetReplica().SelectBuilder(&receipts, query)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get ReadReceipts for postId=%s", postID)
+		return nil, fmt.Errorf("failed to get ReadReceipts for postId=%s: %w", postID, err)
 	}
 
 	return receipts, nil
@@ -157,7 +157,7 @@ func (s *SqlReadReceiptStore) GetUnreadCountForPost(rctx request.CTX, post *mode
 	// Use master to avoid stale data from replica after writing a read receipt
 	err := s.GetMaster().GetBuilder(&unreadCount, unreadQuery)
 	if err != nil {
-		return -1, errors.Wrapf(err, "failed to get unread count for postId=%s channelId=%s", post.Id, post.ChannelId)
+		return -1, fmt.Errorf("failed to get unread count for postId=%s channelId=%s: %w", post.Id, post.ChannelId, err)
 	}
 
 	// Return true if no one is unread (all have read it)

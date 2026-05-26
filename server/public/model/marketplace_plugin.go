@@ -7,11 +7,10 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/url"
 	"strconv"
-
-	"github.com/pkg/errors"
 )
 
 // BaseMarketplacePlugin is a Mattermost plugin received from the Marketplace server.
@@ -71,7 +70,7 @@ func MarketplacePluginsFromReader(reader io.Reader) ([]*MarketplacePlugin, error
 func (plugin *BaseMarketplacePlugin) DecodeSignature() (io.ReadSeeker, error) {
 	signatureBytes, err := base64.StdEncoding.DecodeString(plugin.Signature)
 	if err != nil {
-		return nil, errors.Wrap(err, "Unable to decode base64 signature.")
+		return nil, fmt.Errorf("Unable to decode base64 signature.: %w", err)
 	}
 	return bytes.NewReader(signatureBytes), nil
 }

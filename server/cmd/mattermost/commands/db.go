@@ -6,11 +6,11 @@ package commands
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -107,18 +107,18 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 
 	customDefaults, err := loadCustomDefaults()
 	if err != nil {
-		return errors.Wrap(err, "error loading custom configuration defaults")
+		return fmt.Errorf("error loading custom configuration defaults: %w", err)
 	}
 
 	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, customDefaults, true)
 	if err != nil {
-		return errors.Wrap(err, "failed to load configuration")
+		return fmt.Errorf("failed to load configuration: %w", err)
 	}
 	defer configStore.Close()
 
 	sqlStore, err := sqlstore.New(configStore.Get().SqlSettings, logger, nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to initialize store")
+		return fmt.Errorf("failed to initialize store: %w", err)
 	}
 	defer sqlStore.Close()
 
@@ -132,7 +132,7 @@ func resetCmdF(command *cobra.Command, args []string) error {
 
 	ss, err := initStoreCommandContextCobra(logger, command)
 	if err != nil {
-		return errors.Wrap(err, "could not initialize store")
+		return fmt.Errorf("could not initialize store: %w", err)
 	}
 	defer ss.Close()
 
@@ -169,19 +169,19 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 	dryRun, _ := command.Flags().GetBool("dry-run")
 	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
 	if err != nil {
-		return errors.Wrap(err, "failed to load configuration")
+		return fmt.Errorf("failed to load configuration: %w", err)
 	}
 	config := cfgStore.Get()
 
 	migrator, err := sqlstore.NewMigrator(config.SqlSettings, logger, dryRun)
 	if err != nil {
-		return errors.Wrap(err, "failed to create migrator")
+		return fmt.Errorf("failed to create migrator: %w", err)
 	}
 	defer migrator.Close()
 
 	plan, err := migrator.GeneratePlan(recoverFlag)
 	if err != nil {
-		return errors.Wrap(err, "failed to generate migration plan")
+		return fmt.Errorf("failed to generate migration plan: %w", err)
 	}
 
 	if len(plan.Migrations) == 0 {
@@ -218,7 +218,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 
 	err = migrator.MigrateWithPlan(plan, dryRun)
 	if err != nil {
-		return errors.Wrap(err, "failed to migrate with the plan")
+		return fmt.Errorf("failed to migrate with the plan: %w", err)
 	}
 
 	CommandPrettyPrintln("Database successfully migrated")
@@ -233,7 +233,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
 	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
 	if err != nil {
-		return errors.Wrap(err, "failed to load configuration")
+		return fmt.Errorf("failed to load configuration: %w", err)
 	}
 	config := cfgStore.Get()
 
@@ -247,7 +247,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 
 	migrator, err := sqlstore.NewMigrator(config.SqlSettings, logger, dryRun)
 	if err != nil {
-		return errors.Wrap(err, "failed to create migrator")
+		return fmt.Errorf("failed to create migrator: %w", err)
 	}
 	defer migrator.Close()
 
@@ -259,7 +259,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 
 		err = migrator.DowngradeMigrations(dryRun, versions...)
 		if err != nil {
-			return errors.Wrap(err, "failed to downgrade migrations")
+			return fmt.Errorf("failed to downgrade migrations: %w", err)
 		}
 
 		CommandPrettyPrintln("Database successfully downgraded")
@@ -282,7 +282,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 
 	err = migrator.MigrateWithPlan(&plan, dryRun)
 	if err != nil {
-		return errors.Wrap(err, "failed to migrate with the plan")
+		return fmt.Errorf("failed to migrate with the plan: %w", err)
 	}
 
 	CommandPrettyPrintln("Database successfully downgraded")
@@ -296,7 +296,7 @@ func dbVersionCmdF(command *cobra.Command, args []string) error {
 
 	ss, err := initStoreCommandContextCobra(logger, command)
 	if err != nil {
-		return errors.Wrap(err, "could not initialize store")
+		return fmt.Errorf("could not initialize store: %w", err)
 	}
 	defer ss.Close()
 
@@ -304,7 +304,7 @@ func dbVersionCmdF(command *cobra.Command, args []string) error {
 	if allFlag {
 		applied, err2 := ss.GetAppliedMigrations()
 		if err2 != nil {
-			return errors.Wrap(err2, "failed to get applied migrations")
+			return fmt.Errorf("failed to get applied migrations: %w", err2)
 		}
 		for _, migration := range applied {
 			CommandPrettyPrintln(fmt.Sprintf("Varsion: %d, Name: %s", migration.Version, migration.Name))
@@ -314,7 +314,7 @@ func dbVersionCmdF(command *cobra.Command, args []string) error {
 
 	v, err := ss.GetDBSchemaVersion()
 	if err != nil {
-		return errors.Wrap(err, "failed to get schema version")
+		return fmt.Errorf("failed to get schema version: %w", err)
 	}
 
 	CommandPrettyPrintln("Current database schema version is: " + strconv.Itoa(v))

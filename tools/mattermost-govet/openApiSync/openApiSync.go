@@ -5,6 +5,7 @@ package openApiSync
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/printer"
@@ -17,7 +18,6 @@ import (
 
 	"github.com/pb33f/libopenapi"
 	v3high "github.com/pb33f/libopenapi/datamodel/high/v3"
-	"github.com/pkg/errors"
 	"github.com/sajari/fuzzy"
 	"golang.org/x/tools/go/analysis"
 )
@@ -285,19 +285,19 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, errors.New("Please supply a path to OpenAPI spec yaml file via -openApiSync.spec")
 	}
 	if _, err := os.Stat(specFile); err != nil {
-		return nil, errors.Wrapf(err, "spec file does not exist")
+		return nil, fmt.Errorf("spec file does not exist: %w", err)
 	}
 	data, err := os.ReadFile(specFile)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Unable to read spec file")
+		return nil, fmt.Errorf("Unable to read spec file: %w", err)
 	}
 	doc, err := libopenapi.NewDocument(data)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Unable to parse spec file. Expected OpenAPI3 format.")
+		return nil, fmt.Errorf("Unable to parse spec file. Expected OpenAPI3 format.: %w", err)
 	}
 	model, err := doc.BuildV3Model()
 	if err != nil {
-		return nil, errors.Wrapf(err, "Unable to build OpenAPI3 model")
+		return nil, fmt.Errorf("Unable to build OpenAPI3 model: %w", err)
 	}
 
 	initFunctions, routerPrefixes := validateComments(pass)

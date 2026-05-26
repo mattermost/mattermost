@@ -4,8 +4,9 @@
 package sqlstore
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/pkg/errors"
 )
 
 type SqlContentFlaggingStore struct {
@@ -19,7 +20,7 @@ func newContentFlaggingStore(sqlStore *SqlStore) *SqlContentFlaggingStore {
 func (s *SqlContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error {
 	tx, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "SqlContentFlaggingStore.SaveReviewerSettings failed to begin transaction")
+		return fmt.Errorf("SqlContentFlaggingStore.SaveReviewerSettings failed to begin transaction: %w", err)
 	}
 	defer finalizeTransactionX(tx, &err)
 
@@ -36,7 +37,7 @@ func (s *SqlContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.Re
 	}
 
 	if err := tx.Commit(); err != nil {
-		return errors.Wrap(err, "SqlContentFlaggingStore.SaveReviewerSettings failed to commit transaction")
+		return fmt.Errorf("SqlContentFlaggingStore.SaveReviewerSettings failed to commit transaction: %w", err)
 	}
 
 	return nil
@@ -46,7 +47,7 @@ func (s *SqlContentFlaggingStore) saveCommonReviewers(tx *sqlxTxWrapper, commonR
 	// first delete existing common reviewers
 	deleteBuilder := s.getQueryBuilder().Delete("ContentFlaggingCommonReviewers")
 	if _, err := tx.ExecBuilder(deleteBuilder); err != nil {
-		return errors.Wrap(err, "SqlContentFlaggingStore.saveCommonReviewers failed to delete existing common reviewers")
+		return fmt.Errorf("SqlContentFlaggingStore.saveCommonReviewers failed to delete existing common reviewers: %w", err)
 	}
 
 	if len(commonReviewers) == 0 {
@@ -63,7 +64,7 @@ func (s *SqlContentFlaggingStore) saveCommonReviewers(tx *sqlxTxWrapper, commonR
 	}
 
 	if _, err := tx.ExecBuilder(insertBuilder); err != nil {
-		return errors.Wrap(err, "SqlContentFlaggingStore.saveCommonReviewers failed to insert new common reviewers")
+		return fmt.Errorf("SqlContentFlaggingStore.saveCommonReviewers failed to insert new common reviewers: %w", err)
 	}
 
 	return nil
@@ -73,7 +74,7 @@ func (s *SqlContentFlaggingStore) saveTeamSettings(tx *sqlxTxWrapper, teamSettin
 	// first delete existing team settings
 	deleteBuilder := s.getQueryBuilder().Delete("ContentFlaggingTeamSettings")
 	if _, err := tx.ExecBuilder(deleteBuilder); err != nil {
-		return errors.Wrap(err, "SqlContentFlaggingStore.saveTeamSettings failed to delete existing team settings")
+		return fmt.Errorf("SqlContentFlaggingStore.saveTeamSettings failed to delete existing team settings: %w", err)
 	}
 
 	if len(teamSettings) == 0 {
@@ -90,7 +91,7 @@ func (s *SqlContentFlaggingStore) saveTeamSettings(tx *sqlxTxWrapper, teamSettin
 	}
 
 	if _, err := tx.ExecBuilder(insertBuilder); err != nil {
-		return errors.Wrap(err, "SqlContentFlaggingStore.saveTeamSettings failed to insert new team settings")
+		return fmt.Errorf("SqlContentFlaggingStore.saveTeamSettings failed to insert new team settings: %w", err)
 	}
 
 	return nil
@@ -100,7 +101,7 @@ func (s *SqlContentFlaggingStore) saveTeamReviewers(tx *sqlxTxWrapper, teamSetti
 	// first delete existing team reviewers
 	deleteBuilder := s.getQueryBuilder().Delete("ContentFlaggingTeamReviewers")
 	if _, err := tx.ExecBuilder(deleteBuilder); err != nil {
-		return errors.Wrap(err, "SqlContentFlaggingStore.saveTeamReviewers failed to delete existing team reviewers")
+		return fmt.Errorf("SqlContentFlaggingStore.saveTeamReviewers failed to delete existing team reviewers: %w", err)
 	}
 
 	if len(teamSettings) == 0 {
@@ -127,7 +128,7 @@ func (s *SqlContentFlaggingStore) saveTeamReviewers(tx *sqlxTxWrapper, teamSetti
 
 	if dataExists {
 		if _, err := tx.ExecBuilder(insertBuilder); err != nil {
-			return errors.Wrap(err, "SqlContentFlaggingStore.saveTeamReviewers failed to insert new team reviewers")
+			return fmt.Errorf("SqlContentFlaggingStore.saveTeamReviewers failed to insert new team reviewers: %w", err)
 		}
 	}
 
@@ -137,18 +138,18 @@ func (s *SqlContentFlaggingStore) saveTeamReviewers(tx *sqlxTxWrapper, teamSetti
 func (s *SqlContentFlaggingStore) GetReviewerSettings() (*model.ReviewerIDsSettings, error) {
 	commonReviewers, err := s.getCommonReviewers()
 	if err != nil {
-		return nil, errors.Wrap(err, "SqlContentFlaggingStore.GetReviewerSettings failed to get common reviewers")
+		return nil, fmt.Errorf("SqlContentFlaggingStore.GetReviewerSettings failed to get common reviewers: %w", err)
 	}
 
 	teamSettings := make(map[string]*model.TeamReviewerSetting)
 	teamSettings, err = s.getTeamSettings(teamSettings)
 	if err != nil {
-		return nil, errors.Wrap(err, "SqlContentFlaggingStore.GetReviewerSettings failed to get team settings")
+		return nil, fmt.Errorf("SqlContentFlaggingStore.GetReviewerSettings failed to get team settings: %w", err)
 	}
 
 	teamSettings, err = s.getTeamReviewers(teamSettings)
 	if err != nil {
-		return nil, errors.Wrap(err, "SqlContentFlaggingStore.GetReviewerSettings failed to get team reviewers")
+		return nil, fmt.Errorf("SqlContentFlaggingStore.GetReviewerSettings failed to get team reviewers: %w", err)
 	}
 
 	return &model.ReviewerIDsSettings{
@@ -164,7 +165,7 @@ func (s *SqlContentFlaggingStore) getCommonReviewers() ([]string, error) {
 
 	var commonReviewers []string
 	if err := s.GetReplica().SelectBuilder(&commonReviewers, queryBuilder); err != nil {
-		return nil, errors.Wrap(err, "SqlContentFlaggingStore.getCommonReviewers failed to get common reviewers")
+		return nil, fmt.Errorf("SqlContentFlaggingStore.getCommonReviewers failed to get common reviewers: %w", err)
 	}
 
 	return commonReviewers, nil
@@ -181,7 +182,7 @@ func (s *SqlContentFlaggingStore) getTeamSettings(teamSettings map[string]*model
 	}
 
 	if err := s.GetReplica().SelectBuilder(&teamSettingsTemp, queryBuilder); err != nil {
-		return nil, errors.Wrap(err, "SqlContentFlaggingStore.getTeamSettings failed to get team settings")
+		return nil, fmt.Errorf("SqlContentFlaggingStore.getTeamSettings failed to get team settings: %w", err)
 	}
 
 	for _, setting := range teamSettingsTemp {
@@ -206,7 +207,7 @@ func (s *SqlContentFlaggingStore) getTeamReviewers(teamSettings map[string]*mode
 	}
 
 	if err := s.GetReplica().SelectBuilder(&teamReviewers, queryBuilder); err != nil {
-		return nil, errors.Wrap(err, "SqlContentFlaggingStore.getTeamReviewers failed to get team reviewers")
+		return nil, fmt.Errorf("SqlContentFlaggingStore.getTeamReviewers failed to get team reviewers: %w", err)
 	}
 
 	for _, tr := range teamReviewers {

@@ -6,6 +6,7 @@ package mfa
 import (
 	"crypto/rand"
 	"encoding/base32"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"github.com/dgryski/dgoogauth"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/rsc/qr"
-	"github.com/pkg/errors"
 )
 
 // InvalidToken indicates the case where the token validation has failed.
@@ -71,13 +71,13 @@ func (m *MFA) GenerateSecret(siteURL, userEmail, userID string) (string, []byte,
 	code, err := qr.Encode(authLink, qr.H)
 
 	if err != nil {
-		return "", nil, errors.Wrap(err, "unable to generate qr code")
+		return "", nil, fmt.Errorf("unable to generate qr code: %w", err)
 	}
 
 	img := code.PNG()
 
 	if err := m.store.UpdateMfaSecret(userID, secret); err != nil {
-		return "", nil, errors.Wrap(err, "unable to store mfa secret")
+		return "", nil, fmt.Errorf("unable to store mfa secret: %w", err)
 	}
 
 	return secret, img, nil
@@ -87,21 +87,21 @@ func (m *MFA) GenerateSecret(siteURL, userEmail, userID string) (string, []byte,
 func (m *MFA) Activate(userMfaSecret, userID string, token string) error {
 	usedTs, err := m.store.GetMfaUsedTimestamps(userID)
 	if err != nil {
-		return errors.Wrap(err, "unable to retrieve the DisallowReuse slice")
+		return fmt.Errorf("unable to retrieve the DisallowReuse slice: %w", err)
 	}
 
 	otpConfig, err := m.authenticate(userMfaSecret, usedTs, token)
 	if err != nil {
-		return errors.Wrap(err, "unable to authenticate the token")
+		return fmt.Errorf("unable to authenticate the token: %w", err)
 	}
 
 	if err = m.store.UpdateMfaActive(userID, true); err != nil {
-		return errors.Wrap(err, "unable to store mfa active")
+		return fmt.Errorf("unable to store mfa active: %w", err)
 	}
 
 	err = m.store.StoreMfaUsedTimestamps(userID, otpConfig.DisallowReuse)
 	if err != nil {
-		return errors.Wrap(err, "unable to store the DisallowReuse slice")
+		return fmt.Errorf("unable to store the DisallowReuse slice: %w", err)
 	}
 
 	return nil
@@ -110,11 +110,11 @@ func (m *MFA) Activate(userMfaSecret, userID string, token string) error {
 // Deactivate set the mfa as deactivated, remove the mfa secret, store it with the StoreActive and StoreSecret functions provided
 func (m *MFA) Deactivate(userId string) error {
 	if err := m.store.UpdateMfaActive(userId, false); err != nil {
-		return errors.Wrap(err, "unable to store mfa active")
+		return fmt.Errorf("unable to store mfa active: %w", err)
 	}
 
 	if err := m.store.UpdateMfaSecret(userId, ""); err != nil {
-		return errors.Wrap(err, "unable to store mfa secret")
+		return fmt.Errorf("unable to store mfa secret: %w", err)
 	}
 
 	return nil
@@ -124,7 +124,7 @@ func (m *MFA) Deactivate(userId string) error {
 func (m *MFA) ValidateToken(user *model.User, token string) (bool, error) {
 	usedTs, err := m.store.GetMfaUsedTimestamps(user.Id)
 	if err != nil {
-		return false, errors.Wrap(err, "unable to retrieve the DisallowReuse slice")
+		return false, fmt.Errorf("unable to retrieve the DisallowReuse slice: %w", err)
 	}
 
 	otpConfig, err := m.authenticate(user.MfaSecret, usedTs, token)
@@ -133,12 +133,12 @@ func (m *MFA) ValidateToken(user *model.User, token string) (bool, error) {
 			return false, nil
 		}
 
-		return false, errors.Wrap(err, "unable to parse the token")
+		return false, fmt.Errorf("unable to parse the token: %w", err)
 	}
 
 	err = m.store.StoreMfaUsedTimestamps(user.Id, otpConfig.DisallowReuse)
 	if err != nil {
-		return true, errors.Wrap(err, "unable to store the DisallowReuse slice")
+		return true, fmt.Errorf("unable to store the DisallowReuse slice: %w", err)
 	}
 
 	return true, nil
@@ -156,7 +156,7 @@ func (*MFA) authenticate(userMfaSecret string, usedTs []int, token string) (*dgo
 
 	ok, err := otpConfig.Authenticate(trimmedToken)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to parse the token")
+		return nil, fmt.Errorf("unable to parse the token: %w", err)
 	}
 	if !ok {
 		return nil, InvalidToken

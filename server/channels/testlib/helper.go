@@ -11,8 +11,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8"
@@ -281,7 +279,7 @@ func preloadMigrations(driverName string, sqlStore *sqlstore.SqlStore) {
 	handle := sqlStore.GetMaster()
 	_, err = handle.Exec(string(buf))
 	if err != nil {
-		panic(errors.Wrap(err, "Error preloading migrations. Perhaps the schema changed? If yes, then update the warmup files accordingly"))
+		panic(fmt.Errorf("Error preloading migrations. Perhaps the schema changed? If yes, then update the warmup files accordingly: %w", err))
 	}
 }
 

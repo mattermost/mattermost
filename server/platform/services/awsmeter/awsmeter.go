@@ -6,6 +6,7 @@ package awsmeter
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds"
 	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -77,7 +77,7 @@ func newAWSMarketplaceMeteringService(ctx context.Context) (*marketplacemetering
 
 	_, err := creds.Retrieve(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot obtain credentials")
+		return nil, fmt.Errorf("cannot obtain credentials: %w", err)
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx,
@@ -85,7 +85,7 @@ func newAWSMarketplaceMeteringService(ctx context.Context) (*marketplacemetering
 		config.WithCredentialsProvider(creds),
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load default config with EC2 credentials provider")
+		return nil, fmt.Errorf("failed to load default config with EC2 credentials provider: %w", err)
 	}
 
 	return marketplacemetering.NewFromConfig(cfg), nil
@@ -144,10 +144,10 @@ func sendReportToMeteringService(ctx context.Context, ams *AWSMeterService, repo
 
 	resp, err := ams.AwsMeteringSvc.MeterUsage(ctx, params)
 	if err != nil {
-		return errors.Wrap(err, "Invalid metering service id.")
+		return fmt.Errorf("Invalid metering service id.: %w", err)
 	}
 	if resp.MeteringRecordId == nil {
-		return errors.Wrap(err, "Invalid metering service id.")
+		return fmt.Errorf("Invalid metering service id.: %w", err)
 	}
 
 	mlog.Debug("Sent record to AWS metering service", mlog.String("dimension", report.Dimension), mlog.Int("value", report.Value), mlog.String("timestamp", report.Timestamp.String()))

@@ -4,11 +4,11 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 

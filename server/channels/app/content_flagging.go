@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"net/http"
@@ -18,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/pkg/errors"
 )
 
 const (

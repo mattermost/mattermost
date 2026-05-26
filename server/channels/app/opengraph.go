@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"html"
 	"io"
 	"net/url"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	ogImage "github.com/dyatlov/go-opengraph/opengraph/types/image"
-	"github.com/pkg/errors"
 	"golang.org/x/net/html/charset"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -164,7 +164,7 @@ func openGraphDecodeHTMLEntities(og *opengraph.OpenGraph) {
 func (a *App) parseOpenGraphFromOEmbed(requestURL string, body io.Reader) (*opengraph.OpenGraph, error) {
 	oEmbedResponse, err := oembed.ResponseFromJSON(io.LimitReader(body, MaxOpenGraphResponseSize))
 	if err != nil {
-		return nil, errors.Wrap(err, "parseOpenGraphFromOEmbed: Unable to parse oEmbed response")
+		return nil, fmt.Errorf("parseOpenGraphFromOEmbed: Unable to parse oEmbed response: %w", err)
 	}
 
 	og := &opengraph.OpenGraph{

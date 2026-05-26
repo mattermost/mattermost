@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -49,7 +48,7 @@ func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId stri
 		(UserId, ChannelId, JoinTime)
 		VALUES
 		(:UserId, :ChannelId, :JoinTime)`, channelMemberHistory); err != nil {
-		return errors.Wrapf(err, "LogJoinEvent userId=%s channelId=%s joinTime=%d", userId, channelId, joinTime)
+		return fmt.Errorf("LogJoinEvent userId=%s channelId=%s joinTime=%d: %w", userId, channelId, joinTime, err)
 	}
 	return nil
 }
@@ -64,11 +63,11 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 			sq.Eq{"LeaveTime": nil},
 		}).ToSql()
 	if err != nil {
-		return errors.Wrap(err, "channel_member_history_to_sql")
+		return fmt.Errorf("channel_member_history_to_sql: %w", err)
 	}
 	sqlResult, err := s.GetMaster().Exec(query, params...)
 	if err != nil {
-		return errors.Wrapf(err, "LogLeaveEvent userId=%s channelId=%s leaveTime=%d", userId, channelId, leaveTime)
+		return fmt.Errorf("LogLeaveEvent userId=%s channelId=%s leaveTime=%d: %w", userId, channelId, leaveTime, err)
 	}
 
 	if rows, err := sqlResult.RowsAffected(); err == nil && rows != 1 {
@@ -95,12 +94,12 @@ func (s SqlChannelMemberHistoryStore) GetEverMembersInChannel(channelID string, 
 		OrderBy("UserId ASC").
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+		return nil, fmt.Errorf("channel_member_history_to_sql: %w", err)
 	}
 
 	everMembers := []string{}
 	if err := s.GetReplica().Select(&everMembers, query, args...); err != nil {
-		return nil, errors.Wrapf(err, "GetEverMembersInChannel channelId=%s users=%d", channelID, len(userIDs))
+		return nil, fmt.Errorf("GetEverMembersInChannel channelId=%s users=%d: %w", channelID, len(userIDs), err)
 	}
 
 	return everMembers, nil
@@ -138,14 +137,14 @@ func (s SqlChannelMemberHistoryStore) GetChannelsWithActivityDuring(startTime in
 
 	unionExpr, args, err := sq.Expr("(? UNION ?) AS cm", subqueryPosts, subqueryCMH).ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "GetChannelsWithActivityDuring unionExpr to sql")
+		return nil, fmt.Errorf("GetChannelsWithActivityDuring unionExpr to sql: %w", err)
 	}
 
 	query, _, err := s.getQueryBuilder().
 		Select("ChannelId").
 		From(unionExpr).ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "GetChannelsWithActivityDuring query to sql")
+		return nil, fmt.Errorf("GetChannelsWithActivityDuring query to sql: %w", err)
 	}
 
 	channelIds := make([]string, 0)
@@ -159,7 +158,7 @@ func (s SqlChannelMemberHistoryStore) GetChannelsWithActivityDuring(startTime in
 func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelIds []string) ([]*model.ChannelMemberHistoryResult, error) {
 	useChannelMemberHistory, err := s.hasDataAtOrBefore(startTime)
 	if err != nil {
-		return nil, errors.Wrapf(err, "hasDataAtOrBefore startTime=%d endTime=%d channelId=%v", startTime, endTime, channelIds)
+		return nil, fmt.Errorf("hasDataAtOrBefore startTime=%d endTime=%d channelId=%v: %w", startTime, endTime, channelIds, err)
 	}
 
 	if useChannelMemberHistory {
@@ -167,7 +166,7 @@ func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, e
 		// data from it for our export
 		channelMemberHistories, err2 := s.getFromChannelMemberHistoryTable(startTime, endTime, channelIds)
 		if err2 != nil {
-			return nil, errors.Wrapf(err2, "getFromChannelMemberHistoryTable startTime=%d endTime=%d channelId=%v", startTime, endTime, channelIds)
+			return nil, fmt.Errorf("getFromChannelMemberHistoryTable startTime=%d endTime=%d channelId=%v: %w", startTime, endTime, channelIds, err2)
 		}
 		return channelMemberHistories, nil
 	}
@@ -176,7 +175,7 @@ func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, e
 	// this may not always be true, but it's better than saying that somebody wasn't there when they were
 	channelMemberHistories, err := s.getFromChannelMembersTable(startTime, endTime, channelIds)
 	if err != nil {
-		return nil, errors.Wrapf(err, "getFromChannelMembersTable startTime=%d endTime=%d channelId=%v", startTime, endTime, channelIds)
+		return nil, fmt.Errorf("getFromChannelMembersTable startTime=%d endTime=%d channelId=%v: %w", startTime, endTime, channelIds, err)
 	}
 	return channelMemberHistories, nil
 }
@@ -187,7 +186,7 @@ func (s SqlChannelMemberHistoryStore) hasDataAtOrBefore(time int64) (bool, error
 	}
 	query, _, err := s.getQueryBuilder().Select("MIN(JoinTime) as Min").From("ChannelMemberHistory").ToSql()
 	if err != nil {
-		return false, errors.Wrap(err, "channel_member_history_to_sql")
+		return false, fmt.Errorf("channel_member_history_to_sql: %w", err)
 	}
 	var result NullableCountResult
 	if err := s.GetReplica().Get(&result, query); err != nil {
@@ -219,7 +218,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+		return nil, fmt.Errorf("channel_member_history_to_sql: %w", err)
 	}
 
 	histories := []*model.ChannelMemberHistoryResult{}
@@ -239,7 +238,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 		LeftJoin("Bots ON Bots.UserId = u.id").
 		Where(sq.Eq{"ch.ChannelId": channelIds}).ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+		return nil, fmt.Errorf("channel_member_history_to_sql: %w", err)
 	}
 
 	histories := []*model.ChannelMemberHistoryResult{}
@@ -301,7 +300,7 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 		}).Limit(uint64(limit)).
 		ToSql()
 	if err != nil {
-		return 0, errors.Wrap(err, "channel_member_history_to_sql")
+		return 0, fmt.Errorf("channel_member_history_to_sql: %w", err)
 	}
 	query, _, err := s.getQueryBuilder().
 		Delete("ChannelMemberHistory").
@@ -309,16 +308,16 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 			"ctid IN (%s)", innerSelect,
 		)).ToSql()
 	if err != nil {
-		return 0, errors.Wrap(err, "channel_member_history_to_sql")
+		return 0, fmt.Errorf("channel_member_history_to_sql: %w", err)
 	}
 	sqlResult, err := s.GetMaster().Exec(query, args...)
 	if err != nil {
-		return 0, errors.Wrapf(err, "PermanentDeleteBatch endTime=%d limit=%d", endTime, limit)
+		return 0, fmt.Errorf("PermanentDeleteBatch endTime=%d limit=%d: %w", endTime, limit, err)
 	}
 
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrapf(err, "PermanentDeleteBatch endTime=%d limit=%d", endTime, limit)
+		return 0, fmt.Errorf("PermanentDeleteBatch endTime=%d limit=%d: %w", endTime, limit, err)
 	}
 	return rowsAffected, nil
 }
@@ -346,12 +345,12 @@ func (s SqlChannelMemberHistoryStore) GetMembershipChanges(channelID string, sin
 		Limit(uint64(limit)).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+		return nil, fmt.Errorf("channel_member_history_to_sql: %w", err)
 	}
 
 	histories := []*model.ChannelMemberHistory{}
 	if err := s.GetReplica().Select(&histories, query, args...); err != nil {
-		return nil, errors.Wrapf(err, "GetMembershipChanges channelId=%s since=%d limit=%d", channelID, since, limit)
+		return nil, fmt.Errorf("GetMembershipChanges channelId=%s since=%d limit=%d: %w", channelID, since, limit, err)
 	}
 
 	return histories, nil
@@ -367,12 +366,12 @@ func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since 
 		Where(sq.Eq{"UserId": userID}).
 		Having("MAX(LeaveTime) > MAX(JoinTime) AND MAX(LeaveTime) IS NOT NULL AND MAX(LeaveTime) >= ?", since).ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+		return nil, fmt.Errorf("channel_member_history_to_sql: %w", err)
 	}
 	channelIds := []string{}
 	err = s.GetReplica().Select(&channelIds, query, params...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "GetChannelsLeftSince userId=%s since=%d", userID, since)
+		return nil, fmt.Errorf("GetChannelsLeftSince userId=%s since=%d: %w", userID, since, err)
 	}
 
 	return channelIds, nil

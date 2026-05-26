@@ -6,6 +6,7 @@ package utils
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -13,8 +14,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -58,14 +57,14 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	}
 	staticDir, err := filepath.EvalSymlinks(staticDir)
 	if err != nil {
-		return errors.Wrapf(err, "failed to resolve symlinks to %s", staticDir)
+		return fmt.Errorf("failed to resolve symlinks to %s: %w", staticDir, err)
 	}
 
 	// Read the old root.html file
 	rootHTMLPath := filepath.Join(staticDir, "root.html")
 	oldRootHTML, err := os.ReadFile(rootHTMLPath)
 	if err != nil {
-		return errors.Wrap(err, "failed to open root.html")
+		return fmt.Errorf("failed to open root.html: %w", err)
 	}
 
 	oldSubpath := "/"
@@ -132,7 +131,7 @@ func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bo
 	mlog.Debug("Rewriting root.html", mlog.String("from_subpath", pathToReplace), mlog.String("to_subpath", newPath))
 	// Write out the updated root.html.
 	if err := os.WriteFile(rootHTMLPath, []byte(newRootHTML), 0); err != nil {
-		return errors.Wrapf(err, "failed to update root.html with subpath %s", subpath)
+		return fmt.Errorf("failed to update root.html with subpath %s: %w", subpath, err)
 	}
 
 	return nil
@@ -150,18 +149,18 @@ func updateManifestAndCSSFiles(staticDir, pathToReplace, newPath, subpath string
 		if filepath.Base(walkPath) == "manifest.json" || filepath.Ext(walkPath) == ".css" {
 			old, err := os.ReadFile(walkPath)
 			if err != nil {
-				return errors.Wrapf(err, "failed to open %s", walkPath)
+				return fmt.Errorf("failed to open %s: %w", walkPath, err)
 			}
 			n := strings.Replace(string(old), pathToReplace, newPath, -1)
 			if err = os.WriteFile(walkPath, []byte(n), 0); err != nil {
-				return errors.Wrapf(err, "failed to update %s with subpath %s", walkPath, subpath)
+				return fmt.Errorf("failed to update %s with subpath %s: %w", walkPath, subpath, err)
 			}
 		}
 
 		return nil
 	})
 	if err != nil {
-		return errors.Wrapf(err, "error walking %s", staticDir)
+		return fmt.Errorf("error walking %s: %w", staticDir, err)
 	}
 
 	return nil
@@ -205,7 +204,7 @@ func GetSubpathFromConfig(config *model.Config) (string, error) {
 
 	u, err := url.Parse(*config.ServiceSettings.SiteURL)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to parse SiteURL from config")
+		return "", fmt.Errorf("failed to parse SiteURL from config: %w", err)
 	}
 
 	if u.Path == "" {

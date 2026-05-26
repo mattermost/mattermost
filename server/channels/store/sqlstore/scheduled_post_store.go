@@ -4,13 +4,13 @@
 package sqlstore
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 )
 
 type SqlScheduledPostStore struct {
@@ -93,12 +93,12 @@ func (s *SqlScheduledPostStore) CreateScheduledPost(scheduledPost *model.Schedul
 	query, args, err := builder.ToSql()
 	if err != nil {
 		mlog.Error("SqlScheduledPostStore.CreateScheduledPost failed to generate SQL from query builder", mlog.Err(err))
-		return nil, errors.Wrap(err, "SqlScheduledPostStore.CreateScheduledPost failed to generate SQL from query builder")
+		return nil, fmt.Errorf("SqlScheduledPostStore.CreateScheduledPost failed to generate SQL from query builder: %w", err)
 	}
 
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		mlog.Error("SqlScheduledPostStore.CreateScheduledPost failed to insert scheduled post", mlog.Err(err))
-		return nil, errors.Wrap(err, "SqlScheduledPostStore.CreateScheduledPost failed to insert scheduled post")
+		return nil, fmt.Errorf("SqlScheduledPostStore.CreateScheduledPost failed to insert scheduled post: %w", err)
 	}
 
 	return scheduledPost, nil
@@ -132,7 +132,7 @@ func (s *SqlScheduledPostStore) GetScheduledPostsForUser(userId, teamId string) 
 	if err := s.GetReplica().SelectBuilder(&scheduledPosts, query); err != nil {
 		mlog.Error("SqlScheduledPostStore.GetScheduledPostsForUser: failed to fetch scheduled posts for user", mlog.String("user_id", userId), mlog.String("team_id", teamId), mlog.Err(err))
 
-		return nil, errors.Wrapf(err, "SqlScheduledPostStore.GetScheduledPostsForUser: failed to fetch scheduled posts for user, userId: %s, teamID: %s", userId, teamId)
+		return nil, fmt.Errorf("SqlScheduledPostStore.GetScheduledPostsForUser: failed to fetch scheduled posts for user, userId: %s, teamID: %s: %w", userId, teamId, err)
 	}
 
 	return scheduledPosts, nil
@@ -188,11 +188,7 @@ func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime i
 			mlog.Uint("items_per_page", perPage), mlog.Err(err),
 		)
 
-		return nil, errors.Wrapf(
-			err,
-			"SqlScheduledPostStore.GetPendingScheduledPosts: failed to fetch pending scheduled posts for processing, before_time: %d, last_scheduled_post_id: %s, items_per_page: %d",
-			beforeTime, lastScheduledPostId, perPage,
-		)
+		return nil, fmt.Errorf("SqlScheduledPostStore.GetPendingScheduledPosts: failed to fetch pending scheduled posts for processing, before_time: %d, last_scheduled_post_id: %s, items_per_page: %d: %w", beforeTime, lastScheduledPostId, perPage, err)
 	}
 
 	return scheduledPosts, nil
@@ -209,13 +205,13 @@ func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs
 
 	sql, params, err := query.ToSql()
 	if err != nil {
-		errToReturn := errors.Wrapf(err, "PermanentlyDeleteScheduledPosts: failed to generate SQL query for permanently deleting batch of scheduled posts")
+		errToReturn := fmt.Errorf("PermanentlyDeleteScheduledPosts: failed to generate SQL query for permanently deleting batch of scheduled posts: %w", err)
 		s.Logger().Error(errToReturn.Error())
 		return errToReturn
 	}
 
 	if _, err := s.GetMaster().Exec(sql, params...); err != nil {
-		errToReturn := errors.Wrapf(err, "PermanentlyDeleteScheduledPosts: failed to delete batch of scheduled posts from database")
+		errToReturn := fmt.Errorf("PermanentlyDeleteScheduledPosts: failed to delete batch of scheduled posts from database: %w", err)
 		s.Logger().Error(errToReturn.Error())
 		return errToReturn
 	}
@@ -234,13 +230,13 @@ func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.Schedu
 	query, args, err := builder.ToSql()
 	if err != nil {
 		mlog.Error("SqlScheduledPostStore.UpdatedScheduledPost failed to generate SQL from updating scheduled posts", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
-		return errors.Wrap(err, "SqlScheduledPostStore.UpdatedScheduledPost failed to generate SQL from bulk updating scheduled posts")
+		return fmt.Errorf("SqlScheduledPostStore.UpdatedScheduledPost failed to generate SQL from bulk updating scheduled posts: %w", err)
 	}
 
 	_, err = s.GetMaster().Exec(query, args...)
 	if err != nil {
 		mlog.Error("SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
-		return errors.Wrap(err, "SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post")
+		return fmt.Errorf("SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post: %w", err)
 	}
 
 	return nil
@@ -274,7 +270,7 @@ func (s *SqlScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPos
 	if err := s.GetReplica().GetBuilder(scheduledPost, query); err != nil {
 		mlog.Error("SqlScheduledPostStore.Get: failed to get single scheduled post by ID from database", mlog.String("scheduled_post_id", scheduledPostId), mlog.Err(err))
 
-		return nil, errors.Wrapf(err, "SqlScheduledPostStore.Get: failed to get single scheduled post by ID from database, scheduledPostId: %s", scheduledPostId)
+		return nil, fmt.Errorf("SqlScheduledPostStore.Get: failed to get single scheduled post by ID from database, scheduledPostId: %s: %w", scheduledPostId, err)
 	}
 
 	return scheduledPost, nil
@@ -293,13 +289,13 @@ func (s *SqlScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error 
 	query, args, err := builder.ToSql()
 	if err != nil {
 		mlog.Error("SqlScheduledPostStore.UpdateOldScheduledPosts failed to generate SQL from updating old scheduled posts", mlog.Err(err))
-		return errors.Wrap(err, "SqlScheduledPostStore.UpdateOldScheduledPosts failed to generate SQL from updating old scheduled posts")
+		return fmt.Errorf("SqlScheduledPostStore.UpdateOldScheduledPosts failed to generate SQL from updating old scheduled posts: %w", err)
 	}
 
 	_, err = s.GetMaster().Exec(query, args...)
 	if err != nil {
 		mlog.Error("SqlScheduledPostStore.UpdateOldScheduledPosts failed to update old scheduled posts", mlog.Err(err))
-		return errors.Wrap(err, "SqlScheduledPostStore.UpdateOldScheduledPosts failed to update old scheduled posts")
+		return fmt.Errorf("SqlScheduledPostStore.UpdateOldScheduledPosts failed to update old scheduled posts: %w", err)
 	}
 
 	return nil
@@ -312,13 +308,13 @@ func (s *SqlScheduledPostStore) PermanentDeleteByUser(userId string) error {
 
 	sql, params, err := query.ToSql()
 	if err != nil {
-		errToReturn := errors.Wrapf(err, "PermanentDeleteByUser: failed to generate SQL query for permanently deleting scheduled posts by user")
+		errToReturn := fmt.Errorf("PermanentDeleteByUser: failed to generate SQL query for permanently deleting scheduled posts by user: %w", err)
 		s.Logger().Error(errToReturn.Error())
 		return errToReturn
 	}
 
 	if _, err := s.GetMaster().Exec(sql, params...); err != nil {
-		errToReturn := errors.Wrapf(err, "PermanentDeleteByUser: failed to delete scheduled posts by user from database")
+		errToReturn := fmt.Errorf("PermanentDeleteByUser: failed to delete scheduled posts by user from database: %w", err)
 		s.Logger().Error(errToReturn.Error())
 		return errToReturn
 	}

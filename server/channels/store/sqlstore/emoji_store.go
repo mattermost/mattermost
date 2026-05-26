@@ -7,8 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -46,7 +44,7 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 		(Id, CreateAt, UpdateAt, DeleteAt, CreatorId, Name)
 		VALUES
 		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :CreatorId, :Name)`, emoji); err != nil {
-		return nil, errors.Wrap(err, "error saving emoji")
+		return nil, fmt.Errorf("error saving emoji: %w", err)
 	}
 
 	return emoji, nil
@@ -65,7 +63,7 @@ func (es SqlEmojiStore) GetMultipleByName(rctx request.CTX, names []string) ([]*
 
 	emojis := []*model.Emoji{}
 	if err := es.DBXFromContext(rctx.Context()).SelectBuilder(&emojis, query); err != nil {
-		return nil, errors.Wrapf(err, "error getting emojis by names %v", names)
+		return nil, fmt.Errorf("error getting emojis by names %v: %w", names, err)
 	}
 
 	return emojis, nil
@@ -82,7 +80,7 @@ func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji,
 	query = query.Limit(uint64(limit)).Offset(uint64(offset))
 
 	if err := es.GetReplica().SelectBuilder(&emojis, query); err != nil {
-		return nil, errors.Wrap(err, "could not get list of emojis")
+		return nil, fmt.Errorf("could not get list of emojis: %w", err)
 	}
 	return emojis, nil
 }
@@ -97,7 +95,7 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 		WHERE
 			Id = ?
 			AND DeleteAt = 0`, time, time, emoji.Id); err != nil {
-		return errors.Wrap(err, "could not delete emoji")
+		return fmt.Errorf("could not delete emoji: %w", err)
 	} else if rows, err := sqlResult.RowsAffected(); rows == 0 {
 		return store.NewErrNotFound("Emoji", emoji.Id).Wrap(err)
 	}
@@ -122,7 +120,7 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 		Limit(uint64(limit))
 
 	if err := es.GetReplica().SelectBuilder(&emojis, query); err != nil {
-		return nil, errors.Wrapf(err, "could not search emojis by name %s", name)
+		return nil, fmt.Errorf("could not search emojis by name %s: %w", name, err)
 	}
 	return emojis, nil
 }
@@ -138,7 +136,7 @@ func (es SqlEmojiStore) getBy(rctx request.CTX, what, key string) (*model.Emoji,
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Emoji", fmt.Sprintf("%s=%s", what, key))
 		}
-		return nil, errors.Wrapf(err, "could not get emoji by %s with value %s", what, key)
+		return nil, fmt.Errorf("could not get emoji by %s with value %s: %w", what, key, err)
 	}
 
 	return &emoji, nil

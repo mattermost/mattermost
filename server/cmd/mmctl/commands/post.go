@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 

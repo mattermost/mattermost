@@ -5,12 +5,12 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
 	"slices"
 
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp"       //nolint:staticcheck
 	"golang.org/x/crypto/openpgp/armor" //nolint:staticcheck
 
@@ -109,11 +109,11 @@ func (ch *Channels) verifyPlugin(logger *mlog.Logger, plugin, signature io.ReadS
 func verifySignature(publicKey, message, signature io.Reader) error {
 	pk, err := decodeIfArmored(publicKey)
 	if err != nil {
-		return errors.Wrap(err, "can't decode public key")
+		return fmt.Errorf("can't decode public key: %w", err)
 	}
 	s, err := decodeIfArmored(signature)
 	if err != nil {
-		return errors.Wrap(err, "can't decode signature")
+		return fmt.Errorf("can't decode signature: %w", err)
 	}
 	return verifyBinarySignature(pk, message, s)
 }
@@ -121,10 +121,10 @@ func verifySignature(publicKey, message, signature io.Reader) error {
 func verifyBinarySignature(publicKey, signedFile, signature io.Reader) error {
 	keyring, err := openpgp.ReadKeyRing(publicKey)
 	if err != nil {
-		return errors.Wrap(err, "can't read public key")
+		return fmt.Errorf("can't read public key: %w", err)
 	}
 	if _, err = openpgp.CheckDetachedSignature(keyring, signedFile, signature); err != nil {
-		return errors.Wrap(err, "error while checking the signature")
+		return fmt.Errorf("error while checking the signature: %w", err)
 	}
 	return nil
 }
@@ -132,7 +132,7 @@ func verifyBinarySignature(publicKey, signedFile, signature io.Reader) error {
 func decodeIfArmored(reader io.Reader) (io.Reader, error) {
 	readBytes, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, errors.Wrap(err, "can't read the file")
+		return nil, fmt.Errorf("can't read the file: %w", err)
 	}
 	block, err := armor.Decode(bytes.NewReader(readBytes))
 	if err != nil {

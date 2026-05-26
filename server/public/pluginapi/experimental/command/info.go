@@ -1,13 +1,12 @@
 package command
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"runtime/debug"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )

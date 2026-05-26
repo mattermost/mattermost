@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -86,7 +85,7 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 		)
 
 	if _, err := s.GetMaster().ExecBuilder(insertQuery); err != nil {
-		return nil, errors.Wrapf(err, "insert: command_id=%s", command.Id)
+		return nil, fmt.Errorf("insert: command_id=%s: %w", command.Id, err)
 	}
 
 	return command, nil
@@ -98,12 +97,12 @@ func (s SqlCommandStore) Get(id string) (*model.Command, error) {
 	query, args, err := s.commandsQuery.
 		Where(sq.Eq{"Id": id, "DeleteAt": 0}).ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "commands_tosql")
+		return nil, fmt.Errorf("commands_tosql: %w", err)
 	}
 	if err = s.GetReplica().Get(&command, query, args...); err == sql.ErrNoRows {
 		return nil, store.NewErrNotFound("Command", id)
 	} else if err != nil {
-		return nil, errors.Wrapf(err, "selectone: command_id=%s", id)
+		return nil, fmt.Errorf("selectone: command_id=%s: %w", id, err)
 	}
 
 	return &command, nil
@@ -115,10 +114,10 @@ func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 	sql, args, err := s.commandsQuery.
 		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0}).ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "commands_tosql")
+		return nil, fmt.Errorf("commands_tosql: %w", err)
 	}
 	if err := s.GetReplica().Select(&commands, sql, args...); err != nil {
-		return nil, errors.Wrapf(err, "select: team_id=%s", teamId)
+		return nil, fmt.Errorf("select: team_id=%s: %w", teamId, err)
 	}
 
 	return commands, nil
@@ -130,14 +129,14 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 	query, args, err := s.commandsQuery.
 		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0, "\"trigger\"": trigger}).ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "commands_tosql")
+		return nil, fmt.Errorf("commands_tosql: %w", err)
 	}
 
 	if err := s.GetReplica().Get(&command, query, args...); err == sql.ErrNoRows {
 		errorId := "teamId=" + teamId + ", trigger=" + trigger
 		return nil, store.NewErrNotFound("Command", errorId)
 	} else if err != nil {
-		return nil, errors.Wrapf(err, "selectone: team_id=%s, trigger=%s", teamId, trigger)
+		return nil, fmt.Errorf("selectone: team_id=%s, trigger=%s: %w", teamId, trigger, err)
 	}
 
 	return &command, nil
@@ -149,12 +148,12 @@ func (s SqlCommandStore) Delete(commandId string, time int64) error {
 		SetMap(sq.Eq{"DeleteAt": time, "UpdateAt": time}).
 		Where(sq.Eq{"Id": commandId}).ToSql()
 	if err != nil {
-		return errors.Wrapf(err, "commands_tosql")
+		return fmt.Errorf("commands_tosql: %w", err)
 	}
 
 	_, err = s.GetMaster().Exec(sql, args...)
 	if err != nil {
-		errors.Wrapf(err, "delete: command_id=%s", commandId)
+		fmt.Errorf("delete: command_id=%s: %w", commandId, err)
 	}
 
 	return nil
@@ -165,11 +164,11 @@ func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) error {
 		Delete("Commands").
 		Where(sq.Eq{"TeamId": teamId}).ToSql()
 	if err != nil {
-		return errors.Wrapf(err, "commands_tosql")
+		return fmt.Errorf("commands_tosql: %w", err)
 	}
 	_, err = s.GetMaster().Exec(sql, args...)
 	if err != nil {
-		return errors.Wrapf(err, "delete: team_id=%s", teamId)
+		return fmt.Errorf("delete: team_id=%s: %w", teamId, err)
 	}
 	return nil
 }
@@ -179,11 +178,11 @@ func (s SqlCommandStore) PermanentDeleteByUser(userId string) error {
 		Delete("Commands").
 		Where(sq.Eq{"CreatorId": userId}).ToSql()
 	if err != nil {
-		return errors.Wrapf(err, "commands_tosql")
+		return fmt.Errorf("commands_tosql: %w", err)
 	}
 	_, err = s.GetMaster().Exec(sql, args...)
 	if err != nil {
-		return errors.Wrapf(err, "delete: user_id=%s", userId)
+		return fmt.Errorf("delete: user_id=%s: %w", userId, err)
 	}
 
 	return nil
@@ -220,16 +219,16 @@ func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, error) {
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "commands_tosql")
+		return nil, fmt.Errorf("commands_tosql: %w", err)
 	}
 
 	res, err := s.GetMaster().Exec(queryString, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to update commands")
+		return nil, fmt.Errorf("failed to update commands: %w", err)
 	}
 	count, err := res.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrap(err, "error while getting rows_affected")
+		return nil, fmt.Errorf("error while getting rows_affected: %w", err)
 	}
 	if count > 1 {
 		return nil, fmt.Errorf("unexpected count while updating commands: count=%d, Id=%s", count, cmd.Id)
@@ -249,13 +248,13 @@ func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return 0, errors.Wrapf(err, "commands_tosql")
+		return 0, fmt.Errorf("commands_tosql: %w", err)
 	}
 
 	var c int64
 	err = s.GetReplica().Get(&c, sql, args...)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to count the commands: team_id=%s", teamId)
+		return 0, fmt.Errorf("unable to count the commands: team_id=%s: %w", teamId, err)
 	}
 	return c, nil
 }

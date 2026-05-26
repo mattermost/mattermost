@@ -6,11 +6,11 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -39,11 +39,11 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 
 	field.PreSave()
 	if err := field.EnsureOptionIDs(); err != nil {
-		return nil, errors.Wrap(err, "property_field_create_ensure_option_ids")
+		return nil, fmt.Errorf("property_field_create_ensure_option_ids: %w", err)
 	}
 
 	if err := field.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "property_field_create_isvalid")
+		return nil, fmt.Errorf("property_field_create_isvalid: %w", err)
 	}
 
 	builder := s.getQueryBuilder().
@@ -52,7 +52,7 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.ObjectType, field.Protected, field.PermissionField, field.PermissionValues, field.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return nil, errors.Wrap(err, "property_field_create_insert")
+		return nil, fmt.Errorf("property_field_create_insert: %w", err)
 	}
 
 	return field, nil
@@ -70,7 +70,7 @@ func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*m
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("PropertyField", id)
 		}
-		return nil, errors.Wrap(err, "property_field_get_select")
+		return nil, fmt.Errorf("property_field_get_select: %w", err)
 	}
 
 	return &field, nil
@@ -88,7 +88,7 @@ func (s *SqlPropertyFieldStore) GetFieldByName(ctx context.Context, groupID, tar
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("PropertyField", name)
 		}
-		return nil, errors.Wrap(err, "property_field_get_by_name_select")
+		return nil, fmt.Errorf("property_field_get_by_name_select: %w", err)
 	}
 
 	return &field, nil
@@ -103,7 +103,7 @@ func (s *SqlPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids
 
 	fields := []*model.PropertyField{}
 	if err := s.DBXFromContext(ctx).SelectBuilder(&fields, builder); err != nil {
-		return nil, errors.Wrap(err, "property_field_get_many_query")
+		return nil, fmt.Errorf("property_field_get_many_query: %w", err)
 	}
 
 	if len(fields) < len(ids) {
@@ -125,7 +125,7 @@ func (s *SqlPropertyFieldStore) CountForGroup(groupID string, includeDeleted boo
 	}
 
 	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
-		return int64(0), errors.Wrap(err, "failed to count Sessions")
+		return int64(0), fmt.Errorf("failed to count Sessions: %w", err)
 	}
 	return count, nil
 }
@@ -143,7 +143,7 @@ func (s *SqlPropertyFieldStore) CountForGroupObjectType(groupID, objectType stri
 	}
 
 	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
-		return int64(0), errors.Wrap(err, "failed to count property fields for group and object type")
+		return int64(0), fmt.Errorf("failed to count property fields for group and object type: %w", err)
 	}
 	return count, nil
 }
@@ -162,7 +162,7 @@ func (s *SqlPropertyFieldStore) CountForTarget(groupID, targetType, targetID str
 	}
 
 	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
-		return int64(0), errors.Wrap(err, "failed to count property fields for target")
+		return int64(0), fmt.Errorf("failed to count property fields for target: %w", err)
 	}
 	return count, nil
 }
@@ -220,7 +220,7 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 
 	fields := []*model.PropertyField{}
 	if err := s.GetReplica().SelectBuilder(&fields, builder); err != nil {
-		return nil, errors.Wrap(err, "property_field_search_query")
+		return nil, fmt.Errorf("property_field_search_query: %w", err)
 	}
 
 	return fields, nil
@@ -233,7 +233,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "property_field_update_begin_transaction")
+		return nil, fmt.Errorf("property_field_update_begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
@@ -255,10 +255,10 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	for i, field := range fields {
 		field.UpdateAt = updateTime
 		if ensureErr := field.EnsureOptionIDs(); ensureErr != nil {
-			return nil, errors.Wrap(ensureErr, "property_field_update_ensure_option_ids")
+			return nil, fmt.Errorf("property_field_update_ensure_option_ids: %w", ensureErr)
 		}
 		if vErr := field.IsValid(); vErr != nil {
-			return nil, errors.Wrap(vErr, "property_field_update_isvalid")
+			return nil, fmt.Errorf("property_field_update_isvalid: %w", vErr)
 		}
 
 		ids[i] = field.ID
@@ -310,25 +310,25 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		}
 		caseSql, caseArgs, caseErr := updateAtCase.ToSql()
 		if caseErr != nil {
-			return nil, errors.Wrap(caseErr, "property_field_update_build_update_at_check")
+			return nil, fmt.Errorf("property_field_update_build_update_at_check: %w", caseErr)
 		}
 		builder = builder.Where("UpdateAt = "+caseSql, caseArgs...)
 	}
 
 	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
-		return nil, errors.Wrap(err, "property_field_update_exec")
+		return nil, fmt.Errorf("property_field_update_exec: %w", err)
 	}
 
 	count, err := result.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrap(err, "property_field_update_rowsaffected")
+		return nil, fmt.Errorf("property_field_update_rowsaffected: %w", err)
 	}
 	if count != int64(len(fields)) {
 		if len(expectedUpdateAts) > 0 {
 			return nil, store.NewErrConflict("PropertyField", nil, "concurrent modification detected; retry the update")
 		}
-		return nil, errors.Errorf("failed to update, some property fields were not found, got %d of %d", count, len(fields))
+		return nil, fmt.Errorf("failed to update, some property fields were not found, got %d of %d", count, len(fields))
 	}
 
 	// Propagate type and options from updated source fields to all their
@@ -367,7 +367,7 @@ UPDATE PropertyFields AS linked
 `, strings.Join(inPlaceholders, ", "))
 
 	if _, execErr := transaction.ExecRaw(propagateSQL, propagateArgs...); execErr != nil {
-		return nil, errors.Wrap(execErr, "property_field_update_propagate")
+		return nil, fmt.Errorf("property_field_update_propagate: %w", execErr)
 	}
 
 	// Retrieve propagated linked fields to include in the return value
@@ -378,11 +378,11 @@ UPDATE PropertyFields AS linked
 
 	var propagatedFields []*model.PropertyField
 	if selectErr := transaction.SelectBuilder(&propagatedFields, selectBuilder); selectErr != nil {
-		return nil, errors.Wrap(selectErr, "property_field_update_select_propagated")
+		return nil, fmt.Errorf("property_field_update_select_propagated: %w", selectErr)
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "property_field_update_commit_transaction")
+		return nil, fmt.Errorf("property_field_update_commit_transaction: %w", err)
 	}
 
 	return append(fields, propagatedFields...), nil
@@ -400,12 +400,12 @@ func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
 
 	result, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete property field with id: %s", id)
+		return fmt.Errorf("failed to delete property field with id: %s: %w", id, err)
 	}
 
 	count, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, "property_field_delete_rowsaffected")
+		return fmt.Errorf("property_field_delete_rowsaffected: %w", err)
 	}
 	if count == 0 {
 		return store.NewErrNotFound("PropertyField", id)
@@ -490,21 +490,21 @@ func (s *SqlPropertyFieldStore) checkSystemLevelConflict(field *model.PropertyFi
 	systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
 	systemSQL, systemArgs, err := systemSubquery.ToSql()
 	if err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_system_system_sql")
+		return "", fmt.Errorf("property_field_check_conflict_system_system_sql: %w", err)
 	}
 
 	// Build team subquery
 	teamSubquery := s.buildConflictSubquery("team", field.ObjectType, field.GroupID, field.Name, excludeID)
 	teamSQL, teamArgs, err := teamSubquery.ToSql()
 	if err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_system_team_sql")
+		return "", fmt.Errorf("property_field_check_conflict_system_team_sql: %w", err)
 	}
 
 	// Build channel subquery
 	channelSubquery := s.buildConflictSubquery("channel", field.ObjectType, field.GroupID, field.Name, excludeID)
 	channelSQL, channelArgs, err := channelSubquery.ToSql()
 	if err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_system_channel_sql")
+		return "", fmt.Errorf("property_field_check_conflict_system_channel_sql: %w", err)
 	}
 
 	// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
@@ -514,7 +514,7 @@ func (s *SqlPropertyFieldStore) checkSystemLevelConflict(field *model.PropertyFi
 
 	var conflictLevel model.PropertyFieldTargetLevel
 	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_system")
+		return "", fmt.Errorf("property_field_check_conflict_system: %w", err)
 	}
 
 	return conflictLevel, nil
@@ -529,14 +529,14 @@ func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyFiel
 		Where(sq.Eq{"TargetID": field.TargetID})
 	teamSQL, teamArgs, err := teamSubquery.ToSql()
 	if err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_team_team_sql")
+		return "", fmt.Errorf("property_field_check_conflict_team_team_sql: %w", err)
 	}
 
 	// Build system subquery
 	systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
 	systemSQL, systemArgs, err := systemSubquery.ToSql()
 	if err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_team_system_sql")
+		return "", fmt.Errorf("property_field_check_conflict_team_system_sql: %w", err)
 	}
 
 	// Build channel subquery (requires JOIN with Channels table)
@@ -558,7 +558,7 @@ func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyFiel
 
 	channelSQL, channelArgs, err := channelSubquery.ToSql()
 	if err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_team_channel_sql")
+		return "", fmt.Errorf("property_field_check_conflict_team_channel_sql: %w", err)
 	}
 
 	// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
@@ -568,7 +568,7 @@ func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyFiel
 
 	var conflictLevel model.PropertyFieldTargetLevel
 	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_team")
+		return "", fmt.Errorf("property_field_check_conflict_team: %w", err)
 	}
 
 	return conflictLevel, nil
@@ -585,14 +585,14 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 		Where(sq.Eq{"TargetID": field.TargetID})
 	channelSQL, channelArgs, err := channelSubquery.ToSql()
 	if err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_channel_channel_sql")
+		return "", fmt.Errorf("property_field_check_conflict_channel_channel_sql: %w", err)
 	}
 
 	// Build system subquery
 	systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
 	systemSQL, systemArgs, err := systemSubquery.ToSql()
 	if err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_channel_system_sql")
+		return "", fmt.Errorf("property_field_check_conflict_channel_system_sql: %w", err)
 	}
 
 	// Build team subquery (requires subquery to get TeamId from Channels)
@@ -602,7 +602,7 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 
 	teamSQL, teamArgs, err := teamSubquery.ToSql()
 	if err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_channel_team_sql")
+		return "", fmt.Errorf("property_field_check_conflict_channel_team_sql: %w", err)
 	}
 
 	// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
@@ -612,7 +612,7 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 
 	var conflictLevel model.PropertyFieldTargetLevel
 	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_channel")
+		return "", fmt.Errorf("property_field_check_conflict_channel: %w", err)
 	}
 
 	return conflictLevel, nil
@@ -627,7 +627,7 @@ func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error)
 		Where(sq.Eq{"DeleteAt": 0})
 
 	if err := s.GetMaster().GetBuilder(&count, builder); err != nil {
-		return 0, errors.Wrap(err, "property_field_count_linked_fields")
+		return 0, fmt.Errorf("property_field_count_linked_fields: %w", err)
 	}
 	return count, nil
 }

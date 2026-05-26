@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 )
 
 type SqlAttributesStore struct {
@@ -52,7 +51,7 @@ func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterf
 
 func (s *SqlAttributesStore) RefreshAttributes() error {
 	if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW AttributeView"); err != nil {
-		return errors.Wrap(err, "error refreshing materialized view AttributeView")
+		return fmt.Errorf("error refreshing materialized view AttributeView: %w", err)
 	}
 
 	return nil
@@ -63,7 +62,7 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID string) (*
 
 	q, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to build query for subject")
+		return nil, fmt.Errorf("failed to build query for subject: %w", err)
 	}
 
 	row := s.GetReplica().QueryRowContext(rctx.Context(), q, args...)
@@ -75,11 +74,11 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID string) (*
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Attributes", ID)
 		}
-		return nil, errors.Wrap(err, "failed to scan subject row")
+		return nil, fmt.Errorf("failed to scan subject row: %w", err)
 	}
 
 	if err := json.Unmarshal(properties, &subject.Attributes); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal attributes")
+		return nil, fmt.Errorf("failed to unmarshal attributes: %w", err)
 	}
 
 	return &subject, nil
@@ -151,12 +150,12 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 	q, args, err := query.ToSql()
 	if err != nil {
-		return nil, 0, errors.Wrap(err, "failed to build query for subjects")
+		return nil, 0, fmt.Errorf("failed to build query for subjects: %w", err)
 	}
 
 	users := []*model.User{}
 	if err = s.GetReplica().Select(&users, q, args...); err != nil {
-		return nil, 0, errors.Wrapf(err, "failed to find Users with term=%s and searchType=%v", opts.Term, searchFields)
+		return nil, 0, fmt.Errorf("failed to find Users with term=%s and searchType=%v: %w", opts.Term, searchFields, err)
 	}
 
 	for _, u := range users {
@@ -168,7 +167,7 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 	if !opts.IgnoreCount {
 		err = s.GetReplica().GetBuilder(&total, count)
 		if err != nil {
-			return nil, 0, errors.Wrapf(err, "failed to count Users with term=%s and searchType=%v", opts.Term, searchFields)
+			return nil, 0, fmt.Errorf("failed to count Users with term=%s and searchType=%v: %w", opts.Term, searchFields, err)
 		}
 	}
 
@@ -202,12 +201,12 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 
 	q, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to build query for subjects")
+		return nil, fmt.Errorf("failed to build query for subjects: %w", err)
 	}
 
 	members := []*model.ChannelMember{}
 	if err := s.GetReplica().Select(&members, q, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find channel members with for channel id=%s", channelID)
+		return nil, fmt.Errorf("failed to find channel members with for channel id=%s: %w", channelID, err)
 	}
 
 	return members, nil

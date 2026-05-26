@@ -4,12 +4,13 @@
 package email
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"net/url"
 	"path"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/throttled/throttled/v2"
 	"github.com/throttled/throttled/v2/store/memstore"
 
@@ -103,7 +104,7 @@ func (c *ServiceConfig) validate() error {
 func (es *Service) setUpRateLimiters() error {
 	store, err := memstore.NewCtx(emailRateLimitingMemstoreSize)
 	if err != nil {
-		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
+		return fmt.Errorf("Unable to setup email rate limiting memstore.: %w", err)
 	}
 
 	perMinuteQuota := throttled.RateQuota{
@@ -118,12 +119,12 @@ func (es *Service) setUpRateLimiters() error {
 
 	perMinuteRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, perMinuteQuota)
 	if err != nil {
-		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
+		return fmt.Errorf("Unable to setup email rate limiting GCRA rate limiter.: %w", err)
 	}
 
 	perHourRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, perHourQuota)
 	if err != nil {
-		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
+		return fmt.Errorf("Unable to setup email rate limiting GCRA rate limiter.: %w", err)
 	}
 
 	es.perMinuteEmailRateLimiter = perMinuteRateLimiter

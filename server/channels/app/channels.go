@@ -4,6 +4,8 @@
 package app
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,8 +15,6 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -225,13 +225,13 @@ func NewChannels(s *Server) (*Channels, error) {
 		ConcurrencyLevel: decoderConcurrency,
 	})
 	if imgErr != nil {
-		return nil, errors.Wrap(imgErr, "failed to create image decoder")
+		return nil, fmt.Errorf("failed to create image decoder: %w", imgErr)
 	}
 	ch.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOptions{
 		ConcurrencyLevel: runtime.NumCPU(),
 	})
 	if imgErr != nil {
-		return nil, errors.Wrap(imgErr, "failed to create image encoder")
+		return nil, fmt.Errorf("failed to create image encoder: %w", imgErr)
 	}
 
 	// Setup routes.
@@ -305,11 +305,11 @@ func (ch *Channels) Start() error {
 
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
-		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
+		return fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
 	}
 
 	if err := ch.ensurePostActionCookieSecret(); err != nil {
-		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
+		return fmt.Errorf("unable to ensure PostAction cookie secret: %w", err)
 	}
 
 	return nil

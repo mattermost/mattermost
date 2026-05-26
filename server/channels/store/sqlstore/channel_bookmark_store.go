@@ -4,11 +4,11 @@
 package sqlstore
 
 import (
+	"fmt"
 	"slices"
 	"strconv"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -79,7 +79,7 @@ func (s *SqlChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId 
 	var attached int64
 	err := s.GetReplica().GetBuilder(&attached, alreadyAttachedQuery)
 	if err != nil {
-		return errors.Wrap(err, "unable_to_save_channel_bookmark")
+		return fmt.Errorf("unable_to_save_channel_bookmark: %w", err)
 	}
 
 	if attached > 0 {
@@ -102,7 +102,7 @@ func (s *SqlChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.Ch
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "channel_bookmark_getforchanneltsince_tosql")
+		return nil, fmt.Errorf("channel_bookmark_getforchanneltsince_tosql: %w", err)
 	}
 
 	bookmark := model.ChannelBookmarkAndFileInfo{}
@@ -133,7 +133,7 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 		Where(sq.Eq{"ChannelId": bookmark.ChannelId, "DeleteAt": 0})
 	err = transaction.GetBuilder(&currentBookmarksCount, query)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed while getting the count of ChannelBookmarks")
+		return nil, fmt.Errorf("failed while getting the count of ChannelBookmarks: %w", err)
 	}
 
 	if currentBookmarksCount >= model.MaxBookmarksPerChannel {
@@ -143,7 +143,7 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 	if bookmark.FileId != "" {
 		err = s.ErrorIfBookmarkFileInfoAlreadyAttached(bookmark.FileId, bookmark.ChannelId)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable_to_save_channel_bookmark")
+			return nil, fmt.Errorf("unable_to_save_channel_bookmark: %w", err)
 		}
 	}
 
@@ -156,7 +156,7 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 
 		err = transaction.GetBuilder(&sortOrder, query)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed while getting the sortOrder from ChannelBookmarks")
+			return nil, fmt.Errorf("failed while getting the sortOrder from ChannelBookmarks: %w", err)
 		}
 		bookmark.SortOrder = sortOrder + 1
 	}
@@ -168,11 +168,11 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 		ToSql()
 
 	if sqlErr != nil {
-		return nil, errors.Wrap(err, "insert_channel_bookmark_to_sql")
+		return nil, fmt.Errorf("insert_channel_bookmark_to_sql: %w", err)
 	}
 
 	if _, insertErr := transaction.Exec(sql, args...); insertErr != nil {
-		return nil, errors.Wrap(insertErr, "unable_to_save_channel_bookmark")
+		return nil, fmt.Errorf("unable_to_save_channel_bookmark: %w", insertErr)
 	}
 
 	var fileInfo model.FileInfo
@@ -183,10 +183,10 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 			Where(sq.Eq{"Id": bookmark.FileId}).
 			ToSql()
 		if queryErr != nil {
-			return nil, errors.Wrap(queryErr, "channel_bookmark_get_file_info_to_sql")
+			return nil, fmt.Errorf("channel_bookmark_get_file_info_to_sql: %w", queryErr)
 		}
 		if queryErr = transaction.Get(&fileInfo, query, args...); queryErr != nil {
-			return nil, errors.Wrap(queryErr, "unable_to_get_channel_bookmark_file_info")
+			return nil, fmt.Errorf("unable_to_get_channel_bookmark_file_info: %w", queryErr)
 		}
 	}
 
@@ -215,16 +215,16 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 		}).
 		ToSql()
 	if err != nil {
-		return errors.Wrap(err, "channel_bookmark_update_tosql")
+		return fmt.Errorf("channel_bookmark_update_tosql: %w", err)
 	}
 
 	res, err := s.GetMaster().Exec(query, args...)
 	if err != nil {
-		return errors.Wrapf(err, "failed to update channel bookmark with id=%s", bookmark.Id)
+		return fmt.Errorf("failed to update channel bookmark with id=%s: %w", bookmark.Id, err)
 	}
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		return errors.Wrapf(err, "failed to get affected rows after updating bookmark with id=%s", bookmark.Id)
+		return fmt.Errorf("failed to get affected rows after updating bookmark with id=%s: %w", bookmark.Id, err)
 	}
 	if rowsAffected == 0 {
 		return store.NewErrNotFound("ChannelBookmark", bookmark.Id)
@@ -306,12 +306,12 @@ func (s *SqlChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) err
 		Where(sq.Eq{"Id": bookmarkId}).
 		ToSql()
 	if err != nil {
-		return errors.Wrap(err, "channel_bookmark_delete_tosql")
+		return fmt.Errorf("channel_bookmark_delete_tosql: %w", err)
 	}
 
 	_, err = transaction.Exec(query, args...)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete channel bookmark with id=%s", bookmarkId)
+		return fmt.Errorf("failed to delete channel bookmark with id=%s: %w", bookmarkId, err)
 	}
 
 	if deleteFile {
@@ -330,12 +330,12 @@ func (s *SqlChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) err
 			ToSql()
 
 		if fileErr != nil {
-			return errors.Wrap(err, "channel_bookmark_delete_tosql")
+			return fmt.Errorf("channel_bookmark_delete_tosql: %w", err)
 		}
 
 		_, err = transaction.Exec(fileQuery, fileArgs...)
 		if err != nil {
-			return errors.Wrapf(err, "failed to delete channel bookmark with id=%s", bookmarkId)
+			return fmt.Errorf("failed to delete channel bookmark with id=%s: %w", bookmarkId, err)
 		}
 	}
 
@@ -364,14 +364,14 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, 
 		Limit(model.MaxBookmarksPerChannel * 2) // limit to the double of the cap as an edge case
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "channel_bookmark_getforchanneltsince_tosql")
+		return nil, fmt.Errorf("channel_bookmark_getforchanneltsince_tosql: %w", err)
 	}
 
 	bookmarkRows := []model.ChannelBookmarkAndFileInfo{}
 	bookmarks := []*model.ChannelBookmarkWithFileInfo{}
 
 	if err := s.GetReplica().Select(&bookmarkRows, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find bookmarks")
+		return nil, fmt.Errorf("failed to find bookmarks: %w", err)
 	}
 
 	for _, bookmark := range bookmarkRows {

@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -109,12 +108,12 @@ func getData(app ExportUsersToCSVAppIFace) func(jobData model.StringMap) ([]mode
 	return func(jobData model.StringMap) ([]model.ReportableObject, model.StringMap, bool, error) {
 		filter, err := parseJobMetadata(jobData)
 		if err != nil {
-			return nil, nil, false, errors.Wrap(err, "failed to parse job metadata")
+			return nil, nil, false, fmt.Errorf("failed to parse job metadata: %w", err)
 		}
 
 		users, appErr := app.GetUsersForReporting(filter)
 		if appErr != nil {
-			return nil, nil, false, errors.Wrapf(appErr, "failed to get the next batch (column_value=%v, user_id=%v)", filter.FromColumnValue, filter.FromId)
+			return nil, nil, false, fmt.Errorf("failed to get the next batch (column_value=%v, user_id=%v): %w", filter.FromColumnValue, filter.FromId, appErr)
 		}
 
 		if len(users) == 0 {

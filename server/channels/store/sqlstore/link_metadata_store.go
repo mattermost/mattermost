@@ -6,9 +6,9 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -48,7 +48,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	metadata.PreSave()
 	metadataBytes, err := json.Marshal(metadata.Data)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not serialize metadataBytes to JSON")
+		return nil, fmt.Errorf("could not serialize metadataBytes to JSON: %w", err)
 	}
 	if s.IsBinaryParamEnabled() {
 		metadataBytes = AppendBinaryFlag(metadataBytes)
@@ -63,12 +63,12 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 
 	q, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "metadata_tosql")
+		return nil, fmt.Errorf("metadata_tosql: %w", err)
 	}
 
 	_, err = s.GetMaster().Exec(q, args...)
 	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
-		return nil, errors.Wrap(err, "could not save link metadata")
+		return nil, fmt.Errorf("could not save link metadata: %w", err)
 	}
 
 	return metadata, nil
@@ -80,19 +80,19 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
 		Where(sq.Eq{"URL": url, "Timestamp": timestamp}).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not create query with querybuilder")
+		return nil, fmt.Errorf("could not create query with querybuilder: %w", err)
 	}
 	err = s.GetReplica().Get(&metadata, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("LinkMetadata", "url="+url)
 		}
-		return nil, errors.Wrapf(err, "could not get metadata with selectone: url=%s", url)
+		return nil, fmt.Errorf("could not get metadata with selectone: url=%s: %w", url, err)
 	}
 
 	err = metadata.DeserializeDataToConcreteType()
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not deserialize metadata to concrete type for url=%s", url)
+		return nil, fmt.Errorf("could not deserialize metadata to concrete type for url=%s: %w", url, err)
 	}
 
 	return &metadata, nil

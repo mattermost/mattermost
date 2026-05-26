@@ -5,6 +5,8 @@ package app
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"maps"
 	"net/http"
 	"time"
@@ -13,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/pkg/errors"
 )
 
 // ResolvePersistentNotification stops the persistent notifications, if a loggedInUserID(except the post owner) reacts, reply or ack on the post.
@@ -118,7 +119,7 @@ func (a *App) SendPersistentNotifications() error {
 			PerPage:      500,
 		})
 		if err != nil {
-			return errors.Wrap(err, "failed to get posts for persistent notifications")
+			return fmt.Errorf("failed to get posts for persistent notifications: %w", err)
 		}
 
 		// No posts left to send persistent notifications
@@ -132,7 +133,7 @@ func (a *App) SendPersistentNotifications() error {
 		}
 		posts, err := a.Srv().Store().Post().GetPostsByIds(postIds)
 		if err != nil {
-			return errors.Wrap(err, "failed to get posts by IDs")
+			return fmt.Errorf("failed to get posts by IDs: %w", err)
 		}
 
 		// Send notifications
@@ -141,12 +142,12 @@ func (a *App) SendPersistentNotifications() error {
 		}
 
 		if err := a.Srv().Store().PostPersistentNotification().UpdateLastActivity(postIds); err != nil {
-			return errors.Wrapf(err, "failed to update lastActivity for notifications: %v", postIds)
+			return fmt.Errorf("failed to update lastActivity for notifications: %v: %w", postIds, err)
 		}
 	}
 
 	if err := a.Srv().Store().PostPersistentNotification().DeleteExpired(notificationMaxCount); err != nil {
-		return errors.Wrap(err, "failed to delete expired notifications")
+		return fmt.Errorf("failed to delete expired notifications: %w", err)
 	}
 
 	return nil
@@ -190,7 +191,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 			var sender *model.User
 			sender, err = a.Srv().Store().User().Get(context.Background(), post.UserId)
 			if err != nil {
-				return errors.Wrapf(err, "failed to get profile for sender user %s for post %s", post.UserId, post.Id)
+				return fmt.Errorf("failed to get profile for sender user %s for post %s: %w", post.UserId, post.Id, err)
 			}
 
 			profileMap[post.UserId] = sender
@@ -212,7 +213,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 				group := channelGroupMap[channel.Id][groupID]
 				_, err := a.insertGroupMentions(post.UserId, group, channel, profileMap, mentions)
 				if err != nil {
-					return errors.Wrapf(err, "failed to include mentions from group - %s for channel - %s", group.Id, channel.Id)
+					return fmt.Errorf("failed to include mentions from group - %s for channel - %s: %w", group.Id, channel.Id, err)
 				}
 			}
 		}
@@ -248,20 +249,20 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 		if c.Type != model.ChannelTypeDirect {
 			groups, err := a.getGroupsAllowedForReferenceInChannel(c, team)
 			if err != nil {
-				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
+				return nil, nil, nil, nil, fmt.Errorf("failed to get profiles for channel %s: %w", c.Id, err)
 			}
 			channelGroupMap[c.Id] = make(map[string]*model.Group, len(groups))
 			maps.Copy(channelGroupMap[c.Id], groups)
 			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(c.Id, true)
 			if err != nil {
-				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
+				return nil, nil, nil, nil, fmt.Errorf("failed to get profiles for channel %s: %w", c.Id, err)
 			}
 			channelNotifyProps[c.Id] = props
 		}
 
 		profileMap, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), c.Id, true)
 		if err != nil {
-			return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
+			return nil, nil, nil, nil, fmt.Errorf("failed to get profiles for channel %s: %w", c.Id, err)
 		}
 
 		channelKeywords[c.Id] = make(MentionKeywords, len(profileMap))
@@ -282,7 +283,7 @@ func (a *App) channelTeamMapsForPosts(posts []*model.Post) (map[string]*model.Ch
 	}
 	channels, err := a.Srv().Store().Channel().GetChannelsByIds(channelIds.Val(), false)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to get teams by IDs")
+		return nil, nil, fmt.Errorf("failed to get teams by IDs: %w", err)
 	}
 	channelsMap := make(map[string]*model.Channel, len(channels))
 	for _, c := range channels {
@@ -299,7 +300,7 @@ func (a *App) channelTeamMapsForPosts(posts []*model.Post) (map[string]*model.Ch
 	if len(teamIds) > 0 {
 		teams, err = a.Srv().Store().Team().GetMany(teamIds.Val())
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "failed to get teams by IDs")
+			return nil, nil, fmt.Errorf("failed to get teams by IDs: %w", err)
 		}
 	}
 	teamsMap := make(map[string]*model.Team, len(teams))
@@ -327,7 +328,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 	}
 
 	if int64(len(mentionedUsersList)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		return errors.Errorf("mentioned users: %d are more than allowed users: %d", len(mentionedUsersList), *a.Config().TeamSettings.MaxNotificationsPerChannel)
+		return fmt.Errorf("mentioned users: %d are more than allowed users: %d", len(mentionedUsersList), *a.Config().TeamSettings.MaxNotificationsPerChannel)
 	}
 
 	if a.canSendPushNotifications() {
@@ -375,7 +376,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 		post = a.PreparePostForClient(request.EmptyContext(a.Log()), post, &model.PreparePostForClientOpts{IncludePriority: true})
 		postJSON, jsonErr := post.ToJSON()
 		if jsonErr != nil {
-			return errors.Wrapf(jsonErr, "failed to encode post to JSON")
+			return fmt.Errorf("failed to encode post to JSON: %w", jsonErr)
 		}
 
 		for _, u := range desktopUsers {

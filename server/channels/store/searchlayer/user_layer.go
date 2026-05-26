@@ -5,9 +5,8 @@ package searchlayer
 
 import (
 	"context"
+	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -134,13 +133,13 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(rctx request.CTX, e
 
 	result := <-uchan
 	if result.NErr != nil {
-		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
+		return nil, fmt.Errorf("failed to get user profiles by ids: %w", result.NErr)
 	}
 	autocomplete.InChannel = result.Data
 
 	result = <-nuchan
 	if result.NErr != nil {
-		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
+		return nil, fmt.Errorf("failed to get user profiles by ids: %w", result.NErr)
 	}
 	autocomplete.OutOfChannel = result.Data
 
@@ -169,7 +168,7 @@ func (s *SearchUserStore) getListOfAllowedChannels(teamId, channelId string, vie
 	if teamId != "" && (viewRestrictions == nil || strings.Contains(strings.Join(viewRestrictions.Teams, "."), teamId)) {
 		channels, err := s.rootStore.Channel().GetTeamChannels(teamId)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get team channels")
+			return nil, fmt.Errorf("failed to get team channels: %w", err)
 		}
 		for _, channel := range channels {
 			listOfAllowedChannels = append(listOfAllowedChannels, channel.Id)
@@ -178,7 +177,7 @@ func (s *SearchUserStore) getListOfAllowedChannels(teamId, channelId string, vie
 		if channelId != "" {
 			ch, err := s.rootStore.Channel().Get(channelId, true)
 			if err != nil {
-				return nil, errors.Wrapf(err, "failed to get channel with id: %s", channelId)
+				return nil, fmt.Errorf("failed to get channel with id: %s: %w", channelId, err)
 			}
 			// Check if DM/GM channel, and add to the list.
 			// This is because GetTeamChannels does not return DM/GM channels.
@@ -194,7 +193,7 @@ func (s *SearchUserStore) getListOfAllowedChannels(teamId, channelId string, vie
 	if len(viewRestrictions.Channels) > 0 {
 		channels, err := s.rootStore.Channel().GetChannelsByIds(viewRestrictions.Channels, false)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get channels by ids")
+			return nil, fmt.Errorf("failed to get channels by ids: %w", err)
 		}
 		for _, c := range channels {
 			if teamId == "" || (teamId != "" && c.TeamId == teamId) {

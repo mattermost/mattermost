@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -13,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -110,7 +110,7 @@ func botCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		Description: description,
 	})
 	if err != nil {
-		return errors.Errorf("could not create bot: %s", err)
+		return fmt.Errorf("could not create bot: %s", err)
 	}
 
 	printer.PrintT("Created bot {{.UserId}}", bot)
@@ -147,7 +147,7 @@ func botUpdateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	bot, _, err := c.PatchBot(context.TODO(), user.Id, &patch)
 	if err != nil {
-		return errors.Errorf("could not update bot: %s", err)
+		return fmt.Errorf("could not update bot: %s", err)
 	}
 
 	printer.PrintT("Updated bot {{.UserId}} ({{.Username}})", bot)
@@ -173,7 +173,7 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			bots, _, err = c.GetBots(context.TODO(), page, perPage, "")
 		}
 		if err != nil {
-			return errors.Wrap(err, "Failed to fetch bots")
+			return fmt.Errorf("Failed to fetch bots: %w", err)
 		}
 
 		userIds := []string{}
@@ -183,7 +183,7 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 		users, _, err := c.GetUsersByIds(context.TODO(), userIds)
 		if err != nil {
-			return errors.Wrap(err, "Failed to fetch bots")
+			return fmt.Errorf("Failed to fetch bots: %w", err)
 		}
 
 		usersByID := map[string]*model.User{}
@@ -277,7 +277,7 @@ func botAssignCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	newBot, _, err := c.AssignBot(context.TODO(), botUser.Id, newOwnerUser.Id)
 	if err != nil {
-		return errors.Errorf("can not assign bot '%s' to user '%s'", args[0], args[1])
+		return fmt.Errorf("can not assign bot '%s' to user '%s'", args[0], args[1])
 	}
 
 	printer.PrintT("The bot {{.UserId}} ({{.Username}}) now belongs to the user "+newOwnerUser.Username, newBot)

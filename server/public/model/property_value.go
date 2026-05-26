@@ -5,11 +5,10 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/pkg/errors"
 )
 
 const (

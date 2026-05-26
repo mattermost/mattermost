@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -47,7 +47,7 @@ type addMentionsBroadcastHook struct{}
 func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	mentions, err := getTypedArg[model.StringArray](args, "mentions")
 	if err != nil {
-		return errors.Wrap(err, "Invalid mentions value passed to addMentionsBroadcastHook")
+		return fmt.Errorf("Invalid mentions value passed to addMentionsBroadcastHook: %w", err)
 	}
 
 	if len(mentions) > 0 && slices.Contains(mentions, webConn.UserId) {
@@ -69,7 +69,7 @@ type addFollowersBroadcastHook struct{}
 func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	followers, err := getTypedArg[model.StringArray](args, "followers")
 	if err != nil {
-		return errors.Wrap(err, "Invalid followers value passed to addFollowersBroadcastHook")
+		return fmt.Errorf("Invalid followers value passed to addFollowersBroadcastHook: %w", err)
 	}
 
 	if len(followers) > 0 && slices.Contains(followers, webConn.UserId) {
@@ -104,7 +104,7 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	postedUserId, err := getTypedArg[string](args, "posted_user_id")
 	if err != nil {
-		return errors.Wrap(err, "Invalid posted_user_id value passed to postedAckBroadcastHook")
+		return fmt.Errorf("Invalid posted_user_id value passed to postedAckBroadcastHook: %w", err)
 	}
 
 	// Don't ACK your own posts
@@ -122,7 +122,7 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	channelType, err := getTypedArg[model.ChannelType](args, "channel_type")
 	if err != nil {
-		return errors.Wrap(err, "Invalid channel_type value passed to postedAckBroadcastHook")
+		return fmt.Errorf("Invalid channel_type value passed to postedAckBroadcastHook: %w", err)
 	}
 
 	// Always ACK direct channels
@@ -134,7 +134,7 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	users, err := getTypedArg[model.StringArray](args, "users")
 	if err != nil {
-		return errors.Wrap(err, "Invalid users value passed to postedAckBroadcastHook")
+		return fmt.Errorf("Invalid users value passed to postedAckBroadcastHook: %w", err)
 	}
 
 	if len(users) > 0 && slices.Contains(users, webConn.UserId) {
@@ -171,7 +171,7 @@ type permalinkBroadcastHook struct{}
 func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	previewChannel, err := getTypedArg[*model.Channel](args, "preview_channel")
 	if err != nil {
-		return errors.Wrap(err, "Invalid preview_channel value passed to permalinkBroadcastHook")
+		return fmt.Errorf("Invalid preview_channel value passed to permalinkBroadcastHook: %w", err)
 	}
 
 	rctx := request.EmptyContext(webConn.Platform.Log())
@@ -185,18 +185,18 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	// Get the current post from the message (may have been modified by other hooks)
 	post, err := getPostFromMessage(msg)
 	if err != nil {
-		return errors.Wrap(err, "permalinkBroadcastHook failed to get post from message")
+		return fmt.Errorf("permalinkBroadcastHook failed to get post from message: %w", err)
 	}
 
 	// Add permalink metadata to the post
 	permalinkPreviewedPost, err := getTypedArg[*model.PreviewPost](args, "permalink_previewed_post")
 	if err != nil {
-		return errors.Wrap(err, "Invalid permalink_previewed_post value passed to permalinkBroadcastHook")
+		return fmt.Errorf("Invalid permalink_previewed_post value passed to permalinkBroadcastHook: %w", err)
 	}
 
 	previewProp, err := getTypedArg[string](args, "preview_prop")
 	if err != nil {
-		return errors.Wrap(err, "Invalid preview_prop value passed to permalinkBroadcastHook")
+		return fmt.Errorf("Invalid preview_prop value passed to permalinkBroadcastHook: %w", err)
 	}
 
 	// Strip files from the referenced post for recipients denied download access.
@@ -236,7 +236,7 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	// Marshal and write back
 	updatedPostJSON, err := post.ToJSON()
 	if err != nil {
-		return errors.Wrap(err, "Failed to marshal post in permalinkBroadcastHook")
+		return fmt.Errorf("Failed to marshal post in permalinkBroadcastHook: %w", err)
 	}
 	msg.Add("post", updatedPostJSON)
 
@@ -267,7 +267,7 @@ type channelMentionsBroadcastHook struct{}
 func (h *channelMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	channelMentions, err := getTypedArg[map[string]any](args, "channel_mentions")
 	if err != nil {
-		return errors.Wrap(err, "Invalid channel_mentions value passed to channelMentionsBroadcastHook")
+		return fmt.Errorf("Invalid channel_mentions value passed to channelMentionsBroadcastHook: %w", err)
 	}
 
 	// If no channel mentions, nothing to filter
@@ -278,7 +278,7 @@ func (h *channelMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEven
 	// Get the current post from the message (might have been modified by other hooks like permalink)
 	post, err := getPostFromMessage(msg)
 	if err != nil {
-		return errors.Wrap(err, "channelMentionsBroadcastHook failed to get post from message")
+		return fmt.Errorf("channelMentionsBroadcastHook failed to get post from message: %w", err)
 	}
 
 	// Filter channel mentions based on recipient's permissions
@@ -319,7 +319,7 @@ func (h *channelMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEven
 
 	updatedPostJSON, err := post.ToJSON()
 	if err != nil {
-		return errors.Wrap(err, "Failed to marshal post in channelMentionsBroadcastHook")
+		return fmt.Errorf("Failed to marshal post in channelMentionsBroadcastHook: %w", err)
 	}
 
 	msg.Add("post", updatedPostJSON)
@@ -333,12 +333,12 @@ func (h *burnOnReadBroadcastHook) Process(msg *platform.HookedWebSocketEvent, we
 	userID := webConn.UserId
 	authorID, err := getTypedArg[string](args, "author_id")
 	if err != nil {
-		return errors.Wrap(err, "Invalid author_id value passed to burnOnReadBroadcastHook")
+		return fmt.Errorf("Invalid author_id value passed to burnOnReadBroadcastHook: %w", err)
 	}
 	if userID == authorID {
 		postJSON, tErr := getTypedArg[string](args, "revealed_post_json")
 		if tErr != nil {
-			return errors.Wrap(tErr, "Invalid revealed_post_json value passed to burnOnReadBroadcastHook")
+			return fmt.Errorf("Invalid revealed_post_json value passed to burnOnReadBroadcastHook: %w", tErr)
 		}
 		msg.Add("post", postJSON)
 		return nil
@@ -346,13 +346,13 @@ func (h *burnOnReadBroadcastHook) Process(msg *platform.HookedWebSocketEvent, we
 
 	postJSON, err := getTypedArg[string](args, "post_json")
 	if err != nil {
-		return errors.Wrap(err, "Invalid post_json value passed to burnOnReadBroadcastHook")
+		return fmt.Errorf("Invalid post_json value passed to burnOnReadBroadcastHook: %w", err)
 	}
 
 	var post model.Post
 	err = json.Unmarshal([]byte(postJSON), &post)
 	if err != nil {
-		return errors.Wrap(err, "Invalid post value passed to burnOnReadBroadcastHook")
+		return fmt.Errorf("Invalid post value passed to burnOnReadBroadcastHook: %w", err)
 	}
 	post.Metadata.Embeds = []*model.PostEmbed{}
 	post.Metadata.Emojis = []*model.Emoji{}
@@ -361,7 +361,7 @@ func (h *burnOnReadBroadcastHook) Process(msg *platform.HookedWebSocketEvent, we
 	post.FileIds = model.StringArray{}
 	postJSON, err = post.ToJSON()
 	if err != nil {
-		return errors.Wrap(err, "Invalid post value passed to burnOnReadBroadcastHook")
+		return fmt.Errorf("Invalid post value passed to burnOnReadBroadcastHook: %w", err)
 	}
 
 	msg.Add("post", postJSON)
@@ -375,7 +375,7 @@ func (h *burnOnReadReactionBroadcastHook) Process(msg *platform.HookedWebSocketE
 	userID := webConn.UserId
 	authorID, err := getTypedArg[string](args, "author_id")
 	if err != nil {
-		return errors.Wrap(err, "Invalid author_id value passed to burnOnReadReactionBroadcastHook")
+		return fmt.Errorf("Invalid author_id value passed to burnOnReadReactionBroadcastHook: %w", err)
 	}
 
 	// If user is the author, they can always see reactions
@@ -385,14 +385,14 @@ func (h *burnOnReadReactionBroadcastHook) Process(msg *platform.HookedWebSocketE
 
 	postID, err := getTypedArg[string](args, "post_id")
 	if err != nil {
-		return errors.Wrap(err, "Invalid post_id value passed to burnOnReadReactionBroadcastHook")
+		return fmt.Errorf("Invalid post_id value passed to burnOnReadReactionBroadcastHook: %w", err)
 	}
 
 	// Check if user has a valid read receipt
 	rctx := request.EmptyContext(webConn.Platform.Log())
 	receipt, err := webConn.Platform.Store.ReadReceipt().Get(rctx, postID, userID)
 	if err != nil && !store.IsErrNotFound(err) {
-		return errors.Wrap(err, "Failed to get read receipt in burnOnReadReactionBroadcastHook")
+		return fmt.Errorf("Failed to get read receipt in burnOnReadReactionBroadcastHook: %w", err)
 	}
 
 	// If no receipt or receipt expired, remove reaction data
@@ -427,12 +427,12 @@ func useAbacFilesHook(message *model.WebSocketEvent, channelID string, fileCount
 func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	channelID, err := getTypedArg[string](args, "channel_id")
 	if err != nil {
-		return errors.Wrap(err, "Invalid channel_id value passed to abacFilesBroadcastHook")
+		return fmt.Errorf("Invalid channel_id value passed to abacFilesBroadcastHook: %w", err)
 	}
 
 	fileCount, err := getTypedArg[int](args, "file_count")
 	if err != nil {
-		return errors.Wrap(err, "Invalid file_count value passed to abacFilesBroadcastHook")
+		return fmt.Errorf("Invalid file_count value passed to abacFilesBroadcastHook: %w", err)
 	}
 
 	// The ABAC evaluator resolves role from rctx.Session(), not Subject.Role.
@@ -526,7 +526,7 @@ func useOnlyChannelAdminsHook(message *model.WebSocketEvent, channelAdminUserIds
 func (h *onlyChannelAdminsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	adminUserIDs, err := getTypedArg[model.StringArray](args, "channel_admin_user_ids")
 	if err != nil {
-		return errors.Wrap(err, "Invalid channel_admin_user_ids value passed to onlyChannelAdminsBroadcastHook")
+		return fmt.Errorf("Invalid channel_admin_user_ids value passed to onlyChannelAdminsBroadcastHook: %w", err)
 	}
 
 	if !slices.Contains(adminUserIDs, webConn.UserId) {
@@ -563,7 +563,7 @@ func getPostFromMessage(msg *platform.HookedWebSocketEvent) (*model.Post, error)
 	var post model.Post
 	err := json.Unmarshal([]byte(currentPostJSON), &post)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to unmarshal post")
+		return nil, fmt.Errorf("Failed to unmarshal post: %w", err)
 	}
 
 	return &post, nil

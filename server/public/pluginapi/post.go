@@ -1,9 +1,8 @@
 package pluginapi
 
 import (
+	"fmt"
 	"slices"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -285,7 +284,7 @@ func (p *PostService) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		botIDBytes, kvGetErr = p.api.KVGet(botUserKey)
 
 		if kvGetErr != nil {
-			return false, errors.Wrap(kvGetErr, "failed to get bot")
+			return false, fmt.Errorf("failed to get bot: %w", kvGetErr)
 		}
 	}
 
@@ -306,7 +305,7 @@ func (p *PostService) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 	if !messageProcessOptions.AllowBots {
 		user, appErr := p.api.GetUser(post.UserId)
 		if appErr != nil {
-			return false, errors.Wrap(appErr, "unable to get user")
+			return false, fmt.Errorf("unable to get user: %w", appErr)
 		}
 
 		if user.IsBot {
@@ -325,7 +324,7 @@ func (p *PostService) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 	if botIDBytes != nil && messageProcessOptions.OnlyBotDMs {
 		channel, appErr := p.api.GetChannel(post.ChannelId)
 		if appErr != nil {
-			return false, errors.Wrap(appErr, "unable to get channel")
+			return false, fmt.Errorf("unable to get channel: %w", appErr)
 		}
 
 		if !model.IsBotDMChannel(channel, string(botIDBytes)) {

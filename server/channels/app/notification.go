@@ -6,12 +6,12 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
 	"sync"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -774,7 +774,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 							mlog.String("receiver_id", uid),
 							mlog.Err(err),
 						)
-						return nil, errors.Wrapf(err, "Missing thread membership for participant in notifications. user_id=%q thread_id=%q", uid, post.RootId)
+						return nil, fmt.Errorf("Missing thread membership for participant in notifications. user_id=%q thread_id=%q: %w", uid, post.RootId, err)
 					}
 					if tm == nil {
 						a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeWebsocket, model.NotificationReasonMissingThreadMembership, model.NotificationNoPlatform)
@@ -802,7 +802,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 						mlog.String("receiver_id", uid),
 						mlog.Err(err),
 					)
-					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
+					return nil, fmt.Errorf("cannot get thread %q for user %q: %w", post.RootId, uid, err)
 				}
 				if userThread != nil {
 					previousUnreadMentions := int64(0)
@@ -836,7 +836,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 								mlog.String("receiver_id", uid),
 								mlog.Err(err),
 							)
-							return nil, errors.Wrapf(err, "cannot maintain thread membership %q for user %q", post.RootId, uid)
+							return nil, fmt.Errorf("cannot maintain thread membership %q for user %q: %w", post.RootId, uid, err)
 						}
 						userThread.UnreadMentions = 0
 						userThread.UnreadReplies = 0
@@ -1513,7 +1513,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 			groups, err = a.Srv().Store().Group().GetGroupsByTeam(team.Id, opts)
 		}
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to get groups")
+			return nil, fmt.Errorf("unable to get groups: %w", err)
 		}
 		for _, group := range groups {
 			if group.Group.Name != nil {
@@ -1525,7 +1525,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 		var customgroups []*model.Group
 		customgroups, err = a.Srv().Store().Group().GetGroups(0, 0, opts, nil)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to get custom groups")
+			return nil, fmt.Errorf("unable to get custom groups: %w", err)
 		}
 		for _, group := range customgroups {
 			if group.Name != nil {
@@ -1537,7 +1537,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 
 	groups, err := a.Srv().Store().Group().GetGroups(0, 0, opts, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to get groups")
+		return nil, fmt.Errorf("unable to get groups: %w", err)
 	}
 	for _, group := range groups {
 		if group.Name != nil {

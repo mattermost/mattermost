@@ -5,13 +5,13 @@ package commands
 
 import (
 	"archive/zip"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/pkg/errors"
 )
 
 const (

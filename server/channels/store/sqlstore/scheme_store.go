@@ -5,10 +5,10 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -58,7 +58,7 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 	if scheme.Id == "" {
 		transaction, terr := s.GetMaster().Begin()
 		if terr != nil {
-			return nil, errors.Wrap(terr, "begin_transaction")
+			return nil, fmt.Errorf("begin_transaction: %w", terr)
 		}
 		defer finalizeTransactionX(transaction, &terr)
 
@@ -67,7 +67,7 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 			return nil, terr
 		}
 		if terr = transaction.Commit(); terr != nil {
-			return nil, errors.Wrap(terr, "commit_transaction")
+			return nil, fmt.Errorf("commit_transaction: %w", terr)
 		}
 		return newScheme, nil
 	}
@@ -85,12 +85,12 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 		 DefaultPlaybookMemberRole=:DefaultPlaybookMemberRole, DefaultPlaybookAdminRole=:DefaultPlaybookAdminRole, DefaultRunMemberRole=:DefaultRunMemberRole, DefaultRunAdminRole=:DefaultRunAdminRole
 		 WHERE Id=:Id`, scheme)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to update Scheme")
+		return nil, fmt.Errorf("failed to update Scheme: %w", err)
 	}
 
 	rowsChanged, err := res.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrap(err, "error while getting rows_affected")
+		return nil, fmt.Errorf("error while getting rows_affected: %w", err)
 	}
 	if rowsChanged != 1 {
 		return nil, errors.New("no record to update")
@@ -308,7 +308,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 	(Id, Name, DisplayName, Description, Scope, DefaultTeamAdminRole, DefaultTeamUserRole, DefaultTeamGuestRole, DefaultChannelAdminRole, DefaultChannelUserRole, DefaultChannelGuestRole, CreateAt, UpdateAt, DeleteAt, DefaultPlaybookAdminRole, DefaultPlaybookMemberRole, DefaultRunAdminRole, DefaultRunMemberRole)
 		VALUES
 		(:Id, :Name, :DisplayName, :Description, :Scope, :DefaultTeamAdminRole, :DefaultTeamUserRole, :DefaultTeamGuestRole, :DefaultChannelAdminRole, :DefaultChannelUserRole, :DefaultChannelGuestRole, :CreateAt, :UpdateAt, :DeleteAt, :DefaultPlaybookAdminRole, :DefaultPlaybookMemberRole, :DefaultRunAdminRole, :DefaultRunMemberRole)`, scheme); err != nil {
-		return nil, errors.Wrap(err, "failed to save Scheme")
+		return nil, fmt.Errorf("failed to save Scheme: %w", err)
 	}
 
 	return scheme, nil
@@ -331,7 +331,7 @@ func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
-		return nil, errors.Wrapf(err, "failed to get Scheme with schemeId=%s", schemeId)
+		return nil, fmt.Errorf("failed to get Scheme with schemeId=%s: %w", schemeId, err)
 	}
 	return &scheme, nil
 }
@@ -343,7 +343,7 @@ func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeName=%s", schemeName))
 		}
-		return nil, errors.Wrapf(err, "failed to get Scheme with schemeName=%s", schemeName)
+		return nil, fmt.Errorf("failed to get Scheme with schemeName=%s: %w", schemeName, err)
 	}
 	return &scheme, nil
 }
@@ -355,19 +355,19 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
-		return nil, errors.Wrapf(err, "failed to get Scheme with schemeId=%s", schemeId)
+		return nil, fmt.Errorf("failed to get Scheme with schemeId=%s: %w", schemeId, err)
 	}
 
 	// Update any teams or channels using this scheme to the default scheme.
 	if scheme.Scope == model.SchemeScopeTeam {
 		if _, err := s.GetMaster().Exec(`UPDATE Teams SET SchemeId = '' WHERE SchemeId = ?`, schemeId); err != nil {
-			return nil, errors.Wrapf(err, "failed to update Teams with schemeId=%s", schemeId)
+			return nil, fmt.Errorf("failed to update Teams with schemeId=%s: %w", schemeId, err)
 		}
 
 		s.Team().ClearCaches()
 	} else if scheme.Scope == model.SchemeScopeChannel {
 		if _, err := s.GetMaster().Exec(`UPDATE Channels SET SchemeId = '' WHERE SchemeId = ?`, schemeId); err != nil {
-			return nil, errors.Wrapf(err, "failed to update Channels with schemeId=%s", schemeId)
+			return nil, fmt.Errorf("failed to update Channels with schemeId=%s: %w", schemeId, err)
 		}
 	}
 
@@ -384,11 +384,11 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 		Set("DeleteAt", time).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "status_tosql")
+		return nil, fmt.Errorf("status_tosql: %w", err)
 	}
 
 	if _, err = s.GetMaster().Exec(updateQuery, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to update Roles with SchemeId=%s", schemeId)
+		return nil, fmt.Errorf("failed to update Roles with SchemeId=%s: %w", schemeId, err)
 	}
 
 	// Delete the scheme itself.
@@ -401,12 +401,12 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 		 DefaultChannelAdminRole=:DefaultChannelAdminRole, DefaultChannelUserRole=:DefaultChannelUserRole, DefaultChannelGuestRole=:DefaultChannelGuestRole
 		 WHERE Id=:Id`, &scheme)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to update Scheme with schemeId=%s", schemeId)
+		return nil, fmt.Errorf("failed to update Scheme with schemeId=%s: %w", schemeId, err)
 	}
 
 	rowsChanged, err := res.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get RowsAffected while updating scheme with schemeId=%s", schemeId)
+		return nil, fmt.Errorf("failed to get RowsAffected while updating scheme with schemeId=%s: %w", schemeId, err)
 	}
 	if rowsChanged != 1 {
 		return nil, errors.New("no record to update")
@@ -450,11 +450,11 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "status_tosql")
+		return nil, fmt.Errorf("status_tosql: %w", err)
 	}
 
 	if err := s.GetReplica().Select(&schemes, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to get Schemes")
+		return nil, fmt.Errorf("failed to get Schemes: %w", err)
 	}
 
 	return schemes, nil
@@ -462,7 +462,7 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 
 func (s *SqlSchemeStore) PermanentDeleteAll() error {
 	if _, err := s.GetMaster().Exec("DELETE from Schemes"); err != nil {
-		return errors.Wrap(err, "failed to delete Schemes")
+		return fmt.Errorf("failed to delete Schemes: %w", err)
 	}
 
 	return nil
@@ -472,7 +472,7 @@ func (s *SqlSchemeStore) CountByScope(scope string) (int64, error) {
 	var count int64
 	err := s.GetReplica().Get(&count, `SELECT count(*) FROM Schemes WHERE Scope = ? AND DeleteAt = 0`, scope)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to count Schemes by scope")
+		return 0, fmt.Errorf("failed to count Schemes by scope: %w", err)
 	}
 	return count, nil
 }
@@ -493,7 +493,7 @@ func (s *SqlSchemeStore) CountWithoutPermission(schemeScope, permissionID string
 	var count int64
 	err := s.GetReplica().Get(&count, query)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to count Schemes without permission")
+		return 0, fmt.Errorf("failed to count Schemes without permission: %w", err)
 	}
 	return count, nil
 }

@@ -5,11 +5,11 @@ package filestore
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
-	pkgerr "github.com/pkg/errors"
 )
 
 // blobDownloader is the subset of *blob.Client used by azureRangeReader.
@@ -55,7 +55,7 @@ func (r *azureRangeReader) Read(p []byte) (int, error) {
 			Range: blob.HTTPRange{Offset: r.offset, Count: 0},
 		})
 		if err != nil {
-			return 0, pkgerr.Wrap(err, "failed to open azure range stream")
+			return 0, fmt.Errorf("failed to open azure range stream: %w", err)
 		}
 		r.body = resp.Body
 	}
@@ -87,10 +87,10 @@ func (r *azureRangeReader) Seek(offset int64, whence int) (int64, error) {
 	case io.SeekEnd:
 		abs = r.size + offset
 	default:
-		return 0, pkgerr.Errorf("invalid whence: %d", whence)
+		return 0, fmt.Errorf("invalid whence: %d", whence)
 	}
 	if abs < 0 {
-		return 0, pkgerr.Errorf("negative position: %d", abs)
+		return 0, fmt.Errorf("negative position: %d", abs)
 	}
 	if abs == r.offset {
 		return abs, nil
@@ -109,7 +109,7 @@ func (r *azureRangeReader) Seek(offset int64, whence int) (int64, error) {
 // worker needs to feed zip.NewReader on Azure-backed deployments.
 func (r *azureRangeReader) ReadAt(p []byte, off int64) (int, error) {
 	if off < 0 {
-		return 0, pkgerr.Errorf("negative offset: %d", off)
+		return 0, fmt.Errorf("negative offset: %d", off)
 	}
 	if off >= r.size {
 		return 0, io.EOF
@@ -122,7 +122,7 @@ func (r *azureRangeReader) ReadAt(p []byte, off int64) (int, error) {
 		Range: blob.HTTPRange{Offset: off, Count: count},
 	})
 	if err != nil {
-		return 0, pkgerr.Wrap(err, "failed to open azure range stream")
+		return 0, fmt.Errorf("failed to open azure range stream: %w", err)
 	}
 	defer resp.Body.Close()
 	n, err := io.ReadFull(resp.Body, p[:count])

@@ -5,13 +5,13 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -332,7 +332,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 
 	rpcSubQueryString, args, err := rpcSubQuery.ToSql()
 	if err != nil {
-		return "", nil, errors.Wrap(err, "retention_policies_tosql")
+		return "", nil, fmt.Errorf("retention_policies_tosql: %w", err)
 	}
 
 	rptSubQuery := s.getQueryBuilder().
@@ -350,7 +350,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 
 	rptSubQueryString, _, err := rptSubQuery.ToSql()
 	if err != nil {
-		return "", nil, errors.Wrap(err, "retention_policies_tosql")
+		return "", nil, fmt.Errorf("retention_policies_tosql: %w", err)
 	}
 
 	query := s.getQueryBuilder().
@@ -368,7 +368,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 
 	queryString, _, err := query.ToSql()
 	if err != nil {
-		return "", nil, errors.Wrap(err, "retention_policies_tosql")
+		return "", nil, fmt.Errorf("retention_policies_tosql: %w", err)
 	}
 
 	return queryString, args, nil
@@ -414,17 +414,17 @@ func (s *SqlRetentionPolicyStore) Delete(id string) error {
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "retention_policies_tosql")
+		return fmt.Errorf("retention_policies_tosql: %w", err)
 	}
 
 	sqlResult, err := s.GetMaster().Exec(queryString, args...)
 	if err != nil {
-		return errors.Wrapf(err, "failed to permanent delete retention policy with id=%s", id)
+		return fmt.Errorf("failed to permanent delete retention policy with id=%s: %w", id, err)
 	}
 
 	numRowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, "unable to get rows affected")
+		return fmt.Errorf("unable to get rows affected: %w", err)
 	} else if numRowsAffected == 0 {
 		return errors.New("policy not found")
 	}
@@ -446,12 +446,12 @@ func (s *SqlRetentionPolicyStore) GetChannels(policyId string, offset, limit int
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "retention_policies_channels_tosql")
+		return nil, fmt.Errorf("retention_policies_channels_tosql: %w", err)
 	}
 
 	channels := model.ChannelListWithTeamData{}
 	if err := s.GetReplica().Select(&channels, queryString, args...); err != nil {
-		return channels, errors.Wrap(err, "failed to find RetentionPoliciesChannels")
+		return channels, fmt.Errorf("failed to find RetentionPoliciesChannels: %w", err)
 	}
 
 	for _, channel := range channels {
@@ -470,12 +470,12 @@ func (s *SqlRetentionPolicyStore) GetChannelsCount(policyId string) (int64, erro
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return 0, errors.Wrap(err, "retention_policies_tosql")
+		return 0, fmt.Errorf("retention_policies_tosql: %w", err)
 	}
 
 	var count int64
 	if err := s.GetReplica().Get(&count, queryString, args...); err != nil {
-		return 0, errors.Wrap(err, "failed to count RetentionPolicies")
+		return 0, fmt.Errorf("failed to count RetentionPolicies: %w", err)
 	}
 
 	return count, nil
@@ -498,7 +498,7 @@ func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []stri
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "retention_policies_channels_tosql")
+		return fmt.Errorf("retention_policies_channels_tosql: %w", err)
 	}
 
 	_, err = s.GetMaster().Exec(queryString, args...)
@@ -527,11 +527,11 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "retention_policies_channels_tosql")
+		return fmt.Errorf("retention_policies_channels_tosql: %w", err)
 	}
 
 	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
-		return errors.Wrapf(err, "failed to permanent delete retention policy channels with policyid=%s", policyId)
+		return fmt.Errorf("failed to permanent delete retention policy channels with policyid=%s: %w", policyId, err)
 	}
 
 	return nil
@@ -549,12 +549,12 @@ func (s *SqlRetentionPolicyStore) GetTeams(policyId string, offset, limit int) (
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "retention_policies_teams_tosql")
+		return nil, fmt.Errorf("retention_policies_teams_tosql: %w", err)
 	}
 
 	teams := []*model.Team{}
 	if err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
-		return teams, errors.Wrap(err, "failed to find Teams")
+		return teams, fmt.Errorf("failed to find Teams: %w", err)
 	}
 
 	return teams, nil
@@ -569,12 +569,12 @@ func (s *SqlRetentionPolicyStore) GetTeamsCount(policyId string) (int64, error) 
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return 0, errors.Wrap(err, "retention_policies_tosql")
+		return 0, fmt.Errorf("retention_policies_tosql: %w", err)
 	}
 
 	var count int64
 	if err := s.GetReplica().Get(&count, queryString, args...); err != nil {
-		return 0, errors.Wrap(err, "failed to count RetentionPolicies")
+		return 0, fmt.Errorf("failed to count RetentionPolicies: %w", err)
 	}
 
 	return count, nil
@@ -596,11 +596,11 @@ func (s *SqlRetentionPolicyStore) AddTeams(policyId string, teamIds []string) er
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "retention_policies_teams_tosql")
+		return fmt.Errorf("retention_policies_teams_tosql: %w", err)
 	}
 
 	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
-		return errors.Wrap(err, "failed to insert retention policies teams")
+		return fmt.Errorf("failed to insert retention policies teams: %w", err)
 	}
 
 	return nil
@@ -619,11 +619,11 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "retention_policies_teams_tosql")
+		return fmt.Errorf("retention_policies_teams_tosql: %w", err)
 	}
 
 	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
-		return errors.Wrapf(err, "unable to permanent delete retention policies teams with policyid=%s", policyId)
+		return fmt.Errorf("unable to permanent delete retention policies teams with policyid=%s: %w", policyId, err)
 	}
 
 	return nil
@@ -650,7 +650,7 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 		Where(subQueryIN("ChannelId", rpcSubQuery)).
 		ToSql()
 	if err != nil {
-		return int64(0), errors.Wrap(err, "retention_policies_channels_tosql")
+		return int64(0), fmt.Errorf("retention_policies_channels_tosql: %w", err)
 	}
 
 	rptSubQuery := sq.Select("TeamId").
@@ -664,7 +664,7 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 		Where(subQueryIN("TeamId", rptSubQuery)).
 		ToSql()
 	if err != nil {
-		return int64(0), errors.Wrap(err, "retention_policies_teams_tosql")
+		return int64(0), fmt.Errorf("retention_policies_teams_tosql: %w", err)
 	}
 
 	result, err := s.GetMaster().Exec(rpcDeleteQuery, rpcArgs...)
@@ -708,12 +708,12 @@ func (s *SqlRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset, 
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "team_policies_for_user_tosql")
+		return nil, fmt.Errorf("team_policies_for_user_tosql: %w", err)
 	}
 
 	policies := []*model.RetentionPolicyForTeam{}
 	if err := s.GetReplica().Select(&policies, queryString, args...); err != nil {
-		return policies, errors.Wrap(err, "failed to find Users")
+		return policies, fmt.Errorf("failed to find Users: %w", err)
 	}
 
 	return policies, nil
@@ -737,12 +737,12 @@ func (s *SqlRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (in
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return 0, errors.Wrap(err, "team_policies_count_for_user_tosql")
+		return 0, fmt.Errorf("team_policies_count_for_user_tosql: %w", err)
 	}
 
 	var count int64
 	if err := s.GetReplica().Get(&count, queryString, args...); err != nil {
-		return 0, errors.Wrap(err, "failed to count TeamPoliciesCountForUser")
+		return 0, fmt.Errorf("failed to count TeamPoliciesCountForUser: %w", err)
 	}
 
 	return count, nil
@@ -768,12 +768,12 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offse
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "channel_policies_for_user_tosql")
+		return nil, fmt.Errorf("channel_policies_for_user_tosql: %w", err)
 	}
 
 	policies := []*model.RetentionPolicyForChannel{}
 	if err := s.GetReplica().Select(&policies, queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to find Users")
+		return nil, fmt.Errorf("failed to find Users: %w", err)
 	}
 
 	return policies, nil
@@ -796,12 +796,12 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) 
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return 0, errors.Wrap(err, "channel_policies_count_users_tosql")
+		return 0, fmt.Errorf("channel_policies_count_users_tosql: %w", err)
 	}
 
 	var count int64
 	if err := s.GetReplica().Get(&count, queryString, args...); err != nil {
-		return 0, errors.Wrap(err, "failed to count ChannelPoliciesCountForUser")
+		return 0, fmt.Errorf("failed to count ChannelPoliciesCountForUser: %w", err)
 	}
 
 	return count, nil
@@ -814,13 +814,13 @@ func scanRetentionIdsForDeletion(rows rowScanner) ([]*model.RetentionIdsForDelet
 		if err := rows.Scan(
 			&row.Id, &row.TableName, pq.Array(&row.Ids),
 		); err != nil {
-			return nil, errors.Wrap(err, "unable to scan columns")
+			return nil, fmt.Errorf("unable to scan columns: %w", err)
 		}
 
 		idsForDeletion = append(idsForDeletion, &row)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "error while iterating over rows")
+		return nil, fmt.Errorf("error while iterating over rows: %w", err)
 	}
 	return idsForDeletion, nil
 }
@@ -836,18 +836,18 @@ func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string,
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "get_ids_for_deletion_tosql")
+		return nil, fmt.Errorf("get_ids_for_deletion_tosql: %w", err)
 	}
 
 	rows, err := s.GetReplica().Query(queryString, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get ids for deletion")
+		return nil, fmt.Errorf("failed to get ids for deletion: %w", err)
 	}
 	defer rows.Close()
 
 	idsForDeletion, err := scanRetentionIdsForDeletion(rows)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to scan ids for deletion")
+		return nil, fmt.Errorf("failed to scan ids for deletion: %w", err)
 	}
 
 	return idsForDeletion, nil
@@ -1010,7 +1010,7 @@ func genericRetentionPoliciesDeletion(
 ) (rowsAffected int64, err error) {
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return 0, errors.Wrap(err, r.Table+"_tosql")
+		return 0, fmt.Errorf("%s: %w", r.Table+"_tosql", err)
 	}
 
 	if r.StoreDeletedIds {
@@ -1026,7 +1026,7 @@ func genericRetentionPoliciesDeletion(
 		var rows *sqlxRows
 		rows, err = txn.Query(query, args...)
 		if err != nil {
-			return 0, errors.Wrap(err, "failed to delete "+r.Table)
+			return 0, fmt.Errorf("%s: %w", "failed to delete "+r.Table, err)
 		}
 
 		defer rows.Close()
@@ -1034,12 +1034,12 @@ func genericRetentionPoliciesDeletion(
 		for rows.Next() {
 			var id string
 			if err = rows.Scan(&id); err != nil {
-				return 0, errors.Wrap(err, "unable to scan from rows")
+				return 0, fmt.Errorf("unable to scan from rows: %w", err)
 			}
 			ids = append(ids, id)
 		}
 		if err = rows.Err(); err != nil {
-			return 0, errors.Wrap(err, "failed while iterating over rows")
+			return 0, fmt.Errorf("failed while iterating over rows: %w", err)
 		}
 		rowsAffected = int64(len(ids))
 
@@ -1061,11 +1061,11 @@ func genericRetentionPoliciesDeletion(
 		query = fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s)", r.Table, primaryKeysStr, query)
 		result, err := s.GetMaster().Exec(query, args...)
 		if err != nil {
-			return 0, errors.Wrap(err, "failed to delete "+r.Table)
+			return 0, fmt.Errorf("%s: %w", "failed to delete "+r.Table, err)
 		}
 		rowsAffected, err = result.RowsAffected()
 		if err != nil {
-			return 0, errors.Wrap(err, "failed to get rows affected for "+r.Table)
+			return 0, fmt.Errorf("%s: %w", "failed to get rows affected for "+r.Table, err)
 		}
 	}
 	return
@@ -1074,7 +1074,7 @@ func genericRetentionPoliciesDeletion(
 func deleteFromRetentionIdsTx(txn *sqlxTxWrapper, id string) error {
 	_, err := txn.Exec("DELETE FROM RetentionIdsForDeletion WHERE Id = ?", id)
 	if err != nil {
-		return errors.Wrap(err, "Failed to delete from RetentionIdsForDeletion")
+		return fmt.Errorf("Failed to delete from RetentionIdsForDeletion: %w", err)
 	}
 
 	return nil

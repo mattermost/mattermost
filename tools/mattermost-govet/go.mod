@@ -4,7 +4,6 @@ go 1.26.3
 
 require (
 	github.com/pb33f/libopenapi v0.36.4
-	github.com/pkg/errors v0.9.1
 	github.com/sajari/fuzzy v1.0.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/tools v0.45.0

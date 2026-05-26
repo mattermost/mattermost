@@ -4,6 +4,7 @@
 package jobs
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/pkg/errors"
 )
 
 type BatchReportWorkerAppIFace interface {
@@ -89,7 +89,7 @@ func getFileCount(jobData model.StringMap) (int, error) {
 	if jobData["file_count"] != "" {
 		parsedFileCount, parseErr := strconv.Atoi(jobData["file_count"])
 		if parseErr != nil {
-			return 0, errors.Wrap(parseErr, "failed to parse file_count")
+			return 0, fmt.Errorf("failed to parse file_count: %w", parseErr)
 		}
 		return parsedFileCount, nil
 	}

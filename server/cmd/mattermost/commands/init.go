@@ -4,7 +4,8 @@
 package commands
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -61,7 +62,7 @@ func initStoreCommandContextCobra(logger mlog.LoggerIFace, command *cobra.Comman
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
 	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load configuration")
+		return nil, fmt.Errorf("failed to load configuration: %w", err)
 	}
 
 	config := cfgStore.Get()

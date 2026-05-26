@@ -2,6 +2,8 @@ package pluginapi
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"sync"
 
 	// import sql drivers
@@ -9,7 +11,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/driver"
-	"github.com/pkg/errors"
 )
 
 // StoreService exposes the underlying database.
@@ -98,7 +99,7 @@ func (s *StoreService) initializeMaster() error {
 	// Set up master db
 	db := sql.OpenDB(driver.NewConnector(s.driver, true /* IsMaster */))
 	if err := db.Ping(); err != nil {
-		return errors.Wrap(err, "failed to connect to master db")
+		return fmt.Errorf("failed to connect to master db: %w", err)
 	}
 	s.masterDB = db
 
@@ -117,7 +118,7 @@ func (s *StoreService) initializeReplica() error {
 	if len(config.SqlSettings.DataSourceReplicas) > 0 {
 		db := sql.OpenDB(driver.NewConnector(s.driver, false /* IsMaster */))
 		if err := db.Ping(); err != nil {
-			return errors.Wrap(err, "failed to connect to replica db")
+			return fmt.Errorf("failed to connect to replica db: %w", err)
 		}
 		s.replicaDB = db
 	}

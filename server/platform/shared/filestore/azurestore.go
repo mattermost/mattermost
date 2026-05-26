@@ -27,7 +27,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	pkgerr "github.com/pkg/errors"
 )
 
 // azureBlockSize is the chunk size used when staging block blob uploads.
@@ -51,7 +50,7 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 
 	credential, err := azblob.NewSharedKeyCredential(settings.AzureStorageAccount, settings.AzureAccessKey)
 	if err != nil {
-		return nil, pkgerr.Wrap(err, "failed to create azure shared key credential")
+		return nil, fmt.Errorf("failed to create azure shared key credential: %w", err)
 	}
 
 	scheme := "https"
@@ -82,7 +81,7 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 
 	client, err := azblob.NewClientWithSharedKeyCredential(serviceURL, credential, clientOptions)
 	if err != nil {
-		return nil, pkgerr.Wrap(err, "failed to create azure blob client")
+		return nil, fmt.Errorf("failed to create azure blob client: %w", err)
 	}
 
 	// Config.IsValid rejects non-positive timeouts before they reach this
@@ -206,12 +205,12 @@ func (b *AzureFileBackend) TestConnection() error {
 		return nil
 	}
 	if bloberror.HasCode(err, bloberror.ContainerNotFound) {
-		return &FileBackendNoBucketError{Err: pkgerr.Wrapf(err, "azure container %q does not exist", b.container)}
+		return &FileBackendNoBucketError{Err: fmt.Errorf("azure container %q does not exist: %w", b.container, err)}
 	}
 	if isAzureAuthError(err) {
-		return &FileBackendAuthError{Err: pkgerr.Wrap(err, "unable to authenticate against azure blob storage")}
+		return &FileBackendAuthError{Err: fmt.Errorf("unable to authenticate against azure blob storage: %w", err)}
 	}
-	return pkgerr.Wrap(err, "unable to connect to azure blob storage")
+	return fmt.Errorf("unable to connect to azure blob storage: %w", err)
 }
 
 // MakeContainer creates the configured container. Mirrors S3FileBackend.MakeBucket
@@ -226,7 +225,7 @@ func (b *AzureFileBackend) MakeContainer() error {
 		if bloberror.HasCode(err, bloberror.ContainerAlreadyExists) {
 			return nil
 		}
-		return pkgerr.Wrapf(err, "unable to create azure container %q", b.container)
+		return fmt.Errorf("unable to create azure container %q: %w", b.container, err)
 	}
 	return nil
 }
@@ -244,12 +243,12 @@ func (b *AzureFileBackend) Reader(p string) (ReadCloseSeeker, error) {
 	if err != nil {
 		timer.Stop()
 		cancel()
-		return nil, pkgerr.Wrapf(err, "unable to read file %q", p)
+		return nil, fmt.Errorf("unable to read file %q: %w", p, err)
 	}
 	if props.ContentLength == nil {
 		timer.Stop()
 		cancel()
-		return nil, pkgerr.Errorf("missing content length for %q", p)
+		return nil, fmt.Errorf("missing content length for %q", p)
 	}
 
 	return &azureRangeReader{
@@ -279,7 +278,7 @@ func (b *AzureFileBackend) FileExists(p string) (bool, error) {
 		if bloberror.HasCode(err, bloberror.BlobNotFound) {
 			return false, nil
 		}
-		return false, pkgerr.Wrapf(err, "unable to check existence of %q", p)
+		return false, fmt.Errorf("unable to check existence of %q: %w", p, err)
 	}
 	return true, nil
 }
@@ -290,7 +289,7 @@ func (b *AzureFileBackend) FileSize(p string) (int64, error) {
 
 	props, err := b.newBlobClient(p).GetProperties(ctx, nil)
 	if err != nil {
-		return 0, pkgerr.Wrapf(err, "unable to get size of %q", p)
+		return 0, fmt.Errorf("unable to get size of %q: %w", p, err)
 	}
 
 	return model.SafeDereference(props.ContentLength), nil
@@ -302,7 +301,7 @@ func (b *AzureFileBackend) FileModTime(p string) (time.Time, error) {
 
 	props, err := b.newBlobClient(p).GetProperties(ctx, nil)
 	if err != nil {
-		return time.Time{}, pkgerr.Wrapf(err, "unable to get modification time of %q", p)
+		return time.Time{}, fmt.Errorf("unable to get modification time of %q: %w", p, err)
 	}
 
 	return model.SafeDereference(props.LastModified), nil
@@ -318,7 +317,7 @@ func (b *AzureFileBackend) CopyFile(oldPath, newPath string) error {
 	src := b.newBlobClient(oldPath).URL()
 	dst := b.newBlockBlobClient(newPath)
 	if _, err := dst.StartCopyFromURL(ctx, src, nil); err != nil {
-		return pkgerr.Wrapf(err, "unable to copy %q to %q", oldPath, newPath)
+		return fmt.Errorf("unable to copy %q to %q: %w", oldPath, newPath, err)
 	}
 
 	// Poll until the copy reports success. For server-to-server copies within
@@ -327,7 +326,7 @@ func (b *AzureFileBackend) CopyFile(oldPath, newPath string) error {
 	for {
 		props, err := dst.GetProperties(ctx, nil)
 		if err != nil {
-			return pkgerr.Wrapf(err, "unable to read copy status for %q", newPath)
+			return fmt.Errorf("unable to read copy status for %q: %w", newPath, err)
 		}
 		if props.CopyStatus == nil {
 			return nil
@@ -337,11 +336,11 @@ func (b *AzureFileBackend) CopyFile(oldPath, newPath string) error {
 			return nil
 		case blob.CopyStatusTypeFailed, blob.CopyStatusTypeAborted:
 			desc := model.SafeDereference(props.CopyStatusDescription)
-			return pkgerr.Errorf("azure copy from %q to %q ended in status %q: %q", oldPath, newPath, *props.CopyStatus, desc)
+			return fmt.Errorf("azure copy from %q to %q ended in status %q: %q", oldPath, newPath, *props.CopyStatus, desc)
 		}
 		select {
 		case <-ctx.Done():
-			return pkgerr.Wrapf(ctx.Err(), "azure copy from %q to %q did not complete in time", oldPath, newPath)
+			return fmt.Errorf("azure copy from %q to %q did not complete in time: %w", oldPath, newPath, ctx.Err())
 		case <-time.After(50 * time.Millisecond):
 		}
 	}
@@ -374,10 +373,10 @@ func (b *AzureFileBackend) stageBlocks(ctx context.Context, bb *blockblob.Client
 		if n > 0 {
 			id, idErr := newAzureBlockID()
 			if idErr != nil {
-				return nil, 0, pkgerr.Wrap(idErr, "failed to generate azure block id")
+				return nil, 0, fmt.Errorf("failed to generate azure block id: %w", idErr)
 			}
 			if _, sbErr := bb.StageBlock(ctx, id, &readSeekNopCloser{Reader: bytes.NewReader(buf[:n])}, nil); sbErr != nil {
-				return nil, 0, pkgerr.Wrapf(sbErr, "unable to stage block for %q", p)
+				return nil, 0, fmt.Errorf("unable to stage block for %q: %w", p, sbErr)
 			}
 			ids = append(ids, id)
 			total += int64(n)
@@ -386,7 +385,7 @@ func (b *AzureFileBackend) stageBlocks(ctx context.Context, bb *blockblob.Client
 			break
 		}
 		if err != nil {
-			return nil, 0, pkgerr.Wrap(err, "failed to read input")
+			return nil, 0, fmt.Errorf("failed to read input: %w", err)
 		}
 	}
 	return ids, total, nil
@@ -416,16 +415,16 @@ func (b *AzureFileBackend) WriteFileContext(ctx context.Context, fr io.Reader, p
 		// committed block list so AppendFile can target it.
 		id, idErr := newAzureBlockID()
 		if idErr != nil {
-			return 0, pkgerr.Wrap(idErr, "failed to generate azure block id")
+			return 0, fmt.Errorf("failed to generate azure block id: %w", idErr)
 		}
 		if _, sbErr := bb.StageBlock(ctx, id, &readSeekNopCloser{Reader: bytes.NewReader(nil)}, nil); sbErr != nil {
-			return 0, pkgerr.Wrapf(sbErr, "unable to stage empty block for %q", p)
+			return 0, fmt.Errorf("unable to stage empty block for %q: %w", p, sbErr)
 		}
 		blockIDs = append(blockIDs, id)
 	}
 
 	if _, err := bb.CommitBlockList(ctx, blockIDs, nil); err != nil {
-		return 0, pkgerr.Wrapf(err, "unable to commit block list for %q", p)
+		return 0, fmt.Errorf("unable to commit block list for %q: %w", p, err)
 	}
 	return total, nil
 }
@@ -450,7 +449,7 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, p string) (int64, error) {
 
 	listResp, err := bb.GetBlockList(ctx, blockblob.BlockListTypeCommitted, nil)
 	if err != nil {
-		return 0, pkgerr.Wrapf(err, "unable to find file %q to append data", p)
+		return 0, fmt.Errorf("unable to find file %q to append data: %w", p, err)
 	}
 
 	var existingIDs []string
@@ -465,10 +464,10 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, p string) (int64, error) {
 	if len(existingIDs) == 0 {
 		props, propsErr := bb.GetProperties(ctx, nil)
 		if propsErr != nil {
-			return 0, pkgerr.Wrapf(propsErr, "unable to inspect %q before append", p)
+			return 0, fmt.Errorf("unable to inspect %q before append: %w", p, propsErr)
 		}
 		if model.SafeDereference(props.ContentLength) > 0 {
-			return 0, pkgerr.Errorf("refusing to append to %q: blob has content but no committed block list (likely written via Put Blob by another tool)", p)
+			return 0, fmt.Errorf("refusing to append to %q: blob has content but no committed block list (likely written via Put Blob by another tool)", p)
 		}
 	}
 
@@ -478,7 +477,7 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, p string) (int64, error) {
 	}
 
 	if _, err := bb.CommitBlockList(ctx, append(existingIDs, newIDs...), nil); err != nil {
-		return 0, pkgerr.Wrapf(err, "unable to commit block list for %q", p)
+		return 0, fmt.Errorf("unable to commit block list for %q: %w", p, err)
 	}
 	return total, nil
 }
@@ -489,7 +488,7 @@ func (b *AzureFileBackend) RemoveFile(p string) error {
 
 	_, err := b.newBlobClient(p).Delete(ctx, nil)
 	if err != nil && !bloberror.HasCode(err, bloberror.BlobNotFound) {
-		return pkgerr.Wrapf(err, "unable to remove file %q", p)
+		return fmt.Errorf("unable to remove file %q: %w", p, err)
 	}
 	return nil
 }
@@ -511,7 +510,7 @@ func (b *AzureFileBackend) ListDirectory(p string) ([]string, error) {
 	for pager.More() {
 		page, err := pager.NextPage(ctx)
 		if err != nil {
-			return nil, pkgerr.Wrapf(err, "unable to list directory %q", p)
+			return nil, fmt.Errorf("unable to list directory %q: %w", p, err)
 		}
 		for _, item := range page.Segment.BlobItems {
 			if item.Name == nil {
@@ -551,7 +550,7 @@ func (b *AzureFileBackend) ListDirectoryRecursively(p string) ([]string, error) 
 	for pager.More() {
 		page, err := pager.NextPage(ctx)
 		if err != nil {
-			return nil, pkgerr.Wrapf(err, "unable to list directory %q recursively", p)
+			return nil, fmt.Errorf("unable to list directory %q recursively: %w", p, err)
 		}
 		for _, item := range page.Segment.BlobItems {
 			if item.Name == nil {

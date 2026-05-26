@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,7 +17,6 @@ import (
 	"testing"
 
 	"github.com/lib/pq"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"

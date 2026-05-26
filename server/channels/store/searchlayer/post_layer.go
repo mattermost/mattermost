@@ -4,7 +4,7 @@
 package searchlayer
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -165,7 +165,7 @@ func (s SearchPostStore) searchPostsForUserByEngine(engine searchengine.SearchEn
 			LastDeleteAt:   0,
 		})
 	if err2 != nil {
-		return nil, errors.Wrap(err2, "error getting channel for user")
+		return nil, fmt.Errorf("error getting channel for user: %w", err2)
 	}
 
 	postIds, matches, err := engine.SearchPosts(userChannels, paramsList, page, perPage)

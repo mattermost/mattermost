@@ -16,7 +16,6 @@ import (
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -63,7 +62,7 @@ func WithExecutableFromManifest(pluginInfo *model.BundleInfo) func(*supervisor, 
 		// https://mattermost.atlassian.net/browse/MM-49167
 		pluginChecksum, err := getPluginExecutableChecksum(executable)
 		if err != nil {
-			return errors.Wrapf(err, "unable to generate plugin checksum")
+			return fmt.Errorf("unable to generate plugin checksum: %w", err)
 		}
 
 		clientConfig.Cmd = cmd
@@ -125,7 +124,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver AppDriver, 
 	for _, opt := range opts {
 		err := opt(&sup, clientConfig)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to apply option")
+			return nil, fmt.Errorf("failed to apply option: %w", err)
 		}
 	}
 

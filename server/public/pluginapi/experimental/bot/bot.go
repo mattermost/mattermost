@@ -4,7 +4,7 @@
 package bot
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/pluginapi"
@@ -37,7 +37,7 @@ func (bot *bot) Ensure(stored *model.Bot, iconPath string) error {
 
 	botUserID, err := bot.botService.EnsureBot(stored, pluginapi.ProfileImagePath(iconPath))
 	if err != nil {
-		return errors.Wrap(err, "failed to ensure bot account")
+		return fmt.Errorf("failed to ensure bot account: %w", err)
 	}
 	bot.mattermostUserID = botUserID
 	bot.displayName = stored.DisplayName

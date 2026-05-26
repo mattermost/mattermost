@@ -12,6 +12,7 @@ import (
 	"encoding/asn1"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -25,7 +26,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -474,7 +474,7 @@ func (r *SubmitDialogResponse) IsValid() error {
 	case SubmitDialogResponseTypeEmpty, SubmitDialogResponseTypeOK, SubmitDialogResponseTypeNavigate:
 		// Completion types - Form field should be nil
 		if r.Form != nil {
-			return errors.Errorf("form field must be nil for type %q", r.Type)
+			return fmt.Errorf("form field must be nil for type %q", r.Type)
 		}
 	case SubmitDialogResponseTypeForm:
 		// Continuation type - Form field is required and must be valid
@@ -482,10 +482,10 @@ func (r *SubmitDialogResponse) IsValid() error {
 			return errors.New("form field is required for form type")
 		}
 		if err := r.Form.IsValid(); err != nil {
-			return errors.Wrap(err, "invalid form")
+			return fmt.Errorf("invalid form: %w", err)
 		}
 	default:
-		return errors.Errorf("invalid type %q, must be one of: empty, ok, form, navigate", r.Type)
+		return fmt.Errorf("invalid type %q, must be one of: empty, ok, form, navigate", r.Type)
 	}
 
 	return nil
@@ -615,7 +615,7 @@ func (d *Dialog) IsValid() error {
 	var multiErr *multierror.Error
 
 	if d.Title == "" || len(d.Title) > DialogTitleMaxLength {
-		multiErr = multierror.Append(multiErr, errors.Errorf("invalid dialog title %q", d.Title))
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid dialog title %q", d.Title))
 	}
 
 	if d.IconURL != "" && !IsValidHTTPURL(d.IconURL) {
@@ -627,13 +627,13 @@ func (d *Dialog) IsValid() error {
 
 		for _, element := range d.Elements {
 			if elementMap[element.Name] {
-				multiErr = multierror.Append(multiErr, errors.Errorf("duplicate dialog element %q", element.Name))
+				multiErr = multierror.Append(multiErr, fmt.Errorf("duplicate dialog element %q", element.Name))
 			}
 			elementMap[element.Name] = true
 
 			err := element.IsValid()
 			if err != nil {
-				multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q field is not valid", element.Name))
+				multiErr = multierror.Append(multiErr, fmt.Errorf("%q field is not valid: %w", element.Name, err))
 			}
 		}
 	}
@@ -653,10 +653,10 @@ func (e *DialogElement) IsValid() error {
 	}
 
 	if e.MinLength < 0 {
-		multiErr = multierror.Append(multiErr, errors.Errorf("min length cannot be a negative number, got %d", e.MinLength))
+		multiErr = multierror.Append(multiErr, fmt.Errorf("min length cannot be a negative number, got %d", e.MinLength))
 	}
 	if e.MinLength > e.MaxLength {
-		multiErr = multierror.Append(multiErr, errors.Errorf("min length should be less then max length, got %d > %d", e.MinLength, e.MaxLength))
+		multiErr = multierror.Append(multiErr, fmt.Errorf("min length should be less then max length, got %d > %d", e.MinLength, e.MaxLength))
 	}
 
 	multiErr = multierror.Append(multiErr, checkMaxLength("DisplayName", e.DisplayName, DialogElementDisplayNameMaxLength))
@@ -664,7 +664,7 @@ func (e *DialogElement) IsValid() error {
 	multiErr = multierror.Append(multiErr, checkMaxLength("HelpText", e.HelpText, DialogElementHelpTextMaxLength))
 
 	if e.MultiSelect && e.Type != "select" {
-		multiErr = multierror.Append(multiErr, errors.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
+		multiErr = multierror.Append(multiErr, fmt.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
 	}
 
 	switch e.Type {
@@ -672,7 +672,7 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
 		if _, ok := textSubTypes[e.SubType]; !ok {
-			multiErr = multierror.Append(multiErr, errors.Errorf("invalid subtype %q", e.Type))
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid subtype %q", e.Type))
 		}
 
 	case "textarea":
@@ -680,14 +680,14 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextareaMaxLength))
 
 		if _, ok := textSubTypes[e.SubType]; !ok {
-			multiErr = multierror.Append(multiErr, errors.Errorf("invalid subtype %q", e.Type))
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid subtype %q", e.Type))
 		}
 
 	case "select":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementSelectMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementSelectMaxLength))
 		if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" && e.DataSource != "dynamic" {
-			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users', 'channels', or 'dynamic'", e.DataSource))
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid data source %q, allowed are 'users', 'channels', or 'dynamic'", e.DataSource))
 		}
 		if e.DataSource == "dynamic" {
 			// Dynamic selects should have a data_source_url
@@ -703,10 +703,10 @@ func (e *DialogElement) IsValid() error {
 		} else if e.DataSource == "" {
 			if e.MultiSelect {
 				if !isMultiSelectDefaultInOptions(e.Default, e.Options) {
-					multiErr = multierror.Append(multiErr, errors.Errorf("multiselect default value %q contains values not in options", e.Default))
+					multiErr = multierror.Append(multiErr, fmt.Errorf("multiselect default value %q contains values not in options", e.Default))
 				}
 			} else if !isDefaultInOptions(e.Default, e.Options) {
-				multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
+				multiErr = multierror.Append(multiErr, fmt.Errorf("default value %q doesn't exist in options ", e.Default))
 			}
 		}
 
@@ -718,7 +718,7 @@ func (e *DialogElement) IsValid() error {
 
 	case "radio":
 		if !isDefaultInOptions(e.Default, e.Options) {
-			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
+			multiErr = multierror.Append(multiErr, fmt.Errorf("default value %q doesn't exist in options ", e.Default))
 		}
 
 	case "date":
@@ -740,14 +740,14 @@ func (e *DialogElement) IsValid() error {
 		timeInterval := cfg.TimeInterval
 		if timeInterval != 0 {
 			if timeInterval < 1 || timeInterval > 1440 {
-				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
+				multiErr = multierror.Append(multiErr, fmt.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
 			} else if 1440%timeInterval != 0 {
-				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+				multiErr = multierror.Append(multiErr, fmt.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
 			}
 		}
 
 	default:
-		multiErr = multierror.Append(multiErr, errors.Errorf("invalid element type: %q", e.Type))
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid element type: %q", e.Type))
 	}
 
 	return multiErr.ErrorOrNil()
@@ -868,12 +868,12 @@ func checkMaxLength(fieldName string, field string, maxLength int) error {
 	// DisplayName and Name are required fields
 	if fieldName == "DisplayName" || fieldName == "Name" {
 		if len(field) == 0 {
-			return errors.Errorf("%v cannot be empty", fieldName)
+			return fmt.Errorf("%v cannot be empty", fieldName)
 		}
 	}
 
 	if len(field) > maxLength {
-		return errors.Errorf("%v cannot be longer than %d characters, got %d", fieldName, maxLength, len(field))
+		return fmt.Errorf("%v cannot be longer than %d characters, got %d", fieldName, maxLength, len(field))
 	}
 
 	return nil

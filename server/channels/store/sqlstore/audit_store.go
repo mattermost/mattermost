@@ -4,8 +4,9 @@
 package sqlstore
 
 import (
+	"fmt"
+
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -45,7 +46,7 @@ func (s SqlAuditStore) Save(audit *model.Audit) error {
 (Id, CreateAt, UserId, Action, ExtraInfo, IpAddress, SessionId)
 VALUES
 (:Id, :CreateAt, :UserId, :Action, :ExtraInfo, :IpAddress, :SessionId)`, audit); err != nil {
-		return errors.Wrapf(err, "failed to save Audit with userId=%s and action=%s", audit.UserId, audit.Action)
+		return fmt.Errorf("failed to save Audit with userId=%s and action=%s: %w", audit.UserId, audit.Action, err)
 	}
 	return nil
 }
@@ -66,19 +67,19 @@ func (s SqlAuditStore) Get(userId string, offset int, limit int) (model.Audits, 
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "audits_tosql")
+		return nil, fmt.Errorf("audits_tosql: %w", err)
 	}
 
 	var audits model.Audits
 	if err := s.GetReplica().Select(&audits, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to get Audit list for userId=%s", userId)
+		return nil, fmt.Errorf("failed to get Audit list for userId=%s: %w", userId, err)
 	}
 	return audits, nil
 }
 
 func (s SqlAuditStore) PermanentDeleteByUser(userId string) error {
 	if _, err := s.GetMaster().Exec("DELETE FROM Audits WHERE UserId = ?", userId); err != nil {
-		return errors.Wrapf(err, "failed to delete Audit with userId=%s", userId)
+		return fmt.Errorf("failed to delete Audit with userId=%s: %w", userId, err)
 	}
 	return nil
 }

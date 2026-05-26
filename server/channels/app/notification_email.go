@@ -10,8 +10,6 @@ import (
 	"html/template"
 	"io"
 
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -148,7 +146,7 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 	if channel.IsGroupOrDirect() {
 		teams, err := a.Srv().Store().Team().GetTeamsByUserId(user.Id)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to get user teams")
+			return nil, fmt.Errorf("unable to get user teams: %w", err)
 		}
 
 		// if the recipient isn't in the current user's team, just pick one
@@ -236,7 +234,7 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 	// Build email body using EmailNotification data
 	var bodyText, err = a.getNotificationEmailBodyFromEmailNotification(rctx, user, emailNotification, post, senderPhoto)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to render the email notification template")
+		return nil, fmt.Errorf("unable to render the email notification template: %w", err)
 	}
 
 	templateString := "<%s@" + utils.GetHostnameFromSiteURL(a.GetSiteURL()) + ">"

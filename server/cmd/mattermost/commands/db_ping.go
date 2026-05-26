@@ -6,11 +6,12 @@ package commands
 import (
 	"context"
 	dbsql "database/sql"
+	"errors"
 	stdErrors "errors"
+	"fmt"
 	"net/url"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -80,7 +81,7 @@ func dbPingCmdF(command *cobra.Command, _ []string) error {
 
 	db, err := dbsql.Open(model.DatabaseDriverPostgres, dsn)
 	if err != nil {
-		return errors.Wrap(err, "failed to open SQL connection")
+		return fmt.Errorf("failed to open SQL connection: %w", err)
 	}
 	defer db.Close()
 
@@ -109,7 +110,7 @@ func safeDataSourceSanitizationError(err error) error {
 	var urlErr *url.Error
 	if stdErrors.As(err, &urlErr) {
 		if urlErr.Err != nil {
-			return errors.Errorf("invalid database DSN: %v", urlErr.Err)
+			return fmt.Errorf("invalid database DSN: %v", urlErr.Err)
 		}
 		return errors.New("invalid database DSN")
 	}
@@ -133,7 +134,7 @@ func resolvePingDataSource(command *cobra.Command) (string, error) {
 
 	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true /*readOnly*/, nil /*customDefaults*/, false /*createFileIfNotExist*/)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to load configuration from %q", cfgDSN)
+		return "", fmt.Errorf("failed to load configuration from %q: %w", cfgDSN, err)
 	}
 	defer cfgStore.Close()
 
@@ -174,7 +175,7 @@ func pingWithRetry(ctx context.Context, db *dbsql.DB, retryInterval time.Duratio
 		// Wait retryInterval, but bail early if ctx is done.
 		select {
 		case <-ctx.Done():
-			return errors.Wrapf(ctx.Err(), "timed out waiting for database after %d attempts", attempt)
+			return fmt.Errorf("timed out waiting for database after %d attempts: %w", attempt, ctx.Err())
 		case <-time.After(retryInterval):
 		}
 	}

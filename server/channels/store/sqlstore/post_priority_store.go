@@ -4,8 +4,9 @@
 package sqlstore
 
 import (
+	"fmt"
+
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -70,7 +71,7 @@ func (s *SqlPostPriorityStore) GetForPosts(postIds []string) ([]*model.PostPrior
 func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPriority, error) {
 	tx, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
+		return nil, fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(tx, &err)
 
@@ -80,7 +81,7 @@ func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPr
 		Where(sq.Eq{"PostId": priority.PostId})
 
 	if _, err := tx.ExecBuilder(deleteQuery); err != nil {
-		return nil, errors.Wrap(err, "delete_existing_priority")
+		return nil, fmt.Errorf("delete_existing_priority: %w", err)
 	}
 
 	// Insert new priority
@@ -90,7 +91,7 @@ func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPr
 		Values(priority.PostId, priority.ChannelId, priority.Priority, priority.RequestedAck, priority.PersistentNotifications)
 
 	if _, err := tx.ExecBuilder(insertQuery); err != nil {
-		return nil, errors.Wrap(err, "insert_priority")
+		return nil, fmt.Errorf("insert_priority: %w", err)
 	}
 
 	// Handle persistent notifications - always delete first, then insert if enabled
@@ -99,7 +100,7 @@ func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPr
 		Where(sq.Eq{"PostId": priority.PostId})
 
 	if _, err := tx.ExecBuilder(deletePersistentQuery); err != nil {
-		return nil, errors.Wrap(err, "delete_persistent_notification")
+		return nil, fmt.Errorf("delete_persistent_notification: %w", err)
 	}
 
 	if priority.PersistentNotifications != nil && *priority.PersistentNotifications {
@@ -109,7 +110,7 @@ func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPr
 			Values(priority.PostId, model.GetMillis(), 0, 0, 0)
 
 		if _, err := tx.ExecBuilder(insertPersistentQuery); err != nil {
-			return nil, errors.Wrap(err, "insert_persistent_notification")
+			return nil, fmt.Errorf("insert_persistent_notification: %w", err)
 		}
 	}
 
@@ -121,7 +122,7 @@ func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPr
 			Where(sq.Eq{"PostId": priority.PostId})
 
 		if _, err := tx.ExecBuilder(clearAckQuery); err != nil {
-			return nil, errors.Wrap(err, "clear_acknowledgements")
+			return nil, fmt.Errorf("clear_acknowledgements: %w", err)
 		}
 	}
 
@@ -132,11 +133,11 @@ func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPr
 		Where(sq.Eq{"Id": priority.PostId})
 
 	if _, err := tx.ExecBuilder(updatePostQuery); err != nil {
-		return nil, errors.Wrap(err, "update_post")
+		return nil, fmt.Errorf("update_post: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		return nil, fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return priority, nil
@@ -145,7 +146,7 @@ func (s *SqlPostPriorityStore) Save(priority *model.PostPriority) (*model.PostPr
 func (s *SqlPostPriorityStore) Delete(postId string) error {
 	tx, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
+		return fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(tx, &err)
 
@@ -155,7 +156,7 @@ func (s *SqlPostPriorityStore) Delete(postId string) error {
 		Where(sq.Eq{"PostId": postId})
 
 	if _, err := tx.ExecBuilder(deletePriorityQuery); err != nil {
-		return errors.Wrap(err, "delete_priority")
+		return fmt.Errorf("delete_priority: %w", err)
 	}
 
 	// Delete from PersistentNotifications
@@ -164,7 +165,7 @@ func (s *SqlPostPriorityStore) Delete(postId string) error {
 		Where(sq.Eq{"PostId": postId})
 
 	if _, err := tx.ExecBuilder(deletePersistentQuery); err != nil {
-		return errors.Wrap(err, "delete_persistent_notification")
+		return fmt.Errorf("delete_persistent_notification: %w", err)
 	}
 
 	// Clear acknowledgements
@@ -174,7 +175,7 @@ func (s *SqlPostPriorityStore) Delete(postId string) error {
 		Where(sq.Eq{"PostId": postId})
 
 	if _, err := tx.ExecBuilder(clearAckQuery); err != nil {
-		return errors.Wrap(err, "clear_acknowledgements")
+		return fmt.Errorf("clear_acknowledgements: %w", err)
 	}
 
 	// Update post
@@ -184,11 +185,11 @@ func (s *SqlPostPriorityStore) Delete(postId string) error {
 		Where(sq.Eq{"Id": postId})
 
 	if _, err := tx.ExecBuilder(updatePostQuery); err != nil {
-		return errors.Wrap(err, "update_post")
+		return fmt.Errorf("update_post: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return errors.Wrap(err, "commit_transaction")
+		return fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return nil

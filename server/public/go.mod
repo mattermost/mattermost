@@ -20,7 +20,6 @@ require (
 	github.com/mattermost/logr/v2 v2.0.22
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/pborman/uuid v1.2.1
-	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
 	github.com/tinylib/msgp v1.6.4

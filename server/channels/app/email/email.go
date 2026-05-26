@@ -6,6 +6,7 @@ package email
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -13,8 +14,6 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -987,7 +986,7 @@ func (es *Service) CreateVerifyEmailToken(userID string, newEmail string) (*mode
 
 	jsonData, err := json.Marshal(tokenExtra)
 	if err != nil {
-		return nil, errors.Wrap(CreateEmailTokenError, err.Error())
+		return nil, fmt.Errorf("%s: %w", err.Error(), CreateEmailTokenError)
 	}
 
 	token := model.NewToken(TokenTypeVerifyEmail, string(jsonData))

@@ -5,11 +5,11 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 )
 
 const channelJoinRequestsTable = "ChannelJoinRequests"
@@ -75,7 +75,7 @@ func (s *SqlChannelJoinRequestStore) Save(req *model.ChannelJoinRequest) (*model
 		if IsUniqueConstraintError(err, []string{"idx_channeljoinrequests_pending_unique"}) {
 			return nil, store.NewErrConflict("ChannelJoinRequest", err, "channel_id="+req.ChannelId+" user_id="+req.UserId)
 		}
-		return nil, errors.Wrap(err, "failed to save ChannelJoinRequest")
+		return nil, fmt.Errorf("failed to save ChannelJoinRequest: %w", err)
 	}
 
 	return req, nil
@@ -89,7 +89,7 @@ func (s *SqlChannelJoinRequestStore) Get(id string) (*model.ChannelJoinRequest, 
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("ChannelJoinRequest", id)
 		}
-		return nil, errors.Wrapf(err, "failed to get ChannelJoinRequest with id=%s", id)
+		return nil, fmt.Errorf("failed to get ChannelJoinRequest with id=%s: %w", id, err)
 	}
 
 	return &req, nil
@@ -107,7 +107,7 @@ func (s *SqlChannelJoinRequestStore) GetPendingForChannelAndUser(channelId, user
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("ChannelJoinRequest", "channel_id="+channelId+" user_id="+userId)
 		}
-		return nil, errors.Wrapf(err, "failed to get pending ChannelJoinRequest for channel_id=%s user_id=%s", channelId, userId)
+		return nil, fmt.Errorf("failed to get pending ChannelJoinRequest for channel_id=%s user_id=%s: %w", channelId, userId, err)
 	}
 
 	return &req, nil
@@ -145,7 +145,7 @@ func (s *SqlChannelJoinRequestStore) GetForChannel(channelId string, opts model.
 
 	var rows []*model.ChannelJoinRequest
 	if err := s.GetReplica().SelectBuilder(&rows, listQuery); err != nil {
-		return nil, 0, errors.Wrapf(err, "failed to list ChannelJoinRequests for channel_id=%s", channelId)
+		return nil, 0, fmt.Errorf("failed to list ChannelJoinRequests for channel_id=%s: %w", channelId, err)
 	}
 
 	countQuery := s.getQueryBuilder().
@@ -155,7 +155,7 @@ func (s *SqlChannelJoinRequestStore) GetForChannel(channelId string, opts model.
 
 	var total int64
 	if err := s.GetReplica().GetBuilder(&total, countQuery); err != nil {
-		return nil, 0, errors.Wrapf(err, "failed to count ChannelJoinRequests for channel_id=%s", channelId)
+		return nil, 0, fmt.Errorf("failed to count ChannelJoinRequests for channel_id=%s: %w", channelId, err)
 	}
 
 	return rows, total, nil
@@ -173,7 +173,7 @@ func (s *SqlChannelJoinRequestStore) GetForUser(userId string, opts model.GetCha
 
 	var rows []*model.ChannelJoinRequest
 	if err := s.GetReplica().SelectBuilder(&rows, listQuery); err != nil {
-		return nil, 0, errors.Wrapf(err, "failed to list ChannelJoinRequests for user_id=%s", userId)
+		return nil, 0, fmt.Errorf("failed to list ChannelJoinRequests for user_id=%s: %w", userId, err)
 	}
 
 	countQuery := s.getQueryBuilder().
@@ -183,7 +183,7 @@ func (s *SqlChannelJoinRequestStore) GetForUser(userId string, opts model.GetCha
 
 	var total int64
 	if err := s.GetReplica().GetBuilder(&total, countQuery); err != nil {
-		return nil, 0, errors.Wrapf(err, "failed to count ChannelJoinRequests for user_id=%s", userId)
+		return nil, 0, fmt.Errorf("failed to count ChannelJoinRequests for user_id=%s: %w", userId, err)
 	}
 
 	return rows, total, nil
@@ -213,12 +213,12 @@ func (s *SqlChannelJoinRequestStore) Update(req *model.ChannelJoinRequest) (*mod
 
 	res, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to update ChannelJoinRequest with id=%s", req.Id)
+		return nil, fmt.Errorf("failed to update ChannelJoinRequest with id=%s: %w", req.Id, err)
 	}
 
 	n, err := res.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to read RowsAffected on ChannelJoinRequest update")
+		return nil, fmt.Errorf("failed to read RowsAffected on ChannelJoinRequest update: %w", err)
 	}
 	if n == 0 {
 		return nil, store.NewErrNotFound("ChannelJoinRequest", req.Id)
@@ -238,7 +238,7 @@ func (s *SqlChannelJoinRequestStore) CountPending(channelId string) (int64, erro
 
 	var count int64
 	if err := s.GetReplica().GetBuilder(&count, query); err != nil {
-		return 0, errors.Wrapf(err, "failed to count pending ChannelJoinRequests for channel_id=%s", channelId)
+		return 0, fmt.Errorf("failed to count pending ChannelJoinRequests for channel_id=%s: %w", channelId, err)
 	}
 	return count, nil
 }

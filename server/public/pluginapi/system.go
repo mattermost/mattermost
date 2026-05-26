@@ -1,6 +1,8 @@
 package pluginapi
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
 	"os"
 	"path"
@@ -9,7 +11,6 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/goccy/go-yaml"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -31,7 +32,7 @@ func (s *SystemService) GetManifest() (*model.Manifest, error) {
 
 	m, _, err := model.FindManifest(p)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to find and open manifest")
+		return nil, fmt.Errorf("failed to find and open manifest: %w", err)
 	}
 
 	return m, nil
@@ -128,7 +129,7 @@ func (s *SystemService) RequestTrialLicense(requesterID string, users int, terms
 	requiredVersion := semver.MustParse("5.36.0")
 
 	if currentVersion.LessThan(requiredVersion) {
-		return errors.Errorf("current server version is lower than 5.36")
+		return fmt.Errorf("current server version is lower than 5.36")
 	}
 
 	err := s.api.RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
@@ -149,7 +150,7 @@ func (s *SystemService) RequestTrialLicense(requesterID string, users int, terms
 func (s *SystemService) GeneratePacketMetadata(path string, pluginMeta map[string]any) (string, error) {
 	manifest, err := s.GetManifest()
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get manifest")
+		return "", fmt.Errorf("failed to get manifest: %w", err)
 	}
 	license := s.GetLicense()
 	serverID := s.GetTelemetryID()
@@ -164,18 +165,18 @@ func (s *SystemService) GeneratePacketMetadata(path string, pluginMeta map[strin
 
 	md, err := model.GeneratePacketMetadata(model.PluginPacketType, serverID, license, pluginMeta)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get packet metadata")
+		return "", fmt.Errorf("failed to get packet metadata: %w", err)
 	}
 	filePath := filePath.Join(path, model.PacketMetadataFileName)
 	f, err := os.Create(filePath)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create packet metadata file")
+		return "", fmt.Errorf("failed to create packet metadata file: %w", err)
 	}
 	defer f.Close()
 
 	err = yaml.NewEncoder(f).Encode(md)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create packet metadata file")
+		return "", fmt.Errorf("failed to create packet metadata file: %w", err)
 	}
 
 	return filePath, nil

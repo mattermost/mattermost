@@ -7,6 +7,7 @@ package mlog
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -16,8 +17,6 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/logr/v2"
 	logrcfg "github.com/mattermost/logr/v2/config"
@@ -73,13 +72,13 @@ func (lc LoggerConfiguration) Append(cfg LoggerConfiguration) {
 func (lc LoggerConfiguration) IsValid(validLevels []Level) error {
 	logger, err := logr.New()
 	if err != nil {
-		return errors.Wrap(err, "failed to create logger")
+		return fmt.Errorf("failed to create logger: %w", err)
 	}
 	defer logger.Shutdown()
 
 	err = logrcfg.ConfigureTargets(logger, lc, nil)
 	if err != nil {
-		return errors.Wrap(err, "logger configuration is invalid")
+		return fmt.Errorf("logger configuration is invalid: %w", err)
 	}
 
 	validLevelIDs := make([]logr.LevelID, 0, len(validLevels))
@@ -90,7 +89,7 @@ func (lc LoggerConfiguration) IsValid(validLevels []Level) error {
 	for _, c := range lc {
 		for _, l := range c.Levels {
 			if !slices.Contains(validLevelIDs, l.ID) {
-				return errors.Errorf("invalid log level id %d", l.ID)
+				return fmt.Errorf("invalid log level id %d", l.ID)
 			}
 		}
 	}

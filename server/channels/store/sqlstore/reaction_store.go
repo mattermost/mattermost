@@ -13,8 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-
-	"github.com/pkg/errors"
 )
 
 type SqlReactionStore struct {
@@ -32,7 +30,7 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, e
 	}
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
+		return nil, fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 	if reaction.ChannelId == "" {
@@ -41,7 +39,7 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, e
 		query := "SELECT ChannelId from Posts where Id = ?"
 		err = transaction.Select(&channelIds, query, reaction.PostId)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed while getting channelId from Posts")
+			return nil, fmt.Errorf("failed while getting channelId from Posts: %w", err)
 		}
 
 		if len(channelIds) == 0 {
@@ -54,11 +52,11 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, e
 	if err != nil {
 		// We don't consider duplicated save calls as an error
 		if !IsUniqueConstraintError(err, []string{"reactions_pkey", "PRIMARY"}) {
-			return nil, errors.Wrap(err, "failed while saving reaction or updating post")
+			return nil, fmt.Errorf("failed while saving reaction or updating post: %w", err)
 		}
 	} else {
 		if err := transaction.Commit(); err != nil {
-			return nil, errors.Wrap(err, "commit_transaction")
+			return nil, fmt.Errorf("commit_transaction: %w", err)
 		}
 	}
 
@@ -70,16 +68,16 @@ func (s *SqlReactionStore) Delete(reaction *model.Reaction) (re *model.Reaction,
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
+		return nil, fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
 	if err := deleteReactionAndUpdatePost(transaction, reaction); err != nil {
-		return nil, errors.Wrap(err, "deleteReactionAndUpdatePost")
+		return nil, fmt.Errorf("deleteReactionAndUpdatePost: %w", err)
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		return nil, fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return reaction, nil
@@ -97,7 +95,7 @@ func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mo
 
 	var reactions []*model.Reaction
 	if err := s.GetReplica().SelectBuilder(&reactions, builder); err != nil {
-		return nil, errors.Wrapf(err, "failed to get Reactions with postId=%s", postId)
+		return nil, fmt.Errorf("failed to get Reactions with postId=%s: %w", postId, err)
 	}
 	return reactions, nil
 }
@@ -115,7 +113,7 @@ func (s *SqlReactionStore) ExistsOnPost(postId string, emojiName string) (bool, 
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
-		return false, errors.Wrap(err, "failed to check for existing reaction")
+		return false, fmt.Errorf("failed to check for existing reaction: %w", err)
 	}
 
 	return hasRows, nil
@@ -141,7 +139,7 @@ func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRe
 
 	var reactions []*model.Reaction
 	if err := s.GetReplica().SelectBuilder(&reactions, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to find reactions")
+		return nil, fmt.Errorf("failed to find reactions: %w", err)
 	}
 	return reactions, nil
 }
@@ -156,7 +154,7 @@ func (s *SqlReactionStore) GetUniqueCountForPost(postId string) (int, error) {
 	var count int64
 	err := s.GetReplica().GetBuilder(&count, query)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to count Reactions")
+		return 0, fmt.Errorf("failed to count Reactions: %w", err)
 	}
 	return int(count), nil
 }
@@ -181,7 +179,7 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 				PostId IN `+placeholder+` AND COALESCE(DeleteAt, 0) = 0
 			ORDER BY
 				CreateAt`, values...); err != nil {
-		return nil, errors.Wrap(err, "failed to get Reactions")
+		return nil, fmt.Errorf("failed to get Reactions: %w", err)
 	}
 	return reactions, nil
 }
@@ -199,7 +197,7 @@ func (s *SqlReactionStore) GetSingle(userID, postID, remoteID, emojiName string)
 
 	var reactions []*model.Reaction
 	if err := s.GetReplica().SelectBuilder(&reactions, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to find reaction")
+		return nil, fmt.Errorf("failed to find reaction: %w", err)
 	}
 	if len(reactions) == 0 {
 		return nil, store.NewErrNotFound("Reaction", fmt.Sprintf("user_id=%s, post_id=%s, remote_id=%s, emoji_name=%s",
@@ -225,7 +223,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 			Reactions
 		WHERE
 			EmojiName = ? AND COALESCE(DeleteAt, 0) = 0`, emojiName); err != nil {
-		return errors.Wrapf(err, "failed to get Reactions with emojiName=%s", emojiName)
+		return fmt.Errorf("failed to get Reactions with emojiName=%s: %w", emojiName, err)
 	}
 
 	_, err := s.GetMaster().Exec(
@@ -236,7 +234,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 		WHERE
 			EmojiName = ? AND COALESCE(DeleteAt, 0) = 0`, now, now, emojiName)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete Reactions with emojiName=%s", emojiName)
+		return fmt.Errorf("failed to delete Reactions with emojiName=%s: %w", emojiName, err)
 	}
 
 	for _, reaction := range reactions {
@@ -261,7 +259,7 @@ func (s *SqlReactionStore) permanentDeleteReactions(userId string) ([]string, er
 	postIds := []string{}
 	err = txn.Select(&postIds, "SELECT PostId FROM Reactions WHERE UserId = ?", userId)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get Reactions with userId=%s", userId)
+		return nil, fmt.Errorf("failed to get Reactions with userId=%s: %w", userId, err)
 	}
 
 	query := s.getQueryBuilder().
@@ -273,7 +271,7 @@ func (s *SqlReactionStore) permanentDeleteReactions(userId string) ([]string, er
 
 	_, err = txn.ExecBuilder(query)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to delete reactions with userId=%s", userId)
+		return nil, fmt.Errorf("failed to delete reactions with userId=%s: %w", userId, err)
 	}
 	if err = txn.Commit(); err != nil {
 		return nil, err
@@ -326,7 +324,7 @@ func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDelet
 
 	sqlResult, err := txn.ExecBuilder(query)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to delete orphaned reactions with RetentionIdsForDeletion Id=%s", r.Id)
+		return 0, fmt.Errorf("failed to delete orphaned reactions with RetentionIdsForDeletion Id=%s: %w", r.Id, err)
 	}
 	err = deleteFromRetentionIdsTx(txn, r.Id)
 	if err != nil {
@@ -338,7 +336,7 @@ func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDelet
 
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "unable to retrieve rows affected")
+		return 0, fmt.Errorf("unable to retrieve rows affected: %w", err)
 	}
 
 	return rowsAffected, nil
@@ -349,12 +347,12 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 
 	sqlResult, err := s.GetMaster().Exec(query, endTime, limit)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete Reactions")
+		return 0, fmt.Errorf("failed to delete Reactions: %w", err)
 	}
 
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "unable to get rows affected for deleted Reactions")
+		return 0, fmt.Errorf("unable to get rows affected for deleted Reactions: %w", err)
 	}
 	return rowsAffected, nil
 }

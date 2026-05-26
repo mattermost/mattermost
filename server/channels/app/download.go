@@ -4,12 +4,11 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -27,15 +26,15 @@ func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
 
 func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 	if !model.IsValidHTTPURL(downloadURL) {
-		return nil, errors.Errorf("invalid url %s", downloadURL)
+		return nil, fmt.Errorf("invalid url %s", downloadURL)
 	}
 
 	u, err := url.ParseRequestURI(downloadURL)
 	if err != nil {
-		return nil, errors.Errorf("failed to parse url %s", downloadURL)
+		return nil, fmt.Errorf("failed to parse url %s", downloadURL)
 	}
 	if !*s.platform.Config().PluginSettings.AllowInsecureDownloadURL && u.Scheme != "https" {
-		return nil, errors.Errorf("insecure url not allowed %s", downloadURL)
+		return nil, fmt.Errorf("insecure url not allowed %s", downloadURL)
 	}
 
 	client := s.HTTPService().MakeClient(true)
@@ -46,19 +45,19 @@ func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 		resp, err = client.Get(downloadURL)
 
 		if err != nil {
-			return errors.Wrapf(err, "failed to fetch from %s", downloadURL)
+			return fmt.Errorf("failed to fetch from %s: %w", downloadURL, err)
 		}
 
 		if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
 			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
-			return errors.Errorf("failed to fetch from %s", downloadURL)
+			return fmt.Errorf("failed to fetch from %s", downloadURL)
 		}
 
 		return nil
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "download failed after multiple retries.")
+		return nil, fmt.Errorf("download failed after multiple retries.: %w", err)
 	}
 
 	defer resp.Body.Close()

@@ -4,13 +4,13 @@
 package delete_orphan_drafts_migration
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -36,7 +36,7 @@ func parseJobMetadata(data model.StringMap) (int64, string, error) {
 	if data["create_at"] != "" {
 		parsedCreateAt, parseErr := strconv.ParseInt(data["create_at"], 10, 64)
 		if parseErr != nil {
-			return 0, "", errors.Wrap(parseErr, "failed to parse create_at")
+			return 0, "", fmt.Errorf("failed to parse create_at: %w", parseErr)
 		}
 		createAt = parsedCreateAt
 	}
@@ -61,14 +61,14 @@ func makeJobMetadata(createAt int64, userID string) model.StringMap {
 func doDeleteOrphanDraftsMigrationBatch(data model.StringMap, store store.Store) (model.StringMap, bool, error) {
 	createAt, userID, err := parseJobMetadata(data)
 	if err != nil {
-		return nil, false, errors.Wrap(err, "failed to parse job metadata")
+		return nil, false, fmt.Errorf("failed to parse job metadata: %w", err)
 	}
 
 	// Determine the /next/ (createAt, userId) by finding the last record in the batch we're
 	// about to delete.
 	nextCreateAt, nextUserID, err := store.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 	if err != nil {
-		return nil, false, errors.Wrapf(err, "failed to get the next batch (create_at=%v, user_id=%v)", createAt, userID)
+		return nil, false, fmt.Errorf("failed to get the next batch (create_at=%v, user_id=%v): %w", createAt, userID, err)
 	}
 
 	// If we get the nil values, it means the batch was empty and we're done.
@@ -78,7 +78,7 @@ func doDeleteOrphanDraftsMigrationBatch(data model.StringMap, store store.Store)
 
 	err = store.Draft().DeleteOrphanDraftsByCreateAtAndUserId(createAt, userID)
 	if err != nil {
-		return nil, false, errors.Wrapf(err, "failed to delete orphan drafts (create_at=%v, user_id=%v)", createAt, userID)
+		return nil, false, fmt.Errorf("failed to delete orphan drafts (create_at=%v, user_id=%v): %w", createAt, userID, err)
 	}
 
 	return makeJobMetadata(nextCreateAt, nextUserID), false, nil

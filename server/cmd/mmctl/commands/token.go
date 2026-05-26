@@ -5,12 +5,12 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -68,12 +68,12 @@ func generateTokenForAUserCmdF(c client.Client, command *cobra.Command, args []s
 	userArg := args[0]
 	user := getUserFromUserArg(c, userArg)
 	if user == nil {
-		return errors.Errorf("could not retrieve user information of %q", userArg)
+		return fmt.Errorf("could not retrieve user information of %q", userArg)
 	}
 
 	token, _, err := c.CreateUserAccessToken(context.TODO(), user.Id, args[1])
 	if err != nil {
-		return errors.Errorf("could not create token for %q: %s", userArg, err.Error())
+		return fmt.Errorf("could not create token for %q: %s", userArg, err.Error())
 	}
 	printer.PrintT("{{.Token}}: {{.Description}}", token)
 
@@ -96,16 +96,16 @@ func listTokensOfAUserCmdF(c client.Client, command *cobra.Command, args []strin
 
 	user := getUserFromUserArg(c, userArg)
 	if user == nil {
-		return errors.Errorf("could not retrieve user information of %q", userArg)
+		return fmt.Errorf("could not retrieve user information of %q", userArg)
 	}
 
 	tokens, _, err := c.GetUserAccessTokensForUser(context.TODO(), user.Id, page, perPage)
 	if err != nil {
-		return errors.Errorf("could not retrieve tokens for user %q: %s", userArg, err.Error())
+		return fmt.Errorf("could not retrieve tokens for user %q: %s", userArg, err.Error())
 	}
 
 	if len(tokens) == 0 {
-		return errors.Errorf("there are no tokens for the %q", userArg)
+		return fmt.Errorf("there are no tokens for the %q", userArg)
 	}
 
 	for _, t := range tokens {
@@ -123,10 +123,10 @@ func revokeTokenForAUserCmdF(c client.Client, command *cobra.Command, args []str
 	for _, id := range args {
 		res, err := c.RevokeUserAccessToken(context.TODO(), id)
 		if err != nil {
-			return errors.Errorf("could not revoke token %q: %s", id, err.Error())
+			return fmt.Errorf("could not revoke token %q: %s", id, err.Error())
 		}
 		if res.StatusCode != http.StatusOK {
-			return errors.Errorf("could not revoke token %q", id)
+			return fmt.Errorf("could not revoke token %q", id)
 		}
 	}
 	return nil

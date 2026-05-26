@@ -1,12 +1,11 @@
 package pluginapi
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -48,23 +47,23 @@ func (p *PluginService) InstallPluginFromURL(downloadURL string, replace bool) (
 
 	parsedURL, err := url.Parse(downloadURL)
 	if err != nil {
-		return nil, errors.Wrap(err, "error while parsing url")
+		return nil, fmt.Errorf("error while parsing url: %w", err)
 	}
 
 	client := &http.Client{Timeout: time.Hour}
 	response, err := client.Get(parsedURL.String())
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to download the plugin")
+		return nil, fmt.Errorf("unable to download the plugin: %w", err)
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, errors.Errorf("received %d status code while downloading plugin from server", response.StatusCode)
+		return nil, fmt.Errorf("received %d status code while downloading plugin from server", response.StatusCode)
 	}
 
 	manifest, err := p.Install(response.Body, replace)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to install plugin on server")
+		return nil, fmt.Errorf("unable to install plugin on server: %w", err)
 	}
 
 	return manifest, nil

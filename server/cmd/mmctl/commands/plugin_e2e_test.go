@@ -4,12 +4,12 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8"
-	"github.com/pkg/errors"
 
 	"path/filepath"
 

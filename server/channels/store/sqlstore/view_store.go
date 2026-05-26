@@ -5,11 +5,12 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"slices"
 	"strconv"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -68,7 +69,7 @@ func (s *SqlViewStore) saveViewT(ex sqlxExecutor, view *model.View) error {
 		)
 
 	if _, err := ex.ExecBuilder(builder); err != nil {
-		return errors.Wrap(err, "failed to save view")
+		return fmt.Errorf("failed to save view: %w", err)
 	}
 
 	return nil
@@ -82,7 +83,7 @@ func (s *SqlViewStore) Get(id string) (*model.View, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("View", id)
 		}
-		return nil, errors.Wrapf(err, "failed to get view with id=%s", id)
+		return nil, fmt.Errorf("failed to get view with id=%s: %w", id, err)
 	}
 
 	return &view, nil
@@ -111,7 +112,7 @@ func (s *SqlViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts)
 
 	var rows []model.View
 	if err := s.GetReplica().SelectBuilder(&rows, builder); err != nil {
-		return nil, errors.Wrapf(err, "failed to get views for channel %s", channelID)
+		return nil, fmt.Errorf("failed to get views for channel %s: %w", channelID, err)
 	}
 
 	views := make([]*model.View, len(rows))
@@ -134,7 +135,7 @@ func (s *SqlViewStore) CountForChannel(channelID string, opts model.ViewQueryOpt
 
 	var count int64
 	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
-		return 0, errors.Wrapf(err, "failed to count views for channel %s", channelID)
+		return 0, fmt.Errorf("failed to count views for channel %s: %w", channelID, err)
 	}
 
 	return count, nil
@@ -157,12 +158,12 @@ func (s *SqlViewStore) Update(view *model.View) (*model.View, error) {
 
 	res, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to update view with id=%s", view.Id)
+		return nil, fmt.Errorf("failed to update view with id=%s: %w", view.Id, err)
 	}
 
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get affected rows after updating view with id=%s", view.Id)
+		return nil, fmt.Errorf("failed to get affected rows after updating view with id=%s: %w", view.Id, err)
 	}
 	if rowsAffected == 0 {
 		return nil, store.NewErrNotFound("View", view.Id)
@@ -180,12 +181,12 @@ func (s *SqlViewStore) Delete(viewID string, deleteAt int64) error {
 
 	res, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete view with id=%s", viewID)
+		return fmt.Errorf("failed to delete view with id=%s: %w", viewID, err)
 	}
 
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		return errors.Wrapf(err, "failed to get affected rows after deleting view with id=%s", viewID)
+		return fmt.Errorf("failed to get affected rows after deleting view with id=%s: %w", viewID, err)
 	}
 	if rowsAffected == 0 {
 		return store.NewErrNotFound("View", viewID)
@@ -208,7 +209,7 @@ func (s *SqlViewStore) UpdateSortOrder(viewID, channelID string, newIndex int64)
 	now := model.GetMillis()
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to begin transaction for UpdateSortOrder")
+		return nil, fmt.Errorf("failed to begin transaction for UpdateSortOrder: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
@@ -218,7 +219,7 @@ func (s *SqlViewStore) UpdateSortOrder(viewID, channelID string, newIndex int64)
 
 	var rows []model.View
 	if err = transaction.SelectBuilder(&rows, builder); err != nil {
-		return nil, errors.Wrapf(err, "failed to get views for channel %s", channelID)
+		return nil, fmt.Errorf("failed to get views for channel %s: %w", channelID, err)
 	}
 
 	views := make([]*model.View, len(rows))
@@ -262,15 +263,15 @@ func (s *SqlViewStore) UpdateSortOrder(viewID, channelID string, newIndex int64)
 
 	queryStr, args, queryErr := query.ToSql()
 	if queryErr != nil {
-		return nil, errors.Wrap(queryErr, "failed to build sort order update query for views")
+		return nil, fmt.Errorf("failed to build sort order update query for views: %w", queryErr)
 	}
 
 	if _, execErr := transaction.Exec(queryStr, args...); execErr != nil {
-		return nil, errors.Wrapf(execErr, "failed to update sort order for views in channel %s", channelID)
+		return nil, fmt.Errorf("failed to update sort order for views in channel %s: %w", channelID, execErr)
 	}
 
 	if err = transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "failed to commit sort order update for views")
+		return nil, fmt.Errorf("failed to commit sort order update for views: %w", err)
 	}
 	return views, nil
 }

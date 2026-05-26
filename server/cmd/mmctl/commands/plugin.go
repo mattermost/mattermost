@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 

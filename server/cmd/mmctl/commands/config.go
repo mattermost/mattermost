@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -19,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -213,7 +213,7 @@ func setValueWithConversion(val reflect.Value, newValue any) error {
 				s := newValue.(string)
 				v = reflect.ValueOf([]byte(s))
 			} else {
-				return errors.Errorf("target value is of type %v and provided value is %v", val.Kind(), v.Kind())
+				return fmt.Errorf("target value is of type %v and provided value is %v", val.Kind(), v.Kind())
 			}
 		}
 		val.Set(v)
@@ -245,7 +245,7 @@ func setValueWithConversion(val reflect.Value, newValue any) error {
 		val.SetBool(v)
 		return nil
 	default:
-		return errors.Errorf("value type %v is not supported", val.Kind())
+		return fmt.Errorf("value type %v is not supported", val.Kind())
 	}
 }
 
@@ -555,7 +555,7 @@ func configSubpathCmdF(cmd *cobra.Command, _ []string) error {
 	path, _ := cmd.Flags().GetString("path")
 
 	if err := utils.UpdateAssetsSubpathInDir(path, assetsDir); err != nil {
-		return errors.Wrap(err, "failed to update assets subpath")
+		return fmt.Errorf("failed to update assets subpath: %w", err)
 	}
 
 	printer.Print("Config subpath successfully modified")

@@ -2,10 +2,11 @@ package panel
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/common"
@@ -61,7 +62,7 @@ func (sh *handler) handleAction(w http.ResponseWriter, r *http.Request) {
 
 	err := sh.panel.Set(mattermostUserID, idString, value)
 	if err != nil {
-		common.MessageAttachmentError(w, errors.Wrap(err, "cannot save setting"))
+		common.MessageAttachmentError(w, fmt.Errorf("cannot save setting: %w", err))
 		return
 	}
 

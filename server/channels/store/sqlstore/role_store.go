@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -108,15 +107,15 @@ func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 	if role.Id == "" {
 		transaction, terr := s.GetMaster().Begin()
 		if terr != nil {
-			return nil, errors.Wrap(terr, "begin_transaction")
+			return nil, fmt.Errorf("begin_transaction: %w", terr)
 		}
 		defer finalizeTransactionX(transaction, &terr)
 
 		createdRole, terr := s.createRole(role, transaction)
 		if terr != nil {
-			return nil, errors.Wrap(terr, "unable to create Role")
+			return nil, fmt.Errorf("unable to create Role: %w", terr)
 		} else if terr = transaction.Commit(); terr != nil {
-			return nil, errors.Wrap(terr, "commit_transaction")
+			return nil, fmt.Errorf("commit_transaction: %w", terr)
 		}
 		return createdRole, nil
 	}
@@ -131,12 +130,12 @@ func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 		WHERE Id=:Id`, &dbRole)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to update Role")
+		return nil, fmt.Errorf("failed to update Role: %w", err)
 	}
 
 	rowsChanged, err := res.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrap(err, "error while getting rows_affected")
+		return nil, fmt.Errorf("error while getting rows_affected: %w", err)
 	}
 
 	if rowsChanged != 1 {
@@ -162,7 +161,7 @@ func (s *SqlRoleStore) createRole(role *model.Role, transaction *sqlxTxWrapper) 
 		(Id, Name, DisplayName, Description, Permissions, CreateAt, UpdateAt, DeleteAt, SchemeManaged, BuiltIn, SchemeId)
 		VALUES
 		(:Id, :Name, :DisplayName, :Description, :Permissions, :CreateAt, :UpdateAt, :DeleteAt, :SchemeManaged, :BuiltIn, :SchemeId)`, dbRole); err != nil {
-		return nil, errors.Wrap(err, "failed to save Role")
+		return nil, fmt.Errorf("failed to save Role: %w", err)
 	}
 
 	return dbRole.ToModel(), nil
@@ -176,7 +175,7 @@ func (s *SqlRoleStore) Get(roleId string) (*model.Role, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", roleId)
 		}
-		return nil, errors.Wrap(err, "failed to get Role")
+		return nil, fmt.Errorf("failed to get Role: %w", err)
 	}
 
 	return dbRole.ToModel(), nil
@@ -187,7 +186,7 @@ func (s *SqlRoleStore) GetAll() ([]*model.Role, error) {
 	query := s.tableSelectQuery
 
 	if err := s.GetReplica().SelectBuilder(&dbRoles, query); err != nil {
-		return nil, errors.Wrap(err, "failed to find Roles")
+		return nil, fmt.Errorf("failed to find Roles: %w", err)
 	}
 
 	roles := []*model.Role{}
@@ -205,7 +204,7 @@ func (s *SqlRoleStore) GetByName(ctx context.Context, name string) (*model.Role,
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", fmt.Sprintf("name=%s", name))
 		}
-		return nil, errors.Wrapf(err, "failed to find Roles with name=%s", name)
+		return nil, fmt.Errorf("failed to find Roles with name=%s: %w", name, err)
 	}
 
 	return dbRole.ToModel(), nil
@@ -219,12 +218,12 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	query := s.tableSelectQuery.Where(sq.Eq{"Name": names})
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "role_tosql")
+		return nil, fmt.Errorf("role_tosql: %w", err)
 	}
 
 	rows, err := s.GetReplica().Query(queryString, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to find Roles")
+		return nil, fmt.Errorf("failed to find Roles: %w", err)
 	}
 
 	roles := []*model.Role{}
@@ -236,12 +235,12 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 			&role.CreateAt, &role.UpdateAt, &role.DeleteAt, &role.Permissions,
 			&role.SchemeManaged, &role.BuiltIn, &role.SchemeId)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to scan values")
+			return nil, fmt.Errorf("failed to scan values: %w", err)
 		}
 		roles = append(roles, role.ToModel())
 	}
 	if err = rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "unable to iterate over rows")
+		return nil, fmt.Errorf("unable to iterate over rows: %w", err)
 	}
 
 	return roles, nil
@@ -256,7 +255,7 @@ func (s *SqlRoleStore) Delete(roleId string) (*model.Role, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", roleId)
 		}
-		return nil, errors.Wrapf(err, "failed to get Role with id=%s", roleId)
+		return nil, fmt.Errorf("failed to get Role with id=%s: %w", roleId, err)
 	}
 
 	time := model.GetMillis()
@@ -269,12 +268,12 @@ func (s *SqlRoleStore) Delete(roleId string) (*model.Role, error) {
 		 WHERE Id=:Id`, &role)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to update Role")
+		return nil, fmt.Errorf("failed to update Role: %w", err)
 	}
 
 	rowsChanged, err := res.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrap(err, "error while getting rows_affected")
+		return nil, fmt.Errorf("error while getting rows_affected: %w", err)
 	}
 
 	if rowsChanged != 1 {
@@ -286,7 +285,7 @@ func (s *SqlRoleStore) Delete(roleId string) (*model.Role, error) {
 
 func (s *SqlRoleStore) PermanentDeleteAll() error {
 	if _, err := s.GetMaster().Exec("DELETE FROM Roles"); err != nil {
-		return errors.Wrap(err, "failed to delete Roles")
+		return fmt.Errorf("failed to delete Roles: %w", err)
 	}
 
 	return nil
@@ -371,7 +370,7 @@ func (s *SqlRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[s
 
 	rolesPermissions := []*channelRolesPermissions{}
 	if err := s.GetReplica().Select(&rolesPermissions, query); err != nil {
-		return nil, errors.Wrap(err, "failed to find RolePermissions")
+		return nil, fmt.Errorf("failed to find RolePermissions: %w", err)
 	}
 
 	roleNameHigherScopedPermissions := map[string]*model.RolePermissions{}
@@ -408,12 +407,12 @@ func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "role_tosql")
+		return nil, fmt.Errorf("role_tosql: %w", err)
 	}
 
 	dbRoles := []*Role{}
 	if err = s.GetReplica().Select(&dbRoles, queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to find Roles")
+		return nil, fmt.Errorf("failed to find Roles: %w", err)
 	}
 
 	roles := []*model.Role{}
@@ -457,12 +456,12 @@ func (s *SqlRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "role_tosql")
+		return nil, fmt.Errorf("role_tosql: %w", err)
 	}
 
 	dbRoles := []*Role{}
 	if err = s.GetReplica().Select(&dbRoles, queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to find Roles")
+		return nil, fmt.Errorf("failed to find Roles: %w", err)
 	}
 
 	roles := []*model.Role{}

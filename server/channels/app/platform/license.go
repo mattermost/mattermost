@@ -6,12 +6,12 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -282,12 +282,12 @@ func (ps *PlatformService) SetLicense(license *model.License) bool {
 func (ps *PlatformService) ValidateAndSetLicenseBytes(b []byte) error {
 	licenseStr, err := utils.LicenseValidator.ValidateLicense(b)
 	if err != nil {
-		return errors.Wrap(err, "Failed to decode license from JSON")
+		return fmt.Errorf("Failed to decode license from JSON: %w", err)
 	}
 
 	var license model.License
 	if err := json.Unmarshal([]byte(licenseStr), &license); err != nil {
-		return errors.Wrap(err, "Failed to decode license from JSON")
+		return fmt.Errorf("Failed to decode license from JSON: %w", err)
 	}
 
 	ps.SetLicense(&license)

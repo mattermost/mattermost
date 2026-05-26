@@ -4,11 +4,11 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
 
-	"github.com/pkg/errors"
 	"golang.org/x/mod/semver"
 )
 

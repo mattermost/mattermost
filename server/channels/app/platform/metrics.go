@@ -20,7 +20,6 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	prommodel "github.com/prometheus/common/model"
@@ -163,7 +162,7 @@ func (pm *platformMetrics) initMetricsRouter() error {
 		`
 	metricsPageTmpl, err := template.New("page").Parse(metricsPage)
 	if err != nil {
-		return errors.Wrap(err, "failed to create template")
+		return fmt.Errorf("failed to create template: %w", err)
 	}
 
 	rootHandler := func(w http.ResponseWriter, r *http.Request) {

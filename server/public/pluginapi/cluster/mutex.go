@@ -2,11 +2,12 @@ package cluster
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -81,7 +82,7 @@ func (m *Mutex) tryLock() (bool, error) {
 		ExpireInSeconds: int64(ttl / time.Second),
 	})
 	if err != nil {
-		return false, errors.Wrap(err, "failed to set mutex kv")
+		return false, fmt.Errorf("failed to set mutex kv: %w", err)
 	}
 
 	return ok, nil
@@ -95,7 +96,7 @@ func (m *Mutex) refreshLock() error {
 		ExpireInSeconds: int64(ttl / time.Second),
 	})
 	if err != nil {
-		return errors.Wrap(err, "failed to refresh mutex kv")
+		return fmt.Errorf("failed to refresh mutex kv: %w", err)
 	} else if !ok {
 		return errors.New("unexpectedly failed to refresh mutex kv")
 	}

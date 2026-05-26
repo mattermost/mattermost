@@ -5,13 +5,14 @@ package commands
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -333,7 +334,7 @@ func modifyOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 
 	triggerWords, err := command.Flags().GetStringArray("trigger-word")
 	if err != nil {
-		return errors.Wrap(err, "invalid trigger-word parameter")
+		return fmt.Errorf("invalid trigger-word parameter: %w", err)
 	}
 	if len(triggerWords) > 0 {
 		updatedHook.TriggerWords = triggerWords
@@ -365,7 +366,7 @@ func modifyOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 
 	callbackURLs, err := command.Flags().GetStringArray("url")
 	if err != nil {
-		return errors.Wrap(err, "invalid URL parameter")
+		return fmt.Errorf("invalid URL parameter: %w", err)
 	}
 	if len(callbackURLs) > 0 {
 		updatedHook.CallbackURLs = callbackURLs

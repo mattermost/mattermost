@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -180,7 +180,7 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 	team := getTeamFromTeamArg(c, teamArg)
 	if team == nil {
-		return errors.Errorf("unable to find team: %s", teamArg)
+		return fmt.Errorf("unable to find team: %s", teamArg)
 	}
 
 	channel := &model.Channel{
@@ -345,7 +345,7 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
-		return errors.Errorf("unable to find channel %q", args[0])
+		return fmt.Errorf("unable to find channel %q", args[0])
 	}
 
 	if !(channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
@@ -358,7 +358,7 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 
 	if _, _, err := c.UpdateChannelPrivacy(context.TODO(), channel.Id, privacy); err != nil {
-		return errors.Errorf("failed to update channel (%q) privacy: %s", args[0], err.Error())
+		return fmt.Errorf("failed to update channel (%q) privacy: %s", args[0], err.Error())
 	}
 
 	return nil
@@ -384,7 +384,7 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 	channel := getChannelFromChannelArg(c, existingTeamChannel)
 	if channel == nil {
-		return errors.Errorf("unable to find channel from %q", existingTeamChannel)
+		return fmt.Errorf("unable to find channel from %q", existingTeamChannel)
 	}
 
 	channelPatch := &model.ChannelPatch{}
@@ -398,7 +398,7 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	// Using PatchChannel API to rename channel
 	updatedChannel, _, err := c.PatchChannel(context.TODO(), channel.Id, channelPatch)
 	if err != nil {
-		return errors.Errorf("cannot rename channel %q, error: %s", channel.Name, err.Error())
+		return fmt.Errorf("cannot rename channel %q, error: %s", channel.Name, err.Error())
 	}
 
 	printer.PrintT("'{{.Name}}' channel renamed", updatedChannel)
@@ -413,7 +413,7 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	if teamArg, _ := cmd.Flags().GetString("team"); teamArg != "" {
 		team := getTeamFromTeamArg(c, teamArg)
 		if team == nil {
-			return errors.Errorf("team %s was not found", teamArg)
+			return fmt.Errorf("team %s was not found", teamArg)
 		}
 
 		var err error
@@ -422,7 +422,7 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 			return err
 		}
 		if channel == nil {
-			return errors.Errorf("channel %s was not found in team %s", args[0], teamArg)
+			return fmt.Errorf("channel %s was not found in team %s", args[0], teamArg)
 		}
 	} else {
 		teams, err := getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
@@ -440,7 +440,7 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		}
 
 		if channel == nil {
-			return errors.Errorf("channel %q was not found in any team", args[0])
+			return fmt.Errorf("channel %q was not found in any team", args[0])
 		}
 	}
 

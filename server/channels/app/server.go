@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -22,7 +23,6 @@ import (
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
@@ -201,7 +201,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	for _, option := range options {
 		if err := option(s); err != nil {
-			return nil, errors.Wrap(err, "failed to apply option")
+			return nil, fmt.Errorf("failed to apply option: %w", err)
 		}
 	}
 
@@ -213,14 +213,14 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.platform == nil {
 		ps, sErr := platform.New(platform.ServiceConfig{}, s.platformOptions...)
 		if sErr != nil {
-			return nil, errors.Wrap(sErr, "failed to initialize platform")
+			return nil, fmt.Errorf("failed to initialize platform: %w", sErr)
 		}
 		s.platform = ps
 	}
 
 	subpath, err := utils.GetSubpathFromConfig(s.platform.Config())
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
+		return nil, fmt.Errorf("failed to parse SiteURL subpath: %w", err)
 	}
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
@@ -241,7 +241,7 @@ func NewServer(options ...Option) (*Server, error) {
 		LicenseFn:    s.License,
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create users service")
+		return nil, fmt.Errorf("unable to create users service: %w", err)
 	}
 
 	s.teamService, err = teams.New(teams.ServiceConfig{
@@ -254,7 +254,7 @@ func NewServer(options ...Option) (*Server, error) {
 		LicenseFn:    s.License,
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create teams service")
+		return nil, fmt.Errorf("unable to create teams service: %w", err)
 	}
 
 	s.propertyService, err = properties.New(properties.ServiceConfig{
@@ -267,7 +267,7 @@ func NewServer(options ...Option) (*Server, error) {
 		},
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to create properties service")
+		return nil, fmt.Errorf("unable to create properties service: %w", err)
 	}
 
 	// Register builtin property groups before creating hooks that reference them
@@ -275,14 +275,14 @@ func NewServer(options ...Option) (*Server, error) {
 		{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 	}); err != nil {
-		return nil, errors.Wrap(err, "failed to register builtin property groups")
+		return nil, fmt.Errorf("failed to register builtin property groups: %w", err)
 	}
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 4: Start platform
 	if err = s.platform.Start(s.makeBroadcastHooks()); err != nil {
-		return nil, errors.Wrap(err, "failed to start platform")
+		return nil, fmt.Errorf("failed to start platform: %w", err)
 	}
 
 	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
@@ -293,7 +293,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// Otherwise we run into race conditions.
 	channels, err := NewChannels(s)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize channels")
+		return nil, fmt.Errorf("failed to initialize channels: %w", err)
 	}
 	s.ch = channels
 
@@ -307,7 +307,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// nil s.ch.
 	cpaGroup, err := s.propertyService.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to look up CPA property group")
+		return nil, fmt.Errorf("failed to look up CPA property group: %w", err)
 	}
 
 	// License check hook — must run before other hooks so unlicensed
@@ -397,7 +397,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.outgoingWebhookClient = s.httpService.MakeClient(false)
 
 	if err2 := utils.TranslationsPreInit(); err2 != nil {
-		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
+		return nil, fmt.Errorf("unable to load Mattermost translation files: %w", err2)
 	}
 	model.AppErrorInit(i18n.T)
 
@@ -405,19 +405,19 @@ func NewServer(options ...Option) (*Server, error) {
 		Name: "seen_pending_post_ids",
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
+		return nil, fmt.Errorf("Unable to create pending post ids cache: %w", err)
 	}
 	if s.openGraphDataCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
 		Name: "opengraph_data",
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
+		return nil, fmt.Errorf("Unable to create opengraphdata cache: %w", err)
 	}
 
 	s.createPushNotificationsHub(request.EmptyContext(s.Log()))
 
 	if err = i18n.InitTranslations(*s.platform.Config().LocalizationSettings.DefaultServerLocale, *s.platform.Config().LocalizationSettings.DefaultClientLocale); err != nil {
-		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
+		return nil, fmt.Errorf("unable to load Mattermost translation files: %w", err)
 	}
 
 	templatesDir, ok := templates.GetTemplateDirectory()
@@ -426,13 +426,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	htmlTemplates, err := templates.New(templatesDir)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot initialize server templates")
+		return nil, fmt.Errorf("cannot initialize server templates: %w", err)
 	}
 	s.htmlTemplates = htmlTemplates
 
 	s.telemetryService, err = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.Log())
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to initialize telemetry service")
+		return nil, fmt.Errorf("unable to initialize telemetry service: %w", err)
 	}
 
 	s.platform.SetTelemetryId(s.ServerId()) // TODO: move this into platform once telemetry service moved to platform.
@@ -445,7 +445,7 @@ func NewServer(options ...Option) (*Server, error) {
 		Store:              s.GetStore(),
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to initialize email service")
+		return nil, fmt.Errorf("unable to initialize email service: %w", err)
 	}
 	s.EmailService = emailService
 
@@ -828,7 +828,7 @@ func (s *Server) Shutdown() {
 func (s *Server) Restart() error {
 	percentage, err := s.UpgradeToE0Status()
 	if err != nil || percentage != 100 {
-		return errors.Wrap(err, "unable to restart because the system has not been upgraded")
+		return fmt.Errorf("unable to restart because the system has not been upgraded: %w", err)
 	}
 	s.Shutdown()
 
@@ -914,7 +914,7 @@ func (s *Server) Start() error {
 	// Start channels.
 	// This needs to happen before because channels is dependent on the HTTP server.
 	if err := s.Channels().Start(); err != nil {
-		return errors.Wrap(err, "Unable to start channels")
+		return fmt.Errorf("Unable to start channels: %w", err)
 	}
 
 	if s.joinCluster && s.platform.Cluster() != nil {
@@ -923,11 +923,11 @@ func (s *Server) Start() error {
 	}
 
 	if err := s.ensureInstallationDate(); err != nil {
-		return errors.Wrapf(err, "unable to ensure installation date")
+		return fmt.Errorf("unable to ensure installation date: %w", err)
 	}
 
 	if err := s.ensureFirstServerRunTimestamp(); err != nil {
-		return errors.Wrapf(err, "unable to ensure first run timestamp")
+		return fmt.Errorf("unable to ensure first run timestamp: %w", err)
 	}
 
 	if err := s.Store().Status().ResetAll(); err != nil {
@@ -942,7 +942,7 @@ func (s *Server) Start() error {
 
 	if s.AutoTranslation != nil {
 		if err := s.AutoTranslation.Start(); err != nil {
-			return errors.Wrap(err, "Unable to start auto-translation service")
+			return fmt.Errorf("Unable to start auto-translation service: %w", err)
 		}
 	}
 
@@ -1051,7 +1051,7 @@ func (s *Server) Start() error {
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
+		return fmt.Errorf("%s: %w", fmt.Sprintf(i18n.T("api.server.start_server.starting.critical"), err), err)
 	}
 	s.ListenAddr = listener.Addr().(*net.TCPAddr)
 
@@ -1196,15 +1196,15 @@ func (s *Server) startLocalModeServer() error {
 
 	socket := *s.platform.Config().ServiceSettings.LocalModeSocketLocation
 	if err := os.RemoveAll(socket); err != nil {
-		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
+		return fmt.Errorf("%s: %w", fmt.Sprintf(i18n.T("api.server.start_server.starting.critical"), err), err)
 	}
 
 	unixListener, err := net.Listen("unix", socket)
 	if err != nil {
-		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
+		return fmt.Errorf("%s: %w", fmt.Sprintf(i18n.T("api.server.start_server.starting.critical"), err), err)
 	}
 	if err = os.Chmod(socket, 0600); err != nil {
-		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
+		return fmt.Errorf("%s: %w", fmt.Sprintf(i18n.T("api.server.start_server.starting.critical"), err), err)
 	}
 
 	go func() {

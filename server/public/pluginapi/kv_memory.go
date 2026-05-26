@@ -3,6 +3,8 @@ package pluginapi
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"sync"
@@ -10,8 +12,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
-
-	"github.com/pkg/errors"
 )
 
 // MemoryStore is an implementation of the plugin KV store API for testing.
@@ -43,11 +43,11 @@ func (s *MemoryStore) Set(key string, value any, options ...KVSetOption) (bool, 
 	}
 
 	if strings.HasPrefix(key, internalKeyPrefix) {
-		return false, errors.Errorf("'%s' prefix is not allowed for keys", internalKeyPrefix)
+		return false, fmt.Errorf("'%s' prefix is not allowed for keys", internalKeyPrefix)
 	}
 
 	if utf8.RuneCountInString(key) > model.KeyValueKeyMaxRunes {
-		return false, errors.Errorf("key must not be longer then %d", model.KeyValueKeyMaxRunes)
+		return false, fmt.Errorf("key must not be longer then %d", model.KeyValueKeyMaxRunes)
 	}
 
 	opts := KVSetOptions{}
@@ -66,7 +66,7 @@ func (s *MemoryStore) Set(key string, value any, options ...KVSetOption) (bool, 
 			var err error
 			valueBytes, err = json.Marshal(value)
 			if err != nil {
-				return false, errors.Wrapf(err, "failed to marshal value %v", value)
+				return false, fmt.Errorf("failed to marshal value %v: %w", value, err)
 			}
 		}
 	}
@@ -83,7 +83,7 @@ func (s *MemoryStore) Set(key string, value any, options ...KVSetOption) (bool, 
 		} else {
 			data, err := json.Marshal(opts.oldValue)
 			if err != nil {
-				return false, errors.Wrapf(err, "failed to marshal value %v", opts.oldValue)
+				return false, fmt.Errorf("failed to marshal value %v: %w", opts.oldValue, err)
 			}
 
 			downstreamOpts.OldValue = data
@@ -139,16 +139,16 @@ func (s *MemoryStore) SetAtomicWithRetries(key string, valueFunc func(oldValue [
 	for range numRetries {
 		var oldVal []byte
 		if err := s.Get(key, &oldVal); err != nil {
-			return errors.Wrapf(err, "failed to get value for key %s", key)
+			return fmt.Errorf("failed to get value for key %s: %w", key, err)
 		}
 
 		newVal, err := valueFunc(oldVal)
 		if err != nil {
-			return errors.Wrap(err, "valueFunc failed")
+			return fmt.Errorf("valueFunc failed: %w", err)
 		}
 
 		if saved, err := s.Set(key, newVal, SetAtomic(oldVal)); err != nil {
-			return errors.Wrapf(err, "DB failed to set value for key %s", key)
+			return fmt.Errorf("DB failed to set value for key %s: %w", key, err)
 		} else if saved {
 			return nil
 		}
@@ -156,7 +156,7 @@ func (s *MemoryStore) SetAtomicWithRetries(key string, valueFunc func(oldValue [
 		// small delay to allow cooperative scheduling to do its thing
 		time.Sleep(10 * time.Millisecond)
 	}
-	return errors.Errorf("failed to set value after %d retries", numRetries)
+	return fmt.Errorf("failed to set value after %d retries", numRetries)
 }
 
 func (s *MemoryStore) ListKeys(page int, count int, options ...ListKeysOption) ([]string, error) {
@@ -238,7 +238,7 @@ func (s *MemoryStore) Get(key string, o any) error {
 	}
 
 	if err := json.Unmarshal(e.value, o); err != nil {
-		return errors.Wrapf(err, "failed to unmarshal value for key %s", key)
+		return fmt.Errorf("failed to unmarshal value for key %s: %w", key, err)
 	}
 
 	return nil

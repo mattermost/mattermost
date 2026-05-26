@@ -1,10 +1,9 @@
 package pluginapi
 
 import (
+	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -273,7 +272,7 @@ func (c *ChannelService) waitForChannelCreation(channelID string) error {
 		}
 	}
 
-	return errors.Errorf("giving up waiting for channel creation, channelID=%s", channelID)
+	return fmt.Errorf("giving up waiting for channel creation, channelID=%s", channelID)
 }
 
 func channelMembersToChannelMemberSlice(cm model.ChannelMembers) []*model.ChannelMember {

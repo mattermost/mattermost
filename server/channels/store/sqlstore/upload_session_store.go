@@ -5,9 +5,10 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -50,7 +51,7 @@ func (us SqlUploadSessionStore) Save(session *model.UploadSession) (*model.Uploa
 	}
 	session.PreSave()
 	if err := session.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "SqlUploadSessionStore.Save: validation failed")
+		return nil, fmt.Errorf("SqlUploadSessionStore.Save: validation failed: %w", err)
 	}
 	query, args, err := us.getQueryBuilder().
 		Insert("UploadSessions").
@@ -58,10 +59,10 @@ func (us SqlUploadSessionStore) Save(session *model.UploadSession) (*model.Uploa
 		Values(session.Id, session.Type, session.CreateAt, session.UserId, session.ChannelId, session.Filename, session.Path, session.FileSize, session.FileOffset, session.RemoteId, session.ReqFileId).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "SqlUploadSessionStore.Save: failed to build query")
+		return nil, fmt.Errorf("SqlUploadSessionStore.Save: failed to build query: %w", err)
 	}
 	if _, err := us.GetMaster().Exec(query, args...); err != nil {
-		return nil, errors.Wrap(err, "SqlUploadSessionStore.Save: failed to insert")
+		return nil, fmt.Errorf("SqlUploadSessionStore.Save: failed to insert: %w", err)
 	}
 	return session, nil
 }
@@ -71,7 +72,7 @@ func (us SqlUploadSessionStore) Update(session *model.UploadSession) error {
 		return errors.New("SqlUploadSessionStore.Update: session should not be nil")
 	}
 	if err := session.IsValid(); err != nil {
-		return errors.Wrap(err, "SqlUploadSessionStore.Update: validation failed")
+		return fmt.Errorf("SqlUploadSessionStore.Update: validation failed: %w", err)
 	}
 	query, args, err := us.getQueryBuilder().
 		Update("UploadSessions").
@@ -88,13 +89,13 @@ func (us SqlUploadSessionStore) Update(session *model.UploadSession) error {
 		Where(sq.Eq{"Id": session.Id}).
 		ToSql()
 	if err != nil {
-		return errors.Wrap(err, "SqlUploadSessionStore.Update: failed to build query")
+		return fmt.Errorf("SqlUploadSessionStore.Update: failed to build query: %w", err)
 	}
 	if _, err := us.GetMaster().Exec(query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return store.NewErrNotFound("UploadSession", session.Id)
 		}
-		return errors.Wrapf(err, "SqlUploadSessionStore.Update: failed to update session with id=%s", session.Id)
+		return fmt.Errorf("SqlUploadSessionStore.Update: failed to update session with id=%s: %w", session.Id, err)
 	}
 	return nil
 }
@@ -107,14 +108,14 @@ func (us SqlUploadSessionStore) Get(rctx request.CTX, id string) (*model.UploadS
 		Where(sq.Eq{"Id": id}).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "SqlUploadSessionStore.Get: failed to build query")
+		return nil, fmt.Errorf("SqlUploadSessionStore.Get: failed to build query: %w", err)
 	}
 	var session model.UploadSession
 	if err := us.DBXFromContext(rctx.Context()).Get(&session, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("UploadSession", id)
 		}
-		return nil, errors.Wrapf(err, "SqlUploadSessionStore.Get: failed to select session with id=%s", id)
+		return nil, fmt.Errorf("SqlUploadSessionStore.Get: failed to select session with id=%s: %w", id, err)
 	}
 	return &session, nil
 }
@@ -125,11 +126,11 @@ func (us SqlUploadSessionStore) GetForUser(userId string) ([]*model.UploadSessio
 		OrderBy("CreateAt ASC").
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "SqlUploadSessionStore.GetForUser: failed to build query")
+		return nil, fmt.Errorf("SqlUploadSessionStore.GetForUser: failed to build query: %w", err)
 	}
 	sessions := []*model.UploadSession{}
 	if err := us.GetReplica().Select(&sessions, query, args...); err != nil {
-		return nil, errors.Wrap(err, "SqlUploadSessionStore.GetForUser: failed to select")
+		return nil, fmt.Errorf("SqlUploadSessionStore.GetForUser: failed to select: %w", err)
 	}
 	return sessions, nil
 }
@@ -144,11 +145,11 @@ func (us SqlUploadSessionStore) Delete(id string) error {
 		Where(sq.Eq{"Id": id}).
 		ToSql()
 	if err != nil {
-		return errors.Wrap(err, "SqlUploadSessionStore.Delete: failed to build query")
+		return fmt.Errorf("SqlUploadSessionStore.Delete: failed to build query: %w", err)
 	}
 
 	if _, err := us.GetMaster().Exec(query, args...); err != nil {
-		return errors.Wrap(err, "SqlUploadSessionStore.Delete: failed to delete")
+		return fmt.Errorf("SqlUploadSessionStore.Delete: failed to delete: %w", err)
 	}
 
 	return nil

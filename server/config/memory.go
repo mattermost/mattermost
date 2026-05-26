@@ -6,8 +6,6 @@ package config
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -72,7 +70,7 @@ func (ms *MemoryStore) persist(cfg *model.Config) error {
 func (ms *MemoryStore) Load() ([]byte, error) {
 	cfgBytes, err := marshalConfig(ms.savedConfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to serialize config")
+		return nil, fmt.Errorf("failed to serialize config: %w", err)
 	}
 
 	return cfgBytes, nil

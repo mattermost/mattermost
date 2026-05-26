@@ -9,13 +9,13 @@ package docextractor
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"path"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 type mmPreviewExtractor struct {
@@ -48,11 +48,11 @@ func (mpe *mmPreviewExtractor) Match(filename string) bool {
 func (mpe *mmPreviewExtractor) Extract(filename string, file io.ReadSeeker, maxFileSize int64) (string, error) {
 	b, w, err := createMultipartFormData("file", filename, file)
 	if err != nil {
-		return "", errors.Wrap(err, "Unable to generate file preview using mmpreview.")
+		return "", fmt.Errorf("Unable to generate file preview using mmpreview.: %w", err)
 	}
 	req, err := http.NewRequest("POST", mpe.url+"/toPDF", &b)
 	if err != nil {
-		return "", errors.Wrap(err, "Unable to generate file preview using mmpreview.")
+		return "", fmt.Errorf("Unable to generate file preview using mmpreview.: %w", err)
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	if mpe.secret != "" {
@@ -60,7 +60,7 @@ func (mpe *mmPreviewExtractor) Extract(filename string, file io.ReadSeeker, maxF
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", errors.Wrap(err, "Unable to generate file preview using mmpreview.")
+		return "", fmt.Errorf("Unable to generate file preview using mmpreview.: %w", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
@@ -68,7 +68,7 @@ func (mpe *mmPreviewExtractor) Extract(filename string, file io.ReadSeeker, maxF
 	}
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", errors.Wrap(err, "unable to read the response from mmpreview")
+		return "", fmt.Errorf("unable to read the response from mmpreview: %w", err)
 	}
 	return mpe.pdfExtractor.Extract(filename, bytes.NewReader(data), maxFileSize)
 }

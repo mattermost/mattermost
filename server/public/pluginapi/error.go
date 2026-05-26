@@ -1,9 +1,8 @@
 package pluginapi
 
 import (
+	"errors"
 	"net/http"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )

@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
@@ -144,7 +142,7 @@ func handleInvitation(ps *PlatformService, syncService SharedChannelServiceIFace
 
 	rc, err := ps.Store.RemoteCluster().Get(*participant.RemoteId, false)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("couldn't find remote cluster %s, for creating shared channel invitation for a DM", *participant.RemoteId))
+		return fmt.Errorf("%s: %w", fmt.Sprintf("couldn't find remote cluster %s, for creating shared channel invitation for a DM", *participant.RemoteId), err)
 	}
 
 	return syncService.SendChannelInvite(channel, creator.Id, rc, sharedchannel.WithDirectParticipant(creator, rc.RemoteId), sharedchannel.WithDirectParticipant(participant, rc.RemoteId))
@@ -158,7 +156,7 @@ func getUserFromEvent(ps *PlatformService, event *model.WebSocketEvent, key stri
 
 	user, err := ps.Store.User().Get(context.Background(), userID)
 	if err != nil {
-		return nil, errors.Wrap(err, "couldn't find user for creating shared channel invitation for a DM")
+		return nil, fmt.Errorf("couldn't find user for creating shared channel invitation for a DM: %w", err)
 	}
 
 	return user, nil
@@ -167,7 +165,7 @@ func getUserFromEvent(ps *PlatformService, event *model.WebSocketEvent, key stri
 func findChannel(server *PlatformService, channelId string) (*model.Channel, error) {
 	channel, err := server.Store.Channel().Get(channelId, true)
 	if err != nil {
-		return nil, errors.Wrap(err, "received websocket message that is eligible for shared channel sync but channel does not exist")
+		return nil, fmt.Errorf("received websocket message that is eligible for shared channel sync but channel does not exist: %w", err)
 	}
 
 	return channel, nil

@@ -9,6 +9,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -36,8 +37,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/docextractor"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -1719,7 +1718,7 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 
 	file, aerr := a.FileReader(fileInfo.Path)
 	if aerr != nil {
-		return errors.Wrap(aerr, "failed to open file for extract file content")
+		return fmt.Errorf("failed to open file for extract file content: %w", aerr)
 	}
 	defer file.Close()
 	text, err := docextractor.Extract(rctx.Logger(), fileInfo.Name, file, docextractor.ExtractSettings{
@@ -1727,14 +1726,14 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		MaxFileSize:      *a.Config().FileSettings.MaxFileSize,
 	})
 	if err != nil {
-		return errors.Wrap(err, "failed to extract file content")
+		return fmt.Errorf("failed to extract file content: %w", err)
 	}
 	if text != "" {
 		if len(text) > maxContentExtractionSize {
 			text = text[0:maxContentExtractionSize]
 		}
 		if storeErr := a.Srv().Store().FileInfo().SetContent(rctx, fileInfo.Id, text); storeErr != nil {
-			return errors.Wrap(storeErr, "failed to save the extracted file content")
+			return fmt.Errorf("failed to save the extracted file content: %w", storeErr)
 		}
 		reloadFileInfo, storeErr := a.Srv().Store().FileInfo().Get(fileInfo.Id)
 		if storeErr != nil {

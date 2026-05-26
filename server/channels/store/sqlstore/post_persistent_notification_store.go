@@ -5,11 +5,11 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 )
 
 type SqlPostPersistentNotificationStore struct {
@@ -37,7 +37,7 @@ func (s *SqlPostPersistentNotificationStore) GetSingle(postID string) (*model.Po
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Persistent Notification Post", postID)
 		}
-		return nil, errors.Wrapf(err, "failed to get the persistent notification post=%s", postID)
+		return nil, fmt.Errorf("failed to get the persistent notification post=%s: %w", postID, err)
 	}
 	return post, nil
 }
@@ -64,7 +64,7 @@ func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotif
 	// by the time this Get func is called again in the loop.
 	err := s.GetMaster().SelectBuilder(&posts, builder)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get notifications")
+		return nil, fmt.Errorf("failed to get notifications: %w", err)
 	}
 
 	return posts, nil
@@ -79,7 +79,7 @@ func (s *SqlPostPersistentNotificationStore) UpdateLastActivity(postIds []string
 
 	_, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrapf(err, "failed to update last activity for posts %s", postIds)
+		return fmt.Errorf("failed to update last activity for posts %s: %w", postIds, err)
 	}
 
 	return nil
@@ -98,7 +98,7 @@ func (s *SqlPostPersistentNotificationStore) Delete(postIds []string) error {
 
 	_, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete notifications for posts %s", postIds)
+		return fmt.Errorf("failed to delete notifications for posts %s: %w", postIds, err)
 	}
 
 	return nil
@@ -115,7 +115,7 @@ func (s *SqlPostPersistentNotificationStore) DeleteExpired(maxSentCount int16) e
 
 	_, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrap(err, "failed to delete notifications")
+		return fmt.Errorf("failed to delete notifications: %w", err)
 	}
 
 	return nil
@@ -140,7 +140,7 @@ func (s *SqlPostPersistentNotificationStore) DeleteByChannel(channelIds []string
 
 	_, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete notifications for channels %s", channelIds)
+		return fmt.Errorf("failed to delete notifications for channels %s: %w", channelIds, err)
 	}
 
 	return nil
@@ -166,7 +166,7 @@ func (s *SqlPostPersistentNotificationStore) DeleteByTeam(teamIds []string) erro
 
 	_, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete notifications for teams %s", teamIds)
+		return fmt.Errorf("failed to delete notifications for teams %s: %w", teamIds, err)
 	}
 
 	return nil

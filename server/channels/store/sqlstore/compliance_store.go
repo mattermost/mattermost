@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -60,7 +59,7 @@ func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Complianc
 	VALUES
 	(:Id, :CreateAt, :UserId, :Status, :Count, :Desc, :Type, :StartAt, :EndAt, :Keywords, :Emails)`
 	if _, err := s.GetMaster().NamedExec(query, compliance); err != nil {
-		return nil, errors.Wrap(err, "failed to save Compliance")
+		return nil, fmt.Errorf("failed to save Compliance: %w", err)
 	}
 	return compliance, nil
 }
@@ -88,16 +87,16 @@ func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Complia
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "compliances_tosql")
+		return nil, fmt.Errorf("compliances_tosql: %w", err)
 	}
 
 	res, err := s.GetMaster().Exec(queryString, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to update Compliance")
+		return nil, fmt.Errorf("failed to update Compliance: %w", err)
 	}
 	count, err := res.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrap(err, "error while getting rows_affected")
+		return nil, fmt.Errorf("error while getting rows_affected: %w", err)
 	}
 	if count > 1 {
 		return nil, fmt.Errorf("unexpected count while updating compliances: count=%d, Id=%s", count, compliance.Id)
@@ -113,7 +112,7 @@ func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error)
 
 	var compliances model.Compliances
 	if err := s.GetReplica().SelectBuilder(&compliances, query); err != nil {
-		return nil, errors.Wrap(err, "failed to find all Compliances")
+		return nil, fmt.Errorf("failed to find all Compliances: %w", err)
 	}
 
 	return compliances, nil
@@ -127,7 +126,7 @@ func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Compliances", id)
 		}
-		return nil, errors.Wrapf(err, "failed to get Compliance with id=%s", id)
+		return nil, fmt.Errorf("failed to get Compliance with id=%s: %w", id, err)
 	}
 	if compliance.Id == "" {
 		return nil, store.NewErrNotFound("Compliance", id)
@@ -223,7 +222,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 		ORDER BY Posts.CreateAt, Posts.Id
 		LIMIT ?`
 		if err := s.GetReplica().Select(&channelPosts, channelsQuery, argsChannelsQuery...); err != nil {
-			return nil, cursor, errors.Wrap(err, "unable to export compliance")
+			return nil, cursor, fmt.Errorf("unable to export compliance: %w", err)
 		}
 		if len(channelPosts) < limit {
 			cursor.ChannelsQueryCompleted = true
@@ -288,7 +287,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 		LIMIT ?`
 
 		if err := s.GetReplica().Select(&directMessagePosts, directMessagesQuery, argsDirectMessagesQuery...); err != nil {
-			return nil, cursor, errors.Wrap(err, "unable to export compliance")
+			return nil, cursor, fmt.Errorf("unable to export compliance: %w", err)
 		}
 		if len(directMessagePosts) < limit {
 			cursor.DirectMessagesQueryCompleted = true
@@ -313,7 +312,7 @@ func (s SqlComplianceStore) MessageExport(rctx request.CTX, cursor model.Message
 		).
 		Else("Channels.DisplayName").ToSql()
 	if caseErr != nil {
-		return nil, cursor, errors.Wrap(caseErr, "unable to construct case statement")
+		return nil, cursor, fmt.Errorf("unable to construct case statement: %w", caseErr)
 	}
 
 	builder := s.getQueryBuilder().Select(`Posts.Id AS PostId,
@@ -362,7 +361,7 @@ func (s SqlComplianceStore) MessageExport(rctx request.CTX, cursor model.Message
 
 	cposts := []*model.MessageExport{}
 	if err := s.GetReplica().SelectBuilderCtx(rctx.Context(), &cposts, builder); err != nil {
-		return nil, cursor, errors.Wrap(err, "unable to export messages")
+		return nil, cursor, fmt.Errorf("unable to export messages: %w", err)
 	}
 	if len(cposts) > 0 {
 		cursor.LastPostUpdateAt = *cposts[len(cposts)-1].PostUpdateAt

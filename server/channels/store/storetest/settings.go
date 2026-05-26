@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -118,11 +117,11 @@ func execAsRoot(settings *model.SqlSettings, sqlCommand string) error {
 
 	db, err := sql.Open(driver, dsn)
 	if err != nil {
-		return errors.Wrapf(err, "failed to connect to %s database as root", driver)
+		return fmt.Errorf("failed to connect to %s database as root: %w", driver, err)
 	}
 	defer db.Close()
 	if _, err = db.Exec(sqlCommand); err != nil {
-		return errors.Wrapf(err, "failed to execute `%s` against %s database as root", sqlCommand, driver)
+		return fmt.Errorf("failed to execute `%s` against %s database as root: %w", sqlCommand, driver, err)
 	}
 
 	return nil

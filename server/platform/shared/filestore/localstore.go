@@ -6,12 +6,11 @@ package filestore
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -77,7 +76,7 @@ func (b *LocalFileBackend) DriverName() string {
 func (b *LocalFileBackend) TestConnection() error {
 	f := bytes.NewReader([]byte("testingwrite"))
 	if _, err := writeFileLocally(f, filepath.Join(b.directory, TestFilePath)); err != nil {
-		return errors.Wrap(err, "unable to write to the local filesystem storage")
+		return fmt.Errorf("unable to write to the local filesystem storage: %w", err)
 	}
 	os.Remove(filepath.Join(b.directory, TestFilePath))
 	mlog.Debug("Able to write files to local storage.")
@@ -87,7 +86,7 @@ func (b *LocalFileBackend) TestConnection() error {
 func (b *LocalFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	f, err := os.Open(filepath.Join(b.directory, path))
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to open file %s", path)
+		return nil, fmt.Errorf("unable to open file %s: %w", path, err)
 	}
 	return f, nil
 }
@@ -95,7 +94,7 @@ func (b *LocalFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 func (b *LocalFileBackend) ReadFile(path string) ([]byte, error) {
 	f, err := os.ReadFile(filepath.Join(b.directory, path))
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to read file %s", path)
+		return nil, fmt.Errorf("unable to read file %s: %w", path, err)
 	}
 	return f, nil
 }
@@ -108,7 +107,7 @@ func (b *LocalFileBackend) FileExists(path string) (bool, error) {
 	}
 
 	if err != nil {
-		return false, errors.Wrapf(err, "unable to know if file %s exists", path)
+		return false, fmt.Errorf("unable to know if file %s exists: %w", path, err)
 	}
 	return true, nil
 }
@@ -116,7 +115,7 @@ func (b *LocalFileBackend) FileExists(path string) (bool, error) {
 func (b *LocalFileBackend) FileSize(path string) (int64, error) {
 	info, err := os.Stat(filepath.Join(b.directory, path))
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to get file size for %s", path)
+		return 0, fmt.Errorf("unable to get file size for %s: %w", path, err)
 	}
 	return info.Size(), nil
 }
@@ -124,25 +123,25 @@ func (b *LocalFileBackend) FileSize(path string) (int64, error) {
 func (b *LocalFileBackend) FileModTime(path string) (time.Time, error) {
 	info, err := os.Stat(filepath.Join(b.directory, path))
 	if err != nil {
-		return time.Time{}, errors.Wrapf(err, "unable to get modification time for file %s", path)
+		return time.Time{}, fmt.Errorf("unable to get modification time for file %s: %w", path, err)
 	}
 	return info.ModTime(), nil
 }
 
 func (b *LocalFileBackend) CopyFile(oldPath, newPath string) error {
 	if err := copyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
-		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)
+		return fmt.Errorf("unable to copy file from %s to %s: %w", oldPath, newPath, err)
 	}
 	return nil
 }
 
 func (b *LocalFileBackend) MoveFile(oldPath, newPath string) error {
 	if err := os.MkdirAll(filepath.Dir(filepath.Join(b.directory, newPath)), 0750); err != nil {
-		return errors.Wrapf(err, "unable to create the new destination directory %s", filepath.Dir(newPath))
+		return fmt.Errorf("unable to create the new destination directory %s: %w", filepath.Dir(newPath), err)
 	}
 
 	if err := os.Rename(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
-		return errors.Wrapf(err, "unable to move the file to %s to the destination directory", newPath)
+		return fmt.Errorf("unable to move the file to %s to the destination directory: %w", newPath, err)
 	}
 
 	return nil
@@ -155,16 +154,16 @@ func (b *LocalFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 func writeFileLocally(fr io.Reader, path string) (int64, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		directory, _ := filepath.Abs(filepath.Dir(path))
-		return 0, errors.Wrapf(err, "unable to create the directory %s for the file %s", directory, path)
+		return 0, fmt.Errorf("unable to create the directory %s for the file %s: %w", directory, path, err)
 	}
 	fw, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to open the file %s to write the data", path)
+		return 0, fmt.Errorf("unable to open the file %s to write the data: %w", path, err)
 	}
 	defer fw.Close()
 	written, err := io.Copy(fw, fr)
 	if err != nil {
-		return written, errors.Wrapf(err, "unable write the data in the file %s", path)
+		return written, fmt.Errorf("unable write the data in the file %s: %w", path, err)
 	}
 	return written, nil
 }
@@ -172,23 +171,23 @@ func writeFileLocally(fr io.Reader, path string) (int64, error) {
 func (b *LocalFileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	fp := filepath.Join(b.directory, path)
 	if _, err := os.Stat(fp); err != nil {
-		return 0, errors.Wrapf(err, "unable to find the file %s to append the data", path)
+		return 0, fmt.Errorf("unable to find the file %s to append the data: %w", path, err)
 	}
 	fw, err := os.OpenFile(fp, os.O_WRONLY|os.O_APPEND, 0600)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to open the file %s to append the data", path)
+		return 0, fmt.Errorf("unable to open the file %s to append the data: %w", path, err)
 	}
 	defer fw.Close()
 	written, err := io.Copy(fw, fr)
 	if err != nil {
-		return written, errors.Wrapf(err, "unable append the data in the file %s", path)
+		return written, fmt.Errorf("unable append the data in the file %s: %w", path, err)
 	}
 	return written, nil
 }
 
 func (b *LocalFileBackend) RemoveFile(path string) error {
 	if err := os.Remove(filepath.Join(b.directory, path)); err != nil {
-		return errors.Wrapf(err, "unable to remove the file %s", path)
+		return fmt.Errorf("unable to remove the file %s: %w", path, err)
 	}
 	return nil
 }
@@ -203,7 +202,7 @@ func appendRecursively(basePath, path string, maxDepth int) ([]string, error) {
 		if os.IsNotExist(err) {
 			return results, nil
 		}
-		return results, errors.Wrapf(err, "unable to list the directory %s", path)
+		return results, fmt.Errorf("unable to list the directory %s: %w", path, err)
 	}
 	for _, dirEntry := range dirEntries {
 		entryName := dirEntry.Name()
@@ -239,7 +238,7 @@ func (b *LocalFileBackend) ListDirectory(path string) ([]string, error) {
 			return results, nil
 		}
 		// same here, ideally we shouldn't return the empty slice
-		return results, errors.Wrapf(err, "unable to list the directory %s", path)
+		return results, fmt.Errorf("unable to list the directory %s: %w", path, err)
 	}
 	for _, dirEntry := range dirEntries {
 		results = append(results, filepath.Join(path, dirEntry.Name()))
@@ -254,7 +253,7 @@ func (b *LocalFileBackend) ListDirectoryRecursively(path string) ([]string, erro
 
 func (b *LocalFileBackend) RemoveDirectory(path string) error {
 	if err := os.RemoveAll(filepath.Join(b.directory, path)); err != nil {
-		return errors.Wrapf(err, "unable to remove the directory %s", path)
+		return fmt.Errorf("unable to remove the directory %s: %w", path, err)
 	}
 	return nil
 }
@@ -270,7 +269,7 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 	fullPath := filepath.Join(b.directory, path)
 	baseInfo, err := os.Stat(fullPath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to stat path %s", path)
+		return nil, fmt.Errorf("unable to stat path %s: %w", path, err)
 	}
 
 	pr, pw := io.Pipe()
@@ -295,7 +294,7 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 			// Get the relative path from the base directory
 			relPath, err := filepath.Rel(baseDir, filePath)
 			if err != nil {
-				return errors.Wrapf(err, "unable to get relative path for %s", filePath)
+				return fmt.Errorf("unable to get relative path for %s: %w", filePath, err)
 			}
 
 			// Skip the root directory itself
@@ -306,7 +305,7 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 			// Create zip header
 			header, err := zip.FileInfoHeader(info)
 			if err != nil {
-				return errors.Wrapf(err, "unable to create zip header for %s", relPath)
+				return fmt.Errorf("unable to create zip header for %s: %w", relPath, err)
 			}
 
 			// Ensure consistent forward slashes in paths
@@ -322,24 +321,24 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 			header.SetMode(0644) // rw-r--r-- permissions
 			writer, err := zipWriter.CreateHeader(header)
 			if err != nil {
-				return errors.Wrapf(err, "unable to create zip entry for %s", relPath)
+				return fmt.Errorf("unable to create zip entry for %s: %w", relPath, err)
 			}
 
 			file, err := os.Open(filePath)
 			if err != nil {
-				return errors.Wrapf(err, "unable to open file %s", filePath)
+				return fmt.Errorf("unable to open file %s: %w", filePath, err)
 			}
 			defer file.Close()
 
 			if _, err := io.Copy(writer, file); err != nil {
-				return errors.Wrapf(err, "unable to copy file content for %s", relPath)
+				return fmt.Errorf("unable to copy file content for %s: %w", relPath, err)
 			}
 
 			return nil
 		})
 
 		if err != nil {
-			pw.CloseWithError(errors.Wrap(err, "error walking directory"))
+			pw.CloseWithError(fmt.Errorf("error walking directory: %w", err))
 		}
 	}()
 

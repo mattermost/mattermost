@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/pkg/errors"
 )
 
 type SqlOutgoingOAuthConnectionStore struct {
@@ -47,7 +46,7 @@ func (s *SqlOutgoingOAuthConnectionStore) SaveConnection(rctx request.CTX, conn 
 	(Id, Name, ClientId, ClientSecret, CreateAt, UpdateAt, CreatorId, OAuthTokenURL, GrantType, Audiences)
 	VALUES
 	(:Id, :Name, :ClientId, :ClientSecret, :CreateAt, :UpdateAt, :CreatorId, :OAuthTokenURL, :GrantType, :Audiences)`, conn); err != nil {
-		return nil, errors.Wrap(err, "failed to save OutgoingOAuthConnection")
+		return nil, fmt.Errorf("failed to save OutgoingOAuthConnection: %w", err)
 	}
 	return conn, nil
 }
@@ -89,7 +88,7 @@ func (s *SqlOutgoingOAuthConnectionStore) UpdateConnection(rctx request.CTX, con
 	}
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return nil, errors.Wrap(err, "failed to update OutgoingOAuthConnection")
+		return nil, fmt.Errorf("failed to update OutgoingOAuthConnection: %w", err)
 	}
 	return conn, nil
 }
@@ -102,7 +101,7 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnection(rctx request.CTX, id str
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("OutgoingOAuthConnection", id)
 		}
-		return nil, errors.Wrap(err, "failed to get OutgoingOAuthConnection")
+		return nil, fmt.Errorf("failed to get OutgoingOAuthConnection: %w", err)
 	}
 	return conn, nil
 }
@@ -122,7 +121,7 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnections(rctx request.CTX, filte
 	}
 
 	if err := s.GetReplica().SelectBuilderCtx(rctx.Context(), &conns, query); err != nil {
-		return nil, errors.Wrap(err, "failed to get OutgoingOAuthConnections")
+		return nil, fmt.Errorf("failed to get OutgoingOAuthConnections: %w", err)
 	}
 
 	return conns, nil
@@ -130,7 +129,7 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnections(rctx request.CTX, filte
 
 func (s *SqlOutgoingOAuthConnectionStore) DeleteConnection(rctx request.CTX, id string) error {
 	if _, err := s.GetMaster().Exec(`DELETE FROM OutgoingOAuthConnections WHERE Id=?`, id); err != nil {
-		return errors.Wrap(err, "failed to delete OutgoingOAuthConnection")
+		return fmt.Errorf("failed to delete OutgoingOAuthConnection: %w", err)
 	}
 	return nil
 }

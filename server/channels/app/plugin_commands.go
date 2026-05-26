@@ -4,12 +4,11 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -27,7 +26,7 @@ func (a *App) RegisterPluginCommand(pluginID string, command *model.Command) err
 	}
 	if command.AutocompleteData != nil {
 		if err := command.AutocompleteData.IsValid(); err != nil {
-			return errors.Wrap(err, "invalid autocomplete data in command")
+			return fmt.Errorf("invalid autocomplete data in command: %w", err)
 		}
 	}
 
@@ -36,11 +35,11 @@ func (a *App) RegisterPluginCommand(pluginID string, command *model.Command) err
 	} else {
 		baseURL, err := url.Parse("/plugins/" + pluginID)
 		if err != nil {
-			return errors.Wrapf(err, "Can't parse url %s", "/plugins/"+pluginID)
+			return fmt.Errorf("Can't parse url %s: %w", "/plugins/"+pluginID, err)
 		}
 		err = command.AutocompleteData.UpdateRelativeURLsForPluginCommands(baseURL)
 		if err != nil {
-			return errors.Wrap(err, "Can't update relative urls for plugin commands")
+			return fmt.Errorf("Can't update relative urls for plugin commands: %w", err)
 		}
 	}
 

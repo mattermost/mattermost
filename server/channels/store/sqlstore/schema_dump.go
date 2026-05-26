@@ -5,11 +5,11 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -85,12 +85,12 @@ func (ss *SqlStore) getDatabaseCollation() (string, error) {
 
 	sqlString, args, err := collationQuery.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		return "", errors.Wrap(err, "failed to build database collation query")
+		return "", fmt.Errorf("failed to build database collation query: %w", err)
 	}
 
 	err = ss.GetMaster().QueryRowContext(ss.noTimeoutContext(), sqlString, args...).Scan(&dbCollation)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get database collation")
+		return "", fmt.Errorf("failed to get database collation: %w", err)
 	}
 
 	if !dbCollation.Valid {
@@ -109,12 +109,12 @@ func (ss *SqlStore) getDatabaseEncoding() (string, error) {
 
 	sqlString, args, err := encodingQuery.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		return "", errors.Wrap(err, "failed to build database encoding query")
+		return "", fmt.Errorf("failed to build database encoding query: %w", err)
 	}
 
 	err = ss.GetMaster().QueryRowContext(ss.noTimeoutContext(), sqlString, args...).Scan(&dbEncoding)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get database encoding")
+		return "", fmt.Errorf("failed to get database encoding: %w", err)
 	}
 
 	if !dbEncoding.Valid {
@@ -139,12 +139,12 @@ func (ss *SqlStore) getTableOptions() (map[string]map[string]string, error) {
 
 	optionsSql, optionsArgs, err := optionsQuery.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to build table options query")
+		return nil, fmt.Errorf("failed to build table options query: %w", err)
 	}
 
 	optionsRows, err := ss.GetMaster().QueryContext(ss.noTimeoutContext(), optionsSql, optionsArgs...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to query table options")
+		return nil, fmt.Errorf("failed to query table options: %w", err)
 	}
 	defer optionsRows.Close()
 
@@ -156,7 +156,7 @@ func (ss *SqlStore) getTableOptions() (map[string]map[string]string, error) {
 
 		err = optionsRows.Scan(&tableName, &optionValue)
 		if err != nil {
-			rErr = multierror.Append(rErr, errors.Wrap(err, "failed to scan database schema row"))
+			rErr = multierror.Append(rErr, fmt.Errorf("failed to scan database schema row: %w", err))
 			continue
 		}
 
@@ -178,7 +178,7 @@ func (ss *SqlStore) getTableOptions() (map[string]map[string]string, error) {
 		tableOptions[tableName][key] = value
 	}
 	if err := optionsRows.Err(); err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error iterating table options rows"))
+		rErr = multierror.Append(rErr, fmt.Errorf("error iterating table options rows: %w", err))
 	}
 
 	return tableOptions, rErr.ErrorOrNil()
@@ -204,12 +204,12 @@ func (ss *SqlStore) getTableSchemaInformation() (map[string]*model.DatabaseTable
 
 	schemaSql, schemaArgs, err := schemaQuery.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to build schema information query")
+		return nil, nil, fmt.Errorf("failed to build schema information query: %w", err)
 	}
 
 	rows, err := ss.GetMaster().QueryContext(ss.noTimeoutContext(), schemaSql, schemaArgs...)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to query schema information")
+		return nil, nil, fmt.Errorf("failed to query schema information: %w", err)
 	}
 	defer rows.Close()
 
@@ -221,7 +221,7 @@ func (ss *SqlStore) getTableSchemaInformation() (map[string]*model.DatabaseTable
 
 		err = rows.Scan(&tableName, &columnName, &dataType, &characterMaxLength, &isNullable, &collationName)
 		if err != nil {
-			rErr = multierror.Append(rErr, errors.Wrap(err, "failed to scan database schema row"))
+			rErr = multierror.Append(rErr, fmt.Errorf("failed to scan database schema row: %w", err))
 			continue
 		}
 
@@ -257,7 +257,7 @@ func (ss *SqlStore) getTableSchemaInformation() (map[string]*model.DatabaseTable
 		}
 	}
 	if err := rows.Err(); err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error iterating schema rows"))
+		rErr = multierror.Append(rErr, fmt.Errorf("error iterating schema rows: %w", err))
 	}
 
 	return tablesMap, tableCollations, rErr.ErrorOrNil()
@@ -278,12 +278,12 @@ func (ss *SqlStore) getTableIndexes() (map[string][]model.DatabaseIndex, error) 
 
 	indexSql, indexArgs, err := indexQuery.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to build index query")
+		return nil, fmt.Errorf("failed to build index query: %w", err)
 	}
 
 	rows, err := ss.GetMaster().QueryContext(ss.noTimeoutContext(), indexSql, indexArgs...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to query index information")
+		return nil, fmt.Errorf("failed to query index information: %w", err)
 	}
 	defer rows.Close()
 
@@ -293,7 +293,7 @@ func (ss *SqlStore) getTableIndexes() (map[string][]model.DatabaseIndex, error) 
 
 		err = rows.Scan(&tableName, &indexName, &indexDef)
 		if err != nil {
-			rErr = multierror.Append(rErr, errors.Wrap(err, "failed to scan index row"))
+			rErr = multierror.Append(rErr, fmt.Errorf("failed to scan index row: %w", err))
 			continue
 		}
 
@@ -305,7 +305,7 @@ func (ss *SqlStore) getTableIndexes() (map[string][]model.DatabaseIndex, error) 
 		tableIndexes[tableName] = append(tableIndexes[tableName], index)
 	}
 	if err := rows.Err(); err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error iterating index rows"))
+		rErr = multierror.Append(rErr, fmt.Errorf("error iterating index rows: %w", err))
 	}
 
 	return tableIndexes, rErr.ErrorOrNil()

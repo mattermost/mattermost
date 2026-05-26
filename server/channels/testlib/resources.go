@@ -10,8 +10,6 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8"
@@ -114,10 +112,10 @@ func getTestResourcesToSetup() []testResourceDetails {
 func CopyFile(src, dst string) error {
 	fileBackend, err := filestore.NewFileBackend(filestore.FileBackendSettings{DriverName: "local", Directory: ""})
 	if err != nil {
-		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
+		return fmt.Errorf("failed to copy file %s to %s: %w", src, dst, err)
 	}
 	if err = fileBackend.CopyFile(src, dst); err != nil {
-		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
+		return fmt.Errorf("failed to copy file %s to %s: %w", src, dst, err)
 	}
 	return nil
 }
@@ -127,30 +125,30 @@ func SetupTestResources() (string, error) {
 
 	tempDir, err := os.MkdirTemp("", "testlib")
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create temporary directory")
+		return "", fmt.Errorf("failed to create temporary directory: %w", err)
 	}
 
 	pluginsDir := path.Join(tempDir, "plugins")
 	err = os.Mkdir(pluginsDir, 0700)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to create plugins directory %s", pluginsDir)
+		return "", fmt.Errorf("failed to create plugins directory %s: %w", pluginsDir, err)
 	}
 
 	clientDir := path.Join(tempDir, "client")
 	err = os.Mkdir(clientDir, 0700)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to create client directory %s", clientDir)
+		return "", fmt.Errorf("failed to create client directory %s: %w", clientDir, err)
 	}
 
 	logsDir := path.Join(tempDir, "logs")
 	err = os.Mkdir(logsDir, 0700)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to create logs directory %s", logsDir)
+		return "", fmt.Errorf("failed to create logs directory %s: %w", logsDir, err)
 	}
 
 	err = setupConfig(path.Join(tempDir, "config"))
 	if err != nil {
-		return "", errors.Wrap(err, "failed to setup config")
+		return "", fmt.Errorf("failed to setup config: %w", err)
 	}
 
 	var resourceDestInTemp string
@@ -168,7 +166,7 @@ func SetupTestResources() (string, error) {
 			} else if testResource.resType == resourceTypeFolder {
 				err = utils.CopyDir(testResource.src, resourceDestInTemp)
 				if err != nil {
-					return "", errors.Wrapf(err, "failed to copy folder %s to %s", testResource.src, resourceDestInTemp)
+					return "", fmt.Errorf("failed to copy folder %s to %s: %w", testResource.src, resourceDestInTemp, err)
 				}
 			}
 		} else if testResource.action == actionSymlink {
@@ -176,16 +174,16 @@ func SetupTestResources() (string, error) {
 			if destDir != "." {
 				err = os.MkdirAll(destDir, os.ModePerm)
 				if err != nil {
-					return "", errors.Wrapf(err, "failed to make dir %s", destDir)
+					return "", fmt.Errorf("failed to make dir %s: %w", destDir, err)
 				}
 			}
 
 			err = os.Symlink(testResource.src, resourceDestInTemp)
 			if err != nil {
-				return "", errors.Wrapf(err, "failed to symlink %s to %s", testResource.src, resourceDestInTemp)
+				return "", fmt.Errorf("failed to symlink %s to %s: %w", testResource.src, resourceDestInTemp, err)
 			}
 		} else {
-			return "", errors.Wrapf(err, "Invalid action: %d", testResource.action)
+			return "", fmt.Errorf("Invalid action: %d: %w", testResource.action, err)
 		}
 	}
 
@@ -200,7 +198,7 @@ func setupConfig(configDir string) error {
 
 	err = os.Mkdir(configDir, 0700)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create config directory %s", configDir)
+		return fmt.Errorf("failed to create config directory %s: %w", configDir, err)
 	}
 
 	buf, err := json.Marshal(config)
@@ -211,7 +209,7 @@ func setupConfig(configDir string) error {
 	configJSON := path.Join(configDir, "config.json")
 	err = os.WriteFile(configJSON, buf, 0644)
 	if err != nil {
-		return errors.Wrapf(err, "failed to write config to %s", configJSON)
+		return fmt.Errorf("failed to write config to %s: %w", configJSON, err)
 	}
 
 	return nil

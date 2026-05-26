@@ -4,8 +4,9 @@
 package sqlstore
 
 import (
+	"fmt"
+
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -29,7 +30,7 @@ func (s *SqlPropertyGroupStore) Register(group *model.PropertyGroup) (*model.Pro
 	group.PreSave()
 
 	if err := group.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "property_group_register_isvalid")
+		return nil, fmt.Errorf("property_group_register_isvalid: %w", err)
 	}
 
 	builder := s.getQueryBuilder().
@@ -41,12 +42,12 @@ func (s *SqlPropertyGroupStore) Register(group *model.PropertyGroup) (*model.Pro
 
 	r, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return nil, errors.Wrap(err, "property_group_register_insert")
+		return nil, fmt.Errorf("property_group_register_insert: %w", err)
 	}
 
 	rowsAffected, err := r.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrap(err, "property_group_register_rows_affected")
+		return nil, fmt.Errorf("property_group_register_rows_affected: %w", err)
 	}
 
 	// there was a conflict during the insert, so we need to fetch the
@@ -66,7 +67,7 @@ func (s *SqlPropertyGroupStore) IncrementVersion(name string) error {
 
 	_, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrap(err, "property_group_increment_version_exec")
+		return fmt.Errorf("property_group_increment_version_exec: %w", err)
 	}
 
 	return nil
@@ -79,7 +80,7 @@ func (s *SqlPropertyGroupStore) Get(name string) (*model.PropertyGroup, error) {
 		Where(sq.Eq{"Name": name}).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "property_group_get_tosql")
+		return nil, fmt.Errorf("property_group_get_tosql: %w", err)
 	}
 
 	var propertyGroup model.PropertyGroup
@@ -97,7 +98,7 @@ func (s *SqlPropertyGroupStore) GetByID(id string) (*model.PropertyGroup, error)
 		Where(sq.Eq{"ID": id}).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "property_group_get_by_id_tosql")
+		return nil, fmt.Errorf("property_group_get_by_id_tosql: %w", err)
 	}
 
 	var propertyGroup model.PropertyGroup

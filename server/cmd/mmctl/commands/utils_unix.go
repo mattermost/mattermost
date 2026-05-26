@@ -6,6 +6,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/user"
@@ -13,7 +14,6 @@ import (
 	"syscall"
 
 	"github.com/isacikgoz/prompt"
-	"github.com/pkg/errors"
 )
 
 func checkValidSocket(socketPath string) error {

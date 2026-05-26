@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 )
 
 // UpdateRemoteMembershipCursor updates the LastMembersSyncAt timestamp for the specified SharedChannelRemote,
@@ -22,12 +21,12 @@ func (s SqlSharedChannelStore) UpdateRemoteMembershipCursor(id string, syncTime 
 
 	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
-		return errors.Wrap(err, "failed to update membership cursor for SharedChannelRemote")
+		return fmt.Errorf("failed to update membership cursor for SharedChannelRemote: %w", err)
 	}
 
 	count, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, "failed to determine rows affected")
+		return fmt.Errorf("failed to determine rows affected: %w", err)
 	}
 
 	if count == 0 {

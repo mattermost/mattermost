@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -51,10 +50,10 @@ func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.User
 		Values(token.Id, token.Token, token.UserId, token.Description, token.IsActive, token.ExpiresAt).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "UserAccessToken_tosql")
+		return nil, fmt.Errorf("UserAccessToken_tosql: %w", err)
 	}
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to save UserAccessToken")
+		return nil, fmt.Errorf("failed to save UserAccessToken: %w", err)
 	}
 	return token, nil
 }
@@ -62,7 +61,7 @@ func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.User
 func (s SqlUserAccessTokenStore) Delete(tokenId string) (err error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
+		return fmt.Errorf("begin_transaction: %w", err)
 	}
 
 	defer finalizeTransactionX(transaction, &err)
@@ -70,7 +69,7 @@ func (s SqlUserAccessTokenStore) Delete(tokenId string) (err error) {
 	if err := s.deleteSessionsAndTokensById(transaction, tokenId); err == nil {
 		if err := transaction.Commit(); err != nil {
 			// don't need to rollback here since the transaction is already closed
-			return errors.Wrap(err, "commit_transaction")
+			return fmt.Errorf("commit_transaction: %w", err)
 		}
 	}
 
@@ -81,7 +80,7 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *sqlxTx
 	query := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = ?"
 
 	if _, err := transaction.Exec(query, tokenId); err != nil {
-		return errors.Wrapf(err, "failed to delete Sessions with UserAccessToken id=%s", tokenId)
+		return fmt.Errorf("failed to delete Sessions with UserAccessToken id=%s: %w", tokenId, err)
 	}
 
 	return s.deleteTokensById(transaction, tokenId)
@@ -89,7 +88,7 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *sqlxTx
 
 func (s SqlUserAccessTokenStore) deleteTokensById(transaction *sqlxTxWrapper, tokenId string) error {
 	if _, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE Id = ?", tokenId); err != nil {
-		return errors.Wrapf(err, "failed to delete UserAccessToken id=%s", tokenId)
+		return fmt.Errorf("failed to delete UserAccessToken id=%s: %w", tokenId, err)
 	}
 
 	return nil
@@ -98,7 +97,7 @@ func (s SqlUserAccessTokenStore) deleteTokensById(transaction *sqlxTxWrapper, to
 func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) (err error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
+		return fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 	if err := s.deleteSessionsandTokensByUser(transaction, userId); err != nil {
@@ -107,7 +106,7 @@ func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) (err error) {
 
 	if err := transaction.Commit(); err != nil {
 		// don't need to rollback here since the transaction is already closed
-		return errors.Wrap(err, "commit_transaction")
+		return fmt.Errorf("commit_transaction: %w", err)
 	}
 	return nil
 }
@@ -116,7 +115,7 @@ func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *sqlx
 	query := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.UserId = ?"
 
 	if _, err := transaction.Exec(query, userId); err != nil {
-		return errors.Wrapf(err, "failed to delete Sessions with UserAccessToken userId=%s", userId)
+		return fmt.Errorf("failed to delete Sessions with UserAccessToken userId=%s: %w", userId, err)
 	}
 
 	return s.deleteTokensByUser(transaction, userId)
@@ -124,7 +123,7 @@ func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *sqlx
 
 func (s SqlUserAccessTokenStore) deleteTokensByUser(transaction *sqlxTxWrapper, userId string) error {
 	if _, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE UserId = ?", userId); err != nil {
-		return errors.Wrapf(err, "failed to delete UserAccessToken userId=%s", userId)
+		return fmt.Errorf("failed to delete UserAccessToken userId=%s: %w", userId, err)
 	}
 
 	return nil
@@ -139,7 +138,7 @@ func (s SqlUserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, er
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("UserAccessToken", tokenId)
 		}
-		return nil, errors.Wrapf(err, "failed to get UserAccessToken with id=%s", tokenId)
+		return nil, fmt.Errorf("failed to get UserAccessToken with id=%s: %w", tokenId, err)
 	}
 
 	return &token, nil
@@ -153,7 +152,7 @@ func (s SqlUserAccessTokenStore) GetAll(offset, limit int) ([]*model.UserAccessT
 		Offset(uint64(offset))
 
 	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
-		return nil, errors.Wrap(err, "failed to find UserAccessTokens")
+		return nil, fmt.Errorf("failed to find UserAccessTokens: %w", err)
 	}
 
 	return tokens, nil
@@ -168,7 +167,7 @@ func (s SqlUserAccessTokenStore) GetByToken(tokenString string) (*model.UserAcce
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("UserAccessToken", fmt.Sprintf("token=%s", tokenString))
 		}
-		return nil, errors.Wrapf(err, "failed to get UserAccessToken with token=%s", tokenString)
+		return nil, fmt.Errorf("failed to get UserAccessToken with token=%s: %w", tokenString, err)
 	}
 
 	return &token, nil
@@ -183,7 +182,7 @@ func (s SqlUserAccessTokenStore) GetByUser(userId string, offset, limit int) ([]
 		Offset(uint64(offset))
 
 	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to find UserAccessTokens with userId=%s", userId)
+		return nil, fmt.Errorf("failed to find UserAccessTokens with userId=%s: %w", userId, err)
 	}
 
 	return tokens, nil
@@ -202,7 +201,7 @@ func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, 
 		})
 
 	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to find UserAccessTokens by term with value '%s'", term)
+		return nil, fmt.Errorf("failed to find UserAccessTokens by term with value '%s': %w", term, err)
 	}
 
 	return tokens, nil
@@ -210,7 +209,7 @@ func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, 
 
 func (s SqlUserAccessTokenStore) UpdateTokenEnable(tokenId string) error {
 	if _, err := s.GetMaster().Exec("UPDATE UserAccessTokens SET IsActive = TRUE WHERE Id = ?", tokenId); err != nil {
-		return errors.Wrapf(err, "failed to update UserAccessTokens with id=%s", tokenId)
+		return fmt.Errorf("failed to update UserAccessTokens with id=%s: %w", tokenId, err)
 	}
 	return nil
 }
@@ -218,7 +217,7 @@ func (s SqlUserAccessTokenStore) UpdateTokenEnable(tokenId string) error {
 func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
+		return fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
@@ -227,7 +226,7 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) 
 	}
 	if err := transaction.Commit(); err != nil {
 		// don't need to rollback here since the transaction is already closed
-		return errors.Wrap(err, "commit_transaction")
+		return fmt.Errorf("commit_transaction: %w", err)
 	}
 	return nil
 }
@@ -264,7 +263,7 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 		Limit(uint64(limit))
 
 	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
-		return nil, errors.Wrap(err, "failed to find expired UserAccessTokens")
+		return nil, fmt.Errorf("failed to find expired UserAccessTokens: %w", err)
 	}
 
 	return tokens, nil
@@ -280,7 +279,7 @@ func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (deleted int64, 
 
 	transaction, beginErr := s.GetMaster().Begin()
 	if beginErr != nil {
-		err = errors.Wrap(beginErr, "begin_transaction")
+		err = fmt.Errorf("begin_transaction: %w", beginErr)
 		return
 	}
 	defer finalizeTransactionX(transaction, &err)
@@ -292,11 +291,11 @@ func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (deleted int64, 
 		Where(sq.Eq{"Id": tokenIDs}).
 		ToSql()
 	if sqErr != nil {
-		err = errors.Wrap(sqErr, "UserAccessToken_tosql")
+		err = fmt.Errorf("UserAccessToken_tosql: %w", sqErr)
 		return
 	}
 	if _, sErr := transaction.Exec("DELETE FROM Sessions WHERE Token IN ("+subSQL+")", subArgs...); sErr != nil {
-		err = errors.Wrap(sErr, "failed to delete Sessions for UserAccessTokens")
+		err = fmt.Errorf("failed to delete Sessions for UserAccessTokens: %w", sErr)
 		return
 	}
 
@@ -305,23 +304,23 @@ func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (deleted int64, 
 		Where(sq.Eq{"Id": tokenIDs}).
 		ToSql()
 	if sqErr != nil {
-		err = errors.Wrap(sqErr, "UserAccessToken_tosql")
+		err = fmt.Errorf("UserAccessToken_tosql: %w", sqErr)
 		return
 	}
 	res, execErr := transaction.Exec(tokenSQL, tokenArgs...)
 	if execErr != nil {
-		err = errors.Wrap(execErr, "failed to delete UserAccessTokens")
+		err = fmt.Errorf("failed to delete UserAccessTokens: %w", execErr)
 		return
 	}
 
 	rowCount, rErr := res.RowsAffected()
 	if rErr != nil {
-		err = errors.Wrap(rErr, "failed to read RowsAffected for UserAccessTokens delete")
+		err = fmt.Errorf("failed to read RowsAffected for UserAccessTokens delete: %w", rErr)
 		return
 	}
 
 	if cErr := transaction.Commit(); cErr != nil {
-		err = errors.Wrap(cErr, "commit_transaction")
+		err = fmt.Errorf("commit_transaction: %w", cErr)
 		return
 	}
 
@@ -333,7 +332,7 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *sqlx
 	query := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = ?"
 
 	if _, err := transaction.Exec(query, tokenId); err != nil {
-		return errors.Wrapf(err, "failed to delete Sessions with UserAccessToken id=%s", tokenId)
+		return fmt.Errorf("failed to delete Sessions with UserAccessToken id=%s: %w", tokenId, err)
 	}
 
 	return s.updateTokenDisable(transaction, tokenId)
@@ -341,7 +340,7 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *sqlx
 
 func (s SqlUserAccessTokenStore) updateTokenDisable(transaction *sqlxTxWrapper, tokenId string) error {
 	if _, err := transaction.Exec("UPDATE UserAccessTokens SET IsActive = FALSE WHERE Id = ?", tokenId); err != nil {
-		return errors.Wrapf(err, "failed to update UserAccessToken with id=%s", tokenId)
+		return fmt.Errorf("failed to update UserAccessToken with id=%s: %w", tokenId, err)
 	}
 
 	return nil

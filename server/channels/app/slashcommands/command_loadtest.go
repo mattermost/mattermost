@@ -6,6 +6,8 @@ package slashcommands
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -13,8 +15,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -652,7 +652,7 @@ func (*LoadTestProvider) URLCommand(a *app.App, rctx request.CTX, args *model.Co
 	}()
 
 	if r.StatusCode > 400 {
-		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("unexpected status code %d", r.StatusCode)
+		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, fmt.Errorf("unexpected status code %d", r.StatusCode)
 	}
 
 	bytes := make([]byte, 4000)
@@ -702,7 +702,7 @@ func (*LoadTestProvider) JSONCommand(a *app.App, rctx request.CTX, args *model.C
 	}
 
 	if r.StatusCode > 400 {
-		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("unexpected status code %d", r.StatusCode)
+		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, fmt.Errorf("unexpected status code %d", r.StatusCode)
 	}
 	defer func() {
 		_, err := io.Copy(io.Discard, r.Body)
@@ -714,7 +714,7 @@ func (*LoadTestProvider) JSONCommand(a *app.App, rctx request.CTX, args *model.C
 
 	var post model.Post
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		return &model.CommandResponse{Text: "Unable to decode post", ResponseType: model.CommandResponseTypeEphemeral}, errors.Wrapf(jsonErr, "could not decode post from json")
+		return &model.CommandResponse{Text: "Unable to decode post", ResponseType: model.CommandResponseTypeEphemeral}, fmt.Errorf("could not decode post from json: %w", jsonErr)
 	}
 	post.ChannelId = args.ChannelId
 	post.UserId = args.UserId

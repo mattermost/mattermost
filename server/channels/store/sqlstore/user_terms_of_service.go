@@ -5,9 +5,9 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -42,7 +42,7 @@ func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOf
 			return nil, store.NewErrNotFound("UserTermsOfService", "userId="+userId)
 		}
 
-		return nil, errors.Wrapf(err, "failed to get UserTermsOfService with userId=%s", userId)
+		return nil, fmt.Errorf("failed to get UserTermsOfService with userId=%s: %w", userId, err)
 	}
 
 	return &userTermsOfService, nil
@@ -61,12 +61,12 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 	`
 	result, err := s.GetMaster().NamedExec(query, userTermsOfService)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to update UserTermsOfService with userId=%s and termsOfServiceId=%s", userTermsOfService.UserId, userTermsOfService.TermsOfServiceId)
+		return nil, fmt.Errorf("failed to update UserTermsOfService with userId=%s and termsOfServiceId=%s: %w", userTermsOfService.UserId, userTermsOfService.TermsOfServiceId, err)
 	}
 
 	updatedRows, err := result.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to retrieve the number of affected rows for the update of UserTermsOfService")
+		return nil, fmt.Errorf("failed to retrieve the number of affected rows for the update of UserTermsOfService: %w", err)
 	}
 	if updatedRows == 0 {
 		query := `
@@ -76,7 +76,7 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 				(:UserId, :TermsOfServiceId, :CreateAt)
 		`
 		if _, err := s.GetMaster().NamedExec(query, userTermsOfService); err != nil {
-			return nil, errors.Wrapf(err, "failed to save UserTermsOfService with userId=%s and termsOfServiceId=%s", userTermsOfService.UserId, userTermsOfService.TermsOfServiceId)
+			return nil, fmt.Errorf("failed to save UserTermsOfService with userId=%s and termsOfServiceId=%s: %w", userTermsOfService.UserId, userTermsOfService.TermsOfServiceId, err)
 		}
 	}
 
@@ -90,7 +90,7 @@ func (s SqlUserTermsOfServiceStore) Delete(userId, termsOfServiceId string) erro
 		WHERE UserId = ? AND TermsOfServiceId = ?
 	`
 	if _, err := s.GetMaster().Exec(query, userId, termsOfServiceId); err != nil {
-		return errors.Wrapf(err, "failed to delete UserTermsOfService with userId=%s and termsOfServiceId=%s", userId, termsOfServiceId)
+		return fmt.Errorf("failed to delete UserTermsOfService with userId=%s and termsOfServiceId=%s: %w", userId, termsOfServiceId, err)
 	}
 
 	return nil

@@ -4,13 +4,12 @@
 package marketplace
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
@@ -27,7 +26,7 @@ func NewClient(address string, httpService httpservice.HTTPService) (*Client, er
 	var httpClient *http.Client
 	addressURL, err := url.Parse(address)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse marketplace address")
+		return nil, fmt.Errorf("failed to parse marketplace address: %w", err)
 	}
 	if addressURL.Hostname() == "localhost" || addressURL.Hostname() == "127.0.0.1" {
 		httpClient = httpService.MakeClient(true)
@@ -60,7 +59,7 @@ func (c *Client) GetPlugins(request *model.MarketplacePluginFilter) ([]*model.Ba
 	case http.StatusOK:
 		return model.BaseMarketplacePluginsFromReader(resp.Body)
 	default:
-		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)
+		return nil, fmt.Errorf("failed with status code %d", resp.StatusCode)
 	}
 }
 
@@ -104,7 +103,7 @@ func (c *Client) GetLatestPlugin(filter *model.MarketplacePluginFilter) (*model.
 	}
 
 	if len(plugins) > 1 {
-		return nil, errors.Errorf("unexpectedly more then one plugin was returned from the marketplace")
+		return nil, fmt.Errorf("unexpectedly more then one plugin was returned from the marketplace")
 	}
 
 	return plugins[0], nil

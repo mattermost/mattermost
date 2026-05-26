@@ -4,13 +4,13 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"

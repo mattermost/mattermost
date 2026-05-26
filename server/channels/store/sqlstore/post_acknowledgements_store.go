@@ -5,9 +5,9 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -53,7 +53,7 @@ func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostA
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
+		return nil, fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
@@ -70,7 +70,7 @@ func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostA
 
 	err = transaction.Commit()
 	if err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		return nil, fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return acknowledgement, nil
@@ -79,7 +79,7 @@ func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostA
 func (s *SqlPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
+		return fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
@@ -103,7 +103,7 @@ func (s *SqlPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowle
 
 	err = transaction.Commit()
 	if err != nil {
-		return errors.Wrap(err, "commit_transaction")
+		return fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return nil
@@ -131,7 +131,7 @@ func (s *SqlPostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAc
 
 	err := s.GetReplica().SelectBuilder(&acknowledgements, query)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get PostAcknowledgements for postID=%s", postID)
+		return nil, fmt.Errorf("failed to get PostAcknowledgements for postID=%s: %w", postID, err)
 	}
 
 	return acknowledgements, nil
@@ -155,7 +155,7 @@ func (s *SqlPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Po
 		var acknowledgementsBatch []*model.PostAcknowledgement
 		err := s.GetReplica().SelectBuilder(&acknowledgementsBatch, query)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get PostAcknowledgements for post list")
+			return nil, fmt.Errorf("failed to get PostAcknowledgements for post list: %w", err)
 		}
 
 		acknowledgements = append(acknowledgements, acknowledgementsBatch...)
@@ -186,7 +186,7 @@ func (s *SqlPostAcknowledgementStore) GetForPostSince(postID string, since int64
 
 	err := s.GetReplica().SelectBuilder(&acknowledgements, query)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get PostAcknowledgements for postID=%s since=%d", postID, since)
+		return nil, fmt.Errorf("failed to get PostAcknowledgements for postID=%s since=%d: %w", postID, since, err)
 	}
 
 	return acknowledgements, nil
@@ -275,7 +275,7 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 			var channelId string
 			err := s.GetReplica().GetBuilder(&channelId, postQuery)
 			if err != nil {
-				return nil, errors.Wrapf(err, "failed to get channel id for post %s", ack.PostId)
+				return nil, fmt.Errorf("failed to get channel id for post %s: %w", ack.PostId, err)
 			}
 			ack.ChannelId = channelId
 		}
@@ -287,7 +287,7 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
+		return nil, fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
@@ -317,7 +317,7 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 
 	err = transaction.Commit()
 	if err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		return nil, fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return acknowledgements, nil
@@ -330,7 +330,7 @@ func (s *SqlPostAcknowledgementStore) BatchDelete(acknowledgements []*model.Post
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
+		return fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
@@ -365,7 +365,7 @@ func (s *SqlPostAcknowledgementStore) BatchDelete(acknowledgements []*model.Post
 
 	err = transaction.Commit()
 	if err != nil {
-		return errors.Wrap(err, "commit_transaction")
+		return fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return nil

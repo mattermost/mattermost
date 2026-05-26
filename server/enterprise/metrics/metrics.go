@@ -5,13 +5,13 @@ package metrics
 
 import (
 	"database/sql"
+	"fmt"
 	"math"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -2379,9 +2379,9 @@ func extractHost(driver, connectionString string) (string, error) {
 	case model.DatabaseDriverPostgres:
 		parsedURL, err := url.Parse(connectionString)
 		if err != nil {
-			return "", errors.Wrap(err, "failed to parse postgres connection string")
+			return "", fmt.Errorf("failed to parse postgres connection string: %w", err)
 		}
 		return parsedURL.Host, nil
 	}
-	return "", errors.Errorf("unsupported database driver: %q", driver)
+	return "", fmt.Errorf("unsupported database driver: %q", driver)
 }

@@ -18,7 +18,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/pkg/errors"
 	"golang.org/x/tools/imports"
 )
 
@@ -273,7 +272,7 @@ func goList(dir string) ([]string, error) {
 	cmd := exec.Command("go", "list", "-f", "{{.Dir}}", dir)
 	bytes, err := cmd.Output()
 	if err != nil {
-		return nil, errors.Wrap(err, "Can't list packages")
+		return nil, fmt.Errorf("Can't list packages: %w", err)
 	}
 
 	return strings.Fields(string(bytes)), nil

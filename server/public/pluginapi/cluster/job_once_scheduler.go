@@ -4,11 +4,11 @@
 package cluster
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // syncedCallback uses the mutex to make things predictable for the client: the callback will be
@@ -62,11 +62,11 @@ func (s *JobOnceScheduler) Start() error {
 	}
 
 	if err := s.verifyCallbackExists(); err != nil {
-		return errors.Wrap(err, "callback not found; cannot start scheduler")
+		return fmt.Errorf("callback not found; cannot start scheduler: %w", err)
 	}
 
 	if err := s.scheduleNewJobsFromDB(); err != nil {
-		return errors.Wrap(err, "could not start JobOnceScheduler due to error")
+		return fmt.Errorf("could not start JobOnceScheduler due to error: %w", err)
 	}
 
 	go s.pollForNewScheduledJobs()
@@ -98,13 +98,13 @@ func (s *JobOnceScheduler) ListScheduledJobs() ([]JobOnceMetadata, error) {
 	for i := 0; ; i++ {
 		keys, err := s.pluginAPI.KVList(i, keysPerPage)
 		if err != nil {
-			return nil, errors.Wrap(err, "error getting KVList")
+			return nil, fmt.Errorf("error getting KVList: %w", err)
 		}
 		for _, k := range keys {
 			if strings.HasPrefix(k, oncePrefix) {
 				metadata, err := readMetadata(s.pluginAPI, k[len(oncePrefix):])
 				if err != nil {
-					s.pluginAPI.LogError(errors.Wrap(err, "could not retrieve data from plugin kvstore for key: "+k).Error())
+					s.pluginAPI.LogError(fmt.Errorf("%s: %w", "could not retrieve data from plugin kvstore for key: "+k, err).Error())
 					continue
 				}
 				if metadata == nil {
@@ -137,11 +137,11 @@ func (s *JobOnceScheduler) ScheduleOnce(key string, runAt time.Time, props any) 
 
 	job, err := newJobOnce(s.pluginAPI, key, runAt, s.storedCallback, s.activeJobs, props)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not create new job")
+		return nil, fmt.Errorf("could not create new job: %w", err)
 	}
 
 	if err = job.saveMetadata(); err != nil {
-		return nil, errors.Wrap(err, "could not save job metadata")
+		return nil, fmt.Errorf("could not save job metadata: %w", err)
 	}
 
 	s.runAndTrack(job)
@@ -166,7 +166,7 @@ func (s *JobOnceScheduler) Cancel(key string) {
 		// the current server hasn't polled for it yet. To solve that case, delete it from the db.
 		mutex, err := NewMutex(s.pluginAPI, key)
 		if err != nil {
-			s.pluginAPI.LogError(errors.Wrap(err, "failed to create job mutex in Cancel for key: "+key).Error())
+			s.pluginAPI.LogError(fmt.Errorf("%s: %w", "failed to create job mutex in Cancel for key: "+key, err).Error())
 		}
 		mutex.Lock()
 		defer mutex.Unlock()
@@ -184,13 +184,13 @@ func (s *JobOnceScheduler) Cancel(key string) {
 func (s *JobOnceScheduler) scheduleNewJobsFromDB() error {
 	scheduled, err := s.ListScheduledJobs()
 	if err != nil {
-		return errors.Wrap(err, "could not read scheduled jobs from db")
+		return fmt.Errorf("could not read scheduled jobs from db: %w", err)
 	}
 
 	for _, m := range scheduled {
 		job, err := newJobOnce(s.pluginAPI, m.Key, m.RunAt, s.storedCallback, s.activeJobs, m.Props)
 		if err != nil {
-			s.pluginAPI.LogError(errors.Wrap(err, "could not create new job for key: "+m.Key).Error())
+			s.pluginAPI.LogError(fmt.Errorf("%s: %w", "could not create new job for key: "+m.Key, err).Error())
 			continue
 		}
 

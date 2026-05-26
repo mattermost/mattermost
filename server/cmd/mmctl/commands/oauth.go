@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +41,7 @@ func listOAuthAppsCmdF(c client.Client, command *cobra.Command, args []string) e
 
 	apps, _, err := c.GetOAuthApps(context.Background(), page, perPage)
 	if err != nil {
-		return errors.Wrap(err, "Failed to fetch oauth2 apps")
+		return fmt.Errorf("Failed to fetch oauth2 apps: %w", err)
 	}
 
 	userIds := make([]string, len(apps))
@@ -52,7 +51,7 @@ func listOAuthAppsCmdF(c client.Client, command *cobra.Command, args []string) e
 
 	users, _, err := c.GetUsersByIds(context.Background(), userIds)
 	if err != nil {
-		return errors.Wrap(err, "Failed to fetch users for oauth2 apps")
+		return fmt.Errorf("Failed to fetch users for oauth2 apps: %w", err)
 	}
 
 	usersByID := map[string]*model.User{}

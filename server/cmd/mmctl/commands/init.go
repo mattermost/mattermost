@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -16,7 +17,6 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -43,7 +43,7 @@ var (
 func CheckVersionMatch(version, serverVersion string) (bool, error) {
 	mmctlVersionParsed, err := semver.NewVersion(version)
 	if err != nil {
-		return false, errors.Wrapf(err, "Cannot parse version range %s", version)
+		return false, fmt.Errorf("Cannot parse version range %s: %w", version, err)
 	}
 
 	// Split and recombine the server version string
@@ -55,7 +55,7 @@ func CheckVersionMatch(version, serverVersion string) (bool, error) {
 
 	serverVersionParsed, err := semver.NewVersion(serverVersion)
 	if err != nil {
-		return false, errors.Wrapf(err, "Cannot parse version range %s", serverVersion)
+		return false, fmt.Errorf("Cannot parse version range %s: %w", serverVersion, err)
 	}
 
 	if serverVersionParsed.Major() != mmctlVersionParsed.Major() {
@@ -245,7 +245,7 @@ func InitWebSocketClient() (*model.WebSocketClient, error) {
 	}
 	client, appErr := model.NewWebSocketClient4(strings.Replace(credentials.InstanceURL, "http", "ws", 1), credentials.AuthToken)
 	if appErr != nil {
-		return nil, errors.Wrap(appErr, "unable to create the websockets connection")
+		return nil, fmt.Errorf("unable to create the websockets connection: %w", appErr)
 	}
 	return client, nil
 }

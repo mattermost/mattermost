@@ -2,10 +2,9 @@ package cluster
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -117,7 +116,7 @@ func Schedule(pluginAPI JobPluginAPI, key string, nextWaitInterval NextWaitInter
 
 	mutex, err := NewMutex(pluginAPI, key)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create job mutex")
+		return nil, fmt.Errorf("failed to create job mutex: %w", err)
 	}
 
 	job := &Job{
@@ -139,7 +138,7 @@ func Schedule(pluginAPI JobPluginAPI, key string, nextWaitInterval NextWaitInter
 func (j *Job) readMetadata() (JobMetadata, error) {
 	data, appErr := j.pluginAPI.KVGet(j.key)
 	if appErr != nil {
-		return JobMetadata{}, errors.Wrap(appErr, "failed to read data")
+		return JobMetadata{}, fmt.Errorf("failed to read data: %w", appErr)
 	}
 
 	if data == nil {
@@ -149,7 +148,7 @@ func (j *Job) readMetadata() (JobMetadata, error) {
 	var metadata JobMetadata
 	err := json.Unmarshal(data, &metadata)
 	if err != nil {
-		return JobMetadata{}, errors.Wrap(err, "failed to decode data")
+		return JobMetadata{}, fmt.Errorf("failed to decode data: %w", err)
 	}
 
 	return metadata, nil
@@ -161,12 +160,12 @@ func (j *Job) readMetadata() (JobMetadata, error) {
 func (j *Job) saveMetadata(metadata JobMetadata) error {
 	data, err := json.Marshal(metadata)
 	if err != nil {
-		return errors.Wrap(err, "failed to marshal data")
+		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
 	ok, appErr := j.pluginAPI.KVSetWithOptions(j.key, data, model.PluginKVSetOptions{})
 	if appErr != nil || !ok {
-		return errors.Wrap(appErr, "failed to set data")
+		return fmt.Errorf("failed to set data: %w", appErr)
 	}
 
 	return nil

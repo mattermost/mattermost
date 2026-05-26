@@ -19,7 +19,6 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -107,7 +106,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	d.Server.CPUCores = runtime.NumCPU()
 	totalMemoryBytes, err := getTotalMemory()
 	if err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting total memory"))
+		rErr = multierror.Append(rErr, fmt.Errorf("error while getting total memory: %w", err))
 	}
 	d.Server.TotalMemoryMB = totalMemoryBytes / 1024 / 1024
 	containerLimits, err := getContainerLimits()
@@ -119,7 +118,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 	d.Server.Hostname, err = os.Hostname()
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting hostname"))
+		rErr = multierror.Append(fmt.Errorf("error while getting hostname: %w", err))
 	}
 	d.Server.ProcessID = os.Getpid()
 	d.Server.StartedAt = ps.startTime.UTC()
@@ -139,11 +138,11 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	d.Server.InstallationType = installationType
 	d.Server.OpenFileDescriptors, err = getOpenFileDescriptors()
 	if err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting open file descriptor count"))
+		rErr = multierror.Append(rErr, fmt.Errorf("error while getting open file descriptor count: %w", err))
 	}
 	d.Server.MaxFileDescriptors, err = getMaxFileDescriptors()
 	if err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting max file descriptor limit"))
+		rErr = multierror.Append(rErr, fmt.Errorf("error while getting max file descriptor limit: %w", err))
 	}
 
 	/* Config */
@@ -152,12 +151,12 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* DB */
 	d.Database.Type, d.Database.SchemaVersion, err = ps.DatabaseTypeAndSchemaVersion()
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting DB type and schema version"))
+		rErr = multierror.Append(fmt.Errorf("error while getting DB type and schema version: %w", err))
 	}
 
 	databaseVersion, err := ps.Store.GetDbVersion(false)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting DB version"))
+		rErr = multierror.Append(fmt.Errorf("error while getting DB version: %w", err))
 	} else {
 		d.Database.Version = databaseVersion
 	}
@@ -185,7 +184,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		}
 		di, diskErr := getDiskInfo(dir)
 		if diskErr != nil {
-			rErr = multierror.Append(errors.Wrap(diskErr, "error while getting disk space info"))
+			rErr = multierror.Append(fmt.Errorf("error while getting disk space info: %w", diskErr))
 		} else {
 			d.FileStore.FilesystemType = di.FilesystemType
 			d.FileStore.TotalMB = di.TotalMB
@@ -201,7 +200,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Cluster.ID = cluster.GetClusterId()
 		clusterInfo, e := cluster.GetClusterInfos()
 		if e != nil {
-			rErr = multierror.Append(rErr, errors.Wrap(e, "error while getting cluster infos"))
+			rErr = multierror.Append(rErr, fmt.Errorf("error while getting cluster infos: %w", e))
 		} else {
 			d.Cluster.NumberOfNodes = max(len(clusterInfo), 1) // clusterInfo is empty if the node is the only one in the cluster
 		}
@@ -221,7 +220,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		if d.LDAP.Status == model.StatusOk {
 			severName, serverVersion, err = ldap.GetVendorNameAndVendorVersion(rctx)
 			if err != nil {
-				rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP vendor info"))
+				rErr = multierror.Append(fmt.Errorf("error while getting LDAP vendor info: %w", err))
 			}
 
 			if severName == "" {
@@ -323,7 +322,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 
 	b, err := yaml.Marshal(&d)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to marshal Support Packet into yaml"))
+		rErr = multierror.Append(fmt.Errorf("failed to marshal Support Packet into yaml: %w", err))
 	}
 
 	fileData := &model.FileData{
@@ -337,7 +336,7 @@ func (ps *PlatformService) applyStoreDiagnostics(ctx context.Context, diagnostic
 	storeDiagnostics, err := ps.Store.GetDiagnostics(ctx)
 	if storeDiagnostics == nil {
 		if err != nil {
-			return errors.Wrap(err, "error while collecting support packet database diagnostics")
+			return fmt.Errorf("error while collecting support packet database diagnostics: %w", err)
 		}
 		return nil
 	}
@@ -366,7 +365,7 @@ func (ps *PlatformService) applyStoreDiagnostics(ctx context.Context, diagnostic
 	diagnostics.Database.PostsLastAutovacuum = storeDiagnostics.PostsLastAutovacuum
 
 	if err != nil {
-		return errors.Wrap(err, "error while collecting support packet database diagnostics")
+		return fmt.Errorf("error while collecting support packet database diagnostics: %w", err)
 	}
 
 	return nil
@@ -418,13 +417,13 @@ func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
 	// Cap the discovery document at 1 MiB; real OIDC discovery responses are a few KiB.
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
-		return errors.Wrap(err, "failed to read discovery response")
+		return fmt.Errorf("failed to read discovery response: %w", err)
 	}
 	var doc struct {
 		Issuer string `json:"issuer"`
 	}
 	if err := json.Unmarshal(body, &doc); err != nil {
-		return errors.Wrap(err, "discovery endpoint did not return valid JSON")
+		return fmt.Errorf("discovery endpoint did not return valid JSON: %w", err)
 	}
 	if doc.Issuer == "" {
 		return fmt.Errorf("discovery endpoint response missing required 'issuer' field")
@@ -485,7 +484,7 @@ func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.File
 	}
 	sanitizedConfigPrettyJSON, err := json.MarshalIndent(spConfig, "", "    ")
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to sanitized config into json")
+		return nil, fmt.Errorf("failed to sanitized config into json: %w", err)
 	}
 
 	fileData := &model.FileData{
@@ -500,7 +499,7 @@ func (ps *PlatformService) getCPUProfile(_ request.CTX) (*model.FileData, error)
 
 	err := rpprof.StartCPUProfile(&b)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to start CPU profile")
+		return nil, fmt.Errorf("failed to start CPU profile: %w", err)
 	}
 
 	time.Sleep(cpuProfileDuration)
@@ -519,7 +518,7 @@ func (ps *PlatformService) getHeapProfile(_ request.CTX) (*model.FileData, error
 
 	err := rpprof.Lookup("heap").WriteTo(&b, 0)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to lookup heap profile")
+		return nil, fmt.Errorf("failed to lookup heap profile: %w", err)
 	}
 
 	fileData := &model.FileData{
@@ -534,7 +533,7 @@ func (ps *PlatformService) getGoroutineProfile(_ request.CTX) (*model.FileData, 
 
 	err := rpprof.Lookup("goroutine").WriteTo(&b, 2)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to lookup goroutine profile")
+		return nil, fmt.Errorf("failed to lookup goroutine profile: %w", err)
 	}
 
 	fileData := &model.FileData{

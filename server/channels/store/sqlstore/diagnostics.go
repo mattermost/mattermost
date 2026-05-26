@@ -6,11 +6,12 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -43,19 +44,19 @@ func collectPostgresDatabaseDiagnostics(ctx context.Context, db *sqlx.DB, diagno
 	if err := withDiagnosticsTimeout(ctx, func(ctx context.Context) error {
 		return collectPGStatDatabaseDiagnostics(ctx, db, diagnostics)
 	}); err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "postgres diagnostics query failed for pg_stat_database"))
+		rErr = multierror.Append(rErr, fmt.Errorf("postgres diagnostics query failed for pg_stat_database: %w", err))
 	}
 
 	if err := withDiagnosticsTimeout(ctx, func(ctx context.Context) error {
 		return collectPGStatActivityDiagnostics(ctx, db, diagnostics)
 	}); err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "postgres diagnostics query failed for pg_stat_activity"))
+		rErr = multierror.Append(rErr, fmt.Errorf("postgres diagnostics query failed for pg_stat_activity: %w", err))
 	}
 
 	if err := withDiagnosticsTimeout(ctx, func(ctx context.Context) error {
 		return collectPGStatUserTablesDiagnostics(ctx, db, diagnostics)
 	}); err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "postgres diagnostics query failed for pg_stat_user_tables"))
+		rErr = multierror.Append(rErr, fmt.Errorf("postgres diagnostics query failed for pg_stat_user_tables: %w", err))
 	}
 
 	return rErr.ErrorOrNil()

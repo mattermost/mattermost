@@ -2,12 +2,12 @@ package i18n
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"github.com/pkg/errors"
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -59,14 +59,14 @@ func InitBundle(api PluginAPI, path string) (*Bundle, error) {
 
 	bundlePath, err := api.GetBundlePath()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get bundle path")
+		return nil, fmt.Errorf("failed to get bundle path: %w", err)
 	}
 
 	i18nDir := filepath.Join(bundlePath, path)
 
 	files, err := os.ReadDir(i18nDir)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to open i18n directory")
+		return nil, fmt.Errorf("failed to open i18n directory: %w", err)
 	}
 
 	for _, file := range files {
@@ -84,7 +84,7 @@ func InitBundle(api PluginAPI, path string) (*Bundle, error) {
 
 		_, err = bundle.LoadMessageFile(filepath.Join(i18nDir, file.Name()))
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to load message file %s", file.Name())
+			return nil, fmt.Errorf("failed to load message file %s: %w", file.Name(), err)
 		}
 	}
 

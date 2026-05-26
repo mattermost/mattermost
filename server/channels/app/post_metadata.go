@@ -6,6 +6,7 @@ package app
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -17,7 +18,6 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/pkg/errors"
 	"golang.org/x/net/idna"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -1005,7 +1005,7 @@ func (a *App) getLinkMetadataFromOEmbed(rctx request.CTX, requestURL string, pro
 	res, err := client.Do(request)
 	if err != nil {
 		rctx.Logger().Warn("error fetching oEmbed data", mlog.Err(err))
-		return nil, errors.Wrap(err, "getLinkMetadataFromOEmbed: Unable to get oEmbed data")
+		return nil, fmt.Errorf("getLinkMetadataFromOEmbed: Unable to get oEmbed data: %w", err)
 	}
 
 	defer func() {

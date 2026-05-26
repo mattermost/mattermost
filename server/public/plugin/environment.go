@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -220,7 +220,7 @@ func (env *Environment) PublicFilesPath(id string) (string, error) {
 func (env *Environment) Statuses() (model.PluginStatuses, error) {
 	plugins, err := env.Available()
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to get plugin statuses")
+		return nil, fmt.Errorf("unable to get plugin statuses: %w", err)
 	}
 
 	pluginStatuses := make(model.PluginStatuses, 0, len(plugins))
@@ -253,7 +253,7 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 	plugins, err := env.Available()
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to get plugin statuses")
+		return nil, fmt.Errorf("unable to get plugin statuses: %w", err)
 	}
 
 	for _, plugin := range plugins {
@@ -284,7 +284,7 @@ func checkMinServerVersion(pluginInfo *model.BundleInfo) error {
 func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...func(*supervisor, *plugin.ClientConfig) error) error {
 	sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.dbDriver, env.logger, env.metrics, opts...)
 	if err != nil {
-		return errors.Wrapf(err, "unable to start plugin: %v", pluginInfo.Manifest.Id)
+		return fmt.Errorf("unable to start plugin: %v: %w", pluginInfo.Manifest.Id, err)
 	}
 
 	// We pre-emptively set the state to running to prevent re-entrancy issues.
@@ -358,7 +358,7 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		var updatedManifest *model.Manifest
 		updatedManifest, err = env.UnpackWebappBundle(id)
 		if err != nil {
-			return nil, false, errors.Wrapf(err, "unable to generate webapp bundle: %v", id)
+			return nil, false, fmt.Errorf("unable to generate webapp bundle: %v: %w", id, err)
 		}
 		pluginInfo.Manifest.Webapp.BundleHash = updatedManifest.Webapp.BundleHash
 
@@ -552,23 +552,23 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 	destinationPath := filepath.Join(env.webappPluginDir, id)
 
 	if err = os.RemoveAll(destinationPath); err != nil {
-		return nil, errors.Wrapf(err, "unable to remove old webapp bundle directory: %v", destinationPath)
+		return nil, fmt.Errorf("unable to remove old webapp bundle directory: %v: %w", destinationPath, err)
 	}
 
 	if err = utils.CopyDir(filepath.Dir(bundlePath), destinationPath); err != nil {
-		return nil, errors.Wrapf(err, "unable to copy webapp bundle directory: %v", id)
+		return nil, fmt.Errorf("unable to copy webapp bundle directory: %v: %w", id, err)
 	}
 
 	sourceBundleFilepath := filepath.Join(destinationPath, filepath.Base(bundlePath))
 
 	sourceBundleFileContents, err := os.ReadFile(sourceBundleFilepath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
+		return nil, fmt.Errorf("unable to read webapp bundle: %v: %w", id, err)
 	}
 
 	hash := fnv.New64a()
 	if _, err = hash.Write(sourceBundleFileContents); err != nil {
-		return nil, errors.Wrapf(err, "unable to generate hash for webapp bundle: %v", id)
+		return nil, fmt.Errorf("unable to generate hash for webapp bundle: %v: %w", id, err)
 	}
 	manifest.Webapp.BundleHash = hash.Sum([]byte{})
 
@@ -576,7 +576,7 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 		sourceBundleFilepath,
 		filepath.Join(destinationPath, fmt.Sprintf("%s_%x_bundle.js", id, manifest.Webapp.BundleHash)),
 	); err != nil {
-		return nil, errors.Wrapf(err, "unable to rename webapp bundle: %v", id)
+		return nil, fmt.Errorf("unable to rename webapp bundle: %v: %w", id, err)
 	}
 
 	return manifest, nil

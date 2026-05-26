@@ -5,11 +5,11 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"

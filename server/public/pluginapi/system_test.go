@@ -2,12 +2,12 @@ package pluginapi_test
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/goccy/go-yaml"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"

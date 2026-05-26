@@ -4,6 +4,8 @@
 package utils
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"math"
 	"net"
@@ -11,8 +13,6 @@ import (
 	"net/url"
 	"slices"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -156,7 +156,7 @@ func GetURLWithCache(url string, cache *RequestCache, skip bool) ([]byte, error)
 
 	if resp.StatusCode != 200 {
 		cache.Data = nil
-		return nil, errors.Errorf("Fetching notices failed with status code %d", resp.StatusCode)
+		return nil, fmt.Errorf("Fetching notices failed with status code %d", resp.StatusCode)
 	}
 
 	cache.Data, err = io.ReadAll(resp.Body)
@@ -192,7 +192,7 @@ func AppendQueryParamsToURL(baseURL string, params map[string]string) string {
 func ValidateWebAuthRedirectUrl(config *model.Config, redirectURL string) error {
 	u, err := url.Parse(redirectURL)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse redirect URL")
+		return fmt.Errorf("failed to parse redirect URL: %w", err)
 	}
 
 	if config.ServiceSettings.SiteURL == nil {
@@ -205,14 +205,14 @@ func ValidateWebAuthRedirectUrl(config *model.Config, redirectURL string) error 
 	}
 	siteURL, err := url.Parse(*config.ServiceSettings.SiteURL)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse SiteURL from config")
+		return fmt.Errorf("failed to parse SiteURL from config: %w", err)
 	}
 
 	if u.Scheme != siteURL.Scheme {
-		return errors.Errorf("redirect URL scheme %q does not match site URL scheme %q", u.Scheme, siteURL.Scheme)
+		return fmt.Errorf("redirect URL scheme %q does not match site URL scheme %q", u.Scheme, siteURL.Scheme)
 	}
 	if u.Host != siteURL.Host {
-		return errors.Errorf("redirect URL host %q does not match site URL host %q", u.Host, siteURL.Host)
+		return fmt.Errorf("redirect URL host %q does not match site URL host %q", u.Host, siteURL.Host)
 	}
 	return nil
 }

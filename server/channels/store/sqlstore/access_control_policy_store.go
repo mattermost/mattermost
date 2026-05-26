@@ -7,13 +7,13 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
-	"github.com/pkg/errors"
 
 	sq "github.com/mattermost/squirrel"
 )
@@ -192,18 +192,18 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 
 	tx, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to start transaction")
+		return nil, fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer finalizeTransactionX(tx, &err)
 
 	existingPolicy, err := s.getT(rctx, tx, policy.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, errors.Wrapf(err, "failed to fetch policy with id=%s", policy.ID)
+		return nil, fmt.Errorf("failed to fetch policy with id=%s: %w", policy.ID, err)
 	}
 
 	storePolicy, err := fromModel(policy)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse policy with Id=%s", policy.ID)
+		return nil, fmt.Errorf("failed to parse policy with Id=%s: %w", policy.ID, err)
 	}
 
 	data := storePolicy.Data
@@ -221,7 +221,7 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		// move existing policy to history
 		tmp, err2 := fromModel(existingPolicy)
 		if err2 != nil {
-			return nil, errors.Wrapf(err2, "failed to parse policy with id=%s", policy.ID)
+			return nil, fmt.Errorf("failed to parse policy with id=%s: %w", policy.ID, err2)
 		}
 
 		// Check if the policy has actually changed
@@ -239,11 +239,11 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 					if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
 						return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
 					}
-					return nil, errors.Wrapf(err, "failed to update name for policy with id=%s", policy.ID)
+					return nil, fmt.Errorf("failed to update name for policy with id=%s: %w", policy.ID, err)
 				}
 				existingPolicy.Name = storePolicy.Name
 				if err = tx.Commit(); err != nil {
-					return nil, errors.Wrap(err, "commit_transaction")
+					return nil, fmt.Errorf("commit_transaction: %w", err)
 				}
 			}
 			return existingPolicy, nil
@@ -263,19 +263,19 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 
 		_, err = tx.ExecBuilder(query)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to save policy with id=%s to history", policy.ID)
+			return nil, fmt.Errorf("failed to save policy with id=%s to history: %w", policy.ID, err)
 		}
 
 		err = s.deleteT(rctx, tx, existingPolicy.ID)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to delete policy with id=%s", policy.ID)
+			return nil, fmt.Errorf("failed to delete policy with id=%s: %w", policy.ID, err)
 		}
 	} else {
 		// if there is no existing policy, also check the history table
 		// to make sure we are not overwriting an existing policy
 		existingPolicy, err = s.getHistoryT(rctx, tx, policy.ID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.Wrapf(err, "failed to fetch policy with id=%s", policy.ID)
+			return nil, fmt.Errorf("failed to fetch policy with id=%s: %w", policy.ID, err)
 		}
 	}
 
@@ -291,16 +291,16 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
 			return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
 		}
-		return nil, errors.Wrapf(err, "failed to save policy with id=%s", policy.ID)
+		return nil, fmt.Errorf("failed to save policy with id=%s: %w", policy.ID, err)
 	}
 
 	cp, err := storePolicy.toModel()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse policy with id=%s", policy.ID)
+		return nil, fmt.Errorf("failed to parse policy with id=%s: %w", policy.ID, err)
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		return nil, fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return cp, nil
@@ -309,19 +309,19 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 func (s *SqlAccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
 	tx, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "failed to start transaction")
+		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer finalizeTransactionX(tx, &err)
 
 	existingPolicy, err := s.getT(rctx, tx, id)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return errors.Wrapf(err, "failed to fetch policy with id=%s", id)
+		return fmt.Errorf("failed to fetch policy with id=%s: %w", id, err)
 	}
 
 	if existingPolicy != nil {
 		tmp, err2 := fromModel(existingPolicy)
 		if err2 != nil {
-			return errors.Wrapf(err2, "failed to parse policy with id=%s", id)
+			return fmt.Errorf("failed to parse policy with id=%s: %w", id, err2)
 		}
 		data := tmp.Data
 		props := tmp.Props
@@ -337,17 +337,17 @@ func (s *SqlAccessControlPolicyStore) Delete(rctx request.CTX, id string) error 
 
 		_, err = tx.ExecBuilder(query)
 		if err != nil {
-			return errors.Wrapf(err, "failed to save policy with id=%s to history", id)
+			return fmt.Errorf("failed to save policy with id=%s to history: %w", id, err)
 		}
 
 		err = s.deleteT(rctx, tx, existingPolicy.ID)
 		if err != nil {
-			return errors.Wrapf(err, "failed to delete policy with id=%s", id)
+			return fmt.Errorf("failed to delete policy with id=%s: %w", id, err)
 		}
 	}
 
 	if err = tx.Commit(); err != nil {
-		return errors.Wrap(err, "commit_transaction")
+		return fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return nil
@@ -357,7 +357,7 @@ func (s *SqlAccessControlPolicyStore) deleteT(_ request.CTX, tx *sqlxTxWrapper, 
 	query := s.getQueryBuilder().Delete("AccessControlPolicies").Where(sq.Eq{"ID": id})
 	_, err := tx.ExecBuilder(query)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete policy with id=%s", id)
+		return fmt.Errorf("failed to delete policy with id=%s: %w", id, err)
 	}
 
 	return nil
@@ -366,13 +366,13 @@ func (s *SqlAccessControlPolicyStore) deleteT(_ request.CTX, tx *sqlxTxWrapper, 
 func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {
 	tx, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to start transaction")
+		return nil, fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer finalizeTransactionX(tx, &err)
 
 	existingPolicy, err := s.getT(rctx, tx, id)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to fetch policy with id=%s", id)
+		return nil, fmt.Errorf("failed to fetch policy with id=%s: %w", id, err)
 	} else if errors.Is(err, sql.ErrNoRows) {
 		return nil, store.NewErrNotFound("AccessControlPolicy", id)
 	}
@@ -386,11 +386,11 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 
 	query, args, err := s.getQueryBuilder().Update("AccessControlPolicies").Set("Active", active).Where(sq.Eq{"ID": id}).ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
+		return nil, fmt.Errorf("failed to build query for policy with id=%s: %w", id, err)
 	}
 	_, err = tx.Exec(query, args...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to update policy with id=%s", id)
+		return nil, fmt.Errorf("failed to update policy with id=%s: %w", id, err)
 	}
 
 	if existingPolicy.Type == model.AccessControlPolicyTypeParent {
@@ -398,16 +398,16 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 		expr := sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
 		query, args, err = s.getQueryBuilder().Update("AccessControlPolicies").Set("Active", active).Where(expr).ToSql()
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
+			return nil, fmt.Errorf("failed to build query for policy with id=%s: %w", id, err)
 		}
 		_, err = tx.Exec(query, args...)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to update child policies with id=%s", id)
+			return nil, fmt.Errorf("failed to update child policies with id=%s: %w", id, err)
 		}
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		return nil, fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return existingPolicy, nil
@@ -416,7 +416,7 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 func (s *SqlAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
 	tx, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to start transaction")
+		return nil, fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer finalizeTransactionX(tx, &err)
 
@@ -442,12 +442,12 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, 
 			ToSql()
 
 		if qbErr != nil {
-			return nil, errors.Wrap(qbErr, "failed to build active=true update query")
+			return nil, fmt.Errorf("failed to build active=true update query: %w", qbErr)
 		}
 
 		_, err = tx.Exec(query, args...)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to update active=true policies")
+			return nil, fmt.Errorf("failed to update active=true policies: %w", err)
 		}
 	}
 
@@ -460,12 +460,12 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, 
 			ToSql()
 
 		if qbErr != nil {
-			return nil, errors.Wrap(qbErr, "failed to build active=false update query")
+			return nil, fmt.Errorf("failed to build active=false update query: %w", qbErr)
 		}
 
 		_, err = tx.Exec(query, args...)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to update active=false policies")
+			return nil, fmt.Errorf("failed to update active=false policies: %w", err)
 		}
 	}
 
@@ -474,19 +474,19 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, 
 
 	err = tx.SelectBuilder(&p, query)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find policies with ids=%v", ids)
+		return nil, fmt.Errorf("failed to find policies with ids=%v: %w", ids, err)
 	}
 
 	policies := make([]*model.AccessControlPolicy, len(p))
 	for i := range p {
 		policies[i], err = p[i].toModel()
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+			return nil, fmt.Errorf("failed to parse policy with id=%s: %w", p[i].ID, err)
 		}
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		return nil, fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return policies, nil
@@ -501,12 +501,12 @@ func (s *SqlAccessControlPolicyStore) Get(_ request.CTX, id string) (*model.Acce
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("AccessControlPolicy", id)
 		}
-		return nil, errors.Wrapf(err, "failed to find policy with id=%s", id)
+		return nil, fmt.Errorf("failed to find policy with id=%s: %w", id, err)
 	}
 
 	policy, err := p.toModel()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse policy with id=%s", id)
+		return nil, fmt.Errorf("failed to parse policy with id=%s: %w", id, err)
 	}
 
 	return policy, nil
@@ -522,7 +522,7 @@ func (s *SqlAccessControlPolicyStore) getT(_ request.CTX, tx *sqlxTxWrapper, id 
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
+		return nil, fmt.Errorf("failed to build query for policy with id=%s: %w", id, err)
 	}
 
 	var storePolicy storeAccessControlPolicy
@@ -533,7 +533,7 @@ func (s *SqlAccessControlPolicyStore) getT(_ request.CTX, tx *sqlxTxWrapper, id 
 
 	policy, err := storePolicy.toModel()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse policy with id=%s", id)
+		return nil, fmt.Errorf("failed to parse policy with id=%s: %w", id, err)
 	}
 
 	return policy, nil
@@ -550,7 +550,7 @@ func (s *SqlAccessControlPolicyStore) getHistoryT(_ request.CTX, tx *sqlxTxWrapp
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
+		return nil, fmt.Errorf("failed to build query for policy with id=%s: %w", id, err)
 	}
 
 	var storePolicy storeAccessControlPolicy
@@ -561,7 +561,7 @@ func (s *SqlAccessControlPolicyStore) getHistoryT(_ request.CTX, tx *sqlxTxWrapp
 
 	policy, err := storePolicy.toModel()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse policy with id=%s", id)
+		return nil, fmt.Errorf("failed to parse policy with id=%s: %w", id, err)
 	}
 
 	return policy, nil
@@ -598,14 +598,14 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 
 	err := s.GetReplica().SelectBuilder(&p, query)
 	if err != nil {
-		return nil, cursor, errors.Wrapf(err, "failed to find policies with opts={\"parentID\"=%q, \"resourceType\"=%q", opts.ParentID, opts.Type)
+		return nil, cursor, fmt.Errorf("failed to find policies with opts={\"parentID\"=%q, \"resourceType\"=%q: %w", opts.ParentID, opts.Type, err)
 	}
 
 	policies := make([]*model.AccessControlPolicy, len(p))
 	for i := range p {
 		policies[i], err = p[i].toModel()
 		if err != nil {
-			return nil, cursor, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+			return nil, cursor, fmt.Errorf("failed to parse policy with id=%s: %w", p[i].ID, err)
 		}
 	}
 
@@ -740,14 +740,14 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	err := s.GetReplica().SelectBuilder(&p, query)
 	if err != nil {
-		return nil, 0, errors.Wrapf(err, "failed to find policies with opts={\"name\"=%q, \"resourceType\"=%q", opts.Term, opts.Type)
+		return nil, 0, fmt.Errorf("failed to find policies with opts={\"name\"=%q, \"resourceType\"=%q: %w", opts.Term, opts.Type, err)
 	}
 
 	policies := make([]*model.AccessControlPolicy, len(p))
 	for i := range p {
 		m, err2 := p[i].toModel()
 		if err2 != nil {
-			return nil, 0, errors.Wrapf(err2, "failed to parse policy with id=%s", p[i].ID)
+			return nil, 0, fmt.Errorf("failed to parse policy with id=%s: %w", p[i].ID, err2)
 		}
 
 		// Props field is not guaranteed to be persisted correctly, and it shouldn't be.
@@ -761,7 +761,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 			// Unmarshal the JSON array into a slice of strings
 			var childIDs []string
 			if err = json.Unmarshal(p[i].ChildIDs, &childIDs); err != nil {
-				return nil, 0, errors.Wrapf(err, "failed to unmarshal child IDs for policy with id=%s", p[i].ID)
+				return nil, 0, fmt.Errorf("failed to unmarshal child IDs for policy with id=%s: %w", p[i].ID, err)
 			}
 			m.Props["child_ids"] = childIDs
 		}
@@ -771,7 +771,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	var total int64
 	err = s.GetReplica().GetBuilder(&total, count)
 	if err != nil {
-		return nil, 0, errors.Wrapf(err, "failed to count policies with opts={\"name\"=%q, \"resourceType\"=%q", opts.Term, opts.Type)
+		return nil, 0, fmt.Errorf("failed to count policies with opts={\"name\"=%q, \"resourceType\"=%q: %w", opts.Term, opts.Type, err)
 	}
 
 	if len(policies) != 0 {
@@ -832,13 +832,13 @@ func (s *SqlAccessControlPolicyStore) GetActionsForPolicy(_ request.CTX, policyI
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("AccessControlPolicy", policyID)
 		}
-		return nil, errors.Wrapf(err, "failed to load policy actions for id=%s", policyID)
+		return nil, fmt.Errorf("failed to load policy actions for id=%s: %w", policyID, err)
 	}
 
 	actions := map[string]bool{}
 	if len(raw) > 0 {
 		if err := json.Unmarshal(raw, &actions); err != nil {
-			return nil, errors.Wrapf(err, "failed to decode policy actions for id=%s", policyID)
+			return nil, fmt.Errorf("failed to decode policy actions for id=%s: %w", policyID, err)
 		}
 	}
 	return actions, nil
@@ -866,12 +866,12 @@ func (s *SqlAccessControlPolicyStore) GetActionsForPolicies(_ request.CTX, polic
 		Where(sq.Eq{"p.ID": policyIDs}).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to build batched policy actions query")
+		return nil, fmt.Errorf("failed to build batched policy actions query: %w", err)
 	}
 
 	rows, err := s.GetReplica().Query(query, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load policy actions batch")
+		return nil, fmt.Errorf("failed to load policy actions batch: %w", err)
 	}
 	defer rows.Close()
 
@@ -880,18 +880,18 @@ func (s *SqlAccessControlPolicyStore) GetActionsForPolicies(_ request.CTX, polic
 		var id string
 		var raw []byte
 		if err := rows.Scan(&id, &raw); err != nil {
-			return nil, errors.Wrap(err, "failed to scan policy actions row")
+			return nil, fmt.Errorf("failed to scan policy actions row: %w", err)
 		}
 		actions := map[string]bool{}
 		if len(raw) > 0 {
 			if err := json.Unmarshal(raw, &actions); err != nil {
-				return nil, errors.Wrapf(err, "failed to decode policy actions for id=%s", id)
+				return nil, fmt.Errorf("failed to decode policy actions for id=%s: %w", id, err)
 			}
 		}
 		result[id] = actions
 	}
 	if err := rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "policy actions row iteration failed")
+		return nil, fmt.Errorf("policy actions row iteration failed: %w", err)
 	}
 
 	return result, nil
@@ -916,14 +916,14 @@ func (s *SqlAccessControlPolicyStore) GetPoliciesByFieldID(_ request.CTX, fieldI
 
 	err := s.GetReplica().SelectBuilder(&p, query)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find policies referencing field id=%s", fieldID)
+		return nil, fmt.Errorf("failed to find policies referencing field id=%s: %w", fieldID, err)
 	}
 
 	policies := make([]*model.AccessControlPolicy, len(p))
 	for i := range p {
 		policies[i], err = p[i].toModel()
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+			return nil, fmt.Errorf("failed to parse policy with id=%s: %w", p[i].ID, err)
 		}
 	}
 

@@ -5,6 +5,8 @@ package commands
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -13,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -131,7 +132,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 
 	allTeams, err := command.Flags().GetBool("all-teams")
 	if err != nil {
-		return errors.Wrap(err, "all-teams flag error")
+		return fmt.Errorf("all-teams flag error: %w", err)
 	}
 	if !allTeams {
 		return errors.New("Nothing to export. Please specify the --all-teams flag to export all teams.")
@@ -139,22 +140,22 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 
 	attachments, err := command.Flags().GetBool("attachments")
 	if err != nil {
-		return errors.Wrap(err, "attachments flag error")
+		return fmt.Errorf("attachments flag error: %w", err)
 	}
 
 	archive, err := command.Flags().GetBool("archive")
 	if err != nil {
-		return errors.Wrap(err, "archive flag error")
+		return fmt.Errorf("archive flag error: %w", err)
 	}
 
 	withArchivedChannels, err := command.Flags().GetBool("with-archived-channels")
 	if err != nil {
-		return errors.Wrap(err, "with-archived-channels flag error")
+		return fmt.Errorf("with-archived-channels flag error: %w", err)
 	}
 
 	includeProfilePictures, err := command.Flags().GetBool("with-profile-pictures")
 	if err != nil {
-		return errors.Wrap(err, "with-profile-pictures flag error")
+		return fmt.Errorf("with-profile-pictures flag error: %w", err)
 	}
 
 	fileWriter, err := os.Create(args[0])

@@ -4,10 +4,10 @@
 package sqlstore
 
 import (
+	"fmt"
 	"time"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -34,11 +34,11 @@ func newSqlProductNoticesStore(sqlStore *SqlStore) store.ProductNoticesStore {
 func (s SqlProductNoticesStore) Clear(notices []string) error {
 	sql, args, err := s.getQueryBuilder().Delete("ProductNoticeViewState").Where(sq.Eq{"NoticeId": notices}).ToSql()
 	if err != nil {
-		return errors.Wrap(err, "product_notice_view_state_tosql")
+		return fmt.Errorf("product_notice_view_state_tosql: %w", err)
 	}
 
 	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		return errors.Wrap(err, "failed to delete records from ProductNoticeViewState")
+		return fmt.Errorf("failed to delete records from ProductNoticeViewState: %w", err)
 	}
 	return nil
 }
@@ -50,11 +50,11 @@ func (s SqlProductNoticesStore) ClearOldNotices(currentNotices model.ProductNoti
 	}
 	sql, args, err := s.getQueryBuilder().Delete("ProductNoticeViewState").Where(sq.NotEq{"NoticeId": notices}).ToSql()
 	if err != nil {
-		return errors.Wrap(err, "product_notice_view_state_tosql")
+		return fmt.Errorf("product_notice_view_state_tosql: %w", err)
 	}
 
 	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		return errors.Wrapf(err, "failed to delete records from ProductNoticeViewState")
+		return fmt.Errorf("failed to delete records from ProductNoticeViewState: %w", err)
 	}
 	return nil
 }
@@ -62,7 +62,7 @@ func (s SqlProductNoticesStore) ClearOldNotices(currentNotices model.ProductNoti
 func (s SqlProductNoticesStore) View(userId string, notices []string) (err error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
+		return fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
@@ -71,7 +71,7 @@ func (s SqlProductNoticesStore) View(userId string, notices []string) (err error
 		Where(sq.Eq{"UserId": userId, "NoticeId": notices})
 
 	if err := transaction.SelectBuilder(&noticeStates, query); err != nil {
-		return errors.Wrapf(err, "failed to get ProductNoticeViewState with userId=%s", userId)
+		return fmt.Errorf("failed to get ProductNoticeViewState with userId=%s: %w", userId, err)
 	}
 
 	now := time.Now().UTC().Unix()
@@ -82,7 +82,7 @@ func (s SqlProductNoticesStore) View(userId string, notices []string) (err error
 		noticeStates[i].Timestamp = now
 		if _, err := transaction.NamedExec(`UPDATE ProductNoticeViewState
 		  SET Viewed=:Viewed, Timestamp=:Timestamp WHERE UserId=:UserId AND NoticeId=:NoticeId`, &noticeStates[i]); err != nil {
-			return errors.Wrapf(err, "failed to update ProductNoticeViewState")
+			return fmt.Errorf("failed to update ProductNoticeViewState: %w", err)
 		}
 	}
 
@@ -106,13 +106,13 @@ func (s SqlProductNoticesStore) View(userId string, notices []string) (err error
 			}
 			if _, err := transaction.NamedExec(`INSERT INTO ProductNoticeViewState (UserId, NoticeId, Viewed, Timestamp)
 			  VALUES (:UserId, :NoticeId, :Viewed, :Timestamp)`, productNoticeViewState); err != nil {
-				return errors.Wrapf(err, "failed to insert ProductNoticeViewState")
+				return fmt.Errorf("failed to insert ProductNoticeViewState: %w", err)
 			}
 		}
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return errors.Wrap(err, "commit_transaction")
+		return fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return nil
@@ -123,7 +123,7 @@ func (s SqlProductNoticesStore) GetViews(userId string) ([]model.ProductNoticeVi
 	query := s.selectQuery.Where(sq.Eq{"UserId": userId})
 
 	if err := s.GetReplica().SelectBuilder(&noticeStates, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get ProductNoticeViewState with userId=%s", userId)
+		return nil, fmt.Errorf("failed to get ProductNoticeViewState with userId=%s: %w", userId, err)
 	}
 	return noticeStates, nil
 }

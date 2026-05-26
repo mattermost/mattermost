@@ -6,12 +6,12 @@ package app
 import (
 	"archive/tar"
 	"compress/gzip"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -25,7 +25,7 @@ func extractTarGz(gzipStream io.Reader, dst string) error {
 
 	uncompressedStream, err := gzip.NewReader(gzipStream)
 	if err != nil {
-		return errors.Wrap(err, "failed to initialize gzip reader")
+		return fmt.Errorf("failed to initialize gzip reader: %w", err)
 	}
 	defer uncompressedStream.Close()
 
@@ -36,7 +36,7 @@ func extractTarGz(gzipStream io.Reader, dst string) error {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			return errors.Wrap(err, "failed to read next file from archive")
+			return fmt.Errorf("failed to read next file from archive: %w", err)
 		}
 
 		// Preemptively check type flag to avoid reporting a misleading error in
@@ -53,7 +53,7 @@ func extractTarGz(gzipStream io.Reader, dst string) error {
 		// the target path remains rooted at dst and has no `../` escaping outside.
 		path := filepath.Join(dst, header.Name)
 		if !strings.HasPrefix(path, dst) {
-			return errors.Errorf("failed to sanitize path %s", header.Name)
+			return fmt.Errorf("failed to sanitize path %s", header.Name)
 		}
 
 		switch header.Typeflag {

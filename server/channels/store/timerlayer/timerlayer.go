@@ -14177,22 +14177,6 @@ func (s *TimerLayerUserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, 
 	return result, err
 }
 
-func (s *TimerLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
-	start := time.Now()
-
-	result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.GetExpiredBefore", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerUserAccessTokenStore) Get(tokenID string) (*model.UserAccessToken, error) {
 	start := time.Now()
 
@@ -14253,6 +14237,22 @@ func (s *TimerLayerUserAccessTokenStore) GetByUser(userID string, page int, perP
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.GetByUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+	start := time.Now()
+
+	result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.GetExpiredBefore", success, elapsed)
 	}
 	return result, err
 }
@@ -14895,6 +14895,22 @@ func (s *TimerLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) 
 	return result, err
 }
 
+func (s *TimerLayerWebhookStore) UpdateIncomingLastUsed(webhookID string, lastUsed int64) error {
+	start := time.Now()
+
+	err := s.WebhookStore.UpdateIncomingLastUsed(webhookID, lastUsed)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.UpdateIncomingLastUsed", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
 	start := time.Now()
 
@@ -14937,10 +14953,6 @@ func (s *TimerLayer) TotalReadDbConnections() int {
 
 func (s *TimerLayer) TotalSearchDbConnections() int {
 	return s.Store.TotalSearchDbConnections()
-}
-
-func (s *TimerLayer) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
-	return s.Store.GetDiagnostics(ctx)
 }
 
 func (s *TimerLayer) UnlockFromMaster() {

@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -23,7 +24,6 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/minio/minio-go/v7/pkg/encrypt"
 	"github.com/minio/minio-go/v7/pkg/s3utils"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -234,7 +234,7 @@ func (b *S3FileBackend) MakeBucket() error {
 	defer cancel()
 	err := b.client.MakeBucket(ctx, b.bucket, s3.MakeBucketOptions{Region: b.region})
 	if err != nil {
-		return errors.Wrap(err, "unable to create the s3 bucket")
+		return fmt.Errorf("unable to create the s3 bucket: %w", err)
 	}
 	return nil
 }
@@ -264,13 +264,13 @@ func (sc *s3WithCancel) CancelTimeout() bool {
 func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	path, err := b.prefixedPath(path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to prefix path %s", path)
+		return nil, fmt.Errorf("unable to prefix path %s: %w", path, err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	minioObject, err := b.client.GetObject(ctx, b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
 		cancel()
-		return nil, errors.Wrapf(err, "unable to open file %s", path)
+		return nil, fmt.Errorf("unable to open file %s: %w", path, err)
 	}
 
 	sc := &s3WithCancel{
@@ -285,19 +285,19 @@ func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
 	encodedPath, err := b.prefixedPath(path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to prefix path %s", path)
+		return nil, fmt.Errorf("unable to prefix path %s: %w", path, err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	minioObject, err := b.client.GetObject(ctx, b.bucket, encodedPath, s3.GetObjectOptions{})
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to open file %s", encodedPath)
+		return nil, fmt.Errorf("unable to open file %s: %w", encodedPath, err)
 	}
 
 	defer minioObject.Close()
 	f, err := io.ReadAll(minioObject)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to read file %s", encodedPath)
+		return nil, fmt.Errorf("unable to read file %s: %w", encodedPath, err)
 	}
 	return f, nil
 }
@@ -305,7 +305,7 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
 func (b *S3FileBackend) FileExists(path string) (bool, error) {
 	path, err := b.prefixedPath(path)
 	if err != nil {
-		return false, errors.Wrapf(err, "unable to prefix path %s", path)
+		return false, fmt.Errorf("unable to prefix path %s: %w", path, err)
 	}
 
 	return b._fileExists(path)
@@ -324,20 +324,20 @@ func (b *S3FileBackend) _fileExists(path string) (bool, error) {
 		return false, nil
 	}
 
-	return false, errors.Wrapf(err, "unable to know if file %s exists", path)
+	return false, fmt.Errorf("unable to know if file %s exists: %w", path, err)
 }
 
 func (b *S3FileBackend) FileSize(path string) (int64, error) {
 	path, err := b.prefixedPath(path)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to prefix path %s", path)
+		return 0, fmt.Errorf("unable to prefix path %s: %w", path, err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	info, err := b.client.StatObject(ctx, b.bucket, path, s3.StatObjectOptions{})
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to get file size for %s", path)
+		return 0, fmt.Errorf("unable to get file size for %s: %w", path, err)
 	}
 
 	return info.Size, nil
@@ -346,14 +346,14 @@ func (b *S3FileBackend) FileSize(path string) (int64, error) {
 func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
 	path, err := b.prefixedPath(path)
 	if err != nil {
-		return time.Time{}, errors.Wrapf(err, "unable to prefix path %s", path)
+		return time.Time{}, fmt.Errorf("unable to prefix path %s: %w", path, err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	info, err := b.client.StatObject(ctx, b.bucket, path, s3.StatObjectOptions{})
 	if err != nil {
-		return time.Time{}, errors.Wrapf(err, "unable to get modification time for file %s", path)
+		return time.Time{}, fmt.Errorf("unable to get modification time for file %s: %w", path, err)
 	}
 
 	return info.LastModified, nil
@@ -362,7 +362,7 @@ func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	oldPath, err := b.prefixedPath(oldPath)
 	if err != nil {
-		return errors.Wrapf(err, "unable to prefix path %s", oldPath)
+		return fmt.Errorf("unable to prefix path %s: %w", oldPath, err)
 	}
 	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
@@ -384,7 +384,7 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
-		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)
+		return fmt.Errorf("unable to copy file from %s to %s: %w", oldPath, newPath, err)
 	}
 
 	return nil
@@ -434,13 +434,13 @@ func (b *S3FileBackend) DecodeFilePathIfNeeded(path string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
-		return errors.Wrapf(err, "unable to copy the file to %s to the new destination", newPath)
+		return fmt.Errorf("unable to copy the file to %s to the new destination: %w", newPath, err)
 	}
 
 	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel2()
 	if err := b.client.RemoveObject(ctx2, b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
-		return errors.Wrapf(err, "unable to remove the file old file %s", oldPath)
+		return fmt.Errorf("unable to remove the file old file %s: %w", oldPath, err)
 	}
 
 	return nil
@@ -449,7 +449,7 @@ func (b *S3FileBackend) DecodeFilePathIfNeeded(path string) error {
 func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 	oldPath, err := b.prefixedPath(oldPath)
 	if err != nil {
-		return errors.Wrapf(err, "unable to prefix path %s", oldPath)
+		return fmt.Errorf("unable to prefix path %s: %w", oldPath, err)
 	}
 	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
@@ -471,13 +471,13 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
-		return errors.Wrapf(err, "unable to copy the file to %s to the new destination", newPath)
+		return fmt.Errorf("unable to copy the file to %s to the new destination: %w", newPath, err)
 	}
 
 	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel2()
 	if err := b.client.RemoveObject(ctx2, b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
-		return errors.Wrapf(err, "unable to remove the file old file %s", oldPath)
+		return fmt.Errorf("unable to remove the file old file %s: %w", oldPath, err)
 	}
 
 	return nil
@@ -516,7 +516,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 
 	info, err := b.client.PutObject(ctx, b.bucket, path, fr, objSize, options)
 	if err != nil {
-		return info.Size, errors.Wrapf(err, "unable write the data in the file %s", path)
+		return info.Size, fmt.Errorf("unable write the data in the file %s: %w", path, err)
 	}
 
 	return info.Size, nil
@@ -525,12 +525,12 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	fp, err := b.prefixedPath(path)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to prefix path %s", path)
+		return 0, fmt.Errorf("unable to prefix path %s: %w", path, err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	if _, err2 := b.client.StatObject(ctx, b.bucket, fp, s3.StatObjectOptions{}); err2 != nil {
-		return 0, errors.Wrapf(err2, "unable to find the file %s to append the data", path)
+		return 0, fmt.Errorf("unable to find the file %s to append the data: %w", path, err2)
 	}
 
 	contentType := getContentType(filepath.Ext(fp))
@@ -551,7 +551,7 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	}
 	info, err := b.client.PutObject(ctx2, b.bucket, partName, fr, int64(objSize), options)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
+		return 0, fmt.Errorf("unable append the data in the file %s: %w", path, err)
 	}
 	defer func() {
 		ctx4, cancel4 := context.WithTimeout(context.Background(), b.timeout)
@@ -576,7 +576,7 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	defer cancel3()
 	_, err = b.client.ComposeObject(ctx3, dstOpts, src1Opts, src2Opts)
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
+		return 0, fmt.Errorf("unable append the data in the file %s: %w", path, err)
 	}
 	return info.Size, nil
 }
@@ -584,12 +584,12 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 func (b *S3FileBackend) RemoveFile(path string) error {
 	path, err := b.prefixedPath(path)
 	if err != nil {
-		return errors.Wrapf(err, "unable to prefix path %s", path)
+		return fmt.Errorf("unable to prefix path %s: %w", path, err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	if err := b.client.RemoveObject(ctx, b.bucket, path, s3.RemoveObjectOptions{}); err != nil {
-		return errors.Wrapf(err, "unable to remove the file %s", path)
+		return fmt.Errorf("unable to remove the file %s: %w", path, err)
 	}
 
 	return nil
@@ -598,7 +598,7 @@ func (b *S3FileBackend) RemoveFile(path string) error {
 func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, error) {
 	path, err := b.prefixedPath(path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to prefix path %s", path)
+		return nil, fmt.Errorf("unable to prefix path %s: %w", path, err)
 	}
 	if !strings.HasSuffix(path, "/") && path != "" {
 		// s3Clnt returns only the path itself when "/" is not present
@@ -616,7 +616,7 @@ func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, er
 	var count int
 	for object := range b.client.ListObjects(ctx, b.bucket, opts) {
 		if object.Err != nil {
-			return nil, errors.Wrapf(object.Err, "unable to list the directory %s", path)
+			return nil, fmt.Errorf("unable to list the directory %s: %w", path, object.Err)
 		}
 		// We strip the path prefix that gets applied,
 		// so that it remains transparent to the application.
@@ -647,7 +647,7 @@ func (b *S3FileBackend) ListDirectoryRecursively(path string) ([]string, error) 
 func (b *S3FileBackend) RemoveDirectory(path string) error {
 	path, err := b.prefixedPath(path)
 	if err != nil {
-		return errors.Wrapf(err, "unable to prefix path %s", path)
+		return fmt.Errorf("unable to prefix path %s: %w", path, err)
 	}
 	opts := s3.ListObjectsOptions{
 		Prefix:    path,
@@ -659,7 +659,7 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 	// List all objects in the directory
 	for object := range b.client.ListObjects(ctx, b.bucket, opts) {
 		if object.Err != nil {
-			return errors.Wrapf(object.Err, "unable to list the directory %s", path)
+			return fmt.Errorf("unable to list the directory %s: %w", path, object.Err)
 		}
 
 		// Remove each object individually to avoid MD5 usage
@@ -667,7 +667,7 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 		defer cancel2()
 		err := b.client.RemoveObject(ctx2, b.bucket, object.Key, s3.RemoveObjectOptions{})
 		if err != nil {
-			return errors.Wrapf(err, "unable to remove object %s from directory %s", object.Key, path)
+			return fmt.Errorf("unable to remove object %s from directory %s: %w", object.Key, path, err)
 		}
 	}
 
@@ -724,7 +724,7 @@ func (b *S3FileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, err
 
 		for object := range b.client.ListObjects(ctx2, b.bucket, opts) {
 			if object.Err != nil {
-				pw.CloseWithError(errors.Wrapf(object.Err, "unable to list the directory %s", path))
+				pw.CloseWithError(fmt.Errorf("unable to list the directory %s: %w", path, object.Err))
 				return
 			}
 
@@ -754,18 +754,18 @@ func (b *S3FileBackend) _copyObjectToZipWriter(zipWriter *zip.Writer, object s3.
 
 	writer, err := zipWriter.CreateHeader(header)
 	if err != nil {
-		return errors.Wrapf(err, "unable to create zip entry for %s", object.Key)
+		return fmt.Errorf("unable to create zip entry for %s: %w", object.Key, err)
 	}
 
 	reader, err := b.Reader(object.Key)
 	if err != nil {
-		return errors.Wrapf(err, "unable to create reader for %s", object.Key)
+		return fmt.Errorf("unable to create reader for %s: %w", object.Key, err)
 	}
 	defer reader.Close()
 
 	_, err = io.Copy(writer, reader)
 	if err != nil {
-		return errors.Wrapf(err, "unable to copy content for %s", object.Key)
+		return fmt.Errorf("unable to copy content for %s: %w", object.Key, err)
 	}
 
 	return nil
@@ -774,7 +774,7 @@ func (b *S3FileBackend) _copyObjectToZipWriter(zipWriter *zip.Writer, object s3.
 func (b *S3FileBackend) GeneratePublicLink(path string) (string, time.Duration, error) {
 	path, err := b.prefixedPath(path)
 	if err != nil {
-		return "", 0, errors.Wrapf(err, "unable to prefix path %s", path)
+		return "", 0, fmt.Errorf("unable to prefix path %s: %w", path, err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
@@ -784,7 +784,7 @@ func (b *S3FileBackend) GeneratePublicLink(path string) (string, time.Duration, 
 
 	req, err := b.client.PresignedGetObject(ctx, b.bucket, path, b.presignExpires, reqParams)
 	if err != nil {
-		return "", 0, errors.Wrapf(err, "unable to generate public link for %s", path)
+		return "", 0, fmt.Errorf("unable to generate public link for %s: %w", path, err)
 	}
 
 	return req.String(), b.presignExpires, nil
@@ -799,7 +799,7 @@ func (b *S3FileBackend) lookupOriginalPath(s string) (bool, error) {
 		if errors.As(err, &s3Err); s3Err.Code == "AccessDenied" {
 			return false, nil
 		}
-		return false, errors.Wrapf(err, "unable to check for file path %s", s)
+		return false, fmt.Errorf("unable to check for file path %s: %w", s, err)
 	}
 	return exists, nil
 }

@@ -4,10 +4,9 @@
 package api4
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
-
-	"github.com/pkg/errors"
 )
 
 func parseInt(u *url.URL, name string, defaultValue int) (int, error) {
@@ -18,7 +17,7 @@ func parseInt(u *url.URL, name string, defaultValue int) (int, error) {
 
 	value, err := strconv.Atoi(valueStr)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to parse %s as integer", name)
+		return 0, fmt.Errorf("failed to parse %s as integer: %w", name, err)
 	}
 
 	return value, nil

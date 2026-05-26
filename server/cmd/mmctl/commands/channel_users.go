@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
@@ -13,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -57,7 +57,7 @@ func channelUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
-		return errors.Errorf("unable to find channel %q", args[0])
+		return fmt.Errorf("unable to find channel %q", args[0])
 	}
 
 	var result *multierror.Error
@@ -96,7 +96,7 @@ func channelUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) 
 
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
-		return errors.Errorf("unable to find channel %q", args[0])
+		return fmt.Errorf("unable to find channel %q", args[0])
 	}
 
 	var result *multierror.Error

@@ -5,9 +5,9 @@ package commands
 
 import (
 	"context"
+	"errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 

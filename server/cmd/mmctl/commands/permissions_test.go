@@ -5,10 +5,10 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	gomock "github.com/golang/mock/gomock"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 

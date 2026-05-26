@@ -5,11 +5,10 @@ package flow
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"net/http"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/common"
@@ -62,7 +61,7 @@ func (f *Flow) handleDialogHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	fromName, selectedButton, err := dialogContext(&request)
 	if err != nil {
-		common.DialogError(w, errors.Wrap(err, "invalid request"))
+		common.DialogError(w, fmt.Errorf("invalid request: %w", err))
 		return
 	}
 
@@ -115,15 +114,15 @@ func (f *Flow) handle(
 		return nil, nil, err
 	}
 	if state.StepName != fromName {
-		return nil, nil, errors.Errorf("click from an inactive step: %v", fromName)
+		return nil, nil, fmt.Errorf("click from an inactive step: %v", fromName)
 	}
 	from, ok := f.steps[fromName]
 	if !ok {
-		return nil, nil, errors.Errorf("step %q not found", fromName)
+		return nil, nil, fmt.Errorf("step %q not found", fromName)
 	}
 
 	if selectedButton == 0 || selectedButton > len(from.buttons) {
-		return nil, nil, errors.Errorf("button number %v to high or too low, only %v buttons", selectedButton, len(from.buttons))
+		return nil, nil, fmt.Errorf("button number %v to high or too low, only %v buttons", selectedButton, len(from.buttons))
 	}
 	b := from.buttons[selectedButton-1]
 
@@ -158,7 +157,7 @@ func (f *Flow) handle(
 
 	if asButton && b.Dialog != nil {
 		if b.OnDialogSubmit == nil {
-			return nil, nil, errors.Errorf("no submit function for dialog, step: %s", fromName)
+			return nil, nil, fmt.Errorf("no submit function for dialog, step: %s", fromName)
 		}
 
 		dialogRequest := model.OpenDialogRequest{

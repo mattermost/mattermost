@@ -4,14 +4,13 @@
 package web
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 var UnsafeContentTypes = [...]string{
@@ -60,7 +59,7 @@ func WriteStreamResponse(w http.ResponseWriter, r io.Reader, filename string, co
 	setHeaders(w, contentType, forceDownload, filename)
 
 	if _, err := io.Copy(w, r); err != nil {
-		return errors.Wrap(err, "error streaming Reader")
+		return fmt.Errorf("error streaming Reader: %w", err)
 	}
 
 	return nil

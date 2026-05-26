@@ -4,8 +4,9 @@
 package sqlstore
 
 import (
+	"fmt"
+
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -40,11 +41,11 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) error {
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "license_tosql")
+		return fmt.Errorf("license_tosql: %w", err)
 	}
 
 	if _, err := ls.GetMaster().Exec(queryString, args...); err != nil {
-		return errors.Wrapf(err, "failed to insert License with licenseId=%s", license.Id)
+		return fmt.Errorf("failed to insert License with licenseId=%s: %w", license.Id, err)
 	}
 
 	return nil
@@ -61,7 +62,7 @@ func (ls SqlLicenseStore) Get(rctx request.CTX, id string) (*model.LicenseRecord
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "license_record_tosql")
+		return nil, fmt.Errorf("license_record_tosql: %w", err)
 	}
 
 	license := &model.LicenseRecord{}
@@ -78,12 +79,12 @@ func (ls SqlLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 
 	queryString, _, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "license_tosql")
+		return nil, fmt.Errorf("license_tosql: %w", err)
 	}
 
 	licenses := []*model.LicenseRecord{}
 	if err := ls.GetReplica().Select(&licenses, queryString); err != nil {
-		return nil, errors.Wrap(err, "failed to fetch licenses")
+		return nil, fmt.Errorf("failed to fetch licenses: %w", err)
 	}
 
 	return licenses, nil

@@ -14,7 +14,6 @@ import (
 	"text/template"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app/oembed"
-	"github.com/pkg/errors"
 )
 
 // To update the list of oEmbed providers that we support:
@@ -50,19 +49,19 @@ type oEmbedEndpoint struct {
 func main() {
 	inputJson, err := os.ReadFile("./generator/providers.json")
 	if err != nil {
-		panic(errors.Wrap(err, "Unable to read providers.json. Did you forget to put it next to providers_generator.go?"))
+		panic(fmt.Errorf("Unable to read providers.json. Did you forget to put it next to providers_generator.go?: %w", err))
 	}
 
 	outputFile, err := os.Create("./providers_gen.go")
 	if err != nil {
-		panic(errors.Wrap(err, "Unable to open output file"))
+		panic(fmt.Errorf("Unable to open output file: %w", err))
 	}
 	defer outputFile.Close()
 
 	var input []*oEmbedProvider
 	err = json.Unmarshal(inputJson, &input)
 	if err != nil {
-		panic(errors.Wrap(err, "Unable to read providers.json"))
+		panic(fmt.Errorf("Unable to read providers.json: %w", err))
 	}
 
 	var endpoints []*oembed.ProviderEndpoint
@@ -73,7 +72,7 @@ func main() {
 
 		providerEndpoints, extractErr := extractEndpointsFromProvider(inputProvider)
 		if extractErr != nil {
-			panic(errors.Wrap(extractErr, "Unable to convert oEmbedProvider from providers.json to a ProviderEndpoint"))
+			panic(fmt.Errorf("Unable to convert oEmbedProvider from providers.json to a ProviderEndpoint: %w", extractErr))
 		}
 		endpoints = append(endpoints, providerEndpoints...)
 	}
@@ -82,7 +81,7 @@ func main() {
 		"Endpoints": endpoints,
 	})
 	if err != nil {
-		panic(errors.Wrap(err, "Unable to write file using template"))
+		panic(fmt.Errorf("Unable to write file using template: %w", err))
 	}
 }
 

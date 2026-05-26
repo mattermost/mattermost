@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -83,17 +82,17 @@ func (s *SqlRecapStore) recapToMap(recap *model.Recap) map[string]any {
 func (s *SqlRecapStore) recapChannelToMap(rc *model.RecapChannel) (map[string]any, error) {
 	highlightsJSON, err := json.Marshal(rc.Highlights)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal Highlights")
+		return nil, fmt.Errorf("failed to marshal Highlights: %w", err)
 	}
 
 	actionItemsJSON, err := json.Marshal(rc.ActionItems)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal ActionItems")
+		return nil, fmt.Errorf("failed to marshal ActionItems: %w", err)
 	}
 
 	sourcePostIdsJSON, err := json.Marshal(rc.SourcePostIds)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal SourcePostIds")
+		return nil, fmt.Errorf("failed to marshal SourcePostIds: %w", err)
 	}
 
 	return map[string]any{
@@ -114,7 +113,7 @@ func (s *SqlRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
 		SetMap(s.recapToMap(recap))
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return nil, errors.Wrap(err, "failed to save Recap")
+		return nil, fmt.Errorf("failed to save Recap: %w", err)
 	}
 
 	return recap, nil
@@ -128,7 +127,7 @@ func (s *SqlRecapStore) GetRecap(id string) (*model.Recap, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Recap", id)
 		}
-		return nil, errors.Wrapf(err, "failed to get Recap with id=%s", id)
+		return nil, fmt.Errorf("failed to get Recap with id=%s: %w", id, err)
 	}
 
 	return &recap, nil
@@ -145,7 +144,7 @@ func (s *SqlRecapStore) GetRecapsForUser(userId string, page, perPage int) ([]*m
 		Offset(uint64(offset))
 
 	if err := s.GetReplica().SelectBuilder(&recaps, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get Recaps for userId=%s", userId)
+		return nil, fmt.Errorf("failed to get Recaps for userId=%s: %w", userId, err)
 	}
 
 	return recaps, nil
@@ -165,7 +164,7 @@ func (s *SqlRecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
 		Where(sq.Eq{"Id": recap.Id})
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return nil, errors.Wrapf(err, "failed to update Recap with id=%s", recap.Id)
+		return nil, fmt.Errorf("failed to update Recap with id=%s: %w", recap.Id, err)
 	}
 
 	return recap, nil
@@ -183,7 +182,7 @@ func (s *SqlRecapStore) UpdateRecapStatus(id, status string) error {
 		Where(sq.Eq{"Id": id})
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return errors.Wrapf(err, "failed to update Recap status for id=%s", id)
+		return fmt.Errorf("failed to update Recap status for id=%s: %w", id, err)
 	}
 
 	return nil
@@ -201,7 +200,7 @@ func (s *SqlRecapStore) MarkRecapAsRead(id string) error {
 		Where(sq.Eq{"Id": id, "ReadAt": 0})
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return errors.Wrapf(err, "failed to mark Recap as read for id=%s", id)
+		return fmt.Errorf("failed to mark Recap as read for id=%s: %w", id, err)
 	}
 
 	return nil
@@ -224,12 +223,12 @@ func (s *SqlRecapStore) MarkRecapsAsViewed(userId string, statuses []string) ([]
 		Suffix("RETURNING Id").
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to build MarkRecapsAsViewed query")
+		return nil, fmt.Errorf("failed to build MarkRecapsAsViewed query: %w", err)
 	}
 
 	var ids []string
 	if err := s.GetMaster().Select(&ids, query, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to mark recaps as viewed for userId=%s", userId)
+		return nil, fmt.Errorf("failed to mark recaps as viewed for userId=%s: %w", userId, err)
 	}
 
 	return ids, nil
@@ -246,7 +245,7 @@ func (s *SqlRecapStore) DeleteRecap(id string) error {
 		Where(sq.Eq{"Id": id})
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return errors.Wrapf(err, "failed to delete Recap with id=%s", id)
+		return fmt.Errorf("failed to delete Recap with id=%s: %w", id, err)
 	}
 
 	return nil
@@ -258,7 +257,7 @@ func (s *SqlRecapStore) DeleteRecapChannels(recapId string) error {
 		Where(sq.Eq{"RecapId": recapId})
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return errors.Wrapf(err, "failed to delete RecapChannels for recapId=%s", recapId)
+		return fmt.Errorf("failed to delete RecapChannels for recapId=%s: %w", recapId, err)
 	}
 
 	return nil
@@ -275,7 +274,7 @@ func (s *SqlRecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error
 		SetMap(rcMap)
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return errors.Wrap(err, "failed to save RecapChannel")
+		return fmt.Errorf("failed to save RecapChannel: %w", err)
 	}
 
 	return nil
@@ -298,7 +297,7 @@ func (s *SqlRecapStore) GetRecapChannelsByRecapId(recapId string) ([]*model.Reca
 	}
 
 	if err := s.GetReplica().SelectBuilder(&dbRecapChannels, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get RecapChannels for recapId=%s", recapId)
+		return nil, fmt.Errorf("failed to get RecapChannels for recapId=%s: %w", recapId, err)
 	}
 
 	recapChannels := make([]*model.RecapChannel, 0, len(dbRecapChannels))
@@ -313,15 +312,15 @@ func (s *SqlRecapStore) GetRecapChannelsByRecapId(recapId string) ([]*model.Reca
 
 		// Unmarshal JSON strings back to arrays
 		if err := json.Unmarshal([]byte(dbRC.Highlights), &rc.Highlights); err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("failed to unmarshal Highlights for recapChannel id=%s", dbRC.Id))
+			return nil, fmt.Errorf("%s: %w", fmt.Sprintf("failed to unmarshal Highlights for recapChannel id=%s", dbRC.Id), err)
 		}
 
 		if err := json.Unmarshal([]byte(dbRC.ActionItems), &rc.ActionItems); err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("failed to unmarshal ActionItems for recapChannel id=%s", dbRC.Id))
+			return nil, fmt.Errorf("%s: %w", fmt.Sprintf("failed to unmarshal ActionItems for recapChannel id=%s", dbRC.Id), err)
 		}
 
 		if err := json.Unmarshal([]byte(dbRC.SourcePostIds), &rc.SourcePostIds); err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("failed to unmarshal SourcePostIds for recapChannel id=%s", dbRC.Id))
+			return nil, fmt.Errorf("%s: %w", fmt.Sprintf("failed to unmarshal SourcePostIds for recapChannel id=%s", dbRC.Id), err)
 		}
 
 		recapChannels = append(recapChannels, rc)

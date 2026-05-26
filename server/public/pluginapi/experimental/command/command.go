@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/pkg/errors"
 )
 
 // PluginAPI is the plugin API interface required to manage slash commands.
@@ -19,12 +17,12 @@ type PluginAPI interface {
 func GetIconData(api PluginAPI, iconPath string) (string, error) {
 	bundlePath, err := api.GetBundlePath()
 	if err != nil {
-		return "", errors.Wrap(err, "couldn't get bundle path")
+		return "", fmt.Errorf("couldn't get bundle path: %w", err)
 	}
 
 	icon, err := os.ReadFile(filepath.Join(bundlePath, iconPath))
 	if err != nil {
-		return "", errors.Wrap(err, "failed to open icon")
+		return "", fmt.Errorf("failed to open icon: %w", err)
 	}
 
 	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil

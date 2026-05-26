@@ -11,12 +11,12 @@ import (
 	"embed"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
 
 	// Load the Postgres driver
 	_ "github.com/lib/pq"
@@ -52,12 +52,12 @@ type DatabaseStore struct {
 func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 	driverName, dataSourceName, err := parseDSN(dsn)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid DSN")
+		return nil, fmt.Errorf("invalid DSN: %w", err)
 	}
 
 	db, err := sqlx.Open(driverName, dataSourceName)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to connect to %s database", driverName)
+		return nil, fmt.Errorf("failed to connect to %s database: %w", driverName, err)
 	}
 	// Set conservative connection configuration for configuration database.
 	db.SetMaxIdleConns(0)
@@ -76,7 +76,7 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 		db:             db,
 	}
 	if err = ds.initializeConfigurationsTable(); err != nil {
-		err = errors.Wrap(err, "failed to initialize")
+		err = fmt.Errorf("failed to initialize: %w", err)
 		return nil, err
 	}
 
@@ -146,7 +146,7 @@ func parseDSN(dsn string) (string, string, error) {
 		// No changes required
 
 	default:
-		return "", "", errors.Errorf("unsupported scheme %s", scheme)
+		return "", "", fmt.Errorf("unsupported scheme %s", scheme)
 	}
 
 	return scheme, dsn, nil
@@ -161,7 +161,7 @@ func (ds *DatabaseStore) Set(newCfg *model.Config) error {
 func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	b, err := marshalConfig(cfg)
 	if err != nil {
-		return errors.Wrap(err, "failed to serialize")
+		return fmt.Errorf("failed to serialize: %w", err)
 	}
 
 	value := string(b)
@@ -171,13 +171,13 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	var oldValue string
 	row := ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Active")
 	if err = row.Scan(&oldValue); err != nil && err != sql.ErrNoRows {
-		return errors.Wrap(err, "failed to query active configuration")
+		return fmt.Errorf("failed to query active configuration: %w", err)
 	}
 
 	// postgres retruns blank-padded therefore we trim the space
 	oldSum, err := hex.DecodeString(strings.TrimSpace(oldValue))
 	if err != nil {
-		return errors.Wrap(err, "could not encode value")
+		return fmt.Errorf("could not encode value: %w", err)
 	}
 
 	// compare checksums, it's more efficient rather than comparing entire config itself
@@ -187,7 +187,7 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 
 	tx, err := ds.db.Beginx()
 	if err != nil {
-		return errors.Wrap(err, "failed to begin transaction")
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer func() {
 		// Rollback after Commit just returns sql.ErrTxDone.
@@ -197,7 +197,7 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	}()
 
 	if _, err := tx.Exec("UPDATE Configurations SET Active = NULL WHERE Active"); err != nil {
-		return errors.Wrap(err, "failed to deactivate current configuration")
+		return fmt.Errorf("failed to deactivate current configuration: %w", err)
 	}
 
 	params := map[string]any{
@@ -209,11 +209,11 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	}
 
 	if _, err := tx.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active, SHA) VALUES (:id, :value, :create_at, TRUE, :sha)", params); err != nil {
-		return errors.Wrap(err, "failed to record new configuration")
+		return fmt.Errorf("failed to record new configuration: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return errors.Wrap(err, "failed to commit transaction")
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil
@@ -225,7 +225,7 @@ func (ds *DatabaseStore) Load() ([]byte, error) {
 
 	row := ds.db.QueryRow("SELECT Value FROM Configurations WHERE Active")
 	if err := row.Scan(&configurationData); err != nil && err != sql.ErrNoRows {
-		return nil, errors.Wrap(err, "failed to query active configuration")
+		return nil, fmt.Errorf("failed to query active configuration: %w", err)
 	}
 
 	// Initialize from the default config if no active configuration could be found.
@@ -251,7 +251,7 @@ func (ds *DatabaseStore) GetFile(name string) ([]byte, error) {
 	var data []byte
 	row := ds.db.QueryRowx(ds.db.Rebind(query), args...)
 	if err = row.Scan(&data); err != nil {
-		return nil, errors.Wrapf(err, "failed to scan data from row for %s", name)
+		return nil, fmt.Errorf("failed to scan data from row for %s: %w", name, err)
 	}
 
 	return data, nil
@@ -268,19 +268,19 @@ func (ds *DatabaseStore) SetFile(name string, data []byte) error {
 
 	result, err := ds.db.NamedExec("UPDATE ConfigurationFiles SET Data = :data, UpdateAt = :update_at WHERE Name = :name", params)
 	if err != nil {
-		return errors.Wrapf(err, "failed to update row for %s", name)
+		return fmt.Errorf("failed to update row for %s: %w", name, err)
 	}
 
 	count, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrapf(err, "failed to count rows affected for %s", name)
+		return fmt.Errorf("failed to count rows affected for %s: %w", name, err)
 	} else if count > 0 {
 		return nil
 	}
 
 	_, err = ds.db.NamedExec("INSERT INTO ConfigurationFiles (Name, Data, CreateAt, UpdateAt) VALUES (:name, :data, :create_at, :update_at)", params)
 	if err != nil {
-		return errors.Wrapf(err, "failed to insert row for %s", name)
+		return fmt.Errorf("failed to insert row for %s: %w", name, err)
 	}
 
 	return nil
@@ -298,7 +298,7 @@ func (ds *DatabaseStore) HasFile(name string) (bool, error) {
 	var count int64
 	row := ds.db.QueryRowx(ds.db.Rebind(query), args...)
 	if err = row.Scan(&count); err != nil {
-		return false, errors.Wrapf(err, "failed to scan count of rows for %s", name)
+		return false, fmt.Errorf("failed to scan count of rows for %s: %w", name, err)
 	}
 
 	return count != 0, nil
@@ -310,7 +310,7 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 		"name": name,
 	})
 	if err != nil {
-		return errors.Wrapf(err, "failed to remove row for %s", name)
+		return fmt.Errorf("failed to remove row for %s: %w", name, err)
 	}
 
 	return nil
@@ -345,7 +345,7 @@ func (ds *DatabaseStore) cleanUp(thresholdCreateAt int64) error {
 	`
 
 	if _, err := ds.db.NamedExec(query, map[string]any{"timestamp": thresholdCreateAt}); err != nil {
-		return errors.Wrap(err, "unable to clean Configurations table")
+		return fmt.Errorf("unable to clean Configurations table: %w", err)
 	}
 
 	return nil

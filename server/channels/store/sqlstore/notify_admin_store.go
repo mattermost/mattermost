@@ -7,8 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -54,7 +52,7 @@ func (s SqlNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdm
 
 	_, err := s.insert(data)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to save Notify Admin data")
+		return nil, fmt.Errorf("failed to save Notify Admin data: %w", err)
 	}
 
 	return data, nil
@@ -66,14 +64,14 @@ func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature mo
 		Where(sq.Eq{"UserId": userId, "RequiredFeature": feature}).
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not build sql query to get all notification data by user id and required feature")
+		return nil, fmt.Errorf("could not build sql query to get all notification data by user id and required feature: %w", err)
 	}
 
 	if err := s.GetReplica().Select(&data, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("NotifyAdmin", fmt.Sprintf("user id: %s and required feature: %s", userId, feature))
 		}
-		return nil, errors.Wrapf(err, "notifcation data by user id: %s and required feature: %s", userId, feature)
+		return nil, fmt.Errorf("notifcation data by user id: %s and required feature: %s: %w", userId, feature, err)
 	}
 	return data, nil
 }
@@ -85,25 +83,25 @@ func (s SqlNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 		Where("(SentAt IS NULL)").
 		ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not build sql query to get all notifcation data")
+		return nil, fmt.Errorf("could not build sql query to get all notifcation data: %w", err)
 	}
 
 	if err := s.GetReplica().Select(&data, query, args...); err != nil {
-		return nil, errors.Wrap(err, "notifcation data")
+		return nil, fmt.Errorf("notifcation data: %w", err)
 	}
 	return data, nil
 }
 
 func (s SqlNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
 	if _, err := s.GetMaster().Exec("DELETE FROM NotifyAdmin WHERE Trial = ? AND CreateAt < ? AND SentAt IS NULL", trial, now); err != nil {
-		return errors.Wrapf(err, "failed to remove all notification data with trial=%t", trial)
+		return fmt.Errorf("failed to remove all notification data with trial=%t: %w", trial, err)
 	}
 	return nil
 }
 
 func (s SqlNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
 	if _, err := s.GetMaster().Exec("UPDATE NotifyAdmin SET SentAt = ? WHERE UserId = ? AND RequiredPlan = ? AND RequiredFeature = ?", now, userId, requiredPlan, requiredFeature); err != nil {
-		return errors.Wrapf(err, "failed to update SentAt for userId=%s and requiredPlan=%s", userId, requiredPlan)
+		return fmt.Errorf("failed to update SentAt for userId=%s and requiredPlan=%s: %w", userId, requiredPlan, err)
 	}
 	return nil
 }

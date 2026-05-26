@@ -5,11 +5,10 @@ package imaging
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // SVGInfo holds information for a SVG image.

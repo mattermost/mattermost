@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/goccy/go-yaml"
-	"github.com/pkg/errors"
 )
 
 type PluginOption struct {
@@ -334,21 +334,21 @@ func (m *Manifest) IsValid() error {
 	if m.Version != "" {
 		_, err := semver.StrictNewVersion(m.Version)
 		if err != nil {
-			return errors.Wrap(err, "failed to parse Version")
+			return fmt.Errorf("failed to parse Version: %w", err)
 		}
 	}
 
 	if m.MinServerVersion != "" {
 		_, err := semver.StrictNewVersion(m.MinServerVersion)
 		if err != nil {
-			return errors.Wrap(err, "failed to parse MinServerVersion")
+			return fmt.Errorf("failed to parse MinServerVersion: %w", err)
 		}
 	}
 
 	if m.SettingsSchema != nil {
 		err := m.SettingsSchema.isValid()
 		if err != nil {
-			return errors.Wrap(err, "invalid settings schema")
+			return fmt.Errorf("invalid settings schema: %w", err)
 		}
 	}
 

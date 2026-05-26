@@ -5,12 +5,12 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/throttled/throttled/v2"
 	"github.com/throttled/throttled/v2/store/memstore"
 
@@ -31,7 +31,7 @@ type RateLimiter struct {
 func NewRateLimiter(settings *model.RateLimitSettings, trustedProxyIPHeader []string) (*RateLimiter, error) {
 	store, err := memstore.NewCtx(*settings.MemoryStoreSize)
 	if err != nil {
-		return nil, errors.Wrap(err, i18n.T("api.server.start_server.rate_limiting_memory_store"))
+		return nil, fmt.Errorf("%s: %w", i18n.T("api.server.start_server.rate_limiting_memory_store"), err)
 	}
 
 	quota := throttled.RateQuota{
@@ -41,7 +41,7 @@ func NewRateLimiter(settings *model.RateLimitSettings, trustedProxyIPHeader []st
 
 	throttledRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, quota)
 	if err != nil {
-		return nil, errors.Wrap(err, i18n.T("api.server.start_server.rate_limiting_rate_limiter"))
+		return nil, fmt.Errorf("%s: %w", i18n.T("api.server.start_server.rate_limiting_rate_limiter"), err)
 	}
 
 	return &RateLimiter{

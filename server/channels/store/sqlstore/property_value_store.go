@@ -5,10 +5,10 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -38,7 +38,7 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 	value.PreSave()
 
 	if err := value.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "property_value_create_isvalid")
+		return nil, fmt.Errorf("property_value_create_isvalid: %w", err)
 	}
 
 	valueJSON := value.Value
@@ -51,7 +51,7 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 		Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
 		Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return nil, errors.Wrap(err, "property_value_create_insert")
+		return nil, fmt.Errorf("property_value_create_insert: %w", err)
 	}
 
 	return value, nil
@@ -64,7 +64,7 @@ func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*mo
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "property_value_create_many_begin_transaction")
+		return nil, fmt.Errorf("property_value_create_many_begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
@@ -72,7 +72,7 @@ func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*mo
 		value.PreSave()
 
 		if err := value.IsValid(); err != nil {
-			return nil, errors.Wrap(err, "property_value_create_many_isvalid")
+			return nil, fmt.Errorf("property_value_create_many_isvalid: %w", err)
 		}
 
 		valueJSON := value.Value
@@ -86,12 +86,12 @@ func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*mo
 			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 
 		if _, err := transaction.ExecBuilder(builder); err != nil {
-			return nil, errors.Wrap(err, "property_value_create_many_exec")
+			return nil, fmt.Errorf("property_value_create_many_exec: %w", err)
 		}
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "property_value_create_many_commit_transaction")
+		return nil, fmt.Errorf("property_value_create_many_commit_transaction: %w", err)
 	}
 
 	return values, nil
@@ -109,7 +109,7 @@ func (s *SqlPropertyValueStore) Get(groupID, id string) (*model.PropertyValue, e
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("PropertyValue", id)
 		}
-		return nil, errors.Wrap(err, "property_value_get_select")
+		return nil, fmt.Errorf("property_value_get_select: %w", err)
 	}
 
 	return &value, nil
@@ -124,7 +124,7 @@ func (s *SqlPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.
 
 	var values []*model.PropertyValue
 	if err := s.GetReplica().SelectBuilder(&values, builder); err != nil {
-		return nil, errors.Wrap(err, "property_value_get_many_query")
+		return nil, fmt.Errorf("property_value_get_many_query: %w", err)
 	}
 
 	if len(values) < len(ids) {
@@ -187,7 +187,7 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 
 	var values []*model.PropertyValue
 	if err := s.GetReplica().SelectBuilder(&values, builder); err != nil {
-		return nil, errors.Wrap(err, "property_value_search_query")
+		return nil, fmt.Errorf("property_value_search_query: %w", err)
 	}
 
 	return values, nil
@@ -200,7 +200,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "property_value_update_begin_transaction")
+		return nil, fmt.Errorf("property_value_update_begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
@@ -213,7 +213,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 	for i, value := range values {
 		value.UpdateAt = updateTime
 		if vErr := value.IsValid(); vErr != nil {
-			return nil, errors.Wrap(vErr, "property_value_update_isvalid")
+			return nil, fmt.Errorf("property_value_update_isvalid: %w", vErr)
 		}
 
 		ids[i] = value.ID
@@ -241,19 +241,19 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 
 	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
-		return nil, errors.Wrap(err, "property_value_update_exec")
+		return nil, fmt.Errorf("property_value_update_exec: %w", err)
 	}
 
 	count, err := result.RowsAffected()
 	if err != nil {
-		return nil, errors.Wrap(err, "property_value_update_rowsaffected")
+		return nil, fmt.Errorf("property_value_update_rowsaffected: %w", err)
 	}
 	if count != int64(len(values)) {
-		return nil, errors.Errorf("failed to update, some property values were not found, got %d of %d", count, len(values))
+		return nil, fmt.Errorf("failed to update, some property values were not found, got %d of %d", count, len(values))
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "property_value_update_commit_transaction")
+		return nil, fmt.Errorf("property_value_update_commit_transaction: %w", err)
 	}
 
 	return values, nil
@@ -266,7 +266,7 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "property_value_upsert_begin_transaction")
+		return nil, fmt.Errorf("property_value_upsert_begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
@@ -282,7 +282,7 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 		value.UpdateAt = updateTime
 
 		if err := value.IsValid(); err != nil {
-			return nil, errors.Wrap(err, "property_value_upsert_isvalid")
+			return nil, fmt.Errorf("property_value_upsert_isvalid: %w", err)
 		}
 
 		valueJSON := value.Value
@@ -305,7 +305,7 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 
 		var values []*model.PropertyValue
 		if err := transaction.SelectBuilder(&values, builder); err != nil {
-			return nil, errors.Wrapf(err, "failed to upsert property value with id: %s", value.ID)
+			return nil, fmt.Errorf("failed to upsert property value with id: %s: %w", value.ID, err)
 		}
 
 		if len(values) != 1 {
@@ -316,7 +316,7 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "property_value_upsert_commit")
+		return nil, fmt.Errorf("property_value_upsert_commit: %w", err)
 	}
 
 	return updatedValues, nil
@@ -334,12 +334,12 @@ func (s *SqlPropertyValueStore) Delete(groupID string, id string) error {
 
 	result, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete property value with id: %s", id)
+		return fmt.Errorf("failed to delete property value with id: %s: %w", id, err)
 	}
 
 	count, err := result.RowsAffected()
 	if err != nil {
-		return errors.Wrap(err, "property_value_delete_rowsaffected")
+		return fmt.Errorf("property_value_delete_rowsaffected: %w", err)
 	}
 	if count == 0 {
 		return store.NewErrNotFound("PropertyValue", id)
@@ -359,7 +359,7 @@ func (s *SqlPropertyValueStore) DeleteForField(groupID, fieldID string) error {
 	}
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return errors.Wrap(err, "property_value_delete_for_field_exec")
+		return fmt.Errorf("property_value_delete_for_field_exec: %w", err)
 	}
 
 	return nil
@@ -382,7 +382,7 @@ func (s *SqlPropertyValueStore) DeleteForTarget(groupID string, targetType strin
 	}
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return errors.Wrap(err, "property_value_delete_for_target_exec")
+		return fmt.Errorf("property_value_delete_for_target_exec: %w", err)
 	}
 
 	return nil

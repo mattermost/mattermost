@@ -5,10 +5,10 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"sync"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -84,7 +84,7 @@ func (s *SqlDraftStore) Get(userId, channelId, rootId string, includeDeleted boo
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Draft", channelId)
 		}
-		return nil, errors.Wrapf(err, "failed to find draft with channelid = %s", channelId)
+		return nil, fmt.Errorf("failed to find draft with channelid = %s: %w", channelId, err)
 	}
 
 	return &dt, nil
@@ -105,11 +105,11 @@ func (s *SqlDraftStore) Upsert(draft *model.Draft) (*model.Draft, error) {
 	query, args, err := builder.ToSql()
 
 	if err != nil {
-		return nil, errors.Wrap(err, "save_draft_tosql")
+		return nil, fmt.Errorf("save_draft_tosql: %w", err)
 	}
 
 	if _, err = s.GetMaster().Exec(query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to upsert Draft")
+		return nil, fmt.Errorf("failed to upsert Draft: %w", err)
 	}
 
 	return draft, nil
@@ -152,7 +152,7 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 	err := s.GetReplica().SelectBuilder(&drafts, query)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get user drafts")
+		return nil, fmt.Errorf("failed to get user drafts: %w", err)
 	}
 
 	return drafts, nil
@@ -169,13 +169,13 @@ func (s *SqlDraftStore) Delete(userID, channelID, rootID string) error {
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrapf(err, "failed to convert to sql")
+		return fmt.Errorf("failed to convert to sql: %w", err)
 	}
 
 	_, err = s.GetMaster().Exec(sql, args...)
 
 	if err != nil {
-		return errors.Wrap(err, "failed to delete Draft")
+		return fmt.Errorf("failed to delete Draft: %w", err)
 	}
 
 	return nil
@@ -189,7 +189,7 @@ func (s *SqlDraftStore) PermanentDeleteByUser(userID string) error {
 		})
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return errors.Wrapf(err, "PermanentDeleteByUser: failed to delete drafts for user: %s", userID)
+		return fmt.Errorf("PermanentDeleteByUser: failed to delete drafts for user: %s: %w", userID, err)
 	}
 
 	return nil
@@ -206,13 +206,13 @@ func (s *SqlDraftStore) DeleteDraftsAssociatedWithPost(channelID, rootID string)
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrapf(err, "failed to convert to sql")
+		return fmt.Errorf("failed to convert to sql: %w", err)
 	}
 
 	_, err = s.GetMaster().Exec(sql, args...)
 
 	if err != nil {
-		return errors.Wrap(err, "failed to delete Draft")
+		return fmt.Errorf("failed to delete Draft: %w", err)
 	}
 
 	return nil
@@ -272,7 +272,7 @@ func (s *SqlDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(cr
 
 	err := s.GetReplica().SelectBuilder(&drafts, query)
 	if err != nil {
-		return 0, "", errors.Wrap(err, "failed to get the list of drafts")
+		return 0, "", fmt.Errorf("failed to get the list of drafts: %w", err)
 	}
 
 	if len(drafts) == 0 {
@@ -308,7 +308,7 @@ func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, use
 		Where("d.Message = ''")
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return errors.Wrapf(err, "failed to delete empty drafts")
+		return fmt.Errorf("failed to delete empty drafts: %w", err)
 	}
 
 	return nil
@@ -339,7 +339,7 @@ func (s *SqlDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, us
 		Suffix("AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return errors.Wrapf(err, "failed to delete orphan drafts")
+		return fmt.Errorf("failed to delete orphan drafts: %w", err)
 	}
 
 	return nil

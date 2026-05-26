@@ -3,7 +3,7 @@
 
 package email
 
-import "github.com/pkg/errors"
+import "errors"
 
 var (
 	CreateEmailTokenError  = errors.New("could not create token")

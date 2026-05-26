@@ -6,6 +6,7 @@ package model
 import (
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"io"
 	"math"
 	"net"
@@ -22,7 +23,6 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/ldap"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"

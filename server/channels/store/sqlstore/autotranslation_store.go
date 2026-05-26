@@ -6,10 +6,10 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"maps"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -66,7 +66,7 @@ func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool,
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
-		return false, errors.Wrapf(err, "failed to get user enabled status for user_id=%s, channel_id=%s", userID, channelID)
+		return false, fmt.Errorf("failed to get user enabled status for user_id=%s, channel_id=%s: %w", userID, channelID, err)
 	}
 
 	return !disabled, nil
@@ -87,7 +87,7 @@ func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (str
 		if err == sql.ErrNoRows {
 			return "", nil
 		}
-		return "", errors.Wrapf(err, "failed to get user language for user_id=%s, channel_id=%s", userID, channelID)
+		return "", fmt.Errorf("failed to get user language for user_id=%s, channel_id=%s: %w", userID, channelID, err)
 	}
 
 	return locale, nil
@@ -119,7 +119,7 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 
 	var languages []string
 	if err := s.GetReplica().SelectBuilder(&languages, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get active destination languages for channel_id=%s", channelID)
+		return nil, fmt.Errorf("failed to get active destination languages for channel_id=%s: %w", channelID, err)
 	}
 
 	return languages, nil
@@ -136,13 +136,13 @@ func (s *SqlAutoTranslationStore) Get(objectType, objectID, dstLang string) (*mo
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Translation", objectID)
 		}
-		return nil, errors.Wrapf(err, "failed to get translation for object_id=%s, dst_lang=%s", objectID, dstLang)
+		return nil, fmt.Errorf("failed to get translation for object_id=%s, dst_lang=%s: %w", objectID, dstLang, err)
 	}
 
 	meta, err := translation.Meta.ToMap()
 	var translationTypeStr string
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse translation meta for object_id=%s", objectID)
+		return nil, fmt.Errorf("failed to parse translation meta for object_id=%s: %w", objectID, err)
 	}
 
 	if v, ok := meta["type"]; ok {
@@ -183,7 +183,7 @@ func (s *SqlAutoTranslationStore) GetBatch(objectType string, objectIDs []string
 
 	var translations []Translation
 	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get batch translations for dst_lang=%s", dstLang)
+		return nil, fmt.Errorf("failed to get batch translations for dst_lang=%s: %w", dstLang, err)
 	}
 
 	result := make(map[string]*model.Translation, len(translations))
@@ -235,7 +235,7 @@ func (s *SqlAutoTranslationStore) GetAllForObject(objectType, objectID string) (
 	var translations []Translation
 	// Use GetMaster to avoid replica lag issues when workers fetch queued items
 	if err := s.GetMaster().SelectBuilder(&translations, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get all translations for object_id=%s", objectID)
+		return nil, fmt.Errorf("failed to get all translations for object_id=%s: %w", objectID, err)
 	}
 
 	result := make([]*model.Translation, 0, len(translations))
@@ -314,7 +314,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) error {
 
 	metaBytes, err := json.Marshal(metaMap)
 	if err != nil {
-		return errors.Wrap(err, "failed to marshal translation meta")
+		return fmt.Errorf("failed to marshal translation meta: %w", err)
 	}
 
 	// Apply binary flag if enabled (required for PostgreSQL JSONB with binary_parameters=yes)
@@ -344,7 +344,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) error {
 					   OR Translations.State != EXCLUDED.State`)
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return errors.Wrapf(err, "failed to save translation for object_id=%s, lang=%s", objectID, dstLang)
+		return fmt.Errorf("failed to save translation for object_id=%s, lang=%s: %w", objectID, dstLang, err)
 	}
 
 	return nil
@@ -361,7 +361,7 @@ func (s *SqlAutoTranslationStore) GetByStateOlderThan(state model.TranslationSta
 
 	var translations []Translation
 	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get translations by state=%s older than %d", state, olderThanMillis)
+		return nil, fmt.Errorf("failed to get translations by state=%s older than %d: %w", state, olderThanMillis, err)
 	}
 
 	result := make([]*model.Translation, 0, len(translations))
@@ -428,7 +428,7 @@ func (s *SqlAutoTranslationStore) GetLatestPostUpdateAtForChannel(channelID stri
 
 	var updateAt int64
 	if err := s.GetReplica().GetBuilder(&updateAt, query); err != nil {
-		return 0, errors.Wrapf(err, "failed to get latest translation updateAt for channel_id=%s", channelID)
+		return 0, fmt.Errorf("failed to get latest translation updateAt for channel_id=%s: %w", channelID, err)
 	}
 
 	return updateAt, nil
@@ -449,7 +449,7 @@ func (s *SqlAutoTranslationStore) GetTranslationsSinceForChannel(channelID, dstL
 
 	var translations []Translation
 	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get translations since for channel_id=%s dst_lang=%s", channelID, dstLang)
+		return nil, fmt.Errorf("failed to get translations since for channel_id=%s dst_lang=%s: %w", channelID, dstLang, err)
 	}
 
 	result := make(map[string]*model.Translation, len(translations))

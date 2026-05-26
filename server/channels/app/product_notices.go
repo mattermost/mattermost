@@ -4,13 +4,14 @@
 package app
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/pkg/errors"
 	date_constraints "github.com/reflog/dateconstraints"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -48,13 +49,13 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	clientVersionParsed, err := semver.NewVersion(clientVersion)
 	if err != nil {
-		return false, errors.Wrapf(err, "Cannot parse version range %s", clientVersion)
+		return false, fmt.Errorf("Cannot parse version range %s: %w", clientVersion, err)
 	}
 
 	for _, v := range clientVersions {
 		c, err2 := semver.NewConstraint(v)
 		if err2 != nil {
-			return false, errors.Wrapf(err2, "Cannot parse version range %s", v)
+			return false, fmt.Errorf("Cannot parse version range %s: %w", v, err2)
 		}
 		if !c.Check(clientVersionParsed) {
 			return false, nil
@@ -67,7 +68,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		trunc := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 		rctx, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
 		if err2 != nil {
-			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
+			return false, fmt.Errorf("Cannot parse date range %s: %w", *cnd.DisplayDate, err2)
 		}
 		if !rctx.Check(&trunc) {
 			return false, nil
@@ -84,7 +85,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		for _, v := range cnd.ServerVersion {
 			c, err := semver.NewConstraint(v)
 			if err != nil {
-				return false, errors.Wrapf(err, "Cannot parse version range %s", v)
+				return false, fmt.Errorf("Cannot parse version range %s: %w", v, err)
 			}
 			if !c.Check(serverVersionSemver) {
 				return false, nil
@@ -123,7 +124,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	if cnd.DeprecatingDependency != nil {
 		extDepVersion, err := semver.NewVersion(cnd.DeprecatingDependency.MinimumVersion)
 		if err != nil {
-			return false, errors.Wrapf(err, "Cannot parse external dependency version %s", cnd.DeprecatingDependency.MinimumVersion)
+			return false, fmt.Errorf("Cannot parse external dependency version %s: %w", cnd.DeprecatingDependency.MinimumVersion, err)
 		}
 
 		switch cnd.DeprecatingDependency.Name {
@@ -133,7 +134,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 			}
 			serverDBMSVersion, err := semver.NewVersion(dbVer)
 			if err != nil {
-				return false, errors.Wrapf(err, "Cannot parse DBMS version %s", dbVer)
+				return false, fmt.Errorf("Cannot parse DBMS version %s: %w", dbVer, err)
 			}
 			return extDepVersion.GreaterThan(serverDBMSVersion), nil
 		case model.SearchengineElasticsearch:
@@ -142,7 +143,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 			}
 			semverESVersion, err := semver.NewVersion(searchEngineVer)
 			if err != nil {
-				return false, errors.Wrapf(err, "Cannot parse search engine version %s", searchEngineVer)
+				return false, fmt.Errorf("Cannot parse search engine version %s: %w", searchEngineVer, err)
 			}
 			return extDepVersion.GreaterThan(semverESVersion), nil
 		default:

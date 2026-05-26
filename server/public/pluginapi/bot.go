@@ -1,10 +1,9 @@
 package pluginapi
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -147,7 +146,7 @@ func ProfileImageBytes(bytes []byte) EnsureBotOption {
 func (b *BotService) EnsureBot(bot *model.Bot, options ...EnsureBotOption) (string, error) {
 	m, err := cluster.NewMutex(b.api, botEnsureMutexKey)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create mutex")
+		return "", fmt.Errorf("failed to create mutex: %w", err)
 	}
 
 	return b.ensureBot(m, bot, options...)
@@ -161,7 +160,7 @@ type mutex interface {
 func (b *BotService) ensureBot(m mutex, bot *model.Bot, options ...EnsureBotOption) (string, error) {
 	err := ensureServerVersion(b.api, "5.10.0")
 	if err != nil {
-		return "", errors.Wrap(err, "failed to ensure bot")
+		return "", fmt.Errorf("failed to ensure bot: %w", err)
 	}
 
 	// Default options
@@ -181,16 +180,16 @@ func (b *BotService) ensureBot(m mutex, bot *model.Bot, options ...EnsureBotOpti
 	if o.ProfileImagePath != "" {
 		imageBytes, err := b.readFile(o.ProfileImagePath)
 		if err != nil {
-			return "", errors.Wrap(err, "failed to read profile image")
+			return "", fmt.Errorf("failed to read profile image: %w", err)
 		}
 		appErr := b.api.SetProfileImage(botID, imageBytes)
 		if appErr != nil {
-			return "", errors.Wrap(appErr, "failed to set profile image")
+			return "", fmt.Errorf("failed to set profile image: %w", appErr)
 		}
 	} else if len(o.ProfileImageBytes) > 0 {
 		appErr := b.api.SetProfileImage(botID, o.ProfileImageBytes)
 		if appErr != nil {
-			return "", errors.Wrap(appErr, "failed to set profile image")
+			return "", fmt.Errorf("failed to set profile image: %w", appErr)
 		}
 	}
 
@@ -208,12 +207,12 @@ func (b *BotService) ensureBotUser(m mutex, bot *model.Bot) (retBotID string, re
 func (b *BotService) readFile(path string) ([]byte, error) {
 	bundlePath, err := b.api.GetBundlePath()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get bundle path")
+		return nil, fmt.Errorf("failed to get bundle path: %w", err)
 	}
 
 	imageBytes, err := os.ReadFile(filepath.Join(bundlePath, path))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to read image")
+		return nil, fmt.Errorf("failed to read image: %w", err)
 	}
 
 	return imageBytes, nil

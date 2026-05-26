@@ -5,10 +5,11 @@ package utils_test
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -95,7 +96,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			-1,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err: errors.Wrap(errors.New("message"), "invalid offset -1"),
+				Err: fmt.Errorf("invalid offset -1: %w", errors.New("message")),
 			},
 		},
 		{
@@ -104,7 +105,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			0,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 1"),
+				Err:       fmt.Errorf("parsing error at line 1, character 1: %w", errors.New("message")),
 				Line:      1,
 				Character: 1,
 			},
@@ -115,7 +116,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			5,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 6"),
+				Err:       fmt.Errorf("parsing error at line 1, character 6: %w", errors.New("message")),
 				Line:      1,
 				Character: 6,
 			},
@@ -126,7 +127,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			6,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err:       errors.Wrap(errors.New("message"), "parsing error at line 1, character 7"),
+				Err:       fmt.Errorf("parsing error at line 1, character 7: %w", errors.New("message")),
 				Line:      1,
 				Character: 7,
 			},
@@ -137,7 +138,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			7,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 1"),
+				Err:       fmt.Errorf("parsing error at line 2, character 1: %w", errors.New("message")),
 				Line:      2,
 				Character: 1,
 			},
@@ -148,7 +149,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			12,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 6"),
+				Err:       fmt.Errorf("parsing error at line 2, character 6: %w", errors.New("message")),
 				Line:      2,
 				Character: 6,
 			},
@@ -159,7 +160,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			13,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err:       errors.Wrap(errors.New("message"), "parsing error at line 2, character 7"),
+				Err:       fmt.Errorf("parsing error at line 2, character 7: %w", errors.New("message")),
 				Line:      2,
 				Character: 7,
 			},
@@ -170,7 +171,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			17,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 4"),
+				Err:       fmt.Errorf("parsing error at line 3, character 4: %w", errors.New("message")),
 				Line:      3,
 				Character: 4,
 			},
@@ -181,7 +182,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			19,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 6"),
+				Err:       fmt.Errorf("parsing error at line 3, character 6: %w", errors.New("message")),
 				Line:      3,
 				Character: 6,
 			},
@@ -192,7 +193,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			20,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err:       errors.Wrap(errors.New("message"), "parsing error at line 3, character 7"),
+				Err:       fmt.Errorf("parsing error at line 3, character 7: %w", errors.New("message")),
 				Line:      3,
 				Character: 7,
 			},
@@ -203,7 +204,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			21,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err:       errors.Wrap(errors.New("message"), "parsing error at line 4, character 1"),
+				Err:       fmt.Errorf("parsing error at line 4, character 1: %w", errors.New("message")),
 				Line:      4,
 				Character: 1,
 			},
@@ -214,7 +215,7 @@ func TestNewHumanizedJSONError(t *testing.T) {
 			21,
 			errors.New("message"),
 			&utils.HumanizedJSONError{
-				Err: errors.Wrap(errors.New("message"), "invalid offset 21"),
+				Err: fmt.Errorf("invalid offset 21: %w", errors.New("message")),
 			},
 		},
 	}

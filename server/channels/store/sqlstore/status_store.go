@@ -9,7 +9,6 @@ import (
 	"time"
 
 	sq "github.com/mattermost/squirrel"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -57,7 +56,7 @@ func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
 	query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return errors.Wrap(err, "failed to upsert Status")
+		return fmt.Errorf("failed to upsert Status: %w", err)
 	}
 
 	return nil
@@ -82,7 +81,7 @@ func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) (ret
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
+		return fmt.Errorf("begin_transaction: %w", err)
 	}
 	defer finalizeTransactionX(transaction, &retErr)
 
@@ -96,12 +95,12 @@ func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) (ret
 		}
 		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
 		if _, err := transaction.ExecBuilder(query); err != nil {
-			return errors.Wrap(err, "failed to upsert multiple Status records")
+			return fmt.Errorf("failed to upsert multiple Status records: %w", err)
 		}
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return errors.Wrap(err, "commit_transaction")
+		return fmt.Errorf("commit_transaction: %w", err)
 	}
 
 	return nil
@@ -115,7 +114,7 @@ func (s SqlStatusStore) Get(userId string) (*model.Status, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Status", fmt.Sprintf("userId=%s", userId))
 		}
-		return nil, errors.Wrapf(err, "failed to get Status with userId=%s", userId)
+		return nil, fmt.Errorf("failed to get Status with userId=%s: %w", userId, err)
 	}
 	return &status, nil
 }
@@ -126,7 +125,7 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	statuses := []*model.Status{}
 	err := s.GetReplica().SelectBuilder(&statuses, query)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to find Statuses")
+		return nil, fmt.Errorf("failed to find Statuses: %w", err)
 	}
 
 	return statuses, nil
@@ -151,7 +150,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error
 	statuses := []*model.Status{}
 	err = s.GetMaster().SelectBuilder(&statuses, queryString)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to find Statuses")
+		return nil, fmt.Errorf("failed to find Statuses: %w", err)
 	}
 
 	return statuses, nil
@@ -159,7 +158,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error
 
 func (s SqlStatusStore) ResetAll() error {
 	if _, err := s.GetMaster().Exec("UPDATE Status SET Status = ? WHERE Manual = false", model.StatusOffline); err != nil {
-		return errors.Wrap(err, "failed to update Statuses")
+		return fmt.Errorf("failed to update Statuses: %w", err)
 	}
 	return nil
 }
@@ -174,7 +173,7 @@ func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, error) {
 	var count int64
 	err := s.GetReplica().GetBuilder(&count, query)
 	if err != nil {
-		return count, errors.Wrap(err, "failed to count active users")
+		return count, fmt.Errorf("failed to count active users: %w", err)
 	}
 	return count, nil
 }
@@ -186,7 +185,7 @@ func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64
 		Where(sq.Eq{"UserId": userId})
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return errors.Wrapf(err, "failed to update last activity for userId=%s", userId)
+		return fmt.Errorf("failed to update last activity for userId=%s: %w", userId, err)
 	}
 
 	return nil

@@ -2,13 +2,13 @@ package flow
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/pluginapi"
@@ -168,7 +168,7 @@ func (f *Flow) Go(toName Name) error {
 	if state.StepName != "" && !state.Done {
 		from, ok := f.steps[state.StepName]
 		if !ok {
-			return errors.Errorf("%s: step not found", toName)
+			return fmt.Errorf("%s: step not found", toName)
 		}
 
 		var donePost *model.Post
@@ -190,7 +190,7 @@ func (f *Flow) Go(toName Name) error {
 	}
 	to, ok := f.steps[toName]
 	if !ok {
-		return errors.Errorf("%s: step not found", toName)
+		return fmt.Errorf("%s: step not found", toName)
 	}
 
 	post, terminal, err := to.do(f)

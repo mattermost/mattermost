@@ -1,6 +1,7 @@
 package pluginapi_test
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -8,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -288,7 +288,7 @@ func TestMemoryStoreListKeys(t *testing.T) {
 		odd := func(key string) (bool, error) {
 			s := strings.Split(key, "_")
 			if len(s) != 2 {
-				return false, errors.Errorf("wrongly formated key %v", key)
+				return false, fmt.Errorf("wrongly formated key %v", key)
 			}
 			i, err := strconv.Atoi(s[1])
 			if err != nil {
@@ -300,7 +300,7 @@ func TestMemoryStoreListKeys(t *testing.T) {
 		even := func(key string) (bool, error) {
 			s := strings.Split(key, "_")
 			if len(s) != 2 {
-				return false, errors.Errorf("wrongly formated key %v", key)
+				return false, fmt.Errorf("wrongly formated key %v", key)
 			}
 			i, err := strconv.Atoi(s[1])
 			if err != nil {

@@ -7,12 +7,11 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"reflect"
 	"strconv"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -205,7 +204,7 @@ func (a *App) GetSiteURL() string {
 func (a *App) GetConfigFile(name string) ([]byte, error) {
 	data, err := a.Srv().platform.GetConfigFile(name)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get config file %s", name)
+		return nil, fmt.Errorf("failed to get config file %s: %w", name, err)
 	}
 
 	return data, nil

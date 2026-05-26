@@ -6,6 +6,8 @@ package platform
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -15,7 +17,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -212,12 +213,12 @@ func (ps *PlatformService) GetLogFile(rctx request.CTX) (*model.FileData, error)
 			mlog.String("path", mattermostLog),
 			mlog.String("config_section", "LogSettings.FileLocation"),
 			mlog.Err(err))
-		return nil, errors.Wrapf(err, "log file path %s is outside allowed logging directory", mattermostLog)
+		return nil, fmt.Errorf("log file path %s is outside allowed logging directory: %w", mattermostLog, err)
 	}
 
 	mattermostLogFileData, err := os.ReadFile(mattermostLog)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed read mattermost log file at path %s", mattermostLog)
+		return nil, fmt.Errorf("failed read mattermost log file at path %s: %w", mattermostLog, err)
 	}
 
 	return &model.FileData{
@@ -268,7 +269,7 @@ func (ps *PlatformService) GetAdvancedLogs(rctx request.CTX) ([]*model.FileData,
 		cfg := make(mlog.LoggerConfiguration)
 		err := json.Unmarshal(loggingJSON, &cfg)
 		if err != nil {
-			rErr = multierror.Append(rErr, errors.Wrapf(err, "error decoding advanced logging configuration %s", name))
+			rErr = multierror.Append(rErr, fmt.Errorf("error decoding advanced logging configuration %s: %w", name, err))
 			continue
 		}
 
@@ -280,7 +281,7 @@ func (ps *PlatformService) GetAdvancedLogs(rctx request.CTX) ([]*model.FileData,
 				Filename string `json:"filename"`
 			}
 			if err := json.Unmarshal(t.Options, &fileOption); err != nil {
-				rErr = multierror.Append(rErr, errors.Wrapf(err, "error decoding file target options in %s", name))
+				rErr = multierror.Append(rErr, fmt.Errorf("error decoding file target options in %s: %w", name, err))
 				continue
 			}
 
@@ -291,13 +292,13 @@ func (ps *PlatformService) GetAdvancedLogs(rctx request.CTX) ([]*model.FileData,
 					mlog.String("config_section", name),
 					mlog.String("user_id", rctx.Session().UserId),
 					mlog.Err(err))
-				rErr = multierror.Append(rErr, errors.Wrapf(err, "log file path %s in %s is outside allowed logging directory", fileOption.Filename, name))
+				rErr = multierror.Append(rErr, fmt.Errorf("log file path %s in %s is outside allowed logging directory: %w", fileOption.Filename, name, err))
 				continue
 			}
 
 			data, err := os.ReadFile(fileOption.Filename)
 			if err != nil {
-				rErr = multierror.Append(rErr, errors.Wrapf(err, "failed to read advanced log file at path %s in %s", fileOption.Filename, name))
+				rErr = multierror.Append(rErr, fmt.Errorf("failed to read advanced log file at path %s in %s: %w", fileOption.Filename, name, err))
 				continue
 			}
 

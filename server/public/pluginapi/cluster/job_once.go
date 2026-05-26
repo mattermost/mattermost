@@ -2,11 +2,11 @@ package cluster
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -82,16 +82,16 @@ func (j *JobOnce) Cancel() {
 func newJobOnce(pluginAPI JobPluginAPI, key string, runAt time.Time, callback *syncedCallback, jobs *syncedJobs, props any) (*JobOnce, error) {
 	mutex, err := NewMutex(pluginAPI, key)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create job mutex")
+		return nil, fmt.Errorf("failed to create job mutex: %w", err)
 	}
 
 	propsBytes, err := json.Marshal(props)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal props")
+		return nil, fmt.Errorf("failed to marshal props: %w", err)
 	}
 
 	if len(propsBytes) > propsLimit {
-		return nil, errors.Errorf("props length extends limit")
+		return nil, fmt.Errorf("props length extends limit")
 	}
 
 	return &JobOnce{
@@ -163,7 +163,7 @@ func (j *JobOnce) executeJob() {
 func readMetadata(pluginAPI JobPluginAPI, key string) (*JobOnceMetadata, error) {
 	data, appErr := pluginAPI.KVGet(oncePrefix + key)
 	if appErr != nil {
-		return nil, errors.Wrap(normalizeAppErr(appErr), "failed to read data")
+		return nil, fmt.Errorf("failed to read data: %w", normalizeAppErr(appErr))
 	}
 
 	if data == nil {
@@ -172,7 +172,7 @@ func readMetadata(pluginAPI JobPluginAPI, key string) (*JobOnceMetadata, error) 
 
 	var metadata JobOnceMetadata
 	if err := json.Unmarshal(data, &metadata); err != nil {
-		return nil, errors.Wrap(err, "failed to decode data")
+		return nil, fmt.Errorf("failed to decode data: %w", err)
 	}
 
 	return &metadata, nil
@@ -191,7 +191,7 @@ func (j *JobOnce) saveMetadata() error {
 	}
 	data, err := json.Marshal(metadata)
 	if err != nil {
-		return errors.Wrap(err, "failed to marshal data")
+		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
 	ok, appErr := j.pluginAPI.KVSetWithOptions(oncePrefix+j.key, data, model.PluginKVSetOptions{

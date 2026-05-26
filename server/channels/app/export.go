@@ -7,6 +7,7 @@ import (
 	"archive/zip"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,8 +17,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -940,11 +939,11 @@ func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath s
 
 	if _, err = os.Stat(emojiDir); err != nil {
 		if !os.IsNotExist(err) {
-			return errors.Wrapf(err, "Error fetching file info of emoji directory %v", emojiDir)
+			return fmt.Errorf("Error fetching file info of emoji directory %v: %w", emojiDir, err)
 		}
 
 		if err = os.Mkdir(emojiDir, os.ModePerm); err != nil {
-			return errors.Wrapf(err, "Error creating emoji directory %v", emojiDir)
+			return fmt.Errorf("Error creating emoji directory %v: %w", emojiDir, err)
 		}
 	}
 

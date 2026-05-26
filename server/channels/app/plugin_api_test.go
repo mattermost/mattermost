@@ -1249,7 +1249,6 @@ func TestInstallPlugin(t *testing.T) {
 		import (
 			"net/http"
 
-			"github.com/pkg/errors"
 
 			"github.com/mattermost/mattermost/server/public/plugin"
 		)
@@ -3167,7 +3166,6 @@ func TestPluginGetChannelsForTeamForUser(t *testing.T) {
 	import (
 		"github.com/mattermost/mattermost/server/public/model"
 		"github.com/mattermost/mattermost/server/public/plugin"
-		"github.com/pkg/errors"
 	)
 
 	const (

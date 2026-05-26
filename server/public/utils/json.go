@@ -6,10 +6,9 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"unicode"
-
-	"github.com/pkg/errors"
 )
 
 type HumanizedJSONError struct {
@@ -39,7 +38,7 @@ func NewHumanizedJSONError(err error, data []byte, offset int64) *HumanizedJSONE
 
 	if offset < 0 || offset > int64(len(data)) {
 		return &HumanizedJSONError{
-			Err: errors.Wrapf(err, "invalid offset %d", offset),
+			Err: fmt.Errorf("invalid offset %d: %w", offset, err),
 		}
 	}
 
@@ -52,7 +51,7 @@ func NewHumanizedJSONError(err error, data []byte, offset int64) *HumanizedJSONE
 	return &HumanizedJSONError{
 		Line:      line,
 		Character: character,
-		Err:       errors.Wrapf(err, "parsing error at line %d, character %d", line, character),
+		Err:       fmt.Errorf("parsing error at line %d, character %d: %w", line, character, err),
 	}
 }
 
