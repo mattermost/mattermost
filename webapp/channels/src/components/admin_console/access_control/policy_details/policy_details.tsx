@@ -32,7 +32,7 @@ import Constants from 'utils/constants';
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
-import {hasUsableAttributes, isSimpleExpression} from '../editors/shared';
+import {hasUsableAttributes, isSimpleExpression, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -82,15 +82,15 @@ function PolicyDetails({
     const [addChannelOpen, setAddChannelOpen] = useState(false);
     const [editorMode, setEditorMode] = useState<'cel' | 'table'>('table');
 
-    // Derive masked-rows state directly from the expression rather than relying
-    // on a callback from TableEditor: TableEditor unmounts on mode switches, and
-    // on remount its rows-derived flag flickers false-then-true while the async
-    // AST round-trip is in flight, briefly opening gates (CEL read-only, delete,
-    // banner) that should stay closed. The "--------" sentinel is what the
-    // server emits in raw CEL for any value the caller can't see, so its
-    // presence in the expression is a stable signal independent of editor
-    // lifecycle.
-    const hasMaskedRows = useMemo(() => expression.includes('"--------"'), [expression]);
+    // Check the server-provided policy rules for masked values, not the locally
+    // edited expression. When a row is deleted and the expression is rebuilt from
+    // rows, the "--------" sentinel may be absent from the rebuilt CEL even though
+    // the policy still has restricted values — the server is the authoritative
+    // source for what is masked, and that doesn't change until save + reload.
+    const hasMaskedRows = useMemo(
+        () => policy?.rules?.some((rule) => rule.expression?.includes(MASKED_VALUE_TOKEN_LITERAL)) ?? false,
+        [policy],
+    );
     const [channelChanges, setChannelChanges] = useState<ChannelChanges>({
         removed: {},
         added: {},
@@ -211,10 +211,8 @@ function PolicyDetails({
                         setServerError(formatMessage({id: 'admin.access_control.edit_policy.invalid_value', defaultMessage: 'Invalid value.'}));
                     } else if (result.error.server_error_id === 'app.pap.save_policy.self_exclusion') {
                         setServerError(formatMessage({id: 'admin.access_control.edit_policy.self_exclusion', defaultMessage: 'You do not satisfy one or more conditions in this policy. Contact a System Admin for assistance.'}));
-                    } else if (result.error.server_error_id === 'app.pap.save_policy.masked_condition_deleted') {
-                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.masked_condition_deleted', defaultMessage: 'You cannot remove a condition that contains attribute values you do not have permission to view.'}));
-                    } else if (result.error.server_error_id === 'app.pap.save_policy.masked_rule_deleted') {
-                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.masked_rule_deleted', defaultMessage: 'You cannot remove a rule that contains attribute values you do not have permission to view.'}));
+                    } else if (result.error.server_error_id === 'app.pap.save_policy.forbidden') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.forbidden', defaultMessage: 'You do not have permission to make this change to the policy. Contact a System Admin for assistance.'}));
                     } else {
                         setServerError(result.error.message);
                     }
