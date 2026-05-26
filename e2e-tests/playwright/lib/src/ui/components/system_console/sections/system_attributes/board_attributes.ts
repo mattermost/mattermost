@@ -229,11 +229,23 @@ export default class BoardAttributes {
      */
     async closeChipMenu() {
         const backdrop = this.page.locator('#backdropForMenuComponent');
+        if ((await backdrop.count()) === 0) {
+            return;
+        }
+        // Press Escape at page level. Callers should have blurred any input
+        // first; with no focused descendant, MUI's document-level keyboard
+        // handler closes the Popover. Falls back to a backdrop click in
+        // case Escape was swallowed.
+        await this.page.keyboard.press('Escape');
+        try {
+            await backdrop.first().waitFor({state: 'detached', timeout: 1500});
+            return;
+        } catch {
+            // Escape didn't take — try the backdrop-click path.
+        }
         if ((await backdrop.count()) > 0) {
             await backdrop.click({force: true});
-            await backdrop.waitFor({state: 'detached', timeout: 5000}).catch(() => {
-                /* tolerate races where another action already closed it */
-            });
+            await backdrop.first().waitFor({state: 'detached', timeout: 3000}).catch(() => {});
         }
     }
 
