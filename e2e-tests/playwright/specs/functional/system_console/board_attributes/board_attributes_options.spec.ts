@@ -15,80 +15,45 @@ test.describe('Board Attributes - select option values', {tag: '@board_attribute
         await cleanupCustomBoardFields();
     });
 
-    test('adds three options to a select attribute, saves, persists across reload', async ({pw}) => {
+    test('adds options and renames one — persists across reload', async ({pw}) => {
         const {adminClient, systemConsolePage} = await setupBoardAttributesTest(pw);
         const ba = systemConsolePage.boardAttributes;
 
         await ba.goto();
         await ba.toBeVisible();
 
-        const attrName = `Sel_${Date.now()}`;
+        const attrName = `Opts_${Date.now()}`;
 
-        // # Add a select attribute and three options
+        // # Add a select attribute with three options
         const row = await ba.addAttribute(attrName);
         await ba.changeTypeInRow(row, 'Select');
         await ba.addOptionInRow(row, 'Low');
         await ba.addOptionInRow(row, 'Medium');
         await ba.addOptionInRow(row, 'High');
-
-        // # Save
         await ba.saveAndWaitForSettled();
 
-        // * Server has all three options under the attribute
+        // # Rename "Medium" → "Mid" and save
+        await ba.renameOption('Medium', 'Mid');
+        await expect(ba.optionChip('Mid')).toBeVisible();
+        await expect(ba.optionChip('Medium')).toHaveCount(0);
+        await ba.saveAndWaitForSettled();
+
+        // * Server reflects the create and rename
         const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
         const created = (fields ?? []).find((f) => f.name === attrName);
         expect(created).toBeDefined();
         const optionNames = ((created!.attrs as {options?: Array<{name: string}>})?.options ?? []).map((o) => o.name);
-        expect(optionNames).toEqual(expect.arrayContaining(['Low', 'Medium', 'High']));
+        expect(optionNames).toEqual(expect.arrayContaining(['Low', 'Mid', 'High']));
+        expect(optionNames).not.toContain('Medium');
 
         // # Reload
         await ba.goto();
         await ba.toBeVisible();
 
-        // * All three chips render
+        // * Persisted state renders correctly
         await expect(ba.optionChip('Low')).toBeVisible();
-        await expect(ba.optionChip('Medium')).toBeVisible();
+        await expect(ba.optionChip('Mid')).toBeVisible();
         await expect(ba.optionChip('High')).toBeVisible();
-    });
-
-    test('renames an existing option via its menu input and persists across reload', async ({pw}) => {
-        const {adminClient, systemConsolePage} = await setupBoardAttributesTest(pw);
-        const ba = systemConsolePage.boardAttributes;
-
-        await ba.goto();
-        await ba.toBeVisible();
-
-        const attrName = `Ren_${Date.now()}`;
-
-        // # Add a select attribute with one option, save baseline
-        const row = await ba.addAttribute(attrName);
-        await ba.changeTypeInRow(row, 'Select');
-        await ba.addOptionInRow(row, 'Original');
-        await ba.saveAndWaitForSettled();
-
-        // # Rename the option
-        await ba.renameOption('Original', 'Renamed');
-
-        // * The renamed chip is visible, the original is gone
-        await expect(ba.optionChip('Renamed')).toBeVisible();
-        await expect(ba.optionChip('Original')).toHaveCount(0);
-
-        // # Save
-        await ba.saveAndWaitForSettled();
-
-        // * Server reflects the rename
-        const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
-        const updated = (fields ?? []).find((f) => f.name === attrName);
-        const optionNames = ((updated!.attrs as {options?: Array<{name: string}>})?.options ?? []).map((o) => o.name);
-        expect(optionNames).toContain('Renamed');
-        expect(optionNames).not.toContain('Original');
-
-        // # Reload
-        await ba.goto();
-        await ba.toBeVisible();
-
-        // * Renamed chip persisted
-        await expect(ba.optionChip('Renamed')).toBeVisible();
     });
 
     test('deletes an option via the inline X button and persists across reload', async ({pw}) => {
@@ -109,12 +74,8 @@ test.describe('Board Attributes - select option values', {tag: '@board_attribute
 
         // # Delete one option
         await ba.deleteOptionViaXButton('DeleteMe');
-
-        // * The deleted chip is gone, the kept one remains
         await expect(ba.optionChip('DeleteMe')).toHaveCount(0);
         await expect(ba.optionChip('KeepMe')).toBeVisible();
-
-        // # Save
         await ba.saveAndWaitForSettled();
 
         // * Server reflects the deletion

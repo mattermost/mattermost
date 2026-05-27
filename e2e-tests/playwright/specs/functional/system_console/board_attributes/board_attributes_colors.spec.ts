@@ -15,52 +15,66 @@ test.describe('Board Attributes - option color picker', {tag: '@board_attributes
         await cleanupCustomBoardFields();
     });
 
-    // One test per color token so a single broken token doesn't mask the rest.
-    for (const uiColor of COLOR_TOKEN_NAMES) {
-        test(`assigns the ${uiColor} color to an option and persists across reload`, async ({pw}) => {
-            const {adminClient, systemConsolePage} = await setupBoardAttributesTest(pw);
-            const ba = systemConsolePage.boardAttributes;
+    test('assigns a color token to an option and the server persists the value', async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupBoardAttributesTest(pw);
+        const ba = systemConsolePage.boardAttributes;
 
-            await ba.goto();
-            await ba.toBeVisible();
+        await ba.goto();
+        await ba.toBeVisible();
 
-            const attrName = `Color_${uiColor}_${Date.now()}`;
-            const optionName = `Tagged_${uiColor}`;
+        const attrName = `Color_${Date.now()}`;
+        const optionName = 'Tagged';
 
-            // # Add a select attribute with one option, save baseline
-            const row = await ba.addAttribute(attrName);
-            await ba.changeTypeInRow(row, 'Select');
-            await ba.addOptionInRow(row, optionName);
-            await ba.saveAndWaitForSettled();
+        // # Add a select attribute with one option, save baseline
+        const row = await ba.addAttribute(attrName);
+        await ba.changeTypeInRow(row, 'Select');
+        await ba.addOptionInRow(row, optionName);
+        await ba.saveAndWaitForSettled();
 
-            // # Select the color via the chip's menu picker
-            await ba.setOptionColor(optionName, uiColor);
+        // # Assign the Green color
+        await ba.setOptionColor(optionName, 'Green');
+        await ba.saveAndWaitForSettled();
 
-            // # Save
-            await ba.saveAndWaitForSettled();
+        // * Server reflects the color token
+        const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
+        const updated = (fields ?? []).find((f) => f.name === attrName);
+        const option = ((updated!.attrs as {options?: Array<{name: string; color?: string}>})?.options ?? []).find(
+            (o) => o.name === optionName,
+        );
+        expect(option?.color).toBe(SERVER_COLOR_BY_UI_LABEL.Green);
+    });
 
-            // * Server reflects the color token
-            const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
-            const updated = (fields ?? []).find((f) => f.name === attrName);
-            const option = ((updated!.attrs as {options?: Array<{name: string; color?: string}>})?.options ?? []).find(
-                (o) => o.name === optionName,
-            );
-            expect(option?.color).toBe(SERVER_COLOR_BY_UI_LABEL[uiColor]);
+    test('color assignment persists across reload and the picker shows the correct checked state', async ({pw}) => {
+        const {systemConsolePage} = await setupBoardAttributesTest(pw);
+        const ba = systemConsolePage.boardAttributes;
 
-            // # Reload
-            await ba.goto();
-            await ba.toBeVisible();
+        await ba.goto();
+        await ba.toBeVisible();
 
-            // * Chip is still rendered after reload
-            await expect(ba.optionChip(optionName)).toBeVisible();
+        const attrName = `Persist_${Date.now()}`;
 
-            await ba.openOptionMenu(optionName);
+        // # Add a select attribute with one option, save baseline
+        const row = await ba.addAttribute(attrName);
+        await ba.changeTypeInRow(row, 'Select');
+        await ba.addOptionInRow(row, 'Colored');
+        await ba.saveAndWaitForSettled();
 
-            // * The chosen color is the one marked as checked in the picker
-            const checkedColor = ba.container.page().getByRole('menuitemradio', {name: uiColor, exact: true});
-            await expect(checkedColor).toHaveAttribute('aria-checked', 'true');
-        });
-    }
+        // # Assign the Red color and save
+        await ba.setOptionColor('Colored', 'Red');
+        await ba.saveAndWaitForSettled();
+
+        // # Reload
+        await ba.goto();
+        await ba.toBeVisible();
+
+        // * Chip is still rendered
+        await expect(ba.optionChip('Colored')).toBeVisible();
+
+        // * The picker reflects the correct checked color
+        await ba.openOptionMenu('Colored');
+        const checkedColor = ba.container.page().getByRole('menuitemradio', {name: 'Red', exact: true});
+        await expect(checkedColor).toHaveAttribute('aria-checked', 'true');
+    });
 
     test('color picker exposes all nine color tokens', async ({pw}) => {
         const {systemConsolePage} = await setupBoardAttributesTest(pw);

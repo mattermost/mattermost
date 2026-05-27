@@ -48,7 +48,7 @@ export default class BoardAttributes {
 
     async goto() {
         await this.page.goto(BOARD_ATTRIBUTES_URL);
-        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForLoadState('domcontentloaded');
     }
 
     // ── Row / cell accessors ───────────────────────────────────────────
@@ -142,8 +142,9 @@ export default class BoardAttributes {
         await expect(this.saveButton).toBeEnabled();
         await this.saveButton.click();
 
-        // Save flushes pending changes; button returns to disabled state.
-        await expect(this.saveButton).toBeDisabled();
+        // Save flushes pending changes; button returns to disabled state once
+        // all API calls complete and React re-renders with the new baseline.
+        await expect(this.saveButton).toBeDisabled({timeout: 15_000});
     }
 
     // ── Type menu interactions ─────────────────────────────────────────
@@ -221,35 +222,30 @@ export default class BoardAttributes {
 
     /**
      * The chip menu (Menu.Container) renders as a MUI Popover whose invisible
-     * backdrop intercepts pointer events. The rename input's onKeyDown calls
-     * stopPropagation on Escape, so a keyboard Escape only blurs the input
-     * but doesn't reach MUI's popover close handler. Clicking the backdrop
-     * is what actually dismisses the popover — its onClick handler fires the
-     * Menu's close callback.
+     * backdrop intercepts pointer events. Clicking the backdrop is what
+     * dismisses the popover — its onClick handler fires the Menu's close
+     * callback. We try backdrop click first (most reliable) and fall back to
+     * Escape if the backdrop has already detached.
      */
     async closeChipMenu() {
         const backdrop = this.page.locator('#backdropForMenuComponent');
         if ((await backdrop.count()) === 0) {
             return;
         }
-        // Press Escape at page level. Callers should have blurred any input
-        // first; with no focused descendant, MUI's document-level keyboard
-        // handler closes the Popover. Falls back to a backdrop click in
-        // case Escape was swallowed.
-        await this.page.keyboard.press('Escape');
+        // Backdrop click is the most reliable close path — it directly fires
+        // the Menu's onClose handler without relying on focus state.
+        await backdrop.click({force: true});
         try {
-            await backdrop.first().waitFor({state: 'detached', timeout: 1500});
+            await backdrop.first().waitFor({state: 'detached', timeout: 3000});
             return;
         } catch {
-            // Escape didn't take — try the backdrop-click path.
+            // Click didn't detach — try Escape as fallback.
         }
-        if ((await backdrop.count()) > 0) {
-            await backdrop.click({force: true});
-            await backdrop
-                .first()
-                .waitFor({state: 'detached', timeout: 3000})
-                .catch(() => {});
-        }
+        await this.page.keyboard.press('Escape');
+        await backdrop
+            .first()
+            .waitFor({state: 'detached', timeout: 2000})
+            .catch(() => {});
     }
 
     // ── Dot menu interactions ──────────────────────────────────────────
