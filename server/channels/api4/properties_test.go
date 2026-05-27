@@ -494,6 +494,55 @@ func TestGetPropertyFields(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotNil(t, createdOtherField)
 
+	// Hierarchical-scope fixtures live under a dedicated group so length
+	// assertions in those subtests can be exact — independent of any fields
+	// created by the unrelated subtests in `group` above.
+	hierGroup, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_get_hier", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, err)
+	require.NotNil(t, hierGroup)
+
+	mkField := func(t *testing.T, targetType model.PropertyFieldTargetLevel, targetID string) *model.PropertyField {
+		t.Helper()
+		f := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           hierGroup.ID,
+			ObjectType:        "post",
+			TargetType:        string(targetType),
+			TargetID:          targetID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		created, cerr := th.App.CreatePropertyField(th.Context, f, false, "")
+		require.Nil(t, cerr)
+		return created
+	}
+
+	// Fixtures: 1 system, 1 team-A (BasicTeam), 1 team-B (other team),
+	// 2 channel-X (BasicChannel, in team-A), 1 channel-Y (in team-A).
+	otherTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	channelY := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	// BasicUser is *not* a member of channelY by default.
+
+	sysField := mkField(t, model.PropertyFieldTargetLevelSystem, "")
+	teamAField := mkField(t, model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id)
+	chanX1Field := mkField(t, model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id)
+	chanX2Field := mkField(t, model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id)
+	// Side-effect-only fixtures: their DB presence proves the hierarchical
+	// filter actively excludes them. ElementsMatch on the expected ID set
+	// handles the exclusion check.
+	_ = mkField(t, model.PropertyFieldTargetLevelTeam, otherTeam.Id)      // team-B field
+	_ = mkField(t, model.PropertyFieldTargetLevelChannel, channelY.Id)   // channel-Y field (BasicUser has no access)
+
+	fieldIDs := func(fields []*model.PropertyField) []string {
+		ids := make([]string, len(fields))
+		for i, f := range fields {
+			ids[i] = f.ID
+		}
+		return ids
+	}
+
 	t.Run("unauthenticated request should fail", func(t *testing.T) {
 		client := model.NewAPIv4Client(th.Client.URL)
 
@@ -614,6 +663,204 @@ func TestGetPropertyFields(t *testing.T) {
 		_, resp, err := th.Client.GetPropertyFields(context.Background(), v1Group.Name, "post", model.PropertyFieldSearch{PerPage: 60})
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("channel_id combined with target_type returns 400 scope_conflict", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			ChannelID:  th.BasicChannel.Id,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("team_id combined with target_id returns 400 scope_conflict", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TeamID:   th.BasicTeam.Id,
+			TargetID: model.NewId(),
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("channel_id pointing at non-existent channel returns 403", func(t *testing.T) {
+		// Permission is checked before existence — non-existent channels are
+		// indistinguishable from inaccessible ones, by design.
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			ChannelID: model.NewId(),
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channel_id where user has no access returns 403", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		// BasicUser is not a member of channelY.
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			ChannelID: channelY.Id,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("team_id where user has no access returns 403", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TeamID: otherTeam.Id,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("team_id alone returns system + team rows only", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TeamID:  th.BasicTeam.Id,
+			PerPage: 200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Len(t, fields, 2, "should return exactly sysField + teamAField")
+		require.ElementsMatch(t, []string{sysField.ID, teamAField.ID}, fieldIDs(fields))
+	})
+
+	t.Run("channel_id + team_id returns system + team + channel rows", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			ChannelID: th.BasicChannel.Id,
+			TeamID:    th.BasicTeam.Id,
+			PerPage:   200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Len(t, fields, 4, "should return exactly sysField + teamAField + 2 channel-X fields")
+		require.ElementsMatch(t, []string{sysField.ID, teamAField.ID, chanX1Field.ID, chanX2Field.ID}, fieldIDs(fields))
+	})
+
+	t.Run("channel_id without team_id returns system + team + channel rows", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			ChannelID: th.BasicChannel.Id,
+			PerPage:   200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Len(t, fields, 4, "should return exactly sysField + teamAField + 2 channel-X fields")
+		require.ElementsMatch(t, []string{sysField.ID, teamAField.ID, chanX1Field.ID, chanX2Field.ID}, fieldIDs(fields))
+	})
+
+	t.Run("a bad team_id is overwritten by the channel's team_id when channel_id is present and correctly returns system + team + channel rows", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			ChannelID: th.BasicChannel.Id,
+			TeamID:    otherTeam.Id,
+			PerPage:   200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Len(t, fields, 4, "should return exactly sysField + teamAField + 2 channel-X fields")
+		require.ElementsMatch(t, []string{sysField.ID, teamAField.ID, chanX1Field.ID, chanX2Field.ID}, fieldIDs(fields))
+	})
+
+	t.Run("since=-1 is treated as no filter", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			SinceUpdateAt: -1,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Len(t, fields, 1, "should return exactly sysField — the only system row in hierGroup at this point")
+		require.ElementsMatch(t, []string{sysField.ID}, fieldIDs(fields))
+	})
+
+	t.Run("since returns soft-deleted rows", func(t *testing.T) {
+		// Create a dedicated field, delete it, then verify it shows up in a since query.
+		toDelete := mkField(t, model.PropertyFieldTargetLevelSystem, "")
+
+		// Snapshot a since cutoff strictly less than UpdateAt of the delete.
+		// CreatePropertyField sets UpdateAt to CreateAt; use it - 1.
+		cutoff := toDelete.UpdateAt - 1
+
+		// Soft-delete via the App layer.
+		require.Nil(t, th.App.DeletePropertyField(th.Context, hierGroup.ID, toDelete.ID, false, ""))
+
+		// Use sysadmin to avoid any read-permission masking on tombstones.
+		fields, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TeamID:        th.BasicTeam.Id,
+			SinceUpdateAt: cutoff,
+			PerPage:       200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		var found *model.PropertyField
+		for _, f := range fields {
+			if f.ID == toDelete.ID {
+				found = f
+				break
+			}
+		}
+		require.NotNil(t, found, "soft-deleted field should be returned in since-delta")
+		require.Greater(t, found.DeleteAt, int64(0), "returned field should be tombstoned")
+	})
+
+	t.Run("cursor_create_at while since>0 returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TargetType:     string(model.PropertyFieldTargetLevelSystem),
+			SinceUpdateAt:  1,
+			CursorID:       model.NewId(),
+			CursorCreateAt: 12345,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("cursor_update_at while since absent returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TargetType:     string(model.PropertyFieldTargetLevelSystem),
+			CursorID:       model.NewId(),
+			CursorUpdateAt: 12345,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("single-target target_type=team returns only that team's rows", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelTeam),
+			TargetID:   th.BasicTeam.Id,
+			PerPage:    100,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Len(t, fields, 1, "should return exactly teamAField")
+		require.ElementsMatch(t, []string{teamAField.ID}, fieldIDs(fields))
 	})
 }
 

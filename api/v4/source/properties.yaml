@@ -99,7 +99,25 @@
         - properties
       summary: Get property fields
       description: >
-        Get a list of property fields for a specific group and object type. Requires a target_type parameter to scope the query, except when `object_type=system` — in that case `target_type` is implicit and any value supplied is ignored. Filter further by target_id to narrow results. Uses cursor-based pagination.
+        Get a list of property fields for a specific group and object type. Uses cursor-based pagination.
+
+
+        **Scope modes (mutually exclusive):**
+
+
+        - **Hierarchical scope** (`channel_id` and/or `team_id`): returns fields scoped to the named resource *and every ancestor scope above it*. System-level rows are always included; team-level rows are included when `team_id` is set; channel-level rows are included only when `channel_id` is set. When `channel_id` is provided, the channel's team is resolved server-side, so passing `team_id` alongside is optional. Requires the caller to have `read_channel` for the channel and/or `view_team` for the team.
+
+
+        - **Single-target scope** (`target_type` + `target_id`): returns fields scoped to exactly one resource. `target_type` must be `system`, `team`, or `channel`; `target_id` is required for `team` and `channel`. When `object_type=system`, `target_type` is implicit and any value supplied is ignored.
+
+
+        Mixing the two modes (any of `channel_id`/`team_id` together with any of `target_type`/`target_id`) returns 400.
+
+
+        **Delta sync via `since`:** When `since > 0`, the endpoint returns only rows whose `update_at` is greater than the cutoff, *including* tombstoned rows (`delete_at > 0`).
+
+
+        **Cursor key must match the active ordering:** in delta mode (`since > 0`) the endpoint orders by `update_at` and pagination requires `cursor_update_at`; otherwise it orders by `create_at` and pagination requires `cursor_create_at`. Passing the wrong key for the active mode returns 400.
       operationId: GetPropertyFields
       parameters:
         - name: group_name
@@ -114,10 +132,32 @@
           required: true
           schema:
             type: string
+        - name: channel_id
+          in: query
+          description: >
+            Hierarchical scope. When set, the response includes system-level
+            rows, team-level rows for the channel's team, and channel-level
+            rows for this channel. Mutually exclusive with `target_type` and
+            `target_id`. Requires `read_channel` on the channel.
+          schema:
+            type: string
+        - name: team_id
+          in: query
+          description: >
+            Hierarchical scope. When set without `channel_id`, the response
+            includes system-level and team-level rows for this team. When set
+            alongside `channel_id`, it is informational only. Mutually
+            exclusive with `target_type` and `target_id`. Requires `view_team`
+            on the team.
+          schema:
+            type: string
         - name: target_type
           in: query
-          description: The scope level to query. Must be one of 'system', 'team', or 'channel'.
-          required: true
+          description: >
+            Single-target scope. One of `system`, `team`, or `channel`.
+            Required in single-target mode unless `object_type=system` (in
+            which case it is implicit). Mutually exclusive with `channel_id`
+            and `team_id`.
           schema:
             type: string
             enum:
@@ -126,9 +166,20 @@
               - channel
         - name: target_id
           in: query
-          description: Filter by target ID. Required when target_type is 'channel' or 'team'.
+          description: >
+            Single-target scope. Required when `target_type` is `channel` or
+            `team`. Mutually exclusive with `channel_id` and `team_id`.
           schema:
             type: string
+        - name: since
+          in: query
+          description: >
+            Unix timestamp in milliseconds. When greater than 0, returns only
+            fields with `update_at` strictly greater than this value, including
+            tombstones.
+          schema:
+            type: integer
+            format: int64
         - name: cursor_id
           in: query
           description: The ID of the last property field from the previous page, for cursor-based pagination.
@@ -136,7 +187,19 @@
             type: string
         - name: cursor_create_at
           in: query
-          description: The create_at timestamp of the last property field from the previous page. Must be provided together with cursor_id.
+          description: >
+            The `create_at` timestamp of the last property field from the
+            previous page. Required alongside `cursor_id` when `since` is
+            absent. Mutually exclusive with `cursor_update_at`.
+          schema:
+            type: integer
+            format: int64
+        - name: cursor_update_at
+          in: query
+          description: >
+            The `update_at` timestamp of the last property field from the
+            previous page. Required alongside `cursor_id` when `since` is
+            present. Mutually exclusive with `cursor_create_at`.
           schema:
             type: integer
             format: int64
@@ -161,6 +224,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}":
     patch:
       tags:

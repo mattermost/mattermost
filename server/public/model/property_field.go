@@ -474,12 +474,26 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 }
 
 // PropertyFieldSearch captures the parameters provided by a client for
-// searching property fields
+// searching property fields.
+//
+// Scope is specified one of two ways (mutually exclusive):
+//   - Hierarchical: ChannelID and/or TeamID — returns rows at the named scope
+//     plus every ancestor above it.
+//   - Single-target: TargetType + TargetID — returns rows for exactly one
+//     resource.
+//
+// SinceUpdateAt > 0 switches the endpoint to delta mode: rows are ordered by
+// update_at, tombstones are included, and pagination must use CursorUpdateAt
+// (CursorCreateAt is used in the default directory mode).
 type PropertyFieldSearch struct {
 	TargetType     string `json:"target_type,omitempty"`
 	TargetID       string `json:"target_id,omitempty"`
+	ChannelID      string `json:"channel_id,omitempty"`
+	TeamID         string `json:"team_id,omitempty"`
+	SinceUpdateAt  int64  `json:"since,omitempty"`
 	CursorID       string `json:"cursor_id,omitempty"`
 	CursorCreateAt int64  `json:"cursor_create_at,omitempty"`
+	CursorUpdateAt int64  `json:"cursor_update_at,omitempty"`
 	PerPage        int    `json:"per_page"`
 }
 
@@ -530,7 +544,24 @@ func (o PropertyFieldSearchOpts) IsValid() error {
 		return errors.New("channel_id requires team_id")
 	}
 
-	return o.Cursor.IsValid()
+	if err := o.Cursor.IsValid(); err != nil {
+		return err
+	}
+
+	// Cursor key must match the active ordering: delta mode (SinceUpdateAt>0)
+	// pages by UpdateAt; directory mode pages by CreateAt. A mismatch would
+	// silently skip rows because the WHERE clause references the wrong column.
+	if !o.Cursor.IsEmpty() {
+		deltaMode := o.SinceUpdateAt > 0
+		if deltaMode && o.Cursor.UpdateAt == 0 {
+			return errors.New("cursor_update_at required when since is set")
+		}
+		if !deltaMode && o.Cursor.CreateAt == 0 {
+			return errors.New("cursor_create_at required when since is not set")
+		}
+	}
+
+	return nil
 }
 
 func (pf *PropertyField) GetAttr(key string) any {

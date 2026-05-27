@@ -1402,6 +1402,52 @@ func TestPropertyFieldSearchOpts_IsValid(t *testing.T) {
 		}
 		assert.NoError(t, opts.IsValid())
 	})
+
+	t.Run("cursor key must match active ordering: delta mode requires UpdateAt", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			SinceUpdateAt: 100,
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				CreateAt:        1,
+			},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cursor_update_at")
+	})
+
+	t.Run("cursor key must match active ordering: directory mode requires CreateAt", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				UpdateAt:        1,
+			},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cursor_create_at")
+	})
+
+	t.Run("cursor key match: delta + UpdateAt is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			SinceUpdateAt: 100,
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				UpdateAt:        50,
+			},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("cursor key match: directory + CreateAt is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				CreateAt:        50,
+			},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
 }
 
 func TestPluginPropertyOption(t *testing.T) {

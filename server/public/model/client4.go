@@ -8120,11 +8120,23 @@ func (c *Client4) GetPropertyFields(ctx context.Context, groupName, objectType s
 	if search.TargetID != "" {
 		values.Set("target_id", search.TargetID)
 	}
-	if search.CursorID != "" && search.CursorCreateAt > 0 {
+	if search.ChannelID != "" {
+		values.Set("channel_id", search.ChannelID)
+	}
+	if search.TeamID != "" {
+		values.Set("team_id", search.TeamID)
+	}
+	if search.SinceUpdateAt != 0 {
+		values.Set("since", strconv.FormatInt(search.SinceUpdateAt, 10))
+	}
+	if search.CursorID != "" {
 		values.Set("cursor_id", search.CursorID)
+	}
+	if search.CursorCreateAt != 0 {
 		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
-	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
-		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
+	}
+	if search.CursorUpdateAt != 0 {
+		values.Set("cursor_update_at", strconv.FormatInt(search.CursorUpdateAt, 10))
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldsRoute(groupName, objectType), values, "")
 	if err != nil {
