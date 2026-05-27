@@ -333,9 +333,11 @@ func ConfigToFileBackendSettings(s *model.FileSettings, enableComplianceFeature 
 		return filestore.FileBackendSettings{
 			DriverName:                      *s.DriverName,
 			AzureStorageAccount:             *s.AzureStorageAccount,
+			AzureAuthMode:                   *s.AzureAuthMode,
 			AzureAccessKey:                  *s.AzureAccessKey,
 			AzureContainer:                  *s.AzureContainer,
 			AzurePathPrefix:                 *s.AzurePathPrefix,
+			AzureCloud:                      *s.AzureCloud,
 			AzureEndpoint:                   *s.AzureEndpoint,
 			AzureSSL:                        s.AzureSSL == nil || *s.AzureSSL,
 			AzureRequestTimeoutMilliseconds: *s.AzureRequestTimeoutMilliseconds,
