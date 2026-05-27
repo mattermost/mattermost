@@ -6,6 +6,10 @@
     max-width: 100%;
     flex-wrap: wrap;
     gap: 4px;
+
+    .btn + .btn {
+        margin-left: 0;
+    }
 }
 
 .PropertyCardView_fields > .row > .value:has(> .DataSpillageAction) {
