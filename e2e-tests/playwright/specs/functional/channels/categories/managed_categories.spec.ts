@@ -349,13 +349,13 @@ test.describe('Managed Channel Categories', () => {
         const channelB = await adminClient.createChannel({
             team_id: team.id,
             name: `bravo-${suffix}`,
-            display_name: `Bravo Channel`,
+            display_name: 'Bravo Channel',
             type: 'O',
         });
         const channelA = await adminClient.createChannel({
             team_id: team.id,
             name: `alpha-${suffix}`,
-            display_name: `Alpha Channel`,
+            display_name: 'Alpha Channel',
             type: 'O',
         });
 

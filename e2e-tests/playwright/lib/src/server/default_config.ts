@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import merge from 'deepmerge';
-import {
+import type {
     AdminConfig,
     ClusterSettings,
-    CollapsedThreads,
     EmailSettings,
     ExperimentalSettings,
     LogSettings,
@@ -14,6 +13,7 @@ import {
     ServiceSettings,
     TeamSettings,
 } from '@mattermost/types/config';
+import {CollapsedThreads} from '@mattermost/types/config';
 
 import {testConfig} from '@/test_config';
 

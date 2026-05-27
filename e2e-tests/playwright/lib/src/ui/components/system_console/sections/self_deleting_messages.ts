@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator, Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 /**
  * System Console -> Site Configuration -> Posts -> Self-Deleting Messages

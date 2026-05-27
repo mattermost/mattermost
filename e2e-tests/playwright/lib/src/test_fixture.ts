@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Browser, Page, test as base} from '@playwright/test';
-import {AxeResults} from 'axe-core';
+import type {Browser, Page} from '@playwright/test';
+import {test as base} from '@playwright/test';
+import type {AxeResults} from 'axe-core';
 import {AxeBuilder} from '@axe-core/playwright';
 
 import {TestBrowser} from './browser_context';

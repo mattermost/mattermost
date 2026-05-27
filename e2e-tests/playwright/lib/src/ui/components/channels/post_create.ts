@@ -3,7 +3,8 @@
 
 import path from 'node:path';
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {duration} from '@/util';
 import {assetPath} from '@/file';

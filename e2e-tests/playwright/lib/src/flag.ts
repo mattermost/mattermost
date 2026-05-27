@@ -4,7 +4,7 @@
 import os from 'node:os';
 
 import {expect, test} from '@playwright/test';
-import {PluginManifest} from '@mattermost/types/plugins';
+import type {PluginManifest} from '@mattermost/types/plugins';
 
 import {callsPluginId} from './constant';
 import {getAdminClient} from './server/init';

@@ -11,7 +11,6 @@
  * - Action/Verification comments
  */
 
-/* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable import/order */
 
 const fs = require('fs');
@@ -351,8 +350,12 @@ if (results.updatedTests && results.updatedTests.length > 0) {
 
             // Sort steps by their step number
             tests.sort((a, b) => {
-                if (!a.isStep) return -1;
-                if (!b.isStep) return 1;
+                if (!a.isStep) {
+                    return -1;
+                }
+                if (!b.isStep) {
+                    return 1;
+                }
 
                 const aNum = parseInt(a.stepSuffix.substring(1), 10);
                 const bNum = parseInt(b.stepSuffix.substring(1), 10);

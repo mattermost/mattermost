@@ -204,7 +204,9 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     await adminClient.addToTeam(team.id, secondUserID);
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-    if (!townSquare) throw new Error('Town Square channel not found');
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
 
     const message = `Post by @${user.username}, is flagged once`;
     const postToBeflagged = await adminClient.createPost({
@@ -261,7 +263,9 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     await adminClient.addToTeam(team.id, secondUserID);
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-    if (!townSquare) throw new Error('Town Square channel not found');
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
 
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
@@ -487,7 +491,9 @@ test('Verify message is removed from channel if the reviewer removed the message
 
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-    if (!townSquare) throw new Error('Town Square channel not found');
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
 
     const message = `Post by @${user.username}, is flagged once`;
     const postToBeflagged = await adminClient.createPost({
