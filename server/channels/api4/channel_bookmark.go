@@ -139,27 +139,9 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	originalChannelBookmark, appErr := c.App.GetBookmark(c.Params.ChannelBookmarkId, false)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-	if model.IsExternallyManagedChannelBookmarkType(originalChannelBookmark.Type) {
-		c.Err = rejectExternallyManagedBookmarkWrite("updateChannelBookmark")
-		return
-	}
-	patchedBookmark := originalChannelBookmark.Clone()
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelBookmark, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channelBookmark", patch)
-
-	// The channel bookmark should belong to the same channel specified in the URL
-	if patchedBookmark.ChannelId != c.Params.ChannelId {
-		c.SetInvalidParam("channel_id")
-		return
-	}
-
-	auditRec.AddEventPriorState(originalChannelBookmark)
 
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
@@ -213,6 +195,26 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
+
+	originalChannelBookmark, appErr := c.App.GetBookmark(c.Params.ChannelBookmarkId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// The channel bookmark should belong to the same channel specified in the URL
+	if originalChannelBookmark.ChannelId != c.Params.ChannelId {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+
+	if model.IsExternallyManagedChannelBookmarkType(originalChannelBookmark.Type) {
+		c.Err = rejectExternallyManagedBookmarkWrite("updateChannelBookmark")
+		return
+	}
+
+	patchedBookmark := originalChannelBookmark.Clone()
+	auditRec.AddEventPriorState(originalChannelBookmark)
 
 	patchedBookmark.Patch(patch)
 	updateChannelBookmarkResponse, appErr := c.App.UpdateChannelBookmark(c.AppContext, patchedBookmark, connectionID)
