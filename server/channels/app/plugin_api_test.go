@@ -3876,7 +3876,7 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 		// Register using the deprecated name must fail
 		_, err := api.RegisterPropertyGroup(model.DeprecatedCPAPropertyGroupName)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "renamed")
+		assert.Contains(t, err.Error(), "deprecated")
 
 		// Register using the canonical name should still work
 		group, err := api.RegisterPropertyGroup(model.AccessControlPropertyGroupName)
@@ -3885,24 +3885,21 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 		assert.Equal(t, model.AccessControlPropertyGroupName, group.Name)
 	})
 
-	t.Run("GetPropertyGroup maps deprecated name to canonical name", func(t *testing.T) {
+	t.Run("GetPropertyGroup rejects deprecated name", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		api := th.SetupPluginAPI()
 
-		// The access_control group is registered at server startup, so
-		// we can look it up directly.
+		// Looking up by the deprecated name must fail with an actionable error
+		_, err := api.GetPropertyGroup(model.DeprecatedCPAPropertyGroupName)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "deprecated")
+
+		// Looking up by the canonical name should still work
 		canonical, err := api.GetPropertyGroup(model.AccessControlPropertyGroupName)
 		require.NoError(t, err)
 		require.NotNil(t, canonical)
-
-		// Looking up by the deprecated name should return the same group
-		deprecated, err := api.GetPropertyGroup(model.DeprecatedCPAPropertyGroupName)
-		require.NoError(t, err)
-		require.NotNil(t, deprecated)
-
-		assert.Equal(t, canonical.ID, deprecated.ID)
-		assert.Equal(t, model.AccessControlPropertyGroupName, deprecated.Name)
+		assert.Equal(t, model.AccessControlPropertyGroupName, canonical.Name)
 	})
 
 	t.Run("other group names are not affected by the mapping", func(t *testing.T) {
