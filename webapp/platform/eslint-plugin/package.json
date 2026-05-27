@@ -19,7 +19,7 @@
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
-    "eslint-plugin-header": "^3.1.1",
+    "eslint-plugin-headers": "1.3.4",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "jsx-ast-utils": "^3.3.3"
