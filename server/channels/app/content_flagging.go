@@ -908,6 +908,9 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		if rErr := a.Srv().Store().Post().RestoreContentFlaggedPost(flaggedPost, statusField.ID, contentFlaggingManagedField.ID); rErr != nil {
 			return model.NewAppError("KeepFlaggedPost", "app.data_spillage.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(rErr)
 		}
+
+		// Undelete the value for broadcasting in WebSocket events
+		flaggedPost.DeleteAt = 0
 	}
 
 	commentBytes, marshalErr := json.Marshal(actionRequest.Comment)
@@ -1167,14 +1170,14 @@ func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, flagged
 		Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reviewerId)),
 	}
 
-	assigneePropertyValue, appErr = a.UpsertPropertyValue(nil, assigneePropertyValue)
+	assigneePropertyValue, appErr = a.UpsertPropertyValue(rctx, assigneePropertyValue)
 	if appErr != nil {
 		return model.NewAppError("AssignFlaggedPostReviewer", "app.data_spillage.assign_reviewer.upsert_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	if status == model.ContentFlaggingStatusPending {
 		statusPropertyValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
-		statusPropertyValue, appErr = a.UpdatePropertyValue(nil, groupId, statusPropertyValue)
+		statusPropertyValue, appErr = a.UpdatePropertyValue(rctx, groupId, statusPropertyValue)
 		if appErr != nil {
 			return model.NewAppError("AssignFlaggedPostReviewer", "app.data_spillage.assign_reviewer.update_status_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}

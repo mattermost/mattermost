@@ -11,6 +11,7 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 import {openModal} from 'actions/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {getUserPropertyFieldLabel} from 'utils/properties';
 
 type Props = {
     name: string;
@@ -31,7 +32,7 @@ export const useUserPropertyFieldDelete = () => {
                 modalId: ModalIdentifiers.USER_PROPERTY_FIELD_DELETE,
                 dialogType: RemoveUserPropertyFieldModal,
                 dialogProps: {
-                    name: field.name,
+                    name: getUserPropertyFieldLabel(field),
                     onConfirm: () => resolve(true),
                     isOrphaned,
                     sourcePluginId: field.attrs?.source_plugin_id as string | undefined,

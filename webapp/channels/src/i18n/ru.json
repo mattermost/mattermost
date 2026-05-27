@@ -1083,8 +1083,6 @@
   "admin.experimental.allowCustomThemes.title": "Разрешить пользовательские темы:",
   "admin.experimental.allowedEmailDomain.desc": "(Необязательно) Если установлено, у пользователя должна быть электронная почта, заканчивающаяся в этом домене, чтобы перемещать обсуждения. Можно указать несколько доменов, разделив их запятыми.",
   "admin.experimental.allowedEmailDomain.title": "Разрешенный домен электронной почты",
-  "admin.experimental.channelCategorySorting.desc": "Если выбрано - каналы будут автоматически сортироваться по категориям на основе их имен с использованием разделителя \"/\".",
-  "admin.experimental.channelCategorySorting.title": "Сортировка категорий каналов:",
   "admin.experimental.collapsedThreads.always_on": "Всегда включено",
   "admin.experimental.collapsedThreads.default_off": "Включено (по умолчанию Выкл.)",
   "admin.experimental.collapsedThreads.default_on": "Включено (по умолчанию Вкл.)",

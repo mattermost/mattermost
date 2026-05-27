@@ -168,7 +168,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 
 	fakeUser := []*model.User{{
 		Id:          "123",
-		AuthData:    model.NewPointer("authData"),
+		AuthData:    new("authData"),
 		AuthService: "authService",
 	}}
 	mockUserStore := mocks.UserStore{}
@@ -187,7 +187,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 		fakeUser[0],
 		{
 			Id:          "456",
-			AuthData:    model.NewPointer("authData"),
+			AuthData:    new("authData"),
 			AuthService: "authService",
 		},
 	}
@@ -203,6 +203,9 @@ func getMockStore(t *testing.T) *mocks.Store {
 
 	mockContentFlaggingStore := mocks.ContentFlaggingStore{}
 	mockStore.On("ContentFlagging").Return(&mockContentFlaggingStore)
+
+	mockSessionAttributeStore := mocks.SessionAttributeStore{}
+	mockStore.On("SessionAttribute").Return(&mockSessionAttributeStore)
 
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}
 	mockStore.On("ReadReceipt").Return(mockReadReceiptStore)

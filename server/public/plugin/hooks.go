@@ -68,6 +68,10 @@ const (
 	ChannelMemberWillBeAddedID                = 49
 	TeamMemberWillBeAddedID                   = 50
 	ChannelWillBeArchivedID                   = 51
+	ChannelWillBeUpdatedID                    = 52
+	ChannelWillBeRestoredID                   = 53
+	ScheduledPostWillBeCreatedID              = 54
+	DraftWillBeUpsertedID                     = 55
 	TotalHooksID                              = iota
 )
 
@@ -465,4 +469,42 @@ type Hooks interface {
 	//
 	// Minimum server version: 10.7
 	OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
+
+	// ChannelWillBeUpdated is invoked before a channel update is committed, allowing plugins to
+	// modify the channel or reject the update.
+	//
+	// To reject the update, return a non-empty string describing why. To modify the channel, return
+	// the replacement *model.Channel and an empty string. To allow the update without modification,
+	// return nil and an empty string.
+	//
+	// Fires from the app-layer UpdateChannel and PatchChannel paths so REST, local API, plugin API,
+	// import, and bulk callers all hit it.
+	//
+	// Minimum server version: 11.8
+	ChannelWillBeUpdated(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string)
+
+	// ChannelWillBeRestored is invoked before an archived channel is un-archived. Fires from
+	// app.RestoreChannel before the store's Channel().Restore call. Sibling of
+	// ChannelWillBeArchived for the inverse operation.
+	//
+	// To reject, return a non-empty string. Empty string allows the restore.
+	//
+	// Minimum server version: 11.8
+	ChannelWillBeRestored(c *Context, channel *model.Channel) string
+
+	// ScheduledPostWillBeCreated is invoked before a scheduled post is committed. Fires from the
+	// app-layer SaveScheduledPost and UpdateScheduledPost paths.
+	//
+	// Return value semantics match MessageWillBePosted.
+	//
+	// Minimum server version: 11.8
+	ScheduledPostWillBeCreated(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string)
+
+	// DraftWillBeUpserted is invoked before a draft is committed. Fires from the app-layer
+	// UpsertDraft path.
+	//
+	// Return value semantics match MessageWillBePosted.
+	//
+	// Minimum server version: 11.8
+	DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string)
 }

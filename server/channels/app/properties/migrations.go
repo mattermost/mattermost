@@ -30,7 +30,7 @@ import (
 // Returns the number of fields that were backfilled and the number that were
 // skipped, so the caller can log a summary.
 func (ps *PropertyService) MigrateBackfillCPADisplayName(rctx request.CTX) (backfilled int, skipped int, err error) {
-	group, err := ps.Group(model.CustomProfileAttributesPropertyGroupName)
+	group, err := ps.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
 		return 0, 0, fmt.Errorf("MigrateBackfillCPADisplayName: failed to get CPA property group: %w", err)
 	}
@@ -74,7 +74,7 @@ func (ps *PropertyService) MigrateBackfillCPADisplayName(rctx request.CTX) (back
 		// Use the unexported updatePropertyFields for the same reason as
 		// searchPropertyFields above: the AC layer rejects writes from the
 		// system to fields owned by a source plugin.
-		if _, _, updateErr := ps.updatePropertyFields(groupID, fieldsToUpdate); updateErr != nil {
+		if _, _, _, updateErr := ps.updatePropertyFields(rctx, groupID, fieldsToUpdate); updateErr != nil {
 			return 0, 0, fmt.Errorf("MigrateBackfillCPADisplayName: failed to update CPA fields: %w", updateErr)
 		}
 	}

@@ -72,6 +72,34 @@ func (_m *PropertyFieldStore) CountForGroup(groupID string, includeDeleted bool)
 	return r0, r1
 }
 
+// CountForGroupObjectType provides a mock function with given fields: groupID, objectType, includeDeleted
+func (_m *PropertyFieldStore) CountForGroupObjectType(groupID string, objectType string, includeDeleted bool) (int64, error) {
+	ret := _m.Called(groupID, objectType, includeDeleted)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountForGroupObjectType")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, bool) (int64, error)); ok {
+		return rf(groupID, objectType, includeDeleted)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, bool) int64); ok {
+		r0 = rf(groupID, objectType, includeDeleted)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(groupID, objectType, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CountForTarget provides a mock function with given fields: groupID, targetType, targetID, includeDeleted
 func (_m *PropertyFieldStore) CountForTarget(groupID string, targetType string, targetID string, includeDeleted bool) (int64, error) {
 	ret := _m.Called(groupID, targetType, targetID, includeDeleted)

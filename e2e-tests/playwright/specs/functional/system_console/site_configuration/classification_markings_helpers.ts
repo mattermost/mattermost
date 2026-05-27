@@ -5,7 +5,7 @@ import type {Client4} from '@mattermost/client';
 
 // Canonical values: webapp/channels/src/components/admin_console/classification_markings/utils/index.ts
 // (cross-package import not feasible between e2e-tests and webapp)
-const PROPERTY_GROUP = 'classification_markings';
+const PROPERTY_GROUP = 'access_control';
 const OBJECT_TYPE = 'template';
 const LINKED_OBJECT_TYPE = 'system';
 const TARGET_TYPE = 'system';
@@ -35,6 +35,16 @@ export async function setClassificationMarkingsFeatureFlag(adminClient: Client4,
  * (clean slate for E2E). Linked field is deleted first to avoid deletion-protection errors.
  */
 export async function deleteClassificationMarkingsFieldIfExists(adminClient: Client4) {
+    // Delete channel linked fields first (created by channel classification tests).
+    try {
+        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', TARGET_TYPE, '');
+        for (const f of channelFields.filter((f) => f.name === 'channel_classification' && f.delete_at === 0)) {
+            await adminClient.deletePropertyField(PROPERTY_GROUP, 'channel', f.id);
+        }
+    } catch {
+        // May not exist; ignore.
+    }
+
     // Clean up both the current 'system' object type and the legacy 'user' object type
     // to handle stale data from earlier versions of the feature.
     for (const objectType of [LINKED_OBJECT_TYPE, 'user'] as const) {
@@ -91,11 +101,10 @@ export async function setupClassificationField(
         target_id: '',
         attrs: {
             options: levels.map((l) => ({id: l.id ?? '', name: l.name, color: l.color, rank: l.rank})),
-            managed: 'admin',
         },
-        permission_field: 'sysadmin',
-        permission_values: 'sysadmin',
-        permission_options: 'sysadmin',
+        permission_field: 'admin',
+        permission_values: 'admin',
+        permission_options: 'admin',
     } as Parameters<Client4['createPropertyField']>[2]);
 }
 

@@ -67,7 +67,7 @@ func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*m
 
 	var field model.PropertyField
 	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("PropertyField", id)
 		}
 		return nil, errors.Wrap(err, "property_field_get_select")
@@ -85,6 +85,9 @@ func (s *SqlPropertyFieldStore) GetFieldByName(ctx context.Context, groupID, tar
 
 	var field model.PropertyField
 	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("PropertyField", name)
+		}
 		return nil, errors.Wrap(err, "property_field_get_by_name_select")
 	}
 
@@ -123,6 +126,24 @@ func (s *SqlPropertyFieldStore) CountForGroup(groupID string, includeDeleted boo
 
 	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
 		return int64(0), errors.Wrap(err, "failed to count Sessions")
+	}
+	return count, nil
+}
+
+func (s *SqlPropertyFieldStore) CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error) {
+	var count int64
+	builder := s.getQueryBuilder().
+		Select("COUNT(id)").
+		From("PropertyFields").
+		Where(sq.Eq{"GroupID": groupID}).
+		Where(sq.Eq{"ObjectType": objectType})
+
+	if !includeDeleted {
+		builder = builder.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
+		return int64(0), errors.Wrap(err, "failed to count property fields for group and object type")
 	}
 	return count, nil
 }
@@ -210,7 +231,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_update_begin_transaction")
 	}
@@ -444,8 +465,7 @@ func (s *SqlPropertyFieldStore) buildConflictSubquery(level string, objectType, 
 // new fields.
 func (s *SqlPropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
 	// Legacy properties (PSAv1) use old uniqueness via DB constraint
-	// FIXME: explicitly excluding templates from the shortcircuit, should be removed after CPA is fully migrated to v2
-	if field.IsPSAv1() && field.ObjectType != model.PropertyFieldObjectTypeTemplate {
+	if field.IsPSAv1() {
 		return "", nil
 	}
 
@@ -493,7 +513,7 @@ func (s *SqlPropertyFieldStore) checkSystemLevelConflict(field *model.PropertyFi
 	args = append(args, channelArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
-	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
+	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
 		return "", errors.Wrap(err, "property_field_check_conflict_system")
 	}
 
@@ -547,7 +567,7 @@ func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyFiel
 	args = append(args, channelArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
-	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
+	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
 		return "", errors.Wrap(err, "property_field_check_conflict_team")
 	}
 
@@ -591,7 +611,7 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 	args = append(args, teamArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
-	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
+	if err := s.GetMaster().Get(&conflictLevel, query, args...); err != nil {
 		return "", errors.Wrap(err, "property_field_check_conflict_channel")
 	}
 
