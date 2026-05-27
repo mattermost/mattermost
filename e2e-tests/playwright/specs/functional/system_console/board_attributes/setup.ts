@@ -68,27 +68,47 @@ export async function setupBoardAttributesTest(pw: PlaywrightExtended): Promise<
     return {adminClient, systemConsolePage};
 }
 
-export async function cleanupCustomBoardFields(): Promise<void> {
+/**
+ * Best-effort teardown for custom (non-protected) board fields.
+ *
+ * Pass `nameFilter` (recommended) to scope cleanup to fields this spec
+ * created — important when multiple board_attributes specs share the same
+ * server. Without a filter, all non-protected fields in the system group
+ * are removed.
+ */
+export async function cleanupCustomBoardFields(nameFilter?: (name: string) => boolean): Promise<void> {
     if (!cachedAdminClient) {
         return;
     }
     try {
-        await deleteNonProtectedFields(cachedAdminClient);
+        await deleteNonProtectedFields(cachedAdminClient, nameFilter);
     } catch {
         // best-effort
     }
 }
 
-async function deleteNonProtectedFields(adminClient: Client4): Promise<void> {
+async function deleteNonProtectedFields(adminClient: Client4, nameFilter?: (name: string) => boolean): Promise<void> {
     try {
         const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, SYSTEM_TARGET_TYPE);
         for (const field of fields ?? []) {
-            if (!field.protected) {
-                await adminClient.deletePropertyField(BOARDS_GROUP, OBJECT_TYPE_POST, field.id);
+            if (field.protected) {
+                continue;
             }
+            if (nameFilter && !nameFilter(field.name)) {
+                continue;
+            }
+            await adminClient.deletePropertyField(BOARDS_GROUP, OBJECT_TYPE_POST, field.id);
         }
-    } catch {
-        // Boards group not yet seeded — first board creation will trigger
-        // doSetupBoardsProperties.
+    } catch (error: unknown) {
+        const statusCode =
+            typeof error === 'object' && error !== null && 'status_code' in error
+                ? (error as {status_code?: number}).status_code
+                : undefined;
+        if (statusCode === 404) {
+            // Boards group not yet seeded — first board creation will trigger
+            // doSetupBoardsProperties.
+            return;
+        }
+        throw error;
     }
 }

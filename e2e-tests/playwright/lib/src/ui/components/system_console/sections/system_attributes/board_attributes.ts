@@ -57,8 +57,17 @@ export default class BoardAttributes {
         return this.container.getByTestId('board-attribute-field-input').nth(nth);
     }
 
+    /**
+     * Find a name input by its initial-render value. Scoped to the table's
+     * own name-input testid so it cannot accidentally match unrelated inputs
+     * (option-rename inputs, type-filter input) that may share a value, and
+     * escapes the value for safe interpolation into the CSS attribute
+     * selector. See class-level comment about value-attribute caveats.
+     */
     nameInputByValue(value: string): Locator {
-        return this.container.locator(`input[value="${value}"]`);
+        return this.container
+            .getByTestId('board-attribute-field-input')
+            .and(this.container.locator(`input[value="${escapeCssAttributeValue(value)}"]`));
     }
 
     lastNameInput(): Locator {
@@ -74,9 +83,12 @@ export default class BoardAttributes {
     rowByName(name: string): Locator {
         // The `has` locator is re-rooted at each candidate <tr>, so it must
         // be a page-level locator (not a chain anchored at the table's own
-        // container).
+        // container). Anchor on the name-input testid so the row probe
+        // can't match through option chips or filter inputs.
         return this.container.locator('tr', {
-            has: this.page.locator(`input[value="${name}"]`),
+            has: this.page.locator(
+                `input[data-testid="board-attribute-field-input"][value="${escapeCssAttributeValue(name)}"]`,
+            ),
         });
     }
 
@@ -265,4 +277,11 @@ export default class BoardAttributes {
     async clickDeleteAttribute() {
         await this.page.getByText('Delete attribute', {exact: true}).click();
     }
+}
+
+// Escape characters that have special meaning inside a CSS attribute value
+// when the value is interpolated between double quotes (`[attr="..."]`).
+// Backslash must be escaped first so it doesn't double-escape the quote.
+function escapeCssAttributeValue(value: string): string {
+    return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }

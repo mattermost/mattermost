@@ -10,9 +10,13 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 import {setupBoardAttributesTest, cleanupCustomBoardFields} from './setup';
 
+// Spec-scoped test data prefix. afterEach cleanup is filtered by this so
+// concurrent specs sharing the same server can't delete each other's fields.
+const BA_PREFIX = 'BA_';
+
 test.describe('System Console - Board Attributes', {tag: '@board_attributes'}, () => {
     test.afterEach(async () => {
-        await cleanupCustomBoardFields();
+        await cleanupCustomBoardFields((name) => name.startsWith(BA_PREFIX));
     });
 
     test('renders page with seeded Status and Assignee rows and a disabled save button', async ({pw}) => {
@@ -81,7 +85,7 @@ test.describe('System Console - Board Attributes', {tag: '@board_attributes'}, (
         await ba.goto();
         await ba.toBeVisible();
 
-        const name = `Priority_${Date.now()}`;
+        const name = `${BA_PREFIX}Priority_${Date.now()}`;
 
         // # Add a new attribute and name it
         await ba.addAttribute(name);
