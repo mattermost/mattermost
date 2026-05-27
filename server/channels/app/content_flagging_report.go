@@ -307,7 +307,7 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 			out.ActorUsername = u.Username
 			out.ActorUserId = u.Id
 		} else {
-			rctx.Logger().Warn("Failed to fetch report generator user for flagged post report", mlog.String("user_id", generatedByUserID), mlog.Err(uErr))
+			rctx.Logger().Warn("Failed to fetch report generator user for flagged post report", mlog.String("actor_user_id", actorUserId), mlog.Err(uErr))
 		}
 	}
 
