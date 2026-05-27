@@ -490,7 +490,7 @@ type PropertyFieldSearch struct {
 //   - Every entry in ObjectTypes must be a valid PSAv2 object type.
 //   - ChannelID/TeamID and TargetType/TargetIDs are mutually exclusive scope modes.
 //   - ChannelID requires TeamID (callers must resolve TeamID before search).
-//   - SinceUpdateAt <= 0 means "no filter" — matching the /groups convention.
+//   - SinceUpdateAt <= 0 means "no filter".
 type PropertyFieldSearchOpts struct {
 	GroupID string
 	// Deprecated: use ObjectTypes instead. Kept for backwards compatibility

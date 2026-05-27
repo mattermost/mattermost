@@ -167,30 +167,61 @@ func (s *SqlPropertyFieldStore) CountForTarget(groupID, targetType, targetID str
 	return count, nil
 }
 
+// SearchPropertyFields runs the PSAv2 field listing query.
+//
+// The store operates in two modes determined by opts.SinceUpdateAt:
+//
+//   - Delta mode (SinceUpdateAt > 0): orders by UpdateAt ASC, Id ASC; paginates
+//     with the (UpdateAt, Id) cursor key; auto-includes soft-deleted rows. The
+//     DeleteAt filter is NOT applied in this mode.
+//   - Directory mode (SinceUpdateAt <= 0): orders by CreateAt ASC, Id ASC;
+//     paginates with the (CreateAt, Id) cursor key; honors opts.IncludeDeleted.
+//
+// The scope filter has two mutually exclusive shapes, enforced by
+// opts.IsValid(): either we search through the hierarchy (channel or team and up,
+// if ChannelID or TeamID are set) or we filter on a single target using
+// TargetType/TargetIDs.
 func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	if err := opts.Cursor.IsValid(); err != nil {
-		return nil, fmt.Errorf("cursor is invalid: %w", err)
+	if err := opts.IsValid(); err != nil {
+		return nil, fmt.Errorf("opts is invalid: %w", err)
 	}
 
 	if opts.PerPage < 1 {
 		return nil, errors.New("per page must be positive integer greater than zero")
 	}
 
-	builder := s.tableSelectQuery.
-		OrderBy("CreateAt ASC, Id ASC").
-		Limit(uint64(opts.PerPage))
+	deltaMode := opts.SinceUpdateAt > 0
 
-	if !opts.Cursor.IsEmpty() {
-		builder = builder.Where(sq.Or{
-			sq.Gt{"CreateAt": opts.Cursor.CreateAt},
-			sq.And{
-				sq.Eq{"CreateAt": opts.Cursor.CreateAt},
-				sq.Gt{"Id": opts.Cursor.PropertyFieldID},
-			},
-		})
+	builder := s.tableSelectQuery.Limit(uint64(opts.PerPage))
+	if deltaMode {
+		builder = builder.OrderBy("UpdateAt ASC, Id ASC")
+	} else {
+		builder = builder.OrderBy("CreateAt ASC, Id ASC")
 	}
 
-	if !opts.IncludeDeleted {
+	if !opts.Cursor.IsEmpty() {
+		if deltaMode {
+			builder = builder.Where(sq.Or{
+				sq.Gt{"UpdateAt": opts.Cursor.UpdateAt},
+				sq.And{
+					sq.Eq{"UpdateAt": opts.Cursor.UpdateAt},
+					sq.Gt{"Id": opts.Cursor.PropertyFieldID},
+				},
+			})
+		} else {
+			builder = builder.Where(sq.Or{
+				sq.Gt{"CreateAt": opts.Cursor.CreateAt},
+				sq.And{
+					sq.Eq{"CreateAt": opts.Cursor.CreateAt},
+					sq.Gt{"Id": opts.Cursor.PropertyFieldID},
+				},
+			})
+		}
+	}
+
+	// Delta mode auto-includes tombstones; directory mode keeps the explicit
+	// IncludeDeleted opt-in.
+	if !deltaMode && !opts.IncludeDeleted {
 		builder = builder.Where(sq.Eq{"DeleteAt": 0})
 	}
 
@@ -198,23 +229,54 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 		builder = builder.Where(sq.Eq{"GroupID": opts.GroupID})
 	}
 
-	if opts.ObjectType != "" {
+	// Prefer ObjectTypes (renders as IN); fall back to the deprecated
+	// single-value ObjectType for backwards compatibility.
+	if len(opts.ObjectTypes) > 0 {
+		builder = builder.Where(sq.Eq{"ObjectType": opts.ObjectTypes})
+	} else if opts.ObjectType != "" {
 		builder = builder.Where(sq.Eq{"ObjectType": opts.ObjectType})
 	}
 
-	if opts.TargetType != "" {
-		builder = builder.Where(sq.Eq{"TargetType": opts.TargetType})
-	}
-
-	if len(opts.TargetIDs) > 0 {
-		builder = builder.Where(sq.Eq{"TargetID": opts.TargetIDs})
+	// Three mutually exclusive scopes (enforced by opts.IsValid()):
+	//   - Channel: OR{system, team=TeamID, channel=ChannelID}
+	//   - Team-only: OR{system, team=TeamID}
+	//   - Single target: WHERE TargetType = ? and/or TargetID IN (?) — either
+	//     filter may be applied independently for backwards compatibility.
+	switch {
+	case opts.ChannelID != "" && opts.TeamID != "":
+		builder = builder.Where(sq.Or{
+			sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelSystem)},
+			sq.And{
+				sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelTeam)},
+				sq.Eq{"TargetID": opts.TeamID},
+			},
+			sq.And{
+				sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelChannel)},
+				sq.Eq{"TargetID": opts.ChannelID},
+			},
+		})
+	case opts.TeamID != "":
+		builder = builder.Where(sq.Or{
+			sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelSystem)},
+			sq.And{
+				sq.Eq{"TargetType": string(model.PropertyFieldTargetLevelTeam)},
+				sq.Eq{"TargetID": opts.TeamID},
+			},
+		})
+	default:
+		if opts.TargetType != "" {
+			builder = builder.Where(sq.Eq{"TargetType": opts.TargetType})
+		}
+		if len(opts.TargetIDs) > 0 {
+			builder = builder.Where(sq.Eq{"TargetID": opts.TargetIDs})
+		}
 	}
 
 	if opts.LinkedFieldID != "" {
 		builder = builder.Where(sq.Eq{"LinkedFieldID": opts.LinkedFieldID})
 	}
 
-	if opts.SinceUpdateAt > 0 {
+	if deltaMode {
 		builder = builder.Where(sq.Gt{"UpdateAt": opts.SinceUpdateAt})
 	}
 
