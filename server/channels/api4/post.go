@@ -739,14 +739,6 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	postsAPITypeCheckWithContext("deletePost", c, post.Type)
-	if c.Err != nil {
-		return
-	}
-
-	auditRec.AddEventPriorState(post)
-	auditRec.AddEventObjectType("post")
-
 	switch {
 	case c.AppContext.Session().UserId == post.UserId:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
@@ -759,6 +751,14 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 			return
 		}
 	}
+
+	postsAPITypeCheckWithContext("deletePost", c, post.Type)
+	if c.Err != nil {
+		return
+	}
+
+	auditRec.AddEventPriorState(post)
+	auditRec.AddEventObjectType("post")
 
 	if permanent {
 		appErr = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
@@ -1060,14 +1060,14 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsAPITypeCheckWithContext("updatePost", c, originalPost.Type)
-	if c.Err != nil {
-		return
-	}
-
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
 	if !ok {
 		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	postsAPITypeCheckWithContext("updatePost", c, originalPost.Type)
+	if c.Err != nil {
 		return
 	}
 
@@ -1219,14 +1219,6 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 		return false
 	}
 
-	postsAPITypeCheckWithContext("patchPost", c, originalPost.Type)
-	if c.Err != nil {
-		return false
-	}
-
-	auditRec.AddEventPriorState(originalPost)
-	auditRec.AddEventObjectType("post")
-
 	var permission *model.Permission
 	switch {
 	case c.AppContext.Session().UserId == originalPost.UserId:
@@ -1240,6 +1232,14 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 		c.SetPermissionError(permission)
 		return false
 	}
+
+	postsAPITypeCheckWithContext("patchPost", c, originalPost.Type)
+	if c.Err != nil {
+		return false
+	}
+
+	auditRec.AddEventPriorState(originalPost)
+	auditRec.AddEventObjectType("post")
 
 	// Users who can't create posts in a channel shouldn't be able to edit them either.
 	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)

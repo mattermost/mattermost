@@ -7287,6 +7287,72 @@ func TestPostsAPIRejectsCardPosts(t *testing.T) {
 	})
 }
 
+func TestPostsAPIChecksChannelAccessBeforeType(t *testing.T) {
+	// /posts mutation endpoints must run the channel ACL before the card-type
+	// rejection; otherwise a caller without access to the channel can
+	// distinguish "is a card" (400 disallowed_type) from "is a regular post"
+	// (403) by post ID alone.
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	privateChannel := th.BasicPrivateChannel2
+
+	cardPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: privateChannel.Id,
+		Message:   "card in private",
+		Type:      model.PostTypeCard,
+	}, privateChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	regularPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: privateChannel.Id,
+		Message:   "regular in private",
+	}, privateChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	th.LoginBasic2(t)
+
+	t.Run("delete: card vs regular both 403", func(t *testing.T) {
+		respCard, errCard := th.Client.DeletePost(context.Background(), cardPost.Id)
+		require.Error(t, errCard)
+		CheckForbiddenStatus(t, respCard)
+
+		respRegular, errRegular := th.Client.DeletePost(context.Background(), regularPost.Id)
+		require.Error(t, errRegular)
+		CheckForbiddenStatus(t, respRegular)
+	})
+
+	t.Run("update: card vs regular both 403", func(t *testing.T) {
+		updatedCard := cardPost.Clone()
+		updatedCard.Message = "x"
+		_, respCard, errCard := th.Client.UpdatePost(context.Background(), cardPost.Id, updatedCard)
+		require.Error(t, errCard)
+		CheckForbiddenStatus(t, respCard)
+
+		updatedRegular := regularPost.Clone()
+		updatedRegular.Message = "x"
+		_, respRegular, errRegular := th.Client.UpdatePost(context.Background(), regularPost.Id, updatedRegular)
+		require.Error(t, errRegular)
+		CheckForbiddenStatus(t, respRegular)
+	})
+
+	t.Run("patch: card vs regular both 403", func(t *testing.T) {
+		patch := &model.PostPatch{Message: model.NewPointer("x")}
+		_, respCard, errCard := th.Client.PatchPost(context.Background(), cardPost.Id, patch)
+		require.Error(t, errCard)
+		CheckForbiddenStatus(t, respCard)
+
+		_, respRegular, errRegular := th.Client.PatchPost(context.Background(), regularPost.Id, patch)
+		require.Error(t, errRegular)
+		CheckForbiddenStatus(t, respRegular)
+	})
+}
+
 // MM-68140: POST /posts/rewrite must reject root_id for threads in channels the user cannot read
 // before any thread content is used (e.g. sent to the AI bridge).
 func TestRewritePostRequiresReadAccessToRootThread(t *testing.T) {
