@@ -9,9 +9,11 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"path"
 	"strings"
 	"time"
@@ -57,18 +59,9 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 		scheme = "http"
 	}
 
-	var serviceURL string
-	if settings.AzureEndpoint == "" {
-		// vhost-style production endpoint (Azure commercial cloud).
-		serviceURL = fmt.Sprintf("%s://%s.blob.core.windows.net/", scheme, settings.AzureStorageAccount)
-	} else {
-		// Path-style endpoint where the account is part of the URL path
-		// rather than the hostname. This covers Azurite and custom hosts
-		// (reverse proxies, gateways) that expose Azure Blob Storage
-		// without per-account DNS. Sovereign clouds (Azure Government,
-		// Azure China) use vhost-style URLs and are not supported via
-		// this setting; they require their own endpoint plumbing.
-		serviceURL = fmt.Sprintf("%s://%s/%s/", scheme, strings.Trim(settings.AzureEndpoint, "/"), settings.AzureStorageAccount)
+	serviceURL, err := buildAzureServiceURL(settings.AzureCloud, scheme, settings.AzureStorageAccount, settings.AzureEndpoint)
+	if err != nil {
+		return nil, err
 	}
 
 	var clientOptions *azblob.ClientOptions
@@ -114,6 +107,53 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 
 func (b *AzureFileBackend) DriverName() string {
 	return driverAzure
+}
+
+// buildAzureServiceURL renders the Blob service URL that the SDK signs
+// requests against. The cloud value selects the topology:
+//
+//   - commercial -> vhost-style against blob.core.windows.net, e.g.
+//     https://{account}.blob.core.windows.net/.
+//   - government -> vhost-style against blob.core.usgovcloudapi.net,
+//     e.g. https://{account}.blob.core.usgovcloudapi.net/.
+//   - custom -> the admin-provided endpoint is the full service URL,
+//     including scheme and storage account (vhost-style for production
+//     Azure, path-style for Azurite or reverse proxies). Mattermost
+//     does not modify the URL.
+//
+// Empty cloud is treated as commercial so existing configs that pre-date
+// this field keep working. Shared-key auth signs against the URL host,
+// so for custom deployments the admin is responsible for ensuring the
+// host actually serves the storage account named in the credential.
+func buildAzureServiceURL(cloud, scheme, account, endpoint string) (string, error) {
+	switch cloud {
+	case model.AzureCloudCommercial, "":
+		return fmt.Sprintf("%s://%s.blob.core.windows.net/", scheme, account), nil
+	case model.AzureCloudGovernment:
+		return fmt.Sprintf("%s://%s.blob.core.usgovcloudapi.net/", scheme, account), nil
+	case model.AzureCloudCustom:
+		if endpoint == "" {
+			return "", errors.New("AzureCloud=custom requires AzureEndpoint to be set")
+		}
+		// The admin owns this URL end to end, but we still reject inputs
+		// that the SDK is guaranteed to fail on later (missing scheme,
+		// missing host, a scheme other than http/https) so the
+		// failure mode is a clear configuration error at startup rather
+		// than an opaque SDK error on the first blob request.
+		parsed, err := url.Parse(endpoint)
+		if err != nil {
+			return "", fmt.Errorf("AzureEndpoint is not a valid URL: %w", err)
+		}
+		if parsed.Scheme != "http" && parsed.Scheme != "https" {
+			return "", fmt.Errorf("AzureEndpoint must use http or https, got %q", endpoint)
+		}
+		if parsed.Host == "" {
+			return "", fmt.Errorf("AzureEndpoint must include a host, got %q", endpoint)
+		}
+		return endpoint, nil
+	default:
+		return "", fmt.Errorf("unknown AzureCloud value %q", cloud)
+	}
 }
 
 // prefix joins the configured pathPrefix and the caller-supplied path.

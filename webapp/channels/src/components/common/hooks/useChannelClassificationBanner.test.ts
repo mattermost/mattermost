@@ -98,7 +98,6 @@ function mockClassification(overrides: Partial<ClassificationHook.Classification
     return jest.spyOn(ClassificationHook, 'default').mockReturnValue({
         available: true,
         loading: false,
-        templateField: null,
         channelField: makeChannelField(),
         levels: SAMPLE_LEVELS,
         ...overrides,

@@ -84,6 +84,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.opensearch
+      args:
+        OPENSEARCH_VERSION: ${OPENSEARCH_VERSION:-3.0.0}
     networks:
       - mm-test
     environment:
@@ -96,7 +98,9 @@ services:
       transport.host: "127.0.0.1"
       discovery.type: single-node
       plugins.security.disabled: "true"
-      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "Test@dmin_123"
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
   redis:
     image: "redis:7.4.0"
     logging: *default-logging
