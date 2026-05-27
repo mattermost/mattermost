@@ -283,6 +283,24 @@ func TestGenerateSupportPacket(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("invalid cpu_profile_duration_seconds returns 400", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense())
+
+		for _, v := range []string{"-1", "301", "abc", "1.5", "9999"} {
+			t.Run(v, func(t *testing.T) {
+				req, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
+					th.SystemAdminClient.URL+"/api/v4/system/support_packet?cpu_profile_duration_seconds="+v, nil)
+				require.NoError(t, err)
+				req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+th.SystemAdminClient.AuthToken)
+
+				resp, err := th.SystemAdminClient.HTTPClient.Do(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+				assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+			})
+		}
+	})
 }
 
 func TestSupportPacketFileName(t *testing.T) {
