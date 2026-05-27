@@ -223,12 +223,89 @@ func azuriteSettings(t *testing.T) FileBackendSettings {
 	return FileBackendSettings{
 		DriverName:                      driverAzure,
 		AzureStorageAccount:             azuriteWellKnownAccount,
+		AzureAuthMode:                   model.AzureAuthModeSharedKey,
 		AzureAccessKey:                  azuriteWellKnownKey,
 		AzureContainer:                  "mattermost-test",
 		AzureCloud:                      model.AzureCloudCustom,
 		AzureEndpoint:                   "http://" + net.JoinHostPort(host, port) + "/" + azuriteWellKnownAccount + "/",
 		AzureRequestTimeoutMilliseconds: 30000,
 	}
+}
+
+func TestNewAzureFileBackendAuthMode(t *testing.T) {
+	base := FileBackendSettings{
+		DriverName:                      driverAzure,
+		AzureStorageAccount:             "anaccount",
+		AzureContainer:                  "acontainer",
+		AzureEndpoint:                   "localhost:10000",
+		AzureSSL:                        false,
+		AzureRequestTimeoutMilliseconds: 30000,
+	}
+
+	t.Run("shared_key constructs a client", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = model.AzureAuthModeSharedKey
+		s.AzureAccessKey = azuriteWellKnownKey
+
+		be, err := NewAzureFileBackend(s)
+		require.NoError(t, err)
+		require.NotNil(t, be.client)
+	})
+
+	t.Run("default_credential constructs a client without an access key", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = model.AzureAuthModeDefaultCredential
+		// Intentionally no AzureAccessKey - default credential reads
+		// identity from the host environment, not config.
+
+		be, err := NewAzureFileBackend(s)
+		require.NoError(t, err)
+		require.NotNil(t, be.client)
+	})
+
+	t.Run("empty AuthMode is rejected", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = ""
+		s.AzureAccessKey = azuriteWellKnownKey
+
+		_, err := NewAzureFileBackend(s)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unknown azure auth mode")
+	})
+
+	t.Run("unknown AuthMode is rejected", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = "oauth2"
+		s.AzureAccessKey = azuriteWellKnownKey
+
+		_, err := NewAzureFileBackend(s)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unknown azure auth mode")
+	})
+}
+
+func TestCheckMandatoryAzureFieldsAuthMode(t *testing.T) {
+	base := FileBackendSettings{
+		AzureStorageAccount: "anaccount",
+		AzureContainer:      "acontainer",
+	}
+
+	t.Run("shared_key requires access key", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = model.AzureAuthModeSharedKey
+		s.AzureAccessKey = ""
+		require.Error(t, s.CheckMandatoryAzureFields())
+
+		s.AzureAccessKey = "somekey"
+		require.NoError(t, s.CheckMandatoryAzureFields())
+	})
+
+	t.Run("default_credential does not require access key", func(t *testing.T) {
+		s := base
+		s.AzureAuthMode = model.AzureAuthModeDefaultCredential
+		s.AzureAccessKey = ""
+		require.NoError(t, s.CheckMandatoryAzureFields())
+	})
 }
 
 func TestAzureFileBackendTestSuite(t *testing.T) {
