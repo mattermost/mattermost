@@ -1,6 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import globals from 'globals';
+import tsParser from '@typescript-eslint/parser';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import js from '@eslint/js';
+import {FlatCompat} from '@eslint/eslintrc';
+import headers from 'eslint-plugin-headers';
 import pluginCypress from 'eslint-plugin-cypress';
 import noOnlyTest from 'eslint-plugin-no-only-tests';
 
