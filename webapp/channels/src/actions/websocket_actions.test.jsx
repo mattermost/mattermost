@@ -12,6 +12,7 @@ import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general'
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
     getPostThreads,
+    getPostsAround,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
@@ -59,6 +60,7 @@ import {
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
     getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
+    getPostsAround: jest.fn(() => ({type: 'GET_POSTS_AROUND'})),
     getMentionsAndStatusesForPosts: jest.fn(),
 }));
 
@@ -211,6 +213,10 @@ let mockState = {
                     order: ['post5', 'post2', 'post1'],
                     recent: true,
                 }],
+                channel2: [{
+                    order: ['post4', 'post3'],
+                    recent: true,
+                }],
             },
         },
     },
@@ -251,20 +257,102 @@ describe('handleEvent', () => {
 });
 
 describe('handlePostEditEvent', () => {
+    beforeEach(() => {
+        store.dispatch.mockClear();
+        getPostsAround.mockClear();
+    });
+
+    const buildMsg = (postOverrides) => {
+        const post = JSON.stringify({
+            id: 'test',
+            create_at: 123,
+            update_at: 123,
+            user_id: 'user',
+            channel_id: '12345',
+            root_id: '',
+            message: 'asd',
+            pending_post_id: '2345',
+            metadata: {},
+            ...postOverrides,
+        });
+        return {
+            data: {post},
+            broadcast: {channel_id: '1234657'},
+        };
+    };
+
     test('post edited', async () => {
-        const post = '{"id":"test","create_at":123,"update_at":123,"user_id":"user","channel_id":"12345","root_id":"","message":"asd","pending_post_id":"2345","metadata":{}}';
-        const expectedAction = {type: 'RECEIVED_POST', data: JSON.parse(post), features: {crtEnabled: false}};
-        const msg = {
-            data: {
-                post,
-            },
-            broadcast: {
-                channel_id: '1234657',
-            },
+        const msg = buildMsg({});
+        const expectedAction = {
+            type: 'RECEIVED_POST',
+            data: JSON.parse(msg.data.post),
+            features: {crtEnabled: false},
         };
 
         handlePostEditEvent(msg);
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('restored post within a loaded block range triggers getPostsAround', () => {
+        // mockState's otherChannel block contains post5 (create_at 12345 — newest)
+        // through post1 (create_at 12341 — oldest). A restored post not in that
+        // order but with create_at inside the range should fetch surrounding posts.
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 12343});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).toHaveBeenCalledWith('otherChannel', 'restored');
+        expect(store.dispatch).toHaveBeenCalledWith({type: 'GET_POSTS_AROUND'});
+    });
+
+    test('restored post newer than every loaded block in the current channel triggers getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 99999});
+        handlePostEditEvent(msg);
+        expect(getPostsAround).toHaveBeenCalledWith('otherChannel', 'restored');
+    });
+
+    test('restored post newer than every loaded block in a non-current channel does not trigger getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'channel2', create_at: 99999});
+        handlePostEditEvent(msg);
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('restored post older than every loaded block does not trigger getPostsAround', () => {
+        // create_at well below the block's oldest (12341). Inserting here would
+        // produce a disjoint block; let the user load it naturally on scroll.
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 100});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('post already in a block does not trigger getPostsAround', () => {
+        // post5 is in mockState's otherChannel order — receivedPost updates the
+        // entity in place; no surrounding fetch is needed.
+        const msg = buildMsg({id: 'post5', channel_id: 'otherChannel', create_at: 12345});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('edit for an unloaded channel does not trigger getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'channelNotInState', create_at: 12343});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('thread reply does not trigger getPostsAround', () => {
+        // Replies live in postsInThread, not postsInChannel — skip this path.
+        const msg = buildMsg({id: 'reply', channel_id: 'otherChannel', create_at: 12343, root_id: 'post5'});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
     });
 });
 
