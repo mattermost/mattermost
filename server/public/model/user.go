@@ -922,6 +922,23 @@ func (u *User) IsSAMLUser() bool {
 	return u.AuthService == UserAuthServiceSaml
 }
 
+// IsValidUserAuthService reports whether service is a known auth service that
+// can be stored on a user (the canonical empty/email/password value plus the
+// supported SSO and LDAP services).
+func IsValidUserAuthService(service string) bool {
+	switch service {
+	case UserAuthServiceEmail,
+		UserAuthServiceGitlab,
+		UserAuthServiceLdap,
+		UserAuthServiceSaml,
+		ServiceGoogle,
+		ServiceOffice365,
+		ServiceOpenid:
+		return true
+	}
+	return false
+}
+
 func (u *User) GetPreferredTimezone() string {
 	return GetPreferredTimezone(u.Timezone)
 }

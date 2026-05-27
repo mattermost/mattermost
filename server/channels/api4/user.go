@@ -1821,14 +1821,13 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "user_auth", &userAuth)
 
-	requestAuthService := userAuth.AuthService
-	if requestAuthService == model.UserAuthServiceEmail {
-		userAuth.AuthService = ""
-	}
-
-	if !isValidUpdateUserAuthRequest(requestAuthService, &userAuth) {
+	if !isValidUpdateUserAuthRequest(&userAuth) {
 		c.Err = model.NewAppError("updateUserAuth", "api.user.update_user_auth.invalid_request", nil, "", http.StatusBadRequest)
 		return
+	}
+
+	if userAuth.AuthService == model.UserAuthServiceEmail {
+		userAuth.AuthService = ""
 	}
 
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
@@ -1851,26 +1850,16 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func isValidUpdateUserAuthRequest(requestAuthService string, userAuth *model.UserAuth) bool {
-	if userAuth.AuthService == "" {
-		return requestAuthService == model.UserAuthServiceEmail && userAuth.AuthData == nil
-	}
-
-	if userAuth.AuthData == nil || *userAuth.AuthData == "" {
+func isValidUpdateUserAuthRequest(userAuth *model.UserAuth) bool {
+	if !model.IsValidUserAuthService(userAuth.AuthService) {
 		return false
 	}
 
-	switch userAuth.AuthService {
-	case model.UserAuthServiceGitlab,
-		model.UserAuthServiceLdap,
-		model.UserAuthServiceSaml,
-		model.ServiceGoogle,
-		model.ServiceOffice365,
-		model.ServiceOpenid:
-		return true
-	default:
-		return false
+	if userAuth.AuthService == model.UserAuthServiceEmail {
+		return userAuth.AuthData == nil
 	}
+
+	return userAuth.AuthData != nil && *userAuth.AuthData != ""
 }
 
 func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {

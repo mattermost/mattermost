@@ -645,3 +645,27 @@ func TestSanitizeProfile(t *testing.T) {
 		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
 	})
 }
+
+func TestIsValidUserAuthService(t *testing.T) {
+	valid := []string{
+		UserAuthServiceEmail,
+		UserAuthServiceGitlab,
+		UserAuthServiceLdap,
+		UserAuthServiceSaml,
+		ServiceGoogle,
+		ServiceOffice365,
+		ServiceOpenid,
+	}
+	for _, s := range valid {
+		t.Run("valid/"+s, func(t *testing.T) {
+			require.True(t, IsValidUserAuthService(s))
+		})
+	}
+
+	invalid := []string{"", "not-a-real-service", UserAuthServiceMagicLink, "EMAIL"}
+	for _, s := range invalid {
+		t.Run("invalid/"+s, func(t *testing.T) {
+			require.False(t, IsValidUserAuthService(s))
+		})
+	}
+}
