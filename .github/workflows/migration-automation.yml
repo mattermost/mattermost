@@ -56,10 +56,10 @@ jobs:
       - name: Run migration automation
         if: steps.detect.outputs.files != ''
         env:
-          ANTHROPIC_API_KEY:          ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN:               ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_SHA:                 ${{ github.sha }}
-          GITHUB_REPOSITORY:          ${{ github.repository }}
-          MIGRATION_REVIEW_ASSIGNEE:  ${{ vars.MIGRATION_REVIEW_ASSIGNEE }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          MIGRATION_REVIEW_ASSIGNEE: ${{ vars.MIGRATION_REVIEW_ASSIGNEE }}
         run: |
           python .github/scripts/migration_automation.py ${{ steps.detect.outputs.files }}
