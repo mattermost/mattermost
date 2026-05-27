@@ -698,42 +698,58 @@ func TestChannelBookmarkIsValidBoard(t *testing.T) {
 	t.Run("missing target id", func(t *testing.T) {
 		b := validBoardChannelBookmark()
 		b.TargetId = ""
-		require.NotNil(t, b.IsValid())
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.target_id.app_error", err.Id)
 	})
 	t.Run("invalid target id", func(t *testing.T) {
 		b := validBoardChannelBookmark()
 		b.TargetId = "notaulid"
-		require.NotNil(t, b.IsValid())
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.target_id.app_error", err.Id)
 	})
 	t.Run("link url without leading slash", func(t *testing.T) {
 		b := validBoardChannelBookmark()
 		b.LinkUrl = "team/boards/" + b.TargetId
-		require.NotNil(t, b.IsValid())
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.link_url.app_error", err.Id)
 	})
 	t.Run("link url contains scheme", func(t *testing.T) {
 		b := validBoardChannelBookmark()
 		b.LinkUrl = "http://x/" + b.TargetId
-		require.NotNil(t, b.IsValid())
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.link_url.app_error", err.Id)
 	})
 	t.Run("link url is protocol-relative", func(t *testing.T) {
 		b := validBoardChannelBookmark()
 		b.LinkUrl = "//evil.com/" + b.TargetId
-		require.NotNil(t, b.IsValid())
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.link_url.app_error", err.Id)
 	})
 	t.Run("link url exceeds max runes", func(t *testing.T) {
 		b := validBoardChannelBookmark()
 		b.LinkUrl = "/" + strings.Repeat("a", LinkMaxRunes)
-		require.NotNil(t, b.IsValid())
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.link_url.app_error", err.Id)
 	})
 	t.Run("non-empty file id", func(t *testing.T) {
 		b := validBoardChannelBookmark()
 		b.FileId = NewId()
-		require.NotNil(t, b.IsValid())
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.file_id.app_error", err.Id)
 	})
 	t.Run("non-empty image url", func(t *testing.T) {
 		b := validBoardChannelBookmark()
 		b.ImageUrl = "https://example.com/x.png"
-		require.NotNil(t, b.IsValid())
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.image_url.app_error", err.Id)
 	})
 	t.Run("link type with target id", func(t *testing.T) {
 		b := &ChannelBookmark{
@@ -747,7 +763,9 @@ func TestChannelBookmarkIsValidBoard(t *testing.T) {
 			Type:        ChannelBookmarkLink,
 			TargetId:    NewId(),
 		}
-		require.NotNil(t, b.IsValid())
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.target_id.app_error", err.Id)
 	})
 	t.Run("file type with target id", func(t *testing.T) {
 		b := &ChannelBookmark{
@@ -761,7 +779,9 @@ func TestChannelBookmarkIsValidBoard(t *testing.T) {
 			Type:        ChannelBookmarkFile,
 			TargetId:    NewId(),
 		}
-		require.NotNil(t, b.IsValid())
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.target_id.app_error", err.Id)
 	})
 }
 
