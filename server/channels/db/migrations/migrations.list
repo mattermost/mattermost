@@ -365,3 +365,5 @@ channels/db/migrations/postgres/000183_create_channel_join_requests_user_status_
 channels/db/migrations/postgres/000183_create_channel_join_requests_user_status_index.up.sql
 channels/db/migrations/postgres/000184_add_lastused_to_incoming_webhooks.down.sql
 channels/db/migrations/postgres/000184_add_lastused_to_incoming_webhooks.up.sql
+channels/db/migrations/postgres/000185_threadmemberships_cleanup_v2.down.sql
+channels/db/migrations/postgres/000185_threadmemberships_cleanup_v2.up.sql
