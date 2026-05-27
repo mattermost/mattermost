@@ -318,6 +318,19 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, "")
 	}
 
+	// Notify the access control service so any per-field metadata it
+	// caches (e.g. the rank-by-name lookup used by the live evaluator)
+	// and any compiled-policy cache entries that depend on this field
+	// are dropped. Cheap and idempotent on the AC side.
+	if acs := a.Srv().ch.AccessControl; acs != nil {
+		for _, field := range updated {
+			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
+		}
+		for _, field := range propagated {
+			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
+		}
+	}
+
 	// For each field whose dependent values were cleared as a side effect of
 	// the update (e.g. a type change handled by TypeChangeValueCleanupHook),
 	// publish the generic property_values_updated event so subscribers refresh
