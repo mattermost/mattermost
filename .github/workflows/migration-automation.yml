@@ -1,0 +1,65 @@
+name: Migration Review & Release Notes
+ 
+# Fires whenever a new .up.sql file lands on master.
+# Runs the review-migration and migration-release-notes skills via Claude,
+# commits the output to a short-lived branch, opens a PR assigned to the
+# release manager, and posts a link on the original migration PR.
+#
+# Required secrets:  ANTHROPIC_API_KEY (already in this repo)
+# Required variables: MIGRATION_REVIEW_ASSIGNEE (GitHub username to assign)
+#
+# No other secrets or external services needed.
+ 
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'server/channels/db/migrations/postgres/**.up.sql'
+ 
+permissions:
+  contents: write       # to create the review branch and commit the file
+  pull-requests: write  # to open the review PR and comment on the migration PR
+ 
+jobs:
+  generate:
+    name: Generate migration review & release notes
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # need HEAD~1 to detect added files
+ 
+      - name: Detect newly added migration files
+        id: detect
+        run: |
+          NEW=$(git diff --name-only --diff-filter=A HEAD~1 HEAD -- \
+            'server/channels/db/migrations/postgres/*.up.sql' | tr '\n' ' ')
+          echo "files=$NEW" >> "$GITHUB_OUTPUT"
+          if [ -n "$NEW" ]; then
+            echo "New migrations: $NEW"
+          else
+            echo "No new .up.sql files — skipping."
+          fi
+ 
+      - name: Set up Python
+        if: steps.detect.outputs.files != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+ 
+      - name: Install dependencies
+        if: steps.detect.outputs.files != ''
+        run: pip install anthropic
+ 
+      - name: Run migration automation
+        if: steps.detect.outputs.files != ''
+        env:
+          ANTHROPIC_API_KEY:          ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN:               ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_SHA:                 ${{ github.sha }}
+          GITHUB_REPOSITORY:          ${{ github.repository }}
+          MIGRATION_REVIEW_ASSIGNEE:  ${{ vars.MIGRATION_REVIEW_ASSIGNEE }}
+        run: |
+          python .github/scripts/migration_automation.py ${{ steps.detect.outputs.files }}
