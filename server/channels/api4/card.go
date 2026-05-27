@@ -149,14 +149,14 @@ func updateCard(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if originalPost.Type != model.PostTypeCard {
-		c.Err = model.NewAppError("updateCard", "api.card.not_card_post.app_error", nil, "postId="+c.Params.PostId, http.StatusBadRequest)
-		return
-	}
-
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
 	if !ok {
 		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	if originalPost.Type != model.PostTypeCard {
+		c.Err = model.NewAppError("updateCard", "api.card.not_card_post.app_error", nil, "postId="+c.Params.PostId, http.StatusBadRequest)
 		return
 	}
 
@@ -299,12 +299,6 @@ func cardPostPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.P
 		c.SetPermissionError(model.PermissionEditPost)
 		return false
 	}
-	if originalPost.Type != model.PostTypeCard {
-		c.Err = model.NewAppError("patchCard", "api.card.not_card_post.app_error", nil, "postId="+c.Params.PostId, http.StatusBadRequest)
-		return false
-	}
-	auditRec.AddEventPriorState(originalPost)
-	auditRec.AddEventObjectType("post")
 
 	permission := model.PermissionEditPost
 
@@ -313,6 +307,13 @@ func cardPostPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.P
 		c.SetPermissionError(permission)
 		return false
 	}
+
+	if originalPost.Type != model.PostTypeCard {
+		c.Err = model.NewAppError("patchCard", "api.card.not_card_post.app_error", nil, "postId="+c.Params.PostId, http.StatusBadRequest)
+		return false
+	}
+	auditRec.AddEventPriorState(originalPost)
+	auditRec.AddEventObjectType("post")
 
 	// Users who can't create posts in a channel shouldn't be able to edit them either.
 	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
@@ -359,6 +360,11 @@ func deleteCard(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
+		c.SetPermissionError(model.PermissionDeletePost)
+		return
+	}
+
 	if post.Type != model.PostTypeCard {
 		c.Err = model.NewAppError("deleteCard", "api.card.not_card_post.app_error", nil, "postId="+c.Params.PostId, http.StatusBadRequest)
 		return
@@ -366,11 +372,6 @@ func deleteCard(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
-
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
-		c.SetPermissionError(model.PermissionDeletePost)
-		return
-	}
 
 	if permanent {
 		appErr = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
@@ -399,14 +400,14 @@ func getCardEditHistory(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	if originalPost.Type != model.PostTypeCard {
-		c.Err = model.NewAppError("getCardEditHistory", "api.card.not_card_post.app_error", nil, "postId="+c.Params.PostId, http.StatusBadRequest)
-		return
-	}
-
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
 	if !ok {
 		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	if originalPost.Type != model.PostTypeCard {
+		c.Err = model.NewAppError("getCardEditHistory", "api.card.not_card_post.app_error", nil, "postId="+c.Params.PostId, http.StatusBadRequest)
 		return
 	}
 

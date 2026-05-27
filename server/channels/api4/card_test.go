@@ -51,6 +51,86 @@ func TestCardAPIRequiresCardPost(t *testing.T) {
 	})
 }
 
+func TestCardAPIChecksChannelAccessBeforeType(t *testing.T) {
+	// Channel ACL must be enforced before the card-type check; otherwise a
+	// caller without access can distinguish "exists and is a card" from
+	// "exists and is a regular post" by the response (403 vs. 400).
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	// Private channel that BasicUser2 is NOT a member of. BasicUser is added
+	// to BasicPrivateChannel2 via CreatePrivateChannel (creator). BasicUser2
+	// is not added by InitBasic.
+	privateChannel := th.BasicPrivateChannel2
+
+	cardPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: privateChannel.Id,
+		Message:   "card in private",
+		Type:      model.PostTypeCard,
+	}, privateChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	regularPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: privateChannel.Id,
+		Message:   "regular in private",
+	}, privateChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	th.LoginBasic2(t)
+
+	// Each endpoint must return the same status (403) for both posts so the
+	// response can't be used to fingerprint the post type.
+	t.Run("delete: card vs regular both 403", func(t *testing.T) {
+		respCard, errCard := th.Client.DeleteCard(context.Background(), cardPost.Id)
+		require.Error(t, errCard)
+		CheckForbiddenStatus(t, respCard)
+
+		respRegular, errRegular := th.Client.DeleteCard(context.Background(), regularPost.Id)
+		require.Error(t, errRegular)
+		CheckForbiddenStatus(t, respRegular)
+	})
+
+	t.Run("update: card vs regular both 403", func(t *testing.T) {
+		updatedCard := cardPost.Clone()
+		updatedCard.Message = "x"
+		_, respCard, errCard := th.Client.UpdateCard(context.Background(), cardPost.Id, updatedCard)
+		require.Error(t, errCard)
+		CheckForbiddenStatus(t, respCard)
+
+		updatedRegular := regularPost.Clone()
+		updatedRegular.Message = "x"
+		_, respRegular, errRegular := th.Client.UpdateCard(context.Background(), regularPost.Id, updatedRegular)
+		require.Error(t, errRegular)
+		CheckForbiddenStatus(t, respRegular)
+	})
+
+	t.Run("patch: card vs regular both 403", func(t *testing.T) {
+		patch := &model.PostPatch{Message: model.NewPointer("x")}
+		_, respCard, errCard := th.Client.PatchCard(context.Background(), cardPost.Id, patch)
+		require.Error(t, errCard)
+		CheckForbiddenStatus(t, respCard)
+
+		_, respRegular, errRegular := th.Client.PatchCard(context.Background(), regularPost.Id, patch)
+		require.Error(t, errRegular)
+		CheckForbiddenStatus(t, respRegular)
+	})
+
+	t.Run("edit history: card vs regular both 403", func(t *testing.T) {
+		_, respCard, errCard := th.Client.GetCardEditHistoryForPost(context.Background(), cardPost.Id)
+		require.Error(t, errCard)
+		CheckForbiddenStatus(t, respCard)
+
+		_, respRegular, errRegular := th.Client.GetCardEditHistoryForPost(context.Background(), regularPost.Id)
+		require.Error(t, errRegular)
+		CheckForbiddenStatus(t, respRegular)
+	})
+}
+
 func TestCardAPIRequiresIntegratedBoardsFeature(t *testing.T) {
 	mainHelper.Parallel(t)
 
