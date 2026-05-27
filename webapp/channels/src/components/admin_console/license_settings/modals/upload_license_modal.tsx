@@ -57,20 +57,11 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
         if (isLoading) {
             return;
         }
-
-        // After a successful upload, re-fetch the client license one more time
-        // before closing. The post-upload getLicenseConfig() inside
-        // handleConfirmUpload occasionally lost the race against server-side
-        // license propagation on fresh instances, leaving the parent License
-        // Settings view stale. A second fetch on close picks up the new value.
-        if (step === 'success') {
-            dispatch(getLicenseConfig());
-        }
         if (onExited) {
             onExited();
         }
         dispatch(closeModal(ModalIdentifiers.UPLOAD_LICENSE));
-    }, [isLoading, onExited, dispatch, step]);
+    }, [isLoading, onExited, dispatch]);
 
     // Automatically preview the license when the modal opens with a file
     useEffect(() => {
@@ -264,20 +255,10 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
             </>
         );
     } else {
-        // Success step. Source display fields from previewedLicense (the
-        // license that was just applied) rather than currentLicense (a redux
-        // value that depends on a post-upload refetch we can't fully trust to
-        // have propagated). previewedLicense is the same license bytes the
-        // server just applied, so it always matches what's now active.
-        const appliedStartsAt = previewedLicense?.starts_at ?? parseInt(currentLicense.StartsAt, 10);
-        const appliedExpiresAt = previewedLicense?.expires_at ?? parseInt(currentLicense.ExpiresAt, 10);
-        const appliedUsers = previewedLicense?.features.users ?? Number(currentLicense.Users);
-        const appliedSkuShortName = previewedLicense?.sku_short_name ?? currentLicense.SkuShortName;
-        const appliedIsGovSku = previewedLicense?.is_gov_sku ?? (currentLicense.IsGovSku === 'true');
-
+        // Success step
         const startsAt = (
             <FormattedDate
-                value={new Date(appliedStartsAt)}
+                value={new Date(parseInt(currentLicense.StartsAt, 10))}
                 day='2-digit'
                 month={getMonthLong(locale)}
                 year='numeric'
@@ -285,15 +266,15 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
         );
         const expiresAt = (
             <FormattedDate
-                value={new Date(appliedExpiresAt)}
+                value={new Date(parseInt(currentLicense.ExpiresAt, 10))}
                 day='2-digit'
                 month={getMonthLong(locale)}
                 year='numeric'
             />
         );
 
-        const licensedUsersNum = appliedUsers;
-        const skuName = getSkuDisplayName(appliedSkuShortName, appliedIsGovSku);
+        const licensedUsersNum = currentLicense.Users;
+        const skuName = getSkuDisplayName(currentLicense.SkuShortName, currentLicense.IsGovSku === 'true');
         uploadLicenseContent = (
             <>
                 <div className='content-body'>
