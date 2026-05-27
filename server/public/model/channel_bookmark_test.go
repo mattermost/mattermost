@@ -715,6 +715,11 @@ func TestChannelBookmarkIsValidBoard(t *testing.T) {
 		b.LinkUrl = "http://x/" + b.TargetId
 		require.NotNil(t, b.IsValid())
 	})
+	t.Run("link url is protocol-relative", func(t *testing.T) {
+		b := validBoardChannelBookmark()
+		b.LinkUrl = "//evil.com/" + b.TargetId
+		require.NotNil(t, b.IsValid())
+	})
 	t.Run("link url exceeds max runes", func(t *testing.T) {
 		b := validBoardChannelBookmark()
 		b.LinkUrl = "/" + strings.Repeat("a", LinkMaxRunes)

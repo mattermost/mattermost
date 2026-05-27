@@ -141,7 +141,7 @@ func (o *ChannelBookmark) IsValid() *AppError {
 		if o.TargetId == "" || !IsValidId(o.TargetId) {
 			return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.board.target_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 		}
-		if o.LinkUrl == "" || !strings.HasPrefix(o.LinkUrl, "/") || strings.Contains(o.LinkUrl, "://") || utf8.RuneCountInString(o.LinkUrl) > LinkMaxRunes {
+		if o.LinkUrl == "" || !strings.HasPrefix(o.LinkUrl, "/") || strings.HasPrefix(o.LinkUrl, "//") || strings.Contains(o.LinkUrl, "://") || utf8.RuneCountInString(o.LinkUrl) > LinkMaxRunes {
 			return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.board.link_url.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 		}
 		if o.FileId != "" {
