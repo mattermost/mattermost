@@ -4,7 +4,6 @@
 chai.use((chai: Chai.ChaiStatic) => {
     // Chai assertion context has dynamic 'this' binding
     function assertIsFoo(this: any, {exactStyles = true} = {}) {
-
         const obj = this._obj as JQuery<HTMLElement>;
 
         this.assert(
@@ -31,7 +30,6 @@ chai.use((chai: Chai.ChaiStatic) => {
 
         return this;
     }
-
 
     chai.Assertion.addMethod('a11yVisible', assertIsFoo);
 });

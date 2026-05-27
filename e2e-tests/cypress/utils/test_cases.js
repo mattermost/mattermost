@@ -42,7 +42,7 @@ function getStepStateSummary(steps = []) {
 
 function getTM4JTestCases(report) {
     return getAllTests(report.results).
-        filter((item) => /^(MM-T)\w+/g.test(item.title)).
+        filter((item) => (/^(MM-T)\w+/g).test(item.title)).
         map((item) => {
             return {
                 title: item.title,
