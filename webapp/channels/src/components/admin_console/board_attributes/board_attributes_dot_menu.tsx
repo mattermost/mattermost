@@ -71,9 +71,9 @@ const DotMenu = ({
                 disabled: field.delete_at !== 0,
             }}
             menu={{
-                id: `${menuId}-menu`,
+                id: `${menuId}-${field.id}-menu`,
                 'aria-label': formatMessage({
-                    id: 'admin.board_attributes.dot_menu.aria_label',
+                    id: 'admin.board_attributes.dot_menu.label',
                     defaultMessage: 'Select an action',
                 }),
                 className: 'user-property-field-dotmenu-menu',
