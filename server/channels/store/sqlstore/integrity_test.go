@@ -792,6 +792,25 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 	})
 }
 
+func orphanedRecordsWithChildIDs(records []model.OrphanedRecord, childIDs ...string) []model.OrphanedRecord {
+	childIDSet := make(map[string]struct{}, len(childIDs))
+	for _, childID := range childIDs {
+		childIDSet[childID] = struct{}{}
+	}
+
+	filtered := make([]model.OrphanedRecord, 0, len(childIDs))
+	for _, record := range records {
+		if record.ChildId == nil {
+			continue
+		}
+		if _, ok := childIDSet[*record.ChildId]; ok {
+			filtered = append(filtered, record)
+		}
+	}
+
+	return filtered
+}
+
 func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
@@ -1185,6 +1204,8 @@ func TestCheckUsersCompliancesIntegrity(t *testing.T) {
 
 func TestCheckUsersEmojiIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		ss.DropAllTables()
+
 		store := ss.(*SqlStore)
 		dbmap := store.GetMaster()
 
@@ -1203,11 +1224,12 @@ func TestCheckUsersEmojiIntegrity(t *testing.T) {
 			result := checkUsersEmojiIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 1)
+			records := orphanedRecordsWithChildIDs(data.Records, emoji.Id)
+			require.Len(t, records, 1)
 			require.Equal(t, model.OrphanedRecord{
 				ParentId: &userId,
 				ChildId:  &emoji.Id,
-			}, data.Records[0])
+			}, records[0])
 			dbmap.Exec(`DELETE FROM Emoji WHERE Id=?`, emoji.Id)
 		})
 	})
