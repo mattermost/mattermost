@@ -114,7 +114,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("generate Support Packet with logs", func(t *testing.T) {
 		fileDatas, err = th.Service.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               true,
 		})
 		require.NoError(t, err)
 		rFileNames := getFileNames(t, fileDatas)
@@ -124,7 +125,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("generate Support Packet without logs", func(t *testing.T) {
 		fileDatas, err = th.Service.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               false,
 		})
 		require.NoError(t, err)
 		rFileNames := getFileNames(t, fileDatas)
@@ -138,7 +140,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		t.Cleanup(genMockLogFiles)
 
 		fileDatas, err = th.Service.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               true,
 		})
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed read mattermost log file")
@@ -179,7 +182,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		require.NoError(t, err)
 
 		fileDatas, err = th.Service.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
+			CPUProfileDurationSeconds: model.NewPointer(1),
+			IncludeLogs:               true,
 		})
 		require.NoError(t, err)
 		rFileNames := getFileNames(t, fileDatas)
@@ -1120,7 +1124,7 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 func TestGetCPUProfile(t *testing.T) {
 	th := Setup(t)
 
-	fileData, err := th.Service.getCPUProfile(th.Context)
+	fileData, err := th.Service.getCPUProfile(th.Context, 100*time.Millisecond)
 	require.NoError(t, err)
 	assert.Equal(t, "cpu.prof", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))

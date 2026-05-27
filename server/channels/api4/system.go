@@ -32,6 +32,7 @@ const (
 	RedirectLocationCacheExpiry   = 1 * time.Hour
 	DefaultServerBusySeconds      = 3600
 	MaxServerBusySeconds          = 86400
+	maxCPUProfileDurationSeconds  = 300
 )
 
 var redirectLocationDataCache = cache.NewLRU(&cache.CacheOptions{
@@ -103,8 +104,18 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		PluginPackets: r.Form["plugin_packets"],
 	}
 
+	if v := r.FormValue("cpu_profile_duration_seconds"); v != "" {
+		dur, parseErr := strconv.Atoi(v)
+		if parseErr != nil || dur < 0 || dur > maxCPUProfileDurationSeconds {
+			c.SetInvalidParam("cpu_profile_duration_seconds")
+			return
+		}
+		supportPacketOptions.CPUProfileDurationSeconds = &dur
+	}
+
 	auditRec.AddMeta("include_logs", supportPacketOptions.IncludeLogs)
 	auditRec.AddMeta("plugin_packets", supportPacketOptions.PluginPackets)
+	auditRec.AddMeta("cpu_profile_duration_seconds", supportPacketOptions.CPUProfileDurationSeconds)
 
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
 	if c.App.Channels().License() == nil {
