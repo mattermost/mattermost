@@ -658,7 +658,9 @@ func TestPostActionProps(t *testing.T) {
 	assert.Nil(t, newPost.GetProp(model.PostPropsOverrideUsername))
 	assert.Equal(t, "AA", newPost.GetProp("A"))
 	assert.Equal(t, "old_override_icon", newPost.GetProp(model.PostPropsOverrideIconURL))
-	assert.Equal(t, "false", newPost.GetProp(model.PostPropsFromWebhook))
+	// from_webhook is stripped by SanitizeProps for non-integration creators (the test post is created
+	// as a regular user); the action update is also blocked from setting it. Final value is therefore nil.
+	assert.Nil(t, newPost.GetProp(model.PostPropsFromWebhook))
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {

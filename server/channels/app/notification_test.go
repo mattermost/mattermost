@@ -175,10 +175,12 @@ func TestSendNotifications(t *testing.T) {
 				UserId:    user.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "a message",
-				Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
+				Props:     model.StringInterface{model.PostPropsOverrideUsername: "a bot"},
 			}
 
-			rootPost, _, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
+			// from_webhook is now server-set via CreatePostFlags rather than client Props;
+			// use the flag-based path so the resulting post legitimately carries the marker.
+			rootPost, _, appErr := th.App.CreatePost(th.Context, rootPost, th.BasicChannel, model.CreatePostFlags{FromIncomingWebhook: true})
 			require.Nil(t, appErr)
 
 			childPost := &model.Post{
@@ -2976,10 +2978,12 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			UserId:    user.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "a message",
-			Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
+			Props:     model.StringInterface{model.PostPropsOverrideUsername: "a bot"},
 		}
 
-		rootPost, _, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
+		// from_webhook is now server-set via CreatePostFlags rather than client Props;
+		// use the flag-based path so the resulting post legitimately carries the marker.
+		rootPost, _, appErr := th.App.CreatePost(th.Context, rootPost, th.BasicChannel, model.CreatePostFlags{FromIncomingWebhook: true})
 		require.Nil(t, appErr)
 
 		childPost := &model.Post{

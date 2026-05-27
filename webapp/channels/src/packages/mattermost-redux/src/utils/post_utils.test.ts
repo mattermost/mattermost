@@ -8,6 +8,8 @@ import {PostTypes} from 'mattermost-redux/constants/posts';
 import {
     canEditPost,
     isSystemMessage,
+    isSilentNotification,
+    isNotificationSuppressed,
     shouldIgnorePost,
     isMeMessage,
     isUserActivityPost,
@@ -333,6 +335,40 @@ describe('PostUtils', () => {
             it(`should identify if post is system message: isSystemMessage('${testCase.input}') should return ${testCase.output}`, () => {
                 expect(isSystemMessage(testCase.input)).toBe(testCase.output);
             });
+        });
+    });
+
+    describe('isSilentNotification', () => {
+        it('returns true when silent_notification prop is set to true', () => {
+            const post = TestHelper.getPostMock({props: {silent_notification: true}});
+            expect(isSilentNotification(post)).toBe(true);
+        });
+
+        it('returns false when silent_notification prop is absent', () => {
+            const post = TestHelper.getPostMock({props: {}});
+            expect(isSilentNotification(post)).toBe(false);
+        });
+
+        it('returns false when silent_notification prop is the string "true" rather than a bool', () => {
+            const post = TestHelper.getPostMock({props: {silent_notification: 'true'}});
+            expect(isSilentNotification(post)).toBe(false);
+        });
+    });
+
+    describe('isNotificationSuppressed', () => {
+        it('returns true for a silent post', () => {
+            const post = TestHelper.getPostMock({props: {silent_notification: true}});
+            expect(isNotificationSuppressed(post)).toBe(true);
+        });
+
+        it('returns false when force_notification overrides silent', () => {
+            const post = TestHelper.getPostMock({props: {silent_notification: true, force_notification: 'abc123'}});
+            expect(isNotificationSuppressed(post)).toBe(false);
+        });
+
+        it('returns false for a non-silent post', () => {
+            const post = TestHelper.getPostMock({props: {}});
+            expect(isNotificationSuppressed(post)).toBe(false);
         });
     });
 
