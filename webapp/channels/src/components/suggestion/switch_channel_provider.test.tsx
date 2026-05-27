@@ -12,7 +12,7 @@ import {General, Preferences} from 'mattermost-redux/constants';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-import {StoragePrefixes} from 'utils/constants';
+import {Constants, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import SwitchChannelProvider, {ConnectedSwitchChannelSuggestion} from './switch_channel_provider';
@@ -403,6 +403,124 @@ describe('components/SwitchChannelProvider', () => {
         ];
 
         expect(results.terms).toEqual(expectedOrder);
+    });
+
+    it('should include a direct channel when the teammate profile is not cached', () => {
+        const directChannel = TestHelper.getChannelMock({
+            id: 'direct_joram_user',
+            type: 'D',
+            name: 'current_user_id__joram_user',
+            display_name: 'Joram User',
+            delete_at: 0,
+        });
+        const groupChannel = TestHelper.getChannelMock({
+            id: 'group_joram_user',
+            type: 'G',
+            name: 'group_joram_user',
+            display_name: 'Joram User, Alice',
+            delete_at: 0,
+        });
+        const modifiedState = {
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    channels: {
+                        ...defaultState.entities.channels.channels,
+                        [directChannel.id]: directChannel,
+                        [groupChannel.id]: groupChannel,
+                    },
+                    myMembers: {
+                        ...defaultState.entities.channels.myMembers,
+                        [directChannel.id]: {
+                            channel_id: directChannel.id,
+                            user_id: 'current_user_id',
+                        },
+                        [groupChannel.id]: {
+                            channel_id: groupChannel.id,
+                            user_id: 'current_user_id',
+                        },
+                    },
+                },
+                preferences: {
+                    ...defaultState.entities.preferences,
+                    myPreferences: {
+                        ...defaultState.entities.preferences.myPreferences,
+                        [`group_channel_show--${groupChannel.id}`]: {
+                            category: 'group_channel_show',
+                            value: 'true',
+                            name: groupChannel.id,
+                            user_id: 'current_user_id',
+                        },
+                    },
+                },
+            },
+        };
+
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore(modifiedState);
+        switchProvider.store = store;
+
+        switchProvider.startNewRequest('');
+        const results = switchProvider.formatGroup('joram', [groupChannel, directChannel], []);
+
+        expect(results.terms).toEqual(['joram_user', groupChannel.id]);
+        expect(results.items[0].channel.id).toEqual(directChannel.id);
+    });
+
+    it('should keep a direct channel in wrapped channel lists when the teammate profile is not cached', () => {
+        const directChannel = TestHelper.getChannelMock({
+            id: 'direct_joram_user',
+            type: 'D',
+            name: 'current_user_id__joram_user',
+            display_name: 'Joram User',
+            delete_at: 0,
+        });
+        const groupChannel = TestHelper.getChannelMock({
+            id: 'group_joram_user',
+            type: 'G',
+            name: 'group_joram_user',
+            display_name: 'Joram User, Alice',
+            delete_at: 0,
+        });
+        const modifiedState = {
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    channels: {
+                        ...defaultState.entities.channels.channels,
+                        [directChannel.id]: directChannel,
+                        [groupChannel.id]: groupChannel,
+                    },
+                    myMembers: {
+                        ...defaultState.entities.channels.myMembers,
+                        [directChannel.id]: {
+                            channel_id: directChannel.id,
+                            user_id: 'current_user_id',
+                        },
+                        [groupChannel.id]: {
+                            channel_id: groupChannel.id,
+                            user_id: 'current_user_id',
+                        },
+                    },
+                },
+            },
+        };
+
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore(modifiedState);
+        switchProvider.store = store;
+
+        const results = switchProvider.wrapChannels([groupChannel, directChannel], Constants.MENTION_RECENT_CHANNELS);
+
+        expect(results.map((item) => item.channel.id)).toEqual([groupChannel.id, directChannel.id]);
+        expect(results[1].channel).toEqual(expect.objectContaining({
+            id: directChannel.id,
+            userId: 'joram_user',
+        }));
     });
 
     it('should sort results based on last_viewed_at order followed by alphabetical andomit users not in members', () => {

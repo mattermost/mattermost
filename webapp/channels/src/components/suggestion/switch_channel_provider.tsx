@@ -798,7 +798,13 @@ export default class SwitchChannelProvider extends Provider {
                             wrappedChannel.last_viewed_at = members[channel.id].last_viewed_at;
                         }
                     } else {
-                        continue;
+                        completedChannels[userId] = true;
+                        wrappedChannel = {
+                            ...wrappedChannel,
+                            channel: {...newChannel, userId},
+                            name: newChannel.display_name || newChannel.name,
+                            type: 'search.direct',
+                        };
                     }
                 }
 
@@ -976,16 +982,22 @@ export default class SwitchChannelProvider extends Provider {
             if (channel.type === Constants.GM_CHANNEL) {
                 wrappedChannel.name = channel.display_name;
             } else if (channel.type === Constants.DM_CHANNEL) {
-                const user = getUser(this.store.getState(), Utils.getUserIdFromChannelId(channel.name));
+                const userId = Utils.getUserIdFromChannelId(channel.name);
+                const user = getUser(this.store.getState(), userId);
 
-                if (!user) {
-                    continue;
+                if (user) {
+                    const userWrappedChannel = this.userWrappedChannel(
+                        user,
+                        channel,
+                    );
+                    wrappedChannel = {...wrappedChannel, ...userWrappedChannel};
+                } else {
+                    wrappedChannel = {
+                        ...wrappedChannel,
+                        channel: {...channel, userId},
+                        name: channel.display_name || channel.name,
+                    };
                 }
-                const userWrappedChannel = this.userWrappedChannel(
-                    user,
-                    channel,
-                );
-                wrappedChannel = {...wrappedChannel, ...userWrappedChannel};
             }
             const unread = allUnreadChannelIdsSet.has(channel.id) && !isChannelMuted(member);
             if (unread) {
