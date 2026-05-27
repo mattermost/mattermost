@@ -13,7 +13,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 const FLAG_REASON_CLASSIFICATION_MISMATCH: string = 'Classification Mismatch';
 const FLAG_REASON_CLASSIFICATION_MISMATCH_ALT: string = 'Classification mismatch';
 const FLAG_COMMENT: string = 'This message contains misclassified data';
-const SYSTEM_MESSAGE = (username: string): string =>
+const systemMessageForUser = (username: string): string =>
     `The message from @${username} has been quarantined for review. You will be notified once it is reviewed by a Reviewer.`;
 
 // Helper to login and navigate to channel
@@ -115,7 +115,7 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
     const flaggedPost = await channelsPage.centerView.getPostById(postId);
     await flaggedPost.toContainText('(message deleted)');
     const systemMessage = await channelsPage.getLastPost();
-    await expect(systemMessage.body).toContainText(SYSTEM_MESSAGE(user.username));
+    await expect(systemMessage.body).toContainText(systemMessageForUser(user.username));
 });
 
 /**
@@ -166,7 +166,7 @@ test('Verify Post is not hidden after flagging if HideFlaggedContent is false', 
     const originaltext = await channelsPage.centerView.getPostById(postId);
     await expect(originaltext.body).toContainText(message);
     const systemMessage = await channelsPage.getLastPost();
-    await expect(systemMessage.body).toContainText(SYSTEM_MESSAGE(user.username));
+    await expect(systemMessage.body).toContainText(systemMessageForUser(user.username));
 });
 
 /**

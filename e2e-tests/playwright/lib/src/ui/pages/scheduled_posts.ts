@@ -48,7 +48,7 @@ export default class ScheduledPostsPage {
         await expect(this.tab).toBeVisible();
         const badge = this.tab.locator('span.MuiBadge-badge');
         await expect(badge).toBeVisible();
-        return await badge.textContent();
+        return badge.textContent();
     }
 
     async getLastPost() {
@@ -72,7 +72,7 @@ export default class ScheduledPostsPage {
         await expect(post.rescheduleButton).toBeVisible();
         await post.rescheduleButton.click();
 
-        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 
     async goto(teamName: string) {

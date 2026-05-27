@@ -105,7 +105,7 @@ test.describe('ABAC Policies - Create Policies', () => {
 
         // Use the working createBasicPolicy helper (same as MM-T5784)
         const policyName = `Engineering Policy ${pw.random.id()}`;
-        const __jobIdMM5783 = await createBasicPolicy(systemConsolePage.page, {
+        const jobIdMM5783 = await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -138,7 +138,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         }
 
         // Wait for sync job to complete (triggered by createBasicPolicy)
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, __jobIdMM5783);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, jobIdMM5783);
 
         // ============================================================
         // STEP 5-7: Verify channel membership after sync
@@ -283,7 +283,7 @@ test.describe('ABAC Policies - Create Policies', () => {
 
         // Use createBasicPolicy with autoSync: true
         const policyName = `Auto-Add Policy ${pw.random.id()}`;
-        const __jobIdMM5784 = await createBasicPolicy(systemConsolePage.page, {
+        const jobIdMM5784 = await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -314,7 +314,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         }
 
         // Wait for initial sync job to complete
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, __jobIdMM5784);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, jobIdMM5784);
 
         // Get policy ID and activate it for auto-add to work
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();

@@ -30,6 +30,6 @@ export default class ScheduledPostIndicator {
     }
 
     async getText() {
-        return await this.messageText.innerText();
+        return this.messageText.innerText();
     }
 }

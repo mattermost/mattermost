@@ -132,7 +132,7 @@ test(
 );
 
 async function getCurrentChannel(page: Page) {
-    return await page.evaluate<Channel>(
+    return page.evaluate<Channel>(
         'store.getState().entities.channels.channels[store.getState().entities.channels.currentChannelId]',
     );
 }

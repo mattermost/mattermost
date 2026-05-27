@@ -306,7 +306,7 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 
     async scheduleMessageFromThread(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
@@ -318,7 +318,7 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 
     async getFlaggedPostViewDetailButton(flaggedPostId: string) {

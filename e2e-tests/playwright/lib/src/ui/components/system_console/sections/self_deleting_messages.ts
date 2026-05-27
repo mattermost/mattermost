@@ -51,11 +51,11 @@ export default class SelfDeletingMessages {
     }
 
     async getDurationValue(): Promise<string> {
-        return await this.durationDropdown.inputValue();
+        return this.durationDropdown.inputValue();
     }
 
     async getMaxTimeToLiveValue(): Promise<string> {
-        return await this.maxTimeToLiveDropdown.inputValue();
+        return this.maxTimeToLiveDropdown.inputValue();
     }
 
     async clickSaveButton() {
@@ -63,14 +63,14 @@ export default class SelfDeletingMessages {
     }
 
     async isEnabled(): Promise<boolean> {
-        return await this.enableToggleTrue.isChecked();
+        return this.enableToggleTrue.isChecked();
     }
 
     async isDurationDropdownDisabled(): Promise<boolean> {
-        return await this.durationDropdown.isDisabled();
+        return this.durationDropdown.isDisabled();
     }
 
     async isMaxTimeToLiveDropdownDisabled(): Promise<boolean> {
-        return await this.maxTimeToLiveDropdown.isDisabled();
+        return this.maxTimeToLiveDropdown.isDisabled();
     }
 }

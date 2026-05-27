@@ -127,7 +127,7 @@ export default class ChannelsPost {
      * Check if the BoR post is concealed (not yet revealed)
      */
     async isConcealed(): Promise<boolean> {
-        return await this.concealedPlaceholder.container.isVisible();
+        return this.concealedPlaceholder.container.isVisible();
     }
 
     /**

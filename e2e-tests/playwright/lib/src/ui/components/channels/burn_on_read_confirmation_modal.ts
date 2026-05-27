@@ -78,13 +78,13 @@ export default class BurnOnReadConfirmationModal {
      * Check if "don't show again" checkbox is present
      */
     async hasDontShowAgainOption(): Promise<boolean> {
-        return await this.dontShowAgainCheckbox.isVisible();
+        return this.dontShowAgainCheckbox.isVisible();
     }
 
     /**
      * Check if "don't show again" is already checked
      */
     async isDontShowAgainChecked(): Promise<boolean> {
-        return await this.dontShowAgainCheckbox.isChecked();
+        return this.dontShowAgainCheckbox.isChecked();
     }
 }

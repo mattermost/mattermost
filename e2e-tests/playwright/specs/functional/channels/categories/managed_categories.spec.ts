@@ -645,7 +645,7 @@ test.describe('Managed Channel Categories', () => {
             // * Verify the managed category appears in real-time
             await pw.waitUntil(
                 async () => {
-                    return await sidebar
+                    return sidebar
                         .getByText('Realtime Ops')
                         .isVisible()
                         .catch(() => false);

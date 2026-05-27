@@ -61,7 +61,7 @@ export default class ChannelsSidebarLeft {
      * Verifies if 'unreads' filter is applied to sidebar.
      */
     async isUnreadsFilterActive(): Promise<boolean> {
-        return await this.unreadChannelFilter.evaluate((el) => el.classList.contains('active'));
+        return this.unreadChannelFilter.evaluate((el) => el.classList.contains('active'));
     }
 
     /**

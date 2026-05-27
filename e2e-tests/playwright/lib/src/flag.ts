@@ -145,14 +145,14 @@ export async function ensurePluginsLoaded(pluginIds: string[] = []) {
             expect(isInstalled, `${pluginId} is not installed. Related test will fail.`).toBe(true);
 
             const isActive = plugins.active.some((plugin: PluginManifest) => plugin.id === pluginId);
-            if (!isActive) {
+            if (isActive) {
+                // eslint-disable-next-line no-console
+                console.log(`${pluginId} is installed and active.`);
+            } else {
                 await adminClient.enablePlugin(pluginId);
 
                 // eslint-disable-next-line no-console
                 console.log(`${pluginId} is installed and has been activated.`);
-            } else {
-                // eslint-disable-next-line no-console
-                console.log(`${pluginId} is installed and active.`);
             }
         });
 }

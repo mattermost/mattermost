@@ -56,7 +56,7 @@ export type CustomProfileAttribute = {
 
 /** Like Record<string, UserPropertyField> but tracks which field IDs this call created (vs reused). */
 export type CpaFieldsMap = Record<string, UserPropertyField> & {
-    __ownedIds: Set<string>;
+    ownedIds: Set<string>;
 };
 
 // Custom attribute definitions for user settings tests (with select/multiselect attributes)
@@ -444,7 +444,7 @@ export async function setupCustomProfileAttributeFields(
     }
 
     // Non-enumerable so Object.keys/values/entries/JSON.stringify skip it.
-    Object.defineProperty(fieldsMap, '__ownedIds', {
+    Object.defineProperty(fieldsMap, 'ownedIds', {
         value: ownedIds,
         enumerable: false,
         configurable: true,
@@ -549,9 +549,9 @@ export async function deleteCustomProfileAttributes(
     adminClient: Client4,
     attributes: Record<string, UserPropertyField>,
 ): Promise<void> {
-    // Only delete owned fields; fall back to all keys for legacy callers without __ownedIds.
+    // Only delete owned fields; fall back to all keys for legacy callers without ownedIds.
     const ownedIds: Set<string> =
-        '__ownedIds' in attributes ? (attributes as CpaFieldsMap).__ownedIds : new Set(Object.keys(attributes));
+        'ownedIds' in attributes ? (attributes as CpaFieldsMap).ownedIds : new Set(Object.keys(attributes));
 
     for (const id of ownedIds) {
         try {

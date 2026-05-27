@@ -247,11 +247,11 @@ export async function testAccessRule(
     if (countText) {
         const totalMatch = countText.match(/of\s*(\d+)\s*total/i);
         if (totalMatch) {
-            totalMatches = parseInt(totalMatch[1]);
+            totalMatches = parseInt(totalMatch[1], 10);
         } else {
             const matchesMatch = countText.match(/(\d+)\s*match/i);
             if (matchesMatch) {
-                totalMatches = parseInt(matchesMatch[1]);
+                totalMatches = parseInt(matchesMatch[1], 10);
             }
         }
     }
@@ -1081,7 +1081,7 @@ export async function getJobDetailsForChannel(
             if (await addedTab.isVisible({timeout: 2000})) {
                 const addedText = await addedTab.textContent();
                 const addedMatch = addedText?.match(/Added\s*\((\d+)\)/i);
-                added = addedMatch ? parseInt(addedMatch[1]) : 0;
+                added = addedMatch ? parseInt(addedMatch[1], 10) : 0;
             }
 
             // Parse Removed count from the tab: "Removed (X)"
@@ -1089,7 +1089,7 @@ export async function getJobDetailsForChannel(
             if (await removedTab.isVisible({timeout: 2000})) {
                 const removedText = await removedTab.textContent();
                 const removedMatch = removedText?.match(/Removed\s*\((\d+)\)/i);
-                removed = removedMatch ? parseInt(removedMatch[1]) : 0;
+                removed = removedMatch ? parseInt(removedMatch[1], 10) : 0;
             }
 
             // Close the Channel Membership Changes modal
@@ -1111,8 +1111,8 @@ export async function getJobDetailsForChannel(
             const addedMatch = countsText?.match(/\+(\d+)/);
             const removedMatch = countsText?.match(/-(\d+)/);
 
-            added = addedMatch ? parseInt(addedMatch[1]) : 0;
-            removed = removedMatch ? parseInt(removedMatch[1]) : 0;
+            added = addedMatch ? parseInt(addedMatch[1], 10) : 0;
+            removed = removedMatch ? parseInt(removedMatch[1], 10) : 0;
         }
     }
 
@@ -1246,11 +1246,8 @@ export async function getPolicyIdByName(
                 if (attempt < retries) {
                     await new Promise((resolve) => setTimeout(resolve, 2000));
                 }
-            } else {
-                // Wait before retrying
-                if (attempt < retries) {
-                    await new Promise((resolve) => setTimeout(resolve, 2000));
-                }
+            } else if (attempt < retries) {
+                await new Promise((resolve) => setTimeout(resolve, 2000));
             }
         } catch {
             // console.error(`Failed to search policies (attempt ${attempt}):`, _error.message || String(_error));
