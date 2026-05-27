@@ -394,6 +394,10 @@ func getCardEditHistory(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGetEditHistoryForPost, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
+
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
@@ -417,13 +421,11 @@ func getCardEditHistory(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventGetEditHistoryForPost, model.AuditStatusSuccess)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
-
 	if !isMember {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
+
+	auditRec.Success()
 
 	if err := json.NewEncoder(w).Encode(postsList); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
