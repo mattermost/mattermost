@@ -21,7 +21,7 @@ type Props = {
     onChange(id: string, value: any): void;
     disabled: boolean;
     setByEnv: boolean;
-} & GeneralSettingProps
+} & GeneralSettingProps;
 
 const LDAPDropdownSetting = (props: Props) => {
     const intl = useIntl();

@@ -39,7 +39,7 @@ type Actions = {
     getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => Promise<ActionResult<unknown>>;
     loadRolesIfNeeded: (roles: Iterable<string>) => void;
     addUserToTeam: (teamId: string, userId: string) => Promise<ActionResult<unknown>>;
-}
+};
 
 type Props = {
     currentUserId: string;
@@ -67,7 +67,7 @@ type State = {
     endofTeamsData: boolean;
     currentPage: number;
     currentListableTeams: Team[];
-}
+};
 
 export default class SelectTeam extends React.PureComponent<Props, State> {
     constructor(props: Props) {

@@ -20,7 +20,7 @@ type AddressFormProps = {
     title: MessageDescriptor;
     formId: string;
     address: Address;
-}
+};
 
 const AddressForm = (props: AddressFormProps) => {
     const {formatMessage} = useIntl();

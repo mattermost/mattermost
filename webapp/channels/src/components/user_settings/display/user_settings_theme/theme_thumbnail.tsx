@@ -18,7 +18,7 @@ type ThemeThumbnailProps = {
     centerChannelBg: string;
     newMessageSeparator: string;
     buttonBg: string;
-}
+};
 
 function ThemeThumbnail({
     themeName,

@@ -25,7 +25,7 @@ import './channel_list.scss';
 type PolicyActiveStatus = {
     id: string;
     active: boolean;
-}
+};
 
 type Props = WrappedComponentProps & {
     channels: ChannelWithTeamData[];
@@ -45,14 +45,14 @@ type Props = WrappedComponentProps & {
         setChannelListSearch: (term: string) => void;
         setChannelListFilters: (filters: ChannelSearchOpts) => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
     after: string;
     cursorHistory: string[];
-}
+};
 
 const PAGE_SIZE = 10;
 

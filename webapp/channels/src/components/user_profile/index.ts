@@ -27,7 +27,7 @@ export type OwnProps = {
     colorize?: boolean;
     hideStatus?: boolean;
     channelId?: Channel['id'];
-}
+};
 
 function makeMapStateToProps() {
     const getDisplayName = makeGetDisplayName();

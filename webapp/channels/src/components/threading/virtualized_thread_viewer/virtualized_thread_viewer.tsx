@@ -46,7 +46,7 @@ type Props = {
     inputPlaceholder?: string;
     measureRhsOpened: () => void;
     isChannelAutotranslated: boolean;
-}
+};
 
 type State = {
     isScrolling: boolean;
@@ -57,7 +57,7 @@ type State = {
     visibleStopIndex?: number;
     overscanStartIndex?: number;
     overscanStopIndex?: number;
-}
+};
 
 const virtListStyles = {
     position: 'absolute',
@@ -377,7 +377,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         );
     };
 
-    getInnerStyles = (): React.CSSProperties|undefined => {
+    getInnerStyles = (): React.CSSProperties | undefined => {
         if (!this.props.useRelativeTimestamp) {
             return innerStyles;
         }

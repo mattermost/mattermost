@@ -87,7 +87,7 @@ export type Props = WrappedComponentProps & {
     /**
     * Action to fetch public link of an image from server.
     */
-    getFilePublicLink?: () => Promise<ActionResult<{ link: string }>>;
+    getFilePublicLink?: () => Promise<ActionResult<{link: string}>>;
 
     /*
     * Prevents display of utility buttons when image in a location that makes them inappropriate
@@ -98,7 +98,7 @@ export type Props = WrappedComponentProps & {
     * Indicates whether the file has been rejected and should not show preview
     */
     isFileRejected?: boolean;
-}
+};
 
 type State = {
     loaded: boolean;
@@ -107,7 +107,7 @@ type State = {
     linkCopyInProgress: boolean;
     error: boolean;
     imageWidth: number;
-}
+};
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
 // ensuring that the page is laid out correctly.

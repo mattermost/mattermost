@@ -39,12 +39,12 @@ type Props = {
     showCTA?: boolean;
     ctaText?: ReactNode;
     ctaDisabled?: boolean;
-}
+};
 
 type State = {
     showTooltip: boolean;
     isStringContainingUrl: boolean;
-}
+};
 
 export default class AnnouncementBar extends React.PureComponent<Props, State> {
     messageRef: React.RefObject<HTMLDivElement>;
