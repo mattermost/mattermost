@@ -33,6 +33,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 		userNotifySetting    string
 		channelNotifySetting string
 		withSystemPost       bool
+		withSilentPost       bool
 		wasMentioned         bool
 		isMuted              bool
 		expected             model.NotificationReason
@@ -56,6 +57,16 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             model.NotificationReasonSystemMessage,
+			isGM:                 false,
+		},
+		{
+			name:                 "When post is a silent notification",
+			userNotifySetting:    model.UserNotifyAll,
+			channelNotifySetting: "",
+			withSilentPost:       true,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             model.NotificationReasonSilent,
 			isGM:                 false,
 		},
 		{
@@ -417,6 +428,10 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			post := &model.Post{UserId: user.Id, ChannelId: model.NewId()}
 			if tc.withSystemPost {
 				post.Type = model.PostTypeJoinChannel
+			}
+			if tc.withSilentPost {
+				post.AddProp(model.PostPropsSilentNotification, true)
+				post.AddProp(model.PostPropsFromWebhook, "true")
 			}
 
 			channelNotifyProps := make(map[string]string)

@@ -433,6 +433,81 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	})
 }
 
+func TestSendNotifications_SilentPostBroadcastsPosted(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+	defer closeWS()
+
+	post := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "silent delivery",
+	}
+	post.AddProp(model.PostPropsSilentNotification, true)
+	post.AddProp(model.PostPropsFromBot, "true")
+
+	_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, botUser, nil, false)
+	require.NoError(t, err)
+
+	received := <-messages
+	require.Equal(t, model.WebsocketEventPosted, received.EventType())
+	assert.Equal(t, th.BasicChannel.Id, received.GetBroadcast().ChannelId)
+
+	receivedPost := &model.Post{}
+	err = json.Unmarshal([]byte(received.GetData()["post"].(string)), &receivedPost)
+	require.NoError(t, err)
+	assert.True(t, receivedPost.HasSilentNotification())
+	assert.Equal(t, "true", receivedPost.GetProp(model.PostPropsFromBot))
+}
+
+func TestCreatePostSilentBroadcastsPostedWithProps(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+	defer closeWS()
+
+	createdPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "silent via create post",
+	}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+	require.Nil(t, appErr)
+	require.True(t, createdPost.HasSilentNotification())
+
+	received := <-messages
+	require.Equal(t, model.WebsocketEventPosted, received.EventType())
+
+	receivedPost := &model.Post{}
+	unmarshalErr := json.Unmarshal([]byte(received.GetData()["post"].(string)), &receivedPost)
+	require.NoError(t, unmarshalErr)
+	assert.Equal(t, createdPost.Id, receivedPost.Id)
+	assert.True(t, receivedPost.HasSilentNotification())
+	assert.Equal(t, "true", receivedPost.GetProp(model.PostPropsFromBot))
+}
+
 func assertUnmarshalsTo(t *testing.T, expected any, actual any) {
 	t.Helper()
 
@@ -695,6 +770,18 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		assert.Len(t, outOfChannelUsers, 2)
 		assert.True(t, (outOfChannelUsers[0].Id == user2.Id || outOfChannelUsers[1].Id == user2.Id))
 		assert.True(t, (outOfChannelUsers[0].Id == user3.Id || outOfChannelUsers[1].Id == user3.Id))
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should return no results for system messages", func(t *testing.T) {
+		post := &model.Post{Type: model.PostTypeJoinChannel}
+		potentialMentions := []string{user2.Username, user3.Username}
+
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+
+		assert.NoError(t, err)
+		assert.Nil(t, outOfTeamUsers)
+		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
 

@@ -19,7 +19,7 @@ import {
 import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
-import {ensureString, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
+import {ensureString, isNotificationSuppressed, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getChannelURL, getPermalinkURL} from 'selectors/urls';
@@ -267,6 +267,10 @@ function shouldSkipNotification(
 
     if (isSystemMessage(post) && !isUserAddedInChannel(post, currentUserId)) {
         return {status: 'not_sent', reason: 'system_message'};
+    }
+
+    if (isNotificationSuppressed(post)) {
+        return {status: 'not_sent', reason: 'silent_notification'};
     }
 
     if (!member) {

@@ -38,6 +38,10 @@ const (
 var atMentionPattern = regexp.MustCompile(`\B@`)
 
 func (a *App) CreatePostAsUser(rctx request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, bool, *model.AppError) {
+	return a.CreatePostAsUserWithFlags(rctx, post, currentSessionId, model.CreatePostFlags{SetOnline: setOnline})
+}
+
+func (a *App) CreatePostAsUserWithFlags(rctx request.CTX, post *model.Post, currentSessionId string, flags model.CreatePostFlags) (*model.Post, bool, *model.AppError) {
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv().Store().Channel().Get(post.ChannelId, true)
 	if errCh != nil {
@@ -64,7 +68,8 @@ func (a *App) CreatePostAsUser(rctx request.CTX, post *model.Post, currentSessio
 		return nil, false, model.NewAppError("createPost", "api.post.create_post.can_not_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
-	rp, isMemberForPreviews, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: setOnline})
+	flags.TriggerWebhooks = true
+	rp, isMemberForPreviews, err := a.CreatePost(rctx, post, channel, flags)
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" {
@@ -205,6 +210,16 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}()
 
+	if flags.SilentNotification {
+		if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification {
+			rctx.Logger().Warn("Rejected silent notification post with persistent notifications",
+				mlog.String("user_id", post.UserId),
+				mlog.String("channel_id", channel.Id),
+			)
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.silent_persistent_notification.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	// Validate recipients counts in case it's not DM
 	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
 		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
@@ -219,6 +234,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 			return nil, false, model.NewAppError("CreatePost", "api.post.post_priority.persistent_notification_validation_error.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	silentRequested := flags.SilentNotification
 
 	post.SanitizeProps()
 
@@ -247,8 +264,27 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		post.AddProp(model.PostPropsFromBot, "true")
 	}
 
+	if flags.FromIncomingWebhook {
+		post.AddProp(model.PostPropsFromWebhook, "true")
+	}
+
+	if flags.FromPlugin {
+		post.AddProp(model.PostPropsFromPlugin, "true")
+	}
+
 	if flags.ForceNotification {
 		post.AddProp(model.PostPropsForceNotification, model.NewId())
+	}
+
+	if silentRequested {
+		if !a.isIntegrationPostAuthor(rctx, user, flags) {
+			rctx.Logger().Warn("Rejected silent notification post from non-integration author",
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", channel.Id),
+			)
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.silent_notification.app_error", nil, "", http.StatusForbidden)
+		}
+		post.AddProp(model.PostPropsSilentNotification, true)
 	}
 
 	if rctx.Session().IsOAuth {
@@ -639,6 +675,19 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 	return nil
 }
 
+func (a *App) isIntegrationPostAuthor(rctx request.CTX, user *model.User, flags model.CreatePostFlags) bool {
+	if user.IsBot {
+		return true
+	}
+	if rctx.Session().IsOAuth {
+		return true
+	}
+	if flags.FromIncomingWebhook || flags.FromPlugin {
+		return true
+	}
+	return false
+}
+
 func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList, setOnline bool) error {
 	var team *model.Team
 	if channel.TeamId != "" {
@@ -868,6 +917,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.SetProps(receivedUpdatedPost.GetProps())
+		newPost.PreserveIdentityPropsFrom(oldPost)
 
 		// mm_blocks_actions can only be modified by trusted paths that have
 		// pre-validated the new value (AllowMmBlocksActionsUpdate). Session

@@ -111,6 +111,23 @@ func TestPostIsSystemMessage(t *testing.T) {
 	require.True(t, post2.IsSystemMessage())
 }
 
+func TestPostIsNotificationSuppressed(t *testing.T) {
+	post := &Post{Message: "test"}
+	post.AddProp(PostPropsSilentNotification, true)
+	require.True(t, post.IsNotificationSuppressed())
+
+	post.AddProp(PostPropsForceNotification, NewId())
+	require.False(t, post.IsNotificationSuppressed())
+
+	post2 := &Post{Message: "test"}
+	post2.AddProp(PostPropsForceNotification, false)
+	require.False(t, post2.HasForceNotification())
+
+	post3 := &Post{Message: "test"}
+	post3.AddProp(PostPropsForceNotification, true)
+	require.True(t, post3.HasForceNotification())
+}
+
 func TestPostChannelMentions(t *testing.T) {
 	post := Post{Message: "~a ~b ~b ~c/~d."}
 	assert.Equal(t, []string{"a", "b", "c", "d"}, post.ChannelMentions())
@@ -182,6 +199,18 @@ func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
 	keys2 := post2.ContainsIntegrationsReservedProps()
 	require.Len(t, keys2, 6)
 	require.Contains(t, keys2, PostPropsMmBlocksActions)
+
+	post3 := &Post{
+		Message: "test",
+		Props: StringInterface{
+			PostPropsSilentNotification: true,
+			PostPropsForceNotification:  NewId(),
+		},
+	}
+	keys3 := post3.ContainsIntegrationsReservedProps()
+	require.Len(t, keys3, 2)
+	require.Contains(t, keys3, PostPropsSilentNotification)
+	require.Contains(t, keys3, PostPropsForceNotification)
 }
 
 func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
@@ -1109,6 +1138,12 @@ func TestPost_PropsIsValid(t *testing.T) {
 		"valid force_notification": {
 			props: StringInterface{
 				PostPropsForceNotification: true,
+			},
+			wantErr: "",
+		},
+		"valid silent_notification": {
+			props: StringInterface{
+				PostPropsSilentNotification: true,
 			},
 			wantErr: "",
 		},
