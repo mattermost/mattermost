@@ -140,8 +140,7 @@ async function createTestExecutions(report, testCycle) {
             environmentName: TM4J_ENVIRONMENT_NAME || environment[BROWSER] || 'Chrome',
             actualEndDate: testScriptResults[testScriptResults.length - 1].actualEndDate,
             executionTime: steps.reduce((acc, prev) => {
-                acc += prev.duration;
-                return acc;
+                return acc + prev.duration;
             }, 0),
             comment: `Cypress automated test - ${getStepStateSummary(steps)}`,
         };

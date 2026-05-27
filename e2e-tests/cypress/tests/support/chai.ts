@@ -4,6 +4,7 @@
 chai.use((chai: Chai.ChaiStatic) => {
     // Chai assertion context has dynamic 'this' binding
     function assertIsFoo(this: any, {exactStyles = true} = {}) {
+        // eslint-disable-next-line no-underscore-dangle
         const obj = this._obj as JQuery<HTMLElement>;
 
         this.assert(

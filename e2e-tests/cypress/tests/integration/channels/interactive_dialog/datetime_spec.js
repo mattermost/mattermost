@@ -482,7 +482,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
     it('MM-T2530R - Timezone support (dropdown)', function() {
         // Skip if running in London timezone (can't test timezone conversion)
-        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const userTimezone = new Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (userTimezone === 'Europe/London' || userTimezone === 'GMT' || userTimezone.includes('London')) {
             this.skip();
         }
@@ -528,7 +528,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
     it('MM-T2530S - Timezone support (manual entry)', function() {
         // Skip if running in London timezone
-        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const userTimezone = new Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (userTimezone === 'Europe/London' || userTimezone === 'GMT' || userTimezone.includes('London')) {
             this.skip();
         }
