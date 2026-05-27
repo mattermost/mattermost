@@ -983,7 +983,7 @@ export default class SwitchChannelProvider extends Provider {
                 wrappedChannel.name = channel.display_name;
             } else if (channel.type === Constants.DM_CHANNEL) {
                 const userId = Utils.getUserIdFromChannelId(channel.name, getCurrentUserId(state));
-                const user = getUser(this.store.getState(), userId);
+                const user = getUser(state, userId);
 
                 if (user) {
                     const userWrappedChannel = this.userWrappedChannel(
