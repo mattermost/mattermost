@@ -16,8 +16,6 @@ const (
 	pageMigrationVersion       = "v2"
 
 	pagePropertyNameStatus = "status"
-
-	anonymousCallerID = ""
 )
 
 func (s *Server) doSetupPageProperties() error {
@@ -36,7 +34,7 @@ func (s *Server) doSetupPageProperties() error {
 		return fmt.Errorf("failed to register Pages group: %w", err)
 	}
 
-	existingProperties, appErr := s.PropertyService().PropertyAccessService().SearchPropertyFields(anonymousCallerID, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	existingProperties, appErr := s.PropertyService().SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 	if appErr != nil {
 		return fmt.Errorf("failed to search for existing page properties: %w", appErr)
 	}
@@ -88,10 +86,10 @@ func (s *Server) doSetupPageProperties() error {
 	}
 
 	for _, property := range propertiesToCreate {
-		if _, err := s.PropertyService().PropertyAccessService().CreatePropertyField(anonymousCallerID, property); err != nil {
+		if _, err := s.PropertyService().CreatePropertyField(nil, property); err != nil {
 			// Handle race condition: property may have been created by a concurrent migration run
 			// (concurrent server startup or replica lag hiding an already-committed property).
-			existing, fetchErr := s.PropertyService().PropertyAccessService().GetPropertyFieldByName(anonymousCallerID, group.ID, "", property.Name)
+			existing, fetchErr := s.PropertyService().GetPropertyFieldByName(nil, group.ID, "", property.Name)
 			if fetchErr != nil || existing == nil {
 				return fmt.Errorf("failed to create page property: %q, error: %w", property.Name, err)
 			}
@@ -108,7 +106,7 @@ func (s *Server) doSetupPageProperties() error {
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, _, err := s.PropertyService().PropertyAccessService().UpdatePropertyFields(anonymousCallerID, group.ID, propertiesToUpdate); err != nil {
+		if _, _, _, err := s.PropertyService().UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
 			return fmt.Errorf("failed to update page property fields: %w", err)
 		}
 	}

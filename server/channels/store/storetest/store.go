@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -63,6 +64,7 @@ type Store struct {
 	PostPersistentNotificationStore mocks.PostPersistentNotificationStore
 	DesktopTokensStore              mocks.DesktopTokensStore
 	ChannelBookmarkStore            mocks.ChannelBookmarkStore
+	ChannelGuardStore               mocks.ChannelGuardStore
 	ScheduledPostStore              mocks.ScheduledPostStore
 	PropertyGroupStore              mocks.PropertyGroupStore
 	PropertyFieldStore              mocks.PropertyFieldStore
@@ -78,6 +80,7 @@ type Store struct {
 	PageStore                       mocks.PageStore
 	ViewStore                       mocks.ViewStore
 	WikiLinkStore                   mocks.WikiLinkStore
+	ChannelJoinRequestStore         mocks.ChannelJoinRequestStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -122,6 +125,7 @@ func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
 func (s *Store) ChannelBookmark() store.ChannelBookmarkStore { return &s.ChannelBookmarkStore }
+func (s *Store) ChannelGuard() store.ChannelGuardStore       { return &s.ChannelGuardStore }
 func (s *Store) DesktopTokens() store.DesktopTokensStore     { return &s.DesktopTokensStore }
 func (s *Store) NotifyAdmin() store.NotifyAdminStore         { return &s.NotifyAdminStore }
 func (s *Store) Group() store.GroupStore                     { return &s.GroupStore }
@@ -192,6 +196,9 @@ func (s *Store) Wiki() store.WikiStore {
 func (s *Store) Page() store.PageStore {
 	return &s.PageStore
 }
+func (s *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
+	return &s.ChannelJoinRequestStore
+}
 func (s *Store) View() store.ViewStore {
 	return &s.ViewStore
 }
@@ -203,6 +210,10 @@ func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error
 	return &model.SupportPacketDatabaseSchema{
 		Tables: []model.DatabaseTable{},
 	}, nil
+}
+
+func (s *Store) GetDiagnostics(_ context.Context) (*store.DatabaseDiagnostics, error) {
+	return &store.DatabaseDiagnostics{}, nil
 }
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
@@ -246,6 +257,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PostPersistentNotificationStore,
 		&s.DesktopTokensStore,
 		&s.ChannelBookmarkStore,
+		&s.ChannelGuardStore,
 		&s.ScheduledPostStore,
 		&s.AccessControlPolicyStore,
 		&s.AttributesStore,
@@ -258,5 +270,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PageStore,
 		&s.ViewStore,
 		&s.WikiLinkStore,
+		&s.ChannelJoinRequestStore,
 	)
 }

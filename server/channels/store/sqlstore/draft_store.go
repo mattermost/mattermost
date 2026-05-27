@@ -202,7 +202,7 @@ func (s *SqlDraftStore) UpsertPageDraftT(transaction *sqlxTxWrapper, draft *mode
 
 	// Use QueryRow to get the RETURNING values (actual DB timestamps)
 	var createAt, updateAt int64
-	if err = transaction.QueryRowX(query, args...).Scan(&createAt, &updateAt); err != nil {
+	if err = transaction.QueryRow(query, args...).Scan(&createAt, &updateAt); err != nil {
 		return nil, errors.Wrap(err, "failed to upsert Draft")
 	}
 
@@ -563,7 +563,7 @@ func (s *SqlDraftStore) BatchUpdateDraftParentId(userId, wikiId, oldParentId, ne
 // It uses a read-modify-write pattern to merge the new parent_id into existing props.
 // Wrapped in a transaction to ensure atomicity under concurrent access.
 func (s *SqlDraftStore) UpdateDraftParent(userId, wikiId, draftId, newParentId string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -783,7 +783,7 @@ func (s *SqlDraftStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64
 // PublishPageDraft retrieves and deletes a page draft atomically for publish.
 // The caller (app layer) will copy Draft.Message into Post.Message.
 func (s *SqlDraftStore) PublishPageDraft(pageId, userId, wikiId string) (*model.Draft, error) {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to begin transaction")
 	}

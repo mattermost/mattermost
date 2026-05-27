@@ -105,6 +105,7 @@ type SqlStoreStores struct {
 	postPersistentNotification store.PostPersistentNotificationStore
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
+	channelGuard               store.ChannelGuardStore
 	scheduledPost              store.ScheduledPostStore
 	view                       store.ViewStore
 	propertyGroup              store.PropertyGroupStore
@@ -120,6 +121,7 @@ type SqlStoreStores struct {
 	wiki                       store.WikiStore
 	page                       store.PageStore
 	channelMemberLink          store.WikiLinkStore
+	channelJoinRequest         store.ChannelJoinRequestStore
 }
 
 type SqlStore struct {
@@ -294,6 +296,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
+	store.stores.channelGuard = newSqlChannelGuardStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
 	store.stores.view = newSqlViewStore(store)
 	store.stores.propertyGroup = newPropertyGroupStore(store)
@@ -309,6 +312,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.wiki = newSqlWikiStore(store)
 	store.stores.page = newSqlPageStore(store)
 	store.stores.channelMemberLink = newSqlWikiLinkStore(store)
+	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -485,9 +489,11 @@ func (ss *SqlStore) analyticsContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), time.Duration(*ss.settings.AnalyticsQueryTimeout)*time.Second)
 }
 
-// noTimeoutContext should only be used with queries that expect no client-side timeout.
+// noTimeoutContext returns a context that suppresses automatic timeout injection
+// by ensureQueryTimeout. Use only for queries that legitimately must be unbounded,
+// such as schema introspection or long-running migrations.
 func (ss *SqlStore) noTimeoutContext() context.Context {
-	return context.Background()
+	return context.WithValue(context.Background(), noTimeoutKey{}, true)
 }
 
 func (ss *SqlStore) monitorReplicas() {
@@ -549,6 +555,10 @@ func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMaster().Stats().OpenConnections
 }
 
+func (ss *SqlStore) MasterDBStats() sql.DBStats {
+	return ss.GetMaster().Stats()
+}
+
 // ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
 // and updates the Prometheus metric with it.
 func (ss *SqlStore) ReplicaLagAbs() error {
@@ -601,6 +611,27 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 	}
 
 	return count
+}
+
+func (ss *SqlStore) ReplicaDBStats() sql.DBStats {
+	var stats sql.DBStats
+	for _, db := range ss.ReplicaXs {
+		if !db.Load().Online() {
+			continue
+		}
+
+		dbStats := db.Load().Stats()
+		stats.OpenConnections += dbStats.OpenConnections
+		stats.InUse += dbStats.InUse
+		stats.Idle += dbStats.Idle
+		stats.WaitCount += dbStats.WaitCount
+		stats.WaitDuration += dbStats.WaitDuration
+		stats.MaxIdleClosed += dbStats.MaxIdleClosed
+		stats.MaxIdleTimeClosed += dbStats.MaxIdleTimeClosed
+		stats.MaxLifetimeClosed += dbStats.MaxLifetimeClosed
+	}
+
+	return stats
 }
 
 func (ss *SqlStore) TotalSearchDbConnections() int {
@@ -890,6 +921,10 @@ func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
 	return ss.stores.channelBookmarks
 }
 
+func (ss *SqlStore) ChannelGuard() store.ChannelGuardStore {
+	return ss.stores.channelGuard
+}
+
 func (ss *SqlStore) View() store.ViewStore {
 	return ss.stores.view
 }
@@ -928,6 +963,10 @@ func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
 
 func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
 	return ss.stores.temporaryPost
+}
+
+func (ss *SqlStore) ChannelJoinRequest() store.ChannelJoinRequestStore {
+	return ss.stores.channelJoinRequest
 }
 
 func (ss *SqlStore) DropAllTables() {

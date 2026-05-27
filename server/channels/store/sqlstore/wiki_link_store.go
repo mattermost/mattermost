@@ -244,7 +244,7 @@ func (s *SqlWikiLinkStore) DeleteByDestination(destinationId string) (err error)
 		return store.NewErrInvalidInput("WikiLink", "destinationId", destinationId)
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -286,7 +286,7 @@ func (s *SqlWikiLinkStore) SaveAndPropagateMembers(rctx request.CTX, link *model
 		return nil, prepErr
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -379,7 +379,7 @@ func (s *SqlWikiLinkStore) DeleteAndCleanupMembers(rctx request.CTX, sourceId, d
 		return store.NewErrInvalidInput("WikiLink", "destinationId", destinationId)
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

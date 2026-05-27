@@ -29,7 +29,6 @@ import {
 
 import {openDirectChannelToUserId, openGroupChannelToUserIds} from 'actions/channel_actions';
 import {loadStatusesForProfilesList, loadProfilesMissingStatus} from 'actions/status_actions';
-import {loadProfilesForGroupChannels} from 'actions/user_actions';
 import {setModalSearchTerm} from 'actions/views/search';
 
 import type {GlobalState} from 'types/store';
@@ -98,7 +97,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             loadProfilesMissingStatus,
             getTotalUsersStats,
             loadStatusesForProfilesList,
-            loadProfilesForGroupChannels,
             openDirectChannelToUserId,
             openGroupChannelToUserIds,
             searchProfiles,

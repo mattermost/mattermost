@@ -17,7 +17,7 @@ func TestCWSLogin(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	license := model.NewTestLicense()
-	license.Features.Cloud = model.NewPointer(true)
+	license.Features.Cloud = new(true)
 	th.App.Srv().SetLicense(license)
 
 	t.Run("Should authenticate user when CWS login is enabled and tokens are equal", func(t *testing.T) {
@@ -61,7 +61,7 @@ func TestGetUserForLogin(t *testing.T) {
 
 	t.Run("Should get user with username when sign in with username is enabled", func(t *testing.T) {
 		th.UpdateConfig(t, func(config *model.Config) {
-			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(true)
+			config.EmailSettings.EnableSignInWithUsername = new(true)
 		})
 
 		user, appErr := th.App.GetUserForLogin(th.Context, "", th.BasicUser.Username)
@@ -72,7 +72,7 @@ func TestGetUserForLogin(t *testing.T) {
 
 	t.Run("Should not get user with username when sign in with username is disabled", func(t *testing.T) {
 		th.UpdateConfig(t, func(config *model.Config) {
-			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
+			config.EmailSettings.EnableSignInWithUsername = new(false)
 		})
 
 		user, appErr := th.App.GetUserForLogin(th.Context, "", th.BasicUser.Username)
@@ -83,7 +83,7 @@ func TestGetUserForLogin(t *testing.T) {
 
 	t.Run("Should get user with email when sign in with email is enabled", func(t *testing.T) {
 		th.UpdateConfig(t, func(config *model.Config) {
-			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(true)
+			config.EmailSettings.EnableSignInWithEmail = new(true)
 		})
 
 		user, appErr := th.App.GetUserForLogin(th.Context, "", th.BasicUser.Email)
@@ -94,7 +94,7 @@ func TestGetUserForLogin(t *testing.T) {
 
 	t.Run("Should not user with email when sign in with email is disabled", func(t *testing.T) {
 		th.UpdateConfig(t, func(config *model.Config) {
-			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
+			config.EmailSettings.EnableSignInWithEmail = new(false)
 		})
 
 		user, appErr := th.App.GetUserForLogin(th.Context, "", th.BasicUser.Email)
@@ -105,8 +105,8 @@ func TestGetUserForLogin(t *testing.T) {
 
 	t.Run("Should get user with user ID when sign in with email is enabled", func(t *testing.T) {
 		th.UpdateConfig(t, func(config *model.Config) {
-			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(true)
-			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
+			config.EmailSettings.EnableSignInWithEmail = new(true)
+			config.EmailSettings.EnableSignInWithUsername = new(false)
 		})
 
 		user, appErr := th.App.GetUserForLogin(th.Context, th.BasicUser.Id, "")
@@ -117,8 +117,8 @@ func TestGetUserForLogin(t *testing.T) {
 
 	t.Run("Should get user with user ID when sign in with username is enabled", func(t *testing.T) {
 		th.UpdateConfig(t, func(config *model.Config) {
-			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
-			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(true)
+			config.EmailSettings.EnableSignInWithEmail = new(false)
+			config.EmailSettings.EnableSignInWithUsername = new(true)
 		})
 
 		user, appErr := th.App.GetUserForLogin(th.Context, th.BasicUser.Id, "")
@@ -129,8 +129,8 @@ func TestGetUserForLogin(t *testing.T) {
 
 	t.Run("Should not get user with user ID when both sign in with email and username are disabled", func(t *testing.T) {
 		th.UpdateConfig(t, func(config *model.Config) {
-			config.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
-			config.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
+			config.EmailSettings.EnableSignInWithEmail = new(false)
+			config.EmailSettings.EnableSignInWithUsername = new(false)
 		})
 
 		user, appErr := th.App.GetUserForLogin(th.Context, th.BasicUser.Id, "")

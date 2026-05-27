@@ -161,12 +161,11 @@ import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
 import {
-    GROUP_NAME,
-    OBJECT_TYPE,
-    TARGET_TYPE,
-    TARGET_ID,
-    LINKED_OBJECT_TYPE,
-    SYSTEM_FIELD_TARGET_ID,
+    CLASSIFICATIONS_GROUP_NAME,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+    CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_ID,
 } from 'components/admin_console/classification_markings/utils';
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
@@ -353,17 +352,22 @@ export function reconnect() {
     // Refresh classification fields and values on reconnect when the feature flag is active
     if (getFeatureFlagValue(state, 'ClassificationMarkings') === 'true') {
         dispatch(
-            fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID),
+            fetchPropertyFields(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
+            ),
         );
         dispatch(
             fetchPropertyFields(
-                GROUP_NAME,
-                LINKED_OBJECT_TYPE,
-                TARGET_TYPE,
-                SYSTEM_FIELD_TARGET_ID,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
             ),
         );
-        dispatch(fetchSystemPropertyValues(GROUP_NAME));
+        dispatch(fetchSystemPropertyValues(CLASSIFICATIONS_GROUP_NAME));
     }
 
     if (state.websocket.lastDisconnectAt) {
@@ -884,11 +888,23 @@ export function handleEvent(msg: WebSocketMessage) {
     });
 }
 
+// The server publishes shared_channel_remote_updated from the onInvite callback after a remote
+// (cluster or plugin) accepts a channel invitation. The channel is already shared at that point,
+// and the channel_updated event that set shared=true ran earlier in the share flow, so the local
+// channel should already reflect shared=true when this arrives. If it doesn't, the event isn't
+// meaningful for us and we skip the fetch.
 function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChannelRemoteUpdated) {
     const channelId = msg.data.channel_id || msg.broadcast.channel_id;
-    if (channelId) {
-        dispatch(fetchChannelRemotes(channelId, true));
+    if (!channelId) {
+        return;
     }
+
+    const channel = getChannel(getState(), channelId);
+    if (!channel?.shared) {
+        return;
+    }
+
+    dispatch(fetchChannelRemotes(channelId, true));
 }
 
 // handleChannelConvertedEvent handles updating of channel which is converted between public and private

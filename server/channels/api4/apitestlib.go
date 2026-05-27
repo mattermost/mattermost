@@ -942,7 +942,7 @@ func (th *TestHelper) CreateDmChannel(tb testing.TB, user *model.User) *model.Ch
 func (th *TestHelper) PatchChannelModerationsForMembers(tb testing.TB, channelId, name string, val bool) {
 	patch := []*model.ChannelModerationPatch{{
 		Name:  &name,
-		Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(val)},
+		Roles: &model.ChannelModeratedRolesPatch{Members: new(val)},
 	}}
 
 	channel, err := th.App.GetChannel(th.Context, channelId)
@@ -1033,10 +1033,10 @@ func (th *TestHelper) GenerateTestEmail() string {
 func (th *TestHelper) CreateGroup(tb testing.TB) *model.Group {
 	id := model.NewId()
 	group := &model.Group{
-		Name:        model.NewPointer("n-" + id),
+		Name:        new("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer("ri_" + model.NewId()),
+		RemoteId:    new("ri_" + model.NewId()),
 	}
 
 	group, err := th.App.CreateGroup(group)

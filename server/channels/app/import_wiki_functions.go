@@ -89,31 +89,9 @@ func (a *App) importWiki(rctx request.CTX, data *imports.WikiImportData, dryRun 
 			map[string]any{"TeamName": *data.Team}, "", http.StatusNotFound).Wrap(err)
 	}
 
-	channel, err := a.Srv().Store().Channel().GetByName(team.Id, strings.ToLower(*data.Channel), false)
-	if err != nil {
-		return model.NewAppError("importWiki", "app.import.import_wiki.channel_not_found.error",
-			map[string]any{"ChannelName": *data.Channel}, "", http.StatusNotFound).Wrap(err)
-	}
-
-	// Look for existing wiki with matching import_source_id
-	existingWikis, appErr := a.GetWikisForChannel(rctx, channel.Id, false)
+	existingWiki, appErr := a.getWikiByImportSourceId(rctx, team.Id, importSourceId)
 	if appErr != nil {
 		return appErr
-	}
-
-	var existingWiki *model.Wiki
-	for _, wiki := range existingWikis {
-		// Match by import_source_id in props (for imported wikis)
-		if wikiSourceId, ok := wiki.Props[model.PostPropsImportSourceId].(string); ok && wikiSourceId == importSourceId {
-			existingWiki = wiki
-			break
-		}
-		// Also match by wiki.Id (for wikis created locally, not originally imported)
-		// The export uses wiki.Id as import_source_id when no import_source_id exists
-		if wiki.Id == importSourceId {
-			existingWiki = wiki
-			break
-		}
 	}
 
 	if existingWiki != nil {
@@ -144,7 +122,7 @@ func (a *App) importWiki(rctx request.CTX, data *imports.WikiImportData, dryRun 
 	}
 
 	// Create new wiki with import_source_id
-	title := channel.DisplayName + " Wiki"
+	title := *data.Channel
 	if data.Title != nil && strings.TrimSpace(*data.Title) != "" {
 		title = strings.TrimSpace(*data.Title)
 	}
@@ -155,7 +133,7 @@ func (a *App) importWiki(rctx request.CTX, data *imports.WikiImportData, dryRun 
 	}
 
 	wiki := &model.Wiki{
-		TeamId:      channel.TeamId,
+		TeamId:      team.Id,
 		Title:       title,
 		Description: description,
 		Props: model.StringInterface{
@@ -163,12 +141,7 @@ func (a *App) importWiki(rctx request.CTX, data *imports.WikiImportData, dryRun 
 		},
 	}
 
-	// Use channel creator for wiki creation during import
-	savedWiki, appErr := a.CreateWiki(rctx, wiki, channel.CreatorId)
-	if appErr != nil {
-		return appErr
-	}
-	_, appErr = a.LinkWikiToChannel(rctx, savedWiki.Id, channel.Id, channel.CreatorId)
+	_, appErr = a.CreateWiki(rctx, wiki, "")
 	return appErr
 }
 

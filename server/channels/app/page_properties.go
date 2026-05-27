@@ -62,7 +62,7 @@ func (a *App) GetPagePropertyFieldByName(fieldName string) (*model.PropertyField
 		return nil, model.NewAppError("GetPagePropertyFieldByName", "app.page.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	field, err := a.Srv().PropertyService().PropertyAccessService().GetPropertyFieldByName(anonymousCallerID, group.ID, "", fieldName)
+	field, err := a.Srv().PropertyService().GetPropertyFieldByName(nil, group.ID, "", fieldName)
 	if err != nil {
 		return nil, model.NewAppError("GetPagePropertyFieldByName", "app.page.get_field.app_error", map[string]any{"FieldName": fieldName}, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -88,7 +88,7 @@ func (a *App) SetPageStatus(rctx request.CTX, pageId string, status string) *mod
 		Value:      json.RawMessage(strconv.Quote(status)),
 	}
 
-	if _, err := a.Srv().PropertyService().PropertyAccessService().UpsertPropertyValue(anonymousCallerID, propertyValue); err != nil {
+	if _, err := a.Srv().PropertyService().UpsertPropertyValue(rctx, propertyValue); err != nil {
 		return model.NewAppError("SetPageStatus", "app.page.set_status.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -108,7 +108,7 @@ func (a *App) GetPageStatus(rctx request.CTX, pageId string) (string, *model.App
 		PerPage:   1,
 	}
 
-	values, err := a.Srv().PropertyService().PropertyAccessService().SearchPropertyValues(anonymousCallerID, statusField.GroupID, searchOpts)
+	values, err := a.Srv().PropertyService().SearchPropertyValues(rctx, statusField.GroupID, searchOpts)
 	if err != nil {
 		return "", model.NewAppError("GetPageStatus", "app.page.search_status_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -210,7 +210,7 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 		UseMaster:  shouldUseMaster,
 	}
 
-	statusValues, err := a.Srv().PropertyService().PropertyAccessService().SearchPropertyValues(anonymousCallerID, statusField.GroupID, statusSearchOpts)
+	statusValues, err := a.Srv().PropertyService().SearchPropertyValues(rctx, statusField.GroupID, statusSearchOpts)
 	if err != nil {
 		rctx.Logger().Warn("EnrichPagesWithProperties: status search returned error, skipping enrichment", mlog.Err(err))
 		return

@@ -50,7 +50,7 @@ func (ss *SqlStore) buildSoftDeleteQuery(table, idColumn string, idValue any, up
 // The function fn receives the transaction and should perform all operations within it
 // The transaction is automatically committed on success or rolled back on error
 func (ss *SqlStore) ExecuteInTransaction(fn func(tx *sqlxTxWrapper) error) error {
-	transaction, err := ss.GetMaster().Beginx()
+	transaction, err := ss.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

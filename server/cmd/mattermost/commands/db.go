@@ -329,6 +329,19 @@ func ConfigToFileBackendSettings(s *model.FileSettings, enableComplianceFeature 
 			Directory:  *s.Directory,
 		}
 	}
+	if *s.DriverName == model.ImageDriverAzure {
+		return filestore.FileBackendSettings{
+			DriverName:                      *s.DriverName,
+			AzureStorageAccount:             *s.AzureStorageAccount,
+			AzureAccessKey:                  *s.AzureAccessKey,
+			AzureContainer:                  *s.AzureContainer,
+			AzurePathPrefix:                 *s.AzurePathPrefix,
+			AzureEndpoint:                   *s.AzureEndpoint,
+			AzureSSL:                        s.AzureSSL == nil || *s.AzureSSL,
+			AzureRequestTimeoutMilliseconds: *s.AzureRequestTimeoutMilliseconds,
+			SkipVerify:                      skipVerify,
+		}
+	}
 	return filestore.FileBackendSettings{
 		DriverName:                         *s.DriverName,
 		AmazonS3AccessKeyId:                *s.AmazonS3AccessKeyId,

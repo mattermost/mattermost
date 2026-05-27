@@ -401,10 +401,10 @@ test.describe('System Console - Classification markings', () => {
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [
-                    {id: 'nato-unclassified', name: 'NATO UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'natounclassified0000000000', name: 'NATO UNCLASSIFIED', color: '#007A33', rank: 1},
                     {id: 'nato-restricted', name: 'NATO RESTRICTED', color: '#FFD700', rank: 2},
                 ],
-                {levelId: 'nato-unclassified', enabled: true, placement: 'top'},
+                {levelId: 'natounclassified0000000000', enabled: true, placement: 'top'},
             );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -457,10 +457,10 @@ test.describe('System Console - Classification markings', () => {
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [
-                    {id: 'lvl-unclassified', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
-                    {id: 'lvl-confidential', name: 'CONFIDENTIAL', color: '#FFD700', rank: 2},
+                    {id: 'lvlunclassified00000000000', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'lvlconfidential00000000000', name: 'CONFIDENTIAL', color: '#FFD700', rank: 2},
                 ],
-                {levelId: 'lvl-unclassified', enabled: true, placement: 'top'},
+                {levelId: 'lvlunclassified00000000000', enabled: true, placement: 'top'},
             );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -495,6 +495,73 @@ test.describe('System Console - Classification markings', () => {
             await expect(page.getByTestId('globalBannerLevel')).toContainText('CONFIDENTIAL');
 
             await deleteClassificationMarkingsFieldIfExists(adminClient);
+        },
+    );
+
+    /**
+     * @objective Verify that modifying a preset's levels (rename, delete, add) automatically
+     * switches the dropdown to "Custom classification levels", and selecting a real preset
+     * again removes the Custom option from the dropdown.
+     */
+    test(
+        'MM-T6212 classification markings: modifying a preset switches dropdown to Custom',
+        {tag: ['@system_console', '@classification_markings']},
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
+
+            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await deleteClassificationMarkingsFieldIfExists(adminClient);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
+            await page.waitForLoadState('networkidle');
+
+            // # Enable classification markings and select NATO preset
+            await page.locator('input[name="classificationEnabled"][value="true"]').click();
+            await selectClassificationPreset(page, 'NATO');
+
+            const presetControl = page.getByTestId('classificationPreset');
+            await expect(presetControl).toContainText('NATO');
+
+            // # Rename the first level — this should switch to Custom
+            const firstLevelInput = page.getByLabel('Classification level name').first();
+            await firstLevelInput.clear();
+            await firstLevelInput.fill('MY CUSTOM LEVEL');
+
+            // * Preset dropdown should now show "Custom classification levels"
+            await expect(presetControl).toContainText('Custom classification levels');
+
+            // # Open the preset dropdown and verify "Custom classification levels" is listed
+            await presetControl.click();
+            const menu = page.locator('.DropDown__menu');
+            await expect(menu).toBeVisible();
+            await expect(menu.getByText('Custom classification levels', {exact: true})).toBeVisible();
+
+            // # Select a real preset (Canada) — should show the confirmation modal
+            await menu.getByText('Canada', {exact: true}).click();
+            await expect(page.getByText('Change classification preset?')).toBeVisible();
+
+            // # Confirm the preset change
+            await page.getByRole('button', {name: 'Change preset'}).click();
+
+            // * Dropdown now shows Canada, no longer Custom
+            await expect(presetControl).toContainText('Canada');
+
+            // # Open the dropdown again and verify Custom is no longer listed
+            await presetControl.click();
+            const menuAfterSwitch = page.locator('.DropDown__menu');
+            await expect(menuAfterSwitch).toBeVisible();
+            await expect(menuAfterSwitch.getByText('Custom classification levels', {exact: true})).not.toBeVisible();
+
+            // # Close menu by pressing Escape
+            await page.keyboard.press('Escape');
+
+            // # Delete a level from the Canada preset
+            await page.getByRole('button', {name: 'Delete level'}).first().click();
+
+            // * Should switch back to Custom
+            await expect(presetControl).toContainText('Custom classification levels');
         },
     );
 

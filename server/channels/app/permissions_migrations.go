@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
@@ -1326,6 +1327,22 @@ func (a *App) getAddEditFileAttachmentPermissionMigration() (permissionsMap, err
 	}, nil
 }
 
+func (a *App) getAddDiscoverableChannelPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.ChannelAdminRoleId),
+				isRole(model.TeamAdminRoleId),
+				isRole(model.SystemAdminRoleId),
+			),
+			Add: []string{
+				model.PermissionManagePrivateChannelDiscoverability.Id,
+				model.PermissionManageChannelJoinRequests.Id,
+			},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1389,6 +1406,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
 		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
 		{Key: model.MigrationKeyAddWikiPagePermissions, Migration: a.getAddWikiPagePermissionsMigration},
+		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()
@@ -1402,6 +1420,7 @@ func (s *Server) doPermissionsMigrations() error {
 			return err
 		}
 		if err := s.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
+			mlog.Error("Failed to run permissions migration", mlog.String("key", migration.Key), mlog.Err(err))
 			return err
 		}
 	}

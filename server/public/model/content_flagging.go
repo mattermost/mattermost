@@ -26,6 +26,11 @@ const (
 	ContentFlaggingStatusRetained = "Retained"
 )
 
+const (
+	ContentFlaggingActionKeep   = "keep"
+	ContentFlaggingActionRemove = "remove"
+)
+
 type FlagContentRequest struct {
 	Reason  string `json:"reason"`
 	Comment string `json:"comment,omitempty"`
@@ -53,6 +58,7 @@ func (f *FlagContentRequest) IsValid(commentRequired bool, validReasons []string
 
 type FlagContentActionRequest struct {
 	Comment string `json:"comment,omitempty"`
+	Action  string `json:"action,omitempty"`
 }
 
 func (f *FlagContentActionRequest) IsValid(commentRequired bool) *AppError {

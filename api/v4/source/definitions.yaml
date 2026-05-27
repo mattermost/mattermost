@@ -1154,6 +1154,10 @@ components:
           description: The time in milliseconds a incoming webhook was deleted
           type: integer
           format: int64
+        last_used:
+          description: The time in milliseconds this incoming webhook was last used to post a message
+          type: integer
+          format: int64
         channel_id:
           description: The ID of a public channel or private group that receives the
             webhook payloads
@@ -4819,6 +4823,261 @@ components:
         total_count:
           type: integer
           description: The total number of users affected.
+    PolicySimulationUserOverride:
+      type: object
+      description: |
+        Per-user payload for the picker-driven `/cel/simulate_users` endpoint.
+        The simulator resolves each user's profile attributes from CPA storage
+        and then layers session context on top: first the requesting admin's
+        active-session snapshot (when `use_active_session` is true), then the
+        explicit `session_overrides` map.
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+          description: ID of the user to evaluate the draft policy against.
+        use_active_session:
+          type: boolean
+          description: |
+            When true, inject the requesting admin's `session.*` attributes
+            (network_status, device_managed, ip_range, etc.) into this user's
+            evaluation context. Forward-compatible with future PDP work that
+            populates session attributes on the request context.
+        session_overrides:
+          type: object
+          additionalProperties:
+            type: string
+          description: |
+            Replaces individual `session.*` attributes for this user only.
+            Applied on top of the active-session snapshot when both are set,
+            so a "configure session" panel can shadow specific values without
+            discarding the rest of the active session.
+    PolicySimulationByUsersParams:
+      type: object
+      description: |
+        Request body for `/access_control_policies/cel/simulate_users`. The
+        draft policy is compiled in-memory only — nothing is persisted.
+      required:
+        - policy
+        - actions
+        - users
+      properties:
+        policy:
+          $ref: "#/components/schemas/AccessControlPolicy"
+        actions:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: |
+            Permission actions to simulate (e.g. `upload_file_attachment`,
+            `download_file_attachment`). At least one action is required —
+            the picker UX only makes sense once an action is in scope. The
+            backend rejects empty arrays with `app.pap.simulate.missing_actions`
+            (HTTP 400); `minItems` lets OpenAPI tooling catch that earlier
+            on the client.
+        rule_name:
+          type: string
+          description: |
+            Identifies which rule in `policy.rules` the author is editing
+            (used for blame attribution). When set, denies originating from
+            this rule are tagged `source=this_rule`; other denies in the same
+            draft are tagged `source=sibling_rule`.
+        channel_id:
+          type: string
+          description: |
+            Provides resource context for delegated channel admins and for
+            resource-lane evaluation when `policy.type == "channel"`.
+        team_id:
+          type: string
+          description: Provides team context for team-level delegated admins.
+        users:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PolicySimulationUserOverride"
+          description: |
+            Explicit user list to evaluate, with per-user session-attribute
+            overrides. At least one user is required (the backend rejects
+            empty arrays with `app.pap.simulate.missing_users`).
+        evaluation_scope:
+          type: string
+          enum: [all, this_rule]
+          description: |
+            Selects whether the simulator considers only the rule under
+            simulation (`this_rule`) or co-evaluates every contributing
+            program (`all`). Empty defaults to `this_rule` on the server.
+            `this_rule` is the authoring-time "what does this rule alone
+            do?" view: useful for iterating on a single rule without
+            sibling rules shadowing or compensating for it. `all` mirrors
+            the live PDP at request time.
+    PolicySimulationBlame:
+      type: object
+      description: |
+        Attributes a deny decision back to the rule or policy that caused it.
+      properties:
+        source:
+          type: string
+          enum:
+            - this_rule
+            - sibling_rule
+            - sibling_saved
+            - peer_policy
+            - system_permission
+            - channel_policy
+            - no_applicable_policy
+          description: |
+            Origin of the blamed contribution.
+            * `this_rule` — the rule the author is currently editing.
+            * `sibling_rule` — another rule in the same draft policy.
+            * `sibling_saved` — recorded on ALLOW decisions where the
+              author's own rule alone would have denied; a sibling rule
+              flipped the verdict.
+            * `peer_policy` — a different policy at the SAME scope as the
+              draft. Carries `expression` / `evaluation_tree`.
+            * `system_permission` — a higher-scoped system permission policy.
+              Expression / tree are stripped to avoid leaking the contents
+              of policies outside the editing scope.
+            * `channel_policy` — a higher-scoped channel policy. Same
+              privacy stripping as `system_permission`.
+            * `no_applicable_policy` — no policy at any scope contributed a
+              decision (vacuous allow).
+        outcome:
+          type: string
+          enum:
+            - deny
+            - allow
+          description: |
+            Per-blame verdict. Most blame entries describe the deny that
+            produced the overall decision (`deny`); the simulator also
+            emits informational `allow` entries so the picker can show
+            "your draft rule allowed this user" alongside any peer
+            policies that actually caused the deny. Consumers that only
+            care about deny attribution should filter to `deny`. Empty
+            (omitted) is treated as `deny` for backward compatibility
+            with simulator builds that pre-date this field.
+        policy_id:
+          type: string
+          description: |
+            ID of the contributing policy. Empty when the deny originated
+            from the draft itself (no persisted ID exists yet).
+        policy_name:
+          type: string
+          description: Human-readable name of the contributing policy.
+        rule_name:
+          type: string
+          description: Name of the contributing rule.
+        role:
+          type: string
+          description: |
+            Scoped role (`system_admin` / `system_user` / `channel_admin` /
+            …) the contributing rule targets. Useful for explaining
+            role-chain fallbacks.
+        expression:
+          type: string
+          description: |
+            CEL text of the contributing rule. Only populated for blame
+            entries at the draft's own scope (`this_rule`, `sibling_rule`,
+            `sibling_saved`, `peer_policy`).
+        evaluation_tree:
+          type: object
+          description: |
+            Recursive per-node breakdown of the contributing rule, mirroring
+            the boolean shape of the CEL expression's AST. Same scope-privacy
+            rule as `expression`. The picker renders it as a structured
+            AND/OR/NOT tree highlighting which sub-expression(s) drove the
+            deny.
+    PolicySimulationActionDecision:
+      type: object
+      description: Per-action verdict for one user (or one session).
+      properties:
+        decision:
+          type: boolean
+          description: |
+            `true` means ALLOW, `false` means DENY. Pending evaluations
+            (rare) surface as `false` paired with an empty `blame` array.
+        blame:
+          type: array
+          items:
+            $ref: "#/components/schemas/PolicySimulationBlame"
+          description: |
+            Ordered blame entries for the decision. The first entry is the
+            primary blame (what the picker renders on the chip); subsequent
+            entries describe other contributing policies the user can drill
+            into via the "Decision details" view.
+    PolicySimulationSession:
+      type: object
+      description: Per-session verdict for one user.
+      properties:
+        device:
+          type: string
+        network:
+          type: string
+        last_active_at:
+          type: integer
+          format: int64
+          description: Last-active timestamp in milliseconds since epoch.
+        decisions:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/PolicySimulationActionDecision"
+          description: Per-action verdicts for this specific session.
+        attributes:
+          type: object
+          additionalProperties:
+            type: string
+          description: |
+            Session-attribute snapshot used when evaluating this session
+            (network_status, device_managed, ip_range, etc.). Surfaced in
+            the per-row "Decision details" view.
+    PolicySimulationUserResult:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        decisions:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/PolicySimulationActionDecision"
+          description: |
+            Per-action verdicts for the user. When `sessions` is populated
+            this represents the "headline" decision (e.g. from the
+            most-recently-active session) so the picker can render a
+            single chip without consulting `sessions`.
+        sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PolicySimulationSession"
+          description: |
+            Optional per-session breakdown. When populated the picker
+            renders a Recent activity expand row revealing one decision
+            chip per session. Empty/undefined falls back to a single
+            user-level chip.
+        attributes:
+          type: object
+          additionalProperties:
+            type: string
+          description: |
+            User profile attribute snapshot used when evaluating this user
+            (department, region, clearance, etc.).
+    PolicySimulationResponse:
+      type: object
+      description: |
+        Body returned by `/cel/simulate_users`. Per-user, per-action
+        verdicts plus blame attribution for any deny.
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/PolicySimulationUserResult"
+        total:
+          type: integer
+          format: int64
+          description: |
+            Total number of users evaluated (matches `results.length` for
+            the picker endpoint since the caller supplies the user list
+            explicitly).
     ChannelSearch: # Added based on dataretention.yaml and access_control.go usage
       type: object
       properties:

@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
@@ -61,7 +62,7 @@ func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*mo
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_create_many_begin_transaction")
 	}
@@ -105,6 +106,9 @@ func (s *SqlPropertyValueStore) Get(groupID, id string) (*model.PropertyValue, e
 
 	var value model.PropertyValue
 	if err := s.GetReplica().GetBuilder(&value, builder); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("PropertyValue", id)
+		}
 		return nil, errors.Wrap(err, "property_value_get_select")
 	}
 
@@ -198,7 +202,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_update_begin_transaction")
 	}
@@ -264,7 +268,7 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_upsert_begin_transaction")
 	}
@@ -273,6 +277,11 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 	updatedValues := make([]*model.PropertyValue, len(values))
 	updateTime := model.GetMillis()
 	for i, value := range values {
+		// Pin CreateAt to updateTime so PreSave does not capture a later
+		// GetMillis() — keeping CreateAt == UpdateAt on insert.
+		if value.CreateAt == 0 {
+			value.CreateAt = updateTime
+		}
 		value.PreSave()
 		value.UpdateAt = updateTime
 

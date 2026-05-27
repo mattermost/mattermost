@@ -153,27 +153,27 @@ func TestEmailTest(t *testing.T) {
 	es := model.EmailSettings{}
 	es.SetDefaults(false)
 
-	es.SMTPServer = model.NewPointer("")
-	es.SMTPPort = model.NewPointer("")
-	es.SMTPPassword = model.NewPointer("")
-	es.FeedbackName = model.NewPointer("")
-	es.FeedbackEmail = model.NewPointer("some-addr@test.com")
-	es.ReplyToAddress = model.NewPointer("some-addr@test.com")
-	es.ConnectionSecurity = model.NewPointer("")
-	es.SMTPUsername = model.NewPointer("")
-	es.EnableSMTPAuth = model.NewPointer(false)
-	es.SkipServerCertificateVerification = model.NewPointer(true)
-	es.SendEmailNotifications = model.NewPointer(false)
-	es.SMTPServerTimeout = model.NewPointer(15)
+	es.SMTPServer = new("")
+	es.SMTPPort = new("")
+	es.SMTPPassword = new("")
+	es.FeedbackName = new("")
+	es.FeedbackEmail = new("some-addr@test.com")
+	es.ReplyToAddress = new("some-addr@test.com")
+	es.ConnectionSecurity = new("")
+	es.SMTPUsername = new("")
+	es.EnableSMTPAuth = new(false)
+	es.SkipServerCertificateVerification = new(true)
+	es.SendEmailNotifications = new(false)
+	es.SMTPServerTimeout = new(15)
 
 	config := model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: model.NewPointer(""),
+			SiteURL: new(""),
 		},
 		EmailSettings: es,
 		FileSettings: model.FileSettings{
 			DriverName: model.NewPointer(model.ImageDriverLocal),
-			Directory:  model.NewPointer(dir),
+			Directory:  new(dir),
 		},
 	}
 
@@ -417,20 +417,47 @@ func TestGetLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
+	testID := model.NewId()
+	expectedMessages := make([]string, 0, 20)
 	for i := range 20 {
-		th.TestLogger.Info(strconv.Itoa(i))
+		message := fmt.Sprintf("getlogs_verify_%s_%d", testID, i)
+		expectedMessages = append(expectedMessages, message)
+		th.TestLogger.Info(message)
 	}
 
 	err := th.TestLogger.Flush()
 	require.NoError(t, err, "failed to flush log")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
-		require.NoError(t, err2)
-		require.Len(t, logs, 10)
+		var logs []string
+		containsLogMessage := func(logs []string, expected string) bool {
+			for _, logLine := range logs {
+				if strings.Contains(logLine, expected) {
+					return true
+				}
+			}
+			return false
+		}
+		containsExpectedMessages := func(logs []string) bool {
+			for _, expected := range expectedMessages {
+				if !containsLogMessage(logs, expected) {
+					return false
+				}
+			}
+			return true
+		}
 
-		for i := 10; i < 20; i++ {
-			assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
+		require.Eventually(t, func() bool {
+			logs, _, err = c.GetLogs(context.Background(), 0, 200)
+			if err != nil {
+				return false
+			}
+
+			return containsExpectedMessages(logs)
+		}, 5*time.Second, 25*time.Millisecond)
+
+		for _, expected := range expectedMessages {
+			assert.Truef(t, containsLogMessage(logs, expected), "Log lines don't contain %q", expected)
 		}
 
 		logs, _, err = c.GetLogs(context.Background(), 1, 10)
@@ -641,11 +668,11 @@ func TestS3TestConnection(t *testing.T) {
 	fs.DriverName = model.NewPointer(model.ImageDriverS3)
 	fs.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
 	fs.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
-	fs.AmazonS3Bucket = model.NewPointer("")
-	fs.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
-	fs.AmazonS3Region = model.NewPointer("")
-	fs.AmazonS3PathPrefix = model.NewPointer("")
-	fs.AmazonS3SSL = model.NewPointer(false)
+	fs.AmazonS3Bucket = new("")
+	fs.AmazonS3Endpoint = new(s3Endpoint)
+	fs.AmazonS3Region = new("")
+	fs.AmazonS3PathPrefix = new("")
+	fs.AmazonS3SSL = new(false)
 
 	config := model.Config{
 		FileSettings: fs,
@@ -664,26 +691,26 @@ func TestS3TestConnection(t *testing.T) {
 		// If this fails, check the test configuration to ensure minio is setup with the
 		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
 		*config.FileSettings.AmazonS3Bucket = model.MinioBucket
-		config.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+		config.FileSettings.AmazonS3PathPrefix = new("")
 		*config.FileSettings.AmazonS3Region = "us-east-1"
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		config.FileSettings.AmazonS3Region = model.NewPointer("")
+		config.FileSettings.AmazonS3Region = new("")
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		config.FileSettings.AmazonS3Bucket = model.NewPointer("Wrong_bucket")
+		config.FileSettings.AmazonS3Bucket = new("Wrong_bucket")
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_no_bucket.app_error")
 
 		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_no_bucket.app_error")
 	})
 
 	t.Run("with incorrect credentials", func(t *testing.T) {
@@ -691,7 +718,7 @@ func TestS3TestConnection(t *testing.T) {
 		*configCopy.FileSettings.AmazonS3AccessKeyId = "invalidaccesskey"
 		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &configCopy)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_auth.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_auth.app_error")
 	})
 
 	t.Run("empty file settings", func(t *testing.T) {

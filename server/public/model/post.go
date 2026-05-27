@@ -111,6 +111,7 @@ const (
 	PostPropsFromOAuthApp             = "from_oauth_app"
 	PostPropsWebhookDisplayName       = "webhook_display_name"
 	PostPropsAttachments              = "attachments"
+	PostPropsMmBlocksActions          = "mm_blocks_actions"
 	PostPropsFromPlugin               = "from_plugin"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
@@ -190,16 +191,16 @@ type Post struct {
 	// populate edit boxes if present.
 	MessageSource string `json:"message_source,omitempty" xml:"MessageSource,omitempty"`
 
-	Type          string          `json:"type" xml:"Type"`
-	propsMu       sync.RWMutex    `db:"-"`                   // Unexported mutex used to guard Post.Props.
-	Props         StringInterface `json:"props" xml:"Props"` // Deprecated: use GetProps()
-	Hashtags      string          `json:"hashtags" xml:"Hashtags"`
-	PageSearchText string         `json:"page_search_text,omitempty" xml:"PageSearchText"`
-	Filenames     StringArray     `json:"-" xml:"-"` // Deprecated, do not use this field any more
-	FileIds       StringArray     `json:"file_ids" xml:"FileIds>Id"`
-	PendingPostId string          `json:"pending_post_id" xml:"PendingPostId"`
-	HasReactions  bool            `json:"has_reactions,omitempty" xml:"HasReactions,omitempty"`
-	RemoteId      *string         `json:"remote_id,omitempty" xml:"RemoteId,omitempty"`
+	Type           string          `json:"type" xml:"Type"`
+	propsMu        sync.RWMutex    `db:"-"`                   // Unexported mutex used to guard Post.Props.
+	Props          StringInterface `json:"props" xml:"Props"` // Deprecated: use GetProps()
+	Hashtags       string          `json:"hashtags" xml:"Hashtags"`
+	PageSearchText string          `json:"page_search_text,omitempty" xml:"PageSearchText"`
+	Filenames      StringArray     `json:"-" xml:"-"` // Deprecated, do not use this field any more
+	FileIds        StringArray     `json:"file_ids" xml:"FileIds>Id"`
+	PendingPostId  string          `json:"pending_post_id" xml:"PendingPostId"`
+	HasReactions   bool            `json:"has_reactions,omitempty" xml:"HasReactions,omitempty"`
+	RemoteId       *string         `json:"remote_id,omitempty" xml:"RemoteId,omitempty"`
 
 	// Transient data populated before sending a post to the client
 	ReplyCount   int64         `json:"reply_count" xml:"ReplyCount"`
@@ -429,7 +430,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
 	if o.IsFollowing != nil {
-		dst.IsFollowing = NewPointer(*o.IsFollowing)
+		dst.IsFollowing = new(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
 	return nil
@@ -666,7 +667,7 @@ func (o *Post) SanitizeProps() {
 // Remove any input data from the post object that is not user controlled
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
-	o.RemoteId = NewPointer("")
+	o.RemoteId = new("")
 	o.PageSearchText = ""
 
 	if o.Metadata != nil {
@@ -695,6 +696,7 @@ func ContainsIntegrationsReservedProps(props StringInterface) []string {
 			PostPropsWebhookDisplayName,
 			PostPropsOverrideIconURL,
 			PostPropsOverrideIconEmoji,
+			PostPropsMmBlocksActions,
 		}
 
 		for _, key := range reservedProps {
@@ -916,6 +918,12 @@ func (o *Post) propsIsValid() error {
 	if props[PostPropsAIGeneratedByUsername] != nil {
 		if _, ok := props[PostPropsAIGeneratedByUsername].(string); !ok {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by_username prop must be a string"))
+		}
+	}
+
+	if props[PostPropsMmBlocksActions] != nil {
+		if err := ValidateMmBlocksActions(o); err != nil {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid mm_blocks_actions: %w", err))
 		}
 	}
 
@@ -1279,6 +1287,14 @@ func (o *Post) CleanPost() *Post {
 type UpdatePostOptions struct {
 	SafeUpdate    bool
 	IsRestorePost bool
+
+	// AllowMmBlocksActionsUpdate grants the caller permission to add,
+	// remove, or modify the mm_blocks_actions prop. Without it,
+	// non-integration sessions cannot change mm_blocks_actions and the
+	// prop is reset to its prior value. Set only from trusted paths (e.g.
+	// the post-action integration response handler which has already
+	// validated the incoming value).
+	AllowMmBlocksActionsUpdate bool
 }
 
 func DefaultUpdatePostOptions() *UpdatePostOptions {

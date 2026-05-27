@@ -177,6 +177,8 @@ type Routes struct {
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
 
+	Boards *mux.Router // 'api/v4/boards'
+
 	Properties           *mux.Router // 'api/v4/properties'
 	PropertyFields       *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
 	PropertyField        *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
@@ -344,6 +346,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.WikiLink = api.BaseRoutes.WikiLinks.PathPrefix("/{wiki_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.TeamWikis = api.BaseRoutes.Team.PathPrefix("/wikis").Subrouter()
 
+	api.BaseRoutes.Boards = api.BaseRoutes.APIRoot.PathPrefix("/boards").Subrouter()
+
 	api.BaseRoutes.Properties = api.BaseRoutes.APIRoot.PathPrefix("/properties").Subrouter()
 	api.BaseRoutes.PropertyFields = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields").Subrouter()
 	api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
@@ -400,6 +404,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitWiki()
 	api.InitView()
 	api.InitWikiLinks()
+	api.InitBoard()
 	api.InitReports()
 	api.InitLimits()
 	api.InitOutgoingOAuthConnection()

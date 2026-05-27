@@ -433,13 +433,13 @@ type ChannelOption func(*model.Channel)
 
 func WithShared(v bool) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.Shared = model.NewPointer(v)
+		channel.Shared = new(v)
 	}
 }
 
 func WithCreateAt(v int64) ChannelOption {
 	return func(channel *model.Channel) {
-		channel.CreateAt = *model.NewPointer(v)
+		channel.CreateAt = *new(v)
 	}
 }
 
@@ -606,10 +606,10 @@ func (th *TestHelper) CreateGroup(tb testing.TB) *model.Group {
 	id := model.NewId()
 	group := &model.Group{
 		DisplayName: "dn_" + id,
-		Name:        model.NewPointer("name" + id),
+		Name:        new("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	}
 
 	group, err := th.App.CreateGroup(group)
@@ -864,7 +864,7 @@ func (th *TestHelper) CreateFileInfo(tb testing.TB, userId, postId, channelId st
 
 func (th *TestHelper) PostPatch(tb testing.TB, post *model.Post, message string, options ...PostPatchOptions) *model.Post {
 	postPatch := &model.PostPatch{
-		Message: model.NewPointer(message),
+		Message: new(message),
 	}
 	for _, optionFunc := range options {
 		optionFunc(postPatch)
