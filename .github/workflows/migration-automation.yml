@@ -30,51 +30,56 @@ jobs:
         # actions/checkout v4.2.2
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          fetch-depth: 2            # need HEAD~1 to detect added files
+          # fetch-depth: 0 fetches the full history so that multi-commit pushes
+          # are handled correctly — diff covers all commits in the push, not
+          # just the latest one.
+          fetch-depth: 0
           persist-credentials: false
  
-      - name: Detect newly added migration files
-        id: detect
-        run: |
-          # Collect newly added .up.sql files (one per line, no trailing spaces)
-          NEW=$(git diff --name-only --diff-filter=A HEAD~1 HEAD -- \
-            'server/channels/db/migrations/postgres/*.up.sql')
-          if [ -n "$NEW" ]; then
-            echo "New migrations found:"
-            echo "$NEW"
-            # Use heredoc delimiter to safely pass newline-delimited paths
-            {
-              printf 'files<<__MM_EOF__\n'
-              printf '%s\n' "$NEW"
-              printf '__MM_EOF__\n'
-            } >> "$GITHUB_OUTPUT"
-          else
-            echo "No new .up.sql files — skipping."
-          fi
- 
       - name: Set up Python
-        if: steps.detect.outputs.files != ''
         # actions/setup-python v5.3.0
         uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
         with:
           python-version: '3.12'
  
       - name: Install dependencies
-        if: steps.detect.outputs.files != ''
         run: pip install anthropic
  
-      - name: Run migration automation
-        if: steps.detect.outputs.files != ''
+      - name: Detect and process new migrations
+        # All secrets/variables are injected as environment variables by
+        # GitHub Actions — they are never interpolated into shell commands.
+        # The file list from `git diff` goes directly into a bash array via
+        # process substitution (mapfile + <(...)); it never passes through
+        # GITHUB_OUTPUT or any ${{ }} expression, eliminating the
+        # heredoc-delimiter injection vector entirely.
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           MIGRATION_REVIEW_ASSIGNEE: ${{ vars.MIGRATION_REVIEW_ASSIGNEE }}
-          # Newline-delimited file list from the detect step
-          MIGRATION_FILES: ${{ steps.detect.outputs.files }}
+          # Full push range (previous HEAD → new HEAD).
+          # Env var keeps this out of ${{ }} shell expansion.
+          PUSH_BASE_SHA: ${{ github.event.before }}
         run: |
-          # Build a bash array from the newline-delimited list; each element is
-          # passed as a separate, properly-quoted argument — no shell injection.
-          mapfile -t files <<< "$MIGRATION_FILES"
+          # Collect newly-added .up.sql paths across ALL commits in this push.
+          # $PUSH_BASE_SHA..$GITHUB_SHA covers every commit, not just the
+          # latest — handles multi-commit pushes correctly.
+          # Process substitution puts each path in its own array element;
+          # no value is ever shell-interpolated.
+          mapfile -t files < <(
+            git diff --name-only --diff-filter=A \
+              "$PUSH_BASE_SHA" "$GITHUB_SHA" \
+              -- 'server/channels/db/migrations/postgres/*.up.sql'
+          )
+ 
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No new .up.sql files — skipping."
+            exit 0
+          fi
+ 
+          echo "Found ${#files[@]} new migration(s):"
+          printf '  %s\n' "${files[@]}"
+ 
+          # Each element of ${files[@]} is a separate, quoted argument.
           python .github/scripts/migration_automation.py "${files[@]}"
