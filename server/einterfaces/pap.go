@@ -49,4 +49,26 @@ type PolicyAdministrationPointInterface interface {
 	// persisted. Backs the picker-based "Simulate access" UX in the
 	// System Console and Channel Settings.
 	SimulatePolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError)
+
+	// HasMaskedValuesForCaller reports whether expression contains any literal
+	// value hidden from the caller according to resolver. Returns an error when
+	// field resolution or CEL parsing fails — callers must treat any error as
+	// fail-closed (assume values are hidden).
+	HasMaskedValuesForCaller(rctx request.CTX, expression string, resolver model.MaskingFieldResolver) (bool, *model.AppError)
+
+	// MaskExpressionForCaller rewrites hidden literal values in expression to
+	// the masked token and returns the modified CEL string. The logical tree
+	// shape is preserved (|| / grouping / function calls are not flattened).
+	MaskExpressionForCaller(rctx request.CTX, expression string, resolver model.MaskingFieldResolver) (string, bool, *model.AppError)
+
+	// ValidateExpressionValuesForCaller walks expression and returns an error
+	// if any non-token literal is forbidden for the caller under resolver's
+	// visibility rules.
+	ValidateExpressionValuesForCaller(rctx request.CTX, expression string, resolver model.MaskingFieldResolver) *model.AppError
+
+	// MergeExpressionWithMaskedValuesCanonical re-injects hidden stored
+	// literals from storedExpr into submittedExpr using a canonical CEL AST
+	// walk. Returns the merged CEL string. Fails closed when the submitted
+	// tree's shape diverges from stored while hidden values are present.
+	MergeExpressionWithMaskedValuesCanonical(rctx request.CTX, submittedExpr, storedExpr string, resolver model.MaskingFieldResolver) (string, *model.AppError)
 }
