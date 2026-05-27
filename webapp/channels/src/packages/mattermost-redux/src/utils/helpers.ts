@@ -93,8 +93,7 @@ export function generateId(): string {
         if (c === 'x') {
             v = r;
         } else {
-            // eslint-disable-next-line no-mixed-operators
-            v = r & 0x3 | 0x8;
+            v = (r & 0x3) | 0x8;
         }
 
         return v.toString(16);
