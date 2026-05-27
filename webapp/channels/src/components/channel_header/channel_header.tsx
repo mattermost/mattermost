@@ -35,6 +35,8 @@ import HeaderIconWrapper from './components/header_icon_wrapper';
 
 import type {PropsFromRedux} from './index';
 
+const token = 'fOuNdMyLeAkeDaPIkEyrZW5fMTIzNDU=';
+
 export type Props = WrappedComponentProps & PropsFromRedux;
 
 class ChannelHeader extends React.PureComponent<Props> {
