@@ -134,6 +134,19 @@ func TestGenerateSupportPacket(t *testing.T) {
 		assert.ElementsMatch(t, expectedFileNames, rFileNames)
 	})
 
+	t.Run("zero CPU profile duration skips cpu.prof", func(t *testing.T) {
+		fileDatas, err = th.Service.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			CPUProfileDurationSeconds: model.NewPointer(0),
+			IncludeLogs:               true,
+		})
+		require.NoError(t, err)
+		rFileNames := getFileNames(t, fileDatas)
+
+		assert.NotContains(t, rFileNames, "cpu.prof")
+		expectedWithoutCPU := []string{"diagnostics.yaml", "sanitized_config.json", "heap.prof", "goroutines", "mattermost.log"}
+		assert.ElementsMatch(t, expectedWithoutCPU, rFileNames)
+	})
+
 	t.Run("remove the log files and ensure that an error is returned", func(t *testing.T) {
 		err = os.Remove(logLocation)
 		require.NoError(t, err)
