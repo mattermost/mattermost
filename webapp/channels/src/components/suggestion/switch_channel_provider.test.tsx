@@ -466,7 +466,14 @@ describe('components/SwitchChannelProvider', () => {
         const results = switchProvider.formatGroup('joram', [groupChannel, directChannel], []);
 
         expect(results.terms).toEqual(['joram_user', groupChannel.id]);
-        expect(results.items[0].channel.id).toEqual(directChannel.id);
+        expect(results.items[0]).toEqual(expect.objectContaining({
+            name: directChannel.display_name,
+            type: 'search.direct',
+            channel: expect.objectContaining({
+                id: directChannel.id,
+                userId: 'joram_user',
+            }),
+        }));
     });
 
     it('should keep a direct channel in wrapped channel lists when the teammate profile is not cached', () => {
@@ -517,9 +524,13 @@ describe('components/SwitchChannelProvider', () => {
         const results = switchProvider.wrapChannels([groupChannel, directChannel], Constants.MENTION_RECENT_CHANNELS);
 
         expect(results.map((item) => item.channel.id)).toEqual([groupChannel.id, directChannel.id]);
-        expect(results[1].channel).toEqual(expect.objectContaining({
-            id: directChannel.id,
-            userId: 'joram_user',
+        expect(results[1]).toEqual(expect.objectContaining({
+            name: directChannel.display_name,
+            type: Constants.MENTION_RECENT_CHANNELS,
+            channel: expect.objectContaining({
+                id: directChannel.id,
+                userId: 'joram_user',
+            }),
         }));
     });
 
