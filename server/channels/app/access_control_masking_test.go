@@ -895,24 +895,15 @@ func TestMaskSimulationPolicyLiteralsForCaller_SourceOnly(t *testing.T) {
 	})
 	require.NoError(t, sErr)
 
-	// Tests run without a real Policy Administration Point wired up,
-	// so we have to stand in for ExpressionToVisualAST. The mock
-	// returns a single-condition Visual AST that matches the leaf
-	// shape the simulator would produce — that's the only input the
-	// downstream masking pipeline actually cares about for a
-	// source_only field.
+	// Mock MaskExpressionForCaller to return the sentinel for source_only values.
+	// Tests run without a real PAP wired up; the canonical walker is exercised by
+	// cel_utils/masking_test.go — here we pin the app-layer wiring end-to-end.
+	leafExpr := `user.attributes.` + fieldName + ` == "Crimsone One"`
+	maskedExpr := `user.attributes.` + fieldName + ` == "` + maskedTokenValue + `"`
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
-	mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(&model.VisualExpression{
-		Conditions: []model.Condition{{
-			Attribute: "user.attributes." + fieldName,
-			Operator:  "==",
-			Value:     "Crimsone One",
-			ValueType: model.LiteralValue,
-		}},
-	}, nil)
-
-	leafExpr := `user.attributes.` + fieldName + ` == "Crimsone One"`
+	mockACS.On("MaskExpressionForCaller", mock.Anything, mock.Anything, mock.Anything).
+		Return(maskedExpr, true, nil)
 	resp := &model.PolicySimulationResponse{
 		Results: []model.PolicySimulationUserResult{{
 			User: &model.User{Id: model.NewId()},
@@ -1017,18 +1008,11 @@ func TestMaskSimulationPolicyLiteralsForCaller_PublicFieldPassesThrough(t *testi
 	}, false, "")
 	require.Nil(t, vAppErr)
 
+	expr := `user.attributes.` + fieldName + ` == "Engineering"`
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
-	mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(&model.VisualExpression{
-		Conditions: []model.Condition{{
-			Attribute: "user.attributes." + fieldName,
-			Operator:  "==",
-			Value:     "Engineering",
-			ValueType: model.LiteralValue,
-		}},
-	}, nil)
-
-	expr := `user.attributes.` + fieldName + ` == "Engineering"`
+	mockACS.On("MaskExpressionForCaller", mock.Anything, mock.Anything, mock.Anything).
+		Return(expr, false, nil)
 	resp := &model.PolicySimulationResponse{
 		Results: []model.PolicySimulationUserResult{{
 			Decisions: map[string]model.PolicySimulationActionDecision{
@@ -1133,21 +1117,13 @@ func TestMaskSimulationPolicyLiteralsForCaller_ActualValueIndependentFromExpecte
 		fieldsByName:   map[string]*model.PropertyField{},
 	}
 
-	// Mock ExpressionToVisualAST so the leaf re-mask of Expression
-	// returns the original single-condition AST against the V1
-	// field — same shape the leaf was built from.
+	// Mock MaskExpressionForCaller to return the original expression: caller holds "A"
+	// so no literal is hidden, the expression passes through unchanged.
+	leafExpr := `user.attributes.` + createdField.Name + ` == "A"`
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
-	mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(&model.VisualExpression{
-		Conditions: []model.Condition{{
-			Attribute: "user.attributes." + createdField.Name,
-			Operator:  "==",
-			Value:     "A",
-			ValueType: model.LiteralValue,
-		}},
-	}, nil)
-
-	leafExpr := `user.attributes.` + createdField.Name + ` == "A"`
+	mockACS.On("MaskExpressionForCaller", mock.Anything, mock.Anything, mock.Anything).
+		Return(leafExpr, false, nil)
 	dec := &model.PolicySimulationActionDecision{
 		Blame: []model.PolicySimulationBlame{{
 			RuleName:   "rule1",
@@ -1220,34 +1196,18 @@ func TestMaskSimulationPolicyLiteralsForCaller_CompoundOrPreserved(t *testing.T)
 	})
 	require.NoError(t, sErr)
 
-	// Each leaf is masked through ExpressionToVisualAST independently,
-	// so the mock returns a single-condition AST that matches the
-	// matched-on value (Alpha vs Bravo) for whichever leaf is being
-	// processed. We don't care which order the calls happen in —
-	// both are source_only and both will mask the same way; the
-	// assertion below is on the rebuilt compound, not on call order.
+	// Each leaf is masked through MaskExpressionForCaller independently.
+	// Both are source_only so both return the sentinel; we don't care about
+	// call order — the assertion is on the rebuilt compound preserving "||".
+	maskedLeaf := `user.attributes.` + fieldName + ` == "` + maskedTokenValue + `"`
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
-	mockACS.On("ExpressionToVisualAST", mock.Anything, mock.MatchedBy(func(expr string) bool {
+	mockACS.On("MaskExpressionForCaller", mock.Anything, mock.MatchedBy(func(expr string) bool {
 		return strings.Contains(expr, "Alpha")
-	})).Return(&model.VisualExpression{
-		Conditions: []model.Condition{{
-			Attribute: "user.attributes." + fieldName,
-			Operator:  "==",
-			Value:     "Alpha",
-			ValueType: model.LiteralValue,
-		}},
-	}, nil)
-	mockACS.On("ExpressionToVisualAST", mock.Anything, mock.MatchedBy(func(expr string) bool {
+	}), mock.Anything).Return(maskedLeaf, true, nil)
+	mockACS.On("MaskExpressionForCaller", mock.Anything, mock.MatchedBy(func(expr string) bool {
 		return strings.Contains(expr, "Bravo")
-	})).Return(&model.VisualExpression{
-		Conditions: []model.Condition{{
-			Attribute: "user.attributes." + fieldName,
-			Operator:  "==",
-			Value:     "Bravo",
-			ValueType: model.LiteralValue,
-		}},
-	}, nil)
+	}), mock.Anything).Return(maskedLeaf, true, nil)
 
 	mkLeaf := func(value string) model.PolicySimulationEvaluationNode {
 		return model.PolicySimulationEvaluationNode{
