@@ -58,7 +58,8 @@ export default [
                 {
                     source: 'string',
                     style: 'line',
-                    content: 'Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\nSee LICENSE.txt for license information.',
+                    content:
+                        'Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\nSee LICENSE.txt for license information.',
                     trailingNewlines: 2,
                 },
             ],
