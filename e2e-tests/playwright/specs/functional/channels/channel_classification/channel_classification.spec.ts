@@ -323,7 +323,9 @@ test.describe('Channel Classification - Existing channel settings', () => {
         expect(colorValue.toLowerCase().replace('#', '')).toBe(selectedLevel!.color.toLowerCase().replace('#', ''));
     });
 
-    test('Disabling classification with a custom banner color preserves it server-side, and re-enabling restores the Save button', async ({pw}) => {
+    test('Disabling classification with a custom banner color preserves it server-side, and re-enabling restores the Save button', async ({
+        pw,
+    }) => {
         const {adminUser, team, adminClient} = await initSetupTracked(pw);
 
         const channel = await adminClient.createChannel(
