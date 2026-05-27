@@ -434,13 +434,26 @@ func IsValidPropertyFieldObjectType(objectType string) bool {
 	return slices.Contains(validPropertyFieldObjectTypes, objectType)
 }
 
+// PropertyFieldSearchCursor carries two alternative pagination keys because
+// field listings serve two different read patterns:
+//
+//   - Directory listings (no since filter) page in creation order using
+//     CreateAt + PropertyFieldID. CreateAt never changes, so the scan is
+//     stable across concurrent patches.
+//   - Delta sync (SinceUpdateAt > 0) pages in update order using UpdateAt +
+//     PropertyFieldID, matching the ORDER BY the store applies in that mode.
+//
+// IsValid requires exactly one of CreateAt or UpdateAt to be positive
+// alongside a valid PropertyFieldID. An empty cursor is also valid and means
+// "start from the beginning".
 type PropertyFieldSearchCursor struct {
 	PropertyFieldID string
 	CreateAt        int64
+	UpdateAt        int64
 }
 
 func (p PropertyFieldSearchCursor) IsEmpty() bool {
-	return p.PropertyFieldID == "" && p.CreateAt == 0
+	return p.PropertyFieldID == "" && p.CreateAt == 0 && p.UpdateAt == 0
 }
 
 func (p PropertyFieldSearchCursor) IsValid() error {
@@ -448,12 +461,14 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 		return nil
 	}
 
-	if p.CreateAt <= 0 {
-		return errors.New("create at cannot be negative or zero")
-	}
-
 	if !IsValidId(p.PropertyFieldID) {
 		return errors.New("property field id is invalid")
+	}
+
+	hasCreate := p.CreateAt > 0
+	hasUpdate := p.UpdateAt > 0
+	if hasCreate == hasUpdate {
+		return errors.New("cursor must have exactly one of create_at or update_at set")
 	}
 	return nil
 }
@@ -468,16 +483,54 @@ type PropertyFieldSearch struct {
 	PerPage        int    `json:"per_page"`
 }
 
+// PropertyFieldSearchOpts captures the filters accepted by SearchPropertyFields.
+//
+// Invariants enforced by IsValid:
+//   - ObjectType and ObjectTypes are mutually exclusive.
+//   - Every entry in ObjectTypes must be a valid PSAv2 object type.
+//   - ChannelID/TeamID and TargetType/TargetIDs are mutually exclusive scope modes.
+//   - ChannelID requires TeamID (callers must resolve TeamID before search).
+//   - SinceUpdateAt <= 0 means "no filter" — matching the /groups convention.
 type PropertyFieldSearchOpts struct {
-	GroupID        string
-	ObjectType     string
+	GroupID string
+	// Deprecated: use ObjectTypes instead. Kept for backwards compatibility
+	// with existing callers; mutually exclusive with ObjectTypes.
+	ObjectType  string
+	ObjectTypes []string
 	TargetType     string
 	TargetIDs      []string
+	ChannelID      string
+	TeamID         string
 	LinkedFieldID  string
-	SinceUpdateAt  int64 // UpdatedAt after which to send the items
+	SinceUpdateAt  int64
 	IncludeDeleted bool
 	Cursor         PropertyFieldSearchCursor
 	PerPage        int
+}
+
+// IsValid runs the cross-field invariants documented on PropertyFieldSearchOpts.
+func (o PropertyFieldSearchOpts) IsValid() error {
+	if o.ObjectType != "" && len(o.ObjectTypes) > 0 {
+		return errors.New("object_type and object_types are mutually exclusive")
+	}
+
+	for _, ot := range o.ObjectTypes {
+		if !IsValidPropertyFieldObjectType(ot) {
+			return fmt.Errorf("invalid object_type %q", ot)
+		}
+	}
+
+	scopeByChanTeam := o.ChannelID != "" || o.TeamID != ""
+	scopeByTarget := o.TargetType != "" || len(o.TargetIDs) > 0
+	if scopeByChanTeam && scopeByTarget {
+		return errors.New("channel_id/team_id cannot be combined with target_type/target_id")
+	}
+
+	if o.ChannelID != "" && o.TeamID == "" {
+		return errors.New("channel_id requires team_id")
+	}
+
+	return o.Cursor.IsValid()
 }
 
 func (pf *PropertyField) GetAttr(key string) any {

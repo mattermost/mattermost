@@ -1245,6 +1245,163 @@ func TestPropertyFieldSearchCursor_IsValid(t *testing.T) {
 		}
 		assert.Error(t, cursor.IsValid())
 	})
+
+	t.Run("valid cursor with UpdateAt only", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: NewId(),
+			UpdateAt:        GetMillis(),
+		}
+		assert.NoError(t, cursor.IsValid())
+	})
+
+	t.Run("both CreateAt and UpdateAt set is invalid", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: NewId(),
+			CreateAt:        1,
+			UpdateAt:        1,
+		}
+		err := cursor.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exactly one")
+	})
+
+	t.Run("invalid PropertyFieldID with UpdateAt set", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: "invalid",
+			UpdateAt:        GetMillis(),
+		}
+		assert.Error(t, cursor.IsValid())
+	})
+
+	t.Run("IsEmpty returns true when UpdateAt is also zero", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{}
+		assert.True(t, cursor.IsEmpty())
+	})
+
+	t.Run("IsEmpty returns false when UpdateAt is set", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{UpdateAt: 1}
+		assert.False(t, cursor.IsEmpty())
+	})
+}
+
+func TestPropertyFieldSearchOpts_IsValid(t *testing.T) {
+	validID := NewId()
+
+	t.Run("zero-value opts is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ObjectType alone is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ObjectType: PropertyFieldObjectTypeChannel}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ObjectTypes alone is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ObjectTypes: []string{PropertyFieldObjectTypeChannel, PropertyFieldObjectTypeSystem}}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ObjectType and ObjectTypes both set is invalid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			ObjectType:  PropertyFieldObjectTypeChannel,
+			ObjectTypes: []string{PropertyFieldObjectTypeChannel},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "mutually exclusive")
+	})
+
+	t.Run("ObjectTypes containing an invalid value mentions that value", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			ObjectTypes: []string{PropertyFieldObjectTypeChannel, "garbage"},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "garbage")
+	})
+
+	t.Run("ChannelID combined with TargetType is invalid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			ChannelID:  validID,
+			TeamID:     NewId(),
+			TargetType: "channel",
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "channel_id/team_id")
+	})
+
+	t.Run("TeamID combined with TargetIDs is invalid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			TeamID:    NewId(),
+			TargetIDs: []string{NewId()},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "channel_id/team_id")
+	})
+
+	t.Run("ChannelID without TeamID is invalid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ChannelID: NewId()}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "team_id")
+	})
+
+	t.Run("TeamID alone is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{TeamID: NewId()}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ChannelID + TeamID is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ChannelID: NewId(), TeamID: NewId()}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("TargetType + TargetIDs is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			TargetType: string(PropertyFieldTargetLevelChannel),
+			TargetIDs:  []string{NewId(), NewId()},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("SinceUpdateAt negative is valid (treated as no filter)", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{SinceUpdateAt: -1}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("SinceUpdateAt zero is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{SinceUpdateAt: 0}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("SinceUpdateAt positive is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{SinceUpdateAt: 123}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("delegates to Cursor.IsValid - invalid cursor surfaces", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: NewId(),
+				CreateAt:        1,
+				UpdateAt:        1,
+			},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exactly one")
+	})
+
+	t.Run("delegates to Cursor.IsValid - empty cursor is fine", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			TeamID: NewId(),
+			Cursor: PropertyFieldSearchCursor{},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
 }
 
 func TestPluginPropertyOption(t *testing.T) {
