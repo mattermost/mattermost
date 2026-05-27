@@ -270,6 +270,7 @@
   "admin.access_control.cel.masked_values_banner": "Это выражение содержит ограниченные значения. Переключитесь в простой режим, чтобы изменить значения, к которым у Вас есть доступ.",
   "admin.access_control.cel.type_expression": "Введите выражение...",
   "admin.access_control.cel.validating": "Проверка...",
+  "admin.access_control.cel_editor.masked_values_tooltip": "Тест недоступен, потому что эта политика содержит ограниченные значения атрибутов.",
   "admin.access_control.cel_help_modal.external_link": "Для получения дополнительной информации посетите сайт <link>Документация по CEL</link>.",
   "admin.access_control.cel_help_modal.important_notes_title": "Важные заметки",
   "admin.access_control.cel_help_modal.subheader": "С помощью CEL ты можешь задавать условия для фильтрации пользовательских атрибутов и управления доступом к ресурсам.",
