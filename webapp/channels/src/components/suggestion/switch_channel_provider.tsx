@@ -785,7 +785,7 @@ export default class SwitchChannelProvider extends Provider {
                         continue;
                     }
                 } else if (newChannel.type === Constants.DM_CHANNEL) {
-                    const userId = Utils.getUserIdFromChannelId(newChannel.name);
+                    const userId = Utils.getUserIdFromChannelId(newChannel.name, currentUserId);
                     const user = users.find((u) => u.id === userId);
 
                     if (user) {
@@ -982,7 +982,7 @@ export default class SwitchChannelProvider extends Provider {
             if (channel.type === Constants.GM_CHANNEL) {
                 wrappedChannel.name = channel.display_name;
             } else if (channel.type === Constants.DM_CHANNEL) {
-                const userId = Utils.getUserIdFromChannelId(channel.name);
+                const userId = Utils.getUserIdFromChannelId(channel.name, getCurrentUserId(state));
                 const user = getUser(this.store.getState(), userId);
 
                 if (user) {
