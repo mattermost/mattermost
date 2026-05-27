@@ -2549,7 +2549,7 @@ func TestCreateWebhookPostStripsMmBlocksActions(t *testing.T) {
 		model.StringInterface{
 			model.PostPropsMmBlocksActions: inline,
 		},
-		"", "", nil)
+		"", "", nil, false)
 	require.Nil(t, appErr)
 
 	assert.Nil(t, post.GetProp(model.PostPropsMmBlocksActions),

@@ -935,8 +935,10 @@ func (o *Post) IsNotificationSuppressed() bool {
 }
 
 // ExcludesFromChannelMessageCount reports whether the post should not advance channel message counts.
+// Mirrors IsNotificationSuppressed so force_notification overrides silent_notification consistently
+// across the notification and unread paths.
 func (o *Post) ExcludesFromChannelMessageCount() bool {
-	return o.IsJoinLeaveMessage() || o.HasSilentNotification()
+	return o.IsJoinLeaveMessage() || o.IsNotificationSuppressed()
 }
 
 // IsRemote returns true if the post originated on a remote cluster.

@@ -1562,22 +1562,26 @@ func TestCreatePost(t *testing.T) {
 		require.Equal(t, "true", createdPost.GetProp(model.PostPropsFromPlugin))
 	})
 
-	t.Run("should reject silent notification when integration props are forged", func(t *testing.T) {
+	t.Run("should strip forged integration props from human payload", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
 
-		_, _, err := th.App.CreatePost(th.Context, &model.Post{
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
-			Message:   "forged silent",
+			Message:   "forged integration props",
 			UserId:    th.BasicUser.Id,
 			Props: model.StringInterface{
-				model.PostPropsFromPlugin: "true",
+				model.PostPropsFromPlugin:  "true",
+				model.PostPropsFromWebhook: "true",
+				model.PostPropsFromBot:     "true",
 			},
-		}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
-		require.NotNil(t, err)
-		require.Equal(t, "api.post.create_post.silent_notification.app_error", err.Id)
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+		require.Empty(t, createdPost.GetProp(model.PostPropsFromPlugin))
+		require.Empty(t, createdPost.GetProp(model.PostPropsFromWebhook))
+		require.Empty(t, createdPost.GetProp(model.PostPropsFromBot))
 	})
 
 	t.Run("force notification wins over silent", func(t *testing.T) {
