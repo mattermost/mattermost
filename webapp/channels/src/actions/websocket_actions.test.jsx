@@ -222,6 +222,10 @@ let mockState = {
                     order: ['post5', 'post2', 'post1'],
                     recent: true,
                 }],
+                channel2: [{
+                    order: ['post4', 'post3'],
+                    recent: true,
+                }],
             },
         },
     },
@@ -311,14 +315,16 @@ describe('handlePostEditEvent', () => {
         expect(store.dispatch).toHaveBeenCalledWith({type: 'GET_POSTS_AROUND'});
     });
 
-    test('restored post newer than every loaded block triggers getPostsAround', () => {
-        // The block extends only to create_at 12345; a restore whose create_at is
-        // beyond that should still be fetched so the recent block can absorb it.
+    test('restored post newer than every loaded block in the current channel triggers getPostsAround', () => {
         const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 99999});
-
         handlePostEditEvent(msg);
-
         expect(getPostsAround).toHaveBeenCalledWith('otherChannel', 'restored');
+    });
+
+    test('restored post newer than every loaded block in a non-current channel does not trigger getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'channel2', create_at: 99999});
+        handlePostEditEvent(msg);
+        expect(getPostsAround).not.toHaveBeenCalled();
     });
 
     test('restored post older than every loaded block does not trigger getPostsAround', () => {

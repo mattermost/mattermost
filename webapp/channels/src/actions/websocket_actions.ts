@@ -1015,7 +1015,7 @@ export function handlePostEditEvent(msg: WebSocketMessages.PostEdited) {
         if (channelBlocks && !channelBlocks.some((b) => b.order.includes(post.id))) {
             const postsDict = state.entities.posts.posts;
 
-            var globalNewest = 0;
+            let globalNewest = 0;
 
             const inLoadedRange = channelBlocks.some((block) => {
                 if (block.order.length === 0) {
@@ -1030,7 +1030,9 @@ export function handlePostEditEvent(msg: WebSocketMessages.PostEdited) {
                 globalNewest = Math.max(globalNewest, newest.create_at);
                 return post.create_at >= oldest.create_at && post.create_at <= newest.create_at;
             });
-            if (inLoadedRange || post.create_at > globalNewest) {
+
+            const currentChannelId = getCurrentChannelId(state);
+            if (inLoadedRange || (post.create_at > globalNewest && post.channel_id === currentChannelId)) {
                 dispatch(getPostsAround(post.channel_id, post.id));
             }
         }
