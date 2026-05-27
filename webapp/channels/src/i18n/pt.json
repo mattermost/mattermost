@@ -1247,7 +1247,6 @@
   "admin.system_properties.user_properties.dotmenu.visibility.hidden.label": "Ocultar sempre",
   "admin.system_properties.user_properties.dotmenu.visibility.label": "Visibilidade",
   "admin.system_properties.user_properties.table.filter_type": "Tipo de atributo",
-  "admin.system_properties.user_properties.table.property": "Atributo",
   "admin.system_properties.user_properties.table.property_name.input.name": "Nome do Atributo",
   "admin.system_properties.user_properties.table.select_type.phone": "Telefone",
   "admin.system_properties.user_properties.table.select_type.select": "Selecionar",

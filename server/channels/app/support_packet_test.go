@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"os"
@@ -13,10 +14,12 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -142,6 +145,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("TotalMasterDbConnections").Return(30)
 		mockStore.On("TotalReadDbConnections").Return(20)
 		mockStore.On("TotalSearchDbConnections").Return(10)
+		mockStore.On("GetInternalMasterDB").Return((*sql.DB)(nil))
+		mockStore.On("GetDiagnostics", mock.Anything).Return(&store.DatabaseDiagnostics{}, nil)
 		mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
 			Tables: []model.DatabaseTable{},
 		}, nil)

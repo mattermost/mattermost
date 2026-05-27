@@ -4,6 +4,8 @@
 package config
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,12 +27,17 @@ func TestDesanitize(t *testing.T) {
 	actual.LdapSettings.BindPassword = new("bind_password")
 	actual.FileSettings.PublicLinkSalt = new("public_link_salt")
 	actual.FileSettings.AmazonS3SecretAccessKey = new("amazon_s3_secret_access_key")
+	actual.FileSettings.ExportAmazonS3SecretAccessKey = new("export_amazon_s3_secret_access_key")
+	actual.FileSettings.AzureAccessKey = new("azure_access_key")
+	actual.FileSettings.ExportAzureAccessKey = new("export_azure_access_key")
 	actual.EmailSettings.SMTPPassword = new("smtp_password")
 	actual.GitLabSettings.Secret = new("secret")
 	actual.OpenIdSettings.Secret = new("secret")
 	actual.SqlSettings.DataSource = new("data_source")
 	actual.SqlSettings.AtRestEncryptKey = new("at_rest_encrypt_key")
 	actual.ElasticsearchSettings.Password = new("password")
+	actual.ServiceSettings.GoogleDeveloperKey = new("google_developer_key")
+	actual.ServiceSettings.GiphySdkKey = new("giphy_sdk_key")
 	actual.SqlSettings.DataSourceReplicas = append(actual.SqlSettings.DataSourceReplicas, "replica0")
 	actual.SqlSettings.DataSourceReplicas = append(actual.SqlSettings.DataSourceReplicas, "replica1")
 	actual.SqlSettings.DataSourceSearchReplicas = append(actual.SqlSettings.DataSourceSearchReplicas, "search_replica0")
@@ -53,12 +60,17 @@ func TestDesanitize(t *testing.T) {
 	target.LdapSettings.BindPassword = model.NewPointer(model.FakeSetting)
 	target.FileSettings.PublicLinkSalt = model.NewPointer(model.FakeSetting)
 	target.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.FakeSetting)
+	target.FileSettings.ExportAmazonS3SecretAccessKey = model.NewPointer(model.FakeSetting)
+	target.FileSettings.AzureAccessKey = model.NewPointer(model.FakeSetting)
+	target.FileSettings.ExportAzureAccessKey = model.NewPointer(model.FakeSetting)
 	target.EmailSettings.SMTPPassword = model.NewPointer(model.FakeSetting)
 	target.GitLabSettings.Secret = model.NewPointer(model.FakeSetting)
 	target.OpenIdSettings.Secret = model.NewPointer(model.FakeSetting)
 	target.SqlSettings.DataSource = model.NewPointer(model.FakeSetting)
 	target.SqlSettings.AtRestEncryptKey = model.NewPointer(model.FakeSetting)
 	target.ElasticsearchSettings.Password = model.NewPointer(model.FakeSetting)
+	target.ServiceSettings.GoogleDeveloperKey = model.NewPointer(model.FakeSetting)
+	target.ServiceSettings.GiphySdkKey = model.NewPointer(model.FakeSetting)
 	target.SqlSettings.DataSourceReplicas = []string{model.FakeSetting, model.FakeSetting}
 	target.SqlSettings.DataSourceSearchReplicas = []string{model.FakeSetting, model.FakeSetting}
 	target.PluginSettings.Plugins = map[string]map[string]any{
@@ -69,7 +81,7 @@ func TestDesanitize(t *testing.T) {
 	}
 
 	actualClone := actual.Clone()
-	desanitize(actual, target)
+	Desanitize(actual, target)
 	assert.Equal(t, actualClone, actual, "actual should not have been changed")
 
 	// Verify the settings that should have been left untouched in target
@@ -80,16 +92,104 @@ func TestDesanitize(t *testing.T) {
 	assert.Equal(t, *actual.LdapSettings.BindPassword, *target.LdapSettings.BindPassword)
 	assert.Equal(t, *actual.FileSettings.PublicLinkSalt, *target.FileSettings.PublicLinkSalt)
 	assert.Equal(t, *actual.FileSettings.AmazonS3SecretAccessKey, *target.FileSettings.AmazonS3SecretAccessKey)
+	assert.Equal(t, *actual.FileSettings.ExportAmazonS3SecretAccessKey, *target.FileSettings.ExportAmazonS3SecretAccessKey)
+	assert.Equal(t, *actual.FileSettings.AzureAccessKey, *target.FileSettings.AzureAccessKey)
+	assert.Equal(t, *actual.FileSettings.ExportAzureAccessKey, *target.FileSettings.ExportAzureAccessKey)
 	assert.Equal(t, *actual.EmailSettings.SMTPPassword, *target.EmailSettings.SMTPPassword)
 	assert.Equal(t, *actual.GitLabSettings.Secret, *target.GitLabSettings.Secret)
 	assert.Equal(t, *actual.OpenIdSettings.Secret, *target.OpenIdSettings.Secret)
 	assert.Equal(t, *actual.SqlSettings.DataSource, *target.SqlSettings.DataSource)
 	assert.Equal(t, *actual.SqlSettings.AtRestEncryptKey, *target.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, *actual.ElasticsearchSettings.Password, *target.ElasticsearchSettings.Password)
+	assert.Equal(t, *actual.ServiceSettings.GoogleDeveloperKey, *target.ServiceSettings.GoogleDeveloperKey)
+	assert.Equal(t, *actual.ServiceSettings.GiphySdkKey, *target.ServiceSettings.GiphySdkKey)
 	assert.Equal(t, actual.SqlSettings.DataSourceReplicas, target.SqlSettings.DataSourceReplicas)
 	assert.Equal(t, actual.SqlSettings.DataSourceSearchReplicas, target.SqlSettings.DataSourceSearchReplicas)
 	assert.Equal(t, actual.ServiceSettings.SplitKey, target.ServiceSettings.SplitKey)
 	assert.Equal(t, actual.PluginSettings.Plugins, target.PluginSettings.Plugins)
+}
+
+// TestDesanitizeRemovesAllFakeSettings verifies that every field masked by
+// Sanitize has a corresponding entry in desanitize, so FakeSetting is never
+// written back to stored config. No manual field listing is required: all
+// string fields are pre-populated via reflection so Sanitize will mask any
+// secret regardless of its default value.
+func TestDesanitizeRemovesAllFakeSettings(t *testing.T) {
+	actual := &model.Config{}
+	actual.SetDefaults()
+	populateStrings(reflect.ValueOf(actual), "test-value")
+
+	sanitized := actual.Clone()
+	sanitized.Sanitize(nil, nil)
+
+	Desanitize(actual, sanitized)
+
+	assertNoFakeSettings(t, reflect.ValueOf(*sanitized), "Config")
+}
+
+// populateStrings sets every empty string reachable from v to value so that
+// Sanitize will replace it if it is a secret field.
+func populateStrings(v reflect.Value, value string) {
+	switch v.Kind() {
+	case reflect.Pointer:
+		if v.IsNil() && v.CanSet() {
+			v.Set(reflect.New(v.Type().Elem()))
+		}
+		if !v.IsNil() {
+			if v.Elem().Kind() == reflect.String {
+				if v.Elem().String() == "" {
+					v.Elem().SetString(value)
+				}
+			} else {
+				populateStrings(v.Elem(), value)
+			}
+		}
+	case reflect.Struct:
+		for _, sf := range reflect.VisibleFields(v.Type()) {
+			field := v.FieldByIndex(sf.Index)
+			if field.CanSet() {
+				populateStrings(field, value)
+			}
+		}
+	case reflect.Slice:
+		for i := range v.Len() {
+			populateStrings(v.Index(i), value)
+		}
+	}
+}
+
+// assertNoFakeSettings walks v recursively and fails if any string field equals
+// model.FakeSetting, reporting the dotted path of the offending field.
+func assertNoFakeSettings(t *testing.T, v reflect.Value, path string) {
+	t.Helper()
+	switch v.Kind() {
+	case reflect.Pointer:
+		if !v.IsNil() {
+			assertNoFakeSettings(t, v.Elem(), path)
+		}
+	case reflect.Struct:
+		for i := range v.NumField() {
+			assertNoFakeSettings(t, v.Field(i), path+"."+v.Type().Field(i).Name)
+		}
+	case reflect.String:
+		assert.NotEqual(t, model.FakeSetting, v.String(), "FakeSetting persisted at %s after desanitize", path)
+	case reflect.Slice:
+		for i := range v.Len() {
+			assertNoFakeSettings(t, v.Index(i), fmt.Sprintf("%s[%d]", path, i))
+		}
+	case reflect.Map:
+		for _, key := range v.MapKeys() {
+			elem := v.MapIndex(key)
+			if elem.Kind() == reflect.Interface {
+				elem = elem.Elem()
+			}
+			assertNoFakeSettings(t, elem, fmt.Sprintf("%s[%v]", path, key))
+		}
+	case reflect.Interface:
+		if !v.IsNil() {
+			assertNoFakeSettings(t, v.Elem(), path)
+		}
+	}
 }
 
 func TestFixInvalidLocales(t *testing.T) {

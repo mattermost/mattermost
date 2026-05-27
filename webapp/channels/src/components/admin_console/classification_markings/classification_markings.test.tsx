@@ -17,16 +17,19 @@ import {
     levelsToOptions,
     processClassificationField,
     fetchClassificationField,
-    GROUP_NAME,
-    OBJECT_TYPE,
-    LINKED_OBJECT_TYPE,
-    SYSTEM_FIELD_TARGET_ID,
-    SYSTEM_VALUE_TARGET_ID,
-    TARGET_TYPE,
-    FIELD_NAME,
-    LINKED_FIELD_NAME,
-    DISPLAY_BANNER_TOP,
+    fetchChannelClassificationField,
+    CLASSIFICATIONS_CHANNEL_FIELD_NAME,
+    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_ID,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_GROUP_NAME,
+    CLASSIFICATIONS_SYSTEM_FIELD_NAME,
+    CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+    CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
+    CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     DISPLAY_BANNER_BOTTOM,
+    DISPLAY_BANNER_TOP,
 } from './utils';
 import type {ClassificationLevel} from './utils/presets';
 import {PRESET_CUSTOM, presets} from './utils/presets';
@@ -39,13 +42,13 @@ jest.mock('mattermost-redux/client');
 function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'field1',
-        group_id: GROUP_NAME,
-        name: FIELD_NAME,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
         type: 'select',
         attrs: {options: []},
         target_id: '',
-        target_type: TARGET_TYPE,
-        object_type: OBJECT_TYPE,
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
         create_at: 1000,
         update_at: 1000,
         delete_at: 0,
@@ -58,13 +61,13 @@ function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyFiel
 function makeLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'linked_field1',
-        group_id: GROUP_NAME,
-        name: LINKED_FIELD_NAME,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLASSIFICATIONS_SYSTEM_FIELD_NAME,
         type: 'select',
         attrs: {actions: []},
-        target_id: SYSTEM_FIELD_TARGET_ID,
-        target_type: TARGET_TYPE,
-        object_type: LINKED_OBJECT_TYPE,
+        target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
         linked_field_id: 'field1',
         create_at: 2000,
         update_at: 2000,
@@ -75,12 +78,32 @@ function makeLinkedField(overrides: Partial<PropertyField> = {}): PropertyField 
     };
 }
 
+function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
+    return {
+        id: 'channel_field1',
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
+        type: 'select',
+        attrs: {},
+        target_id: '',
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+        linked_field_id: 'field1',
+        create_at: 4000,
+        update_at: 4000,
+        delete_at: 0,
+        created_by: 'user1',
+        updated_by: 'user1',
+        ...overrides,
+    };
+}
+
 function makeSystemValue(fieldId: string, optionId: string): PropertyValue<string> {
     return {
         id: 'value1',
-        target_id: SYSTEM_VALUE_TARGET_ID,
-        target_type: LINKED_OBJECT_TYPE,
-        group_id: GROUP_NAME,
+        target_id: CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
+        target_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+        group_id: CLASSIFICATIONS_GROUP_NAME,
         field_id: fieldId,
         value: optionId,
         create_at: 3000,
@@ -311,6 +334,105 @@ describe('fetchClassificationField', () => {
     });
 });
 
+describe('fetchChannelClassificationField', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        // Reset mockResolvedValueOnce queues that may carry over from the
+        // fetchClassificationField "stop after 500 items" test.
+        (Client4.getPropertyFields as jest.Mock).mockReset?.();
+    });
+
+    test('should return the matching channel-linked field from first page', async () => {
+        const expected = makeChannelLinkedField();
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([
+            makeChannelLinkedField({id: 'other', name: 'other_field'}),
+            expected,
+        ]);
+
+        const result = await fetchChannelClassificationField();
+        expect(result).toEqual(expected);
+        expect(Client4.getPropertyFields).toHaveBeenCalledTimes(1);
+        expect(Client4.getPropertyFields).toHaveBeenCalledWith(
+            CLASSIFICATIONS_GROUP_NAME,
+            CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_TYPE,
+            '',
+            expect.any(Object),
+        );
+    });
+
+    test('should skip channel fields without linked_field_id', async () => {
+        const orphan = makeChannelLinkedField({id: 'orphan', linked_field_id: ''});
+        const linked = makeChannelLinkedField({id: 'linked'});
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([orphan, linked]);
+
+        const result = await fetchChannelClassificationField();
+        expect(result).toEqual(linked);
+    });
+
+    test('should skip soft-deleted channel-linked fields', async () => {
+        const deleted = makeChannelLinkedField({id: 'deleted', delete_at: 999});
+        const active = makeChannelLinkedField({id: 'active'});
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([deleted, active]);
+
+        const result = await fetchChannelClassificationField();
+        expect(result).toEqual(active);
+    });
+
+    test('should paginate using cursor when field not found on first page', async () => {
+        const page1 = [
+            makeChannelLinkedField({id: 'p1', name: 'other1', create_at: 100}),
+            makeChannelLinkedField({id: 'p2', name: 'other2', create_at: 200}),
+        ];
+        const expected = makeChannelLinkedField({id: 'found'});
+        const page2 = [expected];
+
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce(page1).
+            mockResolvedValueOnce(page2);
+
+        const result = await fetchChannelClassificationField();
+        expect(result).toEqual(expected);
+        expect(Client4.getPropertyFields).toHaveBeenCalledTimes(2);
+
+        const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
+        expect(secondCallArgs[4]).toEqual({cursorId: 'p2', cursorCreateAt: 200});
+    });
+
+    test('should return undefined when field list is empty', async () => {
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
+
+        const result = await fetchChannelClassificationField();
+        expect(result).toBeUndefined();
+    });
+
+    test('should return undefined when no pages contain a valid channel-linked field', async () => {
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([
+            makeChannelLinkedField({id: 'irrelevant', name: 'other'}),
+        ]).mockResolvedValueOnce([]);
+
+        const result = await fetchChannelClassificationField();
+        expect(result).toBeUndefined();
+    });
+
+    test('should stop after 500 items to avoid infinite loop', async () => {
+        const makePage = (startId: number) =>
+            Array.from({length: 100}, (_, i) =>
+                makeChannelLinkedField({id: `id_${startId + i}`, name: `other_${startId + i}`, create_at: startId + i}),
+            );
+
+        const spy = jest.spyOn(Client4, 'getPropertyFields');
+        for (let i = 0; i < 6; i++) {
+            spy.mockResolvedValueOnce(makePage(i * 100));
+        }
+
+        const result = await fetchChannelClassificationField();
+        expect(result).toBeUndefined();
+        expect(Client4.getPropertyFields).toHaveBeenCalledTimes(5);
+    });
+});
+
 describe('ClassificationMarkings component', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -403,6 +525,65 @@ describe('ClassificationMarkings component', () => {
 
         expect(screen.getByText('Classification preset')).toBeInTheDocument();
         expect(screen.getByText('Classification levels')).toBeInTheDocument();
+    });
+
+    test('should not show Custom option in preset dropdown when a named preset is active', async () => {
+        const usPreset = presets.find((p) => p.id === 'us')!;
+        const field = makePropertyField({
+            attrs: {
+                options: usPreset.levels.map((l) => ({
+                    id: l.id,
+                    name: l.name,
+                    color: l.color,
+                    rank: l.rank,
+                })),
+            },
+        });
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([]); // linked field
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+
+        await screen.findByText('Classification levels');
+
+        // The selected value in the dropdown should be US, not Custom
+        expect(screen.queryByText('Custom classification levels')).not.toBeInTheDocument();
+    });
+
+    test('should show Custom indicator after editing a level', async () => {
+        const usPreset = presets.find((p) => p.id === 'us')!;
+        const field = makePropertyField({
+            attrs: {
+                options: usPreset.levels.map((l) => ({
+                    id: l.id,
+                    name: l.name,
+                    color: l.color,
+                    rank: l.rank,
+                })),
+            },
+        });
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([]); // linked field
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+
+        await screen.findByText('Classification levels');
+
+        const user = userEvent.setup();
+
+        // Initially shows US preset, not Custom
+        expect(screen.queryByText('Custom classification levels')).not.toBeInTheDocument();
+
+        // Edit the first level name to trigger switchToCustom
+        const nameInputs = screen.getAllByRole('textbox', {name: /Classification level name/i});
+        await user.clear(nameInputs[0]);
+        await user.type(nameInputs[0], 'MODIFIED');
+        await user.tab();
+
+        // Custom should now appear as the selected dropdown value
+        expect(screen.getByText('Custom classification levels')).toBeInTheDocument();
     });
 
     test('should detect hasChanges when toggling enabled', async () => {
@@ -501,7 +682,8 @@ describe('ClassificationMarkings component', () => {
 
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]). // template field
-            mockResolvedValueOnce([linkedField]); // linked field (existing, no banner actions)
+            mockResolvedValueOnce([linkedField]). // linked field (existing, no banner actions)
+            mockResolvedValueOnce([makeChannelLinkedField()]); // channel-linked field exists during save
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(patchedTemplate). // patch template
             mockResolvedValueOnce(linkedField); // patch linked
@@ -521,8 +703,8 @@ describe('ClassificationMarkings component', () => {
 
         await waitFor(() => {
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                GROUP_NAME,
-                OBJECT_TYPE,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.objectContaining({
                     attrs: expect.objectContaining({
@@ -740,7 +922,8 @@ describe('GlobalClassificationIndicators section', () => {
 
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]);
+            mockResolvedValueOnce([linked]).
+            mockResolvedValueOnce([makeChannelLinkedField()]); // channel-linked field already exists during save
 
         jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]);
@@ -772,8 +955,8 @@ describe('GlobalClassificationIndicators section', () => {
         await waitFor(() => {
             // Template field patched without global_banner in attrs.
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                GROUP_NAME,
-                OBJECT_TYPE,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.objectContaining({
                     attrs: expect.objectContaining({options: expect.any(Array)}),
@@ -781,7 +964,7 @@ describe('GlobalClassificationIndicators section', () => {
             );
             expect(Client4.patchPropertyField).not.toHaveBeenCalledWith(
                 expect.anything(),
-                OBJECT_TYPE,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 expect.anything(),
                 expect.objectContaining({
                     attrs: expect.objectContaining({global_banner: expect.anything()}),
@@ -790,8 +973,8 @@ describe('GlobalClassificationIndicators section', () => {
 
             // Linked field patched with updated actions (top_and_bottom).
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                GROUP_NAME,
-                LINKED_OBJECT_TYPE,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
                 'linked_field1',
                 expect.objectContaining({
                     attrs: expect.objectContaining({
@@ -819,7 +1002,8 @@ describe('GlobalClassificationIndicators section', () => {
 
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]);
+            mockResolvedValueOnce([linked]).
+            mockResolvedValueOnce([makeChannelLinkedField()]); // channel-linked field already exists during save
 
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(patchedTemplate).
@@ -840,8 +1024,8 @@ describe('GlobalClassificationIndicators section', () => {
         await waitFor(() => {
             // Template field saved without global_banner.
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                GROUP_NAME,
-                OBJECT_TYPE,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 'field1',
                 expect.not.objectContaining({
                     attrs: expect.objectContaining({global_banner: expect.anything()}),
@@ -850,8 +1034,8 @@ describe('GlobalClassificationIndicators section', () => {
 
             // Linked field patched with empty actions (banner disabled).
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-                GROUP_NAME,
-                LINKED_OBJECT_TYPE,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
                 'linked_field1',
                 expect.objectContaining({
                     attrs: expect.objectContaining({actions: []}),
@@ -869,12 +1053,13 @@ describe('GlobalClassificationIndicators section', () => {
 
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]);
+            mockResolvedValueOnce([linked]).
+            mockResolvedValueOnce([]);
 
         const deleteOrder: string[] = [];
         const deleteFieldSpy = jest.spyOn(Client4, 'deletePropertyField');
         deleteFieldSpy.mockImplementation(async (_group, objectType, _id) => {
-            deleteOrder.push(objectType === LINKED_OBJECT_TYPE ? `linked:${_id}` : `template:${_id}`);
+            deleteOrder.push(objectType === CLASSIFICATIONS_SYSTEM_OBJECT_TYPE ? `linked:${_id}` : `template:${_id}`);
             return {status: 'OK'};
         });
 
@@ -910,6 +1095,216 @@ describe('GlobalClassificationIndicators section', () => {
 
             expect(deleteOrder[0]).toBe('linked:linked_field1');
             expect(deleteOrder[1]).toBe('template:field1');
+        } finally {
+            console.error = origError;
+        }
+    });
+});
+
+describe('Channel classification linked field branches', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('should create channel-linked field when none exists during save', async () => {
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const patchedTemplate = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'MODIFIED', color: '#007A33', rank: 1}]},
+        });
+        const patchedLinked = makeLinkedField({attrs: {actions: []}});
+        const createdChannelField = makeChannelLinkedField();
+
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]). // template field load
+            mockResolvedValueOnce([linked]). // linked field load
+            mockResolvedValueOnce([]); // channel-linked field lookup during save -> none
+
+        jest.spyOn(Client4, 'patchPropertyField').
+            mockResolvedValueOnce(patchedTemplate).
+            mockResolvedValueOnce(patchedLinked);
+
+        const createSpy = jest.spyOn(Client4, 'createPropertyField').
+            mockResolvedValueOnce(createdChannelField);
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        await screen.findByText('Classification levels');
+
+        const user = userEvent.setup();
+        const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
+        await user.clear(nameInput);
+        await user.type(nameInput, 'MODIFIED');
+        await user.tab();
+
+        await user.click(await screen.findByText('Save'));
+
+        await waitFor(() => {
+            expect(createSpy).toHaveBeenCalledWith(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+                expect.objectContaining({
+                    name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
+                    linked_field_id: 'field1',
+                }),
+            );
+        });
+        await act(async () => {});
+    });
+
+    test('should not create channel-linked field when one already exists during save', async () => {
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const patchedTemplate = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'MODIFIED', color: '#007A33', rank: 1}]},
+        });
+        const patchedLinked = makeLinkedField({attrs: {actions: []}});
+        const existingChannelField = makeChannelLinkedField();
+
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([linked]).
+            mockResolvedValueOnce([existingChannelField]); // channel field exists
+
+        jest.spyOn(Client4, 'patchPropertyField').
+            mockResolvedValueOnce(patchedTemplate).
+            mockResolvedValueOnce(patchedLinked);
+
+        const createSpy = jest.spyOn(Client4, 'createPropertyField');
+
+        const {store} = renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        await screen.findByText('Classification levels');
+
+        const user = userEvent.setup();
+        const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
+        await user.clear(nameInput);
+        await user.type(nameInput, 'MODIFIED');
+        await user.tab();
+
+        await user.click(await screen.findByText('Save'));
+
+        await waitFor(() => {
+            expect(Client4.patchPropertyField).toHaveBeenCalled();
+        });
+        await act(async () => {});
+
+        // Channel field must not be created since one already exists.
+        expect(createSpy).not.toHaveBeenCalledWith(
+            expect.anything(),
+            CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+            expect.anything(),
+        );
+
+        // Existing channel field must be pushed into the store alongside the saved template
+        // and linked field so consumers that read from Redux get it immediately.
+        const fieldsById = store.getState().entities.properties.fields.byId;
+        expect(fieldsById[existingChannelField.id]).toEqual(existingChannelField);
+    });
+
+    test('should delete channel-linked field before linked and template when disabling', async () => {
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const channel = makeChannelLinkedField();
+
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]). // template field load
+            mockResolvedValueOnce([linked]). // linked field load
+            mockResolvedValueOnce([channel]); // channel field lookup during disable
+
+        const deleteOrder: string[] = [];
+        jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, objectType, id) => {
+            if (objectType === CLASSIFICATIONS_CHANNEL_OBJECT_TYPE) {
+                deleteOrder.push(`channel:${id}`);
+            } else if (objectType === CLASSIFICATIONS_SYSTEM_OBJECT_TYPE) {
+                deleteOrder.push(`linked:${id}`);
+            } else {
+                deleteOrder.push(`template:${id}`);
+            }
+            return {status: 'OK'};
+        });
+
+        // Suppress noisy "not configured to support act" warnings from the bulk state reset.
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].includes('not configured to support act')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+            await screen.findByText('Global Classification Indicators');
+
+            const user = userEvent.setup();
+
+            await act(async () => {
+                await user.click(screen.getByTestId('classificationEnabledfalse'));
+            });
+
+            await act(async () => {
+                await user.click(screen.getByText('Save'));
+            });
+
+            await waitFor(() => {
+                expect(deleteOrder).toHaveLength(3);
+            });
+            await act(async () => {});
+
+            expect(deleteOrder[0]).toBe(`channel:${channel.id}`);
+            expect(deleteOrder[1]).toBe('linked:linked_field1');
+            expect(deleteOrder[2]).toBe('template:field1');
+        } finally {
+            console.error = origError;
+        }
+    });
+
+    test('should not attempt to delete channel-linked field when none exists', async () => {
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        const linked = makeLinkedField({attrs: {actions: []}});
+
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([linked]).
+            mockResolvedValueOnce([]); // no channel field exists
+
+        const deletedTypes: string[] = [];
+        jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, objectType) => {
+            deletedTypes.push(objectType);
+            return {status: 'OK'};
+        });
+
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].includes('not configured to support act')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+            await screen.findByText('Global Classification Indicators');
+
+            const user = userEvent.setup();
+
+            await act(async () => {
+                await user.click(screen.getByTestId('classificationEnabledfalse'));
+            });
+            await act(async () => {
+                await user.click(screen.getByText('Save'));
+            });
+
+            await waitFor(() => {
+                expect(deletedTypes).toEqual([CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]);
+            });
         } finally {
             console.error = origError;
         }

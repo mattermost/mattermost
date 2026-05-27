@@ -4234,10 +4234,6 @@
     "translation": "Каналите не могат да се получат."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Броят на каналите не може да бъде получен."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Каналите за предоставената схема не могат да се получат."
   },
@@ -5470,7 +5466,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} е вече в канала."
+    "translation": {
+      "one": "{{.User}} е вече в канала.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -7734,14 +7733,6 @@
   {
     "id": "api.job.retrieve.nopermissions",
     "translation": "Типовете задачи в задачата, която се опитвате да извлечете не съдържат права"
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Уверете се, че Amazon S3 bucket е налично и проверете Вашите права в него."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Невъзможно свързване с S3. Проверете параметрите за удостоверяване на връзката с Amazon S3 и настройките за удостоверяване."
   },
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",

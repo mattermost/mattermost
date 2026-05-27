@@ -65,6 +65,7 @@ import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
     getPosts,
+    getPostsAround,
     getPostThread,
     getPostThreads,
     postDeleted,
@@ -155,12 +156,11 @@ import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
 import {
-    GROUP_NAME,
-    OBJECT_TYPE,
-    TARGET_TYPE,
-    TARGET_ID,
-    LINKED_OBJECT_TYPE,
-    SYSTEM_FIELD_TARGET_ID,
+    CLASSIFICATIONS_GROUP_NAME,
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+    CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_ID,
 } from 'components/admin_console/classification_markings/utils';
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
@@ -345,17 +345,22 @@ export function reconnect() {
     // Refresh classification fields and values on reconnect when the feature flag is active
     if (getFeatureFlagValue(state, 'ClassificationMarkings') === 'true') {
         dispatch(
-            fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID),
+            fetchPropertyFields(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
+            ),
         );
         dispatch(
             fetchPropertyFields(
-                GROUP_NAME,
-                LINKED_OBJECT_TYPE,
-                TARGET_TYPE,
-                SYSTEM_FIELD_TARGET_ID,
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                CLASSIFICATIONS_FIELD_TARGET_ID,
             ),
         );
-        dispatch(fetchSystemPropertyValues(GROUP_NAME));
+        dispatch(fetchSystemPropertyValues(CLASSIFICATIONS_GROUP_NAME));
     }
 
     if (state.websocket.lastDisconnectAt) {
@@ -775,11 +780,23 @@ export function handleEvent(msg: WebSocketMessage) {
     });
 }
 
+// The server publishes shared_channel_remote_updated from the onInvite callback after a remote
+// (cluster or plugin) accepts a channel invitation. The channel is already shared at that point,
+// and the channel_updated event that set shared=true ran earlier in the share flow, so the local
+// channel should already reflect shared=true when this arrives. If it doesn't, the event isn't
+// meaningful for us and we skip the fetch.
 function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChannelRemoteUpdated) {
     const channelId = msg.data.channel_id || msg.broadcast.channel_id;
-    if (channelId) {
-        dispatch(fetchChannelRemotes(channelId, true));
+    if (!channelId) {
+        return;
     }
+
+    const channel = getChannel(getState(), channelId);
+    if (!channel?.shared) {
+        return;
+    }
+
+    dispatch(fetchChannelRemotes(channelId, true));
 }
 
 // handleChannelConvertedEvent handles updating of channel which is converted between public and private
@@ -987,6 +1004,39 @@ export function handlePostEditEvent(msg: WebSocketMessages.PostEdited) {
     dispatch(receivedPost(post, crtEnabled));
 
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
+
+    // This is to handle the case for Data Spillage handling. When a hidden flagged post is restored,
+    // this ensures the post is made visible if a) lies within the boundaries of loaded post blocks,
+    // or b) is newer than all loaded blocks. This ensures an old restored post doesn't become visible on
+    // channel page and cause issue when user scrolls up and loads the older posts in order.
+    if (!post.root_id) {
+        const state = getState();
+        const channelBlocks = state.entities.posts.postsInChannel[post.channel_id];
+        if (channelBlocks && !channelBlocks.some((b) => b.order.includes(post.id))) {
+            const postsDict = state.entities.posts.posts;
+
+            let globalNewest = 0;
+
+            const inLoadedRange = channelBlocks.some((block) => {
+                if (block.order.length === 0) {
+                    return false;
+                }
+                const newest = postsDict[block.order[0]];
+                const oldest = postsDict[block.order[block.order.length - 1]];
+                if (!newest || !oldest) {
+                    return false;
+                }
+
+                globalNewest = Math.max(globalNewest, newest.create_at);
+                return post.create_at >= oldest.create_at && post.create_at <= newest.create_at;
+            });
+
+            const currentChannelId = getCurrentChannelId(state);
+            if (inLoadedRange || (post.create_at > globalNewest && post.channel_id === currentChannelId)) {
+                dispatch(getPostsAround(post.channel_id, post.id));
+            }
+        }
+    }
 }
 
 async function handlePostDeleteEvent(msg: WebSocketMessages.PostDeleted) {
