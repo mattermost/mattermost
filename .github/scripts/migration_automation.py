@@ -24,6 +24,7 @@ Required environment variables:
 import base64
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -37,6 +38,14 @@ import anthropic
  
 MODEL = "claude-sonnet-4-6"
 REVIEWS_DIR = "server/channels/db/migrations/reviews"
+ 
+# Allowlist pattern for migration file paths accepted by this script.
+# Format: server/channels/db/migrations/postgres/NNNNNN_slug.up.sql
+# where NNNNNN is a zero-padded integer and slug contains only word chars/hyphens.
+# Any path that does not match is rejected before any I/O or API call is made.
+MIGRATION_PATH_RE = re.compile(
+    r"^server/channels/db/migrations/postgres/\d{6}_[\w-]+\.up\.sql$"
+)
  
 MARKETPLACE_BASE = (
     "https://raw.githubusercontent.com/mattermost/mattermost-ai-marketplace"
@@ -97,6 +106,25 @@ OPTIONAL_ENV_VARS = {
     "GITHUB_REPOSITORY": ("mattermost/mattermost", "GitHub repository slug"),
     "MIGRATION_REVIEW_ASSIGNEE": ("", "GitHub username to assign review PRs to"),
 }
+ 
+ 
+def validate_migration_paths(paths: list[str]) -> None:
+    """
+    Server-side validation: reject any path that does not match the canonical
+    migration file pattern.  This is a defense-in-depth guard against path
+    traversal or unexpected input if the detect step or branch filter were ever
+    bypassed.  Exits with a non-zero code on the first invalid path found.
+    """
+    invalid = [p for p in paths if not MIGRATION_PATH_RE.match(p)]
+    if invalid:
+        print(
+            "ERROR: The following paths do not match the expected migration pattern "
+            f"({MIGRATION_PATH_RE.pattern}):"
+        )
+        for p in invalid:
+            print(f"  {p!r}")
+        print("Aborting — only files under the canonical migrations directory are accepted.")
+        sys.exit(1)
  
  
 def validate_env() -> dict:
@@ -313,9 +341,23 @@ def close_pr(repo: str, pr_number: int, *, token: str) -> None:
 def commit_file_to_branch(
     repo: str, path: str, content: str, message: str, branch: str, *, token: str
 ) -> str:
-    """Create a file on the given branch. Returns the html_url of the committed file."""
+    """
+    Create or update a file on the given branch.  Idempotent: if the file
+    already exists (e.g. from a partial rerun), its blob SHA is fetched and
+    included in the PUT so the update succeeds instead of failing with 422.
+    Returns the html_url of the committed file.
+    """
     encoded = base64.b64encode(content.encode()).decode()
     body: dict = {"message": message, "content": encoded, "branch": branch}
+ 
+    # GET the current file to check existence and retrieve its blob SHA.
+    existing = gh_api(
+        f"repos/{repo}/contents/{path}?ref={branch}", token=token
+    )
+    if existing and isinstance(existing, dict) and "sha" in existing:
+        # File already exists — supply its SHA so GitHub accepts the update.
+        body["sha"] = existing["sha"]
+ 
     result = gh_api(
         f"repos/{repo}/contents/{path}", method="PUT", body=body, token=token
     )
@@ -502,6 +544,10 @@ def main() -> None:
     if not new_files:
         print("No new migration files provided. Exiting.")
         return
+ 
+    # Validate all paths before touching the network — defense-in-depth against
+    # path traversal or unexpected input if the workflow filter is ever bypassed.
+    validate_migration_paths(new_files)
  
     repo = config["GITHUB_REPOSITORY"]
     sha = config["GITHUB_SHA"]
