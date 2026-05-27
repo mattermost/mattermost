@@ -29,5 +29,7 @@ $banner-height: 24px;
 }
 
 #root.global-classification-banner-bottom-visible {
+    --global-classification-banner-bottom-height: #{$banner-height};
+
     padding-bottom: $banner-height;
 }

@@ -37,6 +37,10 @@ on:
         required: false
         type: string
         default: "9.0.0"
+      opensearch-version:
+        required: false
+        type: string
+        default: "3.0.0"
       test-target:
         required: false
         type: string
@@ -122,6 +126,7 @@ jobs:
       - name: Run docker compose
         env:
           ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
+          OPENSEARCH_VERSION: ${{ inputs.opensearch-version }}
           POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
         run: |
           cd server/build

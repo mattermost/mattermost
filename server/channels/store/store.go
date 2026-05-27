@@ -98,6 +98,7 @@ type Store interface {
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
+	SessionAttribute() SessionAttributeStore
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
@@ -844,10 +845,12 @@ type UserAccessTokenStore interface {
 	Save(token *model.UserAccessToken) (*model.UserAccessToken, error)
 	DeleteAllForUser(userID string) error
 	Delete(tokenID string) error
+	DeleteByIds(tokenIDs []string) (int64, error)
 	Get(tokenID string) (*model.UserAccessToken, error)
 	GetAll(offset int, limit int) ([]*model.UserAccessToken, error)
 	GetByToken(tokenString string) (*model.UserAccessToken, error)
 	GetByUser(userID string, page, perPage int) ([]*model.UserAccessToken, error)
+	GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error)
 	Search(term string) ([]*model.UserAccessToken, error)
 	UpdateTokenEnable(tokenID string) error
 	UpdateTokenDisable(tokenID string) error
@@ -1222,6 +1225,11 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+}
+
+type SessionAttributeStore interface {
+	Refresh(sessionID string, attrs map[string]any) error
+	Get(sessionID string) (map[string]any, error)
 }
 
 type AutoTranslationStore interface {

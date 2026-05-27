@@ -1098,9 +1098,5 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "Det lykkedes ikke at opdatere den brugerdefinerede status. Tilføj enten emoji eller brugerdefineret tekststatus eller begge dele."
-  },
-  {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Din licens understøtter ikke brugerdefinerede profilattributter."
   }
 ]

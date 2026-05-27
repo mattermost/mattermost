@@ -71,6 +71,7 @@ type Store struct {
 	PropertyValueStore              mocks.PropertyValueStore
 	AccessControlPolicyStore        mocks.AccessControlPolicyStore
 	AttributesStore                 mocks.AttributesStore
+	SessionAttributeStore           mocks.SessionAttributeStore
 	AutoTranslationStore            mocks.AutoTranslationStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
 	RecapStore                      mocks.RecapStore
@@ -168,6 +169,9 @@ func (s *Store) AccessControlPolicy() store.AccessControlPolicyStore {
 func (s *Store) Attributes() store.AttributesStore {
 	return &s.AttributesStore
 }
+func (s *Store) SessionAttribute() store.SessionAttributeStore {
+	return &s.SessionAttributeStore
+}
 func (s *Store) AutoTranslation() store.AutoTranslationStore {
 	return &s.AutoTranslationStore
 }
@@ -245,6 +249,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ScheduledPostStore,
 		&s.AccessControlPolicyStore,
 		&s.AttributesStore,
+		&s.SessionAttributeStore,
 		&s.AutoTranslationStore,
 		&s.ContentFlaggingStore,
 		&s.RecapStore,
