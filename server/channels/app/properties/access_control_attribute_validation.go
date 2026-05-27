@@ -144,11 +144,12 @@ var trimmedFieldAttrKeys = []string{
 	model.PropertyFieldAttrDisplayName,
 }
 
-// sanitizeAndValidateOptions canonicalizes the options attr to the typed
-// option slice, auto-assigns IDs to options without one, and validates the
-// resulting shape. The JSON round-trip handles both the typed-slice form
-// (when the request decoded into a wrapper struct) and the []map[string]any
-// form (after a generic JSON decode or DB read).
+// sanitizeAndValidateOptions auto-assigns IDs to options without one,
+// validates the resulting shape, and writes the options back in the
+// canonical attrs form ([]any of map[string]any) that the rest of the
+// codebase expects (see PropertyField.EnsureOptionIDs). The typed slice
+// is used internally for validation only; persisting it would force
+// every downstream reader of attrs["options"] to handle two shapes.
 func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field *model.PropertyField) error {
 	rawOptions, ok := field.Attrs[model.PropertyFieldAttributeOptions]
 	if !ok || rawOptions == nil {
@@ -160,7 +161,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
 	}
 	var options model.PropertyOptions[*model.CustomProfileAttributesSelectOption]
-	if err := json.Unmarshal(data, &options); err != nil {
+	if err = json.Unmarshal(data, &options); err != nil {
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
 	}
 
@@ -169,11 +170,19 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 			options[i].ID = model.NewId()
 		}
 	}
-	if err := options.IsValid(); err != nil {
+	if err = options.IsValid(); err != nil {
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
 	}
 
-	field.Attrs[model.PropertyFieldAttributeOptions] = options
+	normalized, err := json.Marshal(options)
+	if err != nil {
+		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+	var canonical []any
+	if err = json.Unmarshal(normalized, &canonical); err != nil {
+		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+	field.Attrs[model.PropertyFieldAttributeOptions] = canonical
 	return nil
 }
 

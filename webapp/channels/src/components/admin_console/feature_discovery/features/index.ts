@@ -5,6 +5,7 @@ import AnnouncementBannerFeatureDiscovery from './announcement_banner';
 import ComplianceExportFeatureDiscovery from './compliance_export';
 import CustomTermsOfServiceFeatureDiscovery from './custom_terms_of_service';
 import DataRetentionFeatureDiscovery from './data_retention';
+import DataSpillageFeatureDiscovery from './data_spillage';
 import GitLabFeatureDiscovery from './gitlab';
 import GroupsFeatureDiscovery from './groups';
 import GuestAccessFeatureDiscovery from './guest_access';
@@ -24,6 +25,7 @@ export {
     AnnouncementBannerFeatureDiscovery,
     ComplianceExportFeatureDiscovery,
     CustomTermsOfServiceFeatureDiscovery,
+    DataSpillageFeatureDiscovery,
     DataRetentionFeatureDiscovery,
     GuestAccessFeatureDiscovery,
     SystemRolesFeatureDiscovery,

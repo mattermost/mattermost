@@ -3641,6 +3641,12 @@ func TestCheckIfChannelIsRestrictedDM(t *testing.T) {
 func TestUpdateChannel(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
+	t.Run("returns 404 for non-existent channel id", func(t *testing.T) {
+		_, appErr := th.App.UpdateChannel(th.Context, &model.Channel{Id: model.NewId()})
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
 	t.Run("should be able to update banner info", func(t *testing.T) {
 		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 

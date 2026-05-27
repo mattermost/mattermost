@@ -26,8 +26,8 @@ import {PRESET_CUSTOM, presets} from './presets';
 // endpoint and use the sentinel target_id 'system'.
 // ---------------------------------------------------------------------------
 
-// Property-field group identifying all classification-markings entities.
-export const CLASSIFICATIONS_GROUP_NAME = 'classification_markings';
+// Property-field group for all classification-markings entities.
+export const CLASSIFICATIONS_GROUP_NAME = 'access_control';
 
 // Field-level target attributes shared by template, system, and channel fields.
 // `target_type` is always 'system'; `target_id` is empty for system-scoped
@@ -189,10 +189,10 @@ export async function saveCreateField(levels: ClassificationLevel[]): Promise<Pr
         type: 'select' as PropertyField['type'],
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
-        attrs: {options, managed: 'admin'},
-        permission_field: 'sysadmin',
-        permission_values: 'sysadmin',
-        permission_options: 'sysadmin',
+        attrs: {options},
+        permission_field: 'admin',
+        permission_values: 'admin',
+        permission_options: 'admin',
     });
 }
 
@@ -247,6 +247,9 @@ export async function saveCreateLinkedField(templateFieldId: string, config: Glo
         attrs: {
             actions: placementToActions(config),
         },
+        permission_field: 'admin',
+        permission_values: 'admin',
+        permission_options: 'admin',
     });
 }
 
@@ -322,6 +325,9 @@ export async function saveCreateChannelLinkedField(templateFieldId: string): Pro
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         linked_field_id: templateFieldId,
+        permission_field: 'admin',
+        permission_values: 'admin',
+        permission_options: 'admin',
     });
 }
 

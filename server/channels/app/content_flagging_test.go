@@ -3278,7 +3278,8 @@ func TestScrubPost(t *testing.T) {
 		// Verify non-content fields are preserved
 		require.Equal(t, postId, post.Id)
 		require.Equal(t, createAt, post.CreateAt)
-		require.Equal(t, updateAt, post.UpdateAt)
+		// scrubPost refreshes UpdateAt when scrubbing content.
+		require.GreaterOrEqual(t, post.UpdateAt, updateAt)
 		require.Equal(t, editAt, post.EditAt)
 		require.Equal(t, userId, post.UserId)
 		require.Equal(t, channelId, post.ChannelId)

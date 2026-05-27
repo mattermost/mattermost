@@ -121,6 +121,10 @@ const Button = styled.button<{open: boolean}>(({open}) => {
             bottom: 22px;
             left: 22px;
         }
+
+        #root.global-classification-banner-bottom-visible & {
+            bottom: calc(15px + var(--global-classification-banner-bottom-height, 24px));
+        }
     `;
 });
 

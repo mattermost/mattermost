@@ -143,6 +143,30 @@ describe('components/admin_console/access_control/PolicyList', () => {
         expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
+    test('Edit menu item should navigate to membership policy editor', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [
+                    {id: 'policy1', name: 'Policy 1'} as AccessControlPolicy,
+                ],
+                total: 1,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
+        });
+
+        const menuButton = document.getElementById('policy-menu-policy1')!;
+        await userEvent.click(menuButton);
+        const editItem = document.getElementById('policy-menu-edit-policy1')!;
+        await userEvent.click(editItem);
+
+        await waitFor(() => {
+            expect(mockHistoryPushInternal).toHaveBeenCalledWith('/admin_console/system_attributes/membership_policies/edit_policy/policy1');
+        });
+    });
+
     test('Delete menu item is disabled when a policy contains masked values', async () => {
         // The "--------" sentinel in a rule expression means the caller can't
         // see at least one referenced value. Server enforces a 403 on delete

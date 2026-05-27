@@ -572,7 +572,8 @@ func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id str
 // asOptionSlice extracts the options from an attrs map as []map[string]any
 // via direct type assertion. By the time options reach the service layer,
 // they are always []any containing map[string]any elements (from JSON
-// deserialization or EnsureOptionIDs).
+// deserialization, EnsureOptionIDs, or AccessControlAttributeValidationHook.
+// sanitizeAndValidateOptions — all of which normalize to this shape).
 func asOptionSlice(attrs model.StringInterface) []map[string]any {
 	if attrs == nil {
 		return nil
