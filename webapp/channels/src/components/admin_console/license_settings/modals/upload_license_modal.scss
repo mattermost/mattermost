@@ -1,4 +1,9 @@
 .UploadLicenseModal {
+    .modal-dialog {
+        width: 720px;
+        max-width: 90vw;
+    }
+
     .modal-header {
         min-height: 48px;
         padding-bottom: 0;
