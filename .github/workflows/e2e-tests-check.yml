@@ -32,6 +32,11 @@ jobs:
         # failures in npm's cacache writer.
         run: npm cache verify
 
+      # Set up web app subpackages and eslint plugin
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+
       # Cypress check
       - name: ci/cypress/npm-install
         working-directory: e2e-tests/cypress
@@ -41,9 +46,6 @@ jobs:
         run: npm run check
 
       # Playwright check
-      - name: ci/get-webapp-node-modules
-        working-directory: webapp
-        run: make node_modules
       - name: ci/playwright/npm-install
         working-directory: e2e-tests/playwright
         run: npm ci
