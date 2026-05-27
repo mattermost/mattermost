@@ -909,14 +909,7 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		overrideIconURL = req.IconURL
 	}
 
-	// Silent delivery is applied via CreatePostFlags in CreateWebhookPost; req.Silent and
-	// props.silent_notification are folded here as the authoritative path before that call.
 	silent := req.Silent
-	if req.Props != nil {
-		if prop, ok := req.Props[model.PostPropsSilentNotification].(bool); ok {
-			silent = silent || prop
-		}
-	}
 
 	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, threadRootID, req.Priority, silent)
 	if err != nil {

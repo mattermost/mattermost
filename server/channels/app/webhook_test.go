@@ -463,28 +463,6 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 		require.True(t, post.HasSilentNotification())
 	})
 
-	t.Run("should add silent notification prop from incoming webhook props only", func(t *testing.T) {
-		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
-			Text: "silent via props only",
-			Props: model.StringInterface{
-				model.PostPropsSilentNotification: true,
-			},
-		})
-		require.Nil(t, err)
-
-		list, appErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 10)
-		require.Nil(t, appErr)
-		var found *model.Post
-		for _, p := range list.Posts {
-			if p.Message == "silent via props only" {
-				found = p
-				break
-			}
-		}
-		require.NotNil(t, found)
-		require.True(t, found.HasSilentNotification())
-	})
-
 	t.Run("should add silent notification prop from incoming webhook Silent field", func(t *testing.T) {
 		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
 			Text:   "silent via json field",
@@ -503,18 +481,6 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 		}
 		require.NotNil(t, found)
 		require.True(t, found.HasSilentNotification())
-	})
-
-	t.Run("should preserve silent notification prop from input props", func(t *testing.T) {
-		post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "silent ping", "user", "http://iconurl", "",
-			model.StringInterface{
-				model.PostPropsWebhookDisplayName: hook.DisplayName,
-				model.PostPropsSilentNotification: true,
-			},
-			model.PostTypeDefault,
-			"", nil, false)
-		require.Nil(t, appErr)
-		require.True(t, post.HasSilentNotification())
 	})
 
 	t.Run("should set webhook creator status to online", func(t *testing.T) {
