@@ -4,6 +4,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -13,13 +14,10 @@ import {getChannel, getMyChannelMember} from 'mattermost-redux/selectors/entitie
 import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
+import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import {fetchChannelBookmarks, reorderBookmark} from 'actions/channel_bookmarks';
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
-
-import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
-
-import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import Constants from 'utils/constants';
 import {trimmedEmojiName} from 'utils/emoji_utils';

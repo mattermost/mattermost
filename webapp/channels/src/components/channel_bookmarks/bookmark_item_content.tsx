@@ -23,13 +23,12 @@ import FilePreviewModal from 'components/file_preview_modal';
 import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
 
-import {bookmarkHasLinkUrl, shouldOpenBookmarkInNewTab} from './utils';
-
 import type {GlobalState} from 'types/store';
 
 import BookmarkItemDotMenu from './bookmark_dot_menu';
 import BookmarkIcon from './bookmark_icon';
 import {useTextOverflow} from './hooks';
+import {bookmarkHasLinkUrl, shouldOpenBookmarkInNewTab} from './utils';
 
 /**
  * Hook that provides link data and handlers for a bookmark.
