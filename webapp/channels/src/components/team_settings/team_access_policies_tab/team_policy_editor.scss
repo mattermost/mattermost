@@ -2,6 +2,10 @@
     padding-bottom: 80px;
     margin-top: -8px;
 
+    &__masked-values-warning {
+        margin-bottom: 16px;
+    }
+
     &__header {
         margin-bottom: 0;
     }
@@ -54,6 +58,14 @@
 
     &__section {
         margin-bottom: 0;
+    }
+
+    &__mixed-channels-notice {
+        margin-top: 16px;
+
+        h4 {
+            margin-bottom: 0;
+        }
     }
 
     &__section-header {

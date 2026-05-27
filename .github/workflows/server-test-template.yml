@@ -37,6 +37,10 @@ on:
         required: false
         type: string
         default: "9.0.0"
+      opensearch-version:
+        required: false
+        type: string
+        default: "3.0.0"
       test-target:
         required: false
         type: string
@@ -50,15 +54,24 @@ on:
         required: false
         type: number
         default: 1
+      runner:
+        description: "GitHub-hosted runner label (default: ubuntu-latest-8-cores)"
+        required: false
+        type: string
+        default: "ubuntu-latest-8-cores"
+      race-enabled:
+        description: "Run tests with Go race detector (-race)"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
   test:
     name: ${{ inputs.name }}
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ${{ inputs.runner }}
     continue-on-error: ${{ inputs.allow-failure }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
@@ -84,9 +97,15 @@ jobs:
             server/prev-gotestsum.json
           # Always restore from master — timing is only saved on the default
           # branch and is stable enough for shard balancing.
-          key: server-test-timing-master
+          # NOTE: the v2 prefix invalidates pre-existing caches that were
+          # poisoned by shard failures (a killed shard loses its gotestsum.json,
+          # so the merged report was missing those packages' timings; on the
+          # next run they all defaulted to 1ms and bin-packed onto the lightest
+          # shard, overloading it and perpetuating the cycle). See also the
+          # all-shards-passed guard in server-test-merge-template.yml.
+          key: server-test-timing-v2-master
           restore-keys: |
-            server-test-timing-
+            server-test-timing-v2-
 
       - name: Setup BUILD_IMAGE
         id: build
@@ -107,6 +126,7 @@ jobs:
       - name: Run docker compose
         env:
           ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
+          OPENSEARCH_VERSION: ${{ inputs.opensearch-version }}
           POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
         run: |
           cd server/build
@@ -166,6 +186,14 @@ jobs:
 
           echo "$ALL_PKGS" > all-packages.txt
 
+          # ── Create go.work for test discovery ──
+          # Without it, `go test -list` in shard-split.js resolves
+          # github.com/mattermost/mattermost/server/public against the published
+          # module version from server/go.mod, which lags HEAD and causes build
+          # failures when heavy packages reference new symbols in ./public.
+          go work init
+          go work use . ./public
+
           # ── Run shard solver ──
           node scripts/shard-split.js
 
@@ -175,7 +203,7 @@ jobs:
         env:
           BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true && "${{ inputs.test-target }}" == "test-server" ]]; then
+          if [[ "${{ inputs.race-enabled }}" == "true" ]]; then
             export RACE_MODE="-race"
           fi
 

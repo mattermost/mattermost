@@ -79,13 +79,13 @@ describe('Profile Settings', () => {
             cy.get('#pictureEdit').should('be.visible').click();
 
             // # Confirm the 'Save' button is blocked when no picture selected
-            cy.findByTestId('saveSettingPicture').should('have.class', 'disabled');
+            cy.findByTestId('saveSettingPicture').should('be.disabled');
 
             // # Insert the file profile picture - keep in mind that using the hidden input field is needed
             cy.findByTestId('uploadPicture').attachFile(fileType.fileName);
 
             // # Click the 'Save' button after the image is uploaded
-            cy.findByTestId('saveSettingPicture').should('not.have.class', 'disabled').click();
+            cy.findByTestId('saveSettingPicture').should('not.be.disabled').click();
 
             // # Confirm the user was returned to the Profile modal with the 'Profile Picture' description changed and 'Edit' button visible again
             cy.get('#pictureDesc').should('include.text', 'Image last updated');

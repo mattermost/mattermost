@@ -23,8 +23,8 @@ jest.mock('mattermost-redux/client', () => {
     };
 });
 
-jest.mock('utils/user_agent', () => {
-    const original = jest.requireActual('utils/user_agent');
+jest.mock('@mattermost/shared/utils/user_agent', () => {
+    const original = jest.requireActual('@mattermost/shared/utils/user_agent');
     return {
         ...original,
         isIos: jest.fn().mockReturnValue(true),

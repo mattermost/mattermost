@@ -673,7 +673,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} è già membro del canale."
+    "translation": {
+      "many": "",
+      "one": "{{.User}} è già membro del canale.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -3042,10 +3046,6 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Impossibile decodificare i risultati della ricerca"
-  },
-  {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} è già fermo."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -6392,10 +6392,6 @@
     "translation": "Impossibile recuperare canali per id"
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Impossibile ottenere il numero dei canali"
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Riscontrato un errore nell'aggiornamento della squadra"
   },
@@ -6633,10 +6629,6 @@
   },
   {
     "id": "app.export.marshal.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
     "translation": " "
   },
   {
@@ -7673,10 +7665,6 @@
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": " "
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
     "translation": " "
   },
   {

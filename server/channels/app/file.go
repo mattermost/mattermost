@@ -28,6 +28,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
@@ -59,29 +60,54 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	var fileBackendSettings filestore.FileBackendSettings
+	bucket := settings.AmazonS3Bucket
 	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
-		fileBackendSettings = filestore.NewExportFileBackendSettingsFromConfig(settings, false, false)
-	} else {
-		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)
+		bucket = settings.ExportAmazonS3Bucket
 	}
+	if bucket == nil || *bucket == "" {
+		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
 
-	err := fileBackendSettings.CheckMandatoryS3Fields()
-	if err != nil {
-		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
+func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.AppError {
+	storageAccount := settings.AzureStorageAccount
+	accessKey := settings.AzureAccessKey
+	container := settings.AzureContainer
+	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+		storageAccount = settings.ExportAzureStorageAccount
+		accessKey = settings.ExportAzureAccessKey
+		container = settings.ExportAzureContainer
+	}
+	if storageAccount == nil || *storageAccount == "" {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure storage account setting", http.StatusBadRequest)
+	}
+	if container == nil || *container == "" {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure container setting", http.StatusBadRequest)
+	}
+	if accessKey == nil || *accessKey == "" {
+		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure access key setting", http.StatusBadRequest)
 	}
 	return nil
 }
 
 func connectionTestErrorToAppError(connTestErr error) *model.AppError {
-	switch err := connTestErr.(type) {
-	case *filestore.S3FileBackendAuthError:
-		return model.NewAppError("TestConnection", "api.file.test_connection_s3_auth.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	case *filestore.S3FileBackendNoBucketError:
-		return model.NewAppError("TestConnection", "api.file.test_connection_s3_bucket_does_not_exist.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	default:
-		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, "", http.StatusInternalServerError).Wrap(connTestErr)
+	// errors.As (rather than a type switch) so that future wrapping of
+	// the backend's typed errors does not silently fall through to the
+	// generic "test_connection" message.
+	var authErr *filestore.FileBackendAuthError
+	if errors.As(connTestErr, &authErr) {
+		// Carry the underlying SDK detail (S3 InvalidAccessKeyId,
+		// Azure AuthenticationFailed, clock-skew, etc.) into the
+		// AppError's detail string so the Test Connection toast
+		// shows admins what actually failed.
+		return model.NewAppError("TestConnection", "api.file.test_connection_auth.app_error", nil, authErr.Error(), http.StatusInternalServerError).Wrap(authErr)
 	}
+	var noBucketErr *filestore.FileBackendNoBucketError
+	if errors.As(connTestErr, &noBucketErr) {
+		return model.NewAppError("TestConnection", "api.file.test_connection_no_bucket.app_error", nil, noBucketErr.Error(), http.StatusInternalServerError).Wrap(noBucketErr)
+	}
+	return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, connTestErr.Error(), http.StatusInternalServerError).Wrap(connTestErr)
 }
 
 func (a *App) TestFileStoreConnection() *model.AppError {
@@ -1519,7 +1545,14 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 		}
 	}
 
-	abacSubject := a.buildFileDownloadSubject(rctx, userID)
+	abacSubject, abacSubjectErr := a.buildFileDownloadSubject(rctx, userID)
+	if abacSubjectErr != nil {
+		// Fail closed: a transient subject-build failure must not silently
+		// allow files through. Surface the error to the caller — the
+		// search returns 5xx instead of leaking files past a policy that
+		// would have denied them.
+		return false, abacSubjectErr
+	}
 
 	channelPermission := make(map[string]bool)
 	filteredFiles := make(map[string]*model.FileInfo)
@@ -1558,38 +1591,87 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 	return allFilesHaveMembership, nil
 }
 
-// buildFileDownloadSubject returns a fully populated ABAC Subject for the user
-// when ABAC is active, or nil when ABAC is not configured / not enabled.
-func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.Subject {
+// buildFileDownloadSubject returns a fully populated ABAC Subject for the
+// user when ABAC is active. The error return distinguishes the two
+// failure modes that used to share `nil`:
+//   - (nil, nil): ABAC isn't configured/enabled; the file download path
+//     is allowed without further checks.
+//   - (subject, nil): ABAC is active; caller should evaluate.
+//   - (nil, err): a transient lookup failure (GetUser /
+//     BuildAccessControlSubject). The caller MUST treat this as a
+//     denial; the previous behaviour returned `nil` here too which
+//     `hasFileDownloadPermission` interpreted as "ABAC disabled,
+//     allow" — i.e. a transient DB blip silently bypassed
+//     download_file_attachment policies.
+func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) (*model.Subject, *model.AppError) {
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil {
-		return nil
+		return nil, nil
 	}
 	if !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
-		return nil
+		return nil, nil
 	}
 	if !a.Config().FeatureFlags.PermissionPolicies {
-		return nil
+		return nil, nil
 	}
 
-	user, err := a.GetUser(userID)
-	if err != nil {
-		rctx.Logger().Warn("Failed to get user for file download permission filtering",
-			mlog.String("user_id", userID),
-			mlog.Err(err),
-		)
-		return nil
+	var subject *model.Subject
+	var appErr *model.AppError
+	if rctx.Session().UserId == userID {
+		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
+	} else {
+		user, err := a.GetUser(userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to get user for file download permission filtering",
+				mlog.String("user_id", userID),
+				mlog.Err(err),
+			)
+			return nil, err
+		}
+		// channelID is intentionally empty here: the subject is reused across many
+		// channels in the file-search loop. hasFileDownloadPermission attaches the
+		// channel-scoped role per-evaluation via attachChannelScopedRole.
+		subject, appErr = a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
 	}
-
-	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to build ABAC subject for file search filtering",
 			mlog.String("user_id", userID),
 			mlog.Err(appErr),
 		)
-		return nil
+		return nil, appErr
 	}
-	return subject
+	return subject, nil
+}
+
+// attachChannelScopedRole returns a copy of the subject with the channel-scoped
+// ScopedRole entry replaced for the given channelID. It's used in hot paths
+// where the same per-user Subject is reused across many channels — Subject
+// is taken by value and SetScopedRole always allocates a fresh ScopedRoles
+// backing array, so the caller's cached Subject is not mutated.
+//
+// Errors from GetSubjectChannelRole (e.g. transient channel-member store
+// failures) are propagated as an AppError. Callers MUST treat the error as
+// a denial — a transient DB blip is distinguishable from "no channel role"
+// (legitimate non-member), and conflating the two could let infra hiccups
+// silently degrade ABAC enforcement even with the downstream
+// PolicyGovernsAction fail-secure in place. Defense in depth: both layers
+// should fail closed independently. Callers should NOT stamp an empty
+// channel role in the error path — Subject is returned unchanged so the
+// caller can use it for logging without leaking a partially populated
+// scope onto downstream evaluators.
+func (a *App) attachChannelScopedRole(rctx request.CTX, subject model.Subject, userID, channelID string) (model.Subject, *model.AppError) {
+	channelRole, appErr := a.GetSubjectChannelRole(rctx, userID, channelID)
+	if appErr != nil {
+		rctx.Logger().Warn(
+			"Failed to resolve channel-scoped role for ABAC subject; treating as denial (transient lookup failure must not silently bypass ABAC)",
+			mlog.String("user_id", userID),
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		)
+		return subject, appErr
+	}
+	subject.SetScopedRole(model.AccessControlSubjectScopeChannel, channelRole)
+	return subject, nil
 }
 
 // hasFileDownloadPermission evaluates the ABAC download_file_attachment policy
@@ -1605,8 +1687,16 @@ func (a *App) hasFileDownloadPermission(rctx request.CTX, userID string, channel
 		return true
 	}
 
+	subjectForChannel, attachErr := a.attachChannelScopedRole(rctx, *subject, userID, channelID)
+	if attachErr != nil {
+		// Channel-role lookup failed (e.g. transient ChannelMember store
+		// error). Fail-secure: refuse access rather than evaluating against
+		// a subject missing its channel scope. The warn log was already
+		// emitted by attachChannelScopedRole.
+		return false
+	}
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-		Subject:  *subject,
+		Subject:  subjectForChannel,
 		Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},
 		Action:   model.AccessControlPolicyActionDownloadFileAttachment,
 	})
@@ -1761,21 +1851,58 @@ func getFileExtFromMimeType(mimeType string) string {
 	return "jpg"
 }
 
-func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model.AppError {
+func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report *model.PostDeletionReport) *model.AppError {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, true)
 	if err != nil {
+		if report != nil {
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepFailed, "", []string{err.Error()})
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepFailed, "", []string{err.Error()})
+		}
+
 		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(fileInfos) == 0 {
 		rctx.Logger().Debug("No files found for post", mlog.String("post_id", postID))
+
+		if report != nil {
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_files"), nil)
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_rows_to_delete"), nil)
+		}
+
 		return nil
 	}
 
-	a.RemoveFilesFromFileStore(rctx, fileInfos)
+	fileInfoIDs := make([]string, 0, len(fileInfos))
+	for _, fileInfo := range fileInfos {
+		fileInfoIDs = append(fileInfoIDs, fmt.Sprintf("`%s`", fileInfo.Id))
+	}
+
+	errs := a.RemoveFilesFromFileStore(rctx, fileInfos)
+	if len(errs) > 0 {
+		if report != nil {
+			errMessages := make([]string, 0, len(errs))
+			for _, err := range errs {
+				errMessages = append(errMessages, err.Error())
+			}
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepFailed, "", errMessages)
+		}
+	} else {
+		if report != nil {
+			report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_names"), map[string]any{"Count": len(fileInfos)}, nil)
+		}
+	}
 
 	err = a.Srv().Store().FileInfo().PermanentDeleteForPost(rctx, postID)
 	if err != nil {
-		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.permanent_delete_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if report != nil {
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepFailed, "", []string{err.Error()})
+		}
+
+		return model.NewAppError("PermanentDeleteFilesByPost", i18n.TranslationId("app.file_info.permanent_delete_for_post.app_error"), nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if report != nil {
+		report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_attachments_info_ids"), map[string]any{"FileInfoIDs": strings.Join(fileInfoIDs, ", ")}, nil)
 	}
 
 	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
@@ -1784,19 +1911,28 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model
 	return nil
 }
 
-func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo) {
+func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo) []*model.AppError {
+	errs := []*model.AppError{}
+
 	for _, info := range fileInfos {
-		a.RemoveFileFromFileStore(rctx, info.Path)
+		appErr := a.RemoveFileFromFileStore(rctx, info.Path)
+		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+			newAppErr := model.NewAppError("RemoveFilesFromFileStore", "app.file_info.remove_file.app_error", map[string]any{"FileInfoID": info.Id}, "", http.StatusInternalServerError)
+			errs = append(errs, newAppErr)
+		}
+
 		if info.PreviewPath != "" {
-			a.RemoveFileFromFileStore(rctx, info.PreviewPath)
+			_ = a.RemoveFileFromFileStore(rctx, info.PreviewPath)
 		}
 		if info.ThumbnailPath != "" {
-			a.RemoveFileFromFileStore(rctx, info.ThumbnailPath)
+			_ = a.RemoveFileFromFileStore(rctx, info.ThumbnailPath)
 		}
 	}
+
+	return errs
 }
 
-func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
+func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) *model.AppError {
 	res, appErr := a.FileExists(path)
 	if appErr != nil {
 		rctx.Logger().Warn(
@@ -1804,12 +1940,12 @@ func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
 			mlog.String("path", path),
 			mlog.Err(appErr),
 		)
-		return
+		return appErr
 	}
 
 	if !res {
 		rctx.Logger().Warn("File not found", mlog.String("path", path))
-		return
+		return model.NewAppError("RemoveFileFromFile", "app.file_info.not_found", nil, "", http.StatusNotFound)
 	}
 
 	appErr = a.RemoveFile(path)
@@ -1819,8 +1955,10 @@ func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
 			mlog.String("path", path),
 			mlog.Err(appErr),
 		)
-		return
+		return appErr
 	}
+
+	return nil
 }
 
 // sendFileDownloadRejectedEvent sends a websocket event to notify the user that their file download was rejected.

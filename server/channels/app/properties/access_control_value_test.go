@@ -24,7 +24,7 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 	rctxPlugin2 := RequestContextWithCallerID(th.Context, "plugin-2")
 
 	t.Run("allows creating value for public field", func(t *testing.T) {
-		field := &model.PropertyField{GroupID: th.CPAGroupID, Name: "Public", Type: model.PropertyFieldTypeText}
+		field := &model.PropertyField{GroupID: th.CPAGroupID, Name: "Public", Type: model.PropertyFieldTypeText, ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem)}
 		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
 		require.NoError(t, err)
 
@@ -50,6 +50,8 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
 				model.PropertyAttrsProtected:  true,
 			},
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
 		require.NoError(t, err)
@@ -75,6 +77,8 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
 		require.NoError(t, err)
@@ -94,7 +98,7 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-value-create")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_value_create", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -105,6 +109,8 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 				model.PropertyAttrsProtected:      true,
 				model.PropertyAttrsSourcePluginID: "plugin-1",
 			},
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 
 		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
@@ -137,7 +143,7 @@ func TestDeletePropertyValue_WriteAccessControl(t *testing.T) {
 	rctxPlugin2 := RequestContextWithCallerID(th.Context, "plugin-2")
 
 	t.Run("allows deleting value for public field", func(t *testing.T) {
-		field := &model.PropertyField{GroupID: th.CPAGroupID, Name: "Public", Type: model.PropertyFieldTypeText}
+		field := &model.PropertyField{GroupID: th.CPAGroupID, Name: "Public", Type: model.PropertyFieldTypeText, ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem)}
 		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
 		require.NoError(t, err)
 
@@ -163,6 +169,8 @@ func TestDeletePropertyValue_WriteAccessControl(t *testing.T) {
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
 		require.NoError(t, err)
@@ -195,8 +203,8 @@ func TestDeletePropertyValuesForTarget_WriteAccessControl(t *testing.T) {
 	rctxPlugin2 := RequestContextWithCallerID(th.Context, "plugin-2")
 
 	t.Run("allows deleting all values when caller has write access to all fields", func(t *testing.T) {
-		field1 := &model.PropertyField{GroupID: th.CPAGroupID, Name: "Field1", Type: model.PropertyFieldTypeText}
-		field2 := &model.PropertyField{GroupID: th.CPAGroupID, Name: "Field2", Type: model.PropertyFieldTypeText}
+		field1 := &model.PropertyField{GroupID: th.CPAGroupID, Name: "Field1", Type: model.PropertyFieldTypeText, ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem)}
+		field2 := &model.PropertyField{GroupID: th.CPAGroupID, Name: "Field2", Type: model.PropertyFieldTypeText, ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem)}
 
 		created1, err := th.service.CreatePropertyField(rctxPlugin1, field1)
 		require.NoError(t, err)
@@ -218,7 +226,7 @@ func TestDeletePropertyValuesForTarget_WriteAccessControl(t *testing.T) {
 
 	t.Run("fails atomically when caller lacks access to one field", func(t *testing.T) {
 		// Create public field
-		field1 := &model.PropertyField{GroupID: th.CPAGroupID, Name: "Public", Type: model.PropertyFieldTypeText}
+		field1 := &model.PropertyField{GroupID: th.CPAGroupID, Name: "Public", Type: model.PropertyFieldTypeText, ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem)}
 		created1, err := th.service.CreatePropertyField(rctxPlugin1, field1)
 		require.NoError(t, err)
 
@@ -230,6 +238,8 @@ func TestDeletePropertyValuesForTarget_WriteAccessControl(t *testing.T) {
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created2, err := th.service.CreatePropertyField(rctxPlugin1, field2)
 		require.NoError(t, err)
@@ -281,7 +291,8 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "public-field",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModePublic,
 			},
@@ -334,7 +345,8 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "source-only-field",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
 				model.PropertyAttrsProtected:  true,
@@ -370,7 +382,8 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "source-only-field-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
 				model.PropertyAttrsProtected:  true,
@@ -414,7 +427,8 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "shared-only-single-select",
 			Type:       model.PropertyFieldTypeSelect,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
 				model.PropertyAttrsProtected:  true,
@@ -487,7 +501,8 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "shared-only-multi-select",
 			Type:       model.PropertyFieldTypeMultiselect,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
 				model.PropertyAttrsProtected:  true,
@@ -561,13 +576,85 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 		assert.Nil(t, retrieved)
 	})
 
+	t.Run("shared_only text - binary masking: caller sees value only if it matches their own", func(t *testing.T) {
+		// Create shared_only text field — the LDAP/SAML codename use case.
+		field := &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "shared-only-text",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsProtected:  true,
+			},
+		}
+		field, err := th.service.CreatePropertyField(rctxTestPlugin, field)
+		require.NoError(t, err)
+
+		// User 1 has "TF-Zulu"
+		zuluValue, jsonErr := json.Marshal("TF-Zulu")
+		require.NoError(t, jsonErr)
+		value1 := &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   userID1,
+			Value:      zuluValue,
+		}
+		value1, err = th.service.CreatePropertyValue(rctxTestPlugin, value1)
+		require.NoError(t, err)
+
+		// User 2 also has "TF-Zulu" — should see user 1's value.
+		zuluValue2, jsonErr := json.Marshal("TF-Zulu")
+		require.NoError(t, jsonErr)
+		_, err = th.service.CreatePropertyValue(rctxTestPlugin, &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   userID2,
+			Value:      zuluValue2,
+		})
+		require.NoError(t, err)
+
+		retrieved, err := th.service.GetPropertyValue(rctxUser2, th.CPAGroupID, value1.ID)
+		require.NoError(t, err)
+		require.NotNil(t, retrieved, "caller holding the same text value must see the target's value")
+		assert.Equal(t, value1.ID, retrieved.ID)
+		assert.Equal(t, json.RawMessage(zuluValue), retrieved.Value)
+
+		// User 3 has "TF-Alpha" — must NOT see user 1's "TF-Zulu".
+		userID3 := model.NewId()
+		alphaValue, jsonErr := json.Marshal("TF-Alpha")
+		require.NoError(t, jsonErr)
+		_, err = th.service.CreatePropertyValue(rctxTestPlugin, &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   userID3,
+			Value:      alphaValue,
+		})
+		require.NoError(t, err)
+
+		retrieved, err = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, userID3), th.CPAGroupID, value1.ID)
+		require.NoError(t, err)
+		assert.Nil(t, retrieved, "caller with a different text value must not see the target's value (binary masking)")
+
+		// User 4 has no stored value — must NOT see user 1's value.
+		userID4 := model.NewId()
+		retrieved, err = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, userID4), th.CPAGroupID, value1.ID)
+		require.NoError(t, err)
+		assert.Nil(t, retrieved, "caller with no stored value must not see the target's value")
+	})
+
 	t.Run("shared_only value - caller with no values sees nothing", func(t *testing.T) {
 		// Create shared_only field
 		field := &model.PropertyField{
 			GroupID:    th.CPAGroupID,
 			Name:       "shared-only-no-values",
 			Type:       model.PropertyFieldTypeMultiselect,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
 				model.PropertyAttrsProtected:  true,
@@ -599,14 +686,15 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without filtering", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-value-read")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_value_read", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
 			GroupID:    nonCpaGroup.ID,
 			Name:       "non-cpa-value-source-only",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
 				model.PropertyAttrsProtected:      true,
@@ -663,7 +751,8 @@ func TestGetPropertyValuesReadAccess(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "public-field-bulk",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModePublic,
 			},
@@ -676,7 +765,8 @@ func TestGetPropertyValuesReadAccess(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "source-only-field-bulk",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
 				model.PropertyAttrsProtected:  true,
@@ -752,7 +842,8 @@ func TestSearchPropertyValuesReadAccess(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "public-field-search",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModePublic,
 			},
@@ -765,7 +856,8 @@ func TestSearchPropertyValuesReadAccess(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "source-only-field-search",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
 				model.PropertyAttrsProtected:  true,
@@ -821,7 +913,8 @@ func TestSearchPropertyValuesReadAccess(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "shared-field-search",
 			Type:       model.PropertyFieldTypeMultiselect,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
 				model.PropertyAttrsProtected:  true,
@@ -895,7 +988,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "public-field-1",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModePublic,
 			},
@@ -907,7 +1001,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "public-field-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModePublic,
 			},
@@ -948,7 +1043,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "protected-field-1",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
 				model.PropertyAttrsProtected:  true,
@@ -961,7 +1057,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "protected-field-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
 				model.PropertyAttrsProtected:  true,
@@ -1003,7 +1100,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "public-field-batch",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModePublic,
 			},
@@ -1015,7 +1113,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "protected-field-batch",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
 				model.PropertyAttrsProtected:  true,
@@ -1064,7 +1163,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("rejects values across multiple groups", func(t *testing.T) {
 		// Register a second group
-		group2, err := th.service.RegisterPropertyGroup("test-group-create-values-2")
+		group2, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_group_create_values_2", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, err)
 
 		// Create fields in both groups
@@ -1072,7 +1171,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "field-group1",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModePublic,
 			},
@@ -1084,7 +1184,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    group2.ID,
 			Name:       "field-group2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModePublic,
 			},
@@ -1124,7 +1225,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("rejects mixed groups before checking access control", func(t *testing.T) {
 		// Register a third group
-		group3, err := th.service.RegisterPropertyGroup("test-group-create-values-3")
+		group3, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_group_create_values_3", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, err)
 
 		// Create public field in CPA group
@@ -1132,7 +1233,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "public-field-multigroup",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModePublic,
 			},
@@ -1145,7 +1247,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    group3.ID,
 			Name:       "protected-field-multigroup",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
 				model.PropertyAttrsProtected:  true,
@@ -1186,7 +1289,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
 		// Register a non-CPA group
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-bulk")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_bulk", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, err)
 
 		// Create two fields in non-CPA group
@@ -1194,13 +1297,15 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    nonCpaGroup.ID,
 			Name:       "non-cpa-bulk-field-1",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		field2 := &model.PropertyField{
 			GroupID:    nonCpaGroup.ID,
 			Name:       "non-cpa-bulk-field-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 
 		created1, err := th.service.CreatePropertyField(rctx1, field1)
@@ -1234,7 +1339,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("mixed CPA and non-CPA groups are rejected before access control", func(t *testing.T) {
 		// Register a non-CPA group
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-mixed")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_mixed", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, err)
 
 		// Create protected field in CPA group via plugin API
@@ -1242,7 +1347,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "cpa-protected-mixed",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1255,7 +1361,8 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    nonCpaGroup.ID,
 			Name:       "non-cpa-field-mixed",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		nonCpaField, err = th.service.CreatePropertyField(rctx1, nonCpaField)
 		require.NoError(t, err)
@@ -1300,7 +1407,8 @@ func TestUpdatePropertyValue_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "protected-field-for-update",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1333,7 +1441,8 @@ func TestUpdatePropertyValue_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "protected-field-for-update-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1366,7 +1475,8 @@ func TestUpdatePropertyValue_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "public-field-for-update",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, err := th.service.CreatePropertyField(rctxAnon, field)
 		require.NoError(t, err)
@@ -1410,7 +1520,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "bulk-update-field-1",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1419,7 +1530,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "bulk-update-field-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1463,7 +1575,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "bulk-update-fail-1",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1472,7 +1585,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "bulk-update-fail-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1523,7 +1637,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "mixed-update-protected-field",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1532,7 +1647,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "mixed-update-public-field",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 
 		createdProtected, err := th.service.CreatePropertyField(rctx1, protectedField)
@@ -1590,7 +1706,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "multi-owner-field-1",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1599,7 +1716,8 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "multi-owner-field-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1686,7 +1804,8 @@ func TestUpsertPropertyValue_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "upsert-protected-field",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1720,7 +1839,8 @@ func TestUpsertPropertyValue_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "upsert-protected-field-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1762,7 +1882,8 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "bulk-upsert-field-1",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1771,7 +1892,8 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "bulk-upsert-field-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1810,7 +1932,8 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "bulk-upsert-fail-1",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1819,7 +1942,8 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "bulk-upsert-fail-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1867,7 +1991,8 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "mixed-protected-field",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1876,7 +2001,8 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "mixed-public-field",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 
 		createdProtected, err := th.service.CreatePropertyField(rctx1, protectedField)
@@ -1929,7 +2055,8 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "upsert-multi-owner-field-1",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -1938,7 +2065,8 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "upsert-multi-owner-field-2",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -2021,6 +2149,146 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 	})
 }
 
+func TestUpsertPropertyValue_SyncLock(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_sync_lock", Version: model.PropertyGroupVersionV1})
+	require.NoError(t, err)
+
+	hook := NewAccessControlHook(th.service, nil, group.ID)
+	th.service.AddHook(hook)
+
+	ldapField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "ldap_field_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		TargetType: "system",
+		ObjectType: "user",
+		Attrs:      model.StringInterface{model.PropertyFieldAttrLDAP: "cn"},
+	})
+
+	samlField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "saml_field_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		TargetType: "system",
+		ObjectType: "user",
+		Attrs:      model.StringInterface{model.PropertyFieldAttrSAML: "displayName"},
+	})
+
+	nonSyncedField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "normal_field_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		TargetType: "system",
+		ObjectType: "user",
+	})
+
+	targetID := model.NewId()
+
+	t.Run("blocks upsert on LDAP-synced field without caller ID", func(t *testing.T) {
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    ldapField.ID,
+			TargetID:   targetID,
+			TargetType: "user",
+			Value:      json.RawMessage(`"test"`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "ldap sync")
+	})
+
+	t.Run("allows LDAP sync service to upsert LDAP-synced field", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    ldapField.ID,
+			TargetID:   targetID,
+			TargetType: "user",
+			Value:      json.RawMessage(`"John Doe"`),
+		}
+		result, upsertErr := th.service.UpsertPropertyValue(rctx, value)
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("blocks SAML sync service from writing LDAP-synced field", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    ldapField.ID,
+			TargetID:   targetID,
+			TargetType: "user",
+			Value:      json.RawMessage(`"wrong caller"`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(rctx, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "ldap sync")
+	})
+
+	t.Run("allows SAML sync service to upsert SAML-synced field", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    samlField.ID,
+			TargetID:   targetID,
+			TargetType: "user",
+			Value:      json.RawMessage(`"Jane Doe"`),
+		}
+		result, upsertErr := th.service.UpsertPropertyValue(rctx, value)
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("blocks regular user from writing SAML-synced field", func(t *testing.T) {
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    samlField.ID,
+			TargetID:   targetID,
+			TargetType: "user",
+			Value:      json.RawMessage(`"sneaky"`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "saml sync")
+	})
+
+	t.Run("allows regular user to upsert non-synced field", func(t *testing.T) {
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    nonSyncedField.ID,
+			TargetID:   targetID,
+			TargetType: "user",
+			Value:      json.RawMessage(`"hello"`),
+		}
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("sync lock applies to batch upsert", func(t *testing.T) {
+		values := []*model.PropertyValue{
+			{
+				GroupID:    group.ID,
+				FieldID:    ldapField.ID,
+				TargetID:   targetID,
+				TargetType: "user",
+				Value:      json.RawMessage(`"batch test"`),
+			},
+		}
+		_, upsertErr := th.service.UpsertPropertyValues(th.Context, values)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "ldap sync")
+
+		// Same batch with the right caller should succeed
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+		results, upsertErr := th.service.UpsertPropertyValues(rctx, values)
+		require.NoError(t, upsertErr)
+		assert.Len(t, results, 1)
+	})
+}
+
 func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
@@ -2035,7 +2303,8 @@ func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "field-delete-values",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -2084,7 +2353,8 @@ func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "field-delete-values-fail",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsProtected: true,
 			},
@@ -2123,7 +2393,8 @@ func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "public-field-delete-values",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, err := th.service.CreatePropertyField(rctxAnon, field)
 		require.NoError(t, err)

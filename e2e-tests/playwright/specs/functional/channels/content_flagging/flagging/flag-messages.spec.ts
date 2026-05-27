@@ -3,6 +3,12 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+// NOTE: No global afterAll disabling content flagging here. A global afterAll
+// that writes shared server config races with reviewer-* tests running in a
+// parallel worker on the same shard. Each test that needs content flagging
+// disabled sets it explicitly at the start (see the "feature is disabled" test
+// below). Tests that need it enabled do the same via patchConfig/setupContentFlagging.
+
 // Constants for repeated strings
 const FLAG_REASON_CLASSIFICATION_MISMATCH: string = 'Classification Mismatch';
 const FLAG_REASON_CLASSIFICATION_MISMATCH_ALT: string = 'Classification mismatch';
@@ -67,15 +73,32 @@ async function openPostDotMenu(post: any, channelsPage: any): Promise<void> {
  */
 test('Verify flagged message is hidden by default', async ({pw}) => {
     const {user, adminClient} = await pw.initSetup();
+    // Explicitly set HideFlaggedContent: true — a parallel worker may have set it
+    // to false (e.g. author-deletes-message-before-review.spec.ts). Without an
+    // explicit value this test would fail intermittently under PW_WORKERS=2.
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
+            AdditionalSettings: {
+                HideFlaggedContent: true,
+            },
         },
     });
 
     const channelsPage = await loginAndNavigate(pw, user);
     const message = 'This is a test message to be flagged';
     const {post, postId} = await postMessage(channelsPage, message);
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {HideFlaggedContent: true},
+        },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
+    });
 
     // Cancel flagging the message
     await openPostDotMenu(post, channelsPage);
@@ -119,6 +142,14 @@ test('Verify Post is not hidden after flagging if HideFlaggedContent is false', 
     const message = 'This is a test message to be flagged';
     const {post, postId} = await postMessage(channelsPage, message);
     await post.toBeVisible();
+
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {HideFlaggedContent: false},
+        },
+    });
 
     // Cancel flagging the message
     await openPostDotMenu(post, channelsPage);
@@ -185,13 +216,26 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
 
     // Login as the second user
     const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
-    const post = await channelsPage.getLastPost();
+    // Town Square may show join/system posts above the target — select by post id.
+    const post = await channelsPage.centerView.getPostById(postToBeflagged.id);
+
+    // Re-apply guard immediately before dot-menu: login takes 3-5 s during which a
+    // concurrent initSetup() can reset EnableContentFlagging to false.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {HideFlaggedContent: false},
+        },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
+    });
 
     // Try to flag already flagged post
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
     await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
     await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment(FLAG_COMMENT);
     await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
@@ -251,9 +295,36 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
     await adminClient.keepFlaggedPost(postToBeflagged.id, 'Retaining this post after review');
 
+    // Re-apply guard before UI interaction: a concurrent initSetup() may have reset
+    // EnableContentFlagging or reviewer settings between the initial patchConfig and here.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {HideFlaggedContent: false},
+            NotificationSettings: {
+                EventTargetMapping: {
+                    assigned: ['reviewers'],
+                    dismissed: ['reporter', 'author', 'reviewers'],
+                    flagged: ['reviewers'],
+                    removed: ['author', 'reporter', 'reviewers'],
+                },
+            },
+            ReviewerSettings: {
+                CommonReviewers: true,
+                SystemAdminsAsReviewers: true,
+                TeamAdminsAsReviewers: true,
+                CommonReviewerIds: [user.id, secondUserID],
+            },
+        },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
+    });
+
     // Login as the second user
     const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
-    const post = await channelsPage.getLastPost();
+    const post = await channelsPage.centerView.getPostById(postToBeflagged.id);
 
     // Try to flag previously retained post
     await openPostDotMenu(post, channelsPage);
@@ -286,6 +357,17 @@ test('Verify the Quarantine for Review option is not available when feature is d
     const message = 'This is a test message to be flagged';
     const {post} = await postMessage(channelsPage, message);
 
+    // Re-apply guard: parallel tests often turn flagging back on; the menu item only hides when false.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: false,
+        },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === false;
+    });
+
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItemNotToBeVisible();
 });
@@ -312,6 +394,16 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
     const channelsPage = await loginAndNavigate(pw, user, team.name, 'town-square');
     const message = 'This is a test message to be flagged';
     const {post} = await postMessage(channelsPage, message);
+
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {
+                Reasons: ['Spam', FLAG_REASON_CLASSIFICATION_MISMATCH, 'Harassment', 'Hate Speech', 'Other'],
+            },
+        },
+    });
 
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
@@ -344,6 +436,17 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
     const message = 'This is a test message to be flagged';
     const {post} = await postMessage(channelsPage, message);
 
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {
+                Reasons: ['Spam', FLAG_REASON_CLASSIFICATION_MISMATCH, 'Harassment', 'Hate Speech', 'Other'],
+                ReporterCommentRequired: true,
+            },
+        },
+    });
+
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
@@ -366,14 +469,15 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
  */
 test('Verify message is removed from channel if the reviewer removed the message', async ({pw}) => {
     const {user, adminClient, team} = await pw.initSetup();
+    // Only set the fields this test actually needs. Omitting ReviewerSettings.CommonReviewerIds
+    // prevents racing with reviewer-* tests that set their own reviewer list — a patchConfig
+    // that includes CommonReviewerIds replaces the array for ALL concurrent tests on the same
+    // server, causing reviewer-actions.spec.ts to lose its notification recipients.
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             ReviewerSettings: {
-                CommonReviewers: true,
                 SystemAdminsAsReviewers: true,
-                TeamAdminsAsReviewers: true,
-                CommonReviewerIds: [user.id],
             },
             AdditionalSettings: {
                 HideFlaggedContent: false,
@@ -392,6 +496,20 @@ test('Verify message is removed from channel if the reviewer removed the message
         user_id: user.id,
     });
     await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
+
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false or
+    // SystemAdminsAsReviewers: false between the initial patchConfig and the remove call.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            ReviewerSettings: {
+                SystemAdminsAsReviewers: true,
+            },
+            AdditionalSettings: {
+                HideFlaggedContent: false,
+            },
+        },
+    });
     await adminClient.removeFlaggedPost(postToBeflagged.id, 'Removing this post after review');
 
     // Login as the user

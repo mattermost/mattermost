@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import {isMac} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
@@ -24,7 +25,6 @@ import a11yController from 'utils/a11y_controller_instance';
 import {focusElement, getFirstFocusableChild} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
-import {isMac} from 'utils/user_agent';
 
 import type {RhsState} from 'types/store/rhs';
 

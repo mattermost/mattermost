@@ -82,7 +82,6 @@ import UnifiedLabelsWrapper from './unified_labels_wrapper';
 import useBurnOnRead from './use_burn_on_read';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
-import useOrientationHandler from './use_orientation_handler';
 import usePluginItems from './use_plugin_items';
 import usePriority from './use_priority';
 import useRewrite from './use_rewrite';
@@ -182,6 +181,7 @@ const AdvancedTextEditor = ({
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
     const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
+    const aiActionMenuItems = useSelector((state: GlobalState) => state.plugins.components.AIActionMenuItem);
     const {available: aiRewriteEnabled} = useGetAgentsBridgeEnabled();
 
     const canPost = useSelector((state: GlobalState) => {
@@ -312,13 +312,13 @@ const AdvancedTextEditor = ({
         }]));
     }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
-    useOrientationHandler(textboxRef, rootId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const {
         rewriteMenuProps,
         isProcessing: rewriteIsProcessing,
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
+    const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
 
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
@@ -709,6 +709,10 @@ const AdvancedTextEditor = ({
     }, [handleDraftChange, draft]);
 
     const aiActionsMenu = useMemo(() => {
+        if (!hasAIActionsMenu) {
+            return null;
+        }
+
         return (
             <AIActionsMenu
                 draft={draft}
@@ -720,7 +724,7 @@ const AdvancedTextEditor = ({
                 aiRewriteEnabled={aiRewriteEnabled}
             />
         );
-    }, [draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled]);
+    }, [draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled, hasAIActionsMenu]);
 
     const formattingBar = (
         <AutoHeightSwitcher

@@ -3156,10 +3156,6 @@
     "translation": "Az Elasticsearch le van tiltva."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Az Elasticsearch már leállt."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Nem sikerült értelmezni az Elasticsearch szerver verzióját."
   },
@@ -3930,10 +3926,6 @@
   {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Nem sikerült lekérni a csatornákat."
-  },
-  {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Nem sikerült lekérni a csatornák mennyiségét."
   },
   {
     "id": "app.channel.get_by_scheme.app_error",
@@ -5658,14 +5650,6 @@
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Nem lehet feltölteni a fájlt. Érvénytelen csatorna ID: {{.channelId}}"
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Győződjön meg arról, hogy elérhető-e az Amazon S3 bucket , és ellenőrizze a bucket engedélyeit."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Nem sikerült csatlakozni az S3-hoz. Ellenőrizze az Amazon S3 kapcsolat hitelesítési paramétereit és hitelesítési beállításait."
   },
   {
     "id": "api.file.test_connection.app_error",

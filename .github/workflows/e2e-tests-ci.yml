@@ -23,6 +23,10 @@ on:
         type: string
         required: false
 
+permissions:
+  contents: read
+  statuses: write
+
 jobs:
   resolve-pr:
     runs-on: ubuntu-24.04
@@ -206,7 +210,10 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
+      contents: read
       statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -231,7 +238,10 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
+      contents: read
       statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -254,7 +264,10 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
+      contents: read
       statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -279,7 +292,10 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
+      contents: read
       statuses: write
+      id-token: write
+      pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"

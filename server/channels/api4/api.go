@@ -171,10 +171,13 @@ type Routes struct {
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
 
-	Properties     *mux.Router // 'api/v4/properties'
-	PropertyFields *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
-	PropertyField  *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
-	PropertyValues *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}'
+	Boards *mux.Router // 'api/v4/boards'
+
+	Properties           *mux.Router // 'api/v4/properties'
+	PropertyFields       *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
+	PropertyField        *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
+	PropertyValues       *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}'
+	PropertySystemValues *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/system/values'
 }
 
 type API struct {
@@ -331,10 +334,13 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
 
+	api.BaseRoutes.Boards = api.BaseRoutes.APIRoot.PathPrefix("/boards").Subrouter()
+
 	api.BaseRoutes.Properties = api.BaseRoutes.APIRoot.PathPrefix("/properties").Subrouter()
 	api.BaseRoutes.PropertyFields = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields").Subrouter()
 	api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PropertyValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.PropertySystemValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/system/values").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -383,6 +389,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitIPFiltering()
 	api.InitChannelBookmarks()
 	api.InitView()
+	api.InitBoard()
 	api.InitReports()
 	api.InitLimits()
 	api.InitOutgoingOAuthConnection()

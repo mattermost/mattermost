@@ -560,6 +560,20 @@ func (api *apiTimerLayer) UpdateChannel(channel *model.Channel) (*model.Channel,
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) RegisterChannelGuard(channelID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterChannelGuard(channelID)
+	api.recordTime(startTime, "RegisterChannelGuard", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UnregisterChannelGuard(channelID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnregisterChannelGuard(channelID)
+	api.recordTime(startTime, "UnregisterChannelGuard", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) SearchChannels(teamID string, term string) ([]*model.Channel, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.SearchChannels(teamID, term)
@@ -1328,6 +1342,13 @@ func (api *apiTimerLayer) UnregisterPluginForSharedChannels(pluginID string) err
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.UnregisterPluginForSharedChannels(pluginID)
 	api.recordTime(startTime, "UnregisterPluginForSharedChannels", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UnregisterPluginRemoteForSharedChannels(remoteID string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnregisterPluginRemoteForSharedChannels(remoteID)
+	api.recordTime(startTime, "UnregisterPluginRemoteForSharedChannels", _returnsA == nil)
 	return _returnsA
 }
 

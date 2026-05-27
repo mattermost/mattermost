@@ -510,6 +510,26 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
+	// RegisterChannelGuard claims the channel for this plugin, signaling to the server that the
+	// channel has plugin-managed semantics and that the server's default behaviors are unsafe
+	// without plugin involvement.
+	//
+	// The calling plugin's ID is implicit. Multiple plugins may co-guard the same channel; each
+	// claim is an independent row. Subsequent calls from the same plugin are idempotent; calls from
+	// a different plugin add a new claim.
+	//
+	// @tag Channel
+	// Minimum server version: 11.8
+	RegisterChannelGuard(channelID string) *model.AppError
+
+	// UnregisterChannelGuard releases this plugin's claim on the channel. Only the registering
+	// plugin can unregister its own claim; other plugins' claims on the same channel are
+	// unaffected.
+	//
+	// @tag Channel
+	// Minimum server version: 11.8
+	UnregisterChannelGuard(channelID string) *model.AppError
+
 	// SearchChannels returns the channels on a team matching the provided search term.
 	//
 	// @tag Channel
@@ -1252,12 +1272,22 @@ type API interface {
 	// Minimum server version: 9.5
 	RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error)
 
-	// UnregisterPluginForSharedChannels unregisters the plugin as a `Remote` for SharedChannels.
-	// The plugin will no longer receive synchronization messages via the `OnSharedChannelsSyncMsg` hook.
+	// UnregisterPluginForSharedChannels unregisters all remotes for this plugin. The plugin will no
+	// longer receive synchronization messages via the `OnSharedChannelsSyncMsg` hook. Used in
+	// OnDeactivate for bulk cleanup.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 9.5
 	UnregisterPluginForSharedChannels(pluginID string) error
+
+	// UnregisterPluginRemoteForSharedChannels unregisters a specific remote by its remoteID.
+	// The remote must belong to the calling plugin (ownership is validated server-side).
+	// The remote will no longer receive synchronization messages. Used for config change
+	// reconciliation when a connection is removed but others remain.
+	//
+	// @tag SharedChannels
+	// Minimum server version: 11.7
+	UnregisterPluginRemoteForSharedChannels(remoteID string) error
 
 	// ShareChannel marks a channel for sharing via shared channels. Note, this does not automatically
 	// invite any remote clusters to the channel - use `InviteRemote` to invite a remote , or this plugin,
@@ -1330,6 +1360,14 @@ type API interface {
 	// This is the inbound counterpart of the OnSharedChannelsAttachmentSyncMsg hook.
 	// The remoteID identifies which of the plugin's registered remotes this attachment is from
 	// (the value returned by RegisterPluginForSharedChannels).
+	//
+	// The post-receive (ReceiveSharedChannelSyncMsg) and file-receive calls for the same
+	// post-and-attachment pair may be issued in either order or concurrently; the framework
+	// binds the file to its post regardless of arrival order. Repeated calls with the same
+	// (fi.Id, channelID, fi.CreatorId) return the existing FileInfo without producing
+	// duplicates, allowing transports with at-least-once delivery semantics to redeliver
+	// safely. Repeats whose fi.Id matches an existing record under a different channel or
+	// creator are rejected.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 11.7
@@ -1459,6 +1497,11 @@ type API interface {
 
 	// CreatePropertyField creates a new property field.
 	//
+	// If the field's LinkedFieldID is set, the field inherits type, options,
+	// and security attributes from the referenced template field. The source
+	// must be a template field in the same group, must not itself be linked,
+	// and must not be deleted.
+	//
 	// @tag PropertyField
 	// Minimum server version: 10.10
 	CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error)
@@ -1477,11 +1520,17 @@ type API interface {
 
 	// UpdatePropertyField updates an existing property field.
 	//
+	// Fields with a LinkedFieldID cannot have their type or options modified.
+	// Set LinkedFieldID to an empty string to unlink a field from its source.
+	//
 	// @tag PropertyField
 	// Minimum server version: 10.10
 	UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error)
 
 	// DeletePropertyField deletes a property field (soft delete).
+	//
+	// Returns an error if the field has active linked dependents. Unlink or
+	// delete dependent fields first.
 	//
 	// @tag PropertyField
 	// Minimum server version: 10.10

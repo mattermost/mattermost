@@ -6,6 +6,8 @@ import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {isAndroid, isChromebook, isDesktopApp, isIos} from '@mattermost/shared/utils/user_agent';
+
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
@@ -14,6 +16,7 @@ import {temporarilySetPageLoadContext} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
+import GlobalClassificationBanner from 'components/global_classification_banner';
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
@@ -34,7 +37,6 @@ import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
-import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
 import {isTextDroppableEvent} from 'utils/utils';
 
 import LuxonController from './luxon_controller';
@@ -129,12 +131,12 @@ export default class Root extends React.PureComponent<Props, State> {
         }
 
         // Nothing to link to if we've removed the Android App download link
-        if (isAndroidWeb() && !this.props.androidDownloadLink) {
+        if (isAndroid() && !this.props.androidDownloadLink) {
             return;
         }
 
         // Nothing to link to if we've removed the iOS App download link
-        if (isIosWeb() && !this.props.iosDownloadLink) {
+        if (isIos() && !this.props.iosDownloadLink) {
             return;
         }
 
@@ -416,6 +418,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
                         <WindowSizeObserver/>
                         <ModalController/>
+                        <GlobalClassificationBanner position='top'/>
                         <AnnouncementBarController/>
                         <SystemNotice/>
                         <GlobalHeader/>
@@ -490,6 +493,7 @@ export default class Root extends React.PureComponent<Props, State> {
                             </Switch>
                             <SidebarRight/>
                         </div>
+                        <GlobalClassificationBanner position='bottom'/>
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
                         <Readout/>

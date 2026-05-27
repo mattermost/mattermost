@@ -147,6 +147,22 @@ func TestEnsureBot(t *testing.T) {
 		assert.Equal(t, "another bot", bot.Description)
 	})
 
+	t.Run("ensure bot should fail if username belongs to a non-bot user", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		pluginId := "pluginId"
+
+		// th.BasicUser is a regular (non-bot) user created by InitBasic.
+		// EnsureBot must return an error — not the human user's ID.
+		botID, err := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username:    th.BasicUser.Username,
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Error(t, err)
+		assert.Empty(t, botID)
+	})
+
 	t.Run("ensure bot should pass even after delete bot user", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
@@ -203,9 +219,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    model.NewPointer("invalid username"),
-			DisplayName: model.NewPointer("an updated bot"),
-			Description: model.NewPointer("updated bot"),
+			Username:    new("invalid username"),
+			DisplayName: new("an updated bot"),
+			Description: new("updated bot"),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -228,9 +244,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    model.NewPointer("username"),
-			DisplayName: model.NewPointer("display name"),
-			Description: model.NewPointer(strings.Repeat("x", 1025)),
+			Username:    new("username"),
+			DisplayName: new("display name"),
+			Description: new(strings.Repeat("x", 1025)),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -256,9 +272,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    model.NewPointer("username2"),
-			DisplayName: model.NewPointer("updated bot"),
-			Description: model.NewPointer("an updated bot"),
+			Username:    new("username2"),
+			DisplayName: new("updated bot"),
+			Description: new("an updated bot"),
 		}
 
 		patchedBot, err := th.App.PatchBot(th.Context, createdBot.UserId, botPatch)
@@ -290,7 +306,7 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username: model.NewPointer(th.BasicUser2.Username),
+			Username: new(th.BasicUser2.Username),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)

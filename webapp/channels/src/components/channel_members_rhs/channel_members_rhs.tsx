@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
@@ -19,7 +19,9 @@ import MoreDirectChannels from 'components/more_direct_channels';
 import AlertTag from 'components/widgets/tag/alert_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {formatAttributeName} from 'utils/format_attribute_name';
 
 import type {ModalData} from 'types/actions';
 
@@ -78,20 +80,39 @@ export default function ChannelMembersRHS({
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
     const {formatMessage} = useIntl();
 
+    // Only channels whose policy controls membership surface attribute
+    // tags in the RHS — a permission-only policy (e.g. file upload) has
+    // no bearing on who can be a member.
+    const isMembershipPolicy = isMembershipPolicyEnforced(channel);
     const {structuredAttributes, loading} = useAccessControlAttributes(
         EntityType.Channel,
         channel.id,
-        channel.policy_enforced,
+        isMembershipPolicy,
     );
 
-    // Helper function to format attribute names for tooltips
-    const formatAttributeName = (name: string): string => {
-        // Convert snake_case or camelCase to Title Case with spaces
-        return name.
-            replace(/_/g, ' ').
-            replace(/([A-Z])/g, ' $1').
-            replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
-    };
+    // Memoise the rendered access-control tags so they don't re-render on
+    // every unrelated state change in the centre channel.
+    const accessControlTags = useMemo(() => {
+        if (structuredAttributes.length === 0) {
+            return null;
+        }
+        return (
+            <TagGroup>
+                {structuredAttributes.flatMap((attribute) =>
+                    attribute.values.map((value) => {
+                        const attributeLabel = formatAttributeName(attribute.name);
+                        return (
+                            <AlertTag
+                                key={`${attribute.name}-${value}`}
+                                tooltipTitle={attributeLabel}
+                                text={`${attributeLabel}: ${value}`}
+                            />
+                        );
+                    }),
+                )}
+            </TagGroup>
+        );
+    }, [structuredAttributes]);
 
     const searching = searchTerms !== '';
 
@@ -234,30 +255,21 @@ export default function ChannelMembersRHS({
                 onClose={actions.closeRightHandSide}
                 goBack={actions.goBack}
             />
-            {/* Show banner for policy-enforced channels */}
-            {channel.policy_enforced && (
+            {/* Show banner only for channels whose policy gates membership. */}
+            {isMembershipPolicy && (
                 <div className='channel-members-rhs__alert-container policy-enforced'>
                     <AlertBanner
                         mode='info'
                         variant='app'
-                        title={formatMessage({
+                        title={channel.type === Constants.OPEN_CHANNEL ? formatMessage({
+                            id: 'channel_members_rhs.policy_recommended_description',
+                            defaultMessage: 'This channel has recommended members based on user attributes',
+                        }) : formatMessage({
                             id: 'channel_members_rhs.policy_enforced_restrictions',
                             defaultMessage: 'Channel access is restricted by user attributes',
                         })}
                     >
-                        {structuredAttributes.length > 0 && (
-                            <TagGroup>
-                                {structuredAttributes.flatMap((attribute) =>
-                                    attribute.values.map((value) => (
-                                        <AlertTag
-                                            key={`${attribute.name}-${value}`}
-                                            tooltipTitle={formatAttributeName(attribute.name)}
-                                            text={value}
-                                        />
-                                    )),
-                                )}
-                            </TagGroup>
-                        )}
+                        {accessControlTags}
                         {loading && <span className='loading-indicator'>{'Loading...'}</span>}
                     </AlertBanner>
                 </div>

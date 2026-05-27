@@ -45,6 +45,7 @@ const (
 	STATUS                          = "status"
 	StatusOk                        = "OK"
 	StatusFail                      = "FAIL"
+	StatusDisabled                  = "disabled"
 	StatusUnhealthy                 = "UNHEALTHY"
 	StatusRemove                    = "REMOVE"
 	ConnectionId                    = "Connection-Id"
@@ -384,6 +385,10 @@ func (c *Client4) testS3Route() clientRoute {
 	return newClientRoute("file").Join("s3_test")
 }
 
+func (c *Client4) testFileStoreRoute() clientRoute {
+	return newClientRoute("file").Join("test")
+}
+
 func (c *Client4) databaseRoute() clientRoute {
 	return newClientRoute("database")
 }
@@ -645,6 +650,10 @@ func (c *Client4) bookmarkRoute(channelId, bookmarkId string) clientRoute {
 	return c.bookmarksRoute(channelId).Join(bookmarkId)
 }
 
+func (c *Client4) boardsRoute() clientRoute {
+	return newClientRoute("boards")
+}
+
 func (c *Client4) viewsRoute(channelId string) clientRoute {
 	return c.channelRoute(channelId).Join("views")
 }
@@ -683,6 +692,10 @@ func (c *Client4) propertyFieldRoute(groupName, objectType, fieldID string) clie
 
 func (c *Client4) propertyValuesRoute(groupName, objectType, targetID string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, objectType, "values", targetID)
+}
+
+func (c *Client4) propertySystemValuesRoute(groupName string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, PropertyFieldObjectTypeSystem, "values")
 }
 
 func (c *Client4) accessControlPoliciesRoute() clientRoute {
@@ -1170,6 +1183,18 @@ func (c *Client4) GetUserByUsername(ctx context.Context, userName, etag string) 
 // GetUserByEmail returns a user based on the provided user email string.
 func (c *Client4) GetUserByEmail(ctx context.Context, email, etag string) (*User, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.userByEmailRoute(email), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*User](r)
+}
+
+// GetUserByAuthData returns a user by auth_data (external AuthData).
+func (c *Client4) GetUserByAuthData(ctx context.Context, authData, etag string) (*User, *Response, error) {
+	values := url.Values{}
+	values.Set("value", authData)
+	r, err := c.doAPIGetWithQuery(ctx, c.usersRoute().Join("auth_data"), values, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -2242,10 +2267,10 @@ func (c *Client4) SearchTeams(ctx context.Context, search *TeamSearch) ([]*Team,
 // SearchTeamsPaged returns a page of teams and the total count matching the provided search term.
 func (c *Client4) SearchTeamsPaged(ctx context.Context, search *TeamSearch) ([]*Team, int64, *Response, error) {
 	if search.Page == nil {
-		search.Page = NewPointer(0)
+		search.Page = new(0)
 	}
 	if search.PerPage == nil {
-		search.PerPage = NewPointer(100)
+		search.PerPage = new(100)
 	}
 	r, err := c.doAPIPostJSON(ctx, c.teamsRoute().Join("search"), search)
 	if err != nil {
@@ -2779,6 +2804,18 @@ func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
+// CreateBoard creates a board channel. The channel.Type must be ChannelTypeOpenBoard
+// or ChannelTypePrivateBoard. Requires the IntegratedBoards feature flag to be enabled
+// on the server; otherwise the route is not registered and returns 404.
+func (c *Client4) CreateBoard(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.boardsRoute(), channel)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
 // UpdateChannel updates a channel based on the provided channel struct.
 func (c *Client4) UpdateChannel(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
 	r, err := c.doAPIPutJSON(ctx, c.channelRoute(channel.Id), channel)
@@ -3257,6 +3294,25 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 // ReadMultipleChannels performs a view action on several channels at the same time for a user.
 func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.channelsRoute().Join("members", userId, "mark_read"), channelIds)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelViewResponse](r)
+}
+
+// ReadAllMessages performs a view action on all direct and group messages for a user
+func (c *Client4) ReadAllMessages(ctx context.Context, userId string) (*ChannelViewResponse, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.channelsRoute().Join("members", userId, "direct", "read"), nil)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelViewResponse](r)
+}
+
+func (c *Client4) ReadAllInTeam(ctx context.Context, userId string, teamId string) (*ChannelViewResponse, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.userRoute(userId).Join("teams", teamId, "read"), nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3923,6 +3979,17 @@ func (c *Client4) KeepFlaggedPost(ctx context.Context, postId string, actionRequ
 	return BuildResponse(r), nil
 }
 
+// GenerateFlaggedPostReport generates and downloads a ZIP archive containing the
+// flagged post report for the given post.
+func (c *Client4) GenerateFlaggedPostReport(ctx context.Context, postId string, actionRequest *FlagContentActionRequest) ([]byte, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.contentFlaggingRoute().Join("post", postId, "report"), actionRequest)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return ReadBytesFromResponse(r)
+}
+
 // SearchFiles returns any posts with matching terms string.
 func (c *Client4) SearchFiles(ctx context.Context, teamId string, terms string, isOrSearch bool) (*FileInfoList, *Response, error) {
 	params := SearchParameter{
@@ -4342,8 +4409,24 @@ func (c *Client4) TestSiteURL(ctx context.Context, siteURL string) (*Response, e
 }
 
 // TestS3Connection will attempt to connect to the AWS S3.
+//
+// Deprecated: use TestFileStoreConnection instead. The underlying endpoint
+// is kept for backwards compatibility but now routes through the same
+// backend-agnostic handler as TestFileStoreConnection.
 func (c *Client4) TestS3Connection(ctx context.Context, config *Config) (*Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.testS3Route(), config)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// TestFileStoreConnection attempts to connect to the configured file storage
+// backend (Amazon S3, Azure Blob Storage, or local), based on the FileSettings
+// in the supplied config.
+func (c *Client4) TestFileStoreConnection(ctx context.Context, config *Config) (*Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.testFileStoreRoute(), config)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -8090,6 +8173,38 @@ func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, 
 
 func (c *Client4) PatchPropertyValues(ctx context.Context, groupName, objectType, targetID string, items []PropertyValuePatchItem) ([]*PropertyValue, *Response, error) {
 	r, err := c.doAPIPatchJSON(ctx, c.propertyValuesRoute(groupName, objectType, targetID), items)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
+// GetSystemPropertyValues returns the property values attached to the Mattermost
+// system itself in the given group.
+func (c *Client4) GetSystemPropertyValues(ctx context.Context, groupName string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
+	values := url.Values{}
+	if search.PerPage > 0 {
+		values.Set("per_page", strconv.Itoa(search.PerPage))
+	}
+	if search.CursorID != "" && search.CursorCreateAt > 0 {
+		values.Set("cursor_id", search.CursorID)
+		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
+		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertySystemValuesRoute(groupName), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
+// PatchSystemPropertyValues upserts property values attached to the Mattermost
+// system itself in the given group.
+func (c *Client4) PatchSystemPropertyValues(ctx context.Context, groupName string, items []PropertyValuePatchItem) ([]*PropertyValue, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertySystemValuesRoute(groupName), items)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

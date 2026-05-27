@@ -3048,10 +3048,6 @@
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} ya fue detenido."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} está deshabilitado."
   },
@@ -6472,10 +6468,6 @@
     "translation": "No se pudo obtener los canales por ids."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "No se puede obtener el número de canales."
-  },
-  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "No se pueden contar los mensajes desde la fecha proporcionada."
   },
@@ -7430,14 +7422,6 @@
   {
     "id": "api.job.retrieve.nopermissions",
     "translation": "Los tipos de trabajo que está intentando recuperar no contienen permisos"
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Asegúrese de que su cubo de Amazon S3 está disponible y verifique los permisos de su cubo."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "No se puede conectar a S3. Verifique los parámetros de autorización de su conexión a Amazon S3 y la configuración de autenticación."
   },
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
@@ -8726,10 +8710,6 @@
   {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "No se pudo obtener un lector de archivos zip."
-  },
-  {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "La licencia actual no permite Atributos de Perfil Personalizados."
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",

@@ -6,6 +6,7 @@ package sharedchannel
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -74,4 +75,19 @@ func TestAddTask_OriginRemoteIDMerge(t *testing.T) {
 			assert.Equal(t, tc.expectedOrigin, merged.originRemoteID)
 		})
 	}
+}
+
+func TestStripSharedChannelStatePostsForSync(t *testing.T) {
+	sd := &syncData{
+		posts: []*model.Post{
+			{Id: "state-1", Type: model.PostTypeSharedChannelState, ChannelId: "ch1", Message: "ignored"},
+			{Id: "user-1", Type: model.PostTypeDefault, ChannelId: "ch1", Message: "hello"},
+		},
+	}
+
+	stripSharedChannelStatePostsForSync(sd)
+
+	require.Len(t, sd.posts, 1)
+	assert.Equal(t, "user-1", sd.posts[0].Id)
+	assert.Equal(t, model.PostTypeDefault, sd.posts[0].Type)
 }

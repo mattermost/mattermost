@@ -606,6 +606,24 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	return user, nil
 }
 
+func (a *App) GetUserByAuthData(authData *string) (*model.User, *model.AppError) {
+	user, err := a.ch.srv.userService.GetUserByAuthData(authData)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetUserByAuthData", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return user, nil
+}
+
 func (a *App) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	users, err := a.ch.srv.userService.GetUsersFromProfiles(options)
 	if err != nil {
@@ -780,8 +798,7 @@ func (a *App) GetUsersNotInAbacChannel(rctx request.CTX, teamID string, channelI
 		return nil, model.NewAppError("GetUsersNotInAbacChannel", "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	// Use cursor-based pagination for ABAC channels
-	users, _, appErr := acs.QueryUsersForResource(rctx, channelID, "*", model.SubjectSearchOptions{
+	users, _, appErr := acs.QueryUsersForResource(rctx, channelID, model.AccessControlPolicyActionMembership, model.SubjectSearchOptions{
 		TeamID: teamID,
 		Limit:  limit,
 		Cursor: model.SubjectCursor{
@@ -1833,7 +1850,7 @@ func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string
 	// remove any previously created tokens for user
 	appErr := a.InvalidatePasswordRecoveryTokensForUser(userID)
 	if appErr != nil {
-		rctx.Logger().Warn("Error while deleting additional user tokens.", mlog.Err(err))
+		rctx.Logger().Warn("Error while deleting additional user tokens.", mlog.Err(appErr))
 	}
 
 	token := model.NewToken(model.TokenTypePasswordRecovery, string(jsonData))
@@ -2330,7 +2347,7 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 	} else if ok {
 		acs := a.Srv().Channels().AccessControl
 		if acs != nil {
-			users, _, appErr := acs.QueryUsersForResource(rctx, channelID, "*", model.SubjectSearchOptions{
+			users, _, appErr := acs.QueryUsersForResource(rctx, channelID, model.AccessControlPolicyActionMembership, model.SubjectSearchOptions{
 				Term:   term,
 				TeamID: teamID,
 				Limit:  options.Limit,
@@ -2339,7 +2356,7 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 				return nil, appErr
 			}
 
-			return users, nil
+			return a.sanitizeProfiles(users, options.IsAdmin), nil
 		}
 	}
 
@@ -2348,11 +2365,7 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 		return nil, model.NewAppError("SearchUsersNotInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	for _, user := range users {
-		a.SanitizeProfile(user, options.IsAdmin)
-	}
-
-	return users, nil
+	return a.sanitizeProfiles(users, options.IsAdmin), nil
 }
 
 func (a *App) SearchUsersInTeam(rctx request.CTX, teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
@@ -2729,6 +2742,10 @@ func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId
 // DemoteUserToGuest Convert user's roles and all his membership's roles from
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppError {
+	if user.IsBot {
+		return model.NewAppError("DemoteUserToGuest", "api.user.demote_user_to_guest.bot_not_allowed.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {

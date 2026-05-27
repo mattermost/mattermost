@@ -415,6 +415,7 @@ export const ModalIdentifiers = {
     POST_DELETED_MODAL: 'post_deleted_modal',
     FILE_PREVIEW_MODAL: 'file_preview_modal',
     LEAVE_PRIVATE_CHANNEL_MODAL: 'leave_private_channel_modal',
+    MARK_ALL_AS_READ: 'mark_all_as_read',
     GET_PUBLIC_LINK_MODAL: 'get_public_link_modal',
     KEYBOARD_SHORTCUTS_MODAL: 'keyboar_shortcuts_modal',
     USERS_TO_BE_REMOVED: 'users_to_be_removed',
@@ -429,7 +430,6 @@ export const ModalIdentifiers = {
     JOIN_PUBLIC_CHANNEL_MODAL: 'join_public_channel_modal',
     CLOUD_INVOICE_PREVIEW: 'cloud_invoice_preview',
     BILLING_HISTORY: 'billing_history',
-    SUM_OF_MEMBERS_MODAL: 'sum_of_members_modal',
     RESTORE_POST_MODAL: 'restore_post',
     INFO_TOAST: 'info_toast',
     MARK_ALL_THREADS_AS_READ: 'mark_all_threads_as_read_modal',
@@ -751,6 +751,7 @@ export const PostTypes = {
     CUSTOM_DATA_SPILLAGE_REPORT: 'custom_spillage_report',
     AUTO_TRANSLATION_CHANGE: 'system_autotranslation',
     BURN_ON_READ: 'burn_on_read',
+    SHARED_CHANNEL_STATE: 'system_shared_chan_state',
 };
 
 export const StatTypes = keyMirror({
@@ -812,6 +813,8 @@ export const StoragePrefixes = {
     DELINQUENCY: 'delinquency_',
     HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
     HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER: 'hideNotificationPermissionRequestBanner',
+    MARK_ALL_READ_WITHOUT_CONFIRM: 'mark_all_as_read_without_confirm',
+    HAS_SEEN_FEATURE_TOAST: 'has_seen_feature_toast',
 };
 
 export const LandingPreferenceTypes = {
@@ -1162,6 +1165,7 @@ export const PermissionsScope = {
     [Permissions.REMOVE_OTHERS_REACTIONS]: 'channel_scope',
     [Permissions.PERMANENT_DELETE_USER]: 'system_scope',
     [Permissions.UPLOAD_FILE]: 'channel_scope',
+    [Permissions.EDIT_FILE_ATTACHMENT]: 'channel_scope',
     [Permissions.GET_PUBLIC_LINK]: 'system_scope',
     [Permissions.MANAGE_INCOMING_WEBHOOKS]: 'team_scope',
     [Permissions.MANAGE_OWN_INCOMING_WEBHOOKS]: 'team_scope',
@@ -1264,6 +1268,7 @@ export const DefaultRolePermissions = {
         Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS,
         Permissions.DELETE_POST,
         Permissions.EDIT_POST,
+        Permissions.EDIT_FILE_ATTACHMENT,
         Permissions.USE_CHANNEL_MENTIONS,
         Permissions.USE_GROUP_MENTIONS,
         Permissions.CREATE_CUSTOM_GROUP,
@@ -1360,6 +1365,7 @@ export const DefaultRolePermissions = {
     ],
     guests: [
         Permissions.EDIT_POST,
+        Permissions.EDIT_FILE_ATTACHMENT,
         Permissions.ADD_REACTION,
         Permissions.REMOVE_REACTION,
         Permissions.USE_CHANNEL_MENTIONS,
@@ -1480,9 +1486,7 @@ export const Constants = {
     MAX_ADD_MEMBERS_BATCH: 256,
 
     SPECIAL_MENTIONS: ['all', 'channel', 'here'],
-    PLAN_MENTIONS: /Professional plan|Enterprise plan|Enterprise trial/gi,
     SPECIAL_MENTIONS_REGEX: /(?:\B|\b_+)@(channel|all|here)(?!(\.|-|_)*[^\W_])/gi,
-    SUM_OF_MEMBERS_MENTION_REGEX: /\d+ members/gi,
     ALL_MENTION_REGEX: /(?:\B|\b_+)@(all)(?!(\.|-|_)*[^\W_])/gi,
     CHANNEL_MENTION_REGEX: /(?:\B|\b_+)@(channel)(?!(\.|-|_)*[^\W_])/gi,
     HERE_MENTION_REGEX: /(?:\B|\b_+)@(here)(?!(\.|-|_)*[^\W_])/gi,
@@ -2220,12 +2224,6 @@ export const OverlayTransitionStyles = {
     START: {
         opacity: 0,
     },
-};
-
-export const OverlayArrow = {
-    WIDTH: 10, // in px
-    HEIGHT: 6, // in px
-    OFFSET: 8, // in px
 };
 
 export default Constants;

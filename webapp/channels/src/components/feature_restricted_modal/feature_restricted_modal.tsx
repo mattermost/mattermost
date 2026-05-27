@@ -131,7 +131,6 @@ const FeatureRestrictedModal = ({
     const trialBtn = (
         <StartTrialBtn
             onClick={dismissAction}
-            btnClass='btn btn-primary'
             renderAsButton={true}
         />
     );

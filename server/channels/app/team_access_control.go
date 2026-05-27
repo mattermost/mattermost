@@ -69,10 +69,57 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 		return policies[i].ID < policies[j].ID
 	})
 
-	// Filter by self-inclusion.
+	// Single batched Channel lookup for all policies' child_ids so we don't
+	// issue GetChannelsByIds once per policy (N+1).
+	unionSet := make(map[string]struct{})
+	for _, policy := range policies {
+		ids, ok := childIDsFromPolicyProps(policy)
+		if !ok {
+			continue
+		}
+		for _, id := range ids {
+			unionSet[id] = struct{}{}
+		}
+	}
+	union := make([]string, 0, len(unionSet))
+	for id := range unionSet {
+		union = append(union, id)
+	}
+	sort.Strings(union)
+
+	var idToType map[string]model.ChannelType
+	batchLookupFailed := false
+	if len(union) > 0 {
+		channels, err := a.Srv().Store().Channel().GetChannelsByIds(union, true)
+		if err != nil {
+			rctx.Logger().Warn("Failed to look up child channels for self-inclusion gating batch; keeping the filter on",
+				mlog.Err(err),
+				mlog.Int("policy_count", len(policies)),
+			)
+			batchLookupFailed = true
+		} else {
+			if len(channels) != len(union) {
+				rctx.Logger().Warn("Partial batch child-channel lookup for self-inclusion gating",
+					mlog.Int("requested", len(union)),
+					mlog.Int("returned", len(channels)),
+				)
+			}
+			idToType = make(map[string]model.ChannelType, len(channels))
+			for _, ch := range channels {
+				idToType[ch.Id] = ch.Type
+			}
+		}
+	} else {
+		idToType = map[string]model.ChannelType{}
+	}
+
+	// Filter by self-inclusion. Skip the filter for parent policies whose
+	// children are all public channels — public-channel ABAC is advisory and
+	// can never lock the requesting admin out, so a non-matching expression
+	// is not a reason to hide the policy from them.
 	filtered := make([]*model.AccessControlPolicy, 0, len(policies))
 	for _, policy := range policies {
-		if len(policy.Rules) > 0 {
+		if len(policy.Rules) > 0 && policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
 			expression := policy.Rules[0].Expression
 			matches, matchErr := a.ValidateExpressionAgainstRequester(rctx, expression, requesterID)
 			if matchErr != nil {
@@ -241,9 +288,10 @@ func (a *App) ReconcilePolicyTeamScope(rctx request.CTX, policyID string) *model
 //   - At least one channel provided
 //   - All channels exist
 //   - All channels belong to the given team
-//   - All channels are private
+//   - All channels are public or private (DM/GM excluded)
 //   - No group-constrained channels
 //   - No shared channels
+//   - No team default channels (e.g. town-square)
 func (a *App) ValidateTeamScopePolicyChannelAssignment(rctx request.CTX, teamID string, channelIDs []string) *model.AppError {
 	if len(channelIDs) == 0 {
 		return model.NewAppError("ValidateTeamScopePolicyChannelAssignment",
@@ -270,7 +318,7 @@ func (a *App) ValidateTeamScopePolicyChannelAssignment(rctx request.CTX, teamID 
 				"channel does not belong to this team", http.StatusBadRequest)
 		}
 
-		if appErr := ValidateChannelEligibilityForAccessControl(channel); appErr != nil {
+		if appErr := a.ValidateChannelEligibilityForAccessControl(rctx, channel); appErr != nil {
 			return appErr
 		}
 	}
@@ -299,4 +347,83 @@ func (a *App) ValidateTeamAdminSelfInclusion(rctx request.CTX, userID, expressio
 	}
 
 	return nil
+}
+
+// childIDsFromPolicyProps reads Props["child_ids"], which is normally []string
+// (set by the policy store) but may be []any after JSON round-trip.
+// If ok is false, the shape is unsupported and callers should treat it as unknown.
+func childIDsFromPolicyProps(policy *model.AccessControlPolicy) (ids []string, ok bool) {
+	if policy == nil || policy.Props == nil {
+		return nil, false
+	}
+	switch raw := policy.Props["child_ids"].(type) {
+	case []string:
+		return raw, true
+	case []any:
+		out := make([]string, 0, len(raw))
+		for _, item := range raw {
+			if id, itemOk := item.(string); itemOk {
+				out = append(out, id)
+			}
+		}
+		return out, true
+	default:
+		return nil, false
+	}
+}
+
+// policyAppliesToPrivateChannel reports whether a parent policy has at least
+// one private child channel — used to gate the self-inclusion filter, which
+// only matters when a non-matching admin could actually be locked out. Public
+// channels under ABAC are advisory (no member removal, anyone can join), so
+// a non-matching admin is never at risk there.
+//
+// idToType maps channel ID → channel type from a batched GetChannelsByIds;
+// batchLookupFailed means the batch store call failed and the conservative
+// answer is to apply the filter.
+//
+// Returns `true` (i.e. apply the filter) on metadata or lookup errors, since
+// the safer fallback is to keep the existing behavior rather than silently
+// expose a policy a private channel might depend on.
+func policyAppliesToPrivateChannel(rctx request.CTX, policy *model.AccessControlPolicy, idToType map[string]model.ChannelType, batchLookupFailed bool) bool {
+	if policy == nil || policy.Props == nil {
+		return true
+	}
+
+	childIDs, propsOk := childIDsFromPolicyProps(policy)
+	if !propsOk {
+		return true
+	}
+
+	if len(childIDs) == 0 {
+		// Channel-less policy (newly created, not yet assigned). Until a
+		// channel is attached there's nothing to lock anyone out of, so the
+		// filter is meaningless here.
+		return false
+	}
+
+	if batchLookupFailed {
+		return true
+	}
+
+	found := 0
+	for _, id := range childIDs {
+		if _, ok := idToType[id]; ok {
+			found++
+		}
+	}
+	if found != len(childIDs) {
+		rctx.Logger().Warn("Partial child-channel lookup for self-inclusion gating; keeping the filter on",
+			mlog.String("policy_id", policy.ID),
+			mlog.Int("requested", len(childIDs)),
+			mlog.Int("returned", found),
+		)
+		return true
+	}
+	for _, id := range childIDs {
+		if idToType[id] == model.ChannelTypePrivate {
+			return true
+		}
+	}
+	return false
 }

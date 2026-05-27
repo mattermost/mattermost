@@ -5,6 +5,7 @@ import React, {useState, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import {deleteChannel} from 'actions/views/channel';
@@ -43,9 +44,9 @@ function ChannelSettingsArchiveTab({
                 id='channel_settings.archive.warning'
                 defaultMessage="Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels."
             />
-            <button
+            <Button
                 type='button'
-                className='btn btn-danger'
+                variant='destructive'
                 onClick={handleArchiveChannel}
                 id='channelSettingsArchiveChannelButton'
                 aria-label={`Archive channel ${channel.display_name}`}
@@ -54,7 +55,7 @@ function ChannelSettingsArchiveTab({
                     id='channel_settings.archive.button'
                     defaultMessage='Archive this channel'
                 />
-            </button>
+            </Button>
 
             {showArchiveConfirmModal && (
                 <ConfirmationModal
@@ -84,7 +85,7 @@ function ChannelSettingsArchiveTab({
                     confirmButtonText={formatMessage({id: 'channel_settings.modal.confirmArchive', defaultMessage: 'Confirm'})}
                     onConfirm={doArchiveChannel}
                     onCancel={() => setShowArchiveConfirmModal(false)}
-                    confirmButtonClass='btn btn-danger'
+                    confirmButtonVariant='destructive'
                     modalClass='archiveChannelConfirmModal'
                     focusOriginElement='channelSettingsArchiveChannelButton'
                     isStacked={true}

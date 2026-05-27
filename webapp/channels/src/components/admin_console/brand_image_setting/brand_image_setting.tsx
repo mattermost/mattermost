@@ -4,6 +4,9 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {Client4} from 'mattermost-redux/client';
 
 import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
@@ -11,7 +14,6 @@ import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
 import SettingSet from 'components/admin_console/setting_set';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import FormError from 'components/form_error';
-import WithTooltip from 'components/with_tooltip';
 
 import {Constants} from 'utils/constants';
 
@@ -240,9 +242,9 @@ const BrandImageSetting = ({
                 <div className='remove-image'>{img}</div>
             </div>
             <div className='file__upload mt-5'>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     disabled={disabled}
                     onClick={handleSelectClick}
                 >
@@ -250,7 +252,7 @@ const BrandImageSetting = ({
                         id='admin.team.chooseImage'
                         defaultMessage='Select Image'
                     />
-                </button>
+                </Button>
                 <input
                     ref={fileInputRef}
                     data-testid='file__upload-input'

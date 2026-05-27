@@ -85,7 +85,7 @@ func TestCreateOAuthApp(t *testing.T) {
 }
 
 func TestUpdateOAuthApp(t *testing.T) {
-	t.Skip("https://mattermost.atlassian.net/browse/MM-62895")
+	// MM-62895: re-enabled to collect failure data (14mo, empty Jira description).
 
 	mainHelper.Parallel(t)
 
@@ -642,14 +642,14 @@ func TestRegisterOAuthClient(t *testing.T) {
 
 	// Configure server for DCR
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
-		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+		cfg.ServiceSettings.EnableOAuthServiceProvider = new(true)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = new(true)
 	})
 
 	t.Run("Valid DCR request", func(t *testing.T) {
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback"},
-			ClientName:   model.NewPointer("Test Client"),
+			ClientName:   new("Test Client"),
 		}
 
 		response, resp, err := th.SystemAdminClient.RegisterOAuthClient(context.Background(), request)
@@ -665,7 +665,7 @@ func TestRegisterOAuthClient(t *testing.T) {
 
 	t.Run("Missing redirect URIs", func(t *testing.T) {
 		request := &model.ClientRegistrationRequest{
-			ClientName: model.NewPointer("Test Client"),
+			ClientName: new("Test Client"),
 		}
 
 		_, resp, err := th.SystemAdminClient.RegisterOAuthClient(context.Background(), request)
@@ -684,7 +684,7 @@ func TestRegisterOAuthClient(t *testing.T) {
 
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback"},
-			ClientName:   model.NewPointer("Test Client No Auth"),
+			ClientName:   new("Test Client No Auth"),
 		}
 
 		response, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
@@ -704,8 +704,8 @@ func TestRegisterOAuthClient(t *testing.T) {
 
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback"},
-			ClientName:   model.NewPointer("Test Client with URI"),
-			ClientURI:    model.NewPointer("https://example.com"),
+			ClientName:   new("Test Client with URI"),
+			ClientURI:    new("https://example.com"),
 		}
 
 		response, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
@@ -742,13 +742,13 @@ func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
 
 	request := &model.ClientRegistrationRequest{
 		RedirectURIs: []string{"https://example.com/callback"},
-		ClientName:   model.NewPointer("Test Client"),
+		ClientName:   new("Test Client"),
 	}
 
 	// Test with OAuth disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(false)
-		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+		cfg.ServiceSettings.EnableOAuthServiceProvider = new(false)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = new(true)
 	})
 
 	_, resp, err := adminClient.RegisterOAuthClient(context.Background(), request)
@@ -760,8 +760,8 @@ func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
 
 	// Test with DCR disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
-		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(false)
+		cfg.ServiceSettings.EnableOAuthServiceProvider = new(true)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = new(false)
 	})
 
 	_, resp, err = adminClient.RegisterOAuthClient(context.Background(), request)
@@ -789,7 +789,7 @@ func TestRegisterOAuthClient_RedirectURIAllowlist(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
-		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = new(true)
 	})
 
 	t.Run("allowlist empty registration succeeds", func(t *testing.T) {
@@ -799,7 +799,7 @@ func TestRegisterOAuthClient_RedirectURIAllowlist(t *testing.T) {
 
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback"},
-			ClientName:   model.NewPointer("Test Client"),
+			ClientName:   new("Test Client"),
 		}
 		response, resp, err := client.RegisterOAuthClient(context.Background(), request)
 		require.NoError(t, err)
@@ -815,7 +815,7 @@ func TestRegisterOAuthClient_RedirectURIAllowlist(t *testing.T) {
 
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback"},
-			ClientName:   model.NewPointer("Test Client"),
+			ClientName:   new("Test Client"),
 		}
 		response, resp, err := client.RegisterOAuthClient(context.Background(), request)
 		require.NoError(t, err)
@@ -825,7 +825,7 @@ func TestRegisterOAuthClient_RedirectURIAllowlist(t *testing.T) {
 		time.Sleep(time.Second) // avoid rate limit
 		request2 := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://app.test.com/deep/path/cb"},
-			ClientName:   model.NewPointer("Test Client 2"),
+			ClientName:   new("Test Client 2"),
 		}
 		response2, resp2, err2 := client.RegisterOAuthClient(context.Background(), request2)
 		require.NoError(t, err2)
@@ -840,7 +840,7 @@ func TestRegisterOAuthClient_RedirectURIAllowlist(t *testing.T) {
 
 		body, _ := json.Marshal(&model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://disallowed.com/callback"},
-			ClientName:   model.NewPointer("Test Client"),
+			ClientName:   new("Test Client"),
 		})
 		req, err := http.NewRequest(http.MethodPost, client.APIURL+"/oauth/apps/register", bytes.NewReader(body))
 		require.NoError(t, err)
@@ -867,7 +867,7 @@ func TestRegisterOAuthClient_RedirectURIAllowlist(t *testing.T) {
 		time.Sleep(time.Second)
 		body, _ := json.Marshal(&model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://allowed.com/cb1", "https://disallowed.com/cb2"},
-			ClientName:   model.NewPointer("Test Client"),
+			ClientName:   new("Test Client"),
 		})
 		req, err := http.NewRequest(http.MethodPost, client.APIURL+"/oauth/apps/register", bytes.NewReader(body))
 		require.NoError(t, err)
@@ -895,15 +895,15 @@ func TestRegisterOAuthClient_PublicClient_Success(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
-		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = new(true)
 	})
 
 	// DCR request for public client
 	request := &model.ClientRegistrationRequest{
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
-		ClientName:              model.NewPointer("Test Public Client"),
-		ClientURI:               model.NewPointer("https://example.com"),
+		ClientName:              new("Test Public Client"),
+		ClientURI:               new("https://example.com"),
 	}
 
 	// Register public client
@@ -929,17 +929,17 @@ func TestRegisterOAuthClientAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
-		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
-		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = new(true)
 	})
 
 	t.Run("Successful DCR registration is audited", func(t *testing.T) {
 		clientName := "Test Audit Client"
 		request := &model.ClientRegistrationRequest{
 			RedirectURIs: []string{"https://example.com/callback"},
-			ClientName:   model.NewPointer(clientName),
+			ClientName:   new(clientName),
 		}
 
 		response, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
@@ -973,7 +973,7 @@ func TestRegisterOAuthClientAudit(t *testing.T) {
 
 		// Invalid request (missing redirect URIs)
 		request := &model.ClientRegistrationRequest{
-			ClientName: model.NewPointer("Invalid Client"),
+			ClientName: new("Invalid Client"),
 		}
 
 		_, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)

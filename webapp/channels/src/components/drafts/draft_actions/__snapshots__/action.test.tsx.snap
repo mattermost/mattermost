@@ -5,19 +5,15 @@ exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
   <div
     class="DraftAction"
   >
-    <div
-      data-testid="with-tooltip"
+    <button
+      aria-labelledby="draft_tooltip_some-id"
+      class="DraftAction__button"
+      id="draft_some-icon_some-id"
     >
-      <button
-        aria-labelledby="draft_tooltip_some-id"
-        class="DraftAction__button"
-        id="draft_some-icon_some-id"
-      >
-        <i
-          class="icon some-icon"
-        />
-      </button>
-    </div>
+      <i
+        class="icon some-icon"
+      />
+    </button>
   </div>
 </div>
 `;
