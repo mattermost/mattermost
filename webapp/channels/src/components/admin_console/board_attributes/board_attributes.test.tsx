@@ -148,4 +148,18 @@ describe('BoardAttributes (top-level screen)', () => {
 
         expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
     });
+
+    it('dispatches setNavigationBlocked(false) on unmount so the block does not leak into the next screen', () => {
+        mockUseBoardAttributesTable.mockReturnValue(makeHookReturn({hasChanges: true}));
+
+        const {unmount} = renderWithContext(<BoardAttributes disabled={false}/>);
+
+        // Effect set the block to `true` on mount; clear the spy before
+        // unmount so the assertion is unambiguous about what unmount did.
+        mockSetNavigationBlocked.mockClear();
+
+        unmount();
+
+        expect(mockSetNavigationBlocked).toHaveBeenCalledWith(false);
+    });
 });

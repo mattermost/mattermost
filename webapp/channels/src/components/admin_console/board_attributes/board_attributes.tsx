@@ -37,6 +37,13 @@ export default function BoardAttributes(props: Props) {
     useEffect(() => {
         // block nav when changes are pending
         dispatch(setNavigationBlocked(hasChanges));
+
+        // Reset on unmount so leaving with `hasChanges=true` (e.g. via the
+        // discard-changes prompt) doesn't leak a stale block into the next
+        // admin screen.
+        return () => {
+            dispatch(setNavigationBlocked(false));
+        };
     }, [hasChanges, dispatch]);
 
     return (

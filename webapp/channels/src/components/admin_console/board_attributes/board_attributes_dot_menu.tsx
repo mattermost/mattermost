@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {ContentCopyIcon, DotsHorizontalIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {BoardPropertyField} from '@mattermost/types/properties';
@@ -29,6 +29,7 @@ const DotMenu = ({
     createField,
     deleteField,
 }: Props) => {
+    const {formatMessage} = useIntl();
     const {promptDelete} = useBoardAttributeFieldDelete();
 
     const isProtected = Boolean(field.protected);
@@ -71,7 +72,10 @@ const DotMenu = ({
             }}
             menu={{
                 id: `${menuId}-menu`,
-                'aria-label': 'Select an action',
+                'aria-label': formatMessage({
+                    id: 'admin.board_attributes.dot_menu.aria_label',
+                    defaultMessage: 'Select an action',
+                }),
                 className: 'user-property-field-dotmenu-menu',
             }}
         >

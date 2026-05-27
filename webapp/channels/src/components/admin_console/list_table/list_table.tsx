@@ -170,6 +170,7 @@ function DraggableRow<T extends TableMandatoryTypes>({
                                     id: 'adminConsole.list.table.dragHandleLabel',
                                     defaultMessage: 'Reorder row',
                                 })}
+                                onClick={(e) => e.stopPropagation()}
                                 onKeyDown={handleKeyDown}
                             >
                                 <DragVerticalIcon size={18}/>

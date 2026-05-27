@@ -108,14 +108,11 @@ export const useBoardPropertyFields = () => {
                 }
 
                 const {id, name, type, attrs} = pendingItem;
-                let patch: BoardPropertyFieldPatch = {name, type, attrs: stripPendingFromAttrs(attrs)};
-
-                // clear options if not select/multiselect
-                if (type !== 'select' && type !== 'multiselect') {
-                    const patchAttrs = {...patch.attrs} as BoardPropertyField['attrs'];
-                    Reflect.deleteProperty(patchAttrs, 'options');
-                    patch = {...patch, attrs: patchAttrs};
-                }
+                const patch: BoardPropertyFieldPatch = {
+                    name,
+                    type,
+                    attrs: stripIrrelevantOptions(stripPendingFromAttrs(attrs), type),
+                };
 
                 return Client4.patchPropertyField(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, id, patch as Partial<PropertyField> & Record<string, unknown>).
                     then((nextItem) => {
@@ -134,7 +131,7 @@ export const useBoardPropertyFields = () => {
                 return Client4.createPropertyField(BOARDS_GROUP_NAME, OBJECT_TYPE_POST, {
                     name,
                     type,
-                    attrs: stripPendingFromAttrs(attrs),
+                    attrs: stripIrrelevantOptions(stripPendingFromAttrs(attrs), type),
                     target_type: TARGET_TYPE_SYSTEM,
                     target_id: '',
                 }).
@@ -406,6 +403,21 @@ const stripPendingFromAttrs = <A extends BoardPropertyField['attrs']>(attrs: A):
         return attrs;
     }
     return {...attrs, options: stripPendingOptionIds(attrs.options)};
+};
+
+// Remove `options` from `attrs` when the field type doesn't carry an option
+// list, so a stale options array left over from a recent type-switch can't
+// be persisted on either create or update.
+const stripIrrelevantOptions = <A extends BoardPropertyField['attrs']>(attrs: A, type: BoardPropertyField['type']): A => {
+    if (type === 'select' || type === 'multiselect') {
+        return attrs;
+    }
+    if (!attrs?.options) {
+        return attrs;
+    }
+    const next = {...attrs} as A;
+    Reflect.deleteProperty(next, 'options');
+    return next;
 };
 
 export const newPendingBoardField = (patch: BoardPropertyFieldPatch & Pick<BoardPropertyField, 'name'>): BoardPropertyField => {
