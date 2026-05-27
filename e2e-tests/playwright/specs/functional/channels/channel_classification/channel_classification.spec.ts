@@ -350,8 +350,13 @@ test.describe('Channel Classification - Existing channel settings', () => {
         await channelsPage.page.locator('.DropDown__menu').getByText(selectedLevel.name, {exact: true}).click();
         await configurationTab.save();
 
-        // Step 2: in the same open modal, disable classification, set a custom color, save
+        // Step 2: in the same open modal, disable classification, enable a manual banner,
+        // set a custom color, save. The manual banner toggle is needed because master no
+        // longer auto-enables banner_info.enabled when classification is on, so the banner
+        // section body (and its color input) is hidden after toggling classification off
+        // until a manual banner is enabled.
         await classificationToggle.click();
+        await configurationTab.enableChannelBanner();
         const customColor = 'aa00aa';
         await configurationTab.setChannelBannerBackgroundColor(customColor);
         await configurationTab.save();
