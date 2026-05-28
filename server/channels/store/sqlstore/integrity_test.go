@@ -111,7 +111,7 @@ func createCompliance(ss store.Store, userId string) *model.Compliance {
 func createEmoji(ss store.Store, userId string) *model.Emoji {
 	m := model.Emoji{}
 	m.CreatorId = userId
-	m.Name = "emoji"
+	m.Name = "emoji" + model.NewId()
 	emoji, _ := ss.Emoji().Save(&m)
 	return emoji
 }
@@ -1204,22 +1204,29 @@ func TestCheckUsersCompliancesIntegrity(t *testing.T) {
 
 func TestCheckUsersEmojiIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
-		ss.DropAllTables()
-
 		store := ss.(*SqlStore)
 		dbmap := store.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
+			user := createUser(rctx, ss)
+			emoji := createEmoji(ss, user.Id)
+			defer dbmap.Exec(`DELETE FROM Emoji WHERE Id=?`, emoji.Id)
+			defer dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
+
 			result := checkUsersEmojiIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Empty(t, data.Records)
+			records := orphanedRecordsWithChildIDs(data.Records, emoji.Id)
+			require.Empty(t, records)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			user := createUser(rctx, ss)
 			userId := user.Id
 			emoji := createEmoji(ss, userId)
+			defer dbmap.Exec(`DELETE FROM Emoji WHERE Id=?`, emoji.Id)
+			defer dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
+
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 			result := checkUsersEmojiIntegrity(store)
 			require.NoError(t, result.Err)
@@ -1230,7 +1237,6 @@ func TestCheckUsersEmojiIntegrity(t *testing.T) {
 				ParentId: &userId,
 				ChildId:  &emoji.Id,
 			}, records[0])
-			dbmap.Exec(`DELETE FROM Emoji WHERE Id=?`, emoji.Id)
 		})
 	})
 }
