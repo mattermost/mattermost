@@ -2037,13 +2037,17 @@ func TestCreatePostAsUser(t *testing.T) {
 			Message:   "test",
 			UserId:    th.BasicUser.Id,
 		}
-		post.AddProp(model.PostPropsFromWebhook, "true")
 
 		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
-		_, _, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		// from_webhook is now server-set via FromIncomingWebhook flag, not client-supplied Props.
+		_, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{
+			TriggerWebhooks:     true,
+			SetOnline:           true,
+			FromIncomingWebhook: true,
+		})
 		require.Nil(t, appErr)
 
 		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
@@ -3433,14 +3437,12 @@ func TestCountMentionsFromPost(t *testing.T) {
 			Message:   fmt.Sprintf("@%s", user2.Username),
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
+		// from_webhook is now server-set via FromIncomingWebhook flag, not client-supplied Props.
 		_, _, err = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user2.Id,
 			ChannelId: channel.Id,
 			Message:   fmt.Sprintf("@%s", user2.Username),
-			Props: map[string]any{
-				model.PostPropsFromWebhook: "true",
-			},
-		}, channel, model.CreatePostFlags{SetOnline: true})
+		}, channel, model.CreatePostFlags{SetOnline: true, FromIncomingWebhook: true})
 		require.Nil(t, err)
 
 		// post3 should mention the user
