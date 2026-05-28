@@ -586,7 +586,10 @@ test('at-mention in page comment badges the recipient threads view', {tag: '@pag
             entities: {
                 threads: {
                     unreadThreadsInTeam: Record<string, string[]>;
-                    threads: Record<string, {is_following: boolean; unread_replies: number; unread_mentions: number; last_reply_at: number}>;
+                    threads: Record<
+                        string,
+                        {is_following: boolean; unread_replies: number; unread_mentions: number; last_reply_at: number}
+                    >;
                 };
                 teams: {currentTeamId: string};
             };

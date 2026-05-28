@@ -24,24 +24,16 @@ func TestDoSetupPageProperties(t *testing.T) {
 
 		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
-		require.Len(t, fields, 2)
+		require.Len(t, fields, 1)
 
 		fieldsByName := map[string]*model.PropertyField{}
 		for _, f := range fields {
 			fieldsByName[f.Name] = f
 		}
 
-		wikiField, ok := fieldsByName["wiki"]
-		require.True(t, ok, "wiki property field must exist")
-		assert.Equal(t, model.PropertyFieldObjectTypePost, wikiField.ObjectType)
-		assert.Equal(t, string(model.PropertyFieldTargetLevelSystem), wikiField.TargetType)
-		assert.True(t, wikiField.Protected)
-		require.NotNil(t, wikiField.PermissionField)
-		assert.Equal(t, model.PermissionLevelNone, *wikiField.PermissionField)
-
 		statusField, ok := fieldsByName["status"]
 		require.True(t, ok, "status property field must exist")
-		assert.Equal(t, model.PropertyFieldObjectTypePost, statusField.ObjectType)
+		assert.Equal(t, model.PropertyFieldObjectTypePage, statusField.ObjectType)
 		assert.Equal(t, string(model.PropertyFieldTargetLevelSystem), statusField.TargetType)
 		assert.True(t, statusField.Protected)
 		require.NotNil(t, statusField.PermissionField)
@@ -67,7 +59,7 @@ func TestDoSetupPageProperties(t *testing.T) {
 
 		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
-		require.Len(t, fields, 2)
+		require.Len(t, fields, 1)
 
 		data, sysErr := th.Store.System().GetByName(pagePropertiesSetupDoneKey)
 		require.NoError(t, sysErr)

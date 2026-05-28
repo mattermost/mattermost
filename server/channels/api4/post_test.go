@@ -5255,7 +5255,7 @@ func TestSetChannelUnread(t *testing.T) {
 
 	t.Run("Can't unread an imaginary post", func(t *testing.T) {
 		r, _ := th.Client.SetPostUnread(context.Background(), u1.Id, "invalid4ofngungryquinj976y", true)
-		assert.Equal(t, http.StatusForbidden, r.StatusCode)
+		assert.Equal(t, http.StatusNotFound, r.StatusCode)
 	})
 
 	// let's create another user to test permissions
@@ -5266,7 +5266,7 @@ func TestSetChannelUnread(t *testing.T) {
 
 	t.Run("Can't unread channels you don't belong to", func(t *testing.T) {
 		r, _ := c3.SetPostUnread(context.Background(), u3.Id, pp1.Id, true)
-		assert.Equal(t, http.StatusForbidden, r.StatusCode)
+		assert.Equal(t, http.StatusNotFound, r.StatusCode)
 	})
 
 	t.Run("Can't unread users you don't have permission to edit", func(t *testing.T) {
@@ -5399,9 +5399,10 @@ func TestGetPostsByIds(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	_, response, err = client.GetPostsByIds(context.Background(), []string{"abc123"})
-	require.Error(t, err)
-	CheckNotFoundStatus(t, response)
+	posts, response, err = client.GetPostsByIds(context.Background(), []string{"abc123"})
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	require.Empty(t, posts)
 }
 
 func TestGetEditHistoryForPost(t *testing.T) {

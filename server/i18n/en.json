@@ -2846,7 +2846,7 @@
   },
   {
     "id": "api.page.create_draft.title_empty.app_error",
-    "translation": ""
+    "translation": "Page title cannot be empty."
   },
   {
     "id": "api.page.permission.invalid_operation",
@@ -2862,7 +2862,7 @@
   },
   {
     "id": "api.page.save_draft.title_empty.app_error",
-    "translation": ""
+    "translation": "Page title cannot be empty."
   },
   {
     "id": "api.page.save_draft.title_too_long.app_error",
@@ -5336,7 +5336,7 @@
   },
   {
     "id": "api.wiki.extract_image.ssrf_blocked.app_error",
-    "translation": ""
+    "translation": "The image URL is not allowed."
   },
   {
     "id": "api.wiki.extract_image.url_too_long.app_error",
@@ -8370,11 +8370,11 @@
   },
   {
     "id": "app.page.patch_props.no_valid_keys.app_error",
-    "translation": ""
+    "translation": "No valid property keys provided."
   },
   {
     "id": "app.page.patch_props.store_error.app_error",
-    "translation": ""
+    "translation": "Failed to update page properties."
   },
   {
     "id": "app.page.permanent_delete.app_error",

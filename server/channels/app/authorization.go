@@ -677,6 +677,19 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 		}
 		ok, _ := a.HasPermissionToChannel(rctx, userID, post.ChannelId, model.PermissionManageChannelRoles)
 		return ok
+	case model.PropertyFieldObjectTypePage:
+		page, appErr := a.GetPage(rctx, valueTargetID)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to look up page for property value admin check",
+				mlog.String("page_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(appErr),
+			)
+			return false
+		}
+		ok, _ := a.HasPermissionToChannel(rctx, userID, page.ChannelId, model.PermissionManageChannelRoles)
+		return ok
 	case model.PropertyFieldObjectTypeUser,
 		model.PropertyFieldObjectTypeSystem,
 		model.PropertyFieldObjectTypeTemplate:
@@ -709,6 +722,19 @@ func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, 
 			return false
 		}
 		ok, _ := a.HasPermissionToChannel(rctx, userID, post.ChannelId, model.PermissionReadChannel)
+		return ok
+	case model.PropertyFieldObjectTypePage:
+		page, appErr := a.GetPage(rctx, valueTargetID)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to look up page for property value scope check",
+				mlog.String("page_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(appErr),
+			)
+			return false
+		}
+		ok, _ := a.HasPermissionToChannel(rctx, userID, page.ChannelId, model.PermissionReadChannel)
 		return ok
 	case model.PropertyFieldObjectTypeUser,
 		model.PropertyFieldObjectTypeSystem,

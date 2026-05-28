@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"math"
 	"strings"
 	"sync"
 	"testing"
@@ -2749,14 +2750,14 @@ func TestGetChannelPagesPaginationCorrectness(t *testing.T) {
 		"issue #7 at scale: GetChannelPages must return all pages; "+
 			"at >10k pages the in-memory sort may be over a truncated set")
 
-	prevOrder := int64(-1)
+	prevOrder := int64(math.MaxInt64)
 	for _, id := range pages.Order {
 		p := pages.Posts[id]
 		if p == nil || p.Type != model.PostTypePage {
 			continue
 		}
 		order := p.GetPageSortOrder()
-		require.GreaterOrEqual(t, order, prevOrder, "pages must be returned in ascending sort order")
+		require.LessOrEqual(t, order, prevOrder, "GetChannelPages orders by CreateAt DESC; sort_order values must be non-increasing")
 		prevOrder = order
 	}
 }

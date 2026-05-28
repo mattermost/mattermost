@@ -1170,6 +1170,7 @@ test(
     'A22: option-select state blocks Escape, X, and backdrop dismissal',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
+        // # Provoke a conflict so the option-select modal is shown
         const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
             userAPublishedText: 'User A update',
             userBDraftText: 'User B draft',
@@ -1202,6 +1203,7 @@ test(
  * shows an inline notice and auto-closes within ~2 seconds.
  */
 test('A22: identical content shows inline notice and auto-closes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    // # Provoke a conflict where both drafts share identical content
     // Identical content: both User A and User B type the same text — the conflict still arises
     // (Update-At timestamp mismatch) but content hashes match.
     const sharedText = 'Shared identical content';
