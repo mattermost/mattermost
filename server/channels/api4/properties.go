@@ -21,6 +21,7 @@ const maxPropertyValuePatchItems = 50
 func (api *API) InitProperties() {
 	if api.srv.Config().FeatureFlags.IntegratedBoards || api.srv.Config().FeatureFlags.ManagedChannelCategories || api.srv.Config().FeatureFlags.ClassificationMarkings {
 		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(getPropertyFields)).Methods(http.MethodGet)
+		api.BaseRoutes.PropertyFieldsSearch.Handle("", api.APISessionRequired(searchPropertyFields)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(getPropertyValues)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertySystemValues.Handle("", api.APISessionRequired(getSystemPropertyValues)).Methods(http.MethodGet)
 
@@ -173,13 +174,13 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := r.URL.Query()
-
 	opts := model.PropertyFieldSearchOpts{
-		GroupID:    group.ID,
-		ObjectType: c.Params.ObjectType,
-		PerPage:    c.Params.PerPage,
+		GroupID:     group.ID,
+		ObjectTypes: []string{c.Params.ObjectType},
+		PerPage:     c.Params.PerPage,
 	}
+
+	query := r.URL.Query()
 
 	if s := query.Get("since"); s != "" {
 		since, err := strconv.ParseInt(s, 10, 64)
@@ -190,10 +191,8 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.SinceUpdateAt = since
 	}
 
-	// Cursor: directory mode uses CreateAt, delta mode (since>0) uses UpdateAt.
-	// The cursor's own invariant (exactly one of CreateAt/UpdateAt set) is
-	// checked here; the cross-field mismatch with SinceUpdateAt is enforced by
-	// opts.IsValid() below.
+	// Cursor: directory mode uses CreateAt, delta mode (since>0) uses
+	// UpdateAt.
 	if cursorID := query.Get("cursor_id"); cursorID != "" {
 		cur := model.PropertyFieldSearchCursor{PropertyFieldID: cursorID}
 		if v := query.Get("cursor_update_at"); v != "" {
@@ -209,94 +208,88 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.Cursor = cur
 	}
 
-	// Scope can be specified two ways:
-	//   - channel_id and/or team_id: hierarchical — returns fields at the
-	//     specified scope *and* every ancestor scope above it (system always
-	//     included; team rows included when team_id is set; channel rows
-	//     included only when channel_id is set).
-	//   - target_type + target_id: single-target — returns fields scoped
-	//     exactly to that one resource (or all rows at that target level when
-	//     target_id is omitted, which is only meaningful for system).
-	// The two modes are mutually exclusive.
-	channelID := query.Get("channel_id")
-	teamID := query.Get("team_id")
-	targetType := query.Get("target_type")
-	targetID := query.Get("target_id")
+	opts.ChannelID = query.Get("channel_id")
+	opts.TeamID = query.Get("team_id")
+	opts.TargetType = query.Get("target_type")
+	if t := query.Get("target_id"); t != "" {
+		opts.TargetIDs = []string{t}
+	}
 
-	if channelID != "" || teamID != "" {
-		if targetType != "" || targetID != "" {
-			c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.scope_conflict.app_error", nil, "", http.StatusBadRequest)
+	doSearchPropertyFields(c, w, group, opts, "getPropertyFields")
+}
+
+func searchPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupName()
+	if c.Err != nil {
+		return
+	}
+
+	group := getV2Group(c, "searchPropertyFields")
+	if c.Err != nil {
+		return
+	}
+
+	var search model.PropertyFieldSearch
+	if err := json.NewDecoder(r.Body).Decode(&search); err != nil {
+		c.SetInvalidParamWithErr("property_field_search", err)
+		return
+	}
+
+	if len(search.ObjectTypes) == 0 {
+		c.SetInvalidParam("object_types")
+		return
+	}
+	for _, ot := range search.ObjectTypes {
+		if !model.IsValidPropertyFieldObjectType(ot) {
+			c.SetInvalidParam("object_types")
 			return
-		}
-		if channelID != "" {
-			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionReadChannel)
-			if !hasPermission {
-				c.SetPermissionError(model.PermissionReadChannel)
-				return
-			}
-			channel, appErr := c.App.GetChannel(c.AppContext, channelID)
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-			opts.ChannelID = channel.Id
-			opts.TeamID = channel.TeamId
-		} else {
-			opts.TeamID = teamID
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionViewTeam) {
-				c.SetPermissionError(model.PermissionViewTeam)
-				return
-			}
-		}
-	} else {
-		// Single-target mode — target_type required (implicit for system object type).
-		if c.Params.ObjectType == model.PropertyFieldObjectTypeSystem {
-			opts.TargetType = string(model.PropertyFieldTargetLevelSystem)
-		} else {
-			opts.TargetType = targetType
-			if !model.IsValidPSAv2PropertyFieldTargetType(opts.TargetType) {
-				c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
-				return
-			}
-		}
-		if targetID != "" {
-			opts.TargetIDs = []string{targetID}
-		}
-
-		switch model.PropertyFieldTargetLevel(opts.TargetType) {
-		case model.PropertyFieldTargetLevelChannel:
-			if len(opts.TargetIDs) == 0 {
-				c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
-				return
-			}
-			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), opts.TargetIDs[0], model.PermissionReadChannel)
-			if !hasPermission {
-				c.SetPermissionError(model.PermissionReadChannel)
-				return
-			}
-		case model.PropertyFieldTargetLevelTeam:
-			if len(opts.TargetIDs) == 0 {
-				c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
-				return
-			}
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), opts.TargetIDs[0], model.PermissionViewTeam) {
-				c.SetPermissionError(model.PermissionViewTeam)
-				return
-			}
-		case model.PropertyFieldTargetLevelSystem:
-			// System-level fields are visible to all authenticated users
 		}
 	}
 
+	opts := model.PropertyFieldSearchOpts{
+		GroupID:       group.ID,
+		ObjectTypes:   search.ObjectTypes,
+		ChannelID:     search.ChannelID,
+		TeamID:        search.TeamID,
+		TargetType:    search.TargetType,
+		SinceUpdateAt: search.SinceUpdateAt,
+		PerPage:       search.PerPage,
+	}
+	if search.TargetID != "" {
+		opts.TargetIDs = []string{search.TargetID}
+	}
+	if search.CursorID != "" {
+		opts.Cursor = model.PropertyFieldSearchCursor{
+			PropertyFieldID: search.CursorID,
+			CreateAt:        search.CursorCreateAt,
+			UpdateAt:        search.CursorUpdateAt,
+		}
+	}
+	if opts.PerPage <= 0 {
+		opts.PerPage = 60
+	}
+
+	doSearchPropertyFields(c, w, group, opts, "searchPropertyFields")
+}
+
+// doSearchPropertyFields is the shared pipeline both list-style endpoints
+// share once opts has been populated from query string or request body:
+// scope resolution + permission checks, opts validation, audit, search,
+// response encoding.
+func doSearchPropertyFields(c *Context, w http.ResponseWriter, group *model.PropertyGroup, opts model.PropertyFieldSearchOpts, callerName string) {
+	if !resolveScopeAndCheckPermissions(c, &opts, callerName) {
+		return
+	}
+
 	if err := opts.IsValid(); err != nil {
-		c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.invalid_opts.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError(callerName, "api.property_field.get.invalid_opts.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyFields, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
-	model.AddEventParameterToAuditRec(auditRec, "object_type", c.Params.ObjectType)
+	model.AddEventParameterToAuditRec(auditRec, "object_types", opts.ObjectTypes)
 	model.AddEventParameterToAuditRec(auditRec, "since", opts.SinceUpdateAt)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", opts.ChannelID)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", opts.TeamID)
@@ -312,6 +305,75 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(fields); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// resolveScopeAndCheckPermissions enforces the two scope modes (hierarchical
+// vs single-target) and runs the per-scope permission checks. It operates on
+// already-populated opts.
+func resolveScopeAndCheckPermissions(c *Context, opts *model.PropertyFieldSearchOpts, callerName string) bool {
+	scopeByChanTeam := opts.ChannelID != "" || opts.TeamID != ""
+	scopeByTarget := opts.TargetType != "" || len(opts.TargetIDs) > 0
+	if scopeByChanTeam && scopeByTarget {
+		c.Err = model.NewAppError(callerName, "api.property_field.get.scope_conflict.app_error", nil, "", http.StatusBadRequest)
+		return false
+	}
+
+	switch {
+	case opts.ChannelID != "":
+		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), opts.ChannelID, model.PermissionReadChannel)
+		if !hasPermission {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return false
+		}
+		channel, appErr := c.App.GetChannel(c.AppContext, opts.ChannelID)
+		if appErr != nil {
+			c.Err = appErr
+			return false
+		}
+		opts.ChannelID = channel.Id
+		opts.TeamID = channel.TeamId
+	case opts.TeamID != "":
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), opts.TeamID, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return false
+		}
+	case opts.TargetType != "":
+		if !model.IsValidPSAv2PropertyFieldTargetType(opts.TargetType) {
+			c.Err = model.NewAppError(callerName, "api.property_field.get.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
+			return false
+		}
+		switch model.PropertyFieldTargetLevel(opts.TargetType) {
+		case model.PropertyFieldTargetLevelChannel:
+			if len(opts.TargetIDs) == 0 {
+				c.Err = model.NewAppError(callerName, "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
+				return false
+			}
+			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), opts.TargetIDs[0], model.PermissionReadChannel)
+			if !hasPermission {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return false
+			}
+		case model.PropertyFieldTargetLevelTeam:
+			if len(opts.TargetIDs) == 0 {
+				c.Err = model.NewAppError(callerName, "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
+				return false
+			}
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), opts.TargetIDs[0], model.PermissionViewTeam) {
+				c.SetPermissionError(model.PermissionViewTeam)
+				return false
+			}
+		case model.PropertyFieldTargetLevelSystem:
+			// System-level fields are visible to all authenticated users.
+		}
+	case len(opts.TargetIDs) > 0:
+		// target_id without target_type is malformed.
+		c.Err = model.NewAppError(callerName, "api.property_field.get.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
+		return false
+	default:
+		c.Err = model.NewAppError(callerName, "api.property_field.get.scope_required.app_error", nil, "", http.StatusBadRequest)
+		return false
+	}
+	return true
 }
 
 func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {

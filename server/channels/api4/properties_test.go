@@ -665,6 +665,14 @@ func TestGetPropertyFields(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("no scope (no target_type, channel_id or team_id) returns 400 scope_required", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("channel_id combined with target_type returns 400 scope_conflict", func(t *testing.T) {
 		th.LoginBasic(t)
 
@@ -846,6 +854,74 @@ func TestGetPropertyFields(t *testing.T) {
 		})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("cursor with both create_at and update_at set returns 400", func(t *testing.T) {
+		// Cursor.IsValid() requires exactly one of the two timestamps.
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TargetType:     string(model.PropertyFieldTargetLevelSystem),
+			SinceUpdateAt:  1,
+			CursorID:       model.NewId(),
+			CursorCreateAt: 12345,
+			CursorUpdateAt: 12345,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("target_id alone without scope returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TargetID: model.NewId(),
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("delta-mode cursor paginates correctly across multiple updates", func(t *testing.T) {
+		// Round-trip the dual-mode cursor: create N fresh fields after a
+		// cutoff, then page through them in delta mode with per_page < N.
+		// Use a dedicated team so the count is exactly predictable.
+		paginationTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+		cutoff := model.GetMillis()
+		// CreatePropertyField stamps UpdateAt = GetMillis(); sleep to ensure
+		// all rows are strictly greater than `cutoff` even at ms precision.
+		time.Sleep(2 * time.Millisecond)
+
+		fresh := make([]*model.PropertyField, 0, 3)
+		for range 3 {
+			fresh = append(fresh, mkField(t, model.PropertyFieldTargetLevelTeam, paginationTeam.Id))
+		}
+
+		// Page 1: per_page=2, no cursor. Use sysadmin to side-step team membership.
+		page1, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TeamID:        paginationTeam.Id,
+			SinceUpdateAt: cutoff,
+			PerPage:       2,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, page1, 2)
+
+		// Page 2: cursor from last of page 1, using update_at (delta mode).
+		last := page1[len(page1)-1]
+		page2, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), hierGroup.Name, "post", model.PropertyFieldSearch{
+			TeamID:         paginationTeam.Id,
+			SinceUpdateAt:  cutoff,
+			CursorID:       last.ID,
+			CursorUpdateAt: last.UpdateAt,
+			PerPage:        2,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Combined pages should match the freshly-created set with no dups or skips.
+		combined := append(append([]string{}, fieldIDs(page1)...), fieldIDs(page2)...)
+		expected := []string{fresh[0].ID, fresh[1].ID, fresh[2].ID}
+		require.ElementsMatch(t, expected, combined, "delta-mode cursor must paginate the full set with no dups or skips")
 	})
 
 	t.Run("single-target target_type=team returns only that team's rows", func(t *testing.T) {
@@ -1098,6 +1174,348 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 		require.True(t, ids[createdOtherChannelField.ID], "other channel field should be present")
 		require.False(t, ids[createdSystemField.ID], "system field should not be present")
 		require.False(t, ids[createdChannelField.ID], "first channel field should not be present")
+	})
+}
+
+func TestSearchPropertyFields(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_search", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, err)
+	require.NotNil(t, group)
+
+	memberLevel := model.PermissionLevelMember
+	mkField := func(t *testing.T, objectType string, targetType model.PropertyFieldTargetLevel, targetID string) *model.PropertyField {
+		t.Helper()
+		f := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        objectType,
+			TargetType:        string(targetType),
+			TargetID:          targetID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		created, cerr := th.App.CreatePropertyField(th.Context, f, false, "")
+		require.Nil(t, cerr)
+		return created
+	}
+
+	otherTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+
+	// Fixtures across multiple object types, all in team-A / channel-X scope.
+	postSysField := mkField(t, model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelSystem, "")
+	postTeamAField := mkField(t, model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id)
+	postChanXField := mkField(t, model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id)
+	chanSysField := mkField(t, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelSystem, "")
+	chanTeamAField := mkField(t, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id)
+	userSysField := mkField(t, model.PropertyFieldObjectTypeUser, model.PropertyFieldTargetLevelSystem, "")
+	// Out-of-scope rows that must NOT leak into hierarchical results.
+	_ = mkField(t, model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelTeam, otherTeam.Id) // team-B
+	_ = mkField(t, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelTeam, otherTeam.Id)
+
+	fieldIDs := func(fields []*model.PropertyField) []string {
+		ids := make([]string, len(fields))
+		for i, f := range fields {
+			ids[i] = f.ID
+		}
+		return ids
+	}
+
+	t.Run("unauthenticated request should fail", func(t *testing.T) {
+		client := model.NewAPIv4Client(th.Client.URL)
+		_, resp, err := client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+			TeamID:      th.BasicTeam.Id,
+		})
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("nonexistent group should return 404", func(t *testing.T) {
+		th.LoginBasic(t)
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), "nonexistent_group", model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+			TeamID:      th.BasicTeam.Id,
+		})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("missing object_types returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			TeamID: th.BasicTeam.Id,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("invalid object_types returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{"garbage"},
+			TeamID:      th.BasicTeam.Id,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("no scope (no target_type, channel_id or team_id) returns 400 scope_required", func(t *testing.T) {
+		th.LoginBasic(t)
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypeSystem},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("scope conflict (channel_id + target_type) returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+			ChannelID:   th.BasicChannel.Id,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("team_id unauthorized returns 403", func(t *testing.T) {
+		th.LoginBasic(t)
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+			TeamID:      otherTeam.Id,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("multi-OT hierarchical scope returns all matching rows across types", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{
+				model.PropertyFieldObjectTypePost,
+				model.PropertyFieldObjectTypeChannel,
+				model.PropertyFieldObjectTypeUser,
+			},
+			ChannelID: th.BasicChannel.Id,
+			TeamID:    th.BasicTeam.Id,
+			PerPage:   200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// For each requested object_type, the hierarchical scope (system +
+		// team-A + channel-X) yields the matching rows:
+		//   post    -> postSysField, postTeamAField, postChanXField
+		//   channel -> chanSysField, chanTeamAField
+		//   user    -> userSysField
+		expected := []string{
+			postSysField.ID, postTeamAField.ID, postChanXField.ID,
+			chanSysField.ID, chanTeamAField.ID,
+			userSysField.ID,
+		}
+		require.Len(t, fields, len(expected))
+		require.ElementsMatch(t, expected, fieldIDs(fields))
+	})
+
+	t.Run("a bad team_id is overwritten by the channel's team_id when channel_id is present and correctly returns multi-OT rows", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{
+				model.PropertyFieldObjectTypePost,
+				model.PropertyFieldObjectTypeChannel,
+				model.PropertyFieldObjectTypeUser,
+			},
+			ChannelID: th.BasicChannel.Id,
+			TeamID:    otherTeam.Id, // wrong team — server should ignore it
+			PerPage:   200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Exactly the same set as the "channel_id + team_id" case above, even
+		// though the request specified the wrong team_id.
+		expected := []string{
+			postSysField.ID, postTeamAField.ID, postChanXField.ID,
+			chanSysField.ID, chanTeamAField.ID,
+			userSysField.ID,
+		}
+		require.Len(t, fields, len(expected))
+		require.ElementsMatch(t, expected, fieldIDs(fields))
+	})
+
+	t.Run("single object_type behaves like singular endpoint", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypeChannel},
+			TeamID:      th.BasicTeam.Id,
+			PerPage:     200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// team_id scope for object_type=channel: chanSysField + chanTeamAField.
+		require.ElementsMatch(t, []string{chanSysField.ID, chanTeamAField.ID}, fieldIDs(fields))
+	})
+
+	t.Run("single-target scope returns only that exact slice", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fields, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost, model.PropertyFieldObjectTypeChannel},
+			TargetType:  string(model.PropertyFieldTargetLevelTeam),
+			TargetID:    th.BasicTeam.Id,
+			PerPage:     200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Single-target team-A across post + channel object types: only the
+		// team-A rows, no system or channel rows.
+		require.ElementsMatch(t, []string{postTeamAField.ID, chanTeamAField.ID}, fieldIDs(fields))
+	})
+
+	t.Run("v1 group returns 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_search_fields", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
+
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), v1Group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+			TeamID:      th.BasicTeam.Id,
+		})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("channel_id pointing at non-existent channel returns 403", func(t *testing.T) {
+		// Mirrors the singular endpoint: permission is checked first, so
+		// non-existent and inaccessible channels are indistinguishable.
+		th.LoginBasic(t)
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+			ChannelID:   model.NewId(),
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channel_id where user has no access returns 403", func(t *testing.T) {
+		// Channel BasicUser is not a member of.
+		inaccessibleChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, otherTeam.Id)
+		th.LoginBasic(t)
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+			ChannelID:   inaccessibleChannel.Id,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("target_id alone without scope returns 400", func(t *testing.T) {
+		// target_id with no target_type, channel_id or team_id is malformed.
+		th.LoginBasic(t)
+		_, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+			TargetID:    model.NewId(),
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("duplicate object_type values are idempotent", func(t *testing.T) {
+		// Sending the same object_type twice should not double-count rows.
+		th.LoginBasic(t)
+		fields, resp, err := th.Client.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost, model.PropertyFieldObjectTypePost},
+			ChannelID:   th.BasicChannel.Id,
+			TeamID:      th.BasicTeam.Id,
+			PerPage:     200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Same set as a single-OT "post" query in hierarchical scope:
+		// postSysField + postTeamAField + postChanXField (no team-B / channel-Y).
+		require.ElementsMatch(t, []string{postSysField.ID, postTeamAField.ID, postChanXField.ID}, fieldIDs(fields))
+	})
+
+	t.Run("since returns soft-deleted rows across multiple object types", func(t *testing.T) {
+		// Create dedicated post and channel fields scoped to BasicTeam, delete
+		// them, then verify both tombstones surface in a search delta query.
+		postToDelete := mkField(t, model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id)
+		chanToDelete := mkField(t, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id)
+
+		cutoff := min(postToDelete.UpdateAt, chanToDelete.UpdateAt) - 1
+
+		require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, postToDelete.ID, false, ""))
+		require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, chanToDelete.ID, false, ""))
+
+		// Sysadmin sidesteps any read-permission masking on tombstones.
+		fields, resp, err := th.SystemAdminClient.SearchPropertyFields(context.Background(), group.Name, model.PropertyFieldSearch{
+			ObjectTypes:   []string{model.PropertyFieldObjectTypePost, model.PropertyFieldObjectTypeChannel},
+			TeamID:        th.BasicTeam.Id,
+			SinceUpdateAt: cutoff,
+			PerPage:       200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Build a quick lookup keyed on ID.
+		byID := make(map[string]*model.PropertyField, len(fields))
+		for _, f := range fields {
+			byID[f.ID] = f
+		}
+		require.Contains(t, byID, postToDelete.ID, "post tombstone should be returned")
+		require.Contains(t, byID, chanToDelete.ID, "channel tombstone should be returned")
+		require.Greater(t, byID[postToDelete.ID].DeleteAt, int64(0))
+		require.Greater(t, byID[chanToDelete.ID].DeleteAt, int64(0))
+	})
+
+	t.Run("cursor pagination paginates a multi-OT scope without dups or skips", func(t *testing.T) {
+		// Create a dedicated team and a small set of rows under it across
+		// multiple object types, then page through in directory mode.
+		paginationTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+		fresh := []*model.PropertyField{
+			mkField(t, model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelTeam, paginationTeam.Id),
+			mkField(t, model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelTeam, paginationTeam.Id),
+			mkField(t, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelTeam, paginationTeam.Id),
+			mkField(t, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelTeam, paginationTeam.Id),
+		}
+
+		searchBody := model.PropertyFieldSearch{
+			ObjectTypes: []string{model.PropertyFieldObjectTypePost, model.PropertyFieldObjectTypeChannel},
+			TargetType:  string(model.PropertyFieldTargetLevelTeam),
+			TargetID:    paginationTeam.Id,
+			PerPage:     2,
+		}
+
+		page1, resp, err := th.SystemAdminClient.SearchPropertyFields(context.Background(), group.Name, searchBody)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, page1, 2)
+
+		last := page1[len(page1)-1]
+		searchBody.CursorID = last.ID
+		searchBody.CursorCreateAt = last.CreateAt
+		page2, resp, err := th.SystemAdminClient.SearchPropertyFields(context.Background(), group.Name, searchBody)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, page2, 2)
+
+		combined := append(append([]string{}, fieldIDs(page1)...), fieldIDs(page2)...)
+		expected := []string{fresh[0].ID, fresh[1].ID, fresh[2].ID, fresh[3].ID}
+		require.ElementsMatch(t, expected, combined, "search cursor pagination must cover the full set without dups or skips")
 	})
 }
 
@@ -3611,8 +4029,9 @@ func TestSystemObjectType(t *testing.T) {
 	})
 
 	t.Run("any authenticated user can list system fields", func(t *testing.T) {
-		// No target_type query required when object_type=system.
-		fields, resp, getErr := th.Client.GetPropertyFields(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, model.PropertyFieldSearch{})
+		fields, resp, getErr := th.Client.GetPropertyFields(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
 		require.NoError(t, getErr)
 		CheckOKStatus(t, resp)
 		require.NotEmpty(t, fields)

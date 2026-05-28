@@ -690,6 +690,10 @@ func (c *Client4) propertyFieldRoute(groupName, objectType, fieldID string) clie
 	return c.propertyFieldsRoute(groupName, objectType).Join(fieldID)
 }
 
+func (c *Client4) propertyFieldsSearchRoute(groupName string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, "fields", "search")
+}
+
 func (c *Client4) propertyValuesRoute(groupName, objectType, targetID string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, objectType, "values", targetID)
 }
@@ -8139,6 +8143,15 @@ func (c *Client4) GetPropertyFields(ctx context.Context, groupName, objectType s
 		values.Set("cursor_update_at", strconv.FormatInt(search.CursorUpdateAt, 10))
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldsRoute(groupName, objectType), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyField](r)
+}
+
+func (c *Client4) SearchPropertyFields(ctx context.Context, groupName string, search PropertyFieldSearch) ([]*PropertyField, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldsSearchRoute(groupName), search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

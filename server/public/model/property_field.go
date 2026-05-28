@@ -486,15 +486,16 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 // update_at, tombstones are included, and pagination must use CursorUpdateAt
 // (CursorCreateAt is used in the default directory mode).
 type PropertyFieldSearch struct {
-	TargetType     string `json:"target_type,omitempty"`
-	TargetID       string `json:"target_id,omitempty"`
-	ChannelID      string `json:"channel_id,omitempty"`
-	TeamID         string `json:"team_id,omitempty"`
-	SinceUpdateAt  int64  `json:"since,omitempty"`
-	CursorID       string `json:"cursor_id,omitempty"`
-	CursorCreateAt int64  `json:"cursor_create_at,omitempty"`
-	CursorUpdateAt int64  `json:"cursor_update_at,omitempty"`
-	PerPage        int    `json:"per_page"`
+	ObjectTypes    []string `json:"object_types,omitempty"`
+	TargetType     string   `json:"target_type,omitempty"`
+	TargetID       string   `json:"target_id,omitempty"`
+	ChannelID      string   `json:"channel_id,omitempty"`
+	TeamID         string   `json:"team_id,omitempty"`
+	SinceUpdateAt  int64    `json:"since,omitempty"`
+	CursorID       string   `json:"cursor_id,omitempty"`
+	CursorCreateAt int64    `json:"cursor_create_at,omitempty"`
+	CursorUpdateAt int64    `json:"cursor_update_at,omitempty"`
+	PerPage        int      `json:"per_page"`
 }
 
 // PropertyFieldSearchOpts captures the filters accepted by SearchPropertyFields.
