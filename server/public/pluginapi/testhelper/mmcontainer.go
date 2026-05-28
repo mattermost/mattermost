@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"sync"
 	"testing"
@@ -142,7 +143,7 @@ func ensureContainers(t *testing.T) (*mmContainers, error) {
 			return
 		}
 
-		serverURL := fmt.Sprintf("http://%s:%s", host, port.Port())
+		serverURL := "http://" + net.JoinHostPort(host, port.Port())
 
 		// Create the initial admin user via mmctl inside the container.
 		// The --local flag uses the Unix socket, bypassing auth (necessary when no users exist).
@@ -212,7 +213,7 @@ func resetDatabase(ctx context.Context, c *mmContainers) error {
 	if err != nil {
 		return fmt.Errorf("failed to get mapped port after restart: %w", err)
 	}
-	c.serverURL = fmt.Sprintf("http://%s:%s", host, port.Port())
+	c.serverURL = "http://" + net.JoinHostPort(host, port.Port())
 
 	// Re-create the admin user since the Users table was truncated.
 	if err := execInContainer(ctx, c.mmContainer,
