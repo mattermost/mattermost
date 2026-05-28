@@ -297,7 +297,7 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 	model, err := doc.BuildV3Model()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to build OpenAPI3 model: %w", err)
+		return nil, fmt.Errorf("unable to build OpenAPI3 model: %w", err)
 	}
 
 	initFunctions, routerPrefixes := validateComments(pass)

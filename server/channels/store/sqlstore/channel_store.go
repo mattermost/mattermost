@@ -2467,14 +2467,17 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 
 	scanner := func(rows rowScanner) (string, string, error) {
 		var cm allChannelMember
-		err = rows.Scan(
+		if err = rows.Scan(
 			&cm.ChannelId, &cm.Roles, &cm.SchemeGuest, &cm.SchemeUser,
 			&cm.SchemeAdmin, &cm.TeamSchemeDefaultGuestRole, &cm.TeamSchemeDefaultUserRole,
 			&cm.TeamSchemeDefaultAdminRole, &cm.ChannelSchemeDefaultGuestRole,
 			&cm.ChannelSchemeDefaultUserRole, &cm.ChannelSchemeDefaultAdminRole,
-		)
+		); err != nil {
+			k, v := cm.Process()
+			return k, v, fmt.Errorf("unable to scan columns: %w", err)
+		}
 		k, v := cm.Process()
-		return k, v, fmt.Errorf("unable to scan columns: %w", err)
+		return k, v, nil
 	}
 	return scanRowsIntoMap(rows, scanner, nil)
 }
@@ -2510,8 +2513,10 @@ func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[stri
 	scanner := func(rows rowScanner) (string, int64, error) {
 		var channelID string
 		var count int64
-		err := rows.Scan(&channelID, &count)
-		return channelID, count, fmt.Errorf("failed to scan row: %w", err)
+		if err := rows.Scan(&channelID, &count); err != nil {
+			return channelID, count, fmt.Errorf("failed to scan row: %w", err)
+		}
+		return channelID, count, nil
 	}
 
 	return scanRowsIntoMap(rows, scanner, defaults)
@@ -3159,8 +3164,10 @@ func (s SqlChannelStore) AnalyticsCountAll(teamId string) (map[model.ChannelType
 	scanner := func(rows rowScanner) (model.ChannelType, int64, error) {
 		var channelType model.ChannelType
 		var count int64
-		err := rows.Scan(&channelType, &count)
-		return channelType, count, fmt.Errorf("unable to scan row: %w", err)
+		if err := rows.Scan(&channelType, &count); err != nil {
+			return channelType, count, fmt.Errorf("unable to scan row: %w", err)
+		}
+		return channelType, count, nil
 	}
 
 	return scanRowsIntoMap(rows, scanner, nil)
