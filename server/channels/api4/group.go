@@ -1442,7 +1442,15 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	visited := make(map[string]bool)
+
 	for _, userID := range newMembers.UserIds {
+		if visited[userID] {
+			c.SetInvalidParamWithDetails("user_ids", fmt.Sprintf("Duplicate UserID %s is not allowed", userID))
+			return
+		}
+		visited[userID] = true
+
 		if !model.IsValidId(userID) {
 			c.SetInvalidParamWithDetails("user_id", fmt.Sprintf("UserID %s is invalid", userID))
 			return
