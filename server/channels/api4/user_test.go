@@ -2909,8 +2909,9 @@ func TestUpdateUserAuth(t *testing.T) {
 
 	userAuth.AuthData = nil
 	userAuth.AuthService = model.UserAuthServiceEmail
-	ruser, _, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	ruser, resp, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.NoError(t, err)
+	CheckOKStatus(t, resp)
 	require.Nil(t, ruser.AuthData)
 	require.Empty(t, ruser.AuthService)
 	storedUser, appErr = th.App.GetUser(user.Id)

@@ -232,6 +232,18 @@ func (u *UserAuth) Auditable() map[string]any {
 	}
 }
 
+func (u *UserAuth) IsValid() bool {
+	if !IsValidUserAuthService(u.AuthService) {
+		return false
+	}
+
+	if u.AuthService == UserAuthServiceEmail {
+		return u.AuthData == nil
+	}
+
+	return u.AuthData != nil && *u.AuthData != ""
+}
+
 //msgp:ignore UserForIndexing
 type UserForIndexing struct {
 	Id          string   `json:"id"`

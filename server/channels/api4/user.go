@@ -1821,7 +1821,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "user_auth", &userAuth)
 
-	if !isValidUpdateUserAuthRequest(&userAuth) {
+	if !userAuth.IsValid() {
 		c.Err = model.NewAppError("updateUserAuth", "api.user.update_user_auth.invalid_request", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -1848,18 +1848,6 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
-}
-
-func isValidUpdateUserAuthRequest(userAuth *model.UserAuth) bool {
-	if !model.IsValidUserAuthService(userAuth.AuthService) {
-		return false
-	}
-
-	if userAuth.AuthService == model.UserAuthServiceEmail {
-		return userAuth.AuthData == nil
-	}
-
-	return userAuth.AuthData != nil && *userAuth.AuthData != ""
 }
 
 func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {

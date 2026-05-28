@@ -669,3 +669,45 @@ func TestIsValidUserAuthService(t *testing.T) {
 		})
 	}
 }
+
+func TestUserAuthIsValid(t *testing.T) {
+	authData := "test@test.com"
+
+	tests := []struct {
+		name     string
+		userAuth UserAuth
+		expected bool
+	}{
+		{
+			name:     "email auth with nil auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceEmail},
+			expected: true,
+		},
+		{
+			name:     "email auth with auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceEmail, AuthData: &authData},
+			expected: false,
+		},
+		{
+			name:     "sso auth with auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceSaml, AuthData: &authData},
+			expected: true,
+		},
+		{
+			name:     "sso auth with nil auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceSaml},
+			expected: false,
+		},
+		{
+			name:     "unknown auth service",
+			userAuth: UserAuth{AuthService: "not-a-real-service", AuthData: &authData},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.expected, tt.userAuth.IsValid())
+		})
+	}
+}
