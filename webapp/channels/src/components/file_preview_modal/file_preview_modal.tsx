@@ -94,8 +94,8 @@ export function computeZoomAtCursor(
     }
     const ratio = newScale / oldScale;
     return {
-        x: cursorOffsetX * (1 - ratio) + oldTranslate.x * ratio,
-        y: cursorOffsetY * (1 - ratio) + oldTranslate.y * ratio,
+        x: (cursorOffsetX * (1 - ratio)) + (oldTranslate.x * ratio),
+        y: (cursorOffsetY * (1 - ratio)) + (oldTranslate.y * ratio),
     };
 }
 
@@ -170,6 +170,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         if (!this.state.show || !this.state.showZoomControls || e.ctrlKey || e.metaKey || e.altKey) {
             return;
         }
+
         // Don't hijack '+'/'='/'-'/'0' while the user is typing in an input.
         const target = e.target as HTMLElement | null;
         if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
@@ -380,8 +381,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             return;
         }
         const rect = target.getBoundingClientRect();
-        const cursorOffsetX = e.clientX - rect.left - rect.width / 2;
-        const cursorOffsetY = e.clientY - rect.top - rect.height / 2;
+        const cursorOffsetX = e.clientX - rect.left - (rect.width / 2);
+        const cursorOffsetY = e.clientY - rect.top - (rect.height / 2);
 
         // Trackpad pinch / smooth wheel emit many small deltaY events. Scale
         // the step by deltaY magnitude (capped at 1) so trackpad zoom doesn't

@@ -435,8 +435,8 @@ describe('computeZoomAtCursor', () => {
 
         const newT = computeZoomAtCursor(oldScale, oldT, cursor.x, cursor.y, newScale);
 
-        expect(newT.x + newScale * px).toBeCloseTo(cursor.x);
-        expect(newT.y + newScale * py).toBeCloseTo(cursor.y);
+        expect(newT.x + (newScale * px)).toBeCloseTo(cursor.x);
+        expect(newT.y + (newScale * py)).toBeCloseTo(cursor.y);
     });
 
     test('returns the input translate when oldScale is zero (guard)', () => {
