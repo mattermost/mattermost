@@ -9,9 +9,9 @@ type MaskingFieldAccessMode int
 
 const (
 	MaskingFieldAccessUnknown    MaskingFieldAccessMode = iota
-	MaskingFieldAccessPublic                             // all values visible to every caller
-	MaskingFieldAccessSharedOnly                         // caller sees only values they themselves hold
-	MaskingFieldAccessSourceOnly                         // values never visible to callers
+	MaskingFieldAccessPublic                            // all values visible to every caller
+	MaskingFieldAccessSharedOnly                        // caller sees only values they themselves hold
+	MaskingFieldAccessSourceOnly                        // values never visible to callers
 )
 
 // MaskingTokenValue is the sentinel string written into masked CEL expressions

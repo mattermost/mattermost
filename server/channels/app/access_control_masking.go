@@ -86,7 +86,7 @@ type appMaskingResolver struct {
 	rctxWithCaller request.CTX
 	cpaGroupID     string
 	callerID       string
-	cache          map[string]*model.PropertyField
+	cache          map[string]*model.MaskingFieldInfo
 }
 
 func newMaskingResolver(a *App, rctx request.CTX, callerID string) (*appMaskingResolver, *model.AppError) {
@@ -99,20 +99,21 @@ func newMaskingResolver(a *App, rctx request.CTX, callerID string) (*appMaskingR
 		rctxWithCaller: RequestContextWithCallerID(rctx, callerID),
 		cpaGroupID:     cpaGroup.ID,
 		callerID:       callerID,
-		cache:          make(map[string]*model.PropertyField),
+		cache:          make(map[string]*model.MaskingFieldInfo),
 	}, nil
 }
 
 func (r *appMaskingResolver) Resolve(fieldName string) (*model.MaskingFieldInfo, error) {
-	if f, ok := r.cache[fieldName]; ok {
-		return r.fieldToMaskingInfo(f), nil
+	if info, ok := r.cache[fieldName]; ok {
+		return info, nil
 	}
 	field, appErr := r.app.GetPropertyFieldByName(r.rctxWithCaller, r.cpaGroupID, "", fieldName)
 	if appErr != nil {
 		return nil, appErr
 	}
-	r.cache[fieldName] = field
-	return r.fieldToMaskingInfo(field), nil
+	info := r.fieldToMaskingInfo(field)
+	r.cache[fieldName] = info
+	return info, nil
 }
 
 func (r *appMaskingResolver) fieldToMaskingInfo(field *model.PropertyField) *model.MaskingFieldInfo {
@@ -310,15 +311,10 @@ const maskedTokenValue = "--------"
 
 // validatePolicyExpressionValues checks that all submitted literal values are held by the caller.
 // Returns the same generic error for every rejection to prevent value enumeration.
-func (a *App) validatePolicyExpressionValues(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) *model.AppError {
+func (a *App) validatePolicyExpressionValues(rctx request.CTX, policy *model.AccessControlPolicy, resolver model.MaskingFieldResolver) *model.AppError {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return nil
-	}
-
-	resolver, appErr := newMaskingResolver(a, rctx, callerID)
-	if appErr != nil {
-		return model.NewAppError("validatePolicyExpressionValues", "app.pap.validate_expression_values.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	for _, rule := range policy.Rules {
@@ -470,10 +466,7 @@ func (a *App) maskSimulationDecisionLiterals(dec *model.PolicySimulationActionDe
 		// Expression preserves the original OR / NOT structure so
 		// when we backfill Blame.Expression from it below the
 		// caller-visible CEL keeps the same boolean shape the rule
-		// author wrote. Without this we'd fall through to the
-		// Visual-AST-flattening branch and "A || B" would surface as
-		// "A && --------" — same security outcome but a misleading
-		// trace.
+		// author wrote.
 		if b.EvaluationTree != nil {
 			a.maskSimulationEvaluationTree(b.EvaluationTree, mc)
 		}
@@ -507,11 +500,10 @@ func (a *App) maskSimulationDecisionLiterals(dec *model.PolicySimulationActionDe
 // ExpectedValue overwritten with the sentinel whenever the masker
 // hid at least one literal in the leaf. Compound nodes (and / or /
 // not) rebuild their Expression from the already-masked children's
-// Expressions, preserving the original boolean shape — the
-// Visual-AST flatten that maskExpressionWithCache uses on a leaf
-// expression is harmless (a leaf has no inner OR / NOT to lose),
-// but at the compound level it would collapse OR/NOT to AND and
-// misrepresent the rule's logic to the caller.
+// Expressions, preserving the original boolean shape. Leaf masking
+// (canonical CEL walker) handles a single comparison; the compound
+// rebuild stitches those masked leaves back together so the caller-
+// visible CEL faithfully reflects the rule's || / ! structure.
 func (a *App) maskSimulationEvaluationTree(node *model.PolicySimulationEvaluationNode, mc *simulationMaskContext) {
 	if node == nil {
 		return

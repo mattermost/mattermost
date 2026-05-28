@@ -125,16 +125,21 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 		callerID := session.UserId
 
+		resolver, appErr := newMaskingResolver(a, rctx, callerID)
+		if appErr != nil {
+			return nil, model.NewAppError("CreateOrUpdateAccessControlPolicy", "app.pap.save_policy.resolver_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+
 		// Validate submitted values BEFORE merge: only the values the caller
 		// actually submitted should be checked against their holdings. Running
 		// validation after merge would reject the re-injected hidden values
 		// (e.g. Bravo, Charlie) that the caller legitimately cannot see.
-		if appErr := a.validatePolicyExpressionValues(rctx, policy, callerID); appErr != nil {
+		if appErr := a.validatePolicyExpressionValues(rctx, policy, resolver); appErr != nil {
 			return nil, appErr
 		}
 
 		// Merge hidden values back in and block deletion of masked conditions.
-		if appErr := a.mergeStoredPolicyExpressions(rctx, policy, callerID); appErr != nil {
+		if appErr := a.mergeStoredPolicyExpressions(rctx, policy, resolver); appErr != nil {
 			return nil, appErr
 		}
 
@@ -204,7 +209,7 @@ func (a *App) policyHasMaskedValuesForCaller(rctx request.CTX, policy *model.Acc
 // submitted one, and blocks the save if the caller removed a condition that contained
 // values they cannot see (which would silently widen access beyond what they could audit).
 // No-op for new policies (not found in store).
-func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) *model.AppError {
+func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.AccessControlPolicy, resolver model.MaskingFieldResolver) *model.AppError {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return nil
@@ -273,7 +278,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		// lets the Actions-locking guard below use a plain `!=` check
 		// regardless of whether `rule` is a pointer or a copy.
 		submittedExpr := rule.Expression
-		mergedExpr, appErr := a.mergeExpressionWithMaskedValues(rctx, submittedExpr, stored.Expression, callerID)
+		mergedExpr, appErr := a.mergeExpressionWithMaskedValues(rctx, submittedExpr, stored.Expression, resolver)
 		if appErr != nil {
 			return appErr
 		}
@@ -314,7 +319,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		if stored.Expression == "" || stored.Expression == "true" {
 			continue
 		}
-		hasMasked, appErr := a.expressionHasMaskedValuesForCaller(rctx, stored.Expression, callerID)
+		hasMasked, appErr := a.expressionHasMaskedValuesForCaller(rctx, stored.Expression, resolver)
 		if appErr != nil {
 			return appErr
 		}
@@ -342,15 +347,10 @@ func isMembershipRule(rule *model.AccessControlPolicyRule) bool {
 }
 
 // expressionHasMaskedValuesForCaller reports whether storedExpr contains any value the caller cannot see.
-func (a *App) expressionHasMaskedValuesForCaller(rctx request.CTX, storedExpr, callerID string) (bool, *model.AppError) {
+func (a *App) expressionHasMaskedValuesForCaller(rctx request.CTX, storedExpr string, resolver model.MaskingFieldResolver) (bool, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return false, nil
-	}
-
-	resolver, appErr := newMaskingResolver(a, rctx, callerID)
-	if appErr != nil {
-		return false, appErr
 	}
 
 	return acs.HasMaskedValuesForCaller(rctx, storedExpr, resolver)
@@ -361,15 +361,10 @@ func (a *App) expressionHasMaskedValuesForCaller(rctx request.CTX, storedExpr, c
 // when storedExpr contains no values hidden from the caller (fast path). Returns 403
 // if the caller dropped an AST node that held hidden values, or if the submitted tree
 // shape diverges from stored while hidden values are present.
-func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, submittedExpr, storedExpr, callerID string) (string, *model.AppError) {
+func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, submittedExpr, storedExpr string, resolver model.MaskingFieldResolver) (string, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return submittedExpr, nil
-	}
-
-	resolver, appErr := newMaskingResolver(a, rctx, callerID)
-	if appErr != nil {
-		return "", model.NewAppError("mergeExpressionWithMaskedValues", "app.pap.merge_expression.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	hasMasked, appErr := acs.HasMaskedValuesForCaller(rctx, storedExpr, resolver)
@@ -531,7 +526,12 @@ func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model
 	// save-only invariant. The merge alone is what makes the
 	// simulator see the unmasked policy.
 	if a.Config().FeatureFlags.AttributeValueMasking {
-		if appErr := a.mergeStoredPolicyExpressions(rctx, params.Policy, rctx.Session().UserId); appErr != nil {
+		callerID := rctx.Session().UserId
+		resolver, appErr := newMaskingResolver(a, rctx, callerID)
+		if appErr != nil {
+			return nil, model.NewAppError("SimulateAccessControlPolicyForUsers", "app.pap.simulate.resolver_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+		if appErr := a.mergeStoredPolicyExpressions(rctx, params.Policy, resolver); appErr != nil {
 			return nil, appErr
 		}
 	}

@@ -859,10 +859,10 @@ func TestMaskSimulationPolicyLiteralsForCaller_GuardClauses(t *testing.T) {
 // (inserted directly via the store because the App's
 // CreatePropertyField hook rejects non-plugin callers from setting
 // protected/source_plugin_id) drives the masker against a simulator
-// response shaped like the picker output. We mock ExpressionToVisualAST
-// — the rest of the masking pipeline (field lookup, access_mode
-// evaluation, condition rewrite, CEL rebuild) is the real one,
-// because that's the layer this test is pinning. Every
+// response shaped like the picker output. We mock MaskExpressionForCaller
+// — the rest of the masking pipeline (field lookup, simulation tree
+// walk, expression backfill) is the real one, because that's the
+// layer this test is pinning. Every
 // literal-bearing surface (Blame.Expression, the leaf evaluation
 // tree's Expression and ExpectedValue, MergedRule.Expression, and
 // the merged-rule subtree) must collapse to the "--------" sentinel
@@ -1110,11 +1110,14 @@ func TestMaskSimulationPolicyLiteralsForCaller_ActualValueIndependentFromExpecte
 	// per-decision helper directly with a mask context built around
 	// the V1 group. This is the same shortcut existing shared_only
 	// tests take.
+	mcResolver, resolverErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, resolverErr)
 	mc := &simulationMaskContext{
 		cpaGroupID:     groupID,
 		rctxWithCaller: RequestContextWithCallerID(rctx, callerID),
 		callerID:       callerID,
 		fieldsByName:   map[string]*model.PropertyField{},
+		resolver:       mcResolver,
 	}
 
 	// Mock MaskExpressionForCaller to return the original expression: caller holds "A"
@@ -1160,14 +1163,13 @@ func TestMaskSimulationPolicyLiteralsForCaller_ActualValueIndependentFromExpecte
 }
 
 // TestMaskSimulationPolicyLiteralsForCaller_CompoundOrPreserved
-// guards the boolean shape of the response. maskExpressionWithCache
-// goes through a flat (implicit AND) Visual AST, so if we routed
-// compound tree nodes through that path their OR / NOT would
-// silently collapse to AND. This test seeds a two-leaf OR tree
-// against a source_only field, runs the masker, and asserts the
-// rebuilt compound still says "||". Without this pin a regression
-// would mask the literals correctly but misrepresent the rule's
-// logic to the picker.
+// guards the boolean shape of the response. The simulation tree
+// walker reconstructs compound nodes bottom-up from already-masked
+// leaves, so OR / NOT structure must survive masking. This test seeds
+// a two-leaf OR tree against a source_only field, runs the masker,
+// and asserts the rebuilt compound still says "||". Without this pin
+// a regression would mask the literals correctly but misrepresent the
+// rule's logic to the picker.
 func TestMaskSimulationPolicyLiteralsForCaller_CompoundOrPreserved(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {

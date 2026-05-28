@@ -331,9 +331,9 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		// When AttributeValueMasking is on and the caller cannot see all values in the
 		// policy, the delete must be refused with the masked_values 403. This closes
 		// the gap where a delegated admin could remove a policy whose conditions they
-		// could not audit. Forcing an unknown-field reference in the rule makes
-		// GetMaskedVisualAST fail-closed (HasMaskedValues=true) without requiring a
-		// full CPA setup for the test.
+		// could not audit. The canonical walker's HasMaskedValuesForCaller is mocked
+		// to return true, simulating a hidden-value field without requiring a full
+		// CPA setup for the test.
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.AttributeBasedAccessControl = true
 			cfg.FeatureFlags.AttributeValueMasking = true
@@ -355,12 +355,8 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 		mockAccessControl.On("GetPolicy", th.Context, policyID).Return(sensitivePolicy, nil).Once()
-		// Force GetMaskedVisualAST → maskConditionValues → fail-closed (unknown field).
-		mockAccessControl.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(&model.VisualExpression{
-			Conditions: []model.Condition{
-				{Attribute: "user.attributes.f_unknown_field", Operator: "==", Value: "Secret", ValueType: model.LiteralValue},
-			},
-		}, nil).Maybe()
+		// Canonical walker: unknown field fails closed → HasMaskedValuesForCaller returns true.
+		mockAccessControl.On("HasMaskedValuesForCaller", mock.Anything, mock.Anything, mock.Anything).Return(true, nil).Once()
 
 		appErr := th.App.DeleteAccessControlPolicy(th.Context, policyID)
 		require.NotNil(t, appErr)
@@ -4460,22 +4456,19 @@ func TestMergeStoredPolicyExpressions_ActionsLocked(t *testing.T) {
 		},
 	}
 
+	resolver, resolverErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, resolverErr)
+
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
 
 	mockACS.On("GetPolicy", mock.Anything, policyID).Return(storedPolicy, nil).Once()
-	mockACS.On("ExpressionToVisualAST", mock.Anything, storedExpr).Return(&model.VisualExpression{
-		Conditions: []model.Condition{
-			{Attribute: "user.attributes." + fieldName, Operator: "==", Value: "TopSecret", ValueType: model.LiteralValue},
-		},
-	}, nil).Maybe()
-	mockACS.On("ExpressionToVisualAST", mock.Anything, maskedExpr).Return(&model.VisualExpression{
-		Conditions: []model.Condition{
-			{Attribute: "user.attributes." + fieldName, Operator: "==", Value: maskedTokenValue, ValueType: model.LiteralValue},
-		},
-	}, nil).Maybe()
+	// Stored expression has a source_only value the caller cannot see.
+	mockACS.On("HasMaskedValuesForCaller", mock.Anything, storedExpr, mock.Anything).Return(true, nil).Once()
+	// Canonical merge re-injects the hidden literal from storedExpr into the submitted (masked) expression.
+	mockACS.On("MergeExpressionWithMaskedValuesCanonical", mock.Anything, maskedExpr, storedExpr, mock.Anything).Return(storedExpr, nil).Once()
 
-	mergeErr := th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, callerID)
+	mergeErr := th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, resolver)
 	require.Nil(t, mergeErr)
 
 	require.Len(t, submittedPolicy.Rules, 1)
@@ -4488,28 +4481,28 @@ func TestMergeStoredPolicyExpressions_ActionsLocked(t *testing.T) {
 
 // TestMergeStoredPolicyExpressions_FailClosedTrueRejectedOnResubmit verifies the
 // claim from the PR review: if MaskPolicyExpressions emitted "true" for a rule
-// because the stored expression could not be parsed (fail-closed), a caller who
-// re-submits that "true" unchanged will be blocked on the save path.
+// (fail-closed), a caller who re-submits that "true" unchanged will be blocked
+// on the save path.
 //
-// How it works:
-//  1. MaskPolicyExpressions (GET path) calls ExpressionToVisualAST on the stored
-//     expression; on parse failure it sets the rule to "true" (fail-closed).
+// How it works with the canonical walker:
+//  1. MaskPolicyExpressions (GET path) calls MaskExpressionForCaller; on error it
+//     sets the rule to "true" (fail-closed).
 //  2. The caller sees "true" in the GET response and re-submits it.
-//  3. On the save path, mergeExpressionWithMaskedValues calls
-//     expressionHasMaskedValuesForCaller, which calls GetMaskedVisualAST, which
-//     calls ExpressionToVisualAST on the *stored* expression again.
-//  4. That second parse also fails → error propagates → save is blocked.
+//  3. On the save path, mergeExpressionWithMaskedValues calls HasMaskedValuesForCaller
+//     on the stored expression → true (the field is hidden from this caller).
+//  4. MergeExpressionWithMaskedValuesCanonical is called with "true" as the submitted
+//     expression. The canonical walker finds that the stored masked node has no
+//     matching sentinel in "true" → ErrMaskedLiteralDeleted → save is blocked.
 //     "true" is never written to the DB.
 func TestMergeStoredPolicyExpressions_FailClosedTrueRejectedOnResubmit(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
+	rctx := request.TestContext(t)
+
 	callerID := model.NewId()
 	policyID := model.NewId()
 
-	// A stored expression that ExpressionToVisualAST cannot parse.
-	// In production this is guarded by save-time validation, but defensive
-	// code paths must still protect against it.
 	storedExpr := `user.attributes.TopSecret == "Value"`
 
 	storedPolicy := &model.AccessControlPolicy{
@@ -4521,7 +4514,7 @@ func TestMergeStoredPolicyExpressions_FailClosedTrueRejectedOnResubmit(t *testin
 	}
 
 	// Caller re-submits "true" — what MaskPolicyExpressions emitted as the
-	// fail-closed value when it could not parse the stored expression on GET.
+	// fail-closed value when it could not safely mask the stored expression on GET.
 	submittedPolicy := &model.AccessControlPolicy{
 		ID:   policyID,
 		Type: model.AccessControlPolicyTypeParent,
@@ -4530,20 +4523,25 @@ func TestMergeStoredPolicyExpressions_FailClosedTrueRejectedOnResubmit(t *testin
 		},
 	}
 
+	resolver, resolverErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, resolverErr)
+
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
 
 	mockACS.On("GetPolicy", mock.Anything, policyID).Return(storedPolicy, nil).Once()
-	// Simulate the same parse failure that would have triggered fail-closed on GET.
-	parseErr := model.NewAppError("ExpressionToVisualAST", "app.pap.expression_to_visual_ast.app_error", nil, "simulated parse failure", http.StatusInternalServerError)
-	mockACS.On("ExpressionToVisualAST", mock.Anything, storedExpr).Return(nil, parseErr).Maybe()
+	// Stored expression has hidden values the caller cannot see.
+	mockACS.On("HasMaskedValuesForCaller", mock.Anything, storedExpr, mock.Anything).Return(true, nil).Once()
+	// Submitting "true" drops the masked node entirely — the canonical walker rejects this.
+	mergeBlockErr := model.NewAppError("MergeExpressionWithMaskedValuesCanonical", "app.pap.save_policy.masked_condition_deleted", nil, "masked literal deleted", http.StatusForbidden)
+	mockACS.On("MergeExpressionWithMaskedValuesCanonical", mock.Anything, "true", storedExpr, mock.Anything).Return("", mergeBlockErr).Once()
 
-	mergeErr := th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, callerID)
+	mergeErr := th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, resolver)
 
 	// Save must be blocked. The error returned here causes UpdateAccessControlPolicy
 	// to abort before any DB write — the in-memory struct may still hold "true"
 	// but it never reaches the store.
-	require.NotNil(t, mergeErr, "expected mergeStoredPolicyExpressions to return an error when stored expression is unparseable")
+	require.NotNil(t, mergeErr, "expected mergeStoredPolicyExpressions to return an error when the caller drops a masked literal")
 	mockACS.AssertExpectations(t)
 }
 
@@ -4592,17 +4590,17 @@ func TestMergeStoredPolicyExpressions_ActionsEditableWhenNoMasking(t *testing.T)
 		},
 	}
 
+	resolver, resolverErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, resolverErr)
+
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
 
 	mockACS.On("GetPolicy", mock.Anything, policyID).Return(storedPolicy, nil).Once()
-	mockACS.On("ExpressionToVisualAST", mock.Anything, expr).Return(&model.VisualExpression{
-		Conditions: []model.Condition{
-			{Attribute: "user.attributes." + fieldName, Operator: "==", Value: "Engineering", ValueType: model.LiteralValue},
-		},
-	}, nil).Maybe()
+	// Public field: no values hidden → HasMaskedValuesForCaller returns false → fast path, no merge needed.
+	mockACS.On("HasMaskedValuesForCaller", mock.Anything, expr, mock.Anything).Return(false, nil).Once()
 
-	appErr = th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, callerID)
+	appErr = th.App.mergeStoredPolicyExpressions(th.Context, submittedPolicy, resolver)
 	require.Nil(t, appErr)
 
 	require.Len(t, submittedPolicy.Rules, 1)
