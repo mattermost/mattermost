@@ -644,6 +644,61 @@
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /api/v4/wikis/{wiki_id}/pages/{page_id}/props:
+    patch:
+      tags:
+        - wikis
+      summary: Patch page props
+      description: |
+        Partially update the Props map of a page.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `edit_page` permission in the wiki.
+      operationId: PatchPageProps
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+        - name: page_id
+          in: path
+          description: Page (Post) GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - props
+              properties:
+                props:
+                  type: object
+                  description: Key-value pairs to merge into the page's Props map
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Props patch successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/v4/wikis/{wiki_id}/pages/{page_id}/restore:
     patch:
       tags:

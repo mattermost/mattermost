@@ -397,7 +397,6 @@ func testGetChannelPages(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Contains(t, result.Posts, activePage.Id)
 		require.NotContains(t, result.Posts, deletedPage.Id, "should not include deleted pages")
 	})
-
 }
 
 func testGetChannelPagesMeta(t *testing.T, rctx request.CTX, ss store.Store) {

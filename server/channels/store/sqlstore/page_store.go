@@ -207,7 +207,7 @@ func (s *SqlPageStore) DeletePage(pageID string, deleteByID string, newParentID 
 			return errors.Wrap(err, "failed to build child IDs query")
 		}
 		var childIDs []string
-		if err := transaction.Select(&childIDs, childIDsSQL, childIDsArgs...); err != nil {
+		if err = transaction.Select(&childIDs, childIDsSQL, childIDsArgs...); err != nil {
 			return errors.Wrap(err, "failed to fetch child page IDs")
 		}
 
@@ -221,7 +221,7 @@ func (s *SqlPageStore) DeletePage(pageID string, deleteByID string, newParentID 
 				sq.Eq{"DeleteAt": 0},
 				sq.Eq{"Type": model.PostTypePage},
 			})
-		if _, err := transaction.ExecBuilder(reparentQuery); err != nil {
+		if _, err = transaction.ExecBuilder(reparentQuery); err != nil {
 			return errors.Wrap(err, "failed to reparent children")
 		}
 
@@ -229,7 +229,7 @@ func (s *SqlPageStore) DeletePage(pageID string, deleteByID string, newParentID 
 		deleteDraftsQuery := s.getQueryBuilder().
 			Delete("Drafts").
 			Where(sq.Eq{"RootId": pageID})
-		if _, err := transaction.ExecBuilder(deleteDraftsQuery); err != nil {
+		if _, err = transaction.ExecBuilder(deleteDraftsQuery); err != nil {
 			return errors.Wrap(err, "failed to delete page drafts")
 		}
 
@@ -410,7 +410,7 @@ func (s *SqlPageStore) readReparentedChildInfo(pageID string) (childIDs []string
 	if row.Props != nil {
 		if raw, ok := row.Props[model.PagePropsReparentedChildrenOnDelete]; ok {
 			switch v := raw.(type) {
-			case []interface{}:
+			case []any:
 				for _, item := range v {
 					if id, ok := item.(string); ok && id != "" {
 						childIDs = append(childIDs, id)

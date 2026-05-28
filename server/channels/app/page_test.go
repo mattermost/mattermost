@@ -2640,7 +2640,7 @@ func TestVersionHistoryPrunedAtLimit(t *testing.T) {
 	page, err := th.App.CreatePage(th.Context, th.BasicWiki.ChannelId, "History Prune Page", "", `{"type":"doc","content":[]}`, th.BasicUser.Id, "", "")
 	require.Nil(t, err)
 
-	for i := 0; i < model.PostEditHistoryLimit+3; i++ {
+	for range model.PostEditHistoryLimit + 3 {
 		current, appErr := th.App.GetPage(sessionCtx, page.Id)
 		require.Nil(t, appErr)
 		_, updateErr := th.App.UpdatePage(sessionCtx, current, "History Prune Page", `{"type":"doc","content":[]}`, "", nil)
@@ -2699,8 +2699,7 @@ func TestConcurrentPageCreateSortOrderUnique(t *testing.T) {
 
 	var wg sync.WaitGroup
 	wg.Add(n)
-	for i := 0; i < n; i++ {
-		i := i
+	for i := range n {
 		go func() {
 			defer wg.Done()
 			p, appErr := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Concurrent Page", "", th.BasicUser.Id, "", "")
@@ -2738,7 +2737,7 @@ func TestGetChannelPagesPaginationCorrectness(t *testing.T) {
 	require.Nil(t, wikiErr)
 
 	const total = 15
-	for i := 0; i < total; i++ {
+	for range total {
 		_, err := th.App.CreateWikiPage(th.Context, wiki.Id, "", "Pagination Page", "", th.BasicUser.Id, "", "")
 		require.Nil(t, err)
 	}
