@@ -191,7 +191,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.AutoTranslation = true
 
-	f.ClassificationMarkings = false
+	f.ClassificationMarkings = true
 
 	f.BurnOnRead = true
 
