@@ -2738,6 +2738,12 @@
         to/from LDAP authentication for example.
 
 
+        For `auth_service` set to `email`, omit `auth_data`; this clears external
+        authentication and switches the user to email authentication. For other
+        authentication services, `auth_data` must be present and non-empty.
+        Unknown authentication services are rejected.
+
+
         __Minimum server version__: 4.6
 
         ##### Permissions
