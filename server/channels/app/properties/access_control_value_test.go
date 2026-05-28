@@ -1627,8 +1627,10 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		// Verify values were NOT updated
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValues[0].ID, createdValues[1].ID})
 		require.NoError(t, err)
-		assert.Equal(t, `"value1"`, string(retrieved[0].Value))
-		assert.Equal(t, `"value2"`, string(retrieved[1].Value))
+		assertPropertyValueJSONByID(t, retrieved, map[string]string{
+			createdValues[0].ID: `"value1"`,
+			createdValues[1].ID: `"value2"`,
+		})
 	})
 
 	t.Run("mixed protected and non-protected fields - enforces access control only on protected fields", func(t *testing.T) {
@@ -1687,8 +1689,10 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		// Verify NO values were updated (atomic failure)
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValues[0].ID, createdValues[1].ID})
 		require.NoError(t, err)
-		assert.Equal(t, `"protected value"`, string(retrieved[0].Value))
-		assert.Equal(t, `"public value"`, string(retrieved[1].Value))
+		assertPropertyValueJSONByID(t, retrieved, map[string]string{
+			createdValues[0].ID: `"protected value"`,
+			createdValues[1].ID: `"public value"`,
+		})
 
 		// Now try with source plugin - should succeed for both
 		createdValues[0].Value = json.RawMessage(`"updated protected"`)
@@ -1761,8 +1765,10 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		// Verify NO values were updated (atomic failure)
 		retrieved, err := th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValue1.ID, createdValue2.ID})
 		require.NoError(t, err)
-		assert.Equal(t, `"value from plugin1"`, string(retrieved[0].Value))
-		assert.Equal(t, `"value from plugin2"`, string(retrieved[1].Value))
+		assertPropertyValueJSONByID(t, retrieved, map[string]string{
+			createdValue1.ID: `"value from plugin1"`,
+			createdValue2.ID: `"value from plugin2"`,
+		})
 
 		// Try to update both values with plugin2 - should also fail because it doesn't own field1
 		createdValue1.Value = json.RawMessage(`"hacked by plugin2"`)
@@ -1775,8 +1781,10 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		// Verify still NO values were updated
 		retrieved, err = th.service.GetPropertyValues(rctx1, th.CPAGroupID, []string{createdValue1.ID, createdValue2.ID})
 		require.NoError(t, err)
-		assert.Equal(t, `"value from plugin1"`, string(retrieved[0].Value))
-		assert.Equal(t, `"value from plugin2"`, string(retrieved[1].Value))
+		assertPropertyValueJSONByID(t, retrieved, map[string]string{
+			createdValue1.ID: `"value from plugin1"`,
+			createdValue2.ID: `"value from plugin2"`,
+		})
 
 		// Each plugin can update its own value individually
 		createdValue1.Value = json.RawMessage(`"plugin-1 updated its own"`)
@@ -1789,6 +1797,20 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, `"plugin-2 updated its own"`, string(updated2.Value))
 	})
+}
+
+func assertPropertyValueJSONByID(t *testing.T, retrieved []*model.PropertyValue, wantByID map[string]string) {
+	t.Helper()
+	require.Len(t, retrieved, len(wantByID))
+	byID := make(map[string]*model.PropertyValue, len(retrieved))
+	for _, v := range retrieved {
+		byID[v.ID] = v
+	}
+	for id, want := range wantByID {
+		v, ok := byID[id]
+		require.True(t, ok, "missing property value %s", id)
+		assert.Equal(t, want, string(v.Value))
+	}
 }
 
 func TestUpsertPropertyValue_WriteAccessControl(t *testing.T) {
