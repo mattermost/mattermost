@@ -211,6 +211,28 @@ jobs:
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
+      - name: ci/cache-platform-pkgs
+        # `webapp/node_modules/@mattermost/{client,types}` are the workspace
+        # symlinks Node walks up to find when platform/client requires
+        # @mattermost/types. Without them, module resolution fails inside
+        # the slim slice.
+        id: cache-platform-pkgs
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            webapp/node_modules/@mattermost/client
+            webapp/node_modules/@mattermost/types
+            webapp/platform/client/lib
+            webapp/platform/client/node_modules
+            webapp/platform/types/lib
+            webapp/platform/types/node_modules
+          key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}
+      - name: ci/build-platform-pkgs
+        # Full webapp install is needed for tsc + workspace linking; the
+        # postinstall builds platform/{client,types}/lib. We only cache those.
+        if: steps.cache-platform-pkgs.outputs.cache-hit != 'true'
+        working-directory: webapp
+        run: make node_modules
       - name: ci/cache-cypress-deps
         # node_modules + the cypress binary (downloaded to ~/.cache/Cypress by
         # cypress's postinstall, not into node_modules). Both must be cached;
@@ -309,6 +331,20 @@ jobs:
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
+      - name: ci/restore-platform-pkgs
+        # Built lib/ for @mattermost/client and @mattermost/types, plus the
+        # webapp workspace symlinks under webapp/node_modules/@mattermost/.
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            webapp/node_modules/@mattermost/client
+            webapp/node_modules/@mattermost/types
+            webapp/platform/client/lib
+            webapp/platform/client/node_modules
+            webapp/platform/types/lib
+            webapp/platform/types/node_modules
+          key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}
+          fail-on-cache-miss: true
       - name: ci/restore-cypress-deps
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
