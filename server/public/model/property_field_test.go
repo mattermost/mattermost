@@ -1273,6 +1273,18 @@ func TestPropertyFieldSearchCursor_IsValid(t *testing.T) {
 		assert.Error(t, cursor.IsValid())
 	})
 
+	t.Run("ID set but neither CreateAt nor UpdateAt is invalid", func(t *testing.T) {
+		// The cursor is non-empty but cannot be paginated against either
+		// ordering — IsValid must reject it rather than fall through to a
+		// silent miss in the store.
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: NewId(),
+		}
+		err := cursor.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exactly one")
+	})
+
 	t.Run("IsEmpty returns true when UpdateAt is also zero", func(t *testing.T) {
 		cursor := PropertyFieldSearchCursor{}
 		assert.True(t, cursor.IsEmpty())

@@ -8182,11 +8182,17 @@ func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, 
 	if search.PerPage > 0 {
 		values.Set("per_page", strconv.Itoa(search.PerPage))
 	}
-	if search.CursorID != "" && search.CursorCreateAt > 0 {
+	if search.SinceUpdateAt > 0 {
+		values.Set("since", strconv.FormatInt(search.SinceUpdateAt, 10))
+	}
+	if search.CursorID != "" {
 		values.Set("cursor_id", search.CursorID)
+	}
+	if search.CursorCreateAt > 0 {
 		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
-	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
-		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
+	}
+	if search.CursorUpdateAt > 0 {
+		values.Set("cursor_update_at", strconv.FormatInt(search.CursorUpdateAt, 10))
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.propertyValuesRoute(groupName, objectType, targetID), values, "")
 	if err != nil {
@@ -8212,11 +8218,17 @@ func (c *Client4) GetSystemPropertyValues(ctx context.Context, groupName string,
 	if search.PerPage > 0 {
 		values.Set("per_page", strconv.Itoa(search.PerPage))
 	}
-	if search.CursorID != "" && search.CursorCreateAt > 0 {
+	if search.SinceUpdateAt > 0 {
+		values.Set("since", strconv.FormatInt(search.SinceUpdateAt, 10))
+	}
+	if search.CursorID != "" {
 		values.Set("cursor_id", search.CursorID)
+	}
+	if search.CursorCreateAt > 0 {
 		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
-	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
-		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
+	}
+	if search.CursorUpdateAt > 0 {
+		values.Set("cursor_update_at", strconv.FormatInt(search.CursorUpdateAt, 10))
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.propertySystemValuesRoute(groupName), values, "")
 	if err != nil {

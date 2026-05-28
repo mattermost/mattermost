@@ -573,12 +573,6 @@ func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, o
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyValues, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
-	model.AddEventParameterToAuditRec(auditRec, "object_type", objectType)
-	model.AddEventParameterToAuditRec(auditRec, "target_id", targetID)
-
 	query := r.URL.Query()
 
 	opts := model.PropertyValueSearchOpts{
@@ -587,18 +581,39 @@ func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, o
 		PerPage:    c.Params.PerPage,
 	}
 
-	// Parse cursor parameters for pagination
-	if cursorID := query.Get("cursor_id"); cursorID != "" {
-		createAt, _ := strconv.ParseInt(query.Get("cursor_create_at"), 10, 64)
-		opts.Cursor = model.PropertyValueSearchCursor{
-			PropertyValueID: cursorID,
-			CreateAt:        createAt,
-		}
-		if err := opts.Cursor.IsValid(); err != nil {
-			c.SetInvalidURLParam("cursor")
+	if s := query.Get("since"); s != "" {
+		since, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			c.SetInvalidParamWithErr("since", err)
 			return
 		}
+		opts.SinceUpdateAt = since
 	}
+
+	// Cursor: directory mode uses CreateAt, delta mode (since>0) uses
+	// UpdateAt. opts.IsValid below rejects the mismatched combinations.
+	if cursorID := query.Get("cursor_id"); cursorID != "" {
+		cur := model.PropertyValueSearchCursor{PropertyValueID: cursorID}
+		if v := query.Get("cursor_update_at"); v != "" {
+			cur.UpdateAt, _ = strconv.ParseInt(v, 10, 64)
+		}
+		if v := query.Get("cursor_create_at"); v != "" {
+			cur.CreateAt, _ = strconv.ParseInt(v, 10, 64)
+		}
+		opts.Cursor = cur
+	}
+
+	if err := opts.IsValid(); err != nil {
+		c.Err = model.NewAppError("getPropertyValues", "api.property_value.get.invalid_opts.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyValues, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
+	model.AddEventParameterToAuditRec(auditRec, "object_type", objectType)
+	model.AddEventParameterToAuditRec(auditRec, "target_id", targetID)
+	model.AddEventParameterToAuditRec(auditRec, "since", opts.SinceUpdateAt)
 
 	values, err := c.App.SearchPropertyValues(c.AppContext, group.ID, opts)
 	if err != nil {

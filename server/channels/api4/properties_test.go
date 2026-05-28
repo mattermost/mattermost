@@ -2462,6 +2462,115 @@ func TestGetPropertyValues(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
+
+	t.Run("since", func(t *testing.T) {
+		// Dedicated post + field/value so we can move UpdateAt deterministically.
+		sincePost := th.CreatePost(t)
+		sinceTarget := sincePost.Id
+
+		sinceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "post",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdSinceField, appErr := th.App.CreatePropertyField(th.Context, sinceField, false, "")
+		require.Nil(t, appErr)
+
+		upserted, appErr := th.App.UpsertPropertyValues(th.Context, []*model.PropertyValue{{
+			TargetID:   sinceTarget,
+			TargetType: "post",
+			GroupID:    group.ID,
+			FieldID:    createdSinceField.ID,
+			Value:      json.RawMessage(`"initial"`),
+			CreatedBy:  th.BasicUser.Id,
+			UpdatedBy:  th.BasicUser.Id,
+		}}, "", "", "")
+		require.Nil(t, appErr)
+		require.Len(t, upserted, 1)
+		sinceValue := upserted[0]
+
+		t.Run("since=-1 is treated as no filter", func(t *testing.T) {
+			th.LoginBasic(t)
+
+			values, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "post", sinceTarget, model.PropertyValueSearch{
+				SinceUpdateAt: -1,
+				PerPage:       60,
+			})
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.NotEmpty(t, values, "negative since should behave like no filter")
+		})
+
+		t.Run("since>0 returns only rows with UpdateAt > since", func(t *testing.T) {
+			th.LoginBasic(t)
+
+			cutoff := model.GetMillis() + 10_000 // far in the future
+			values, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "post", sinceTarget, model.PropertyValueSearch{
+				SinceUpdateAt: cutoff,
+				PerPage:       60,
+			})
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Empty(t, values, "since cutoff in the future should exclude all rows")
+		})
+
+		t.Run("since returns soft-deleted rows", func(t *testing.T) {
+			th.LoginBasic(t)
+
+			// Snapshot a since cutoff strictly less than the upcoming tombstone UpdateAt.
+			cutoff := sinceValue.UpdateAt - 1
+
+			// Soft-delete the field through the app layer; this cascades to its values.
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, createdSinceField.ID, false, ""))
+
+			values, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "post", sinceTarget, model.PropertyValueSearch{
+				SinceUpdateAt: cutoff,
+				PerPage:       60,
+			})
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			var found *model.PropertyValue
+			for _, v := range values {
+				if v.ID == sinceValue.ID {
+					found = v
+					break
+				}
+			}
+			require.NotNil(t, found, "soft-deleted value should be returned in since-delta")
+			require.Greater(t, found.DeleteAt, int64(0), "returned value should be tombstoned")
+		})
+
+		t.Run("cursor_create_at while since>0 returns 400", func(t *testing.T) {
+			th.LoginBasic(t)
+
+			_, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "post", sinceTarget, model.PropertyValueSearch{
+				SinceUpdateAt:  1,
+				CursorID:       model.NewId(),
+				CursorCreateAt: 12345,
+				PerPage:        60,
+			})
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("cursor_update_at while since absent returns 400", func(t *testing.T) {
+			th.LoginBasic(t)
+
+			_, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "post", sinceTarget, model.PropertyValueSearch{
+				CursorID:       model.NewId(),
+				CursorUpdateAt: 12345,
+				PerPage:        60,
+			})
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+	})
 }
 
 func TestPatchPropertyValues(t *testing.T) {

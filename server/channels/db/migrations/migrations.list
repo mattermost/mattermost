@@ -377,3 +377,5 @@ channels/db/migrations/postgres/000189_add_admin_to_permission_level.down.sql
 channels/db/migrations/postgres/000189_add_admin_to_permission_level.up.sql
 channels/db/migrations/postgres/000190_create_property_fields_groupid_updateat_id_index.down.sql
 channels/db/migrations/postgres/000190_create_property_fields_groupid_updateat_id_index.up.sql
+channels/db/migrations/postgres/000191_create_property_values_groupid_updateat_id_index.down.sql
+channels/db/migrations/postgres/000191_create_property_values_groupid_updateat_id_index.up.sql
