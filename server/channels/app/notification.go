@@ -739,7 +739,9 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	// Mechanism 16: post broadcast over websocket to all channel members the
 	// notifier is aware of. Fan-out via async MarkBulk; one row per recipient.
-	if len(profileMap) > 0 {
+	// Gate the slice build on Enable so a disabled audit subsystem does not
+	// pay the allocation + map iteration cost on every post create.
+	if model.SafeDereference(a.Config().AuditStorageSettings.Enable) && len(profileMap) > 0 {
 		recipientIDs := make([]string, 0, len(profileMap))
 		for uid := range profileMap {
 			recipientIDs = append(recipientIDs, uid)

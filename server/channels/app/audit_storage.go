@@ -18,6 +18,10 @@ import (
 // Errors are logged but never propagated — audit failures must not fail
 // the user-facing request.
 func (a *App) AuditRecord(ctx context.Context, userID, postID string, mechanism int16) {
+	if !model.SafeDereference(a.Config().AuditStorageSettings.Enable) {
+		return
+	}
+
 	if userID == "" || postID == "" {
 		return
 	}
@@ -39,6 +43,10 @@ func (a *App) AuditRecord(ctx context.Context, userID, postID string, mechanism 
 // Safe to call with empty inputs; the function short-circuits without
 // allocating.
 func (a *App) AuditRecordBulk(userID string, postIDs []string, mechanism int16) {
+	if !model.SafeDereference(a.Config().AuditStorageSettings.Enable) {
+		return
+	}
+
 	if userID == "" || len(postIDs) == 0 {
 		return
 	}
@@ -61,6 +69,10 @@ func (a *App) AuditRecordBulk(userID string, postIDs []string, mechanism int16) 
 // One iteration extracts post IDs into a freshly allocated slice that is
 // passed to the store; the store itself does no client-side loop.
 func (a *App) AuditRecordBulkPosts(userID string, posts []*model.Post, mechanism int16) {
+	if !model.SafeDereference(a.Config().AuditStorageSettings.Enable) {
+		return
+	}
+
 	if userID == "" || len(posts) == 0 {
 		return
 	}
@@ -78,6 +90,10 @@ func (a *App) AuditRecordBulkPosts(userID string, posts []*model.Post, mechanism
 // Used for websocket broadcast where the same postID is delivered to every
 // online channel member.
 func (a *App) AuditRecordBulkMany(userIDs []string, postID string, mechanism int16) {
+	if !model.SafeDereference(a.Config().AuditStorageSettings.Enable) {
+		return
+	}
+
 	if postID == "" || len(userIDs) == 0 {
 		return
 	}
