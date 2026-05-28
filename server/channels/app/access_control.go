@@ -2116,15 +2116,37 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 		return nil, appErr
 	}
 
-	attrs, err := a.Srv().Store().SessionAttribute().Get(rctx.Session().Id)
+	attrs, appErr := a.GetSessionAttributes(rctx.Session().Id)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if attrs != nil {
+		subject.Session = attrs
+	}
+	return subject, nil
+}
+
+// GetSessionAttributes returns the request-provided session attributes
+// (user_agent_*, ip_address — see model.SessionAttributesPropertyField*)
+// captured for the given session, or nil when none have been recorded.
+//
+// The session-attribute cache is populated by
+// RefreshRequestProvidedSessionAttributesIfNeeded on each authenticated
+// request (gated by FeatureFlags.SessionAttributes and the Enterprise
+// Advanced license). This getter is the shared entry point that both
+// the production PDP (BuildAccessControlSubjectForSession) and the
+// policy-simulator's active-session snapshot read from, so the snapshot
+// the simulator shows the admin matches what the live PDP would
+// evaluate against.
+func (a *App) GetSessionAttributes(sessionID string) (map[string]any, *model.AppError) {
+	attrs, err := a.Srv().Store().SessionAttribute().Get(sessionID)
 	if err != nil {
 		if errors.Is(err, cache.ErrKeyNotFound) {
-			return subject, nil
+			return nil, nil
 		}
-		return nil, model.NewAppError("BuildAccessControlSubjectForSession", "app.access_control.build_subject_for_session.get_session_attributes.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetSessionAttributes", "app.access_control.get_session_attributes.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	subject.Session = attrs
-	return subject, nil
+	return attrs, nil
 }
 
 // GetSubjectChannelRole returns the channel-scoped role identifier
