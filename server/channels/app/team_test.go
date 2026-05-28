@@ -1218,7 +1218,6 @@ func TestLeaveTeamPanic(t *testing.T) {
 	}, "unexpected panic from LeaveTeam")
 }
 
-// Leaving a team must drop the user's ThreadMemberships for that team's channels.
 func TestLeaveTeamCleansUpThreadMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1267,7 +1266,6 @@ func TestLeaveTeamCleansUpThreadMemberships(t *testing.T) {
 	require.ErrorAs(t, gErr, &errNotFound, "thread membership must be deleted when user leaves the team")
 }
 
-// LeaveTeam must clean up ThreadMemberships across every non-DM/GM channel in the team.
 func TestLeaveTeamCleansUpThreadMembershipsAcrossChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1325,7 +1323,6 @@ func TestLeaveTeamCleansUpThreadMembershipsAcrossChannels(t *testing.T) {
 	}
 }
 
-// LeaveTeam must not touch ThreadMemberships in DM/GM channels (cross-team).
 func TestLeaveTeamPreservesDMThreadMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1370,7 +1367,6 @@ func TestLeaveTeamPreservesDMThreadMemberships(t *testing.T) {
 	require.NoError(t, gErr, "DM thread membership must survive leaving an unrelated team")
 }
 
-// Read path must filter out ThreadMemberships whose user is no longer a channel member.
 func TestGetThreadsForUser_ReadPathRejectsOrphanThreadMembership(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1409,7 +1405,6 @@ func TestGetThreadsForUser_ReadPathRejectsOrphanThreadMembership(t *testing.T) {
 	_, sErr := th.App.Srv().Store().Thread().GetMembershipForUser(victim.Id, rootPost.Id)
 	require.NoError(t, sErr, "sanity: victim should follow the thread after replying")
 
-	// Synthesize an orphan ThreadMembership by removing channel membership at the store layer.
 	require.NoError(t, th.App.Srv().Store().Channel().RemoveMember(th.Context, privateChannel.Id, victim.Id))
 
 	_, sErr2 := th.App.Srv().Store().Thread().GetMembershipForUser(victim.Id, rootPost.Id)
@@ -1431,7 +1426,6 @@ func TestGetThreadsForUser_ReadPathRejectsOrphanThreadMembership(t *testing.T) {
 	require.Zero(t, totalUnread, "GetTotalUnreadThreads must not count orphan ThreadMembership rows")
 }
 
-// PermanentDeleteChannel must drop ThreadMemberships for the channel.
 func TestPermanentDeleteChannelRemovesThreadMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

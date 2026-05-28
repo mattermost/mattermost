@@ -8031,8 +8031,7 @@ func TestGetThreadsForUser(t *testing.T) {
 	})
 }
 
-// Re-invited user must not receive threads from channels they are no longer in.
-func TestGetThreadsForUser_PrivateChannelLeakAfterReinvite(t *testing.T) {
+func TestGetThreadsForUser_AfterTeamRemovalAndReinvite(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 

@@ -70,8 +70,9 @@ func (s *SqlThreadStore) ClearCaches() {
 }
 
 // channelMembershipPredicate filters out ThreadMemberships whose user is no
-// longer a member of the thread's channel. DM/GM threads (ThreadTeamId='')
-// are exempt because their access is intrinsic to the channel members.
+// longer a member of the thread's channel. DM/GM threads have an empty
+// ThreadTeamId and are exempt because their access is intrinsic to the
+// channel members.
 func channelMembershipPredicate() sq.Sqlizer {
 	return sq.Or{
 		sq.Eq{"Threads.ThreadTeamId": ""},
