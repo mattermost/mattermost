@@ -233,6 +233,18 @@ func (u *UserAuth) Auditable() map[string]any {
 	}
 }
 
+func (u *UserAuth) IsValid() bool {
+	if !IsValidUserAuthService(u.AuthService) {
+		return false
+	}
+
+	if u.AuthService == UserAuthServiceEmail {
+		return u.AuthData == nil
+	}
+
+	return u.AuthData != nil && *u.AuthData != ""
+}
+
 //msgp:ignore UserForIndexing
 type UserForIndexing struct {
 	Id          string   `json:"id"`
@@ -922,6 +934,23 @@ func (u *User) IsLDAPUser() bool {
 
 func (u *User) IsSAMLUser() bool {
 	return u.AuthService == UserAuthServiceSaml
+}
+
+// IsValidUserAuthService reports whether service is a known auth service that
+// can be stored on a user (the canonical empty/email/password value plus the
+// supported SSO and LDAP services).
+func IsValidUserAuthService(service string) bool {
+	switch service {
+	case UserAuthServiceEmail,
+		UserAuthServiceGitlab,
+		UserAuthServiceLdap,
+		UserAuthServiceSaml,
+		ServiceGoogle,
+		ServiceOffice365,
+		ServiceOpenid:
+		return true
+	}
+	return false
 }
 
 func (u *User) GetPreferredTimezone() string {
