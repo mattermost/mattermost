@@ -18,7 +18,7 @@ export function mmBlocksButtonClassName(style: string | undefined): string {
     case 'primary':
         return `${base} btn-primary`;
     case 'danger':
-        return `${base} btn-tertiary btn-danger`;
+        return `${base} btn-tertiary mm-blocks-button--danger`;
     case 'good':
         return `${base} btn-tertiary mm-blocks-button--good`;
     case 'success':

@@ -3,7 +3,7 @@
 $mm-blocks-border-strong: rgba(var(--center-channel-color-rgb), 0.16);
 $mm-blocks-border-subtle: rgba(var(--center-channel-color-rgb), 0.12);
 $mm-blocks-surface-subtle: rgba(var(--center-channel-color-rgb), 0.04);
-$mm-blocks-text-muted: rgba(var(--center-channel-color-rgb), 0.56);
+$mm-blocks-text-muted: rgba(var(--center-channel-color-rgb), 0.75);
 
 $mm-blocks-accent-colors: (
     default: rgba(var(--button-bg-rgb), 0.32),
@@ -222,6 +222,24 @@ $mm-blocks-container-max-heights: (
         }
     }
 
+    // Avoid global `.app__body .btn.btn-danger` (filled red + white text), which overrides
+    // `.btn.btn-tertiary.btn-danger`. Matches legacy `ActionButton` danger styling.
+    .mm-blocks-button--danger {
+        background-color: rgba(var(--error-text-color-rgb), 0.08) !important;
+        color: var(--error-text) !important;
+
+        &:hover:not(:disabled),
+        &:focus:not(:disabled) {
+            background-color: rgba(var(--error-text-color-rgb), 0.12) !important;
+            color: var(--error-text) !important;
+        }
+
+        &:active:not(:disabled) {
+            background-color: rgba(var(--error-text-color-rgb), 0.16) !important;
+            color: var(--error-text) !important;
+        }
+    }
+
     .mm-blocks-image {
         &__frame {
             display: block;
@@ -265,6 +283,9 @@ $mm-blocks-container-max-heights: (
 
     .mm-blocks-text {
         word-break: break-word;
+        font-size: 14px;
+        line-height: 20px;
+
         p:first-child {
             margin-top: 0;
         }
@@ -275,6 +296,7 @@ $mm-blocks-container-max-heights: (
 
         &--small {
             font-size: 12px;
+            line-height: 16px;
         }
     }
 

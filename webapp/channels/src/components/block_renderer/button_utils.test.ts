@@ -22,7 +22,7 @@ describe('mmBlocksButtonClassName', () => {
     });
 
     it('returns danger tertiary classes for danger style', () => {
-        expect(mmBlocksButtonClassName('danger')).toBe('btn btn-sm btn-tertiary btn-danger');
+        expect(mmBlocksButtonClassName('danger')).toBe('btn btn-sm btn-tertiary mm-blocks-button--danger');
     });
 
     it('returns default tertiary classes for default style', () => {

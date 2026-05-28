@@ -124,6 +124,22 @@ describe('ButtonElement', () => {
         expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
     });
 
+    it('renders emoticons in button text', () => {
+        renderWithContext(
+            <ButtonElement
+                element={{
+                    type: 'button',
+                    text: ':smile:',
+                    action_id: 'emoji',
+                }}
+                onAction={onAction}
+            />,
+        );
+
+        const button = screen.getByRole('button');
+        expect(button.querySelector('.emoticon')).toBeInTheDocument();
+    });
+
     it('disables the button when disabled is true', () => {
         renderWithContext(
             <ButtonElement

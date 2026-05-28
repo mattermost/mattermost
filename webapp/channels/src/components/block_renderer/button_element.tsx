@@ -9,10 +9,16 @@ import type {MmButtonBlock} from '@mattermost/types/mm_blocks';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
+import Markdown from 'components/markdown';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {mmBlocksButtonClassName, mmBlocksButtonInlineStyle} from './button_utils';
 import type {ActionHandler} from './types';
+
+const buttonMarkdownOptions = {
+    mentionHighlight: false,
+    markdown: false,
+};
 
 type ButtonElementProps = {
     element: MmButtonBlock;
@@ -49,7 +55,10 @@ export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
             aria-busy={isExecuting}
         >
             {isExecuting && <LoadingSpinner/>}
-            {element.text}
+            <Markdown
+                message={element.text}
+                options={buttonMarkdownOptions}
+            />
         </button>
     );
 
