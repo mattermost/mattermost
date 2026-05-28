@@ -424,6 +424,65 @@ func TestGetTeamsForScheme(t *testing.T) {
 	CheckNotImplementedStatus(t, ri6)
 }
 
+func TestGetTeamsForScheme_SanitizesPrivilegedFieldsForUserManager(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
+
+	scheme := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeTeam,
+	}
+	scheme, _, err = th.SystemAdminClient.CreateScheme(context.Background(), scheme)
+	require.NoError(t, err)
+
+	knownInviteID := model.NewId()
+	knownEmail := th.GenerateTestEmail()
+
+	privateTeam := &model.Team{
+		Name:        GenerateTestTeamName(),
+		DisplayName: "Private Scheme Team",
+		Type:        model.TeamInvite,
+		InviteId:    knownInviteID,
+		Email:       knownEmail,
+	}
+	privateTeam, err = th.App.Srv().Store().Team().Save(privateTeam)
+	require.NoError(t, err)
+	require.Equal(t, knownInviteID, privateTeam.InviteId)
+	require.Equal(t, knownEmail, privateTeam.Email)
+
+	privateTeam.SchemeId = &scheme.Id
+	privateTeam, err = th.App.Srv().Store().Team().Update(privateTeam)
+	require.NoError(t, err)
+	require.Equal(t, knownInviteID, privateTeam.InviteId)
+	require.Equal(t, knownEmail, privateTeam.Email)
+
+	th.LoginSystemManager(t)
+
+	t.Run("system manager response is sanitized", func(t *testing.T) {
+		teams, _, err := th.SystemManagerClient.GetTeamsForScheme(context.Background(), scheme.Id, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, teams, 1)
+		assert.Equal(t, privateTeam.Id, teams[0].Id)
+		assert.Empty(t, teams[0].InviteId)
+	})
+
+	t.Run("system admin response is not sanitized", func(t *testing.T) {
+		teams, _, err := th.SystemAdminClient.GetTeamsForScheme(context.Background(), scheme.Id, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, teams, 1)
+		assert.Equal(t, privateTeam.Id, teams[0].Id)
+		assert.Equal(t, knownInviteID, teams[0].InviteId)
+		assert.Equal(t, knownEmail, teams[0].Email)
+	})
+}
+
 func TestGetChannelsForScheme(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
