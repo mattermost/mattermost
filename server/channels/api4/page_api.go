@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -155,6 +156,7 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	start := time.Now()
 	page, _, _, ok := c.GetPageForRead()
 	if !ok {
 		return
@@ -162,6 +164,10 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Enrich page with properties (GetPageForRead doesn't include content enrichment)
 	c.App.EnrichPageWithProperties(c.AppContext, page)
+
+	if c.App.Metrics() != nil {
+		c.App.Metrics().ObserveWikiPageOperation("view", time.Since(start).Seconds())
+	}
 
 	if err := json.NewEncoder(w).Encode(page); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
