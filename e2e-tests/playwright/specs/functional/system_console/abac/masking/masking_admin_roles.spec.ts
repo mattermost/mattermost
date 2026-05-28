@@ -20,7 +20,7 @@ import {
     enableMaskingFlag,
     setUserAttribute,
 } from './masking_helpers';
-import {purgeFieldsByPrefix, setFieldAsSharedOnly, setFieldAsSourceOnly} from './masking_db_setup';
+import {deleteFieldFromDB, purgeFieldsByPrefix, setFieldAsSharedOnly, setFieldAsSourceOnly} from './masking_db_setup';
 
 const fieldPrefix = 'MaskingAR';
 
@@ -91,27 +91,25 @@ test.describe('Attribute-Value Masking - Admin Roles', () => {
             await teamSettings.openAccessPoliciesTab();
 
             const policyRow = teamSettings.container.getByText(policyName).first();
-            if (await policyRow.isVisible({timeout: 5000})) {
-                await policyRow.click();
-                await page.waitForTimeout(500);
+            await expect(policyRow).toBeVisible({timeout: 10000});
+            await policyRow.click();
+            await page.waitForTimeout(500);
 
-                const deleteBtn = teamSettings.container
-                    .locator('.TeamPolicyEditor__section--delete button')
-                    .filter({hasText: 'Delete'});
+            const deleteBtn = teamSettings.container
+                .locator('.TeamPolicyEditor__section--delete button')
+                .filter({hasText: 'Delete'});
 
-                if (await deleteBtn.isVisible({timeout: 3000})) {
-                    await expect(deleteBtn).toBeDisabled();
+            await expect(deleteBtn).toBeVisible({timeout: 3000});
+            await expect(deleteBtn).toBeDisabled();
 
-                    // Remove the channel — button must STAY disabled due to masked values
-                    const removeLink = teamSettings.container.getByText('Remove').first();
-                    await expect(removeLink).toBeVisible({timeout: 5000});
-                    await removeLink.click();
-                    await page.waitForTimeout(300);
-                    await expect(deleteBtn).toBeDisabled();
-                }
+            // Remove the channel — button must STAY disabled due to masked values
+            const removeLink = teamSettings.container.getByText('Remove').first();
+            await expect(removeLink).toBeVisible({timeout: 5000});
+            await removeLink.click();
+            await page.waitForTimeout(300);
+            await expect(deleteBtn).toBeDisabled();
 
-                await teamSettings.close();
-            }
+            await teamSettings.close();
 
             expect(policyId).toMatch(/^[A-Za-z0-9]{26}$/);
 
@@ -134,7 +132,10 @@ test.describe('Attribute-Value Masking - Admin Roles', () => {
             for (const id of fieldIds) {
                 try {
                     await deleteCPAField(adminClient, id);
-                } catch {} // eslint-disable-line no-empty
+                } catch {
+                    // Protected/shared-only/source-only fields reject the API delete; fall back to DB.
+                    await deleteFieldFromDB(id).catch(() => {});
+                }
             }
             try {
                 await disableMaskingFlag(adminClient);
@@ -266,7 +267,10 @@ test.describe('Attribute-Value Masking - Admin Roles', () => {
             for (const id of fieldIds) {
                 try {
                     await deleteCPAField(adminClient, id);
-                } catch {} // eslint-disable-line no-empty
+                } catch {
+                    // Protected/shared-only/source-only fields reject the API delete; fall back to DB.
+                    await deleteFieldFromDB(id).catch(() => {});
+                }
             }
             try {
                 await disableMaskingFlag(adminClient);
@@ -364,7 +368,10 @@ test.describe('Attribute-Value Masking - Admin Roles', () => {
             for (const id of fieldIds) {
                 try {
                     await deleteCPAField(adminClient, id);
-                } catch {} // eslint-disable-line no-empty
+                } catch {
+                    // Protected/shared-only/source-only fields reject the API delete; fall back to DB.
+                    await deleteFieldFromDB(id).catch(() => {});
+                }
             }
             try {
                 await disableMaskingFlag(adminClient);
@@ -468,7 +475,10 @@ test.describe('Attribute-Value Masking - Admin Roles', () => {
             for (const id of fieldIds) {
                 try {
                     await deleteCPAField(adminClient, id);
-                } catch {} // eslint-disable-line no-empty
+                } catch {
+                    // Protected/shared-only/source-only fields reject the API delete; fall back to DB.
+                    await deleteFieldFromDB(id).catch(() => {});
+                }
             }
             try {
                 await disableMaskingFlag(adminClient);

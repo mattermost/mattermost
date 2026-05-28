@@ -129,10 +129,11 @@ async function setFieldAccessMode(fieldId: string, accessMode: string): Promise<
     }
 
     if (accessMode === '') {
-        // Public = remove the key so the field matches a freshly-created public field.
+        // Public = remove both access_mode and protected keys, and clear the protected column.
         await runQuery(
             `UPDATE propertyfields
-                SET attrs = (COALESCE(attrs, '{}'::jsonb) - 'access_mode'),
+                SET attrs = (COALESCE(attrs, '{}'::jsonb) - 'access_mode' - 'protected'),
+                    protected = false,
                     updateat = EXTRACT(EPOCH FROM NOW())::bigint * 1000
               WHERE id = $1`,
             [fieldId],
