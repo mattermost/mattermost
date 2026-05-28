@@ -280,7 +280,7 @@ func TestMovePageToWiki(t *testing.T) {
 		require.Nil(t, wikiErr)
 		require.Equal(t, createdTargetWiki.Id, wikiId)
 
-		movedPage, pageErr := th.App.GetSinglePost(th.Context, page.Id, false)
+		movedPage, pageErr := th.App.GetPage(th.Context, page.Id)
 		require.Nil(t, pageErr)
 		require.Empty(t, movedPage.PageParentId, "Moved page should become root")
 	})
@@ -341,19 +341,19 @@ func TestMovePageToWiki(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, createdTargetWiki.Id, grandchildWikiId)
 
-		movedParent, pageErr := th.App.GetSinglePost(th.Context, parentPage.Id, false)
+		movedParent, pageErr := th.App.GetPage(th.Context, parentPage.Id)
 		require.Nil(t, pageErr)
 		require.Empty(t, movedParent.PageParentId, "Moved parent page should become root")
 
-		movedChild1, pageErr := th.App.GetSinglePost(th.Context, childPage1.Id, false)
+		movedChild1, pageErr := th.App.GetPage(th.Context, childPage1.Id)
 		require.Nil(t, pageErr)
 		require.Equal(t, parentPage.Id, movedChild1.PageParentId, "Child1 should still reference parent")
 
-		movedChild2, pageErr := th.App.GetSinglePost(th.Context, childPage2.Id, false)
+		movedChild2, pageErr := th.App.GetPage(th.Context, childPage2.Id)
 		require.Nil(t, pageErr)
 		require.Equal(t, parentPage.Id, movedChild2.PageParentId, "Child2 should still reference parent")
 
-		movedGrandchild, pageErr := th.App.GetSinglePost(th.Context, grandchildPage.Id, false)
+		movedGrandchild, pageErr := th.App.GetPage(th.Context, grandchildPage.Id)
 		require.Nil(t, pageErr)
 		require.Equal(t, childPage1.Id, movedGrandchild.PageParentId, "Grandchild should still reference child1")
 	})
@@ -462,13 +462,13 @@ func TestMovePageToWiki(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify top-level comment wiki_id was updated
-		updatedTopLevelComment, getErr := th.App.GetSinglePost(th.Context, topLevelComment.Id, false)
+		updatedTopLevelComment, getErr := th.App.GetPageCommentPost(th.Context, topLevelComment.Id, false)
 		require.Nil(t, getErr)
 		require.Equal(t, createdTargetWiki.Id, updatedTopLevelComment.GetProp(model.PagePropsWikiID),
 			"Top-level comment wiki_id should be updated to target wiki")
 
 		// Verify inline comment wiki_id was updated
-		updatedInlineComment, getErr := th.App.GetSinglePost(th.Context, inlineComment.Id, false)
+		updatedInlineComment, getErr := th.App.GetPageCommentPost(th.Context, inlineComment.Id, false)
 		require.Nil(t, getErr)
 		require.Equal(t, createdTargetWiki.Id, updatedInlineComment.GetProp(model.PagePropsWikiID),
 			"Inline comment wiki_id should be updated to target wiki")

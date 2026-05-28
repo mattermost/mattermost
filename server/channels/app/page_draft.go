@@ -468,14 +468,28 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, existin
 // publishToLinkedSourceChannels publishes a WebSocket message to all source channels
 // linked to the given wiki via WikiLinks. Wiki backing channels (ChannelTypeWiki)
 // are excluded from GetAllChannelMembersForUser, so events broadcast to a backing
-// channel are silently dropped by the WS hub. If no links exist, no event is
-// delivered. Wikis are addressed by wikiId here so callers don't need to thread
+// channel are silently dropped by the WS hub. If no links exist, falls back to
+// broadcasting directly to the wiki's backing channel (Mode A — standalone wiki).
+// Wikis are addressed by wikiId here so callers don't need to thread
 // the backing channel id; the WikiLink schema's join key is resolved via
 // WikiLinkStore.GetByWiki (a single SQL JOIN through the Wikis table).
 func (a *App) publishToLinkedSourceChannels(wikiId string, message *model.WebSocketEvent) {
 	links, err := a.Srv().Store().WikiLink().GetByWiki(wikiId)
 	if err != nil {
 		a.Log().Warn("Failed to fetch wiki links for broadcast", mlog.Err(err))
+		return
+	}
+	if len(links) == 0 {
+		wiki, storeErr := a.Srv().Store().Wiki().Get(wikiId)
+		if storeErr != nil {
+			a.Log().Warn("Failed to fetch wiki for broadcast fallback", mlog.Err(storeErr))
+			return
+		}
+		msg := message.SetBroadcast(&model.WebsocketBroadcast{
+			ChannelId:           wiki.ChannelId,
+			ReliableClusterSend: true,
+		})
+		a.Publish(msg)
 		return
 	}
 	for _, link := range links {

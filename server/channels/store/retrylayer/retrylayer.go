@@ -8751,6 +8751,27 @@ func (s *RetryLayerPageStore) GetCommentsForPage(pageID string, includeDeleted b
 
 }
 
+func (s *RetryLayerPageStore) GetSinglePageComment(commentID string, includeDeleted bool) (*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageStore.GetSinglePageComment(commentID, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPageStore) GetPage(rctx request.CTX, pageID string, includeDeleted bool) (*model.Post, error) {
 
 	tries := 0
@@ -9003,11 +9024,11 @@ func (s *RetryLayerPageStore) UpdateCommentProps(commentID string, props model.S
 
 }
 
-func (s *RetryLayerPageStore) UpdatePageFileIds(pageID string, fileIds model.StringArray) (*model.Post, error) {
+func (s *RetryLayerPageStore) UpdatePageFileIds(pageID string, fromPostID string, fileIds model.StringArray) (*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PageStore.UpdatePageFileIds(pageID, fileIds)
+		result, err := s.PageStore.UpdatePageFileIds(pageID, fromPostID, fileIds)
 		if err == nil {
 			return result, nil
 		}

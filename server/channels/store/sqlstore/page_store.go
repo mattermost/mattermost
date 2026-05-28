@@ -1410,6 +1410,36 @@ func (s *SqlPageStore) GetCommentsForPage(pageID string, includeDeleted bool, of
 	return pl, nil
 }
 
+func (s *SqlPageStore) GetSinglePageComment(commentID string, includeDeleted bool) (*model.Post, error) {
+	if commentID == "" {
+		return nil, store.NewErrInvalidInput("Post", "Id", commentID)
+	}
+
+	query := s.getQueryBuilder().
+		Select(postSliceColumns()...).
+		From("Posts").
+		Where(sq.Eq{"Id": commentID})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetSinglePageComment_tosql")
+	}
+
+	var post model.Post
+	if err = s.GetReplica().Get(&post, queryString, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", commentID)
+		}
+		return nil, errors.Wrapf(err, "failed to get page comment with id=%s", commentID)
+	}
+
+	return &post, nil
+}
+
 // UpdateCommentProps sets the Props field on a page comment and returns the refreshed post.
 // Restricted to Type='page_comment' so callers cannot bypass post edit history on regular posts.
 // Returns ErrNotFound if the post does not exist, is deleted, or is not a page type.
@@ -1462,7 +1492,7 @@ func (s *SqlPageStore) UpdateCommentProps(commentID string, props model.StringIn
 	return &post, nil
 }
 
-func (s *SqlPageStore) UpdatePageFileIds(pageID string, fileIds model.StringArray) (*model.Post, error) {
+func (s *SqlPageStore) UpdatePageFileIds(pageID string, fromPostID string, fileIds model.StringArray) (*model.Post, error) {
 	if pageID == "" {
 		return nil, store.NewErrInvalidInput("Post", "Id", pageID)
 	}
@@ -1498,6 +1528,21 @@ func (s *SqlPageStore) UpdatePageFileIds(pageID string, fileIds model.StringArra
 				return txErr
 			}
 			return store.NewErrNotFound("Post", pageID)
+		}
+		// Reparent FileInfo rows so they survive snapshot pruning by data retention.
+		// When fromPostID is non-empty and fileIds is non-empty, move ownership from the
+		// snapshot post to the live page post in the same transaction.
+		if fromPostID != "" && len(fileIds) > 0 {
+			reparentQuery := s.getQueryBuilder().
+				Update("FileInfo").
+				Set("PostId", pageID).
+				Where(sq.And{
+					sq.Eq{"PostId": fromPostID},
+					sq.Eq{"Id": []string(fileIds)},
+				})
+			if _, txErr = transaction.ExecBuilder(reparentQuery); txErr != nil {
+				return errors.Wrapf(txErr, "failed to reparent FileInfo rows from post %s to page %s", fromPostID, pageID)
+			}
 		}
 		return transaction.GetBuilder(&post, selectQuery)
 	})

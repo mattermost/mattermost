@@ -265,14 +265,14 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 		}
 
 		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
-			if post.IsJoinLeaveMessage() {
+			if post.IsJoinLeaveMessage() || model.IsWikiPostType(post.Type) {
 				channelNewPosts[post.ChannelId] = 0
 			} else {
 				channelNewPosts[post.ChannelId] = 1
 			}
 			maxDateNewPosts[post.ChannelId] = post.CreateAt
 		} else {
-			if !post.IsJoinLeaveMessage() {
+			if !post.IsJoinLeaveMessage() && !model.IsWikiPostType(post.Type) {
 				channelNewPosts[post.ChannelId] = currentChannelCount + 1
 			}
 			if post.CreateAt > maxDateNewPosts[post.ChannelId] {
@@ -282,14 +282,14 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 
 		if post.RootId == "" {
 			if currentChannelCount, ok := channelNewRootPosts[post.ChannelId]; !ok {
-				if post.IsJoinLeaveMessage() {
+				if post.IsJoinLeaveMessage() || model.IsWikiPostType(post.Type) {
 					channelNewRootPosts[post.ChannelId] = 0
 				} else {
 					channelNewRootPosts[post.ChannelId] = 1
 				}
 				maxDateNewRootPosts[post.ChannelId] = post.CreateAt
 			} else {
-				if !post.IsJoinLeaveMessage() {
+				if !post.IsJoinLeaveMessage() && !model.IsWikiPostType(post.Type) {
 					channelNewRootPosts[post.ChannelId] = currentChannelCount + 1
 				}
 				if post.CreateAt > maxDateNewRootPosts[post.ChannelId] {
@@ -2716,7 +2716,7 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 		From("Posts p").
 		Where(sq.Eq{"p.Id": postIds}).
 		Where(sq.Or{
-			sq.NotEq{"p.Type": model.WikiPostTypesHiddenInFeed},
+			sq.NotEq{"p.Type": model.WikiPostTypes},
 			sq.Eq{"p.Type": nil},
 		}).
 		OrderBy("CreateAt DESC")

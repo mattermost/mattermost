@@ -1749,20 +1749,13 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "restore_version_id", restoreVersionId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	toRestorePost, err := c.App.GetSinglePost(c.AppContext, restoreVersionId, true)
-	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
-	}
-
-	if app.IsPagePost(toRestorePost) {
+	// Check if the target post is a page first. GetSinglePost filters out wiki post
+	// types (PostTypePage), so version history items — which share the same type —
+	// would be rejected. We detect pages via GetPage on the current post ID instead.
+	currentPage, pageErr := c.App.GetPage(c.AppContext, c.Params.PostId)
+	if pageErr == nil {
 		// Pages enforce edit permission via the page permission system, not
 		// post-author equality (so any channel member with edit can restore).
-		currentPage, getErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
-		if getErr != nil {
-			c.Err = getErr
-			return
-		}
 		if !c.CheckPagePermission(currentPage, app.PageOperationEdit) {
 			return
 		}
@@ -1776,6 +1769,16 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		if err := updatedPost.EncodeJSON(w); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
+		return
+	}
+	if pageErr.StatusCode != http.StatusNotFound {
+		c.Err = pageErr
+		return
+	}
+
+	toRestorePost, err := c.App.GetSinglePost(c.AppContext, restoreVersionId, true)
+	if err != nil {
+		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
 

@@ -390,15 +390,15 @@ func TestDeletePage(t *testing.T) {
 		err = th.App.DeletePage(sessionCtx, parentPage, "")
 		require.Nil(t, err)
 
-		child1After, err := th.App.GetSinglePost(th.Context, child1.Id, false)
+		child1After, err := th.App.GetPage(th.Context, child1.Id)
 		require.Nil(t, err)
 		require.Empty(t, child1After.PageParentId, "Child1 should become root page after parent deletion")
 
-		child2After, err := th.App.GetSinglePost(th.Context, child2.Id, false)
+		child2After, err := th.App.GetPage(th.Context, child2.Id)
 		require.Nil(t, err)
 		require.Empty(t, child2After.PageParentId, "Child2 should become root page after parent deletion")
 
-		grandchildAfter, err := th.App.GetSinglePost(th.Context, grandchild.Id, false)
+		grandchildAfter, err := th.App.GetPage(th.Context, grandchild.Id)
 		require.Nil(t, err)
 		require.Equal(t, child1.Id, grandchildAfter.PageParentId, "Grandchild should still reference child1 (unaffected)")
 	})
@@ -418,11 +418,11 @@ func TestDeletePage(t *testing.T) {
 		err = th.App.DeletePage(sessionCtx, middlePage, "")
 		require.Nil(t, err)
 
-		rootAfter, err := th.App.GetSinglePost(th.Context, root.Id, false)
+		rootAfter, err := th.App.GetPage(th.Context, root.Id)
 		require.Nil(t, err)
 		require.Empty(t, rootAfter.PageParentId, "Root should remain a root page")
 
-		leafAfter, err := th.App.GetSinglePost(th.Context, leaf.Id, false)
+		leafAfter, err := th.App.GetPage(th.Context, leaf.Id)
 		require.Nil(t, err)
 		require.Equal(t, root.Id, leafAfter.PageParentId, "Leaf should be reparented to root (grandparent)")
 	})
@@ -442,7 +442,7 @@ func TestDeletePage(t *testing.T) {
 		_, err = th.App.GetPageChildren(sessionCtx, parent.Id, model.GetPostsOptions{})
 		require.NotNil(t, err, "GetPageChildren should fail for deleted parent")
 
-		childAfter, err := th.App.GetSinglePost(th.Context, child.Id, false)
+		childAfter, err := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, err)
 		require.Empty(t, childAfter.PageParentId, "Child should be reparented to root after parent deletion")
 	})
@@ -562,7 +562,7 @@ func TestRestorePage(t *testing.T) {
 		err = th.App.DeletePage(sessionCtx, parentPage, "")
 		require.Nil(t, err)
 
-		childAfterDelete, getErr := th.App.GetSinglePost(th.Context, child.Id, false)
+		childAfterDelete, getErr := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, getErr)
 		require.Empty(t, childAfterDelete.PageParentId, "child should be reparented to root on parent delete")
 
@@ -573,7 +573,7 @@ func TestRestorePage(t *testing.T) {
 
 		// Correct behaviour: child must be re-attached to the restored parent.
 		// Currently FAILS because RestorePage does not restore child relationships.
-		childAfterRestore, getErr := th.App.GetSinglePost(th.Context, child.Id, false)
+		childAfterRestore, getErr := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, getErr)
 		require.Equal(t, parent.Id, childAfterRestore.PageParentId,
 			"child must be re-attached to restored parent (fix #3)")
@@ -1202,7 +1202,7 @@ func TestPageDepthLimit(t *testing.T) {
 		_, err = th.App.MovePage(sessionCtx, child.Id, &parent2Id, "", nil)
 		require.Nil(t, err)
 
-		updatedChild, err := th.App.GetSinglePost(th.Context, child.Id, false)
+		updatedChild, err := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, err)
 		require.Equal(t, parent2.Id, updatedChild.PageParentId)
 	})

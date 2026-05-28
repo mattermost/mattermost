@@ -171,6 +171,36 @@ func (_m *PageStore) GetChannelPagesMeta(channelID string) (*model.PostList, err
 	return r0, r1
 }
 
+// GetSinglePageComment provides a mock function with given fields: commentID, includeDeleted
+func (_m *PageStore) GetSinglePageComment(commentID string, includeDeleted bool) (*model.Post, error) {
+	ret := _m.Called(commentID, includeDeleted)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSinglePageComment")
+	}
+
+	var r0 *model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, bool) (*model.Post, error)); ok {
+		return rf(commentID, includeDeleted)
+	}
+	if rf, ok := ret.Get(0).(func(string, bool) *model.Post); ok {
+		r0 = rf(commentID, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(commentID, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCommentsForPage provides a mock function with given fields: pageID, includeDeleted, offset, limit
 func (_m *PageStore) GetCommentsForPage(pageID string, includeDeleted bool, offset int, limit int) (*model.PostList, error) {
 	ret := _m.Called(pageID, includeDeleted, offset, limit)
@@ -579,9 +609,9 @@ func (_m *PageStore) UpdateCommentProps(postID string, props model.StringInterfa
 	return r0, r1
 }
 
-// UpdatePageFileIds provides a mock function with given fields: pageID, fileIds
-func (_m *PageStore) UpdatePageFileIds(pageID string, fileIds model.StringArray) (*model.Post, error) {
-	ret := _m.Called(pageID, fileIds)
+// UpdatePageFileIds provides a mock function with given fields: pageID, fromPostID, fileIds
+func (_m *PageStore) UpdatePageFileIds(pageID string, fromPostID string, fileIds model.StringArray) (*model.Post, error) {
+	ret := _m.Called(pageID, fromPostID, fileIds)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdatePageFileIds")
@@ -589,19 +619,19 @@ func (_m *PageStore) UpdatePageFileIds(pageID string, fileIds model.StringArray)
 
 	var r0 *model.Post
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, model.StringArray) (*model.Post, error)); ok {
-		return rf(pageID, fileIds)
+	if rf, ok := ret.Get(0).(func(string, string, model.StringArray) (*model.Post, error)); ok {
+		return rf(pageID, fromPostID, fileIds)
 	}
-	if rf, ok := ret.Get(0).(func(string, model.StringArray) *model.Post); ok {
-		r0 = rf(pageID, fileIds)
+	if rf, ok := ret.Get(0).(func(string, string, model.StringArray) *model.Post); ok {
+		r0 = rf(pageID, fromPostID, fileIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, model.StringArray) error); ok {
-		r1 = rf(pageID, fileIds)
+	if rf, ok := ret.Get(1).(func(string, string, model.StringArray) error); ok {
+		r1 = rf(pageID, fromPostID, fileIds)
 	} else {
 		r1 = ret.Error(1)
 	}

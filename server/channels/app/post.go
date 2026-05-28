@@ -1481,6 +1481,10 @@ func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool
 		}
 	}
 
+	if model.IsWikiPostType(post.Type) {
+		return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, "", http.StatusNotFound)
+	}
+
 	post, appErr := a.revealSingleBurnOnReadPost(rctx, post, rctx.Session().UserId)
 	if appErr != nil {
 		return nil, appErr
@@ -1974,7 +1978,7 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 
 	if shouldSendCommentDeletedEvent(post) {
 		if pageId, ok := post.Props[model.PagePropsPageID].(string); ok && pageId != "" {
-			page, pageErr := a.GetSinglePost(rctx, pageId, false)
+			page, pageErr := a.GetPage(rctx, pageId)
 			if pageErr == nil {
 				a.SendCommentDeletedEvent(rctx, post, page)
 			}

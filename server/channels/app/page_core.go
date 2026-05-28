@@ -618,7 +618,7 @@ func (a *App) RestorePageVersion(
 	// Restore FileIds if they differ (UpdatePageWithContent doesn't handle FileIds)
 	if !toRestorePostVersion.FileIds.Equals(updatedPost.FileIds) {
 		var fileIdsErr error
-		updatedPost, fileIdsErr = a.Srv().Store().Page().UpdatePageFileIds(pageID, toRestorePostVersion.FileIds)
+		updatedPost, fileIdsErr = a.Srv().Store().Page().UpdatePageFileIds(pageID, toRestorePostVersion.Id, toRestorePostVersion.FileIds)
 		if fileIdsErr != nil {
 			return nil, model.NewAppError("RestorePageVersion",
 				"app.page.restore.update_fileids.app_error", nil, "",

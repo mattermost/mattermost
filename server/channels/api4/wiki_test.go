@@ -654,9 +654,9 @@ func TestWikiPermissions(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		_, appErr = th.App.GetSinglePost(th.Context, page.Id, false)
-		require.NotNil(t, appErr, "Page should be deleted when removed from wiki")
-		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		deletedPage, appErr := th.App.GetPageWithDeleted(th.Context, page.Id)
+		require.Nil(t, appErr)
+		require.NotZero(t, deletedPage.DeleteAt, "Page should be soft-deleted when removed from wiki")
 
 		pages, resp, err = th.Client.GetPages(context.Background(), wiki.Id, 0, 100)
 		require.NoError(t, err)
@@ -1223,7 +1223,7 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		retrievedComment1, appErr := th.App.GetSinglePost(th.Context, comment1.Id, false)
+		retrievedComment1, appErr := th.App.GetPageCommentPost(th.Context, comment1.Id, false)
 		require.Nil(t, appErr)
 		require.Equal(t, comment1.Id, retrievedComment1.Id)
 
@@ -1231,17 +1231,21 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		_, appErr = th.App.GetSinglePost(th.Context, testPage.Id, false)
-		require.NotNil(t, appErr, "Deleted page should not be retrievable")
+		deletedPage, appErr := th.App.GetPageWithDeleted(th.Context, testPage.Id)
+		require.Nil(t, appErr)
+		require.NotZero(t, deletedPage.DeleteAt, "Deleted page should be soft-deleted")
 
-		_, appErr = th.App.GetSinglePost(th.Context, comment1.Id, false)
-		require.NotNil(t, appErr, "Comment 1 should be deleted when page is deleted")
+		deletedComment1, appErr := th.App.GetPageCommentPost(th.Context, comment1.Id, true)
+		require.Nil(t, appErr)
+		require.NotZero(t, deletedComment1.DeleteAt, "Comment 1 should be deleted when page is deleted")
 
-		_, appErr = th.App.GetSinglePost(th.Context, comment2.Id, false)
-		require.NotNil(t, appErr, "Comment 2 should be deleted when page is deleted")
+		deletedComment2, appErr := th.App.GetPageCommentPost(th.Context, comment2.Id, true)
+		require.Nil(t, appErr)
+		require.NotZero(t, deletedComment2.DeleteAt, "Comment 2 should be deleted when page is deleted")
 
-		_, appErr = th.App.GetSinglePost(th.Context, reply.Id, false)
-		require.NotNil(t, appErr, "Reply should be deleted when page is deleted")
+		deletedReply, appErr := th.App.GetPageCommentPost(th.Context, reply.Id, true)
+		require.Nil(t, appErr)
+		require.NotZero(t, deletedReply.DeleteAt, "Reply should be deleted when page is deleted")
 	})
 
 	t.Run("cannot reply to a reply (one-level nesting enforced)", func(t *testing.T) {
@@ -2122,7 +2126,7 @@ func TestMovePage(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		updatedChild, appErr := th.App.GetSinglePost(th.Context, child.Id, false)
+		updatedChild, appErr := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, parent2.Id, updatedChild.PageParentId)
 	})
@@ -2146,7 +2150,7 @@ func TestMovePage(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		updatedChild, appErr := th.App.GetSinglePost(th.Context, child.Id, false)
+		updatedChild, appErr := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "", updatedChild.PageParentId)
 	})
@@ -2377,7 +2381,7 @@ func TestMovePageWithReorder(t *testing.T) {
 		require.Len(t, siblings.Posts, 3)
 
 		// Verify orphan is now under parent
-		updatedOrphan, appErr := th.App.GetSinglePost(th.Context, orphan.Id, false)
+		updatedOrphan, appErr := th.App.GetPage(th.Context, orphan.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, parent.Id, updatedOrphan.PageParentId)
 
@@ -2408,7 +2412,7 @@ func TestMovePageWithReorder(t *testing.T) {
 		require.Nil(t, siblings, "siblings should be nil when no index provided")
 
 		// Verify parent changed
-		updatedChild, appErr := th.App.GetSinglePost(th.Context, child.Id, false)
+		updatedChild, appErr := th.App.GetPage(th.Context, child.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, parent.Id, updatedChild.PageParentId)
 	})

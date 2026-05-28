@@ -165,7 +165,7 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 // validateInlinePageComment validates that a comment is an inline page comment for the given page.
 // Returns the comment post if valid, or nil if validation fails (c.Err will be set).
 func validateInlinePageComment(c *Context, commentId, pageId, handlerName string) *model.Post {
-	comment, appErr := c.App.GetSinglePost(c.AppContext, commentId, false)
+	comment, appErr := c.App.GetPageCommentPost(c.AppContext, commentId, false)
 	if appErr != nil {
 		c.Err = appErr
 		return nil
@@ -343,7 +343,7 @@ func deletePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comment, appErr := c.App.GetSinglePost(c.AppContext, commentId, false)
+	comment, appErr := c.App.GetPageCommentPost(c.AppContext, commentId, false)
 	if appErr != nil {
 		c.Err = appErr
 		return

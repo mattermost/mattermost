@@ -510,20 +510,14 @@ func extractPageImageText(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Check if file belongs to a post the user can access
+		// Check if file belongs to a post the user can access.
+		// Use GetPage since files on wiki pages have a page post as PostId.
 		if fileInfo.PostId != "" {
-			post, postErr := c.App.GetSinglePost(c.AppContext, fileInfo.PostId, false)
+			post, postErr := c.App.GetPage(c.AppContext, fileInfo.PostId)
 			if postErr != nil {
-				// Distinguish between post not found/deleted vs other errors
 				if postErr.StatusCode == http.StatusNotFound {
 					c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.file_post_not_found.app_error",
 						nil, "the post this file was attached to no longer exists", http.StatusNotFound).Wrap(postErr)
-					return
-				}
-				if postErr.StatusCode == http.StatusForbidden {
-					// Cloud message limits or other access restrictions
-					c.Err = model.NewAppError("extractPageImageText", "api.wiki.extract_image.file_post_inaccessible.app_error",
-						nil, "the post this file was attached to is not accessible", http.StatusForbidden).Wrap(postErr)
 					return
 				}
 				c.Err = postErr

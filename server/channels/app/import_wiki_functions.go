@@ -89,6 +89,9 @@ func (a *App) importWiki(rctx request.CTX, data *imports.WikiImportData, dryRun 
 			map[string]any{"TeamName": *data.Team}, "", http.StatusNotFound).Wrap(err)
 	}
 
+	// Check idempotency before any channel lookup. The exported channel name may be a
+	// backing channel (ChannelTypeWiki), which GetChannelByName cannot find. For round-trip
+	// imports the wiki already exists and we return early without needing the channel.
 	existingWiki, appErr := a.getWikiByImportSourceId(rctx, team.Id, importSourceId)
 	if appErr != nil {
 		return appErr
@@ -121,6 +124,13 @@ func (a *App) importWiki(rctx request.CTX, data *imports.WikiImportData, dryRun 
 		return nil
 	}
 
+	// Wiki does not exist yet — look up the source channel to link the new wiki to.
+	channel, appErr := a.GetChannelByName(rctx, *data.Channel, team.Id, false)
+	if appErr != nil {
+		return model.NewAppError("importWiki", "app.import.import_wiki.channel_not_found.error",
+			map[string]any{"ChannelName": *data.Channel}, "", http.StatusNotFound).Wrap(appErr)
+	}
+
 	// Create new wiki with import_source_id
 	title := *data.Channel
 	if data.Title != nil && strings.TrimSpace(*data.Title) != "" {
@@ -141,8 +151,16 @@ func (a *App) importWiki(rctx request.CTX, data *imports.WikiImportData, dryRun 
 		},
 	}
 
-	_, appErr = a.CreateWiki(rctx, wiki, "")
-	return appErr
+	savedWiki, appErr := a.CreateWiki(rctx, wiki, "")
+	if appErr != nil {
+		return appErr
+	}
+
+	if _, appErr = a.LinkWikiToChannelWithWiki(rctx, savedWiki, channel.Id, ""); appErr != nil {
+		return appErr
+	}
+
+	return nil
 }
 
 // importResolveWikiPlaceholders resolves cross-page link placeholders after all pages are imported.

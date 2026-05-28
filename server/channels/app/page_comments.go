@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"maps"
 	"net/http"
 	"strings"
@@ -15,6 +16,19 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// GetPageCommentPost fetches a single page_comment post by ID via the Page store.
+func (a *App) GetPageCommentPost(rctx request.CTX, commentID string, includeDeleted bool) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store().Page().GetSinglePageComment(commentID, includeDeleted)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, model.NewAppError("GetPageCommentPost", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, model.NewAppError("GetPageCommentPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return post, nil
+}
 
 // handlePageCommentMentions surfaces @-mentions in wiki backing channels, which use
 // system-managed membership — so the standard SendNotifications pipeline misses users
@@ -364,7 +378,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		}
 	}
 
-	parentComment, err := a.GetSinglePost(rctx, parentCommentID, false)
+	parentComment, err := a.GetPageCommentPost(rctx, parentCommentID, false)
 	if err != nil {
 		return nil, model.NewAppError("CreatePageCommentReply",
 			"app.page.create_comment_reply.parent_not_found.app_error",

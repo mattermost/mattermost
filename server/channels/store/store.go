@@ -1462,6 +1462,9 @@ type PageStore interface {
 	// GetCommentsForPage fetches comments and replies for a page with pagination
 	GetCommentsForPage(pageID string, includeDeleted bool, offset, limit int) (*model.PostList, error)
 
+	// GetSinglePageComment fetches a single page_comment post by ID.
+	GetSinglePageComment(commentID string, includeDeleted bool) (*model.Post, error)
+
 	// AtomicUpdatePageNotification atomically finds and updates an existing page update
 	// notification post within a transaction using SELECT FOR UPDATE to prevent lost updates
 	// from concurrent modifications. Returns the updated post, or nil if no matching
@@ -1475,8 +1478,9 @@ type PageStore interface {
 	UpdateCommentProps(commentID string, props model.StringInterface) (*model.Post, error)
 
 	// UpdatePageFileIds sets the FileIds column on a page post and bumps UpdateAt.
-	// No permission checks or pipeline side-effects — callers are responsible for WebSocket events.
-	UpdatePageFileIds(pageID string, fileIds model.StringArray) (*model.Post, error)
+	// It also reparents FileInfo rows from fromPostID to pageID so file references survive
+	// snapshot pruning by data retention. Callers are responsible for WebSocket events.
+	UpdatePageFileIds(pageID string, fromPostID string, fileIds model.StringArray) (*model.Post, error)
 
 	// PermanentDeletePage hard-deletes the page post and all its comments, threads, and file info.
 	PermanentDeletePage(pageID string) error

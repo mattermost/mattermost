@@ -7002,6 +7002,22 @@ func (s *TimerLayerPageStore) GetCommentsForPage(pageID string, includeDeleted b
 	return result, err
 }
 
+func (s *TimerLayerPageStore) GetSinglePageComment(commentID string, includeDeleted bool) (*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetSinglePageComment(commentID, includeDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetSinglePageComment", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPageStore) GetPage(rctx request.CTX, pageID string, includeDeleted bool) (*model.Post, error) {
 	start := time.Now()
 
@@ -7194,10 +7210,10 @@ func (s *TimerLayerPageStore) UpdateCommentProps(commentID string, props model.S
 	return result, err
 }
 
-func (s *TimerLayerPageStore) UpdatePageFileIds(pageID string, fileIds model.StringArray) (*model.Post, error) {
+func (s *TimerLayerPageStore) UpdatePageFileIds(pageID string, fromPostID string, fileIds model.StringArray) (*model.Post, error) {
 	start := time.Now()
 
-	result, err := s.PageStore.UpdatePageFileIds(pageID, fileIds)
+	result, err := s.PageStore.UpdatePageFileIds(pageID, fromPostID, fileIds)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
