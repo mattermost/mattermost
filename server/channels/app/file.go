@@ -71,10 +71,12 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 
 func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.AppError {
 	storageAccount := settings.AzureStorageAccount
+	authMode := settings.AzureAuthMode
 	accessKey := settings.AzureAccessKey
 	container := settings.AzureContainer
 	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
 		storageAccount = settings.ExportAzureStorageAccount
+		authMode = settings.ExportAzureAuthMode
 		accessKey = settings.ExportAzureAccessKey
 		container = settings.ExportAzureContainer
 	}
@@ -84,7 +86,9 @@ func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.App
 	if container == nil || *container == "" {
 		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure container setting", http.StatusBadRequest)
 	}
-	if accessKey == nil || *accessKey == "" {
+	// Access key only matters under shared-key auth. Default credential pulls
+	// identity from the host environment.
+	if authMode != nil && *authMode == model.AzureAuthModeSharedKey && (accessKey == nil || *accessKey == "") {
 		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure access key setting", http.StatusBadRequest)
 	}
 	return nil

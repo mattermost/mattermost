@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
@@ -34,8 +35,11 @@ import (
 // StageBlock call well under the per-block REST limit (4000 MiB).
 const azureBlockSize = 4 * 1024 * 1024
 
-// AzureFileBackend stores files in Azure Blob Storage. Connections are
-// authenticated with a shared key today; Microsoft Entra ID is a follow-up.
+// AzureFileBackend stores files in Azure Blob Storage. Two authentication
+// modes are supported: shared key (an account access key configured by the
+// admin) and Microsoft Entra ID via DefaultAzureCredential (managed identity,
+// service principal, workload identity, or az login - whichever the host
+// environment provides).
 type AzureFileBackend struct {
 	client     *azblob.Client
 	container  string
@@ -46,11 +50,6 @@ type AzureFileBackend struct {
 func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error) {
 	if err := settings.CheckMandatoryAzureFields(); err != nil {
 		return nil, err
-	}
-
-	credential, err := azblob.NewSharedKeyCredential(settings.AzureStorageAccount, settings.AzureAccessKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create azure shared key credential: %w", err)
 	}
 
 	scheme := "https"
@@ -79,9 +78,9 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 		}
 	}
 
-	client, err := azblob.NewClientWithSharedKeyCredential(serviceURL, credential, clientOptions)
+	client, err := newAzureClient(settings, serviceURL, clientOptions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create azure blob client: %w", err)
+		return nil, err
 	}
 
 	// Config.IsValid rejects non-positive timeouts before they reach this
@@ -106,6 +105,38 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 
 func (b *AzureFileBackend) DriverName() string {
 	return driverAzure
+}
+
+// newAzureClient builds an azblob client for the configured authentication
+// mode. Shared key uses NewClientWithSharedKeyCredential; default credential
+// uses NewClient with DefaultAzureCredential, which discovers managed
+// identity, workload identity, service principal env vars, and az login in
+// that order at runtime.
+func newAzureClient(settings FileBackendSettings, serviceURL string, clientOptions *azblob.ClientOptions) (*azblob.Client, error) {
+	switch settings.AzureAuthMode {
+	case model.AzureAuthModeDefaultCredential:
+		cred, err := azidentity.NewDefaultAzureCredential(nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create azure default credential: %w", err)
+		}
+		client, err := azblob.NewClient(serviceURL, cred, clientOptions)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create azure blob client: %w", err)
+		}
+		return client, nil
+	case model.AzureAuthModeSharedKey:
+		cred, err := azblob.NewSharedKeyCredential(settings.AzureStorageAccount, settings.AzureAccessKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create azure shared key credential: %w", err)
+		}
+		client, err := azblob.NewClientWithSharedKeyCredential(serviceURL, cred, clientOptions)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create azure blob client: %w", err)
+		}
+		return client, nil
+	default:
+		return nil, fmt.Errorf("unknown azure auth mode %q", settings.AzureAuthMode)
+	}
 }
 
 // buildAzureServiceURL renders the Blob service URL that the SDK signs

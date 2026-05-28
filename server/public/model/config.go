@@ -38,6 +38,9 @@ const (
 	ImageDriverS3    = "amazons3"
 	ImageDriverAzure = "azureblob"
 
+	AzureAuthModeSharedKey         = "shared_key"
+	AzureAuthModeDefaultCredential = "default_credential"
+
 	// AzureCloudCommercial / AzureCloudGovernment select hardcoded Azure
 	// service endpoints so admins do not have to spell out the suffix
 	// for the well-known clouds. AzureCloudCustom hands control to the
@@ -1814,6 +1817,7 @@ type FileSettings struct {
 	AmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzureStorageAccount                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureAuthMode                      *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzureAccessKey                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzureContainer                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1840,6 +1844,7 @@ type FileSettings struct {
 	ExportAmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzureStorageAccount                *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAzureAuthMode                      *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzureAccessKey                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzureContainer                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
@@ -1967,6 +1972,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AzureStorageAccount = NewPointer("")
 	}
 
+	if s.AzureAuthMode == nil {
+		s.AzureAuthMode = NewPointer(AzureAuthModeSharedKey)
+	}
+
 	if s.AzureAccessKey == nil {
 		s.AzureAccessKey = NewPointer("")
 	}
@@ -2067,6 +2076,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExportAzureStorageAccount == nil {
 		s.ExportAzureStorageAccount = NewPointer("")
+	}
+
+	if s.ExportAzureAuthMode == nil {
+		s.ExportAzureAuthMode = NewPointer(AzureAuthModeSharedKey)
 	}
 
 	if s.ExportAzureAccessKey == nil {
@@ -4584,6 +4597,10 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_timeout.app_error", map[string]any{"Value": *s.AzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
 	}
 
+	if !(*s.AzureAuthMode == AzureAuthModeSharedKey || *s.AzureAuthMode == AzureAuthModeDefaultCredential) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_auth_mode.app_error", map[string]any{"Value": *s.AzureAuthMode}, "", http.StatusBadRequest)
+	}
+
 	switch *s.AzureCloud {
 	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom:
 	default:
@@ -4616,6 +4633,10 @@ func (s *FileSettings) isValid() *AppError {
 
 	if *s.ExportAzureRequestTimeoutMilliseconds <= 0 || *s.ExportAzureRequestTimeoutMilliseconds > maxAzureRequestTimeoutMilliseconds {
 		return NewAppError("Config.IsValid", "model.config.is_valid.export_azure_timeout.app_error", map[string]any{"Value": *s.ExportAzureRequestTimeoutMilliseconds}, "", http.StatusBadRequest)
+	}
+
+	if !(*s.ExportAzureAuthMode == AzureAuthModeSharedKey || *s.ExportAzureAuthMode == AzureAuthModeDefaultCredential) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.export_azure_auth_mode.app_error", map[string]any{"Value": *s.ExportAzureAuthMode}, "", http.StatusBadRequest)
 	}
 
 	switch *s.ExportAzureCloud {

@@ -908,6 +908,9 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		if rErr := a.Srv().Store().Post().RestoreContentFlaggedPost(flaggedPost, statusField.ID, contentFlaggingManagedField.ID); rErr != nil {
 			return model.NewAppError("KeepFlaggedPost", "app.data_spillage.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(rErr)
 		}
+
+		// Undelete the value for broadcasting in WebSocket events
+		flaggedPost.DeleteAt = 0
 	}
 
 	commentBytes, marshalErr := json.Marshal(actionRequest.Comment)
