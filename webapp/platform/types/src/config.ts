@@ -260,6 +260,7 @@ export type License = {
     features: LicenseFeatures;
     sku_name: string;
     sku_short_name: string;
+    is_gov_sku?: boolean;
 };
 
 export type LicenseCustomer = {
