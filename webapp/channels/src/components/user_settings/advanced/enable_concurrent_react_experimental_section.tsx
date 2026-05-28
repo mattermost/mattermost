@@ -86,7 +86,7 @@ export default function EnableConcurrentReactExperimentalSection({
                         defaultMessage='Enable Concurrent React (Experimental)'
                     />
                 }
-                describe={renderOnOffLabel(enabled.toString())}
+                describe={renderOnOffLabel(currentValue)}
                 section={section}
                 updateSection={onUpdateSection}
             />
