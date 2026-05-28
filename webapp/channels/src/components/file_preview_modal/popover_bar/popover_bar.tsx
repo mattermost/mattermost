@@ -11,6 +11,7 @@ import {ZoomSettings} from 'utils/constants';
 
 export interface Props {
     scale?: number;
+    defaultScale?: number;
     showZoomControls?: boolean;
     handleZoomIn?: () => void;
     handleZoomOut?: () => void;
@@ -19,6 +20,7 @@ export interface Props {
 
 export default class PopoverBar extends React.PureComponent<Props> {
     render() {
+        const defaultScale = this.props.defaultScale ?? ZoomSettings.DEFAULT_SCALE;
         const zoomControls: React.ReactNode[] = [];
         let wrappedZoomControls: React.ReactNode = null;
         if (this.props.showZoomControls) {
@@ -55,7 +57,7 @@ export default class PopoverBar extends React.PureComponent<Props> {
                 </WithTooltip>,
             );
 
-            if (this.props.scale && this.props.scale > ZoomSettings.DEFAULT_SCALE) {
+            if (this.props.scale && this.props.scale > defaultScale) {
                 zoomResetButton = (
                     <span className='modal-zoom-btn'>
                         <a onClick={this.props.handleZoomReset}>
@@ -63,7 +65,7 @@ export default class PopoverBar extends React.PureComponent<Props> {
                         </a>
                     </span>
                 );
-            } else if (this.props.scale && this.props.scale < ZoomSettings.DEFAULT_SCALE) {
+            } else if (this.props.scale && this.props.scale < defaultScale) {
                 zoomResetButton = (
                     <span className='modal-zoom-btn'>
                         <a onClick={this.props.handleZoomReset}>

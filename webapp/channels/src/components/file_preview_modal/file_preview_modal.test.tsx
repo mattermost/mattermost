@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import FilePreviewModal from 'components/file_preview_modal/file_preview_modal';
+import FilePreviewModal, {computeZoomAtCursor} from 'components/file_preview_modal/file_preview_modal';
 
 import {act, render} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
@@ -399,5 +399,48 @@ describe('components/FilePreviewModal', () => {
         const props = {...baseProps, pluginFilePreviewComponents};
         const {container} = renderModal(props);
         expect(container).toMatchSnapshot();
+    });
+});
+
+describe('computeZoomAtCursor', () => {
+    test('cursor at center yields zero translate when starting from zero', () => {
+        const result = computeZoomAtCursor(1, {x: 0, y: 0}, 0, 0, 2);
+        expect(result).toEqual({x: 0, y: 0});
+    });
+
+    test('zooming in at an off-center cursor shifts translate opposite to the cursor', () => {
+        // Cursor 100px right of center, zooming 1 -> 2. The pixel under the cursor
+        // must remain under the cursor, so translate must move by -100px on x.
+        const result = computeZoomAtCursor(1, {x: 0, y: 0}, 100, 50, 2);
+        expect(result).toEqual({x: -100, y: -50});
+    });
+
+    test('zooming back to the same scale is a no-op on translate', () => {
+        const start = {x: 30, y: -40};
+        const result = computeZoomAtCursor(2, start, 75, 25, 2);
+        expect(result).toEqual(start);
+    });
+
+    test('preserves the pixel under the cursor across a zoom step', () => {
+        // The image pixel under the cursor (in local image-center coords) is
+        //   p = (cursor - translate) / scale
+        // After the new scale + new translate, applying the same transform to p
+        // should land back at the cursor position.
+        const oldScale = 1.5;
+        const oldT = {x: 20, y: -10};
+        const cursor = {x: 60, y: 80};
+        const newScale = 2.25;
+        const px = (cursor.x - oldT.x) / oldScale;
+        const py = (cursor.y - oldT.y) / oldScale;
+
+        const newT = computeZoomAtCursor(oldScale, oldT, cursor.x, cursor.y, newScale);
+
+        expect(newT.x + newScale * px).toBeCloseTo(cursor.x);
+        expect(newT.y + newScale * py).toBeCloseTo(cursor.y);
+    });
+
+    test('returns the input translate when oldScale is zero (guard)', () => {
+        const t = {x: 5, y: 7};
+        expect(computeZoomAtCursor(0, t, 10, 10, 2)).toBe(t);
     });
 });
