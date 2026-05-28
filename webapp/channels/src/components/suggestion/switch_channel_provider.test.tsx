@@ -17,6 +17,22 @@ import {TestHelper} from 'utils/test_helper';
 
 import SwitchChannelProvider, {ConnectedSwitchChannelSuggestion} from './switch_channel_provider';
 
+let mockProfilesById: Record<string, UserProfile> = {};
+const mockGetMissingProfilesByIds = jest.fn((userIds: string[]) => async (_dispatch: any, getState: () => any) => {
+    const state = getState();
+    const profiles = {...state.entities.users.profiles};
+
+    for (const userId of userIds) {
+        if (mockProfilesById[userId]) {
+            profiles[userId] = mockProfilesById[userId];
+        }
+    }
+
+    state.entities.users.profiles = profiles;
+
+    return {data: userIds};
+});
+
 const latestPost = TestHelper.getPostMock({
     id: 'latest_post_id',
     user_id: 'current_user_id',
@@ -50,6 +66,11 @@ jest.mock('mattermost-redux/actions/channels', () => ({
         },
         ],
     })),
+}));
+
+jest.mock('mattermost-redux/actions/users', () => ({
+    ...jest.requireActual('mattermost-redux/actions/users'),
+    getMissingProfilesByIds: (userIds: string[]) => mockGetMissingProfilesByIds(userIds),
 }));
 
 describe('components/SwitchChannelProvider', () => {
@@ -140,6 +161,11 @@ describe('components/SwitchChannelProvider', () => {
             },
         },
     };
+
+    beforeEach(() => {
+        mockProfilesById = {};
+        mockGetMissingProfilesByIds.mockClear();
+    });
 
     it('should change name on wrapper to be unique with same name user channel and public channel', () => {
         const switchProvider = new SwitchChannelProvider();
@@ -410,14 +436,14 @@ describe('components/SwitchChannelProvider', () => {
             id: 'direct_joram_user',
             type: 'D',
             name: 'current_user_id__joram_user',
-            display_name: 'Joram User',
+            display_name: '',
             delete_at: 0,
         });
         const groupChannel = TestHelper.getChannelMock({
             id: 'group_joram_user',
             type: 'G',
             name: 'group_joram_user',
-            display_name: 'Joram User, Alice',
+            display_name: 'current_user, joram_user, alice',
             delete_at: 0,
         });
         const modifiedState = {
@@ -467,7 +493,7 @@ describe('components/SwitchChannelProvider', () => {
 
         expect(results.terms).toEqual(['joram_user', groupChannel.id]);
         expect(results.items[0]).toEqual(expect.objectContaining({
-            name: directChannel.display_name,
+            name: directChannel.name,
             type: 'search.direct',
             channel: expect.objectContaining({
                 id: directChannel.id,
@@ -481,14 +507,14 @@ describe('components/SwitchChannelProvider', () => {
             id: 'direct_joram_user',
             type: 'D',
             name: 'current_user_id__joram_user',
-            display_name: 'Joram User',
+            display_name: '',
             delete_at: 0,
         });
         const groupChannel = TestHelper.getChannelMock({
             id: 'group_joram_user',
             type: 'G',
             name: 'group_joram_user',
-            display_name: 'Joram User, Alice',
+            display_name: 'current_user, joram_user, alice',
             delete_at: 0,
         });
         const modifiedState = {
@@ -525,12 +551,245 @@ describe('components/SwitchChannelProvider', () => {
 
         expect(results.map((item) => item.channel.id)).toEqual([groupChannel.id, directChannel.id]);
         expect(results[1]).toEqual(expect.objectContaining({
-            name: directChannel.display_name,
+            name: directChannel.name,
             type: Constants.MENTION_RECENT_CHANNELS,
             channel: expect.objectContaining({
                 id: directChannel.id,
                 userId: 'joram_user',
             }),
+        }));
+    });
+
+    it('should load missing direct channel profiles before formatting search results', async () => {
+        const directChannel = TestHelper.getChannelMock({
+            id: 'direct_user_alpha',
+            type: 'D',
+            name: 'current_user_id__user_alpha',
+            display_name: '',
+            delete_at: 0,
+            team_id: '',
+        });
+        mockProfilesById = {
+            user_alpha: TestHelper.getUserMock({
+                id: 'user_alpha',
+                username: 'alpha',
+                first_name: 'Alpha',
+                last_name: 'User',
+            }),
+        };
+        const modifiedState = {
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    channels: {
+                        [directChannel.id]: directChannel,
+                    },
+                    channelsInTeam: {
+                        '': new Set([directChannel.id]),
+                    },
+                    myMembers: {
+                        [directChannel.id]: {
+                            channel_id: directChannel.id,
+                            user_id: 'current_user_id',
+                        },
+                    },
+                    messageCounts: {},
+                },
+                users: {
+                    ...defaultState.entities.users,
+                    profiles: {
+                        current_user_id: TestHelper.getUserMock({
+                            id: 'current_user_id',
+                            username: 'current_user',
+                            roles: 'system_role',
+                        }),
+                    },
+                    profilesInChannel: {
+                        [directChannel.id]: new Set(['current_user_id', 'user_alpha']),
+                    },
+                },
+            },
+        };
+
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore(modifiedState);
+        switchProvider.store = store;
+        const resultsCallback = jest.fn();
+
+        switchProvider.startNewRequest('alpha');
+        await switchProvider.fetchUsersAndChannels('alpha', resultsCallback);
+
+        expect(mockGetMissingProfilesByIds).toHaveBeenCalledWith(['user_alpha']);
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'channels',
+                    terms: ['user_alpha'],
+                    items: [
+                        expect.objectContaining({
+                            name: 'alpha',
+                            channel: expect.objectContaining({
+                                id: directChannel.id,
+                                display_name: 'Alpha User',
+                                userId: 'user_alpha',
+                            }),
+                        }),
+                    ],
+                }),
+            ]),
+        }));
+    });
+
+    it('should load missing direct channel profiles before returning unread and recent channels', async () => {
+        const unreadChannel = TestHelper.getChannelMock({
+            id: 'direct_user_alpha',
+            type: 'D',
+            name: 'current_user_id__user_alpha',
+            display_name: '',
+            delete_at: 0,
+            team_id: '',
+            create_at: 1,
+            last_post_at: 10,
+        });
+        const recentChannel = TestHelper.getChannelMock({
+            id: 'direct_user_beta',
+            type: 'D',
+            name: 'current_user_id__user_beta',
+            display_name: '',
+            delete_at: 0,
+            team_id: '',
+            create_at: 1,
+            last_post_at: 1,
+        });
+        mockProfilesById = {
+            user_alpha: TestHelper.getUserMock({
+                id: 'user_alpha',
+                username: 'alpha',
+                first_name: 'Alpha',
+                last_name: 'User',
+            }),
+            user_beta: TestHelper.getUserMock({
+                id: 'user_beta',
+                username: 'beta',
+                first_name: 'Beta',
+                last_name: 'User',
+            }),
+        };
+        const modifiedState = {
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    channels: {
+                        [unreadChannel.id]: unreadChannel,
+                        [recentChannel.id]: recentChannel,
+                    },
+                    channelsInTeam: {
+                        '': new Set([unreadChannel.id, recentChannel.id]),
+                    },
+                    myMembers: {
+                        [unreadChannel.id]: {
+                            channel_id: unreadChannel.id,
+                            user_id: 'current_user_id',
+                            msg_count: 1,
+                            mention_count: 0,
+                            last_viewed_at: 10,
+                        },
+                        [recentChannel.id]: {
+                            channel_id: recentChannel.id,
+                            user_id: 'current_user_id',
+                            msg_count: 1,
+                            mention_count: 0,
+                            last_viewed_at: 20,
+                        },
+                    },
+                    messageCounts: {
+                        [unreadChannel.id]: {
+                            total: 2,
+                            root: 2,
+                        },
+                        [recentChannel.id]: {
+                            total: 1,
+                            root: 1,
+                        },
+                    },
+                },
+                users: {
+                    ...defaultState.entities.users,
+                    profiles: {
+                        current_user_id: TestHelper.getUserMock({
+                            id: 'current_user_id',
+                            username: 'current_user',
+                            roles: 'system_role',
+                        }),
+                    },
+                    profilesInChannel: {
+                        [unreadChannel.id]: new Set(['current_user_id', 'user_alpha']),
+                        [recentChannel.id]: new Set(['current_user_id', 'user_beta']),
+                    },
+                },
+                threads: {
+                    countsIncludingDirect: {
+                        currentTeamId: {
+                            total: 0,
+                            total_unread_threads: 0,
+                            total_unread_mentions: 0,
+                        },
+                    },
+                    counts: {
+                        currentTeamId: {
+                            total: 0,
+                            total_unread_threads: 0,
+                            total_unread_mentions: 0,
+                        },
+                    },
+                },
+            },
+        };
+
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore(modifiedState);
+        switchProvider.store = store;
+        const resultsCallback = jest.fn();
+
+        await switchProvider.fetchAndFormatRecentlyViewedChannels(resultsCallback);
+
+        expect(mockGetMissingProfilesByIds).toHaveBeenNthCalledWith(1, ['user_alpha']);
+        expect(mockGetMissingProfilesByIds).toHaveBeenNthCalledWith(2, ['user_beta']);
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'unread',
+                    terms: [unreadChannel.id],
+                    items: [
+                        expect.objectContaining({
+                            name: 'alpha',
+                            channel: expect.objectContaining({
+                                id: unreadChannel.id,
+                                display_name: 'Alpha User',
+                                userId: 'user_alpha',
+                            }),
+                        }),
+                    ],
+                }),
+                expect.objectContaining({
+                    key: 'recent',
+                    terms: [recentChannel.id],
+                    items: [
+                        expect.objectContaining({
+                            name: 'beta',
+                            channel: expect.objectContaining({
+                                id: recentChannel.id,
+                                display_name: 'Beta User',
+                                userId: 'user_beta',
+                            }),
+                        }),
+                    ],
+                }),
+            ]),
         }));
     });
 
