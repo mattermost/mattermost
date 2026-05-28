@@ -1333,13 +1333,19 @@ export async function renamePageViaContextMenu(page: Page, currentTitle: string,
     if (!alreadyInEditor) {
         // # Navigate to the page by clicking it in the hierarchy
         const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-        const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: currentTitle}).first();
+        const pageNode = hierarchyPanel
+            .locator('[data-testid="page-tree-node"]')
+            .filter({hasText: currentTitle})
+            .first();
         await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode.click();
-        await page.locator('[data-testid="page-viewer-content"], [data-testid="wiki-page-title-input"]').first().waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await page
+            .locator('[data-testid="page-viewer-content"], [data-testid="wiki-page-title-input"]')
+            .first()
+            .waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
         // # If still not in editor (published page in viewer mode), enter edit mode
-        if (!await titleInput.isVisible()) {
+        if (!(await titleInput.isVisible())) {
             await enterEditMode(page);
         }
     }
@@ -2391,10 +2397,7 @@ export async function switchToWikiRHSTab(
  * @param page - Playwright page object
  * @param tabName - Name of the tab ('Comments' or 'Page Threads')
  */
-export async function switchToWikiPageTab(
-    page: Page,
-    tabName: 'Comments' | 'Page Threads',
-): Promise<void> {
+export async function switchToWikiPageTab(page: Page, tabName: 'Comments' | 'Page Threads'): Promise<void> {
     // The tabs only exist in the Wiki RHS default tabs view — not in the
     // single-thread / new-comment sub-views. Ensure we're in tabs view first.
     const rhs = page.locator('[data-testid="wiki-rhs"]');
@@ -4393,11 +4396,11 @@ export async function loginAndNavigateToChannel(
     // catching transient post-login redirects to /wiki/ or /system_console.
     const expectedPath = `/${teamName}/channels/${channelName}`;
     try {
-        await page.waitForURL((url) => url.pathname.includes(expectedPath), {timeout: HIERARCHY_TIMEOUT});
+        await page.waitForURL((url: URL) => url.pathname.includes(expectedPath), {timeout: HIERARCHY_TIMEOUT});
     } catch {
         // URL didn't settle on expected path — navigate again
         await channelsPage.goto(teamName, channelName);
-        await page.waitForURL((url) => url.pathname.includes(expectedPath), {timeout: HIERARCHY_TIMEOUT});
+        await page.waitForURL((url: URL) => url.pathname.includes(expectedPath), {timeout: HIERARCHY_TIMEOUT});
     }
 
     await expect(page.locator('[data-testid="channel_view"]')).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});

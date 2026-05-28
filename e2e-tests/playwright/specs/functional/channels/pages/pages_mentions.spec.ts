@@ -525,7 +525,9 @@ test('at-mention in page comment badges the recipient threads view', {tag: '@pag
 
     // # Capture the page post ID (root_id for the comment thread) for later assertions
     const pageRootId = getPageIdFromUrl(commenterPage.url());
-    expect(pageRootId, 'page ID must be present in the URL after publish').toBeDefined();
+    if (!pageRootId) {
+        throw new Error('page ID must be present in the URL after publish');
+    }
 
     // # Wait for notification to propagate
     await commenterPage.waitForTimeout(WEBSOCKET_WAIT);
@@ -546,14 +548,21 @@ test('at-mention in page comment badges the recipient threads view', {tag: '@pag
     // * Assertion 2: the Threads inbox row is keyed by the page post ID (root_id), not the channel
     const threadsState = await mentionedPage.evaluate(() => {
         const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
-            entities: {threads: {threadsInTeam: Record<string, string[]>; threads: Record<string, {unread_mentions: number; reply_count: number}>}};
+            entities: {
+                threads: {
+                    threadsInTeam: Record<string, string[]>;
+                    threads: Record<string, {unread_mentions: number; reply_count: number}>;
+                };
+            };
         };
         return {
             allThreadIds: Object.values(state.entities.threads.threadsInTeam ?? {}).flat(),
             threads: state.entities.threads.threads,
         };
     });
-    expect(threadsState.allThreadIds, 'Threads inbox should contain a row keyed by the page post ID').toContain(pageRootId);
+    expect(threadsState.allThreadIds, 'Threads inbox should contain a row keyed by the page post ID').toContain(
+        pageRootId,
+    );
 
     // * Assertion 3: unreadMentions on the page thread = 1
     expect(threadsState.threads[pageRootId]?.unread_mentions, 'unread_mentions on page thread row must be 1').toBe(1);
@@ -577,7 +586,7 @@ test('at-mention in page comment badges the recipient threads view', {tag: '@pag
             entities: {
                 threads: {
                     unreadThreadsInTeam: Record<string, string[]>;
-                    threads: Record<string, {is_following: boolean; unread_mentions: number; last_reply_at: number}>;
+                    threads: Record<string, {is_following: boolean; unread_replies: number; unread_mentions: number; last_reply_at: number}>;
                 };
                 teams: {currentTeamId: string};
             };

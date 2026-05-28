@@ -544,10 +544,7 @@ test('shows AI Tools in page actions menu when AI is available', {tag: '@pages'}
     // * Verify AI Tools are available in page actions menu
     // Use poll() because agents/status is fetched async on mount; the menu won't
     // show the AI submenu until that Redux state resolves.
-    await expect.poll(
-        () => isAIToolsDropdownVisible(page),
-        {timeout: ELEMENT_TIMEOUT},
-    ).toBe(true);
+    await expect.poll(() => isAIToolsDropdownVisible(page), {timeout: ELEMENT_TIMEOUT}).toBe(true);
 
     // * Verify page actions menu button is visible
     const menuButton = getPageActionsMenuButton(page);

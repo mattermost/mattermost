@@ -694,4 +694,3 @@ func summarizeThreadToPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
-

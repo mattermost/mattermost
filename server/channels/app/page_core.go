@@ -133,13 +133,13 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 	}
 
 	page := &model.Post{
-		Id:           pageID, // If empty, PreSave() will generate a new ID
-		Type:         model.PostTypePage,
-		ChannelId:    channelID,
-		UserId:       userID,
-		Message:      content,
+		Id:             pageID, // If empty, PreSave() will generate a new ID
+		Type:           model.PostTypePage,
+		ChannelId:      channelID,
+		UserId:         userID,
+		Message:        content,
 		PageSearchText: extractedSearchText,
-		PageParentId: pageParentID,
+		PageParentId:   pageParentID,
 		Props: model.StringInterface{
 			model.PagePropsTitle: title,
 		},

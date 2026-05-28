@@ -346,7 +346,13 @@ test.describe('Wiki Links', () => {
         // TRACE: capture browser console logs from React hooks (must be before openWikiByTab)
         page.on('console', (msg) => {
             const text = msg.text();
-            if (text.includes('[useWikiPageData]') || text.includes('[useAutoPageSelection]') || text.includes('[wiki_view]') || text.includes('[wiki_router]') || text.includes('[channel_view]')) {
+            if (
+                text.includes('[useWikiPageData]') ||
+                text.includes('[useAutoPageSelection]') ||
+                text.includes('[wiki_view]') ||
+                text.includes('[wiki_router]') ||
+                text.includes('[channel_view]')
+            ) {
                 // eslint-disable-next-line no-console
                 console.log('[BROWSER]', text);
             }

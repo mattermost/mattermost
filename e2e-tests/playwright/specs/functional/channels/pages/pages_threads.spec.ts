@@ -764,7 +764,11 @@ test(
         // * Assert: both pages' comments are visible in the restored All threads list.
         // Scope to the all-threads panel so we don't match the (hidden) Comments tab.
         const allThreadsPanel = page.locator('[data-testid="wiki-rhs-all-threads"]');
-        await expect(allThreadsPanel.getByText('A29 comment on Page A').first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await expect(allThreadsPanel.getByText('A29 comment on Page B').first()).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(allThreadsPanel.getByText('A29 comment on Page A').first()).toBeVisible({
+            timeout: ELEMENT_TIMEOUT,
+        });
+        await expect(allThreadsPanel.getByText('A29 comment on Page B').first()).toBeVisible({
+            timeout: ELEMENT_TIMEOUT,
+        });
     },
 );

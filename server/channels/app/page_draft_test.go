@@ -642,12 +642,12 @@ func TestBroadcastPageDraftUpdated_FiltersUnauthorizedUsers(t *testing.T) {
 	case ev := <-authorizedEvents:
 		require.Equal(t, model.WebsocketEventPageDraftUpdated, ev.EventType())
 	case <-time.After(5 * time.Second):
-		t.Fatal("authorized user did not receive page_draft_updated event")
+		require.Fail(t, "authorized user did not receive page_draft_updated event")
 	}
 
 	select {
 	case <-unauthorizedEvents:
-		t.Fatal("BUG #11: unauthorized user received page_draft_updated event — editor identity leaked to non-wiki-member")
+		require.Fail(t, "BUG #11: unauthorized user received page_draft_updated event — editor identity leaked to non-wiki-member")
 	case <-time.After(500 * time.Millisecond):
 		// Expected: no event delivered to non-team-member.
 	}

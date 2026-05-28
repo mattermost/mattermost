@@ -264,7 +264,9 @@ test(
         await expect(statusDisplay).toBeVisible();
 
         // * Verify the editable selector is no longer visible
-        const statusSelectorAfter = page.locator('[data-testid="page-status-wrapper"] .selectable-select-property__control');
+        const statusSelectorAfter = page.locator(
+            '[data-testid="page-status-wrapper"] .selectable-select-property__control',
+        );
         await expect(statusSelectorAfter).not.toBeVisible();
     },
 );

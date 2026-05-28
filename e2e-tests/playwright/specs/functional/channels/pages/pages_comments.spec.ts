@@ -43,7 +43,6 @@ import {
     WEBSOCKET_WAIT,
     HIERARCHY_TIMEOUT,
     SHORT_WAIT,
-    EDITOR_LOAD_WAIT,
 } from './test_helpers';
 
 /**
@@ -1408,7 +1407,10 @@ test(
         //   loading — if `page_commented_on.tsx` returned `null` here, the parent
         //   renderer would fill the slot with "commented on someone's message loading"
         //   and the assertion would catch it.
-        await page.locator('.post, [data-testid="postView"]').first().waitFor({state: 'attached', timeout: ELEMENT_TIMEOUT});
+        await page
+            .locator('.post, [data-testid="postView"]')
+            .first()
+            .waitFor({state: 'attached', timeout: ELEMENT_TIMEOUT});
 
         // * Assert: no post in the channel feed shows "loading" near a "commented on" post
         // This catches the A14 anomaly where page_commented_on.tsx returns null during load
@@ -1451,7 +1453,13 @@ test(
         // # Create wiki and page with an inline comment, then click the marker to open
         //   the per-thread RHS view (only this view renders the page-comment Post component
         //   that exposes the 3-dot menu — the page-level Comments tab shows thread cards).
-        const {marker} = await setupPageWithComment(page, uniqueName('B2 Wiki'), 'B2 Page', 'B2 page content', 'B2 comment text');
+        const {marker} = await setupPageWithComment(
+            page,
+            uniqueName('B2 Wiki'),
+            'B2 Page',
+            'B2 page content',
+            'B2 comment text',
+        );
         const rhs = await clickCommentMarkerAndOpenRHS(page, marker ?? undefined);
 
         // # Hover the comment post to reveal the 3-dot menu and open it
@@ -1654,7 +1662,11 @@ test('comment rhs header shows Comment Thread not Thread', {tag: '@pages'}, asyn
     await page.waitForTimeout(SHORT_WAIT);
 
     // * Assert: the RHS header contains "Comment Thread"
-    const rhsHeader = page.locator('[data-testid="wiki-rhs-header-title"], [data-testid="wiki-rhs-title"], .wiki-rhs-header, .sidebar-right__title').first();
+    const rhsHeader = page
+        .locator(
+            '[data-testid="wiki-rhs-header-title"], [data-testid="wiki-rhs-title"], .wiki-rhs-header, .sidebar-right__title',
+        )
+        .first();
     await expect(rhsHeader).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(rhsHeader).toContainText('Comment Thread');
 
@@ -1746,7 +1758,10 @@ test('inline comment highlight persists after comment RHS opens', {tag: '@pages'
     const anchorBlockquote = page.locator('#wiki-new-comment-anchor');
     await expect(anchorBlockquote).toBeVisible({timeout: ELEMENT_TIMEOUT});
     const anchorText = await anchorBlockquote.innerText();
-    expect(anchorText.trim().length, 'Pending anchor text should be displayed in the RHS new-comment view').toBeGreaterThan(0);
+    expect(
+        anchorText.trim().length,
+        'Pending anchor text should be displayed in the RHS new-comment view',
+    ).toBeGreaterThan(0);
 });
 
 /**
@@ -1822,7 +1837,10 @@ test(
             const focusedId = state.views.wikiRhs.focusedInlineCommentId;
             return {threadCount: threadIds.length, existingThreadIds: threadIds, focusedInlineCommentId: focusedId};
         });
-        expect(beforeState.focusedInlineCommentId, 'focusedInlineCommentId must be set after clicking existing comment').not.toBeNull();
+        expect(
+            beforeState.focusedInlineCommentId,
+            'focusedInlineCommentId must be set after clicking existing comment',
+        ).not.toBeNull();
         const existingThreadId = beforeState.existingThreadIds[0];
 
         // # Capture existing thread reply count for non-mutation assertion
@@ -1858,7 +1876,9 @@ test(
         await expect(async () => {
             afterState = await page.evaluate(() => {
                 const state = (window as unknown as {store: {getState: () => unknown}}).store.getState() as {
-                    entities: {posts: {posts: Record<string, {id: string; type: string; root_id: string; message: string}>}};
+                    entities: {
+                        posts: {posts: Record<string, {id: string; type: string; root_id: string; message: string}>};
+                    };
                     views: {wikiRhs: {focusedInlineCommentId: string | null}};
                 };
                 const posts = state.entities.posts.posts;
@@ -1870,7 +1890,9 @@ test(
                     focusedInlineCommentId: state.views.wikiRhs.focusedInlineCommentId,
                 };
             });
-            expect(afterState.threadCount, 'A new thread must be created — count should increment by 1').toBe(beforeState.threadCount + 1);
+            expect(afterState.threadCount, 'A new thread must be created — count should increment by 1').toBe(
+                beforeState.threadCount + 1,
+            );
         }).toPass({timeout: WEBSOCKET_WAIT});
 
         // * Assertion 2: anchor banner is visible as thread context (not embedded in body)
@@ -1881,7 +1903,9 @@ test(
 
         // * Assertion 3: comment body contains the typed comment text. The anchor text
         // is rendered separately as a banner, not embedded in the body.
-        const commentBody = page.locator('.PageCommentedOn__message, .post-message__text, [data-testid="comment-message"]').first();
+        const commentBody = page
+            .locator('.PageCommentedOn__message, .post-message__text, [data-testid="comment-message"]')
+            .first();
         await expect(commentBody).toContainText(newAnchorCommentText, {timeout: ELEMENT_TIMEOUT});
 
         // * Assertion 4: old thread is unchanged — reply count did NOT increment
@@ -1897,7 +1921,10 @@ test(
 
         // * Assertion 5: Redux focusedInlineCommentId no longer points to the OLD (stale) thread ID.
         // It may be null or the newly-created comment ID — both indicate the stale state was cleared.
-        expect(afterState.focusedInlineCommentId, 'focusedInlineCommentId must not still point to the stale (previously-viewed) thread').not.toBe(existingThreadId);
+        expect(
+            afterState.focusedInlineCommentId,
+            'focusedInlineCommentId must not still point to the stale (previously-viewed) thread',
+        ).not.toBe(existingThreadId);
     },
 );
 

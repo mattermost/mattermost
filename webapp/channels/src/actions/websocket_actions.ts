@@ -66,6 +66,7 @@ import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
     getPosts,
+    getPostsAround,
     getPostThread,
     getPostThreads,
     postDeleted,
@@ -1130,6 +1131,39 @@ export function handlePostEditEvent(msg: WebSocketMessages.PostEdited) {
     // Handle page-specific store updates (wiki pages store)
     const pageActions = getPageReceiveActions(post);
     pageActions.forEach((action) => dispatch(action));
+
+    // This is to handle the case for Data Spillage handling. When a hidden flagged post is restored,
+    // this ensures the post is made visible if a) lies within the boundaries of loaded post blocks,
+    // or b) is newer than all loaded blocks. This ensures an old restored post doesn't become visible on
+    // channel page and cause issue when user scrolls up and loads the older posts in order.
+    if (!post.root_id) {
+        const state = getState();
+        const channelBlocks = state.entities.posts.postsInChannel[post.channel_id];
+        if (channelBlocks && !channelBlocks.some((b) => b.order.includes(post.id))) {
+            const postsDict = state.entities.posts.posts;
+
+            let globalNewest = 0;
+
+            const inLoadedRange = channelBlocks.some((block) => {
+                if (block.order.length === 0) {
+                    return false;
+                }
+                const newest = postsDict[block.order[0]];
+                const oldest = postsDict[block.order[block.order.length - 1]];
+                if (!newest || !oldest) {
+                    return false;
+                }
+
+                globalNewest = Math.max(globalNewest, newest.create_at);
+                return post.create_at >= oldest.create_at && post.create_at <= newest.create_at;
+            });
+
+            const currentChannelId = getCurrentChannelId(state);
+            if (inLoadedRange || (post.create_at > globalNewest && post.channel_id === currentChannelId)) {
+                dispatch(getPostsAround(post.channel_id, post.id));
+            }
+        }
+    }
 }
 
 async function handlePostDeleteEvent(msg: WebSocketMessages.PostDeleted) {

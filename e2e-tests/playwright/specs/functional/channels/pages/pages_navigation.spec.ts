@@ -600,9 +600,7 @@ test('shows hamburger button to reopen tree in fullscreen mode', {tag: '@pages'}
     await expect(hierarchyPanel).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // * Verify a control exists to reopen the hierarchy panel
-    const reopenControl = page
-        .locator('[data-testid="wiki-view-hamburger-button"]')
-        .first();
+    const reopenControl = page.locator('[data-testid="wiki-view-hamburger-button"]').first();
     await expect(reopenControl).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Click the reopen control
@@ -632,29 +630,27 @@ test('copied page link navigates to the page not the channel', {tag: '@pages'}, 
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
     // # Open the page actions menu (3-dot / copy link button)
-    const actionsMenu = page
-        .locator('[data-testid="wiki-page-more-actions"]')
-        .first();
+    const actionsMenu = page.locator('[data-testid="wiki-page-more-actions"]').first();
     await expect(actionsMenu).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await actionsMenu.click();
 
     // # Click the "Copy link" menu item
-    const copyLinkItem = page
-        .locator('[data-testid="page-context-menu-copy-link"]')
-        .first();
+    const copyLinkItem = page.locator('[data-testid="page-context-menu-copy-link"]').first();
     await expect(copyLinkItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await copyLinkItem.click();
 
     // # Poll the clipboard — copyToClipboard() does not await the
     // navigator.clipboard.writeText() promise, so the value can lag the click.
     let copiedUrl = '';
-    await expect.poll(
-        async () => {
-            copiedUrl = await page.evaluate(() => navigator.clipboard.readText());
-            return copiedUrl;
-        },
-        {timeout: ELEMENT_TIMEOUT, message: 'clipboard never received the copied page link'},
-    ).toContain('/wiki/');
+    await expect
+        .poll(
+            async () => {
+                copiedUrl = await page.evaluate(() => navigator.clipboard.readText());
+                return copiedUrl;
+            },
+            {timeout: ELEMENT_TIMEOUT, message: 'clipboard never received the copied page link'},
+        )
+        .toContain('/wiki/');
 
     // # Navigate to the copied URL
     await page.goto(copiedUrl);

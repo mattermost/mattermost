@@ -1312,7 +1312,9 @@ test(
         // The handwritten fixture contains "Write documentation", "Fix bug", "Code review",
         // etc.; check that the OCR text landed in the editor.
         const editorLocator = getEditor(page);
-        await expect(editorLocator).toContainText(/write documentation|fix bug|code review|priority/i, {timeout: PAGE_LOAD_TIMEOUT});
+        await expect(editorLocator).toContainText(/write documentation|fix bug|code review|priority/i, {
+            timeout: PAGE_LOAD_TIMEOUT,
+        });
 
         // * Post-fix: no new draft page should have been created — URL must not change to /pages/new
         const currentUrl = page.url();

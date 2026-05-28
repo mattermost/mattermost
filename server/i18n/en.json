@@ -2845,6 +2845,10 @@
     "translation": "Page title is too long. Maximum length is {{.MaxLength}} characters."
   },
   {
+    "id": "api.page.create_draft.title_empty.app_error",
+    "translation": ""
+  },
+  {
     "id": "api.page.permission.invalid_operation",
     "translation": "Invalid operation on page."
   },
@@ -2855,6 +2859,10 @@
   {
     "id": "api.page.permission.no_channel_access",
     "translation": "You do not have access to this channel."
+  },
+  {
+    "id": "api.page.save_draft.title_empty.app_error",
+    "translation": ""
   },
   {
     "id": "api.page.save_draft.title_too_long.app_error",
@@ -5319,16 +5327,16 @@
     "translation": "File not found."
   },
   {
-    "id": "api.wiki.extract_image.file_post_inaccessible.app_error",
-    "translation": "The post this file was attached to is not accessible."
-  },
-  {
     "id": "api.wiki.extract_image.file_post_not_found.app_error",
     "translation": "The post this file was attached to no longer exists."
   },
   {
     "id": "api.wiki.extract_image.missing_file_or_url.app_error",
     "translation": "Must provide either file ID or image URL."
+  },
+  {
+    "id": "api.wiki.extract_image.ssrf_blocked.app_error",
+    "translation": ""
   },
   {
     "id": "api.wiki.extract_image.url_too_long.app_error",
@@ -8361,6 +8369,14 @@
     "translation": "Wiki not found for page."
   },
   {
+    "id": "app.page.patch_props.no_valid_keys.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.page.patch_props.store_error.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.page.permanent_delete.app_error",
     "translation": "Unable to permanently delete the page."
   },
@@ -10685,10 +10701,6 @@
   {
     "id": "app.wiki.create_page.no_channel.app_error",
     "translation": "Cannot create a page: wiki has no associated channel."
-  },
-  {
-    "id": "app.wiki.delete.pages_failed",
-    "translation": "Failed to delete wiki pages."
   },
   {
     "id": "app.wiki.delete.wiki_record_failed",

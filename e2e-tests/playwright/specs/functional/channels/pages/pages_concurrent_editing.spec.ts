@@ -20,7 +20,6 @@ import {
     uniqueName,
     withRolePermissions,
     SHORT_WAIT,
-    MODAL_CLOSE_TIMEOUT,
     WEBSOCKET_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
@@ -1109,59 +1108,59 @@ async function provokeConflict(
  * plans/feedback-bugs-fix-plan.md A22. Currently the modal shows "Review and merge changes" and
  * the option calls history.push instead of transitioning state.
  */
-test(
-    'A22: Compare versions transitions to diff-view inside modal',
-    {tag: '@pages'},
-    async ({pw, sharedPagesSetup}) => {
-        const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
-            userAPublishedText: 'User A update',
-            userBDraftText: 'User B draft text',
-            pageTitlePrefix: 'A22 DiffView Page',
-        });
+test('A22: Compare versions transitions to diff-view inside modal', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
+        userAPublishedText: 'User A update',
+        userBDraftText: 'User B draft text',
+        pageTitlePrefix: 'A22 DiffView Page',
+    });
 
-        // * Assertion: option label is "Compare versions" (rename per A22 plan)
-        const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
-        await expect(compareOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // * Assertion: option label is "Compare versions" (rename per A22 plan)
+    const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
+    await expect(compareOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-        // # Transition to diff-view
-        const urlBefore = userBPage.url();
-        await compareOption.click();
-        const confirmInOptionSelect = conflictModal.getByRole('button', {name: /Confirm|Next/i});
-        if (await confirmInOptionSelect.isVisible()) {
-            await confirmInOptionSelect.click();
-        }
-        await userBPage.waitForTimeout(SHORT_WAIT);
+    // # Transition to diff-view
+    const urlBefore = userBPage.url();
+    await compareOption.click();
+    const confirmInOptionSelect = conflictModal.getByRole('button', {name: /Confirm|Next/i});
+    if (await confirmInOptionSelect.isVisible()) {
+        await confirmInOptionSelect.click();
+    }
+    await userBPage.waitForTimeout(SHORT_WAIT);
 
-        // * Assertions: URL unchanged, modal remains visible, diff panel renders both versions
-        await expect(userBPage).toHaveURL(urlBefore, {timeout: ELEMENT_TIMEOUT});
-        await expect(conflictModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        const diffPanel = userBPage.locator('[data-testid="conflict-diff-panel"], .conflict-diff-panel').first();
-        await expect(diffPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await expect(diffPanel).toContainText('User B draft text');
-        await expect(diffPanel).toContainText('User A update');
+    // * Assertions: URL unchanged, modal remains visible, diff panel renders both versions
+    await expect(userBPage).toHaveURL(urlBefore, {timeout: ELEMENT_TIMEOUT});
+    await expect(conflictModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    const diffPanel = userBPage.locator('[data-testid="conflict-diff-panel"], .conflict-diff-panel').first();
+    await expect(diffPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(diffPanel).toContainText('User B draft text');
+    await expect(diffPanel).toContainText('User A update');
 
-        // * Assertions: two scrollable panels with aria-label regions
-        const draftRegion = userBPage.getByRole('region', {name: /Your draft/i});
-        const publishedRegion = userBPage.getByRole('region', {name: /Published version/i});
-        await expect(draftRegion).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await expect(publishedRegion).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // * Assertions: two scrollable panels with aria-label regions
+    const draftRegion = userBPage.getByRole('region', {name: /Your draft/i});
+    const publishedRegion = userBPage.getByRole('region', {name: /Published version/i});
+    await expect(draftRegion).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(publishedRegion).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-        // * Assertion: at least one paragraph in each pane has diff-highlight class (paragraph hash differs)
-        const highlightedInDraft = draftRegion.locator('[class*="paragraph-diff"], [data-paragraph-changed="true"]').first();
-        const highlightedInPublished = publishedRegion.locator('[class*="paragraph-diff"], [data-paragraph-changed="true"]').first();
-        await expect(highlightedInDraft).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await expect(highlightedInPublished).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // * Assertion: at least one paragraph in each pane has diff-highlight class (paragraph hash differs)
+    const highlightedInDraft = draftRegion
+        .locator('[class*="paragraph-diff"], [data-paragraph-changed="true"]')
+        .first();
+    const highlightedInPublished = publishedRegion
+        .locator('[class*="paragraph-diff"], [data-paragraph-changed="true"]')
+        .first();
+    await expect(highlightedInDraft).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(highlightedInPublished).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-        // * Assertion: three action buttons with concrete labels and subtitles
-        await expect(conflictModal.getByRole('button', {name: /Overwrite published version/i})).toBeVisible();
-        await expect(conflictModal.getByRole('button', {name: /Keep published version/i})).toBeVisible();
-        await expect(conflictModal.getByRole('button', {name: /Back to my draft/i})).toBeVisible();
-        await expect(conflictModal).toContainText(/Your version replaces the published page/i);
-        await expect(conflictModal).toContainText(/The published version is kept; your draft is deleted/i);
+    // * Assertion: three action buttons with concrete labels and subtitles
+    await expect(conflictModal.getByRole('button', {name: /Overwrite published version/i})).toBeVisible();
+    await expect(conflictModal.getByRole('button', {name: /Keep published version/i})).toBeVisible();
+    await expect(conflictModal.getByRole('button', {name: /Back to my draft/i})).toBeVisible();
+    await expect(conflictModal).toContainText(/Your version replaces the published page/i);
+    await expect(conflictModal).toContainText(/The published version is kept; your draft is deleted/i);
 
-        await userBPage.close();
-    },
-);
+    await userBPage.close();
+});
 
 /**
  * @objective A22 — Verify the option-select state cannot be dismissed by Escape, no X button is
@@ -1202,37 +1201,35 @@ test(
  * @objective A22 — Verify identical draft+published content does NOT enter diff-view but instead
  * shows an inline notice and auto-closes within ~2 seconds.
  */
-test(
-    'A22: identical content shows inline notice and auto-closes',
-    {tag: '@pages'},
-    async ({pw, sharedPagesSetup}) => {
-        // Identical content: both User A and User B type the same text — the conflict still arises
-        // (Update-At timestamp mismatch) but content hashes match.
-        const sharedText = 'Shared identical content';
-        const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
-            userAPublishedText: sharedText,
-            userBDraftText: sharedText,
-            pageTitlePrefix: 'A22 Identical Page',
-        });
+test('A22: identical content shows inline notice and auto-closes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    // Identical content: both User A and User B type the same text — the conflict still arises
+    // (Update-At timestamp mismatch) but content hashes match.
+    const sharedText = 'Shared identical content';
+    const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
+        userAPublishedText: sharedText,
+        userBDraftText: sharedText,
+        pageTitlePrefix: 'A22 Identical Page',
+    });
 
-        const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
-        await compareOption.click();
-        const confirm = conflictModal.getByRole('button', {name: /Confirm|Next/i});
-        if (await confirm.isVisible()) {
-            await confirm.click();
-        }
+    const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
+    await compareOption.click();
+    const confirm = conflictModal.getByRole('button', {name: /Confirm|Next/i});
+    if (await confirm.isVisible()) {
+        await confirm.click();
+    }
 
-        // * Assertion: inline notice on option-select card, NO diff-view transition
-        await expect(conflictModal).toContainText(/Your draft matches the published version\./i, {timeout: ELEMENT_TIMEOUT});
-        const diffPanel = userBPage.locator('[data-testid="conflict-diff-panel"], .conflict-diff-panel').first();
-        await expect(diffPanel).not.toBeVisible();
+    // * Assertion: inline notice on option-select card, NO diff-view transition
+    await expect(conflictModal).toContainText(/Your draft matches the published version\./i, {
+        timeout: ELEMENT_TIMEOUT,
+    });
+    const diffPanel = userBPage.locator('[data-testid="conflict-diff-panel"], .conflict-diff-panel').first();
+    await expect(diffPanel).not.toBeVisible();
 
-        // * Assertion: modal auto-closes (2s timer + fade-out animation, allow 5s).
-        await expect(conflictModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // * Assertion: modal auto-closes (2s timer + fade-out animation, allow 5s).
+    await expect(conflictModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-        await userBPage.close();
-    },
-);
+    await userBPage.close();
+});
 
 /**
  * @objective A22 — Verify empty-content paths show explanatory text in the diff panes
@@ -1372,43 +1369,41 @@ test(
  * @objective A22 — Verify keyboard tab order in diff-view is:
  * Back button → left region → right region → action buttons.
  */
-test(
-    'A22: diff-view keyboard tab order',
-    {tag: '@pages'},
-    async ({pw, sharedPagesSetup}) => {
-        const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
-            userAPublishedText: 'User A update',
-            userBDraftText: 'User B draft',
-            pageTitlePrefix: 'A22 TabOrder Page',
-        });
+test('A22: diff-view keyboard tab order', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {userBPage, conflictModal} = await provokeConflict(pw, sharedPagesSetup, {
+        userAPublishedText: 'User A update',
+        userBDraftText: 'User B draft',
+        pageTitlePrefix: 'A22 TabOrder Page',
+    });
 
-        const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
-        await compareOption.click();
-        const confirm = conflictModal.getByRole('button', {name: /Confirm|Next/i});
-        if (await confirm.isVisible()) {
-            await confirm.click();
-        }
+    const compareOption = conflictModal.getByRole('button', {name: 'Compare versions', exact: true});
+    await compareOption.click();
+    const confirm = conflictModal.getByRole('button', {name: /Confirm|Next/i});
+    if (await confirm.isVisible()) {
+        await confirm.click();
+    }
 
-        // # Focus the Back button explicitly as the starting point
-        const backBtn = conflictModal.getByRole('button', {name: /Back to my draft/i});
-        await backBtn.focus();
+    // # Focus the Back button explicitly as the starting point
+    const backBtn = conflictModal.getByRole('button', {name: /Back to my draft/i});
+    await backBtn.focus();
 
-        // * Sequence of focused elements after consecutive Tab presses
-        const focusedRoles: string[] = [];
-        for (let i = 0; i < 4; i++) {
-            await userBPage.keyboard.press('Tab');
-            const role = await userBPage.evaluate(() => document.activeElement?.getAttribute('role') ?? document.activeElement?.tagName ?? '');
-            focusedRoles.push(role);
-        }
+    // * Sequence of focused elements after consecutive Tab presses
+    const focusedRoles: string[] = [];
+    for (let i = 0; i < 4; i++) {
+        await userBPage.keyboard.press('Tab');
+        const role = await userBPage.evaluate(
+            () => document.activeElement?.getAttribute('role') ?? document.activeElement?.tagName ?? '',
+        );
+        focusedRoles.push(role);
+    }
 
-        // First Tab → left region (role=region), second → right region, third+ → action buttons
-        expect(focusedRoles[0]?.toLowerCase(), 'First Tab from Back must land on left region').toMatch(/region/i);
-        expect(focusedRoles[1]?.toLowerCase(), 'Second Tab must land on right region').toMatch(/region/i);
-        expect(focusedRoles[2]?.toLowerCase(), 'Third Tab must land on an action button').toMatch(/button/i);
+    // First Tab → left region (role=region), second → right region, third+ → action buttons
+    expect(focusedRoles[0]?.toLowerCase(), 'First Tab from Back must land on left region').toMatch(/region/i);
+    expect(focusedRoles[1]?.toLowerCase(), 'Second Tab must land on right region').toMatch(/region/i);
+    expect(focusedRoles[2]?.toLowerCase(), 'Third Tab must land on an action button').toMatch(/button/i);
 
-        await userBPage.close();
-    },
-);
+    await userBPage.close();
+});
 
 /**
  * @objective A22 — Verify "Back to my draft" exits diff-view via onContinueEditing, and the

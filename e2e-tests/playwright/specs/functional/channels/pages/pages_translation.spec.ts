@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Page} from '@playwright/test';
+
 import {configureAIPlugin, shouldSkipAITests} from '@mattermost/playwright-lib';
 
 import {expect, test} from './pages_test_fixture';
@@ -23,8 +25,6 @@ import {
     PAGE_LOAD_TIMEOUT,
     SHORT_WAIT,
 } from './test_helpers';
-
-import type {Page} from '@playwright/test';
 
 // The rewrite menu mounts asynchronously; `#translate-submenu` is inside a portal.
 // Target both by stable DOM id — accessible-name matches are flaky for portaled menuitems.
