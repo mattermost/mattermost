@@ -63,6 +63,10 @@ func (sp *ShareProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 }
 
 func (sp *ShareProvider) GetAutoCompleteListItems(rctx request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+	if !a.HasPermissionTo(commandArgs.UserId, model.PermissionManageSharedChannels) {
+		return []model.AutocompleteListItem{}, nil
+	}
+
 	switch {
 	case strings.Contains(parsed, " share "):
 
