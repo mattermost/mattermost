@@ -4610,3 +4610,60 @@ func TestMergeStoredPolicyExpressions_ActionsEditableWhenNoMasking(t *testing.T)
 	assert.Equal(t, []string{model.AccessControlPolicyActionUploadFileAttachment}, submittedPolicy.Rules[0].Actions)
 	mockACS.AssertExpectations(t)
 }
+
+// TestRejectMaskedTokens_NewPolicy verifies that a surviving masked token in a
+// rule expression is rejected — merge should have replaced it with a real value.
+func TestRejectMaskedTokens_NewPolicy(t *testing.T) {
+	tok := maskedTokenValue
+
+	tests := []struct {
+		name    string
+		rules   []model.AccessControlPolicyRule
+		wantErr bool
+	}{
+		{
+			name: "expression with token is rejected",
+			rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership},
+					Expression: `user.attributes.team == "` + tok + `"`},
+			},
+			wantErr: true,
+		},
+		{
+			name: "token inside a list is rejected",
+			rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership},
+					Expression: `user.attributes.team in ["Alpha", "` + tok + `"]`},
+			},
+			wantErr: true,
+		},
+		{
+			name: "clean expression passes",
+			rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership},
+					Expression: `user.attributes.team == "Engineering"`},
+			},
+			wantErr: false,
+		},
+		{
+			name: "empty expression passes",
+			rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership},
+					Expression: ""},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			policy := &model.AccessControlPolicy{Rules: tt.rules}
+			err := rejectMaskedTokens(policy)
+			if tt.wantErr {
+				require.NotNil(t, err, "expected rejectMaskedTokens to return an error")
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}

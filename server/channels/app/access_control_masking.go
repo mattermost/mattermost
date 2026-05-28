@@ -309,6 +309,20 @@ func filterConditionValues(condition *model.Condition, visibleNames map[string]s
 // maskedTokenValue is the sentinel the frontend uses for masked values; never a valid attribute value.
 const maskedTokenValue = "--------"
 
+// rejectMaskedTokens rejects any rule expression that still contains the masked
+// token after merge — merge should have replaced it with the real stored value.
+func rejectMaskedTokens(policy *model.AccessControlPolicy) *model.AppError {
+	for _, rule := range policy.Rules {
+		if strings.Contains(rule.Expression, maskedTokenValue) {
+			return model.NewAppError("CreateOrUpdateAccessControlPolicy",
+				"app.pap.save_policy.masked_token_in_expression", nil,
+				"expression contains a masked token that could not be resolved to a stored value",
+				http.StatusBadRequest)
+		}
+	}
+	return nil
+}
+
 // validatePolicyExpressionValues checks that all submitted literal values are held by the caller.
 // Returns the same generic error for every rejection to prevent value enumeration.
 func (a *App) validatePolicyExpressionValues(rctx request.CTX, policy *model.AccessControlPolicy, resolver model.MaskingFieldResolver) *model.AppError {

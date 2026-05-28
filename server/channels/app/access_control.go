@@ -143,6 +143,11 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 			return nil, appErr
 		}
 
+		// Guard against persisting the sentinel as a real value.
+		if appErr := rejectMaskedTokens(policy); appErr != nil {
+			return nil, appErr
+		}
+
 		// Self-inclusion check applies only to non-admins. System admins may
 		// legitimately set conditions for attributes they do not personally hold
 		// (e.g., creating a "Clearance == Top Secret" rule without holding that

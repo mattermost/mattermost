@@ -8,10 +8,13 @@ package model
 type MaskingFieldAccessMode int
 
 const (
-	MaskingFieldAccessUnknown    MaskingFieldAccessMode = iota
-	MaskingFieldAccessPublic                            // all values visible to every caller
-	MaskingFieldAccessSharedOnly                        // caller sees only values they themselves hold
-	MaskingFieldAccessSourceOnly                        // values never visible to callers
+	MaskingFieldAccessUnknown MaskingFieldAccessMode = iota
+	// MaskingFieldAccessPublic means all values are visible to every caller.
+	MaskingFieldAccessPublic
+	// MaskingFieldAccessSharedOnly means the caller sees only values they themselves hold.
+	MaskingFieldAccessSharedOnly
+	// MaskingFieldAccessSourceOnly means values are never visible to callers.
+	MaskingFieldAccessSourceOnly
 )
 
 // MaskingTokenValue is the sentinel string written into masked CEL expressions

@@ -7725,6 +7725,10 @@
     "translation": "You cannot remove a rule that contains attribute values you do not have permission to view."
   },
   {
+    "id": "app.pap.save_policy.masked_token_in_expression",
+    "translation": "The policy expression contains a placeholder value that could not be resolved. Please reload the policy and try again."
+  },
+  {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "A policy with this name already exists. Please choose a different name."
   },
