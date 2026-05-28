@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"net/http"
 	"testing"
 	"time"
 
@@ -275,6 +276,59 @@ func TestCardAPIPatchByNonOwner(t *testing.T) {
 	rpost, _, err := th.Client.PatchCard(context.Background(), cardPost.Id, patch)
 	require.NoError(t, err)
 	assert.Equal(t, "patched by user2", rpost.Message)
+}
+
+func TestPermanentDeleteCard(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	enableAPIPostDeletion := *th.App.Config().ServiceSettings.EnableAPIPostDeletion
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPIPostDeletion = &enableAPIPostDeletion })
+
+	createCard := func(t *testing.T) *model.Post {
+		card, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "card to permanently delete",
+			Type:      model.PostTypeCard,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		return card
+	}
+
+	t.Run("501 when EnableAPIPostDeletion is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIPostDeletion = false })
+		card := createCard(t)
+
+		resp, err := th.SystemAdminClient.PermanentDeleteCard(context.Background(), card.Id)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("403 for non-admin user", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIPostDeletion = true })
+		card := createCard(t)
+
+		resp, err := th.Client.PermanentDeleteCard(context.Background(), card.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("200 for system admin and post is gone", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIPostDeletion = true })
+		card := createCard(t)
+
+		_, err := th.SystemAdminClient.PermanentDeleteCard(context.Background(), card.Id)
+		require.NoError(t, err)
+
+		// Even with includeDeleted=true the post should be gone from the store.
+		_, appErr := th.App.GetSinglePost(th.Context, card.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
 }
 
 func TestGetCardEditHistoryForPost(t *testing.T) {
